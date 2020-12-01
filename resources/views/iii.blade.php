@@ -12,10 +12,6 @@
 					<td>ERP Status</td>
 					<td>MES Production Order</td>
 					<td>MES Status</td>
-
-
-					Albert Gregorio
-					
 				</tr>
 				@foreach($not_started as $i)
 				<tr>
