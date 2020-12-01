@@ -14,7 +14,7 @@
 					<td>MES Status</td>
 
 
-					Albert Gregorio
+					Albert Gregorio IT Dept
 					
 				</tr>
 				@foreach($not_started as $i)
