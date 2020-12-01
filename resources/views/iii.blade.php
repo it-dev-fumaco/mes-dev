@@ -14,7 +14,11 @@
 					<td>MES Status</td>
 
 
+<<<<<<< HEAD
 					Albert Gregorio Dela Cruz 12345555555
+=======
+					Albert Gregorio IT Dept
+>>>>>>> 07088f95d07c68187be7c449a0ea9e464c7704d1
 					
 				</tr>
 				@foreach($not_started as $i)
