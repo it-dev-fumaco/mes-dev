@@ -4,6 +4,7 @@
 /storage/*.key
 /vendor
 /.idea
+/storage/framework
 /.vscode
 /nbproject
 /.vagrant
