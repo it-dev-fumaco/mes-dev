@@ -701,36 +701,6 @@
    </div>
 </div>
 
-<!-- Modal Cancel Production Order -->
-<div class="modal fade" id="cancel-production-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <form action="/cancel_production_order" method="POST">
-      @csrf
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12">
-              <input type="hidden" name="id">
-              <input type="hidden" name="production_order">
-              <p style="font-size: 14pt; margin: 0;" class="text-center">Cancel Production Order <b><span></span></b>?</p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer" style="padding: 5px 10px;">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- Modal Confirm Feedback Production Order -->
 <div class="modal fade" id="confirm-feedback-production-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document" style="min-width: 55%;">

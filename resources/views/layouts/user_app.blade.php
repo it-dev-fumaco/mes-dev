@@ -635,7 +635,8 @@
 
   .modal { overflow: auto !important; }
   </style>
-
+    
+    @include('modals.return_required_item_modal')
     @include('modals.add_required_item_modal')
 	  @include('modals.edit_required_item_modal')
     @include('modals.delete_required_item_modal')
@@ -661,6 +662,97 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+
+    function get_items_for_return(production_order){
+    $.ajax({
+      url:"/get_items_for_return/" + production_order,
+      type:"GET",
+      success:function(data){
+        $('#items-for-return-table').html(data);
+      },
+      error : function(data) {
+        console.log(data.responseText);
+      }
+    });
+  }
+
+  $(document).on('click', '.cancel-production-btn', function(e){
+    e.preventDefault();
+    var production_order = $(this).data('production-order');
+
+    $('#cancel-production-modal input[name="production_order"]').val(production_order);
+    $('#cancel-production-modal .modal-title').text('Cancel Production Order');
+    $('#cancel-production-modal span').eq(1).text(production_order);
+    get_items_for_return(production_order);
+    $('#cancel-production-modal').modal('show');
+  });
+
+  $('#cancel-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/cancel_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#cancel-production-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+
+  $(document).on('click', '.return-required-item-btn', function(e){
+    e.preventDefault();
+
+    var $row = $(this).closest('tr');
+
+    $('#return-required-item-modal form input[name="production_order"]').val($(this).data('production-order'));
+    
+    $('#return-required-item-modal form input[name="sted_id"]').val($(this).data('sted-id'));
+    $('#return-required-item-modal form input[name="target_warehouse"]').val($row.find('.target-warehouse').eq(0).text());
+    $('#return-required-item-modal form input[name="source_warehouse"]').val($row.find('.source-warehouse').eq(0).text());
+    $('#return-required-item-modal form input[name="item_code"]').val($row.find('.item-code').eq(0).text());
+    $('#return-required-item-modal form input[name="qty"]').val($row.find('.qty').eq(0).text());
+    $('#return-required-item-modal form input[name="qty_to_return"]').val($row.find('.qty').eq(0).text());
+    $('#return-required-item-modal').modal('show');
+  });
+
+  $('#return-required-item-modal form').submit(function(e){
+    e.preventDefault();
+    var production_order = $('#return-required-item-modal form input[name="production_order"]').val();
+     
+    $.ajax({
+      url: $(this).attr('action'),
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(response){
+        console.log(response);
+        if (response.status == 0) {
+          showNotification("danger", response.message, "now-ui-icons travel_info");
+        }else if(response.status == 2){
+          showNotification("info", response.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", response.message, "now-ui-icons ui-1_check");
+          get_stock_entry_items(production_order);
+          $('#return-required-item-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
 
     $(document).on('click', '[data-toggle="lightbox"]', function(event) {
       event.preventDefault();

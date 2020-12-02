@@ -195,6 +195,8 @@ Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'Seco
 
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	Route::post('/create_material_transfer_for_return', 'ManufacturingController@create_material_transfer_for_return');
+	Route::get('/get_items_for_return/{production_order}', 'ManufacturingController@get_items_for_return');
 
 	// assembly wizard
 	Route::get('/assembly/wizard', 'AssemblyController@wizard');
