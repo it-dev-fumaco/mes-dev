@@ -1,5 +1,5 @@
 <div class="row">
-   <div class="col-md-12">
+   <div class="col-md-12 p-1">
       <!-- Nav tabs -->
       <ul class="nav nav-tabs" id="qi-tabs-1" role="tablist" style="display: none;">
          @php
@@ -19,14 +19,13 @@
          <li class="nav-item">
             <a class="nav-link custom-tabs-1" id="tablast" data-toggle="tab" href="#tablast-inspection" role="tab" aria-controls="tablast" aria-selected="false">Inspection Result</a>
          </li>
-       </ul>
-       <!-- Tab panes -->
-       <form action="/submit_quality_inspection" method="POST" id="quality-inspection-frm">
-          @csrf
-          
-          <div class="tab-content" style="min-height: 500px;" id="inspection-tabs">
+      </ul>
+      <!-- Tab panes -->
+      <form action="/submit_quality_inspection" method="POST" id="quality-inspection-frm">
+         @csrf
+         <div class="tab-content" style="min-height: 500px;" id="inspection-tabs">
             @php
-                $index = 0;
+               $index = 0;
             @endphp
             @foreach($checklist as $category => $list)
             @php
@@ -35,8 +34,8 @@
             <div class="tab-pane {{ ($loop->first) ? 'active' : '' }}" id="tab{{ $tab }}-inspection" role="tabpanel" aria-labelledby="tab{{ $tab }}">
                <input type="hidden" name="reject_level" value="{{ $reject_levels[$index] }}">
                <input type="hidden" name="sample_size" value="{{ $sample_sizes[$index] }}">
-               <div class="row" style="min-height: 420px;">
-                  <div class="col-md-6">
+               <div class="row p-0 m-0" style="min-height: 420px;">
+                  <div class="col-md-7">
                      <input type="hidden" id="tab{{ $tab }}-inspection-validated-sample-size" value="1">
                      <span class="reject-level" style="display: none;">{{ $reject_levels[$index] }}</span>
                      <table style="width: 100%;">
@@ -44,65 +43,103 @@
                            <td style="font-size: 12pt; padding: 3px 3px 0 3px;"><b>{{ $production_order_details->production_order }} - {{ $production_order_details->item_code }}</b></td>
                            <td class="text-right" style="font-size: 12pt; padding: 3px 3px 0 3px;">Sample Size: <span class="sample-size font-weight-bold">{{ $sample_sizes[$index] }}</span></td>
                         </tr>
-                        {{--  <tr>
-                           <td colspan="2" style="font-size: 12pt; padding: 3px 3px 0 3px;"><b>{{ $workstation_details->workstation_name }} - {{ $process_details->process_name }}</b></td>
-                        </tr>
-                        <tr>
-                           <td colspan="2" style="padding: 8px 3px 0 3px;"><b>{{ $production_order_details->item_code }}</b> - {{ $production_order_details->description }}</td>
-                        </tr>  --}}
                      </table>
                      @foreach($list as $ind => $result)
-                        <div class="form">
+                        <div class="form p-0">
                            <h6 class="text-center"><span class="checklist-category">{{ $ind }}</span> - {{ $category }}</h6>
                            @if($loop->first)
                               <span class="chklist-cat" style="display: none;">No {{ $category }} found.</span>
                            @endif
-                           @forelse($result as $i => $row)
-                        
                            @if(stripos($ind, 'Variable') !== false)
-                           @if(strtolower($row->reject_checklist) == 'material type')
-                           <div class="inputGroup" style="width: 60%;float: left;">
-                              <input id="option{{ $row->reject_list_id }}" name="option{{ $row->reject_list_id }}" type="checkbox" class="qc-chk" data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" />
-                              <label for="option{{ $row->reject_list_id }}">{{ $row->reject_checklist }}</label>
+                              <table style="width: 100%;">
+                                 <col style="width: 70%;">
+                                 <col style="width: 30%;">
+                                 @foreach ($result as $r)
+                                    @if(strtolower($r->reject_checklist) == 'material type')
+                                    <tr>
+                                       <td>
+                                          <div class="inputGroup m-1">
+                                             <input id="option{{ $r->reject_list_id }}" name="option{{ $r->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r->reject_reason }}" value="{{ $r->reject_list_id }}" />
+                                             <label for="option{{ $r->reject_list_id }}">{{ $r->reject_checklist }}</label>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="form-group m-1">
+                                             <select class="form-control form-control-lg" id="option{{ $r->reject_list_id }}-input">
+                                                <option value=""></option>
+                                                <option value="CRS">CRS</option>
+                                                <option value="HRS">HRS</option>
+                                                <option value="Aluminum">Aluminum</option>
+                                             </select>
+                                          </div>   
+                                       </td>
+                                    </tr>
+                                    @endif
+                                    @if(strtolower($r->reject_checklist) != 'material type')
+                                    <tr>
+                                       <td>
+                                          <div class="inputGroup m-1">
+                                             <input id="option{{ $r->reject_list_id }}" name="option{{ $r->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r->reject_reason }}" value="{{ $r->reject_list_id }}" />
+                                             <label for="option{{ $r->reject_list_id }}">{{ $r->reject_checklist }}</label>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="input-group m-1 text-center">
+                                             <input type="text" class="form-control form-control-lg qty-input" data-edit="1" id="option{{ $r->reject_list_id }}-input" value="0" readonly  style="background-color:#E5E8E8;">
+                                             <div class="input-group-append text-center">
+                                             <span class="input-group-text" style="border-radius: 0px; background-color:#E5E8E8;">mm</span>
+                                             </div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                    @endif
+                                 @endforeach
+                              </table>
+                              @else
+                                 @php
+                                    $limit = ceil(count($result) / 2)
+                                 @endphp
+                                 @if ($limit > 1)
+                                 <div class="row p-0 m-0">
+                                    @foreach ($result->chunk($limit) as $res)
+                                    <div class="col-md-6 p-0">
+                                       <ul class="list-unstyled">
+                                          @foreach ($res as $r0)
+                                          <li class="p-1 d-block">
+                                             <div class="inputGroup">
+                                                <input id="option{{ $r0->reject_list_id }}" name="option{{ $r0->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r0->reject_reason }}" value="{{ $r0->reject_list_id }}" />
+                                                <label for="option{{ $r0->reject_list_id }}"><p style="line-height: 1.6;">{{ $r0->reject_checklist }}</p></label>
+                                             </div>
+                                          </li>
+                                          @endforeach
+                                       </ul>
+                                    </div>
+                                    @endforeach
+                                 </div>
+                                 @else
+                                 <div class="row">
+                                    <div class="col-md-12 pr-3 pl-3">
+                                       <ul class="list-unstyled">
+                                          @foreach ($result as $r1)
+                                             <li class="p-1 d-block">
+                                                <div class="inputGroup">
+                                                   <input id="option{{ $r1->reject_list_id }}" name="option{{ $r1->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r1->reject_reason }}" value="{{ $r1->reject_list_id }}" />
+                                                   <label for="option{{ $r1->reject_list_id }}">{{ $r1->reject_checklist }}</label>
+                                                </div>
+                                             </li>
+                                          @endforeach
+                                       </ul>
+                                    </div>
+                                 </div>
+                                 @endif
+                              @endif
                            </div>
-                           <div class="form-group" style="width: 40%; float: left;">
-                              <select class="form-control form-control-lg" id="option{{ $row->reject_list_id }}-input">
-                                 <option value=""></option>
-                                 <option value="CRS">CRS</option>
-                                 <option value="HRS">HRS</option>
-                                 <option value="Aluminum">Aluminum</option>
-                              </select>
-                           </div>                           
-                           @endif
-                           @if(strtolower($row->reject_checklist) != 'material type')
-                           <div class="inputGroup" style="width: 60%;float: left;">
-                              <input id="option{{ $row->reject_list_id }}" name="option{{ $row->reject_list_id }}" type="checkbox" class="qc-chk" data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" />
-                              <label for="option{{ $row->reject_list_id }}">{{ $row->reject_checklist }}</label>
-                           </div>
-                           <div class="input-group text-center" style="width: 40%; float: left;">
-                              <input type="text" class="form-control form-control-lg qty-input" data-edit="1" id="option{{ $row->reject_list_id }}-input" value="0" readonly  style="background-color:#E5E8E8;">
-                              <div class="input-group-append text-center">
-                              <span class="input-group-text" style="border-radius: 0px; background-color:#E5E8E8;">mm</span>
-                              </div>
-                           </div>
-                           @endif
-                           @else
-                           <div class="inputGroup">
-                              <input id="option{{ $row->reject_list_id }}" name="option{{ $row->reject_list_id }}" type="checkbox" class="qc-chk" data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" />
-                              <label for="option{{ $row->reject_list_id }}">{{ $row->reject_checklist }}</label>
-                              <input type="hidden" class="form-control form-control-lg qty-input" data-edit="1" id="option{{ $row->reject_list_id }}-input" value="-" readonly>
-                           </div>
-                           @endif
-                           @empty
-                              No Checklist found.
-                           @endforelse
-                        </div>
-                     @endforeach
-                  </div>
+                        @endforeach
+                     </div>
                   @php
                      $index = $index + 1;
                   @endphp
-                 <div class="col-md-6">
+                  <div class="col-md-5">
                      <div class="row">
                         <div class="col-md-4">
                            <div class="form-group text-center">
@@ -148,6 +185,14 @@
                            <span class="numpad del"><</span>
                            <span class="numpad num">0</span>
                            <span class="numpad num">.</span>
+                        </div>
+                     </div>
+                     <div class="row form mt-5">
+                        <div class="col-md-12">
+                           <div class="inputGroup">
+                              <input id="select-all-{{ $tab }}" class="select-all-checklist-per-tab" type="checkbox" />
+                              <label for="select-all-{{ $tab }}">Select All</label>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -273,14 +318,16 @@
  
  <style type="text/css">
  .inputGroup {
- background-color: #fff;
  display: block;
- margin: 5px 0;
+ margin: 0;
  position: relative;
+ width: 100%;
  }
  .inputGroup label {
- padding: 3px 20px 3px 60px;
+ padding: 5px 20px 5px 47px;
  width: 100%;
+ height: 100%;
+ margin: 0;
  display: block;
  text-align: left;
  color: #3C454C;
@@ -317,7 +364,7 @@
  border-radius: 50%;
  z-index: 2;
  position: absolute;
- left: 20px;
+ left: 10px;
  top: 50%;
  -webkit-transform: translateY(-50%);
  transform: translateY(-50%);

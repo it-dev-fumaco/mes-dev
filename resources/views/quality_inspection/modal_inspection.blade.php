@@ -1,6 +1,6 @@
 <!-- Modal -->
 <div class="modal fade" id="quality-inspection-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document">
+   <div class="modal-dialog modal-lg" role="document" style="min-width: 95%;">
       <div class="modal-content">
          <div class="modal-header text-white" style="background-color: #f57f17;">
             <h5 class="modal-title">&nbsp;
