@@ -1442,7 +1442,7 @@ class ManufacturingController extends Controller
                     'required_qty' => collect($required_transferred_qty)->sum('required_qty'),
                     'requested_qty' => $item->qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => collect($required_transferred_qty)->sum('transferred_qty'),
+                    'transferred_qty' => $issued_qty,
                     'issued_qty' => $issued_qty,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->s_warehouse),
                     'production_order' => null,
@@ -1830,7 +1830,6 @@ class ManufacturingController extends Controller
                     'available_qty_at_source_warehouse' => 0,
                     'available_qty_at_wip_warehouse' => 0, 
                     'source_warehouse' => $request->source_warehouse[$id],
-                    'not_included_in_bom' => 1
                 ];
 
                 DB::connection('mysql')->table('tabProduction Order Item')->insert($production_order_item);
@@ -1900,6 +1899,7 @@ class ManufacturingController extends Controller
                     'date_modified' => null,
                     'session_user' => null,
                     'remarks' => null,
+                    'production_order_req_item_id' => $production_order_required_item_id
                 ];
 
                 $stock_entry_data = [
