@@ -4372,7 +4372,7 @@ class MainController extends Controller
 				->where('name', $production_order)->first();
 
 			$produced_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
-			if($produced_qty >= (int)$production_order_details->qty && $production_order_details->material_transferred_for_manufacturing > 0){
+			if($produced_qty < (int)$production_order_details->qty){
 				$pending_mtfm_count = DB::connection('mysql')->table('tabStock Entry as ste')
 					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 					->where('ste.production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
@@ -4395,9 +4395,7 @@ class MainController extends Controller
 			$new_id = 'STEM-'.$new_id;
 
 			$production_order_items = DB::connection('mysql')->table('tabProduction Order Item')
-				->where('parent', $production_order)
-				// ->where('transferred_qty', '>', 0)
-				->get();
+				->where('parent', $production_order)->where('transferred_qty', '>', 0)->get();
 
 			$receiving_warehouse = ['P2 - Housing Temporary - FI1'];
 			$docstatus = (in_array($mes_production_order_details->fg_warehouse, $receiving_warehouse)) ? 0 : 1;
@@ -4425,13 +4423,8 @@ class MainController extends Controller
 				
 				$qty = $qty_per_item * $request->fg_completed_qty;
 
-				$is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first()->must_be_whole_number;
-				if($is_uom_whole_number && $is_uom_whole_number == 1){
-					$qty = round($qty);
-				}
-
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
-					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');				
+					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
 
 				$consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
 					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
@@ -4439,12 +4432,10 @@ class MainController extends Controller
 					->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
 					->where('ste.docstatus', 1)->sum('qty');
 
-				if($produced_qty >= (int)$production_order_details->qty){
-					$qty = $row->required_qty - ($row->transferred_qty - $consumed_qty);
-				}
+				$remaining_qty = $row->transferred_qty - $consumed_qty;
 
 				if($docstatus == 1){
-					if($qty > $actual_qty){
+					if($remaining_qty > $actual_qty){
 						return response()->json(['success' => 0, 'message' => 'Insufficient stock for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
 					}
 				}
@@ -4461,7 +4452,7 @@ class MainController extends Controller
 					'parenttype' => 'Stock Entry',
 					'idx' => $index + 1,
 					't_warehouse' => null,
-					'transfer_qty' => $qty,
+					'transfer_qty' => $remaining_qty,
 					'serial_no' => null,
 					'expense_account' => 'Cost of Goods Sold - FI',
 					'cost_center' => 'Main - FI',
@@ -4471,7 +4462,7 @@ class MainController extends Controller
 					'image' => null,
 					'additional_cost' => 0,
 					'stock_uom' => $row->stock_uom,
-					'basic_amount' => $base_rate * $qty,
+					'basic_amount' => $base_rate * $remaining_qty,
 					'sample_quantity' => 0,
 					'uom' => $row->stock_uom,
 					'basic_rate' => $base_rate,
@@ -4480,11 +4471,11 @@ class MainController extends Controller
 					'conversion_factor' => ($bom_material) ? $bom_material->conversion_factor : 1,
 					'item_code' => $row->item_code,
 					'retain_sample' => 0,
-					'qty' => $qty,
+					'qty' => $remaining_qty,
 					'bom_no' => null,
 					'allow_zero_valuation_rate' => 0,
 					'material_request_item' => null,
-					'amount' => $base_rate * $qty,
+					'amount' => $base_rate * $remaining_qty,
 					'batch_no' => null,
 					'valuation_rate' => $base_rate,
 					'material_request' => null,
@@ -4653,32 +4644,32 @@ class MainController extends Controller
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}
-			// $data = array(
-            //     'posting_date'  => $now->format('Y-m-d'),
-            //     'posting_time'  => $now->format('H:i:s'),
-            //     'ste'           => $new_id,
-			// 	'sales_order_no'=> $mes_production_order_details->sales_order,
-			// 	'mreq'			=> $production_order_details->material_request,
-            //     'item_code'     => $production_order_details->production_item,
-			// 	'item_name'     => $production_order_details->item_name,
-			// 	'customer'		=> $mes_production_order_details->customer,
-			// 	'feedbacked_by' => Auth::user()->email,
-			// 	'completed_qty' => $request->fg_completed_qty, 
-			// 	'uom'			=> $production_order_details->stock_uom
-			// );
-			// $recipient= DB::connection('mysql_mes')
-            //     ->table('email_trans_recipient')
-			// 	->where('email_trans', "Feedbacking")
-			// 	->where('email', 'like','%@fumaco.local%')
-            //     ->select('email')
-            //     ->get();
-			// if(count($recipient) > 0){
-			// 	if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
-			// 		foreach ($recipient as $row) {
-			// 			Mail::to($row->email)->send(new SendMail_feedbacking($data));
-			// 		}	
-			// 	}
-			// }
+			$data = array(
+                'posting_date'  => $now->format('Y-m-d'),
+                'posting_time'  => $now->format('H:i:s'),
+                'ste'           => $new_id,
+				'sales_order_no'=> $mes_production_order_details->sales_order,
+				'mreq'			=> $production_order_details->material_request,
+                'item_code'     => $production_order_details->production_item,
+				'item_name'     => $production_order_details->item_name,
+				'customer'		=> $mes_production_order_details->customer,
+				'feedbacked_by' => Auth::user()->email,
+				'completed_qty' => $request->fg_completed_qty, 
+				'uom'			=> $production_order_details->stock_uom
+			);
+			$recipient= DB::connection('mysql_mes')
+                ->table('email_trans_recipient')
+				->where('email_trans', "Feedbacking")
+				->where('email', 'like','%@fumaco.local%')
+                ->select('email')
+                ->get();
+			if(count($recipient) > 0){
+				if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
+					foreach ($recipient as $row) {
+						Mail::to($row->email)->send(new SendMail_feedbacking($data));
+					}	
+				}
+			}
 			$feedbacked_timelogs = [
                 'production_order'  => $mes_production_order_details->production_order,
                 'ste_no'           => $new_id,
@@ -5238,29 +5229,6 @@ class MainController extends Controller
 		DB::connection('mysql')->beginTransaction();
 		try {
 			$now = Carbon::now();
-			$sted_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $sted_id)->first();
-			if($sted_detail && $sted_detail->production_order_req_item_id){	
-				$production_required_item_detail = DB::connection('mysql')->table('tabProduction Order Item')
-					->where('name', $sted_detail->production_order_req_item_id)->first();
-
-				$remaining_required_qty = $production_required_item_detail->required_qty - $sted_detail->qty;
-
-				if($remaining_required_qty <= 0){
-					DB::connection('mysql')->table('tabProduction Order Item')
-						->where('name', $sted_detail->production_order_req_item_id)->delete();
-				}else{
-					$q = [
-						'modified' => $now->toDateTimeString(),
-						'modified_by' => Auth::user()->email,
-						'required_qty' => $remaining_required_qty,
-					];
-		
-					DB::connection('mysql')->table('tabProduction Order Item')
-						->where('name', $sted_detail->production_order_req_item_id)
-						->update($q);
-				}
-			}
-
 			// delete ste detail
 			DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $sted_id)->where('docstatus', 0)->delete();
 

@@ -42,10 +42,10 @@ return [
 
         'mysql_essex' => [
             'driver' => 'mysql',
-            'host' => '10.0.1.116',
+            'host' => '10.0.0.5',
             'port' => '3306',
             'database' => 'essex',
-            'username' => 'testing',
+            'username' => 'albert',
             'password' => 'fumaco',
             'unix_socket' => '',
             'charset' => 'utf8mb4',
@@ -59,12 +59,12 @@ return [
         // ERP Connection
         'mysql' => [
             'driver' => 'mysql',
-            'host' => '10.0.1.85',
-            'port' => '3306',
-            'database' => '3f2ec5a818bccb73',
-            'username' => 'erp',
-            'password' => 'fumaco',
-            'unix_socket' => '',
+            'host' => env('DB_HOST2', '10.0.0.83'),
+            'port' => env('DB_PORT2', '3306'),
+            'database' => env('DB_DATABASE2', '3f2ec5a818bccb73'),
+            'username' => env('DB_USERNAME2', 'mes'),
+            'password' => env('DB_PASSWORD2', 'fumaco'),
+            'unix_socket' => env('DB_SOCKET2', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
@@ -101,10 +101,10 @@ return [
 
         'mysql_mes' => [
             'driver' => 'mysql',
-            'host' => '10.0.0.82',
+            'host' => '10.0.0.93',
             'port' => '3306',
-            'database' => 'mes_testing',
-            'username' => 'it2',
+            'database' => 'mes',
+            'username' => 'mes',
             'password' => 'fumaco',
             'unix_socket' => '',
             'charset' => 'utf8mb4',

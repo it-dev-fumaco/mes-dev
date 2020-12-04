@@ -1093,12 +1093,7 @@ class AssemblyController extends Controller
                     DB::connection('mysql_mes')->table('assembly_conveyor_assignment')
                         ->where('assembly_conveyor_assignment_id', $id)->update($value);
                 }else{
-                    $existing_aca = DB::connection('mysql_mes')->table('assembly_conveyor_assignment')
-                        ->where('production_order', $pos[0])->exists();
-                    
-                    if(!$existing_aca){
-                        DB::connection('mysql_mes')->table('assembly_conveyor_assignment')->insert($values);
-                    }   
+                    DB::connection('mysql_mes')->table('assembly_conveyor_assignment')->insert($values);
                 }
             }
         }
