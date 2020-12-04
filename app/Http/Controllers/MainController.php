@@ -3687,6 +3687,15 @@ class MainController extends Controller
 	
 	public function reject_task(Request $request){
 		try {
+			if(empty($request->reject_list)){
+				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
+
+			}
+
+			$data= $request->all();
+			$reject_reason= $data['reject_list'];
+
+
 			$now = Carbon::now();
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
@@ -3714,12 +3723,15 @@ class MainController extends Controller
 
 			$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
 
-			$reason = [
-				'job_ticket_id' => $time_log->job_ticket_id,
-				'qa_id' => $qa_id,
-				'reject_list_id' => $request->reject_list_id,
-				'reject_value' => '-'
-			];
+			foreach($reject_reason as $i => $row){
+				$reason[] = [
+					'job_ticket_id' => $time_log->job_ticket_id,
+					'qa_id' => $qa_id,
+					'reject_list_id' => $row,
+					'reject_value' => '-'
+				];
+			}
+			
 
 			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			if($request->workstation != 'Spotwelding'){

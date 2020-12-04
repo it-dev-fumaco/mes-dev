@@ -736,14 +736,37 @@ class QualityInspectionController extends Controller
     }
 
     public function get_reject_types($workstation){
-        $workstation_id = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation)->first()->workstation_id;
-
-        return DB::connection('mysql_mes')->table('qa_checklist')
-            ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
+        $workstation_id = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation)->first();
+        if($workstation_id->operation_id == 1){
+            // $tab=[];
+            $tab= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
+            ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
             ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            ->where('qa_checklist.workstation_id', $workstation_id)
-            // ->where('reject_category.type', 'Operator Reject(s)')
+            ->where('opset.workstation_id', $workstation_id->workstation_id)
             ->get();
+            // dd($tab);
+            
+            $validation_tab="no_tab";
+        }else{
+            $data= DB::connection('mysql_mes')->table('reject_list')
+            ->where('material_type', '!=', 'Others')
+            ->where('owner', 'Operator')
+            ->get();
+
+            // $data= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
+            // ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
+            // ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+            // ->where('opset.workstation_id', $workstation_id->workstation_id)
+            // ->get();
+
+            $tab = $data->groupBy('material_type');
+
+            $tab->all();
+            $validation_tab="with_tab";
+
+        }
+        // dd($tab);
+            return view('tables.tbl_reject_reason', compact('tab', 'validation_tab'));
     }
 
     // public function submit_reject_confirmation(Request $request){
