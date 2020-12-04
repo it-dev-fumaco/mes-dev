@@ -116,7 +116,7 @@
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ ($component['required_qty'] > 0) ? $component['required_qty'] * 1 : $component['requested_qty'] * 1 }}</span>
+						<span class="d-block font-weight-bold required-qty">{{ $component['requested_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
