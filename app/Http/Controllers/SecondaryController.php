@@ -4262,12 +4262,17 @@ class SecondaryController extends Controller
     public function get_production_schedule_calendar($operation_id){
         
         $prod = DB::connection('mysql_mes')->table('production_order')
-                ->where('status','!=', 'Cancelled')
-                ->where('planned_start_date','!=', null)
-                ->distinct('customer','sales_order','material_request', 'production_order')
-                ->where('operation_id', $operation_id)
-                ->select('customer', 'sales_order', 'planned_start_date', 'material_request','delivery_date', 'production_order','status','item_code','qty_to_manufacture','description','stock_uom')
-                ->get();
+        ->join('delivery_date', function ($join) {
+            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
+            ->on('delivery_date.reference_no', '=', 'production_order.sales_order')
+            ->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); // inner join new delivery_date schedule to the query
+        })
+        ->where('production_order.status','!=', 'Cancelled')
+        ->where('production_order.planned_start_date','!=', null)
+        ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
+        ->where('production_order.operation_id', $operation_id)
+        ->select('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
+        ->get();
         // dd($prod);
 
         $data = array();
@@ -4303,7 +4308,7 @@ class SecondaryController extends Controller
                 'qty' => $rows->qty_to_manufacture,
                 'customer' => $rows->customer,
                 'sales_order'=> $guide_id,
-                'delivery_date'=>$rows->delivery_date
+                'delivery_date' => ($rows->rescheduled_delivery_date == null)? $rows->delivery_date: $rows->rescheduled_delivery_date, //show new reschedule delivery date or the current delivery date based on validation
             );
         }
         // dd($data);
@@ -7790,5 +7795,103 @@ class SecondaryController extends Controller
         DB::connection('mysql_mes')->table('operator_reject_list_setup')->where('operator_reject_list_setup_id', $request->check_list_id)->delete();
         return response()->json(['success' => 1, 'message' => 'Operator reject list setup successfully deleted!', 'reloadtbl' => $request->delete_op_reloadtbl]);
 
+    }
+    public function save_late_delivery_reason(Request $request){
+        //save late delivery reason from form to database
+        $now = Carbon::now();
+        $data = $request->all();
+        $reason= $data['late_delivery'];
+
+                foreach($reason as $i => $row){
+                    if (DB::connection('mysql_mes')
+                        ->table('delivery_reschedule_reason')
+                        ->where('reschedule_reason', $row)
+                        ->exists()){
+                        return response()->json(['success' => 0, 'message' => 'Late Delivery Reason - <b>'.$row.'</b> is already exist']);// validate if already exist in database
+                    }else{
+                        $list[] = [
+                            'reschedule_reason' => $row,
+                            'last_modified_by' => Auth::user()->email,
+                            'created_by' => Auth::user()->email,
+                            'created_at' => $now->toDateTimeString()
+                            ];
+                    } 
+            }
+            DB::connection('mysql_mes')->table('delivery_reschedule_reason')->insert($list);
+            return response()->json(['message' => 'New Late Delivery Reason is successfully inserted.']);
+    }
+    public function get_tbl_late_delivery(Request $request){
+        //show late delivery reason to table in setting module
+        $list = DB::connection('mysql_mes')->table('delivery_reschedule_reason')
+            ->where(function($q) use ($request) {
+                $q->where('reschedule_reason', 'LIKE', '%'.$request->search_string.'%');
+            })
+            ->orderBy('reschedule_reason_id', 'desc')->paginate(8);
+            
+        return view('tables.tbl_late_delivery_reason', compact('list'));
+
+    }
+    public function reschedule_prod_details($prod){
+        //get production order details and join in delivery table to get the latest delivery date
+        $prod_details= DB::connection('mysql_mes')->table('production_order')
+        ->join('delivery_date', function ($join) {
+            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')->on('delivery_date.reference_no', '=', 'production_order.sales_order')->orOn('delivery_date.reference_no', '=', 'production_order.material_request');
+        })->where('production_order',$prod )->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.delivery_date as deli')->first();
+        
+        $reference_no=($prod_details->sales_order)? $prod_details->sales_order : $prod_details->material_request;
+        //get_reschedule_log and be used in submission in erp
+        $delivery_id=DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')
+        ->join('delivery_date', 'delivery_date_reschedule_logs.delivery_date_id', 'delivery_date.delivery_date_id')
+        ->join('delivery_reschedule_reason', 'delivery_reschedule_reason.reschedule_reason_id', 'delivery_date_reschedule_logs.reschedule_reason_id')
+        ->where(function($q) use ($reference_no) {
+            $q->where('delivery_date.reference_no', 'LIKE', '%'.$reference_no.'%');
+        })
+        ->where('delivery_date.parent_item_code', $prod_details->parent_item_code)
+        ->select('delivery_date_reschedule_logs.*', 'delivery_reschedule_reason.reschedule_reason')
+        ->orderBy('delivery_date_reschedule_logs.reschedule_log_id', 'desc')
+        ->get();
+
+        $data=[];
+        foreach($delivery_id as $row){
+            $previous_row=DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->where('delivery_date_id', $row->delivery_date_id)->where('reschedule_log_id', '>', $row->reschedule_log_id)->orderby('reschedule_log_id', 'asc')->first();
+            $data[]=[
+                'delivery_date'=> (empty($previous_row))? $prod_details->rescheduled_delivery_date: $previous_row->previous_delivery_date,
+                'delivery_reason' => $row->reschedule_reason,
+                'remarks' => $row->remarks
+            ];
+
+
+        }
+
+        $reason= DB::connection('mysql_mes')->table('delivery_reschedule_reason')->get();
+        return view('reports.tbl_reschedule_delivery_date', compact('prod_details','reason', 'data'));
+
+    }
+    public function update_late_delivery(Request $request){
+        if (DB::connection('mysql_mes')->table('delivery_reschedule_reason')
+            ->where('reschedule_reason', $request->edit_late_deli_reason)
+            ->exists()){
+
+                if(strtoupper($request->edit_late_deli_reason) == strtoupper($request->orig_late_deli_reason)){
+                    
+                    $list = [
+                    'reschedule_reason' => $request->edit_late_deli_reason,
+                    'last_modified_by' => Auth::user()->email,
+                    ];
+                    DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->transid)->update($list);
+                    return response()->json(['message' => 'Reschedule Delivery Reason is successfully updated.']);
+                }else{
+                    return response()->json(['success' => 0, 'message' => 'Reschedule Delivery Reason - <b>'.$request->edit_reject_category.'</b> is already exist']);           
+
+                }
+        }else{
+            $list = [
+                'reschedule_reason' => $request->edit_late_deli_reason,
+                'last_modified_by' => Auth::user()->email,
+                ];
+                DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->transid)->update($list);
+                return response()->json(['message' => 'Reschedule Delivery Reason is successfully updated.']);
+
+        }
     }
 }

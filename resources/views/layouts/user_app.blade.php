@@ -440,7 +440,7 @@
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                  <input type="text" class="form-control form-control-lg" placeholder="Search" id="search-information_so" style="background-color: white;">
+                  <input type="text" class="form-control form-control-lg item-tracking-search" placeholder="Search" id="search-information_so" style="background-color: white;">
                 </div>
             </div>
           </div>
@@ -1157,10 +1157,11 @@
       $('#item-tracking-modal').modal('show');
     });
 
-    function get_item_list(page){
+    function get_item_list(page, query){
       $.ajax({
         url:"/get_item_status_tracking/?page="+page,
         type:"GET",
+        data: {search_string: query},
         success:function(data){
           $('#item-tracking-div').html(data);
         }
@@ -1169,11 +1170,12 @@
 
     $(document).on('click', '.tbl_item_list_pagination a', function(event){
       event.preventDefault();
+      var query= $('.item-tracking-search').val();
       var page = $(this).attr('href').split('page=')[1];
-      get_item_list(page);
+      get_item_list(page, query);
     });
 
-    $(document).on('keyup', '#search-information_so', function(){
+    $(document).on('keyup', '.item-tracking-search', function(){
       var query = $(this).val();
       get_search_information_details(1, query);
     });
