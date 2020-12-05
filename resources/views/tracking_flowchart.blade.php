@@ -24,7 +24,7 @@
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no">{{ ($production->sales_order == '')? $production->material_request: $production->sales_order }}</span></td>
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust">{{$production->customer}}</span></td>
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"> {{$production->project}}</span></td>
-                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="del-date">{{($production->rescheduled_delivery_date == "null")? $production->delivery_date: $production->rescheduled_delivery_date}}</span></td>
+                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="del-date">{{$production->delivery_date}}</span></td>
                
               </tr>
               <tr style="font-size: 10pt;display:none;">
