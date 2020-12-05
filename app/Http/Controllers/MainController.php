@@ -4464,7 +4464,7 @@ class MainController extends Controller
 			$new_id = 'STEM-'.$new_id;
 
 			$production_order_items = DB::connection('mysql')->table('tabProduction Order Item')
-				->where('parent', $production_order)
+				->where('parent', $production_order)->orderBy('idx', 'asc')
 				// ->where('transferred_qty', '>', 0)
 				->get();
 
@@ -4494,23 +4494,23 @@ class MainController extends Controller
 				
 				$qty = $qty_per_item * $request->fg_completed_qty;
 
-				$is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first()->must_be_whole_number;
-				if($is_uom_whole_number && $is_uom_whole_number == 1){
+				$is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first();
+				if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
 					$qty = round($qty);
 				}
 
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');				
 
-				$consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-					->where('ste.production_order', $production_order)
-					->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
-					->where('ste.docstatus', 1)->sum('qty');
+				// $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+				// 	->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+				// 	->where('ste.production_order', $production_order)
+				// 	->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
+				// 	->where('ste.docstatus', 1)->sum('qty');
 
-				if($produced_qty >= (int)$production_order_details->qty){
-					$qty = $row->required_qty - ($row->transferred_qty - $consumed_qty);
-				}
+				// if($produced_qty >= (int)$production_order_details->qty){
+				// 	$qty = ($row->transferred_qty - $consumed_qty);
+				// }
 
 				if($docstatus == 1){
 					if($qty > $actual_qty){

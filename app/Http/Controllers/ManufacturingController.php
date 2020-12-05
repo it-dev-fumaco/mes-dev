@@ -1833,6 +1833,7 @@ class ManufacturingController extends Controller
                     'idx' => 0,
                     'description' => $item_details->description,
                     'item_name' => $item_details->item_name,
+                    'stock_uom' => $item_details->stock_uom,
                     'item_code' => $item_details->item_code,
                     'required_qty' => $qty,
                     'transferred_qty' => 0,
