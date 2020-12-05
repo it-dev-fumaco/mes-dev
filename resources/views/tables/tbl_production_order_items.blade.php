@@ -20,7 +20,7 @@
 		<td><b>{{ $details->sales_order }}{{ $details->material_request }}</b></td>
 		<td>{{ $details->customer }}</td>
 		<td>{{ $details->project }}</td>
-		<td>{{ $details->delivery_date }}</td>
+		<td>{{ ($details->rescheduled_delivery_date == null)? $details->delivery_date: $details->rescheduled_delivery_date   }}</td>
 		<td>
 			<span class="d-block font-weight-bold" style="font-size: 11pt;">{{ $details->qty_to_manufacture }}</span>
 			<span class="d-block" style="font-size: 8pt;">{{ $details->stock_uom }}</span>
