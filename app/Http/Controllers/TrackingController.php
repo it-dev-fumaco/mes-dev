@@ -85,7 +85,7 @@ class TrackingController extends Controller
                     ->where('sotbl.item_code', $parent_item_code)
                     ->where('sotbl.parent', $sales_order)
                     ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation')
+                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date')
                     ->get();
         }else{
             $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
@@ -94,7 +94,7 @@ class TrackingController extends Controller
                     ->where('sotbl.item_code', $parent_item_code)
                     ->where('sotbl.parent', $material_request)
                     ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation')
+                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date')
                     ->get();
         }
         
@@ -105,7 +105,7 @@ class TrackingController extends Controller
                         'item_code' => $row->item_code,
                         'description' => $row->description,
                         'customer' => $row->customer,
-                        'delivery_date' => $row->delivery_date,
+                        'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date,
                         'qty' => $row->qty,
                         'project' => $row->project,
                         'creation' => $row->creation
@@ -187,13 +187,16 @@ class TrackingController extends Controller
         }
 
         $production= DB::connection('mysql_mes')->table('production_order AS po')
+            ->join('delivery_date', function ($join) {
+                $join->on('delivery_date.parent_item_code', '=', 'po.parent_item_code')->on('delivery_date.reference_no', '=', 'po.sales_order')->orOn('delivery_date.reference_no', '=', 'po.material_request');
+            })
             ->whereNotIn('po.status', ['Cancelled'])
             ->where(function($q) use ($guide_id) {
-                    $q->Where('sales_order', $guide_id)
-                        ->orWhere('material_request', $guide_id);
+                    $q->Where('po.sales_order', $guide_id)
+                        ->orWhere('po.material_request', $guide_id);
                 })
-            ->select('sales_order', 'material_request', 'customer', 'delivery_date', 'project')
-            ->groupBy('sales_order','material_request', 'customer', 'delivery_date', 'project')
+            ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
+            ->groupBy('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
             ->first();
 
         $parent_productions= DB::connection('mysql_mes')->table('production_order AS po')
@@ -226,62 +229,9 @@ class TrackingController extends Controller
                             $parts_category=null;
                             $done=null;
                         }else{
-                            foreach($jt_details1 as $row){
-                                if(DB::connection('mysql_mes')
-                                ->table('time_logs')
-                                ->where('job_ticket_id', $row->job_ticket_id)
-                                ->exists()){
-
-                                    $jt_details =  DB::connection('mysql_mes')->table('job_ticket as jt')
-                                    ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
-                                    ->where('jt.production_order', $parent_productions->production_order)->get();
-
-
-                                        $jt_details23 =  DB::connection('mysql_mes')->table('job_ticket as jt')
-                                        ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
-                                        ->where('jt.production_order', $parent_productions->production_order)
-                                        ->where('tl.to_time', '!=', null)
-                                        ->where('jt.job_ticket_id', $row->job_ticket_id)
-                                        ->select(DB::raw('MAX(tl.to_time) as to_time'), DB::raw('MIN(tl.from_time) as from_time'))
-                                        ->first();
-                                        $end_datee= $jt_details23->to_time;
-                                        $start_datee= $jt_details23->from_time;
-
-
-                                }else{
-                                    if($row->workstation == "Spotwelding"){
-                                        $jt_details23 =  DB::connection('mysql_mes')->table('job_ticket as jt')
-                                        ->leftJoin('spotwelding_part as spart', 'spart.housing_production_order', 'jt.production_order')
-                                        ->leftJoin('spotwelding_qty as qpart', 'qpart.job_ticket_id', 'jt.job_ticket_id')
-                                        ->where('spart.housing_production_order', $parent_productions->production_order)
-                                        ->where('qpart.to_time', '!=', null)
-                                        ->where('qpart.job_ticket_id',  $row->job_ticket_id)
-                                        ->select(DB::raw('MAX(qpart.to_time) as to_time'), DB::raw('MIN(qpart.from_time) as from_time'))
-                                        ->first();
-                                        $end_datee= $jt_details23->to_time;
-                                        $start_datee= $jt_details23->from_time;
-                                    }else{
-                                        $end_datee= null;
-                                        $start_datee= null;
-                                        // $jt_details='hello';
-                                        $jt_details23='hello';
-                                    }
-                                    
-
-                                    // dd($jt_details);
-                                }
-                                $data2[] = [
-                                    'date_from' => $start_datee,
-                                    'date_to' => $end_datee,
-                                    'workstation' => $row->workstation
-
-                                ];
-                                
-                                
-                            }
-
-                            $start_date = collect($data2)->min('date_from');
-                            $end_date = collect($data2)->max('date_to');
+                            
+                            $start_date = $parent_productions->actual_start_date;
+                            $end_date = $parent_productions->actual_end_date;
                             $from_carbon = Carbon::parse($start_date);
                             $to_carbon = Carbon::parse($end_date);
 
@@ -294,28 +244,9 @@ class TrackingController extends Controller
                                     ->select('p.process_name', 'jt.workstation')
                                     ->distinct('jt.workstation')
                                     ->get();
-                            
-                            $jt = DB::connection('mysql_mes')->table('job_ticket as jt')
-                                ->where('production_order',  $parent_productions->production_order)->get();
-                            
-                            $produced = DB::connection('mysql_mes')->table('production_order')->where('production_order',  $parent_productions->production_order)->select('produced_qty')->first();
-                            $total_workstation = collect($jt)->count();
-                            $total_unassigned = collect($jt)->where('status', 'Pending')->count();
-                            $total_inprocess = collect($jt)->where('status', '!=', 'Completed')->count();
-
-                            if ($total_workstation == $total_unassigned) {
-                                $stat= 'Not Started';
-                                $done= 0;
-                            }else{
-                                if ($total_inprocess > 0) {
-                                    $stat= 'In Progress';
-                                    $done= $produced->produced_qty;
-                                }else{
-                                    $stat= 'Completed';
-                                    $done= $produced->produced_qty;
-                                }
-
-                            }
+                         
+                            $stat= $parent_productions->status;
+                            $done=$parent_productions->produced_qty;
                         
                             $production_order_no= $parent_productions->production_order;
                             $planned_start_date= $parent_productions->planned_start_date;
@@ -508,15 +439,8 @@ class TrackingController extends Controller
                 
             }
 
-            $total_qty_fab=DB::connection('mysql_mes')->table('production_order as po')
-            ->join('operation as op', 'op.operation_id', 'po.operation_id')
-            ->where('op.operation_name','Like','%Fabrication%' )
-            ->where('po.item_code','Like','%HO%')
-            ->where('po.parent_item_code','Like','%'.$itemcode.'%')
-            ->where(function($q) use ($guide_id) {
-                $q->Where('po.sales_order', $guide_id)
-                    ->orWhere('po.material_request', $guide_id);
-            })->select('po.produced_qty','po.qty_to_manufacture', 'po.stock_uom')->first();
+            $total_qty_fab=0;
+
             
             $timeline=[
                 'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('F d, Y h:ia'),
@@ -583,7 +507,6 @@ class TrackingController extends Controller
                     ->where('item_code', $item->item_code)
                     ->where('sub_parent_item_code', $item_code)
                     ->where('parent_item_code', $parent_item_code)
-                    ->select('production_order', 'planned_start_date', 'qty_to_manufacture', 'produced_qty','status','produced_qty','qty_to_manufacture', 'parts_category')
                     ->first(); 
 
                 if (!empty($production)) {
@@ -607,62 +530,9 @@ class TrackingController extends Controller
                         $parts_category=null;
                         $done=null;
                     }else{
-                        foreach($jt_details1 as $row){
-                            if(DB::connection('mysql_mes')
-                            ->table('time_logs')
-                            ->where('job_ticket_id', $row->job_ticket_id)
-                            ->exists()){
-
-                                $jt_details =  DB::connection('mysql_mes')->table('job_ticket as jt')
-                                ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
-                                ->where('jt.production_order', $production->production_order)->get();
-
-
-                                    $jt_details23 =  DB::connection('mysql_mes')->table('job_ticket as jt')
-                                    ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
-                                    ->where('jt.production_order', $production->production_order)
-                                    ->where('tl.to_time', '!=', null)
-                                    ->where('jt.job_ticket_id', $row->job_ticket_id)
-                                    ->select(DB::raw('MAX(tl.to_time) as to_time'), DB::raw('MIN(tl.from_time) as from_time'))
-                                    ->first();
-                                    $end_datee= $jt_details23->to_time;
-                                    $start_datee= $jt_details23->from_time;
-
-
-                            }else{
-                                if($row->workstation == "Spotwelding"){
-                                    $jt_details23 =  DB::connection('mysql_mes')->table('job_ticket as jt')
-                                    ->leftJoin('spotwelding_part as spart', 'spart.housing_production_order', 'jt.production_order')
-                                    ->leftJoin('spotwelding_qty as qpart', 'qpart.job_ticket_id', 'jt.job_ticket_id')
-                                    ->where('spart.housing_production_order', $production->production_order)
-                                    ->where('qpart.to_time', '!=', null)
-                                    ->where('qpart.job_ticket_id',  $row->job_ticket_id)
-                                    ->select(DB::raw('MAX(qpart.to_time) as to_time'), DB::raw('MIN(qpart.from_time) as from_time'))
-                                    ->first();
-                                    $end_datee= $jt_details23->to_time;
-                                    $start_datee= $jt_details23->from_time;
-                                }else{
-                                    $end_datee= null;
-                                    $start_datee= null;
-                                    // $jt_details='hello';
-                                    $jt_details23='hello';
-                                }
-                                
-    
-                                // dd($jt_details);
-                            }
-                            $data2[] = [
-                                'date_from' => $start_datee,
-                                'date_to' => $end_datee,
-                                'workstation' => $row->workstation
-
-                            ];
-                            
-                            
-                        }
-
-                        $start_date = collect($data2)->min('date_from');
-                        $end_date = collect($data2)->max('date_to');
+                        
+                        $start_date = $production->actual_start_date;
+                        $end_date = $production->actual_end_date;
                         $from_carbon = Carbon::parse($start_date);
                         $to_carbon = Carbon::parse($end_date);
 
@@ -676,37 +546,12 @@ class TrackingController extends Controller
                                 ->distinct('jt.workstation')
                                 ->get();
                         
-                        $jt = DB::connection('mysql_mes')->table('job_ticket as jt')
-                            ->where('production_order',  $production->production_order)->get();
-                        
-                        $produced = DB::connection('mysql_mes')->table('production_order')->where('production_order',  $production->production_order)->select('produced_qty')->first();
-                        $total_workstation = collect($jt)->count();
-                        $total_unassigned = collect($jt)->where('status', 'Pending')->count();
-                        $total_inprocess = collect($jt)->where('status', '!=', 'Completed')->count();
-    
-                        if ($total_workstation == $total_unassigned) {
-                            $stat= 'Not Started';
-                            $done= 0;
-                        }else{
-                            if ($total_inprocess > 0) {
-                                $stat= 'In Progress';
-                                $done= $produced->produced_qty;
-                            }else{
-                                $stat= 'Completed';
-                                $done= $produced->produced_qty;
-                            }
-    
-                        }
-    
-    
-                        // $job_ticket_status = DB::connection('mysql_mes')->table('job_ticket')
-                        // ->where('production_order', $production->production_order)
+                        $stat= $production->status;
+                        $done=$production->produced_qty;
                     
                         $production_order_no= $production->production_order;
                         $planned_start_date= $production->planned_start_date;
-                        
-                        // $duration=null;
-                        // $duration=collect($jt_details)->sum('duration');
+
     
                         $status=$stat;
                         $qty_to_manufacture=$production->qty_to_manufacture;

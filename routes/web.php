@@ -585,7 +585,6 @@ Route::post('/generate_stock_entry/{production_order}', 'ManufacturingController
 Route::get('/selected_print_fg_transfer_slip/{production_order}', 'MainController@selected_print_fg_transfer_slip');
 Route::get('/selected_print_withdrawals/{production_order}', 'SecondaryController@selected_print_withdrawals');
 
-Route::get('/reschedule_prod_details/{production_order}', 'SecondaryController@reschedule_prod_details');
 
 //email_trans_setup
 Route::get('/get_employee_email', 'SecondaryController@get_employee_email');
@@ -619,6 +618,15 @@ Route::post('/delete_operator_checklist', 'SecondaryController@delete_operator_c
 Route::get('/get_tbl_opchecklist_list_fabrication', 'SecondaryController@get_tbl_opchecklist_list_fabrication');
 Route::get('/get_tbl_opchecklist_list_painting', 'SecondaryController@get_tbl_opchecklist_list_painting');
 Route::get('/get_tbl_opchecklist_list_assembly', 'SecondaryController@get_tbl_opchecklist_list_assembly');
+
+
+//reschedule delivery date
+Route::post('/update_rescheduled_delivery_date', 'MainController@update_rescheduled_delivery_date');
+Route::post('/edit_late_delivery_reason', 'SecondaryController@update_late_delivery');
+Route::get('/get_late_delivery', 'SecondaryController@get_tbl_late_delivery');
+Route::post('/save_late_delivery_reason', 'SecondaryController@save_late_delivery_reason');
+Route::get('/reschedule_prod_details/{production_order}', 'SecondaryController@reschedule_prod_details');
+
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
