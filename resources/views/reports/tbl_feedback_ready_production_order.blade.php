@@ -29,6 +29,13 @@
     </thead>
     <tbody>
       @forelse($production_order_list as $r)
+        @php
+          if($r['parent_item_code'] == $r['sub_parent_item_code'] and $r['item_code'] == $r['sub_parent_item_code']){
+            $resched_btn="";
+          }else{
+          $resched_btn="none";
+          }
+        @endphp
       <tr>
         <td class="text-center" style="padding: 3px;">
           <a href="#" data-jtno="{{ $r['name'] }}" class="prod-details-btn"><i class="now-ui-icons ui-1_zoom-bold"></i> {{ $r['name'] }}</a>
@@ -69,7 +76,7 @@
               Action
             </button>
             <div class="dropdown-menu">
-              
+              <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}" style="display:{{ $resched_btn }};">Reschedule Delivery Date</a>
               @if($r['status'] == 'Material For Issue')
               @if($r['status'] == 'For Feedback')
               <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['name'] }}">Update Process</a>

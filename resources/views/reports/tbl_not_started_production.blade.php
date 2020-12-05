@@ -38,7 +38,15 @@
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Action
             </button>
+              @php
+                if($r['parent_item_code'] == $r['sub_parent_item_code'] and $r['item_code'] == $r['sub_parent_item_code']){
+                  $resched_btn="";
+                }else{
+                  $resched_btn="none";
+                }
+              @endphp
             <div class="dropdown-menu">
+              <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}" style="display:{{ $resched_btn }};">Reschedule Delivery Date</a>
               <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['production_order'] }}">View Materials</a>
               <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}">Create Feedback</a>
               <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['production_order'] }}" data-operationid="{{ $r['operation_id'] }}">Update Process</a>
