@@ -1465,11 +1465,8 @@ class MainController extends Controller
 
 		if ($status == 'Not Started') {
 			$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', function ($join) {
-					$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-					->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-					->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); //Inner join new table for Delivery Date
-				})																						
+				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
 						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
@@ -1547,11 +1544,8 @@ class MainController extends Controller
 			$in_progress_production_orders = array_merge($in_progress_time_logs, $in_progress_spotwelding_logs);
 
 			$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', function ($join) {
-					$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-					->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-					->orOn('delivery_date.reference_no', '=', 'production_order.material_request');    //Inner join new table for Delivery Date
-				})
+				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 				->whereIn('production_order', $in_progress_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1627,11 +1621,8 @@ class MainController extends Controller
 				->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', function ($join) {
-					$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-					->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-					->orOn('delivery_date.reference_no', '=', 'production_order.material_request');   //Inner join new table for Delivery Date
-				})
+				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 				->whereIn('production_order', $pending_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1694,11 +1685,8 @@ class MainController extends Controller
 
 		if ($status == 'Cancelled') {
 			$q = DB::connection('mysql_mes')->table('production_order')->where('status', 'Cancelled')
-				->join('delivery_date', function ($join) {
-					$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-					->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-					->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); //Inner join new table for Delivery Date
-				})
+				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 				->whereIn('production_order.operation_id', $user_permitted_operations)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1768,11 +1756,8 @@ class MainController extends Controller
 				->whereIn('status', ['In Progress', 'Completed'])->distinct()->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order AS po')
-				->join('delivery_date', function ($join) {
-					$join->on('delivery_date.parent_item_code', '=', 'po.parent_item_code')
-					->on('delivery_date.reference_no', '=', 'po.sales_order')
-					->orOn('delivery_date.reference_no', '=', 'po.material_request');  //Inner join new table for Delivery Date
-				})
+				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 				->whereIn('po.production_order', $jt_production_orders)
 				->whereNotIn('po.status', ['Cancelled'])
 				->where(function($q) use ($request) {
@@ -1894,11 +1879,8 @@ class MainController extends Controller
 				->where('status', 'Completed')->whereIn('name', $mes_production_orders)->pluck('name')->toArray();
 
 				$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', function ($join) {
-					$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-					->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-					->orOn('delivery_date.reference_no', '=', 'production_order.material_request');  //Inner join new table for Delivery Date
-				})
+				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 				->whereIn('production_order.production_order', $erp_completed_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
