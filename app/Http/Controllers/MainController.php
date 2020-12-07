@@ -4494,10 +4494,10 @@ class MainController extends Controller
 				
 				$qty = $qty_per_item * $request->fg_completed_qty;
 
-				$is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first();
-				if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
-					$qty = round($qty);
-				}
+				// $is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first();
+				// if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
+				// 	$qty = round($qty);
+				// }
 
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');				

@@ -1351,10 +1351,8 @@ class ManufacturingController extends Controller
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
-            DB::connection('mysql_mes')->transaction(function(){
-                DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)
-                    ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
-            });
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)
+                ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
 
             DB::connection('mysql')->commit();
 
