@@ -2305,11 +2305,8 @@ class MainController extends Controller
 	public function productionKanban($operation_id){
 
 		   $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
-		   ->join('delivery_date', function ($join) {
-				$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-				->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-				->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); // inner join to link new delivery date to new delivery_date table
-			})
+		   ->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 			->whereNotIn('production_order.status', ['Stopped', 'Cancelled'])
 			->where('production_order.feedback_qty',0)
 			->where('production_order.is_scheduled', 0)
@@ -2387,11 +2384,8 @@ class MainController extends Controller
 	public function get_painting_schedules($operation_id){
 		$jobtickets_production=DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('production_order as pro','pro.production_order', 'jt.production_order')
-			->join('delivery_date', function ($join) {
-				$join->on('delivery_date.parent_item_code', '=', 'pro.parent_item_code')
-				->on('delivery_date.reference_no', '=', 'pro.sales_order')
-				->orOn('delivery_date.reference_no', '=', 'pro.material_request'); //inner join new delivery_date table to the query
-			})
+			->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 			->where('jt.planned_start_date', null)->where('pro.status', '!=', 'Cancelled')
 			->where('jt.workstation', 'Painting')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
@@ -2490,11 +2484,8 @@ class MainController extends Controller
 	public function get_scheduled_painting($schedule_date){
 		$orders = DB::connection('mysql_mes')->table('production_order as pro')
 		->join('job_ticket as jt', 'pro.production_order','jt.production_order')
-		->join('delivery_date', function ($join) {
-			$join->on('delivery_date.parent_item_code', '=', 'pro.parent_item_code')
-			->on('delivery_date.reference_no', '=', 'pro.sales_order')
-			->orOn('delivery_date.reference_no', '=', 'pro.material_request'); // inner join new delivery_date table to the query
-		})
+		->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 		->whereNotIn('pro.status', ['Completed', 'Cancelled'])
 		->where('jt.workstation', 'Painting')
 		->whereDate('jt.planned_start_date', $schedule_date)
@@ -2645,11 +2636,8 @@ class MainController extends Controller
 
 	public function getScheduledProdOrders($schedule_date, $operation_id){
     	$orders = DB::connection('mysql_mes')->table('production_order')
-			->join('delivery_date', function ($join) {
-				$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-				->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-				->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); //inner join new delivery_date table to the query
-			})
+		->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+		->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
     		->whereNotIn('production_order.status', ['Cancelled'])->where('production_order.is_scheduled', 1)
 			->whereDate('production_order.planned_start_date', $schedule_date)
 			->where("production_order.operation_id", $operation_id)
