@@ -1320,26 +1320,21 @@
       $('#enter-reject-modal').modal('show');
     });
 
-     function get_reject_types(workstation){
-        $('#rejected-type-sel').empty();
-        $.ajax({
-          url: "/get_reject_types/" + workstation,
-          type:"GET",
-          success:function(response){
-            var row = '';
-            $.each(response, function(i, d){
-              row += '<option value="' + d.reject_list_id + '">' + d.reject_reason + '</option>';
-            });
-  
-            $('#rejected-type-sel').append(row);
-          }, 
-          error: function(jqXHR, textStatus, errorThrown) {
-            console.log(jqXHR);
-            console.log(textStatus);
-            console.log(errorThrown);
-          }
-        });
-      }
+    function get_reject_types(workstation){
+      $('#rejected-type-sel').empty();
+      $.ajax({
+        url: "/get_reject_types/" + workstation,
+        type:"GET",
+        success:function(data){
+          $('#div_reject_reason').html(data);
+        }, 
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    }
 
     $('#reject-task-frm').submit(function(e){
       e.preventDefault();

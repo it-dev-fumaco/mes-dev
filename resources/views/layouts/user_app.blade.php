@@ -398,6 +398,37 @@
     </div>
   </div>
 
+  <!-- Modal Cancel Production Order -->
+  <div class="modal fade" id="cancel-production-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <form action="/cancel_production_order" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal Title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" name="id">
+                <input type="hidden" name="production_order">
+                <p style="font-size: 14pt; margin: 0;" class="text-center">Cancel Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-12" id="items-for-return-table"></div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
 
   <div class="modal fade" id="item-tracking-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 95%;">
@@ -409,7 +440,7 @@
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                  <input type="text" class="form-control form-control-lg" placeholder="Search" id="search-information_so" style="background-color: white;">
+                  <input type="text" class="form-control form-control-lg item-tracking-search" placeholder="Search" id="search-information_so" style="background-color: white;">
                 </div>
             </div>
           </div>
@@ -635,7 +666,8 @@
 
   .modal { overflow: auto !important; }
   </style>
-
+    
+    @include('modals.return_required_item_modal')
     @include('modals.add_required_item_modal')
 	  @include('modals.edit_required_item_modal')
     @include('modals.delete_required_item_modal')
@@ -661,6 +693,97 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+
+    function get_items_for_return(production_order){
+    $.ajax({
+      url:"/get_items_for_return/" + production_order,
+      type:"GET",
+      success:function(data){
+        $('#items-for-return-table').html(data);
+      },
+      error : function(data) {
+        console.log(data.responseText);
+      }
+    });
+  }
+
+  $(document).on('click', '.cancel-production-btn', function(e){
+    e.preventDefault();
+    var production_order = $(this).data('production-order');
+
+    $('#cancel-production-modal input[name="production_order"]').val(production_order);
+    $('#cancel-production-modal .modal-title').text('Cancel Production Order');
+    $('#cancel-production-modal span').eq(1).text(production_order);
+    get_items_for_return(production_order);
+    $('#cancel-production-modal').modal('show');
+  });
+
+  $('#cancel-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/cancel_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#cancel-production-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+
+  $(document).on('click', '.return-required-item-btn', function(e){
+    e.preventDefault();
+
+    var $row = $(this).closest('tr');
+
+    $('#return-required-item-modal form input[name="production_order"]').val($(this).data('production-order'));
+    
+    $('#return-required-item-modal form input[name="sted_id"]').val($(this).data('sted-id'));
+    $('#return-required-item-modal form input[name="target_warehouse"]').val($row.find('.target-warehouse').eq(0).text());
+    $('#return-required-item-modal form input[name="source_warehouse"]').val($row.find('.source-warehouse').eq(0).text());
+    $('#return-required-item-modal form input[name="item_code"]').val($row.find('.item-code').eq(0).text());
+    $('#return-required-item-modal form input[name="qty"]').val($row.find('.qty').eq(0).text());
+    $('#return-required-item-modal form input[name="qty_to_return"]').val($row.find('.qty').eq(0).text());
+    $('#return-required-item-modal').modal('show');
+  });
+
+  $('#return-required-item-modal form').submit(function(e){
+    e.preventDefault();
+    var production_order = $('#return-required-item-modal form input[name="production_order"]').val();
+     
+    $.ajax({
+      url: $(this).attr('action'),
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(response){
+        console.log(response);
+        if (response.status == 0) {
+          showNotification("danger", response.message, "now-ui-icons travel_info");
+        }else if(response.status == 2){
+          showNotification("info", response.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", response.message, "now-ui-icons ui-1_check");
+          get_stock_entry_items(production_order);
+          $('#return-required-item-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
 
     $(document).on('click', '[data-toggle="lightbox"]', function(event) {
       event.preventDefault();
@@ -1034,10 +1157,11 @@
       $('#item-tracking-modal').modal('show');
     });
 
-    function get_item_list(page){
+    function get_item_list(page, query){
       $.ajax({
         url:"/get_item_status_tracking/?page="+page,
         type:"GET",
+        data: {search_string: query},
         success:function(data){
           $('#item-tracking-div').html(data);
         }
@@ -1046,11 +1170,12 @@
 
     $(document).on('click', '.tbl_item_list_pagination a', function(event){
       event.preventDefault();
+      var query= $('.item-tracking-search').val();
       var page = $(this).attr('href').split('page=')[1];
-      get_item_list(page);
+      get_item_list(page, query);
     });
 
-    $(document).on('keyup', '#search-information_so', function(){
+    $(document).on('keyup', '.item-tracking-search', function(){
       var query = $(this).val();
       get_search_information_details(1, query);
     });

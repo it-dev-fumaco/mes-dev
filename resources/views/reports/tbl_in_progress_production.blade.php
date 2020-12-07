@@ -26,6 +26,13 @@
       </thead>
       <tbody style="font-size: 9pt;">
         @forelse($production_orders as $r)
+              @php
+                if($r['parent_item_code'] == $r['sub_parent_item_code'] and $r['item_code'] == $r['sub_parent_item_code']){
+                  $resched_btn="";
+                }else{
+                $resched_btn="none";
+                }
+              @endphp
         <tr>
           <td class="text-center">
             <a href="#" data-jtno="{{ $r['production_order'] }}" class="prod-details-btn"><i class="now-ui-icons ui-1_zoom-bold"></i> {{ $r['production_order'] }}</a>
@@ -56,6 +63,7 @@
                 Action
               </button>
               <div class="dropdown-menu">
+                <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}" style="display:{{ $resched_btn }};">Reschedule Delivery Date</a>
                 <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty_to_manufacture'] - $r['feedback_qty'] }}">Create Feedback</a>
                 <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
                 <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>

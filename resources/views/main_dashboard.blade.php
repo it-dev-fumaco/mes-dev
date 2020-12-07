@@ -666,6 +666,7 @@
           $('#loader-wrapper').attr('hidden', true);
           if (response.success == 0) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
+            $('#submit-feedback-btn').removeAttr('disabled');
           }else{
             showNotification("success", response.message, "now-ui-icons travel_info");
             $('#confirm-feedback-production-modal').modal('hide');

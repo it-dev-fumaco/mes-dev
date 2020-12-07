@@ -1,6 +1,6 @@
 <!-- Modal -->
 <div class="modal fade" id="enter-reject-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document" style="min-width: 70%;">
+   <div class="modal-dialog modal-lg" role="document" style="min-width: 98%;">
       <form id="reject-task-frm" action="/reject_task" method="post" autocomplete="off">
          @csrf
          <div class="modal-content">
@@ -21,50 +21,57 @@
                         <select class="form-control-lg" id="reject-sel-batch"></select>
                      </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-8">
                      <div class="row">
                         <div class="col-md-12 text-center">
+                           
                            <div style="font-size: 14pt; margin-bottom: 8px;" class="text-center">
-                              <span class="production-order" style="font-weight: bold;"></span>
+                              <span class="production-order" style="font-weight: bold; display:none;"></span>
                            </div>
-                           <div class="form-group">
-                              <label for="rejected-qty" style="font-size: 14pt;">Enter Rejected Qty</label>
-                              <input type="text" class="form-control form-control-lg" name="rejected_qty" id="rejected-qty"  value="0" readonly style="font-size: 20pt; text-align: center;">
-                              <small class="form-text text-muted" style="font-size: 14pt;"><b>Maximum: <span class="max-qty">0</span></b></small>
+                       
+                           <div class="text-center">
+                              <span style="display: inline-block; font-size: 11pt;">PROCESS:</span>
+                              <span style="display: inline; font-weight: bold; font-size: 14pt;" class="process-name"></span>
                            </div>
                            <div class="text-center">
-                              <span style="display: block; font-size: 11pt;">PROCESS</span>
-                              <span style="display: block; font-weight: bold; font-size: 14pt;" class="process-name"></span>
+                              {{-- <span style="display: inline-block; font-size: 11pt;">---SELECT REJECT TYPE---</span> --}}
+                              <span style="display: inline; font-weight: bold; font-size: 14pt;" class="process-namee"></span>
                            </div>
-                           <div class="form-group">
-                              <label style="font-size: 14pt;">Reject Type</label>
-                              <select name="reject_list_id" id="rejected-type-sel" class="form-control form-control-lg"></select>
+                           <div id="div_reject_reason">
                            </div>
                         </div>
                      </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-4">
                      <div class="text-center">
-                        <div class="row">
-                           <span class="num numpad">1</span>
-                           <span class="num numpad">2</span>
-                           <span class="num numpad">3</span>
+                        <div class="form-group">
+                           <label for="rejected-qty" style="font-size: 14pt;">Enter Rejected Qty</label>
+                           <input type="text" class="form-control form-control-lg" name="rejected_qty" id="rejected-qty"  value="0" readonly style="font-size: 20pt; text-align: center;">
+                           <small class="form-text text-muted" style="font-size: 14pt;"><b>Maximum: <span class="max-qty">0</span></b></small>
                         </div>
-                        <div class="row">
-                           <span class="num numpad">4</span>
-                           <span class="num numpad">5</span>
-                           <span class="num numpad">6</span>
+                        <div class="col-12" style="height: auto;right:5% ;left:5%">
+                           <div class="row">
+                              <span class="num numpad">1</span>
+                              <span class="num numpad">2</span>
+                              <span class="num numpad">3</span>
+                           </div>
+                           <div class="row">
+                              <span class="num numpad">4</span>
+                              <span class="num numpad">5</span>
+                              <span class="num numpad">6</span>
+                           </div>
+                           <div class="row">
+                              <span class="num numpad">7</span>
+                              <span class="num numpad">8</span>
+                              <span class="num numpad">9</span>
+                           </div>
+                           <div class="row">
+                              <span class="del numpad"><</span>
+                              <span class="num numpad">0</span>
+                              <span class="clear numpad">Clear</span>
+                           </div>
                         </div>
-                        <div class="row">
-                           <span class="num numpad">7</span>
-                           <span class="num numpad">8</span>
-                           <span class="num numpad">9</span>
-                        </div>
-                        <div class="row">
-                           <span class="del numpad"><</span>
-                           <span class="num numpad">0</span>
-                           <span class="clear numpad">Clear</span>
-                        </div>
+                        
                      </div>
                   </div>
                </div>

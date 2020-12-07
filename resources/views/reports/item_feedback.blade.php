@@ -234,6 +234,32 @@
       </div>
   </div>
 </div>
+<div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width:40%;">
+    <form action="/update_rescheduled_delivery_date" id="reschedule_delivery_frm" method="POST">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Reschedule Delivery Date</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-12" id="tbl_reschduled_deli">
+              
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 5px 10px;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 <style>
   .ui-autocomplete {
     position: absolute;
@@ -701,36 +727,6 @@
    </div>
 </div>
 
-<!-- Modal Cancel Production Order -->
-<div class="modal fade" id="cancel-production-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <form action="/cancel_production_order" method="POST">
-      @csrf
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12">
-              <input type="hidden" name="id">
-              <input type="hidden" name="production_order">
-              <p style="font-size: 14pt; margin: 0;" class="text-center">Cancel Production Order <b><span></span></b>?</p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer" style="padding: 5px 10px;">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- Modal Confirm Feedback Production Order -->
 <div class="modal fade" id="confirm-feedback-production-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document" style="min-width: 55%;">
@@ -1085,6 +1081,12 @@
   .select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
     background-color: #3498db;
   }
+  #reschedule-delivery-modal .form-control {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
+  }
 </style>
 
 <iframe src="#" id="iframe-print" style="display: none;"></iframe>
@@ -1388,6 +1390,7 @@ $(document).ready(function(){
         $('#loader-wrapper').attr('hidden', true);
         if (response.success == 0) {
           showNotification("danger", response.message, "now-ui-icons travel_info");
+          $('#submit-feedback-btn').removeAttr('disabled');
         }else{
           showNotification("success", response.message, "now-ui-icons travel_info");
           load_list();
@@ -1653,6 +1656,25 @@ $(document).ready(function(){
     });
   }
   
+  $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            location.reload();
+
+          }
+        }
+      });
+    });
   $(document).on('click', '.spotclass', function(event){
     event.preventDefault();
     var jtid = $(this).attr('data-jobticket');
@@ -2016,11 +2038,6 @@ $(document).ready(function(){
 </script>
 
 <script type="text/javascript">
-  $(document).on('click', '.tbl_item_list_pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    item_tracking(page);
-  });
 
   $(document).on('click', '.btn_trackmodal', function(event){
     event.preventDefault();
@@ -2038,10 +2055,6 @@ $(document).ready(function(){
   });
 </script>
 <script type="text/javascript">
-    $(document).on('keyup', '.item-tracking-search', function(){
-      var query = $(this).val();
-      item_tracking(0, 1, query);
-    });
 
   function item_tracking(get_total, page, query){
     $.ajax({
@@ -2096,6 +2109,25 @@ $(document).on('click', '.feedbacked_log_btn', function(){
        success:function(data){
           $('#tbl_feedbacked_logs').html(data);
           $('#feedbacked-log-modal').modal('show');
+          // $('#reschedule-delivery-modal .modal-title').text('Reschedule Delivery Date'+"["+ prod +"]");
+
+
+       },
+       error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+       },
+    });
+});
+$(document).on('click', '.resched-deli-btn', function(){
+  var prod = $(this).data('production-order');
+  $.ajax({
+       url: "/reschedule_prod_details/" + prod,
+       type:"GET",
+       success:function(data){
+          $('#tbl_reschduled_deli').html(data);
+          $('#reschedule-delivery-modal').modal('show');
           // $('#reschedule-delivery-modal .modal-title').text('Reschedule Delivery Date'+"["+ prod +"]");
 
 

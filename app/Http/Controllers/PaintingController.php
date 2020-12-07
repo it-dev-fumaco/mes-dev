@@ -371,13 +371,18 @@ class PaintingController extends Controller
     public function get_production_schedule_calendar_painting(){
         
         $prod = DB::connection('mysql_mes')->table('job_ticket as jt')
-                ->join('production_order as pro','pro.production_order','jt.production_order')
-                ->where('pro.status','!=', 'Cancelled')
-                ->where('jt.workstation', 'Painting')
-                ->where('jt.planned_start_date','!=', null)
-                ->distinct('pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
-                ->select('pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
-                ->get();
+        ->join('production_order as pro','pro.production_order','jt.production_order')
+        ->join('delivery_date', function ($join) {
+            $join->on('delivery_date.parent_item_code', '=', 'pro.parent_item_code')
+            ->on('delivery_date.reference_no', '=', 'pro.sales_order')
+            ->orOn('delivery_date.reference_no', '=', 'pro.material_request'); // inner join new delivery_date table to the query
+        })
+        ->where('pro.status','!=', 'Cancelled')
+        ->where('jt.workstation', 'Painting')
+        ->where('jt.planned_start_date','!=', null)
+        ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+        ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+        ->get();
 
         $data = array();
         foreach ($prod as $rows) {
@@ -415,7 +420,7 @@ class PaintingController extends Controller
                 'qty' => $rows->qty_to_manufacture,
                 'customer' => $rows->customer,
                 'sales_order'=> $guide_id,
-                'delivery_date'=>$rows->delivery_date,
+                'delivery_date' => ($rows->rescheduled_delivery_date == null)? $rows->delivery_date: $rows->rescheduled_delivery_date, //show reschedule delivery date or the existing delivery date based on validation
                 'production_order' => $rows->production_order
             );
         }

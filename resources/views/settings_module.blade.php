@@ -79,7 +79,12 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="#machine_setup" data-toggle="tab">Machine Setup</a>
                             </li>
-                            
+                            <li class="nav-item">
+                              <a class="nav-link" href="#machine_setup" data-toggle="tab">Machine Setup</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link" href="#late_delivery_setup" data-toggle="tab">Reschedule Delivery Reason Setup</a>
+                            </li>
                             <h6 class="text-center" style="padding-top: 10px;">User</h6>
                             <li class="nav-item">
                                 <a class="nav-link" href="#users_setup" data-toggle="tab">Users Setup</a>
@@ -273,6 +278,31 @@
                             </div>      
                         </div>
                     </div>
+                </div>
+                <div class="tab-pane" id="late_delivery_setup">
+                  <div class="card" style="background-color: #0277BD;" >
+                      <div class="card-body" style="padding-bottom: 0;">
+                          <div class="row">
+                              <div class="col-md-8">
+                                  <h5 class="text-white font-weight-bold text-left">Reschedule Delivery Reason Setup</h5>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="form-group">
+                                      <input type="text" class="form-control form-control" placeholder="Search" id="search_late_delivery_setup">
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                              <div class="card card-nav-tabs card-plain">
+                                  <div class="col-md-8 offset-md-2">
+                                    <button type="button" class="btn btn-primary" id="add-late-deli-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reschedule Delivery Reason </button>
+                                      <div id="tbl_late_delivery_list"></div>    
+                                  </div>
+        
+                              </div>
+                          </div>        
+                      </div>
+                  </div>
                 </div>
                 <div class="tab-pane" id="email_alert_setup">
                     <div class="card" style="background-color: #0277BD;" >
@@ -1386,13 +1416,15 @@
                             <option value="Housing">Housing</option>
                             <option value="Lamp">Lamp</option>
                             <option value="Ballast/Driver/Transformer">Ballast/Driver/Transformer</option>
-                            <option value="Other Electrical Componenets">Other Electrical Componenets</option>
+                            <option value="Other Electrical Components">Other Electrical Components</option>
                             <option value="Battery Pack">Battery Pack</option>
                             <option value="Reflector/ Louver">Reflector/ Louver</option>
                             <option value="Frame/ Diffuser">Frame/ Diffuser</option>
                             <option value="Gasketting/Sealing">Gasketting/Sealing</option>
                             <option value="Packaging/ Labeling">Packaging/ Labeling</option>
                             <option value="Exit Sign">Exit Sign</option>
+                            <option value="Others">Others</option>
+
                         </select>
                           <input type="hidden" class="form-control" name="orig_material_type" id="orig_material_type">
                      </div>
@@ -2072,6 +2104,183 @@
       </form>
    </div>
 </div>
+<div class="modal fade" id="add-late-delivery-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/save_late_delivery_reason" method="POST" id="add-late-delivery-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title "> Add Reschedule Delivery Reason<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="form-row">
+                 <div class="form-group col-md-12">
+                    <button type="button" class="btn btn-primary pull-right" id="add-late-delivery-button" style="margin: 5px;">
+                       <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                 </div>
+                 <hr>
+                 <div class="col-md-12">
+                 <table class="table" id="latedelivery-table" style="font-size: 10px; ">
+                   <col style="width: 5%;">
+                   <col style="width: 90%;">
+                   <col style="width: 5%;">
+                    <thead>
+                       <tr style="">
+                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                          <th style="width: 40%; text-align: center;font-weight: bold; ">Late Delivery Reason:</th>
+                          <th style="width: 5%; text-align: center;font-weight: bold; "></th>
+                       </tr>
+                    </thead>
+                    <tbody class="table-body text-center" style="">
+                       <tr style="">
+                       </tr>
+                    </tbody>
+                 </table>
+                 </div> 
+              </div>
+              
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="edit-late-delivery-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/edit_late_delivery_reason" method="POST" id="edit-late-delivery-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title "> Edit Reschedule Delivery Reason<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+               <div class="row">
+                   <div class="col-md-12">
+                     <div class="form-group">
+                         <label>Late Delivery Reason:</label>
+                         <input type="text" name="edit_late_deli_reason" id="edit_late_deli_reason" class="form-control">
+                         <input type="hidden" name="orig_late_deli_reason" id="orig_late_deli_reason" class="form-control">
+                         <input type="hidden" name="transid" id="transid" class="form-control">
+
+                     </div>
+                     
+                   </div>
+               </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="add-operator-checklist-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document" style="min-width:40%;">
+     <form action="/save_operator_checklist" method="POST" id="save-operator-checklist-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                
+              </h5>
+           </div>
+           <div class="modal-body"> 
+               <input type="hidden" name="operator_owner_checklist" id="operator_owner_checklist">
+               <input type="hidden" name="reload_operator_checklist" id="reload_operator_checklist">
+               <div class="col-sm-12">
+                 <div class="form-group">
+                       <label><b>Workstation:</b></label>
+                       <select class="form-controls operator-checklist-sel" name="workstation_id" id="opchecklist_workstation_id" class="opchecklist_workstation_id" required>
+                         
+                       </select>
+                 </div>
+                 <a href="#" class="btn btn-primary add-row">
+                   <i class="now-ui-icons ui-1_simple-add"></i>Add
+                 </a>
+                 <table class="table" id="operator-checklist-table" style="font-size: 10px;">
+                    <thead>
+                       <tr>
+                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                          <th style="width: 45%; text-align: center;font-weight: bold;">Type</th>
+                          <th style="width: 45%; text-align: center;font-weight: bold;">Description</th>
+                          <th style="width: 5%; text-align: center;font-weight: bold;"></th>
+                       </tr>
+                    </thead>
+                    <tbody class="table-body text-center">
+                       <tr>
+                          <td>1</td>
+                          <td>
+                             <select name="operator_new_checklist_r_type[]" class="form-control onchange-selection count-row" id="operator-first-selection" data-idcolumn=''>
+                               @foreach($reject_category as $row)
+                                   <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
+                               @endforeach
+                             </select>
+                          </td>
+                          <td>
+                             <select name="operator_new_checklist_r_desc[]" class="form-control operator-second-selection-only" id="">
+                                <option value="">--Description--</option>
+                             </select>
+                          </td>
+                          <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
+                       </tr>
+                    </tbody>
+                 </table>
+              </div>  
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="delete-operator-checklist-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="width: 40%;">
+     <form action="/delete_operator_checklist" method="POST" id="delete-operator-checklist-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title">
+               <span>Delete</span>
+               <span class="operation-text" style="font-weight: bolder;"></span></h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">&times;</span>
+               </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                   <div class="form-group" style="font-size:13pt;">
+                       <label style="padding-left: 10px;display:inline;">Delete</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_opchecklist_label"></label><label style="padding-left: 10px;display:inline;">from</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_opworkstation_label"></label><label style="padding-left: 10px;display:inline;">?</label>
+                       <input type="hidden" name="check_list_id" id="delete_opchecklist_id">
+                    </div>
+                 </div>
+                 <input type="hidden" name="delete_op_reloadtbl" id="delete_op_reloadtbl">
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+
 <style type="text/css">
   .scrolling table {
     table-layout: fixed;
@@ -2369,6 +2578,21 @@
     margin-bottom: 15px;
   }
   #add-email-trans-modal .form-control{
+    border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+
+  
+}
+
+#add-late-delivery-modal .form-control{
+    border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+}
+#edit-late-delivery-modal .form-control{
     border: 1px solid #ccc;
   border-radius: 3px;
   box-shadow: none;
@@ -5156,13 +5380,14 @@ function get_user_group(page, query){
           "Housing": "Housing",
           "Lamp": "Lamp",
           "Ballast/Driver/Transformer": "Ballast/Driver/Transformer",
-          "Other Electrical Componenets": "Other Electrical Componenets",
+          "Other Electrical Components": "Other Electrical Components",
           "Battery Pack": "Battery Pack",
           "Reflector/ Louver": "Reflector/ Louver",
           "Frame/ Diffuser": "Frame/ Diffuser",
           "Gasketting/Sealing": "Gasketting/Sealing",
           "Packaging/ Labeling": "Packaging/ Labeling",
-          "Exit Sign": "Exit Sign"
+          "Exit Sign": "Exit Sign",
+          'Others': 'Others'
         };
         var row1 = '';
         var row2 = '';
@@ -5730,7 +5955,7 @@ function tbl_wip_list(page, query){
 tbl_late_delivery_date();
   function tbl_late_delivery_date(page, query){
         $.ajax({
-          url:"/get_late_delivery/?page="+page,
+          url:"/get_late_delivery?page="+page,
           data: {search_string: query},
           type:"GET",
           success:function(data){

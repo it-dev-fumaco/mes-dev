@@ -1,5 +1,5 @@
 <div class="modal fade" id="stock-entry-details-modal" tabindex="-1" role="dialog">
-	<div class="modal-dialog" role="document" style="min-width: 70%;">
+	<div class="modal-dialog" role="document" style="min-width: 80%;">
 		<div class="modal-content">
 			<div class="modal-header" style="background-color: #0277BD;">
 				<h5 class="modal-title text-white">Stock Withdrawals</h5>
