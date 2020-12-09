@@ -15,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Image;
 use App\Mail\SendMail_feedbacking;
+use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
 
 class MainController extends Controller
@@ -4692,32 +4693,32 @@ class MainController extends Controller
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}
-			// $data = array(
-            //     'posting_date'  => $now->format('Y-m-d'),
-            //     'posting_time'  => $now->format('H:i:s'),
-            //     'ste'           => $new_id,
-			// 	'sales_order_no'=> $mes_production_order_details->sales_order,
-			// 	'mreq'			=> $production_order_details->material_request,
-            //     'item_code'     => $production_order_details->production_item,
-			// 	'item_name'     => $production_order_details->item_name,
-			// 	'customer'		=> $mes_production_order_details->customer,
-			// 	'feedbacked_by' => Auth::user()->email,
-			// 	'completed_qty' => $request->fg_completed_qty, 
-			// 	'uom'			=> $production_order_details->stock_uom
-			// );
-			// $recipient= DB::connection('mysql_mes')
-            //     ->table('email_trans_recipient')
-			// 	->where('email_trans', "Feedbacking")
-			// 	->where('email', 'like','%@fumaco.local%')
-            //     ->select('email')
-            //     ->get();
-			// if(count($recipient) > 0){
-			// 	if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
-			// 		foreach ($recipient as $row) {
-			// 			Mail::to($row->email)->send(new SendMail_feedbacking($data));
-			// 		}	
-			// 	}
-			// }
+			$data = array(
+                'posting_date'  => $now->format('Y-m-d'),
+                'posting_time'  => $now->format('H:i:s'),
+                'ste'           => $new_id,
+				'sales_order_no'=> $mes_production_order_details->sales_order,
+				'mreq'			=> $production_order_details->material_request,
+                'item_code'     => $production_order_details->production_item,
+				'item_name'     => $production_order_details->item_name,
+				'customer'		=> $mes_production_order_details->customer,
+				'feedbacked_by' => Auth::user()->email,
+				'completed_qty' => $request->fg_completed_qty, 
+				'uom'			=> $production_order_details->stock_uom
+			);
+			$recipient= DB::connection('mysql_mes')
+                ->table('email_trans_recipient')
+				->where('email_trans', "Feedbacking")
+				->where('email', 'like','%@fumaco.local%')
+                ->select('email')
+                ->get();
+			if(count($recipient) > 0){
+				if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
+					foreach ($recipient as $row) {
+						Mail::to($row->email)->send(new SendMail_feedbacking($data));
+					}	
+				}
+			}
 			$feedbacked_timelogs = [
                 'production_order'  => $mes_production_order_details->production_order,
                 'ste_no'           => $new_id,
@@ -5515,8 +5516,8 @@ class MainController extends Controller
 					'remarks' => $datas
 				];
 				$resched_logs=[
-					'delivery_date_id' => $delivery_id->delivery_date_id,
-					'previous_delivery_date' => ($delivery_id->rescheduled_delivery_date == null)?$delivery_id->delivery_date:$delivery_id->rescheduled_delivery_date,
+					'delivery_date_id' => Carbon::parse($delivery_id->delivery_date_id)->format('Y-m-d'),
+					'previous_delivery_date' => ($delivery_id->rescheduled_delivery_date == null)?Carbon::parse($delivery_id->delivery_date)->format('Y-m-d'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('Y-m-d'),
 					'reschedule_reason_id' => $data[0],
 					'rescheduled_by' => Auth::user()->employee_name,
 					'remarks' => $request->remarks,
@@ -5524,6 +5525,31 @@ class MainController extends Controller
 					'created_at' => $now->toDateTimeString(),
 	
 				];
+				//email alert
+				$get_sales_order_owner=db::connection('mysql')->table('tabSales Order Item')
+				->where('parent', $production_order_details->sales_order)
+				->where('item_code', $production_order_details->item_code)->select('owner')->first();//get so owner from erp
+
+				$email_data = array( 
+					'orig_delivery_date'  => ($delivery_id->rescheduled_delivery_date == null)? Carbon::parse($delivery_id->delivery_date)->format('Y-m-d'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('Y-m-d'),
+					'resched_date'  	  => Carbon::parse($reschedule_date)->format('Y-m-d'),
+					'item_code'           => $production_order_details->item_code,
+					'description'		  => $production_order_details->description,
+					'reference'			  => $production_order_details->sales_order,
+					'resched_by'     	  => Auth::user()->employee_name,
+					'resched_reason'      => $data[1]."-".$request->remarks,
+					'customer'			  => $production_order_details->customer,
+					'qty'			 	  => $production_order_details->qty_to_manufacture,
+					'uom'			      => $production_order_details->stock_uom,
+
+
+				); 
+				if($get_sales_order_owner->owner == "Administrator"){
+					Mail::to('albert.gregorio@fumaco.local')->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				}else{
+					Mail::to($get_sales_order_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+
+				}				
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->update($mes_data);//update the reschedule delivery date in delivery date table
 				
@@ -5548,13 +5574,39 @@ class MainController extends Controller
 					'created_by' => Auth::user()->employee_name,
 					'created_at' => $now->toDateTimeString(),
 				];
+
+				//email alert
+				$get_mreq_owner=db::connection('mysql')->table('tabMaterial Request Item')
+				->where('parent', $production_order_details->material_request)
+				->where('item_code', $production_order_details->item_code)->select('owner')->first();//get mreq owner from erp
+
+				$email_data = array( 
+					'orig_delivery_date'  => ($delivery_id->rescheduled_delivery_date == null)? Carbon::parse($delivery_id->delivery_date)->format('M-d-Y'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('M-d-Y'),
+					'resched_date'  	  => Carbon::parse($reschedule_date)->format('M-d-Y'),
+					'item_code'           => $production_order_details->item_code,
+					'description'		  => $production_order_details->description,
+					'reference'			  => $production_order_details->material_request,
+					'resched_by'     	  => Auth::user()->employee_name,
+					'resched_reason'      => $data[1]."-".$request->remarks,
+					'customer'			  => $production_order_details->customer,
+					'qty'			 	  => $production_order_details->qty_to_manufacture,
+					'uom'			      => $production_order_details->stock_uom,
+
+
+				); 
+				if($get_mreq_owner->owner == "Administrator"){
+					Mail::to('albert.gregorio@fumaco.local')->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				}else{
+					Mail::to($get_mreq_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+
+				}
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->update($mes_data);
 
 			}
 			
 		}
-		//if schedued in less than the current delivery date (for validation)
+		// if schedued in less than the current delivery date (for validation)
 		if($reschedule_date->toDateTimeString() <= $delivery_date->toDateTimeString()){
 			$production_order_data = [
 				'reschedule_delivery' => 0,
@@ -5590,6 +5642,8 @@ class MainController extends Controller
 				->where('parent_item_code', $production_order_details->item_code)
 				->where('sales_order_no',$production_order_details->sales_order)
 				->update($production_order_data);
+
+			
 			
 		}
 
@@ -5604,8 +5658,10 @@ class MainController extends Controller
 				->where('material_request',$production_order_details->material_request)
 				->update($production_order_data);
 
-		}
+			
 
+		}
+		// dd($get_sales_order_owner);
 		return response()->json(['success' => 1, 'message' => 'Production Order updated.']);
 	}
 }
