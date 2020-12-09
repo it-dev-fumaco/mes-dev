@@ -1756,8 +1756,8 @@ class MainController extends Controller
 				->whereIn('status', ['In Progress', 'Completed'])->distinct()->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order AS po')
-				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+				->join('delivery_date', DB::raw('IFNULL(po.sales_order, po.material_request)'), 'delivery_date.reference_no')
+				->whereRaw('delivery_date.parent_item_code = po.parent_item_code')
 				->whereIn('po.production_order', $jt_production_orders)
 				->whereNotIn('po.status', ['Cancelled'])
 				->where(function($q) use ($request) {
