@@ -5655,7 +5655,6 @@ class MainController extends Controller
 			
 
 		}
-		// dd($get_sales_order_owner);
 		return response()->json(['success' => 1, 'message' => 'Production Order updated.']);
 	}
 }
