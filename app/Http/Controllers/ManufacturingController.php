@@ -2306,7 +2306,7 @@ class ManufacturingController extends Controller
 
             $operation_id = $request->operation_id;
 
-            if(!$request->custom_bom){
+            if(!$request->custom_bom && $request->is_stock_uom == 1){
                 $bom = DB::connection('mysql')->table('tabBOM')->where('name', $request->bom)->first();
                 if (!$bom) {
                     return response()->json(['success' => 0, 'message' => 'BOM ' .$request->bom. ' not found.']);
@@ -2470,30 +2470,61 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabProduction Order')->insert($data);
 
                 if($request->custom_bom){
-                    $req_item_detail = DB::connection('mysql')->table('tabItem')
-                        ->where('name', $request->item_code)->first();
+                    $raw_required_items = [];
+                    if($request->is_stock_item > 0){
+                        $req_item_detail = DB::connection('mysql')->table('tabItem')
+                            ->where('name', $request->item_code)->first();
+    
+                        $raw_required_items = [
+                            'name' => 'mes'.uniqid(),
+                            'creation' => $now->toDateTimeString(),
+                            'modified' => $now->toDateTimeString(),
+                            'modified_by' => Auth::user()->email,
+                            'owner' => Auth::user()->email,
+                            'docstatus' => 1,
+                            'parent' => $new_id,
+                            'parentfield' => 'required_items',
+                            'parenttype' => 'Production Order',
+                            'idx' => 1,
+                            'description' => $req_item_detail->description,
+                            'item_name' => $req_item_detail->item_name,
+                            'item_code' => $req_item_detail->item_code,
+                            'required_qty' => $request->qty,
+                            'transferred_qty' => 0,
+                            'available_qty_at_source_warehouse' => 0,
+                            'available_qty_at_wip_warehouse' => 0,
+                            'source_warehouse' => $req_item_detail->default_warehouse,
+                            'stock_uom' => $req_item_detail->stock_uom
+                        ];
+                    }else{
+                        $bundle_items = DB::connection('mysql')->table('tabProduct Bundle Item')->where('parent', $request->item_code)->get();
+                        foreach ($bundle_items as $k => $v) {
+                            $req_item_detail = DB::connection('mysql')->table('tabItem')
+                                ->where('name', $v->item_code)->first();
 
-                    $raw_required_items = [
-                        'name' => 'mes'.uniqid(),
-                        'creation' => $now->toDateTimeString(),
-                        'modified' => $now->toDateTimeString(),
-                        'modified_by' => Auth::user()->email,
-                        'owner' => Auth::user()->email,
-                        'docstatus' => 1,
-                        'parent' => $new_id,
-                        'parentfield' => 'required_items',
-                        'parenttype' => 'Production Order',
-                        'idx' => 1,
-                        'description' => $req_item_detail->description,
-                        'item_name' => $req_item_detail->item_name,
-                        'item_code' => $req_item_detail->item_code,
-                        'required_qty' => $request->qty,
-                        'transferred_qty' => 0,
-                        'available_qty_at_source_warehouse' => 0,
-                        'available_qty_at_wip_warehouse' => 0,
-                        'source_warehouse' => $req_item_detail->default_warehouse,
-                        'stock_uom' => $req_item_detail->stock_uom
-                    ];
+                            $raw_required_items[] = [
+                                'name' => 'mes'.uniqid(),
+                                'creation' => $now->toDateTimeString(),
+                                'modified' => $now->toDateTimeString(),
+                                'modified_by' => Auth::user()->email,
+                                'owner' => Auth::user()->email,
+                                'docstatus' => 1,
+                                'parent' => $new_id,
+                                'parentfield' => 'required_items',
+                                'parenttype' => 'Production Order',
+                                'idx' => $k + 1,
+                                'description' => $req_item_detail->description,
+                                'item_name' => $req_item_detail->item_name,
+                                'item_code' => $req_item_detail->item_code,
+                                'required_qty' => $v->qty * $request->qty,
+                                'transferred_qty' => 0,
+                                'available_qty_at_source_warehouse' => 0,
+                                'available_qty_at_wip_warehouse' => 0,
+                                'source_warehouse' => $req_item_detail->default_warehouse,
+                                'stock_uom' => $v->uom
+                            ];
+                        }
+                    }
 
                     DB::connection('mysql')->table('tabProduction Order Item')->insert($raw_required_items);
 

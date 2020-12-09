@@ -508,6 +508,7 @@
   <div class="modal-dialog" role="document" style="min-width: 80%;">
     <form action="/manual_create_production_order" method="post" autocomplete="off">
       @csrf
+      <input type="hidden" value="0" name="is_stock_item">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Create Production Order</h5>
@@ -1485,6 +1486,7 @@ $(document).ready(function(){
     },
     minLength: 1,
     select:function(event,ui){
+      var is_stock_item = ui.item.is_stock_item;
       $.ajax({
         url:"/get_item_details/" + ui.item.value,
         type:"GET",
@@ -1495,11 +1497,21 @@ $(document).ready(function(){
             $('#manual-production-modal textarea[name="description"]').text(response.description);
             $('#manual-production-modal input[name="stock_uom"]').val(response.stock_uom);
             $('#manual-production-modal input[name="item_classification"]').val(response.item_classification);
-
+            $('#manual-production-modal input[name="is_stock_item"]').val(is_stock_item);
             $('#target-wh').append(get_warehouse(response.item_classification, 'target'));
           }
 
           get_bom(response.name);
+
+          if(is_stock_item == 0){
+            $('#has-no-bom-checkbox').prop( "checked", true );
+            $('#sel-bom').attr('disabled', true);
+          }else{
+            $('#has-no-bom-checkbox').prop( "checked", false );
+            $('#sel-bom').removeAttr('disabled');
+          }
+
+          $('#manual-material-operation-row').toggle();
         }
       });
     }

@@ -1325,14 +1325,15 @@ class MainController extends Controller
 		}
 
 		if ($reference_type == 'Item') {
-			return DB::connection('mysql')->table('tabItem')->where('is_stock_item', 1)->where('disabled', 0)
-				->where('has_variants', 0)
+			DB::statement(DB::raw('set @is_stock_item = 0'));
+			$bundled_items = DB::connection('mysql')->table('tabProduct Bundle')
 				->where('name', 'like', '%'.$request->term.'%')
-				// ->where(function($q)  {
-				// 	$q->whereIn('item_classification', ['SA - Sub Assembly', 'HO - Housing'])
-				// 		->orWhere('item_classification', 'LIKE', '%SA -%');
-				// })
-				->select('name as value', 'name as id')->orderBy('modified', 'desc')->limit(5)->get();
+				->select('name as value', 'name as id', DB::raw('@is_stock_item'));
+
+			return DB::connection('mysql')->table('tabItem')->where('is_stock_item', 1)->where('disabled', 0)
+				->where('has_variants', 0)->where('name', 'like', '%'.$request->term.'%')
+				->union($bundled_items)
+				->select('name as value', 'name as id', 'is_stock_item')->limit(5)->get();
 		}
 	}
 
