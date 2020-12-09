@@ -2347,6 +2347,8 @@ class ManufacturingController extends Controller
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
 
+            $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
+
             $data = [
                 'name' => $new_id,
                 'creation' => $now->toDateTimeString(),
@@ -2380,7 +2382,7 @@ class ManufacturingController extends Controller
                 'order_no' => 0,
                 'priority' => 'Normal',
                 'classification' => $request->classification,
-                'parent_item_code' => ($request->parent_code) ? $request->parent_code : $request->item_code,
+                'parent_item_code' => $parent_item_code,
                 'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
             ];
 
@@ -2389,7 +2391,7 @@ class ManufacturingController extends Controller
 
             $data_mes = [
                 'production_order' => $new_id,
-                'parent_item_code' => ($request->parent_code) ? $request->parent_code : $request->item_code,
+                'parent_item_code' => $parent_item_code,
                 'sub_parent_item_code' => ($request->sub_parent_code) ? $request->sub_parent_code : $request->item_code,
                 'item_code' => $request->item_code,
                 'description' => $request->description,
@@ -2440,6 +2442,27 @@ class ManufacturingController extends Controller
                 DB::connection('mysql_mes')->table('job_ticket')->insert($mes_custom_operations);
             }else{
                 $this->save_production_operations($new_id, $request->bom, ($request->planned_date) ? $request->planned_date : null, 'mes');
+            }
+
+            $reference_child_table = ($request->reference_type == 'SO') ? 'tabSales Order Item' : 'tabMaterial Request Item';
+            $reference_parent = ($request->reference_type == 'SO') ? $request->sales_order : $request->material_request;
+            $reference_child_details = DB::connection('mysql')->table($reference_child_table)
+                ->where('parent', $reference_name)->where('item_code', $parent_item_code)->first();
+
+            if($reference_child_details){
+                $del_data = [
+                    'erp_reference_id' => $reference_child_details->name,
+                    'reference_no' => $reference_parent,
+                    'parent_item_code' => $parent_item_code,
+                    'delivery_date' => ($request->reference_type == 'SO') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date
+                ];
+
+                $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
+                    ->where('erp_reference_id', $reference_child_details->name)->exists();
+
+                if(!$existing_del_data){
+                    DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
+                }
             }
 
             DB::connection('mysql')->beginTransaction();
