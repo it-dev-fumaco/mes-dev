@@ -4427,6 +4427,10 @@ class MainController extends Controller
 			$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
 				->where('production_order', $production_order)->first();
 
+			if($mes_production_order_details->is_stock_item < 1){
+				return redirect('/create_bundle_feedback/'. $production_order .'/' . $request->fg_completed_qty);
+			}
+
 			$now = Carbon::now();
 
 			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
@@ -4743,6 +4747,7 @@ class MainController extends Controller
 		}
     }
 
+	// create stock ledger entry for manufacture ste
     public function create_stock_ledger_entry($stock_entry){
     	$now = Carbon::now();
     	$latest_pro = DB::connection('mysql')->table('tabStock Ledger Entry')->max('name');

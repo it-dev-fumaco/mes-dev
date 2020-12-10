@@ -276,6 +276,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');
 
 	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
+	Route::get('/create_bundle_feedback/{production_order}/{fg_completed_qty}', 'ManufacturingController@create_production_feedback_for_item_bundle');
 	Route::get('/create_gl_entry/{stock_entry}', 'MainController@create_gl_entry');
 
 	Route::get('/get_tbl_notif_dashboard', 'MainController@get_tbl_notif_dashboard');
