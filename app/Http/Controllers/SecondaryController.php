@@ -7584,18 +7584,17 @@ class SecondaryController extends Controller
       }
     public function selected_print_withdrawals($production_order){
         $myArray = explode(',', $production_order);
-
+        $now = Carbon::now();
         $ste = DB::connection('mysql')->table('tabStock Entry')
         ->where('purpose', 'Material Transfer for Manufacture')
         ->whereIn('production_order', $myArray)
         ->where('docstatus',"<", 2)
-        ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,posting_date,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
-        ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project','posting_date')
-        ->get();
-        
+        ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
+        ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project')
+        ->get();  //get parent_ste based on given production order
+        $stock_entries=[];
         foreach ($ste as $row) {
-            $ste_name = explode(',', $row->ste_name);
-            // dd($ste_name);
+            $ste_name = explode(',', $row->ste_name);// merge into one page/ withdrawal slip all ste with same production order
             $items = DB::connection('mysql')->table('tabStock Entry Detail')->whereIn('parent', $ste_name)->get();
             $stock_entries[] = [
                 'sales_order' => $row->sales_order_no,
@@ -7603,13 +7602,16 @@ class SecondaryController extends Controller
                 'production_order' => $row->production_order,
                 'customer' => $row->so_customer_name,
                 'project' => $row->project,
-                'posting_date' => $row->posting_date,
+                'posting_date' => $now->format('y-m-d'),
                 'items' => $items
             ];
+
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $row->production_order)->update(['withdrawal_slip_print' => '1']);
 
         }
-
+        if(empty($stock_entries)){ //validation if with no ste found
+            return response()->json(['success' => 0, 'message' => 'No withdrawal slip(s) created']);
+        }
         return view('selected_print_withdrawal', compact('stock_entries'));
     }
     public function get_employee_email(){
