@@ -119,9 +119,9 @@
           <a class="nav-link" id="step3-tab" data-toggle="tab" href="#step3" role="tab" aria-controls="step3" aria-selected="false">Ready for Painting</a>
         </li>
       </ul>
-      <div class="tab-content" style="min-height: 620px;;">
+      <div class="tab-content" style="min-height: 620px;">
         <div class="tab-pane" id="step3" role="tabpanel" aria-labelledby="step3-tab">
-          <div class="row">
+          <div class="row" style="margin-top: 10px;">
             <div class="col-md-12">
               <div class="card">
                 <div class="card-body">
