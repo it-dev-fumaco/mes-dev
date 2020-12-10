@@ -460,7 +460,7 @@
     
     function get_for_feedback_production(page, query){
       $.ajax({
-        url: "/get_for_feedback_production?page=" + page,
+        url: "/production_order_list/Awaiting Feedback?page=" + page,
         type:"GET",
         data: {search_string: query},
         success:function(data){
