@@ -948,11 +948,12 @@
             type:"GET",
             data: {production_orders},
             success:function(data){
-              // window.open(this.url);
-               $('#printmodalbody').html(data);
-               // $('#print_modal_js_ws .modal-title').text("Withdrawal Slip Print Preview");
-               $('#print_modal_js_ws').modal('show');
-               // $("#iframe-print").attr("src", this.url);
+               if (data.success < 1) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info"); //show alert message 
+               }else{
+                  $('#printmodalbody').html(data);
+                  $('#print_modal_js_ws').modal('show');
+               }
 
             },
             error: function(jqXHR, textStatus, errorThrown) {
