@@ -1085,12 +1085,8 @@
             type:"GET",
             data: {production_orders: production_orders},
             success:function(data){
-               if (data.success < 1) {
-                  showNotification("danger", data.message, "now-ui-icons travel_info"); //show alert message
-               }else{
-                  $('#printmodalbody').html(data);
-                  $('#print_modal_js_ws').modal('show');
-               }
+              $('#printmodalbody').html(data);
+               $('#print_modal_js_ws').modal('show');
             },
             error: function(jqXHR, textStatus, errorThrown) {
                console.log(jqXHR);

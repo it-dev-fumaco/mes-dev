@@ -2096,7 +2096,7 @@ $(document).on('click', '.printbtnwidrawal', function(){
     type:"GET",
     success:function(data){
       if (data.success < 1) {
-        showNotification("danger", data.message, "now-ui-icons travel_info");// show alert message
+      showNotification("danger", data.message, "now-ui-icons travel_info");
       }else{
       $('#printmodalbody').html(data);
       $('#print_modal_js_ws').modal('show');
