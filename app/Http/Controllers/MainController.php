@@ -5522,8 +5522,8 @@ class MainController extends Controller
 					'remarks' => $datas
 				];
 				$resched_logs=[
-					'delivery_date_id' => Carbon::parse($delivery_id->delivery_date_id)->format('Y-m-d'),
-					'previous_delivery_date' => ($delivery_id->rescheduled_delivery_date == null)?Carbon::parse($delivery_id->delivery_date)->format('Y-m-d'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('Y-m-d'),
+					'delivery_date_id' => $delivery_id->delivery_date_id,
+					'previous_delivery_date' => ($delivery_id->rescheduled_delivery_date == null)?$delivery_id->delivery_date:$delivery_id->rescheduled_delivery_date,
 					'reschedule_reason_id' => $data[0],
 					'rescheduled_by' => Auth::user()->employee_name,
 					'remarks' => $request->remarks,
