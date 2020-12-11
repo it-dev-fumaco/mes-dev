@@ -1111,9 +1111,6 @@
           success:function(data){
               $('#tbl_reschduled_deli').html(data);
               $('#reschedule-delivery-modal').modal('show');
-              // $('#reschedule-delivery-modal .modal-title').text('Reschedule Delivery Date'+"["+ prod +"]");
-
-
           },
           error: function(jqXHR, textStatus, errorThrown) {
               console.log(jqXHR);
