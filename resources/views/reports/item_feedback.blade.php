@@ -667,6 +667,13 @@
             </div> -->
 
             <div class="col-md-6 offset-md-3">
+              <div class="alert alert-warning text-center" id="manual-prod-note" role="alert">
+                <div class="container">
+                 
+                  <strong>Note:</strong> The selected item is a product bundle.
+                 
+                </div>
+              </div>
               <div class="row">
                 <div class="col-md-8 offset-md-2">
                   <table style="width: 100%;" class="mb-2">
@@ -1471,6 +1478,7 @@ $(document).ready(function(){
       }
   });
 
+  $('#manual-prod-note').hide();
   $('#sel-item').autocomplete({
     source:function(request,response){
       $.ajax({
@@ -1506,9 +1514,11 @@ $(document).ready(function(){
           if(is_stock_item == 0){
             $('#has-no-bom-checkbox').prop( "checked", true );
             $('#sel-bom').attr('disabled', true);
+            $('#manual-prod-note').show();
           }else{
             $('#has-no-bom-checkbox').prop( "checked", false );
             $('#sel-bom').removeAttr('disabled');
+            $('#manual-prod-note').hide();
           }
 
           $('#manual-material-operation-row').toggle();
