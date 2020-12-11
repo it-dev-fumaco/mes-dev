@@ -7582,36 +7582,7 @@ class SecondaryController extends Controller
           }
               
       }
-    public function selected_print_withdrawals($production_order){
-        $myArray = explode(',', $production_order);
 
-        $ste = DB::connection('mysql')->table('tabStock Entry')
-        ->where('purpose', 'Material Transfer for Manufacture')
-        ->whereIn('production_order', $myArray)
-        ->where('docstatus',"<", 2)
-        ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,posting_date,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
-        ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project','posting_date')
-        ->get();
-        
-        foreach ($ste as $row) {
-            $ste_name = explode(',', $row->ste_name);
-            // dd($ste_name);
-            $items = DB::connection('mysql')->table('tabStock Entry Detail')->whereIn('parent', $ste_name)->get();
-            $stock_entries[] = [
-                'sales_order' => $row->sales_order_no,
-                'material_request' => $row->material_request,
-                'production_order' => $row->production_order,
-                'customer' => $row->so_customer_name,
-                'project' => $row->project,
-                'posting_date' => $row->posting_date,
-                'items' => $items
-            ];
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $row->production_order)->update(['withdrawal_slip_print' => '1']);
-
-        }
-
-        return view('selected_print_withdrawal', compact('stock_entries'));
-    }
     public function get_employee_email(){
         $employees = DB::connection('mysql_essex')->table('users')->where('user_type', 'Employee')
             ->where('status', 'Active')->where('email','!=',null)->select('email')->get();
