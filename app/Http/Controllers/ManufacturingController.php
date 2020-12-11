@@ -3327,12 +3327,12 @@ class ManufacturingController extends Controller
     public function print_withdrawals(Request $request){
         $now = Carbon::now();
         $ste = DB::table('tabStock Entry')
-        ->where('purpose', 'Material Transfer for Manufacture')
-        ->whereIn('production_order', $request->production_orders)
-        ->where('docstatus',"<", 2)
-        ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
-        ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project')
-        ->get();  //get parent_ste based on given production order
+            ->where('purpose', 'Material Transfer for Manufacture')
+            ->whereIn('production_order', $request->production_orders)
+            ->where('docstatus',"<", 2)
+            ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
+            ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project')
+            ->get();  //get parent_ste based on given production order
         $stock_entries=[];
         foreach ($ste as $row) {
             $ste_names = explode(',', $row->ste_name);// merge into one page all ste with same production order
