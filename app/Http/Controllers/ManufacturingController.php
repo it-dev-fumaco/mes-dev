@@ -2704,7 +2704,8 @@ class ManufacturingController extends Controller
                             'date_modified' => ($item_status == 'Issued') ? $now->toDateTimeString() : null,
                             'session_user' => ($item_status == 'Issued') ? Auth::user()->employee_name : null,
                             'remarks' => ($item_status == 'Issued') ? 'MES' : null,
-                            'production_order_req_item_id' => $row->name
+                            'production_order_req_item_id' => $row->name,
+                            'issued_qty' => ($item_status == 'Issued') ? $remaining_qty : 0,
                         ];
 
                         $stock_entry_data = [
