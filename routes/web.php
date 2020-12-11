@@ -583,7 +583,6 @@ Route::get('/get_production_order_items/{production_order}', 'ManufacturingContr
 Route::post('/generate_stock_entry/{production_order}', 'ManufacturingController@generate_stock_entry');
 
 Route::get('/selected_print_fg_transfer_slip/{production_order}', 'MainController@selected_print_fg_transfer_slip');
-Route::get('/selected_print_withdrawals/{production_order}', 'SecondaryController@selected_print_withdrawals');
 
 
 //email_trans_setup

@@ -942,11 +942,12 @@
          $('#summary-tbl > tbody > tr').each(function(){
             production_orders.push($.trim($(this).find('td').eq(1).text()));
          });
+         var product= production_orders.toString(); 
 
          $.ajax({
             url: "/print_withdrawals",
             type:"GET",
-            data: {production_orders},
+            data: {production_orders: product},
             success:function(data){
                if (data.success < 1) {
                   showNotification("danger", data.message, "now-ui-icons travel_info"); //show alert message 

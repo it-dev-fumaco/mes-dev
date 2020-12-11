@@ -2092,8 +2092,9 @@ $(document).on('click', '.printbtnwidrawal', function(){
     showNotification("danger", "No selected Production Order", "now-ui-icons travel_info");
   }else{
     $.ajax({
-    url: "/selected_print_withdrawals/" + tryval,
+    url: "/print_withdrawals",
     type:"GET",
+    data: {production_orders: tryval},
     success:function(data){
       if (data.success < 1) {
         showNotification("danger", data.message, "now-ui-icons travel_info");// show alert message
