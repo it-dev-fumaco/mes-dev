@@ -5525,7 +5525,7 @@ class MainController extends Controller
 			if ($production_order_details->sales_order) {
 				$delivery_id=DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->first();// get the id from the delivery date table FOR SO refrerence
 				if(empty($delivery_id)){
-					return response()->json(['success' => 0, 'message' => 'Unable to process transaction. Item code has been change by Sales Personnel', 'reload_tbl' => $request->reload_tbl]);
+					return response()->json(['success' => 0, 'message' => 'Unable to process transaction.Parent item code has been changed by Sales Personnel', 'reload_tbl' => $request->reload_tbl]);
 
 				}
 				$data=explode(',',$request->reason_id);
@@ -5575,7 +5575,7 @@ class MainController extends Controller
 			if($production_order_details->material_request){
 				$delivery_id=DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->first();// get the id from the delivery date table FOR MREQ refrerence
 				if(empty($delivery_id)){
-					return response()->json(['success' => 0, 'message' => 'Unable to process transaction. Item code has been change by Sales Personnel', 'reload_tbl' => $request->reload_tbl]);
+					return response()->json(['success' => 0, 'message' => 'Unable to process transaction.Parent item code has been changed by Sales Personnel', 'reload_tbl' => $request->reload_tbl]);
 
 				}
 				$data=explode(',',$request->reason_id);
