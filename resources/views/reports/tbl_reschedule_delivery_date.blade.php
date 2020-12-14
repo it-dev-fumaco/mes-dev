@@ -1,11 +1,10 @@
 @php
-	 if($prod_details->rescheduled_delivery_date == null){
+	if($prod_details->rescheduled_delivery_date == null){
 		$deli=  $prod_details->deli;
-	 }else{
-		 $deli= $prod_details->rescheduled_delivery_date;
-
-	 }
-   @endphp
+	}else{
+		$deli= $prod_details->rescheduled_delivery_date;
+	}
+@endphp
 
 <div class="row">
 	<div class="col-md-12">
@@ -18,8 +17,7 @@
 	<input type="hidden" value="{{ $deli }}" name="delivery_date">
 	<input type="hidden" value="{{ $prod_details->production_order }}" name="production_order">
 	<input type="hidden" value="{{ $prod_details->planned_start_date }}" name="planned_start_date">
-	
-   <div class="col-md-12" style="margin-top:15px;">
+   	<div class="col-md-12" style="margin-top:15px;">
    		<div class="form-group text-center">
 			<div class="row">
 				<div class="col-md-6">
@@ -40,13 +38,13 @@
 				</div>
 				<div class="col-md-12">
 					<p style="font-size: 11pt;" class="text-center"><b>Remarks:</b></p>
-						<textarea class="form-control" name="remarks" rows="3"></textarea>
-						<textarea type="text" style="text-align:justify; display:none;" name="logs">
-							@foreach($data as $row)
-                              <span>>> {{$row['delivery_date'] }}</span><br>
-							  <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{$row['delivery_reason'] }} - {{$row['remarks'] }}</span><br>
-                            @endforeach
-						</textarea>
+					<textarea class="form-control" name="remarks" rows="3"></textarea>
+					<textarea type="text" style="text-align:justify; display:none;" name="logs">
+						@foreach($data as $row)
+                            <span>>> {{$row['delivery_date'] }}</span><br>
+							<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{$row['delivery_reason'] }} - {{$row['remarks'] }}</span><br>
+                        @endforeach
+					</textarea>
 				</div>
 			</div>
 		</div>

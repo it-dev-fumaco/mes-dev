@@ -2213,23 +2213,18 @@ class MainController extends Controller
 		if (!$production_order_details) {
 			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
 		}
-
 		if ($production_order_details->status != 'Completed') {
-			
 			$current_schedule =  Carbon::parse($production_order_details->planned_start_date);
 			$new_schedule = Carbon::parse($request->planned_start_date);
 			$diff_in_days = $current_schedule->diffInDays($new_schedule);
-
 			$tasks = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
 			$values=[];
 			foreach ($tasks as $row) {
 				if ($row->workstation != 'Painting') {
 					$current_planned_start_date = ($row->planned_start_date) ? $row->planned_start_date : $production_order_details->planned_start_date;
-
 					if($new_schedule->toDateTimeString() > $current_schedule->toDateTimeString()){
 						$new_planned_start_date = Carbon::parse($current_planned_start_date)->addDays($diff_in_days);
 					}
-					
 					if($new_schedule->toDateTimeString() < $current_schedule->toDateTimeString()){
 						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
 					}
@@ -2244,7 +2239,6 @@ class MainController extends Controller
 					DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
 				}
 			}
-			
 		}
 	}
 
@@ -2303,8 +2297,8 @@ class MainController extends Controller
 	}
 	public function productionKanban($operation_id){
 
-		   $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
-		   ->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
+		$unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
+		   	->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
 			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
 			->whereNotIn('production_order.status', ['Stopped', 'Cancelled'])
 			->where('production_order.feedback_qty',0)
@@ -2344,7 +2338,6 @@ class MainController extends Controller
 			];
 		}
 		$period = CarbonPeriod::create(now()->subDays(1), now()->addDays(6));
-
 		$customers = array_column($unscheduled, 'customer');
 		$reference_nos = array_column($unscheduled, 'sales_order');
 		$parent_items = array_column($unscheduled, 'parent_item_code');
@@ -2394,14 +2387,11 @@ class MainController extends Controller
 
 		$unscheduled = [];
 		foreach ($jobtickets_production as $row) {
-			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
-				->where('production_order',  $row->production_order)->get();
-			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')
-			->where('production_order',  $row->production_order)->first();
+			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')->where('production_order',  $row->production_order)->get();
+			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')->where('production_order',  $row->production_order)->first();
 			$total_process = collect($jt)->where('workstation','Painting')->count();
 			$total_pending = collect($jt)->where('workstation','Painting')->where('status', 'Pending')->count();
 			$total_inprogress = collect($jt)->where('workstation','Painting')->where('status', '!=', 'Completed')->count();
-
 			if ($total_process == $total_pending) {
 				$status= 'Not Started';
 			}else{
@@ -2410,8 +2400,7 @@ class MainController extends Controller
 				}else{
 					$status= 'Completed';
 				}
-			}
-							
+			}		
 			$stripfromcomma =strtok($row->description, ",");
 			
 			$unscheduled[] = [
@@ -2437,20 +2426,16 @@ class MainController extends Controller
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 				'order_no' =>$row->sequence,
 				'item_code' => $row->item_code
-
 			];
 		}
 
 		$period = CarbonPeriod::create(now()->subDays(1), now()->addDays(6));
-
 		$customers = array_column($unscheduled, 'customer');
 		$reference_nos = array_column($unscheduled, 'sales_order');
 		$parent_items = array_column($unscheduled, 'parent_item_code');
-
 		$scheduled = [];
 		foreach ($period as $date) {
 			$orders = $this->get_scheduled_painting($date->format('Y-m-d'));
-
 			$customers = array_merge($customers, array_column($orders, 'customer'));
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
