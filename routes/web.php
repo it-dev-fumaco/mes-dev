@@ -202,7 +202,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/assembly/wizard', 'AssemblyController@wizard');
 	Route::get('/assembly/get_reference_details/{reference_type}/{id}', 'AssemblyController@get_reference_details');
 	Route::get('/assembly/get_parts', 'AssemblyController@get_parts');
-	Route::get('/assembly/view_bom_for_review/{bom}', 'AssemblyController@view_bom_for_review');
 	Route::get('/assembly/get_production_req_items', 'AssemblyController@get_production_req_items');
 	Route::post('/assembly/create_stock_entry', 'AssemblyController@create_draft_stock_entry');
 	

@@ -788,7 +788,7 @@
       $(document).on("click", ".review-bom-row", function(e){
          e.preventDefault();
          $.ajax({
-            url: "/assembly/view_bom_for_review/" + $(this).data('bom'),
+            url: "/view_bom_for_review/" + $(this).data('bom'),
             type:"GET",
             success:function(data){
                $('#review-bom-details-div').html(data);
