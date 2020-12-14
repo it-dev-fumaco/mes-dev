@@ -1465,6 +1465,7 @@ $(document).ready(function(){
     minLength: 1,
     select:function(event,ui){
       var is_stock_item = ui.item.is_stock_item;
+      $('#manual-material-operation-row').hide();
       $.ajax({
         url:"/get_item_details/" + ui.item.value,
         type:"GET",
@@ -1485,11 +1486,14 @@ $(document).ready(function(){
             $('#has-no-bom-checkbox').prop( "checked", true );
             $('#sel-bom').attr('disabled', true);
             $('#manual-prod-note').show();
+            $('#manual-material-operation-row').show();
           }else{
             $('#has-no-bom-checkbox').prop( "checked", false );
             $('#sel-bom').removeAttr('disabled');
             $('#manual-prod-note').hide();
+            $('#manual-material-operation-row').hide();
           }
+
         }
       });
     }
