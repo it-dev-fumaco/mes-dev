@@ -2230,38 +2230,29 @@ class MainController extends Controller
 		if (!$production_order_details) {
 			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
 		}
-
 		if ($production_order_details->status != 'Completed') {
-			
 			$current_schedule =  Carbon::parse($production_order_details->planned_start_date);
 			$new_schedule = Carbon::parse($request->planned_start_date);
 			$diff_in_days = $current_schedule->diffInDays($new_schedule);
-			
-			$val_mes = [
-				'planned_start_date' => $new_schedule,
-			];
-
-			DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($val_mes);
-			
 			$tasks = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
+			$values=[];
 			foreach ($tasks as $row) {
 				if ($row->workstation != 'Painting') {
 					$current_planned_start_date = ($row->planned_start_date) ? $row->planned_start_date : $production_order_details->planned_start_date;
-
 					if($new_schedule->toDateTimeString() > $current_schedule->toDateTimeString()){
 						$new_planned_start_date = Carbon::parse($current_planned_start_date)->addDays($diff_in_days);
 					}
-					
 					if($new_schedule->toDateTimeString() < $current_schedule->toDateTimeString()){
 						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
 					}
-
+					if($new_schedule->toDateTimeString() == $current_schedule->toDateTimeString()){
+						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
+					}
 					$values = [
 						'last_modified_by' => Auth::user()->employee_name,
 						'last_modified_at' => $now->toDateTimeString(),
-						'planned_start_date' => $new_planned_start_date->toDateTimeString(),
+						'planned_start_date' => $new_schedule,
 					];
-
 					DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
 				}
 			}
@@ -2322,7 +2313,6 @@ class MainController extends Controller
 
 	}
 	public function productionKanban($operation_id){
-
 		   $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
 		   ->leftJoin('delivery_date', function($join)
             {
@@ -2362,12 +2352,11 @@ class MainController extends Controller
 				'job_ticket_print' => $row->job_ticket_print,
 				'sales_order' =>($row->sales_order == null) ? $row->material_request: $row->sales_order,
 				'batch' => null,
+				'item_code' => $row->item_code,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 			];
 		}
-
 		$period = CarbonPeriod::create(now()->subDays(1), now()->addDays(6));
-
 		$customers = array_column($unscheduled, 'customer');
 		$reference_nos = array_column($unscheduled, 'sales_order');
 		$parent_items = array_column($unscheduled, 'parent_item_code');
@@ -2419,14 +2408,11 @@ class MainController extends Controller
 
 		$unscheduled = [];
 		foreach ($jobtickets_production as $row) {
-			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
-				->where('production_order',  $row->production_order)->get();
-			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')
-			->where('production_order',  $row->production_order)->first();
+			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')->where('production_order',  $row->production_order)->get();
+			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')->where('production_order',  $row->production_order)->first();
 			$total_process = collect($jt)->where('workstation','Painting')->count();
 			$total_pending = collect($jt)->where('workstation','Painting')->where('status', 'Pending')->count();
 			$total_inprogress = collect($jt)->where('workstation','Painting')->where('status', '!=', 'Completed')->count();
-
 			if ($total_process == $total_pending) {
 				$status= 'Not Started';
 			}else{
@@ -2435,8 +2421,7 @@ class MainController extends Controller
 				}else{
 					$status= 'Completed';
 				}
-			}
-							
+			}		
 			$stripfromcomma =strtok($row->description, ",");
 			
 			$unscheduled[] = [
@@ -2461,19 +2446,17 @@ class MainController extends Controller
 				'prod_status' => $row->status,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 				'order_no' =>$row->sequence,
+				'item_code' => $row->item_code
 			];
 		}
 
 		$period = CarbonPeriod::create(now()->subDays(1), now()->addDays(6));
-
 		$customers = array_column($unscheduled, 'customer');
 		$reference_nos = array_column($unscheduled, 'sales_order');
 		$parent_items = array_column($unscheduled, 'parent_item_code');
-
 		$scheduled = [];
 		foreach ($period as $date) {
 			$orders = $this->get_scheduled_painting($date->format('Y-m-d'));
-
 			$customers = array_merge($customers, array_column($orders, 'customer'));
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
@@ -2519,9 +2502,7 @@ class MainController extends Controller
 		->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
 		->orderBy('jt.sequence', 'asc')
 		->get();
-	
-	
-	
+
 			$scheduled = [];
 			foreach($orders as $row){
 							$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -2543,7 +2524,6 @@ class MainController extends Controller
 		
 							}
 							
-
 				$stripfromcomma =strtok($row->description, ",");
 				$scheduled[] = [
 					'id' => $row->production_order,
@@ -2567,6 +2547,7 @@ class MainController extends Controller
 					'prod_status' => $row->status,
 					'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 					'order_no' => $row->sequence,
+					'item_code' => $row->item_code
 				];
 			}
 	
@@ -2699,6 +2680,7 @@ class MainController extends Controller
 				'job_ticket_print' => $row->job_ticket_print,
 				'sales_order' =>($row->sales_order == null) ? $row->material_request: $row->sales_order,
 				'batch' => null,
+				'item_code' => $row->item_code,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 			];
     	}
@@ -5513,21 +5495,19 @@ class MainController extends Controller
 		$now = Carbon::now();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 		if (!$production_order_details) {
-			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
+			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.', 'reload_tbl' => $request->reload_tbl]);
 		}
-		
 		$delivery_date =  Carbon::parse($request->delivery_date);
 		$reschedule_date = Carbon::parse($request->reschedule_date);
 		$planned_start_date = Carbon::parse($request->planned_start_date);
-
 		
 
 		if($reschedule_date->toDateTimeString() <= $delivery_date->toDateTimeString()){
-			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date']);
+			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date', 'reload_tbl' => $request->reload_tbl]);
 		}
 		if(!$production_order_details->planned_start_date){
 			if($reschedule_date->toDateTimeString() <= $planned_start_date->toDateTimeString()){
-				return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current production schedule date']);
+				return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current production schedule date', 'reload_tbl' => $request->reload_tbl]);
 			}
 		}
 		// update production order & sales order rescheduled delivery date & late delivery reason
@@ -5699,6 +5679,6 @@ class MainController extends Controller
 			
 
 		}
-		return response()->json(['success' => 1, 'message' => 'Production Order updated.']);
+		return response()->json(['success' => 1, 'message' => 'Production Order updated.', 'reload_tbl' => $request->reload_tbl]);
 	}
 }
