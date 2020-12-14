@@ -46,7 +46,7 @@
 	<div class="col-md-12">
 		<div class="alert alert-warning text-center mt-1 mb-2 text-blink-alert" id="manual-prod-note" role="alert">
 			<div class="container">
-			  <strong>Warning:</strong> Please update BOM stock uom for the following item(s): <span class="font-weight-bold">{{ implode(', ', $items_with_different_uom) }}</span>
+				<strong>Warning:</strong> Please update <span class="font-weight-bold">{{ implode(', ', $items_with_different_uom) }}</span> stock uom and quantity for this BOM in ERP.
 			</div>
 		</div>
 	</div>
