@@ -3716,4 +3716,32 @@ class ManufacturingController extends Controller
 			return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry']);
 		}
     }
+
+    public function view_bundle_components($item_code){
+        $bundle_details = DB::connection('mysql')->table('tabProduct Bundle as pb')
+            ->join('tabItem as i', 'i.name', 'pb.name')->where('pb.name', $item_code)->first();
+
+        if(!$bundle_details){
+            return response()->json(['status' => 0, 'message' => 'No Product Bundle found for item ' . $item_code]);
+        }
+
+        $components = DB::connection('mysql')->table('tabProduct Bundle Item')->where('parent', $item_code)->orderBy('idx', 'asc')->get();
+        $components_arr = [];
+        foreach ($components as $row) {
+            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $row->item_code)->first();
+            $image_src = 'http://athenaerp.fumaco.local/storage/';
+            $image_path = ($item_details->item_image_path) ? $item_details->item_image_path : 'icon/no_img.png';
+           
+            $components_arr[] = [
+                'idx' => $row->idx,
+                'item_code' => $row->item_code,
+                'image' => $image_src . $image_path,
+                'description' => $row->description,
+                'qty' => $row->qty,
+                'uom' => $row->uom,
+            ];
+        }
+
+        return view('tables.tbl_bundle_components', compact('bundle_details', 'components_arr'));
+    }
 }

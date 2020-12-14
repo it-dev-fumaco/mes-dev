@@ -670,7 +670,7 @@
               <div class="alert alert-warning text-center" id="manual-prod-note" role="alert">
                 <div class="container">
                  
-                  <strong>Note:</strong> The selected item is a product bundle.
+                  <strong>Note:</strong> The selected item is a product bundle. <span style="font-size: 9pt;" id="view-bundle-components-btn"><a href="#"><i class="now-ui-icons ui-1_zoom-bold" style="font-size: 7pt;"></i> View Components</span></a>
                  
                 </div>
               </div>
