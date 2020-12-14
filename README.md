@@ -1,18 +1,22 @@
 # mes-dev
 
-Instructions using GUI and Commands
-
-1. Download GitHub Desktop
-2. Clone Project https://github.com/it-dev-fumaco/mes-dev.git
-3. Locate Project Folder on your local PC
-4. Open CMD and change directory to your Local project folder
-5. Type copy .env.example .env
-6.  Type php artisan key:generate
-7.  Type php artisan optmize
-8.  Type php artisan serve 
-9. Access it via URL using your IP or localhost with default port = 8000
-10. Open VsCode 
-
-Note: Please specify the Summary and Description on your every commit﻿
-      Finalize and Review Your Code before Pushing to Dev Branch 
-
+Story
+[MES-622] - Email alert to sales order owner to notify of new delivery date
+[MES-657] - Registration of bundled items in manual production order form
+[MES-658] - Display message info if the selected items is a product bundle.
+[MES-660] - Create stock entry in ERP for feedbacking as "Material Transfer" for delivery
+[MES-717] - Link Reschedule Delivery Date modal upon drag in Production Scheduling
+[MES-724] - Notification to update Item Quantity based on updated UOM in BOM
+[MES-725] - Display Bundle components with item image in manual production order
+Bug
+[MES-694] - Error saving delivery date logs in manual production order
+[MES-695] - Duplicate production orders displaying in list
+[MES-696] - Duplicate production order displaying in scheduling
+[MES-697] - Duplicate production order displaying in withdrawal slip
+[MES-699] - Unable to load ready for feedback list
+[MES-700] - Unable to view manual production order in list
+[MES-701] - Blank page in printing withdrawal slip for manual production order in scheduling
+[MES-714] - Inaccurate transferred/issued qty display in stock withdrawal
+[MES-715] - Unable to load ready for feedback in Main Dashboard
+[MES-718] - Production order with changed code in sales order item is not displaying in list
+The text area below allows the project release notes to be copied to another document.
