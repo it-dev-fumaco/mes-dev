@@ -2307,31 +2307,33 @@ class ManufacturingController extends Controller
                     ->where('operation_id', $request->operation_id)->first();
 
             $operation_id = $request->operation_id;
+            if(!$request->custom_bom){
+                if($request->is_stock_item){
+                    $bom = DB::connection('mysql')->table('tabBOM')->where('name', $request->bom)->first();
+                    if (!$bom) {
+                        return response()->json(['success' => 0, 'message' => 'BOM ' .$request->bom. ' not found.']);
+                    }
 
-            if(!$request->custom_bom && $request->is_stock_uom == 1){
-                $bom = DB::connection('mysql')->table('tabBOM')->where('name', $request->bom)->first();
-                if (!$bom) {
-                    return response()->json(['success' => 0, 'message' => 'BOM ' .$request->bom. ' not found.']);
-                }
+                    $bom_operations = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom->name)->orderBy('idx', 'asc')->first();
+                    $operation_details = DB::connection('mysql_mes')->table('operation')
+                        ->where('operation_name', 'like', '%'.$bom_operations->operation.'%')->first();
 
-                $bom_operations = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom->name)->orderBy('idx', 'asc')->first();
-                $operation_details = DB::connection('mysql_mes')->table('operation')
-                    ->where('operation_name', 'like', '%'.$bom_operations->operation.'%')->first();
+                    if (!$operation_details) {
+                        return response()->json(['success' => 0, 'message' => 'Operation ' . $request->operation . ' not found.']);
+                    }
 
-                if (!$operation_details) {
-                    return response()->json(['success' => 0, 'message' => 'Operation ' . $request->operation . ' not found.']);
-                }
+                    $operation_id = $operation_details->operation_id;
 
-                $operation_id = $operation_details->operation_id;
-
-                if ($request->is_reviewed == 0) {
-                    return response()->json(['success' => 0, 'message' => 'Please review and update BOM.']);
+                    if ($request->is_reviewed == 0) {
+                        return response()->json(['success' => 0, 'message' => 'Please review and update BOM.']);
+                    }
                 }
             }
 
+            
             $wip_wh = $this->get_operation_wip_warehouse($operation_id);
             if ($wip_wh['success'] < 1) {
-                return response()->json(['success' => 0, 'message' => $wip_wh['message']]);
+                return response()->json(['success' => 0, 'message' => $wip_wh['message'] . '' . $operation_id]);
             }
 
             $wip = $wip_wh['message'];
@@ -2419,7 +2421,8 @@ class ManufacturingController extends Controller
                 'last_modified_by' => Auth::user()->email,
                 'created_by' => Auth::user()->email,
                 'created_at' => $now->toDateTimeString(),
-                'operation_id' => $operation_id
+                'operation_id' => $operation_id,
+                'is_stock_item' => $request->is_stock_item
             ];
 
             DB::connection('mysql_mes')->table('production_order')->insert($data_mes);

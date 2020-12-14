@@ -1490,8 +1490,6 @@ $(document).ready(function(){
             $('#sel-bom').removeAttr('disabled');
             $('#manual-prod-note').hide();
           }
-
-          $('#manual-material-operation-row').toggle();
         }
       });
     }

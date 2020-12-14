@@ -4475,6 +4475,10 @@ class MainController extends Controller
 				// 	$qty = round($qty);
 				// }
 
+				if($qty <= 0){
+					return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0 for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
+				}
+
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');				
 
