@@ -12,7 +12,7 @@
 <div class="row">
    @php
 	 if($prod_details->rescheduled_delivery_date == null){
-		$deli=  $prod_details->deli;
+		$deli=  $prod_details->delivery_date;
 	 }else{
 		 $deli= $prod_details->rescheduled_delivery_date;
 
