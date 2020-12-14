@@ -1409,7 +1409,7 @@ class ManufacturingController extends Controller
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
             $item_classification = $item_details->item_classification;
 
-            $issued_qty = $item->issued_qty;
+            $issued_qty = $item->qty;
             // $issued_qty = DB::connection('mysql')->table('tabStock Entry as ste')
             //     ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
             //     ->where('ste.production_order', $production_order)
