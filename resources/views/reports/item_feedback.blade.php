@@ -2033,23 +2033,6 @@ $(document).ready(function(){
 
 <script type="text/javascript">
 
-  $(document).on('click', '.btn_trackmodal', function(event){
-    event.preventDefault();
-    var guideid = $(this).attr('data-guideid');
-    var itemcode = $(this).attr('data-itemcode');
-    var customer = $(this).attr('data-customer');
-    $.ajax({
-      url: "/get_bom_tracking/" + guideid + "/" + itemcode,
-      type:"GET",
-      success:function(data){
-          $('#track-view-modal #tbl_flowchart').html(data);
-          $('#track-view-modal').modal('show');
-      }
-    });
-  });
-</script>
-<script type="text/javascript">
-
   function item_tracking(get_total, page, query){
     $.ajax({
           url:"/get_item_status_tracking/?page="+page,
