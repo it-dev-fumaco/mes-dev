@@ -1,30 +1,30 @@
 <table class="table table-striped text-center">
+    <col style="width: 10%;">
+    <col style="width: 8%;">
+    <col style="width: 12%;">
+    <col style="width: 20%;">
+    <col style="width: 8%;">
+    <col style="width: 8%;">
+    <col style="width: 8%;">
+    <col style="width: 8%;">
     <col style="width: 8%;">
     <col style="width: 10%;">
-    <col style="width: 16%;">
-    <col style="width: 8%;">
-    <col style="width: 8%;">
-    <col style="width: 8%;">
-    <col style="width: 8%;">
-    <col style="width: 8%;">
-    <col style="width: 8%;">
-    <col style="width: 8%;">
     <thead class="text-primary" style="font-size: 7pt;">
-        <th class="text-center font-weight-bold">Prod. Order</th>
-        <th class="text-center font-weight-bold">Reference Details</th>
-        <th class="text-center font-weight-bold">Item Description</th>
-        <th class="text-center font-weight-bold">Req. Qty</th>
-        <th class="text-center font-weight-bold">Qty for Painting</th>
-        <th class="text-center font-weight-bold">Loading</th>
-        <th class="text-center font-weight-bold">Unloading</th>
-        <th class="text-center font-weight-bold">Completed</th>
-        <th class="text-center font-weight-bold">Remaining</th>
         <th class="text-center font-weight-bold">Planned Start Date</th>
+        <th class="text-center font-weight-bold">Prod. Order</th>
+        <th class="text-center font-weight-bold">Reference</th>
+        <th class="text-center font-weight-bold">Description</th>
+        <th class="text-center font-weight-bold">Ordered Qty</th>
+        <th class="text-center font-weight-bold">Ready for Painting</th>
+        <th class="text-center font-weight-bold">Loaded Qty</th>
+        <th class="text-center font-weight-bold">Unloaded Qty</th>
+        <th class="text-center font-weight-bold">Completed</th>
         <th class="text-center font-weight-bold">Status</th>
     </thead>
     <tbody style="font-size: 8pt;">
         @forelse($data as $row)
         <tr>
+            <td class="text-center font-weight-bold"><span style="font-size: 11pt;">{{ $row['planned_start_date'] }}</span></td>
             <td class="text-center">
                 <span class="font-weight-bold prod_order_link_to_search" data-prod="{{ $row['production_order'] }}">{{ $row['production_order'] }}</span>
             </td>
@@ -63,11 +63,8 @@
                 <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ number_format($row['completed_qty']) }}</span>
                 <span class="d-block" style="font-size: 9pt;">{{ $row['stock_uom'] }}</span>
             </td>
-            <td class="text-center">
-                <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ number_format($row['balance_qty']) }}</span>
-                <span class="d-block" style="font-size: 9pt;">{{ $row['stock_uom'] }}</span>
-            </td>        
-            <td class="text-center">{{ $row['planned_start_date'] }}</td>
+           
+            
             @php
                 if($row['status'] == "Ready for Painting"){
                     $col = 'info';

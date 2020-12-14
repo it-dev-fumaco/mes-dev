@@ -788,7 +788,7 @@
       $(document).on("click", ".review-bom-row", function(e){
          e.preventDefault();
          $.ajax({
-            url: "/assembly/view_bom_for_review/" + $(this).data('bom'),
+            url: "/view_bom_for_review/" + $(this).data('bom'),
             type:"GET",
             success:function(data){
                $('#review-bom-details-div').html(data);
@@ -1079,14 +1079,19 @@
          $('#summary-tbl > tbody > tr').each(function(){
             production_orders.push($.trim($(this).find('td').eq(1).text()));
          });
+         var product= production_orders.toString(); 
 
          $.ajax({
             url: "/print_withdrawals",
             type:"GET",
-            data: {production_orders: production_orders},
+            data: {production_orders: product},
             success:function(data){
-              $('#printmodalbody').html(data);
-               $('#print_modal_js_ws').modal('show');
+               if (data.success < 1) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info"); //show alert message
+               }else{
+                  $('#printmodalbody').html(data);
+                  $('#print_modal_js_ws').modal('show');
+               }
             },
             error: function(jqXHR, textStatus, errorThrown) {
                console.log(jqXHR);
