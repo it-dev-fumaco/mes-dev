@@ -15,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Image;
 use App\Mail\SendMail_feedbacking;
+use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
 
 class MainController extends Controller
@@ -361,12 +362,11 @@ class MainController extends Controller
 	public function getTimesheetDetails($jtno){
 		$tab=[];
 		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $jtno)
-		->join('delivery_date', function ($join) {
-			$join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-			->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-			->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); // get delivery date from delivery_date table
-		})
-		->select('production_order.*', 'delivery_date.rescheduled_delivery_date')->first();
+			->leftJoin('delivery_date', function($join){
+				$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+				$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+			}) // get delivery date from delivery_date table
+			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')->first();
 		if (!$details) {
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
 		}
@@ -1325,14 +1325,15 @@ class MainController extends Controller
 		}
 
 		if ($reference_type == 'Item') {
-			return DB::connection('mysql')->table('tabItem')->where('is_stock_item', 1)->where('disabled', 0)
-				->where('has_variants', 0)
+			DB::statement(DB::raw('set @is_stock_item = 0'));
+			$bundled_items = DB::connection('mysql')->table('tabProduct Bundle')
 				->where('name', 'like', '%'.$request->term.'%')
-				// ->where(function($q)  {
-				// 	$q->whereIn('item_classification', ['SA - Sub Assembly', 'HO - Housing'])
-				// 		->orWhere('item_classification', 'LIKE', '%SA -%');
-				// })
-				->select('name as value', 'name as id')->orderBy('modified', 'desc')->limit(5)->get();
+				->select('name as value', 'name as id', DB::raw('@is_stock_item'));
+
+			return DB::connection('mysql')->table('tabItem')->where('is_stock_item', 1)->where('disabled', 0)
+				->where('has_variants', 0)->where('name', 'like', '%'.$request->term.'%')
+				->union($bundled_items)
+				->select('name as value', 'name as id', 'is_stock_item')->limit(5)->get();
 		}
 	}
 
@@ -1465,8 +1466,11 @@ class MainController extends Controller
 
 		if ($status == 'Not Started') {
 			$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
 						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
@@ -1544,8 +1548,11 @@ class MainController extends Controller
 			$in_progress_production_orders = array_merge($in_progress_time_logs, $in_progress_spotwelding_logs);
 
 			$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('production_order', $in_progress_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1621,8 +1628,11 @@ class MainController extends Controller
 				->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('production_order', $pending_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1685,8 +1695,11 @@ class MainController extends Controller
 
 		if ($status == 'Cancelled') {
 			$q = DB::connection('mysql_mes')->table('production_order')->where('status', 'Cancelled')
-				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('production_order.operation_id', $user_permitted_operations)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1756,8 +1769,11 @@ class MainController extends Controller
 				->whereIn('status', ['In Progress', 'Completed'])->distinct()->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order AS po')
-				->join('delivery_date', DB::raw('IFNULL(po.sales_order, po.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = po.parent_item_code')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('po.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('po.production_order', $jt_production_orders)
 				->whereNotIn('po.status', ['Cancelled'])
 				->where(function($q) use ($request) {
@@ -1879,8 +1895,11 @@ class MainController extends Controller
 				->where('status', 'Completed')->whereIn('name', $mes_production_orders)->pluck('name')->toArray();
 
 				$q = DB::connection('mysql_mes')->table('production_order')
-				->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+				->leftJoin('delivery_date', function($join)
+            	{
+                    $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                    $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+                })
 				->whereIn('production_order.production_order', $erp_completed_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -2211,38 +2230,29 @@ class MainController extends Controller
 		if (!$production_order_details) {
 			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
 		}
-
 		if ($production_order_details->status != 'Completed') {
-			
 			$current_schedule =  Carbon::parse($production_order_details->planned_start_date);
 			$new_schedule = Carbon::parse($request->planned_start_date);
 			$diff_in_days = $current_schedule->diffInDays($new_schedule);
-			
-			$val_mes = [
-				'planned_start_date' => $new_schedule,
-			];
-
-			DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($val_mes);
-			
 			$tasks = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
+			$values=[];
 			foreach ($tasks as $row) {
 				if ($row->workstation != 'Painting') {
 					$current_planned_start_date = ($row->planned_start_date) ? $row->planned_start_date : $production_order_details->planned_start_date;
-
 					if($new_schedule->toDateTimeString() > $current_schedule->toDateTimeString()){
 						$new_planned_start_date = Carbon::parse($current_planned_start_date)->addDays($diff_in_days);
 					}
-					
 					if($new_schedule->toDateTimeString() < $current_schedule->toDateTimeString()){
 						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
 					}
-
+					if($new_schedule->toDateTimeString() == $current_schedule->toDateTimeString()){
+						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
+					}
 					$values = [
 						'last_modified_by' => Auth::user()->employee_name,
 						'last_modified_at' => $now->toDateTimeString(),
-						'planned_start_date' => $new_planned_start_date->toDateTimeString(),
+						'planned_start_date' => $new_schedule,
 					];
-
 					DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
 				}
 			}
@@ -2303,10 +2313,12 @@ class MainController extends Controller
 
 	}
 	public function productionKanban($operation_id){
-
 		   $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
-		   ->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+		   ->leftJoin('delivery_date', function($join)
+            {
+                $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+            })
 			->whereNotIn('production_order.status', ['Stopped', 'Cancelled'])
 			->where('production_order.feedback_qty',0)
 			->where('production_order.is_scheduled', 0)
@@ -2340,12 +2352,11 @@ class MainController extends Controller
 				'job_ticket_print' => $row->job_ticket_print,
 				'sales_order' =>($row->sales_order == null) ? $row->material_request: $row->sales_order,
 				'batch' => null,
+				'item_code' => $row->item_code,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 			];
 		}
-
 		$period = CarbonPeriod::create(now()->subDays(1), now()->addDays(6));
-
 		$customers = array_column($unscheduled, 'customer');
 		$reference_nos = array_column($unscheduled, 'sales_order');
 		$parent_items = array_column($unscheduled, 'parent_item_code');
@@ -2384,8 +2395,10 @@ class MainController extends Controller
 	public function get_painting_schedules($operation_id){
 		$jobtickets_production=DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('production_order as pro','pro.production_order', 'jt.production_order')
-			->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+			->leftJoin('delivery_date', function($join){
+				$join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
+				$join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
+			})
 			->where('jt.planned_start_date', null)->where('pro.status', '!=', 'Cancelled')
 			->where('jt.workstation', 'Painting')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
@@ -2395,14 +2408,11 @@ class MainController extends Controller
 
 		$unscheduled = [];
 		foreach ($jobtickets_production as $row) {
-			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
-				->where('production_order',  $row->production_order)->get();
-			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')
-			->where('production_order',  $row->production_order)->first();
+			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')->where('production_order',  $row->production_order)->get();
+			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')->where('production_order',  $row->production_order)->first();
 			$total_process = collect($jt)->where('workstation','Painting')->count();
 			$total_pending = collect($jt)->where('workstation','Painting')->where('status', 'Pending')->count();
 			$total_inprogress = collect($jt)->where('workstation','Painting')->where('status', '!=', 'Completed')->count();
-
 			if ($total_process == $total_pending) {
 				$status= 'Not Started';
 			}else{
@@ -2411,8 +2421,7 @@ class MainController extends Controller
 				}else{
 					$status= 'Completed';
 				}
-			}
-							
+			}		
 			$stripfromcomma =strtok($row->description, ",");
 			
 			$unscheduled[] = [
@@ -2437,19 +2446,17 @@ class MainController extends Controller
 				'prod_status' => $row->status,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 				'order_no' =>$row->sequence,
+				'item_code' => $row->item_code
 			];
 		}
 
 		$period = CarbonPeriod::create(now()->subDays(1), now()->addDays(6));
-
 		$customers = array_column($unscheduled, 'customer');
 		$reference_nos = array_column($unscheduled, 'sales_order');
 		$parent_items = array_column($unscheduled, 'parent_item_code');
-
 		$scheduled = [];
 		foreach ($period as $date) {
 			$orders = $this->get_scheduled_painting($date->format('Y-m-d'));
-
 			$customers = array_merge($customers, array_column($orders, 'customer'));
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
@@ -2484,8 +2491,10 @@ class MainController extends Controller
 	public function get_scheduled_painting($schedule_date){
 		$orders = DB::connection('mysql_mes')->table('production_order as pro')
 		->join('job_ticket as jt', 'pro.production_order','jt.production_order')
-		->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+		->leftJoin('delivery_date', function($join){
+            $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
+            $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
+        })
 		->whereNotIn('pro.status', ['Completed', 'Cancelled'])
 		->where('jt.workstation', 'Painting')
 		->whereDate('jt.planned_start_date', $schedule_date)
@@ -2493,9 +2502,7 @@ class MainController extends Controller
 		->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
 		->orderBy('jt.sequence', 'asc')
 		->get();
-	
-	
-	
+
 			$scheduled = [];
 			foreach($orders as $row){
 							$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -2517,7 +2524,6 @@ class MainController extends Controller
 		
 							}
 							
-
 				$stripfromcomma =strtok($row->description, ",");
 				$scheduled[] = [
 					'id' => $row->production_order,
@@ -2541,6 +2547,7 @@ class MainController extends Controller
 					'prod_status' => $row->status,
 					'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 					'order_no' => $row->sequence,
+					'item_code' => $row->item_code
 				];
 			}
 	
@@ -2635,9 +2642,13 @@ class MainController extends Controller
 	}
 
 	public function getScheduledProdOrders($schedule_date, $operation_id){
-    	$orders = DB::connection('mysql_mes')->table('production_order')
-		->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-		->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
+		$orders = DB::connection('mysql_mes')->table('production_order')
+			->distinct()
+			->leftJoin('delivery_date', function($join)
+            	{
+                    $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                    $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+                })
     		->whereNotIn('production_order.status', ['Cancelled'])->where('production_order.is_scheduled', 1)
 			->whereDate('production_order.planned_start_date', $schedule_date)
 			->where("production_order.operation_id", $operation_id)
@@ -2645,7 +2656,6 @@ class MainController extends Controller
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
     		->orderBy('production_order.order_no', 'asc')->orderBy('production_order.order_no', 'asc')->orderBy('production_order.created_at', 'desc')
     		->get();
-
     	$scheduled = [];
     	foreach($orders as $row){
     		$stripfromcomma =strtok($row->description, ",");
@@ -2670,6 +2680,7 @@ class MainController extends Controller
 				'job_ticket_print' => $row->job_ticket_print,
 				'sales_order' =>($row->sales_order == null) ? $row->material_request: $row->sales_order,
 				'batch' => null,
+				'item_code' => $row->item_code,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 			];
     	}
@@ -4425,6 +4436,10 @@ class MainController extends Controller
 			$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
 				->where('production_order', $production_order)->first();
 
+			if($mes_production_order_details->is_stock_item < 1){
+				return redirect('/create_bundle_feedback/'. $production_order .'/' . $request->fg_completed_qty);
+			}
+
 			$now = Carbon::now();
 
 			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
@@ -4468,6 +4483,10 @@ class MainController extends Controller
 				// if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
 				// 	$qty = round($qty);
 				// }
+
+				if($qty <= 0){
+					return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0 for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
+				}
 
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');				
@@ -4692,32 +4711,32 @@ class MainController extends Controller
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}
-			// $data = array(
-            //     'posting_date'  => $now->format('Y-m-d'),
-            //     'posting_time'  => $now->format('H:i:s'),
-            //     'ste'           => $new_id,
-			// 	'sales_order_no'=> $mes_production_order_details->sales_order,
-			// 	'mreq'			=> $production_order_details->material_request,
-            //     'item_code'     => $production_order_details->production_item,
-			// 	'item_name'     => $production_order_details->item_name,
-			// 	'customer'		=> $mes_production_order_details->customer,
-			// 	'feedbacked_by' => Auth::user()->email,
-			// 	'completed_qty' => $request->fg_completed_qty, 
-			// 	'uom'			=> $production_order_details->stock_uom
-			// );
-			// $recipient= DB::connection('mysql_mes')
-            //     ->table('email_trans_recipient')
-			// 	->where('email_trans', "Feedbacking")
-			// 	->where('email', 'like','%@fumaco.local%')
-            //     ->select('email')
-            //     ->get();
-			// if(count($recipient) > 0){
-			// 	if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
-			// 		foreach ($recipient as $row) {
-			// 			Mail::to($row->email)->send(new SendMail_feedbacking($data));
-			// 		}	
-			// 	}
-			// }
+			$data = array(
+                'posting_date'  => $now->format('Y-m-d'),
+                'posting_time'  => $now->format('H:i:s'),
+                'ste'           => $new_id,
+				'sales_order_no'=> $mes_production_order_details->sales_order,
+				'mreq'			=> $production_order_details->material_request,
+                'item_code'     => $production_order_details->production_item,
+				'item_name'     => $production_order_details->item_name,
+				'customer'		=> $mes_production_order_details->customer,
+				'feedbacked_by' => Auth::user()->email,
+				'completed_qty' => $request->fg_completed_qty, 
+				'uom'			=> $production_order_details->stock_uom
+			);
+			$recipient= DB::connection('mysql_mes')
+                ->table('email_trans_recipient')
+				->where('email_trans', "Feedbacking")
+				->where('email', 'like','%@fumaco.local%')
+                ->select('email')
+                ->get();
+			if(count($recipient) > 0){
+				if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
+					foreach ($recipient as $row) {
+						Mail::to($row->email)->send(new SendMail_feedbacking($data));
+					}	
+				}
+			}
 			$feedbacked_timelogs = [
                 'production_order'  => $mes_production_order_details->production_order,
                 'ste_no'           => $new_id,
@@ -4741,6 +4760,7 @@ class MainController extends Controller
 		}
     }
 
+	// create stock ledger entry for manufacture ste
     public function create_stock_ledger_entry($stock_entry){
     	$now = Carbon::now();
     	$latest_pro = DB::connection('mysql')->table('tabStock Ledger Entry')->max('name');
@@ -5475,21 +5495,19 @@ class MainController extends Controller
 		$now = Carbon::now();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 		if (!$production_order_details) {
-			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
+			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.', 'reload_tbl' => $request->reload_tbl]);
 		}
-		
 		$delivery_date =  Carbon::parse($request->delivery_date);
 		$reschedule_date = Carbon::parse($request->reschedule_date);
 		$planned_start_date = Carbon::parse($request->planned_start_date);
-
 		
 
 		if($reschedule_date->toDateTimeString() <= $delivery_date->toDateTimeString()){
-			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date']);
+			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date', 'reload_tbl' => $request->reload_tbl]);
 		}
 		if(!$production_order_details->planned_start_date){
 			if($reschedule_date->toDateTimeString() <= $planned_start_date->toDateTimeString()){
-				return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current production schedule date']);
+				return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current production schedule date', 'reload_tbl' => $request->reload_tbl]);
 			}
 		}
 		// update production order & sales order rescheduled delivery date & late delivery reason
@@ -5506,7 +5524,10 @@ class MainController extends Controller
 			//for sales order
 			if ($production_order_details->sales_order) {
 				$delivery_id=DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->first();// get the id from the delivery date table FOR SO refrerence
-				
+				if(empty($delivery_id)){
+					return response()->json(['success' => 0, 'message' => 'Unable to process transaction.Parent item code has been changed by Sales Personnel', 'reload_tbl' => $request->reload_tbl]);
+
+				}
 				$data=explode(',',$request->reason_id);
 				$datas= ">>".Carbon::parse($reschedule_date)->format('Y-m-d').'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$data[1]."-".$request->remarks."<br>".$request->logs;//Timeline_log for remarks(delivery Reason) in ERP
 				$sales_order_data = [
@@ -5524,6 +5545,28 @@ class MainController extends Controller
 					'created_at' => $now->toDateTimeString(),
 	
 				];
+				//email alert
+				$get_sales_order_owner=db::connection('mysql')->table('tabSales Order Item')
+				->where('parent', $production_order_details->sales_order)
+				->where('item_code', $production_order_details->item_code)->select('owner')->first();//get so owner from erp
+
+				$email_data = array( 
+					'orig_delivery_date'  => ($delivery_id->rescheduled_delivery_date == null)? Carbon::parse($delivery_id->delivery_date)->format('Y-m-d'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('Y-m-d'),
+					'resched_date'  	  => Carbon::parse($reschedule_date)->format('Y-m-d'),
+					'item_code'           => $production_order_details->item_code,
+					'description'		  => $production_order_details->description,
+					'reference'			  => $production_order_details->sales_order,
+					'resched_by'     	  => Auth::user()->employee_name,
+					'resched_reason'      => $data[1]."-".$request->remarks,
+					'customer'			  => $production_order_details->customer,
+					'qty'			 	  => $production_order_details->qty_to_manufacture,
+					'uom'			      => $production_order_details->stock_uom,
+
+
+				); 
+				if($get_sales_order_owner->owner =! "Administrator"){
+					Mail::to($get_sales_order_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				}				
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->update($mes_data);//update the reschedule delivery date in delivery date table
 				
@@ -5531,6 +5574,10 @@ class MainController extends Controller
 			//for MREQ
 			if($production_order_details->material_request){
 				$delivery_id=DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->first();// get the id from the delivery date table FOR MREQ refrerence
+				if(empty($delivery_id)){
+					return response()->json(['success' => 0, 'message' => 'Unable to process transaction.Parent item code has been changed by Sales Personnel', 'reload_tbl' => $request->reload_tbl]);
+
+				}
 				$data=explode(',',$request->reason_id);
 				$datas= ">>".Carbon::parse($reschedule_date)->format('Y-m-d').'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$data[1]."-".$request->remarks."<br>".$request->logs;//Timeline_log for remarks(delivery Reason) in ERP
 				
@@ -5548,13 +5595,36 @@ class MainController extends Controller
 					'created_by' => Auth::user()->employee_name,
 					'created_at' => $now->toDateTimeString(),
 				];
+
+				//email alert
+				$get_mreq_owner=db::connection('mysql')->table('tabMaterial Request Item')
+				->where('parent', $production_order_details->material_request)
+				->where('item_code', $production_order_details->item_code)->select('owner')->first();//get mreq owner from erp
+
+				$email_data = array( 
+					'orig_delivery_date'  => ($delivery_id->rescheduled_delivery_date == null)? Carbon::parse($delivery_id->delivery_date)->format('M-d-Y'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('M-d-Y'),
+					'resched_date'  	  => Carbon::parse($reschedule_date)->format('M-d-Y'),
+					'item_code'           => $production_order_details->item_code,
+					'description'		  => $production_order_details->description,
+					'reference'			  => $production_order_details->material_request,
+					'resched_by'     	  => Auth::user()->employee_name,
+					'resched_reason'      => $data[1]."-".$request->remarks,
+					'customer'			  => $production_order_details->customer,
+					'qty'			 	  => $production_order_details->qty_to_manufacture,
+					'uom'			      => $production_order_details->stock_uom,
+
+
+				); 
+				if($get_mreq_owner->owner != "Administrator"){
+					Mail::to($get_mreq_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				}
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->update($mes_data);
 
 			}
 			
 		}
-		//if schedued in less than the current delivery date (for validation)
+		// if schedued in less than the current delivery date (for validation)
 		if($reschedule_date->toDateTimeString() <= $delivery_date->toDateTimeString()){
 			$production_order_data = [
 				'reschedule_delivery' => 0,
@@ -5590,6 +5660,8 @@ class MainController extends Controller
 				->where('parent_item_code', $production_order_details->item_code)
 				->where('sales_order_no',$production_order_details->sales_order)
 				->update($production_order_data);
+
+			
 			
 		}
 
@@ -5604,8 +5676,9 @@ class MainController extends Controller
 				->where('material_request',$production_order_details->material_request)
 				->update($production_order_data);
 
-		}
+			
 
-		return response()->json(['success' => 1, 'message' => 'Production Order updated.']);
+		}
+		return response()->json(['success' => 1, 'message' => 'Production Order updated.', 'reload_tbl' => $request->reload_tbl]);
 	}
 }

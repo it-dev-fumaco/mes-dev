@@ -24,7 +24,6 @@
       <th class="text-center"><b>Duration</b></th>
       <th class="text-center"><b>Delivery Date</b></th>
       <th class="text-center"><b>Target Warehouse</b></th>
-      {{-- <th class="text-center"><b>Feedback Date</b></th> --}}
       <th class="text-center"><b>Actions</b></th>
     </thead>
     <tbody>
@@ -63,13 +62,7 @@
         <td class="text-center" style="padding: 3px;">@if($r['delivery_date']){{date('M-d-Y', strtotime($r['delivery_date']))}}@endif</td>
         <td class="text-center font-weight-bold" style="padding: 3px;">{{ $r['target_warehouse'] }}<br>
           <span class="badge tab-heading--{{ ($r['status'] == 'Material For Issue') ? 'reddish' : 'teal' }} text-white" style="font-size: 9pt;">{{ $r['status'] }}</span>
-          <br><br>
-          @foreach($r['ste_entries'] as $entry)
-          {{ $entry }}
-          @endforeach</td>
-        {{-- <td class="text-center" style="padding: 3px;">{{ $r['feedback_date'] }} {{ $r['feedback_time'] }}</td> --}}
-    
-   
+        </td>
         <td class="text-center" style="padding: 3px;">
           <div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -85,7 +78,6 @@
               <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
               <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['name'] }}" href="#">Print Transfer Slip</a>
               @else
-              {{-- <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty'] - $r['feedback_qty'] }}">Create Feedback</a> --}}
               @endif
               @if($r['status'] == 'Partially Feedbacked')
               <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['name'] }}" href="#">Print Transfer Slip</a>

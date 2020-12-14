@@ -4262,17 +4262,16 @@ class SecondaryController extends Controller
     public function get_production_schedule_calendar($operation_id){
         
         $prod = DB::connection('mysql_mes')->table('production_order')
-        ->join('delivery_date', function ($join) {
-            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-            ->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-            ->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); // inner join new delivery_date schedule to the query
-        })
-        ->where('production_order.status','!=', 'Cancelled')
-        ->where('production_order.planned_start_date','!=', null)
-        ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
-        ->where('production_order.operation_id', $operation_id)
-        ->select('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
-        ->get();
+            ->leftJoin('delivery_date', function($join){
+                $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+            })
+            ->where('production_order.status','!=', 'Cancelled')
+            ->where('production_order.planned_start_date','!=', null)
+            ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
+            ->where('production_order.operation_id', $operation_id)
+            ->select('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
+            ->get();
         // dd($prod);
 
         $data = array();
@@ -7582,36 +7581,7 @@ class SecondaryController extends Controller
           }
               
       }
-    public function selected_print_withdrawals($production_order){
-        $myArray = explode(',', $production_order);
 
-        $ste = DB::connection('mysql')->table('tabStock Entry')
-        ->where('purpose', 'Material Transfer for Manufacture')
-        ->whereIn('production_order', $myArray)
-        ->where('docstatus',"<", 2)
-        ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,posting_date,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
-        ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project','posting_date')
-        ->get();
-        
-        foreach ($ste as $row) {
-            $ste_name = explode(',', $row->ste_name);
-            // dd($ste_name);
-            $items = DB::connection('mysql')->table('tabStock Entry Detail')->whereIn('parent', $ste_name)->get();
-            $stock_entries[] = [
-                'sales_order' => $row->sales_order_no,
-                'material_request' => $row->material_request,
-                'production_order' => $row->production_order,
-                'customer' => $row->so_customer_name,
-                'project' => $row->project,
-                'posting_date' => $row->posting_date,
-                'items' => $items
-            ];
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $row->production_order)->update(['withdrawal_slip_print' => '1']);
-
-        }
-
-        return view('selected_print_withdrawal', compact('stock_entries'));
-    }
     public function get_employee_email(){
         $employees = DB::connection('mysql_essex')->table('users')->where('user_type', 'Employee')
             ->where('status', 'Active')->where('email','!=',null)->select('email')->get();
@@ -7834,9 +7804,13 @@ class SecondaryController extends Controller
     public function reschedule_prod_details($prod){
         //get production order details and join in delivery table to get the latest delivery date
         $prod_details= DB::connection('mysql_mes')->table('production_order')
-        ->join('delivery_date', function ($join) {
-            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')->on('delivery_date.reference_no', '=', 'production_order.sales_order')->orOn('delivery_date.reference_no', '=', 'production_order.material_request');
-        })->where('production_order',$prod )->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.delivery_date as deli')->first();
+        ->leftJoin('delivery_date', function($join){
+            $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+            $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+        })
+        ->where('production_order',$prod )
+        ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.delivery_date as deli')
+        ->first();
         
         $reference_no=($prod_details->sales_order)? $prod_details->sales_order : $prod_details->material_request;
         //get_reschedule_log and be used in submission in erp
@@ -7855,7 +7829,7 @@ class SecondaryController extends Controller
         foreach($delivery_id as $row){
             $previous_row=DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->where('delivery_date_id', $row->delivery_date_id)->where('reschedule_log_id', '>', $row->reschedule_log_id)->orderby('reschedule_log_id', 'asc')->first();
             $data[]=[
-                'delivery_date'=> (empty($previous_row))? $prod_details->rescheduled_delivery_date: $previous_row->previous_delivery_date,
+                'delivery_date'=> (empty($previous_row))? Carbon::parse($prod_details->rescheduled_delivery_date)->format('M-d-Y'): Carbon::parse($previous_row->previous_delivery_date)->format('M-d-Y'),
                 'delivery_reason' => $row->reschedule_reason,
                 'remarks' => $row->remarks
             ];

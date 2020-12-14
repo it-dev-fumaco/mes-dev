@@ -372,10 +372,9 @@ class PaintingController extends Controller
         
         $prod = DB::connection('mysql_mes')->table('job_ticket as jt')
         ->join('production_order as pro','pro.production_order','jt.production_order')
-        ->join('delivery_date', function ($join) {
-            $join->on('delivery_date.parent_item_code', '=', 'pro.parent_item_code')
-            ->on('delivery_date.reference_no', '=', 'pro.sales_order')
-            ->orOn('delivery_date.reference_no', '=', 'pro.material_request'); // inner join new delivery_date table to the query
+        ->leftJoin('delivery_date', function($join){
+            $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
+            $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
         })
         ->where('pro.status','!=', 'Cancelled')
         ->where('jt.workstation', 'Painting')

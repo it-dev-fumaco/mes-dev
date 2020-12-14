@@ -234,32 +234,7 @@
       </div>
   </div>
 </div>
-<div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="min-width:40%;">
-    <form action="/update_rescheduled_delivery_date" id="reschedule_delivery_frm" method="POST">
-      @csrf
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Reschedule Delivery Date</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12" id="tbl_reschduled_deli">
-              
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer" style="padding: 5px 10px;">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
+
 <style>
   .ui-autocomplete {
     position: absolute;
@@ -508,6 +483,7 @@
   <div class="modal-dialog" role="document" style="min-width: 80%;">
     <form action="/manual_create_production_order" method="post" autocomplete="off">
       @csrf
+      <input type="hidden" value="0" name="is_stock_item">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Create Production Order</h5>
@@ -666,6 +642,13 @@
             </div> -->
 
             <div class="col-md-6 offset-md-3">
+              <div class="alert alert-warning text-center" id="manual-prod-note" role="alert">
+                <div class="container">
+                 
+                  <strong>Note:</strong> The selected item is a product bundle. <span style="font-size: 9pt;" id="view-bundle-components-btn"><a href="#"><i class="now-ui-icons ui-1_zoom-bold" style="font-size: 7pt;"></i> View Components</span></a>
+                 
+                </div>
+              </div>
               <div class="row">
                 <div class="col-md-8 offset-md-2">
                   <table style="width: 100%;" class="mb-2">
@@ -1081,12 +1064,7 @@
   .select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
     background-color: #3498db;
   }
-  #reschedule-delivery-modal .form-control {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-shadow: none;
-    margin-bottom: 15px;
-  }
+
 </style>
 
 <iframe src="#" id="iframe-print" style="display: none;"></iframe>
@@ -1470,6 +1448,7 @@ $(document).ready(function(){
       }
   });
 
+  $('#manual-prod-note').hide();
   $('#sel-item').autocomplete({
     source:function(request,response){
       $.ajax({
@@ -1485,6 +1464,8 @@ $(document).ready(function(){
     },
     minLength: 1,
     select:function(event,ui){
+      var is_stock_item = ui.item.is_stock_item;
+      $('#manual-material-operation-row').hide();
       $.ajax({
         url:"/get_item_details/" + ui.item.value,
         type:"GET",
@@ -1495,11 +1476,24 @@ $(document).ready(function(){
             $('#manual-production-modal textarea[name="description"]').text(response.description);
             $('#manual-production-modal input[name="stock_uom"]').val(response.stock_uom);
             $('#manual-production-modal input[name="item_classification"]').val(response.item_classification);
-
+            $('#manual-production-modal input[name="is_stock_item"]').val(is_stock_item);
             $('#target-wh').append(get_warehouse(response.item_classification, 'target'));
           }
 
           get_bom(response.name);
+
+          if(is_stock_item == 0){
+            $('#has-no-bom-checkbox').prop( "checked", true );
+            $('#sel-bom').attr('disabled', true);
+            $('#manual-prod-note').show();
+            $('#manual-material-operation-row').show();
+          }else{
+            $('#has-no-bom-checkbox').prop( "checked", false );
+            $('#sel-bom').removeAttr('disabled');
+            $('#manual-prod-note').hide();
+            $('#manual-material-operation-row').hide();
+          }
+
         }
       });
     }
@@ -1669,12 +1663,12 @@ $(document).ready(function(){
           }else{
             showNotification("success", data.message, "now-ui-icons ui-1_check");
             $('#reschedule-delivery-modal').modal('hide');
-            location.reload();
-
+            load_list();
           }
         }
       });
     });
+    
   $(document).on('click', '.spotclass', function(event){
     event.preventDefault();
     var jtid = $(this).attr('data-jobticket');
@@ -2120,24 +2114,7 @@ $(document).on('click', '.feedbacked_log_btn', function(){
        },
     });
 });
-$(document).on('click', '.resched-deli-btn', function(){
-  var prod = $(this).data('production-order');
-  $.ajax({
-       url: "/reschedule_prod_details/" + prod,
-       type:"GET",
-       success:function(data){
-          $('#tbl_reschduled_deli').html(data);
-          $('#reschedule-delivery-modal').modal('show');
-          // $('#reschedule-delivery-modal .modal-title').text('Reschedule Delivery Date'+"["+ prod +"]");
 
 
-       },
-       error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-       },
-    });
-});
 </script>
 @endsection

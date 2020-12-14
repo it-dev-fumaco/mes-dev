@@ -1,3 +1,21 @@
+@php
+	$tab1 = $tab2 = $tab3 = null;
+	if(count($components) > 0){
+		$tab1 = 'active';
+	}
+
+	if($tab1 != 'active'){
+		if(count($parts) > 0){
+			$tab2 = 'active';
+		}
+	}
+
+	if($tab1 != 'active' && $tab2 != 'active'){
+		if(count($items_return) > 0){
+			$tab3 = 'active';
+		}
+	}
+@endphp
 <table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1">
 	<col style="width: 10%;">
 	<col style="width: 10%;">
@@ -52,19 +70,21 @@
 	<ul class="nav nav-tabs mt-2 font-weight-bold" role="tablist">
 		@if(count($components) > 0)
 		<li class="nav-item">
-			<a class="nav-link active" data-toggle="tab" href="#w1" role="tab" aria-controls="home" aria-selected="true">
+			<a class="nav-link {{ $tab1 }}" data-toggle="tab" href="#w1" role="tab" aria-controls="home" aria-selected="true">
 				<span class="badge badge-info mr-2">{{ count($components) }}</span> Component(s) 
 			</a>
 		</li>
 		@endif
+		@if(count($parts) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ (count($components) <= 0) ? 'active' : '' }}"  data-toggle="tab" href="#w2" role="tab" aria-controls="profile" aria-selected="false">
+			<a class="nav-link {{ $tab2 }}"  data-toggle="tab" href="#w2" role="tab" aria-controls="profile" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($parts) }}</span>	Part(s) 
 			</a>
 		</li>
+		@endif
 		@if(count($items_return) > 0)
 		<li class="nav-item">
-			<a class="nav-link" data-toggle="tab" href="#w3" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="nav-link {{ $tab3 }}" data-toggle="tab" href="#w3" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($items_return) }}</span> Item Return(s)
 			</a> 
 		</li>
@@ -72,7 +92,7 @@
 	</ul>
 
 	<div class="tab-content bg-light" style="border: 1px solid #f2f3f4;">
-		<div class="tab-pane {{ (count($components) > 0) ? 'active' : '' }}" id="w1" role="tabpanel" aria-labelledby="w1-tab">
+		<div class="tab-pane {{ $tab1 }}" id="w1" role="tabpanel" aria-labelledby="w1-tab">
 			@if(count($components) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 5%;">
@@ -120,9 +140,19 @@
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold qty">{{ $component['transferred_qty'] * 1 }}</span>
+						@php
+							$transferred_qty = $component['transferred_qty'] * 1;
+							$status_color = '';
+							if ($transferred_qty <= 0){
+								$status_color = 'badge badge-danger';
+							}elseif($transferred_qty >= ($component['requested_qty'] * 1)){
+								$status_color = 'badge badge-success';
+							}else{
+								$status_color = '';
+							}
+						@endphp
+						<span class="font-weight-bold qty {{ $status_color }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
-						<span class="d-block font-italic target-warehouse" style="font-size: 7pt;">{{ $details->wip_warehouse }}</span>
 					</td>
 					<td class="text-center">
 						@php
@@ -132,11 +162,11 @@
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" {{ $change_cancel_btn }}> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
-							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
-						</button>
 						<button type="button" class="btn btn-secondary  btn-sm p-1 return-required-item-btn" data-sted-id="{{ $component['sted_name'] }}" data-production-order="{{ $details->production_order }}" {{ $return_btn }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+						</button>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
+							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
 				</tr>
@@ -146,7 +176,7 @@
 			<h5 class="text-center m-4">No withdrawal slip(s) created for item component(s).</h5>
 			@endif
 		</div>
-		<div class="tab-pane {{ (count($components) <= 0) ? 'active' : '' }}" id="w2" role="tabpanel" aria-labelledby="w2-tab">
+		<div class="tab-pane {{ $tab2 }}" id="w2" role="tabpanel" aria-labelledby="w2-tab">
 			@if(count($parts) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 4%;">
@@ -203,9 +233,19 @@
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold qty">{{ $part['transferred_qty'] * 1 }}</span>
+						@php
+							$transferred_qty = $part['transferred_qty'] * 1;
+							$status_color = '';
+							if ($transferred_qty <= 0){
+								$status_color = 'badge badge-danger';
+							}elseif($transferred_qty >= ($part['requested_qty'] * 1)){
+								$status_color = 'badge badge-success';
+							}else{
+								$status_color = '';
+							}
+						@endphp
+						<span class="font-weight-bold qty {{ $status_color }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
-						<span class="d-block font-italic target-warehouse" style="font-size: 7pt;">{{ $details->wip_warehouse }}</span>
 					</td>
 					<td class="text-center p-0">
 						@php
@@ -215,11 +255,11 @@
 						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" {{ $change_cancel_btn }}> 
 							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-danger p-1 btn-sm delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
-							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
-						</button>
 						<button type="button" class="btn btn-secondary p-1 btn-sm return-required-item-btn" data-sted-id="{{ $part['sted_name'] }}" data-production-order="{{ $details->production_order }}" {{ $return_btn }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+						</button>
+						<button type="button" class="btn btn-danger p-1 btn-sm delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
+							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
 				</tr>
@@ -229,7 +269,7 @@
 			<h5 class="text-center m-4">No withdrawal slip(s) created for item component(s).</h5>
 			@endif
 		</div>
-		<div class="tab-pane" id="w3" role="tabpanel" aria-labelledby="w3-tab">
+		<div class="tab-pane {{ $tab3 }}" id="w3" role="tabpanel" aria-labelledby="w3-tab">
 			@if(count($items_return) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 5%;">

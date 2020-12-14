@@ -336,30 +336,6 @@ class AssemblyController extends Controller
         }
     }
 
-    public function view_bom_for_review($bom){
-        try {
-            $workstations = DB::connection('mysql_mes')->table('workstation')
-                ->join('operation', 'operation.operation_id', 'workstation.operation_id')
-                ->where('operation_name', 'Wiring and Assembly')->get();
-
-            $workstation_process = DB::connection('mysql_mes')->table('process')
-                ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
-                ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-                ->select('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                ->orderBy('process.process_name', 'asc')
-                ->get();
-            
-            $bom_details = DB::connection('mysql')->table('tabBOM')->where('name', $bom)->first();
-            $bom_operations = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom)->orderBy('idx', 'asc')->get();
-            $bom_materials = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom)->orderBy('idx', 'asc')->get();
-
-            return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials'));
-        } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
-        }
-    }
-
     public function get_production_req_items(Request $request){
         try {
             $items = DB::connection('mysql')->table('tabProduction Order Item')->whereIn('parent', $request->production_orders)

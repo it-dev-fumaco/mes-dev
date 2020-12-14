@@ -187,14 +187,15 @@ class TrackingController extends Controller
         }
 
         $production= DB::connection('mysql_mes')->table('production_order AS po')
-            ->join('delivery_date', function ($join) {
-                $join->on('delivery_date.parent_item_code', '=', 'po.parent_item_code')->on('delivery_date.reference_no', '=', 'po.sales_order')->orOn('delivery_date.reference_no', '=', 'po.material_request');
-            })
+            ->leftJoin('delivery_date', function($join){
+                $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+            }) // get delivery date from delivery_date table
             ->whereNotIn('po.status', ['Cancelled'])
             ->where(function($q) use ($guide_id) {
                     $q->Where('po.sales_order', $guide_id)
                         ->orWhere('po.material_request', $guide_id);
-                })
+            })
             ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
             ->groupBy('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
             ->first();

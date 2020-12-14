@@ -481,6 +481,33 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="min-width:40%;">
+      <form action="/update_rescheduled_delivery_date" id="reschedule_delivery_frm" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title">Reschedule Delivery Date</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12" id="tbl_reschduled_deli">
+                
+              </div>
+            </div>
+          </div>
+          <input type="hidden" class="tbl_reload_deli_modal" name="reload_tbl" value="reloadpage">
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
   @include('modals.item_track_modal')
   <style type="text/css">
     .qc_passed{
@@ -665,7 +692,33 @@
   }
 
   .modal { overflow: auto !important; }
+  #reschedule-delivery-modal .form-control {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
+  }
   </style>
+
+  <div class="modal fade" id="view-bundle-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title font-weight-bold prod-title">Product Bundle Component(s)</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="min-height: 500px;">
+          <div class="row">
+            <div class="col-md-12">
+              <div id="view-bundle-div"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
     
     @include('modals.return_required_item_modal')
     @include('modals.add_required_item_modal')
@@ -684,7 +737,7 @@
   <script src="{{ asset('/js/plugins/bootstrap-notify.js') }}"></script>
   {{--  <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->  --}}
   <script src="{{ asset('/js/now-ui-dashboard.min.js?v=1.3.0') }}" type="text/javascript"></script>
-  {{--  <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->  --}}
+  {{--  <!-- Now Ui Dashboard DEMO methods, dont include it in your project! -->  --}}
   <script src="{{ asset('/js/demo.js') }}"></script>
   <script src="{{ asset('js/jquery-ui.js') }}"></script>
 
@@ -693,6 +746,29 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+
+    $('#view-bundle-components-btn').click(function(e){
+      e.preventDefault();
+      var item_code = $('#sel-item').val();
+
+      $.ajax({
+        url: '/view_bundle/' + item_code,
+        type:"GET",
+        success:function(data){
+          if (data.status) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            $('#view-bundle-div').html(data);
+            $('#view-bundle-modal').modal('show');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
 
     function get_items_for_return(production_order){
     $.ajax({
@@ -1053,6 +1129,22 @@
       });
     }
 
+    $(document).on('click', '.resched-deli-btn', function(){
+      var prod = $(this).data('production-order');
+      $.ajax({
+          url: "/reschedule_prod_details/" + prod,
+          type:"GET",
+          success:function(data){
+              $('#tbl_reschduled_deli').html(data);
+              $('#reschedule-delivery-modal').modal('show');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+          },
+        });
+    });
     $(document).on('click', '.production_order_link', function(e){
       e.preventDefault();
       var production_order = $(this).attr('data-jtno');
