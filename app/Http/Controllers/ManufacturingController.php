@@ -558,11 +558,13 @@ class ManufacturingController extends Controller
     public function view_bom_for_review(Request $request, $bom){
         try {
             if($bom == "No BOM"){
-
                 $details= DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
+                
                 $workstations = DB::connection('mysql_mes')->table('workstation')
-                ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
-                $existing_workstation= DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production)->get();
+                    ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
+                
+                $existing_workstation= DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $request->production)->get();
 
                 $workstation_process = DB::connection('mysql_mes')->table('process')
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
@@ -571,37 +573,50 @@ class ManufacturingController extends Controller
                     ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
                     ->orderBy('process.process_name', 'asc')
                     ->get();
+
                 return view('reports.tbl_update_no_bom', compact('workstation_process', 'workstations', 'existing_workstation', 'details'));
             }else{
                 $user_permitted_operations = DB::connection('mysql_mes')->table('user')
-                ->join('operation', 'operation.operation_id', 'user.operation_id')
-                ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-                ->where('user_access_id', Auth::user()->user_id)
-                ->where('module', 'Production')
-                ->select('user.operation_id', 'operation_name')
-                ->distinct()->pluck('user.operation_id');
+                    ->join('operation', 'operation.operation_id', 'user.operation_id')
+                    ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+                    ->where('user_access_id', Auth::user()->user_id)->where('module', 'Production')
+                    ->select('user.operation_id', 'operation_name')->distinct()->pluck('user.operation_id');
 
                 $workstations = DB::connection('mysql_mes')
-                ->table('workstation as w')
-                ->join('operation as op', 'op.operation_id','w.operation_id')
-                ->whereIn('op.operation_id', $user_permitted_operations)->get();
+                    ->table('workstation as w')->join('operation as op', 'op.operation_id','w.operation_id')
+                    ->whereIn('op.operation_id', $user_permitted_operations)->get();
 
                 $workstation_process = DB::connection('mysql_mes')->table('process')
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
                     ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
                     ->select('workstation.workstation_name', 'process.process_name', 'process.process_id')
                     ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                    ->orderBy('process.process_name', 'asc')
-                    ->get();
+                    ->orderBy('process.process_name', 'asc')->get();
                 
                 $bom_details = DB::table('tabBOM')->where('name', $bom)->first();
                 $bom_operations = DB::table('tabBOM Operation')->where('parent', $bom)->orderBy('idx', 'asc')->get();
-                $bom_materials = DB::table('tabBOM Item')->where('parent', $bom)->orderBy('idx', 'asc')->get();
+                $bom_materials_q = DB::table('tabBOM Item')->where('parent', $bom)->orderBy('idx', 'asc')->get();
 
-                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials'));
+                $bom_materials = $items_with_different_uom = [];
+                foreach ($bom_materials_q as $row) {
+                    $item_details = DB::connection('mysql')->table('tabItem')->where('name', $row->item_code)->first();
+                    if ($row->uom != $item_details->stock_uom) {
+                        array_push($items_with_different_uom, $row->item_code);
+                    }
 
+                    if($item_details){
+                        $bom_materials[] = [
+                            'idx' => $row->idx,
+                            'item_code' => $row->item_code,
+                            'description' => $row->description,
+                            'qty' => $row->qty,
+                            'uom' => $row->uom,
+                        ];
+                    }
                 }
 
+                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom'));
+            }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
@@ -2329,11 +2344,10 @@ class ManufacturingController extends Controller
                     }
                 }
             }
-
             
             $wip_wh = $this->get_operation_wip_warehouse($operation_id);
             if ($wip_wh['success'] < 1) {
-                return response()->json(['success' => 0, 'message' => $wip_wh['message'] . '' . $operation_id]);
+                return response()->json(['success' => 0, 'message' => $wip_wh['message']]);
             }
 
             $wip = $wip_wh['message'];

@@ -29,6 +29,28 @@
 	</div>
 </div>
 <div class="row" style="margin-top: 10px;">
+	@if (count($items_with_different_uom) > 0)
+	<style>
+		.text-blink-alert {color: #161616d3;
+			animation: blinker-alert 2.1s linear infinite;
+		}
+	
+		@keyframes blinker-alert {  
+			0%    { background-color: #ffffff;}
+			25%   { background-color: #FFC107;}
+			50%   { background-color: #ffffff;}
+			75%   { background-color: #FFC107;}
+			100%  { background-color: #ffffff;}
+		}
+	</style>
+	<div class="col-md-12">
+		<div class="alert alert-warning text-center mt-1 mb-2 text-blink-alert" id="manual-prod-note" role="alert">
+			<div class="container">
+			  <strong>Warning:</strong> Please update BOM stock uom for the following item(s): <span class="font-weight-bold">{{ implode(', ', $items_with_different_uom) }}</span>
+			</div>
+		</div>
+	</div>
+	@endif
 	<div class="col-md-6">
 		<table class="table table-striped table-bordered" style="font-size: 9pt;">
 			<thead class="text-primary">
@@ -39,9 +61,12 @@
 			<tbody>
 				@foreach($bom_materials as $rm)
 				<tr>
-					<td class="text-center">{{ $rm->idx }}</td>
-					<td class="text-justify"><b>{{ $rm->item_code }}</b><br>{!! $rm->description !!}</td>
-					<td class="text-center">{{ $rm->qty }} {{ $rm->uom }}</td>
+					<td class="text-center">{{ $rm['idx'] }}</td>
+					<td class="text-justify"><b>{{ $rm['item_code'] }}</b><br>{!! $rm['description'] !!}</td>
+					<td class="text-center">
+						<span class="d-block font-weight-bold">{{ $rm['qty'] * 1 }}</span>
+						<span>{{ $rm['uom'] }}</span>
+					</td>
 				</tr>
 				@endforeach
 			</tbody>
@@ -137,7 +162,10 @@
 </div>
 <div class="row mt-3">
 	<div class="col-md-4 offset-md-4">
-		<button class="btn btn-block btn-primary btn-lg" id="submit-bom-review-btn" data-id="bom{{ $bom_details->name }}">Update</button>
+		@php
+			$disabled_btn = (count($items_with_different_uom) > 0) ? 'disabled' : '';
+		@endphp
+		<button class="btn btn-block btn-primary btn-lg" id="submit-bom-review-btn" data-id="bom{{ $bom_details->name }}" {{ $disabled_btn }}>Update</button>
 	</div>
 </div>
 
