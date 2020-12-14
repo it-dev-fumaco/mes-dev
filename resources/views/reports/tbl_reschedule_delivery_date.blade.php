@@ -1,10 +1,3 @@
-@php
-	if($prod_details->rescheduled_delivery_date == null){
-		$deli=  $prod_details->deli;
-	}else{
-		$deli= $prod_details->rescheduled_delivery_date;
-	}
-@endphp
 
 <div class="row">
 	<div class="col-md-12">
@@ -14,6 +7,14 @@
    </div>
 </div>
 <div class="row">
+   @php
+	 if($prod_details->rescheduled_delivery_date == null){
+		$deli=  $prod_details->delivery_date;
+	 }else{
+		 $deli= $prod_details->rescheduled_delivery_date;
+
+	 }
+   @endphp
 	<input type="hidden" value="{{ $deli }}" name="delivery_date">
 	<input type="hidden" value="{{ $prod_details->production_order }}" name="production_order">
 	<input type="hidden" value="{{ $prod_details->planned_start_date }}" name="planned_start_date">
