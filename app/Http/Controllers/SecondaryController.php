@@ -7771,7 +7771,7 @@ class SecondaryController extends Controller
         $now = Carbon::now();
         $data = $request->all();
         $reason= $data['late_delivery'];
-
+        $list=[];
                 foreach($reason as $i => $row){
                     if (DB::connection('mysql_mes')
                         ->table('delivery_reschedule_reason')
@@ -7780,10 +7780,7 @@ class SecondaryController extends Controller
                         return response()->json(['success' => 0, 'message' => 'Late Delivery Reason - <b>'.$row.'</b> is already exist']);// validate if already exist in database
                     }else{
                         $list[] = [
-                            'reschedule_reason' => $row,
-                            'last_modified_by' => Auth::user()->email,
-                            'created_by' => Auth::user()->email,
-                            'created_at' => $now->toDateTimeString()
+                            'reschedule_reason' => $row
                             ];
                     } 
             }
