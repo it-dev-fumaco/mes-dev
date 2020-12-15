@@ -2322,19 +2322,12 @@ class MainController extends Controller
 
 	}
 	public function productionKanban($operation_id){
-<<<<<<< HEAD
 		   $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
 		   ->leftJoin('delivery_date', function($join)
             {
                 $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
-=======
-
-		   $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
-		   ->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
->>>>>>> parent of b84899c... Merge pull request #10 from it-dev-fumaco/MES-717
 			->whereNotIn('production_order.status', ['Stopped', 'Cancelled'])
 			->where('production_order.feedback_qty',0)
 			->where('production_order.is_scheduled', 0)
@@ -2412,15 +2405,10 @@ class MainController extends Controller
 	public function get_painting_schedules($operation_id){
 		$jobtickets_production=DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('production_order as pro','pro.production_order', 'jt.production_order')
-<<<<<<< HEAD
 			->leftJoin('delivery_date', function($join){
 				$join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
 				$join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
 			})
-=======
-			->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-			->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
->>>>>>> parent of b84899c... Merge pull request #10 from it-dev-fumaco/MES-717
 			->where('jt.planned_start_date', null)->where('pro.status', '!=', 'Cancelled')
 			->where('jt.workstation', 'Painting')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
@@ -2519,15 +2507,10 @@ class MainController extends Controller
 	public function get_scheduled_painting($schedule_date){
 		$orders = DB::connection('mysql_mes')->table('production_order as pro')
 		->join('job_ticket as jt', 'pro.production_order','jt.production_order')
-<<<<<<< HEAD
 		->leftJoin('delivery_date', function($join){
             $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
             $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
         })
-=======
-		->join('delivery_date', DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), 'delivery_date.reference_no')
-				->whereRaw('delivery_date.parent_item_code = production_order.parent_item_code')
->>>>>>> parent of b84899c... Merge pull request #10 from it-dev-fumaco/MES-717
 		->whereNotIn('pro.status', ['Completed', 'Cancelled'])
 		->where('jt.workstation', 'Painting')
 		->whereDate('jt.planned_start_date', $schedule_date)
