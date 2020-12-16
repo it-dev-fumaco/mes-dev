@@ -6107,7 +6107,7 @@ class SecondaryController extends Controller
             ->whereIn('rl.owner', ['Quality Assurance','null'])
             ->where(function($q) use ($request) {
                 $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-                ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
+                    ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
@@ -7926,7 +7926,7 @@ class SecondaryController extends Controller
     }
     public function update_material_type(Request $request){
         if (DB::connection('mysql_mes')->table('reject_material_type')
-            ->where('material_type', $request->edit_late_deli_reason)
+            ->where('material_type', $request->edit_material_type)
             ->exists()){
 
                 if(strtoupper($request->edit_material_type) == strtoupper($request->orig_material_type)){
@@ -7938,7 +7938,7 @@ class SecondaryController extends Controller
                     DB::connection('mysql_mes')->table('reject_material_type')->where('reject_material_type_id', $request->mtypeid)->update($list);
                     return response()->json(['message' => 'Material Type is successfully updated.']);
                 }else{
-                    return response()->json(['success' => 0, 'message' => 'Material Type - <b>'.$request->edit_reject_category.'</b> is already exist']);           
+                    return response()->json(['success' => 0, 'message' => 'Material Type - <b>'.$request->edit_material_type.'</b> is already exist']);           
 
                 }
         }else{

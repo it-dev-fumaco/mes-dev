@@ -1,28 +1,23 @@
 
 @if($validation_tab == "with_tab")
-
-<div class="row">
-
-    <div class="col-3 text-white p1" style=" padding:0px 0px 0px 30px;vertical-align: text-top;">
-             <div class="row" style="background-color: #ffffff; padding:0px 0px 0px 0px;" class="text-center">
+    <div class="row">
+        <div class="col-3 text-white p1" style=" padding:0px 0px 0px 30px;vertical-align: text-top;">
+            <div class="row" style="background-color: #ffffff; padding:0px 0px 0px 0px;" class="text-center">
                <div class="col-md-12 text-center" id="reject_tab_list" style="padding:0px 0px 0px 0px;">
-                     <ul class="nav flex-column workstation_navbar" id="myTabsss" role="tablist" style="font-size: 10pt;width:100%;padding:0px 0px 0px 0px">
-                              @foreach($tab as $index => $row)
-                                     @php
-                                         $string_to_spaces= str_replace(' ', '', $index);
-                                         $string_to_slash= str_replace('/', '', $string_to_spaces);
-                                     @endphp
-                                         <li class="nav-item" style="background-color: #0277BD;width:100%;height:100%;border:2px solid white;" >
-                                             <a style="word-wrap: break-word;" class="nav-link {{ $loop->first ? 'active' : '' }} text-white" id="{{ $string_to_slash}}"  data-toggle="tab" href="#tab_{{ $string_to_slash}}" >{{ $index }} </a>
-                                         </li>
-                             @endforeach 
-                         
-
-                     </ul>
-                   </div>
-             </div>
-           
-     </div>
+                    <ul class="nav flex-column workstation_navbar" id="myTabsss" role="tablist" style="font-size: 10pt;width:100%;padding:0px 0px 0px 0px">
+                        @foreach($tab as $index => $row)
+                            @php
+                                $string_to_spaces= str_replace(' ', '', $index);
+                                $string_to_slash= str_replace('/', '', $string_to_spaces);
+                            @endphp
+                            <li class="nav-item" style="background-color: #0277BD;width:100%;height:100%;border:2px solid white;" >
+                                <a style="word-wrap: break-word;" class="nav-link {{ $loop->first ? 'active' : '' }} text-white" id="{{ $string_to_slash}}"  data-toggle="tab" href="#tab_{{ $string_to_slash}}" >{{ $index }} </a>
+                            </li>
+                        @endforeach 
+                    </ul>
+                </div>
+            </div>
+        </div>
          <div class="col-md-9" style=" padding:0px 0px 0px 12px;">
              <div class="tab-content text-left">
                  @foreach($tab as $index => $rows)
@@ -34,11 +29,11 @@
                          <div class="row">
                              <div class="col-md-12">
                                  <div class="row" style="margin: 0 8px; width:100%;">
-                                         <div class="col-md-12 column1"  style="border:2px solid white;padding:0px 0px 0px 0px; position:relative; width:%; height:100%;">
-                                             @php
+                                    <div class="col-md-12 column1"  style="border:2px solid white;padding:0px 0px 0px 0px; position:relative; width:%; height:100%;">
+                                        @php
                                                 $limit = ceil(count($rows) / 2)
-                                            @endphp
-                                            @if ($limit > 1)
+                                        @endphp
+                                        @if ($limit > 1)
                                             <div class="row p-0 m-0">
                                                 @foreach($rows->chunk($limit) as $res)
                                                     <div class="col-md-6 p-0">
@@ -55,24 +50,24 @@
                                                     </div>
                                                 @endforeach
                                             </div>
-                                            @else
-                                                <div class="row">
-                                                    <div class="col-md-12 pr-3 pl-3">
-                                                        <ul class="list-unstyled">
-                                                            @foreach($rows as $row)
-                                                                <li class="p-1 d-block">
-                                                                    <div class="inputGroup" style="vertical-align: text-top; border:2px solid black; width:100%;">
-                                                                        <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk" data-parentid="{{$string_to_slash}}" data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
-                                                                        <label style=" word-wrap: break-word;" for="option{{ $row->reject_list_id }}"> {{ $row->reject_reason }}</label>
-                                                                    </div>
-                                                                </li>
-                                                            @endforeach
-                                                        </ul>
-                                                    </div>
+                                        @else
+                                            <div class="row">
+                                                <div class="col-md-12 pr-3 pl-3">
+                                                    <ul class="list-unstyled">
+                                                        @foreach($rows as $row)
+                                                            <li class="p-1 d-block">
+                                                                <div class="inputGroup" style="vertical-align: text-top; border:2px solid black; width:100%;">
+                                                                    <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk" data-parentid="{{$string_to_slash}}" data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
+                                                                    <label style=" word-wrap: break-word;" for="option{{ $row->reject_list_id }}"> {{ $row->reject_reason }}</label>
+                                                                </div>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
                                                 </div>
-                                            @endif
-                                         </div>
-                                 </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
                              </div>
                          </div>
                      </div>
@@ -82,9 +77,7 @@
     </div> 
 @endif
 @if($validation_tab == "no_tab")
-
     <div class="row">
-
         <div class="col-12 text-white " style="padding-right: 0px;">
             <div class="row">
                 <div class="col-md-12">
@@ -93,70 +86,52 @@
                             @php
                                 $limit = ceil(count($tab) / 2)
                             @endphp
-                          
                             @if ($limit > 1)
                                 <div class="row p-0 m-0">
-                                    @foreach($tab->chunk($limit) as $res)
+                                    @forelse($tab->chunk($limit) as $res)
                                         <div class="col-md-6 p-0">
                                             <ul class="list-unstyled">
-                                                @foreach ($res as $rows)
+                                                @forelse ($res as $rows)
                                                     <li class="p-1 d-block">
                                                         <div class="inputGroup" style="vertical-align: text-top; border:2px solid white; width:100%;">
                                                             <input id="option{{ $rows->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk" data-reject-reason="{{ $rows->reject_reason }}" value="{{ $rows->reject_list_id }}" />
                                                             <label for="option{{ $rows->reject_list_id }}"> {{ $rows->reject_reason }}</label>
                                                         </div>
                                                     </li>
-                                                @endforeach
+                                                @empty
+                                                <li class="p-1 d-block text-black" style="color:black;"><h6>No Operator Reject Found</h6> </li>
+                                                @endforelse
                                             </ul>
                                         </div>
-                                    @endforeach
+                                    @empty
+                                        <h6>No Operator Reject Found</h6>
+                                    @endforelse
                                 </div>
-                                @else
-                                    <div class="row">
-                                        <div class="col-md-12 pr-3 pl-3">
-                                            <ul class="list-unstyled">
-                                                @foreach($tab as $row)
-                                                    <li class="p-1 d-block">
-                                                        <div class="inputGroup" style="vertical-align: text-top; border:2px solid white; width:100%;">
-                                                            <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk"  data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
-                                                            <label style=" word-wrap: break-word;" for="option{{ $row->reject_list_id }}"> {{ $row->reject_reason }}</label>
-                                                        </div>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
+                            @else
+                                <div class="row">
+                                    <div class="col-md-12 pr-3 pl-3">
+                                        <ul class="list-unstyled">
+                                            @forelse($tab as $row)
+                                                <li class="p-1 d-block">
+                                                    <div class="inputGroup" style="vertical-align: text-top; border:2px solid white; width:100%;">
+                                                        <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk"  data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
+                                                        <label style=" word-wrap: break-word;" for="option{{ $row->reject_list_id }}"> {{ $row->reject_reason }}</label>
+                                                    </div>
+                                                </li>
+                                            @empty
+                                                <li class="p-1 d-block text-black" style="color:black;"><h6>No Operator Reject Found</h6> </li>
+                                            @endforelse
+                                        </ul>
                                     </div>
-                                @endif                                                                
+                                </div>
+                            @endif                                                                
                         </div>
-                        <div id="column2"></div>
                     </div>
                 </div>
             </div>
-                         
         </div>
     </div> 
 @endif
-{{-- 
-<script>
-  $(document).ready(function () {
-      var size = $("#column1 > .inputGroup").size();
-      $(".column1 > .inputGroup").each(function (index) {
-          if (index >= size / 2) {
-              $(this).appendTo("#column2");
-          }
-      });
-  });
-
-</script> --}}
-<script>
-// $(function() {
-//   $(".nav-item a").click(function() {
-//     $(".nav-item a").removeClass("active");
-//     $(".tab-pane").removeClass("active");
-//     $(this).addClass("active");
-//   });
-// });
-</script>
 
 <style type="text/css">
 

@@ -4244,6 +4244,20 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
 
     }
   });
+  $(document).on('keyup', '#incorrect signage sticker material type', function(){
+    var query = $(this).val();
+		var parent_tab = $("#operator_tab li a.active").attr('data-qatab');
+    if(parent_tab == "op_fabrication"){
+      check_list_assembly(1, query);
+    }else if(parent_tab == "op_painting"){
+      qa_reject_list(1, query);
+    }else if(parent_tab == "op_assembly"){
+      op_reject_list(1, query);
+    }else if(parent_tab == "op_reject"){
+      op_reject_list(1, query);
+    }else{
+    }
+  });
 
   $(document).on('keyup', '#search_item_warehouse_setup', function(){
     var query = $(this).val();
