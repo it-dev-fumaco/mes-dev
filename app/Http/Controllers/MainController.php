@@ -420,20 +420,18 @@ class MainController extends Controller
 				  $total_rejects =collect($operations)->sum('reject');
 				  $min_count= collect($operations)->min('from_from');
 				  $max_count=collect($operations)->max('to_time');
-
-				  
+				  $status = collect($operations)->where('status', 'In Progress');
 				  $operations_arr[] = [
 					'machine_code' => "",
 					'operator_name' => "",
 					'from_time' => $min_count,
 					'to_time' => ($row->status == "In Progress") ? '' : $max_count,
-					'status' =>$row->status,
+					'status' => (count($status) == 0 )? 'Not started': "In Progress",
 					'qa_inspection_status' => "",
 					'good' => $row->completed_qty,
 					'reject' => $total_rejects,
 					'remarks' => "",
 				];
-				// dd($operations);
                                     
 
 			}else{

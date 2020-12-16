@@ -154,7 +154,6 @@
 																$from_time = ($c['from_time']) ? $c['from_time'] : '-';
 																$to_time = ($c['to_time']) ? $c['to_time'] : '-';
 																$inprogress_class = ($c['status'] == 'In Progress') ? 'active-process' : '';
-
 																if($b['process'] == "Housing and Frame Welding"){
 																	$qc_status = '';
 																}else{
@@ -249,6 +248,8 @@
 														$stat_badge ="danger";
 														}else if($rows['material_status'] == "Material Issued"){
 														$stat_badge ="primary";
+														}else if($rows['material_status'] == "Cancelled"){
+														$stat_badge ="danger";
 														}else if($rows['material_status'] == "Ready For Feedback"){
 														$stat_badge ="info";
 														}else if($rows['material_status'] == "Partial Feedbacked"){

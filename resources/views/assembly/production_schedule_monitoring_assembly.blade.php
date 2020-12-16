@@ -11,7 +11,7 @@
         <table class="text-center" style="width: 100%;">
           <tr>
             <td style="width: 25%; border-right: 5px solid white; color:white;">
-              <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">Schedule Date : {{ $date_format }}</h4>
+              <h5 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">Schedule Date : {{ $date_format }} {{ (date('Y-m-d') == date('Y-m-d', strtotime($date_format))) ? '[Today]' : '' }}</h5>
             </td>
             <td style="width: 50%">
               <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Production Schedule Monitoring - Assembly</h4>

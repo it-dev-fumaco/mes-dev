@@ -7179,6 +7179,7 @@ class SecondaryController extends Controller
           if($operation_id == 0){
               $datas= DB::connection('mysql_mes')->table('job_ticket as jt')
               ->join('production_order as prod', 'jt.production_order','prod.production_order')
+              ->where('prod.status', "Not Started")
               ->where('jt.workstation','Painting')
               ->where('jt.status', 'Pending')
               ->whereDate('jt.planned_start_date', '<', $current_date)
@@ -7863,6 +7864,144 @@ class SecondaryController extends Controller
                 DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->transid)->update($list);
                 return response()->json(['message' => 'Reschedule Delivery Reason is successfully updated.']);
 
+        }
+    }
+    public function get_scheduled_for_painting($date){
+        $sched_date= Carbon::parse($date);
+		$start = $sched_date->startOfDay()->toDateTimeString();
+		$end = $sched_date->endOfDay()->toDateTimeString();
+
+		$scheduled_painting_production_orders = DB::connection('mysql_mes')->table('job_ticket')
+			->where('workstation', 'Painting')->whereBetween('job_ticket.planned_start_date', [$start, $end])
+			// ->where('status', 'Pending')
+			->distinct()->pluck('production_order');
+
+		$scheduled = DB::connection('mysql_mes')->table('production_order')
+			->whereIn('production_order', $scheduled_painting_production_orders)
+			->where('status', '!=', 'Cancelled')->select('production_order.*')->get();
+
+		$scheduled_arr = [];
+		foreach ($scheduled as $i => $row) {
+			$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+
+			$process = DB::connection('mysql_mes')->table('job_ticket')
+				->join('process', 'job_ticket.process_id', 'process.process_id')
+				->where('job_ticket.production_order', $row->production_order)
+				->where('job_ticket.workstation', 'Painting')
+				->select('job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.sequence')
+				->get();
+
+			$completed_qty = collect($process)->min('completed_qty');
+
+			$sequence = collect($process)->min('sequence');
+			
+			$scheduled_arr[] = [
+				'production_order' => $row->production_order,
+				'reference_no' => $reference_no,
+				'customer' => $row->customer,
+				'item_code' => $row->item_code,
+				'description' => $row->description,
+				'required_qty' => $row->qty_to_manufacture,
+				'processes' => $process,
+				'sequence' => $sequence,
+				'completed_qty' => $completed_qty,
+				'balance_qty' => $row->qty_to_manufacture - $completed_qty
+			];
+		}
+
+        $scheduled_arr = collect($scheduled_arr)->sortBy('sequence')->toArray();
+        $sched_format= Carbon::parse($date)->format('F d, Y');
+
+		return view('painting.print_production_schedule', compact('scheduled_arr','sched_format'));
+	}
+    public function get_production_details_for_edit($prod){
+
+        $production_order = DB::connection('mysql_mes')->table('production_order')
+            ->where('production_order', $prod)->select('production_order.*')->first();
+        $order = [];
+            $process_loading = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('process', 'job_ticket.process_id', 'process.process_id')
+                ->where('job_ticket.production_order', $prod)
+                ->where('job_ticket.workstation', 'Painting')
+                ->where('process.process_name','Loading')
+                ->select('job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.sequence','process.process_name')
+                ->first();
+            $process_unloading = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('process', 'job_ticket.process_id', 'process.process_id')
+                ->where('job_ticket.production_order', $prod)
+                ->where('job_ticket.workstation', 'Painting')
+                ->where('process.process_name','Unloading')
+                ->select('job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.sequence','process.process_name')
+                ->first();
+            $order = [
+                'completed' => $production_order->produced_qty,
+                'status' => $production_order->status,
+                'loading_cpt' => $process_loading->completed_qty,
+                'loading_status' => $process_loading->status,
+                'unloading_cpt' =>  $process_unloading->completed_qty,
+                'unloading_status' => $process_unloading->status
+            ];
+        return $order;
+    }
+    public function edit_cpt_status_qty(Request $request){
+        try {
+            $now = Carbon::now();
+            $jt_details_loading = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('process', 'job_ticket.process_id', 'process.process_id')
+                ->where('production_order', $request->prod_no)
+                ->where('process.process_name', 'Loading')->first();
+            $jt_details_unloading = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('process', 'job_ticket.process_id', 'process.process_id')
+                ->where('production_order', $request->prod_no)
+                ->where('process.process_name', 'Unloading')->first();
+        //Update data from timelogs for unloading and loading 
+            if(DB::connection('mysql_mes')->table('time_logs')
+                ->where('job_ticket_id', '=', $jt_details_loading->job_ticket_id)
+                ->exists()){
+                $values_tl_loading = [
+                    'status' => $request->loading_status,
+                    'good' => $request->loading_cpt,
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString()
+                ];
+                DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $jt_details_loading->job_ticket_id)->update($values_tl_loading);
+            }
+            if(DB::connection('mysql_mes')->table('time_logs')
+                ->where('job_ticket_id', '=', $jt_details_unloading->job_ticket_id)
+                ->exists()){
+                $values_tl_unloading = [
+                    'status' => $request->unloading_status,
+                    'good' => $request->unloading_cpt,
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString()
+                ];
+                DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $jt_details_unloading->job_ticket_id)->update($values_tl_unloading);
+            }   
+        //Update data from job_tickets for unloading and loading 
+            $values_jt_loading = [
+                'status' => $request->loading_status,
+                'completed_qty' => $request->loading_cpt,
+                'last_modified_by' => Auth::user()->employee_name,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
+            DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $jt_details_loading->job_ticket_id)->update($values_jt_loading);
+            $values_jt_unloading = [
+                'status' => $request->unloading_status,
+                'completed_qty' => $request->unloading_cpt,
+                'last_modified_by' => Auth::user()->employee_name,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
+            DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $jt_details_unloading->job_ticket_id)->update($values_jt_unloading);        
+            $values_prod_table = [
+                'status' => $request->status_overall,
+                'produced_qty' => $request->cpt_overall,
+                'last_modified_by' => Auth::user()->employee_name,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod_no)->update($values_prod_table);
+            return response()->json(['success' => 1, 'message' => ''.$request->prod_no.'- Successfully Updated.']);
+        } catch (Exception $e) {
+            return response()->json(["error" => $e->getMessage()]);
         }
     }
 }
