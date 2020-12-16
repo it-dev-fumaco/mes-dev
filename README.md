@@ -6,7 +6,7 @@ Instructions using GUI and Commands
     Open CMD and change directory to your Local project folder
     Type copy .env.example .env
     Create "sessions" folder in /storage/framework
-    Setup database connections in app/config/database.php
+    Setup database connections in config/database.php
         - ESSEX (for dev)
             - host = 10.0.0.82
             - database name = 'essex'
