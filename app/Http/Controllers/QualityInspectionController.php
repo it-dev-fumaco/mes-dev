@@ -749,7 +749,8 @@ class QualityInspectionController extends Controller
             $validation_tab="no_tab";
         }else{
             $data= DB::connection('mysql_mes')->table('reject_list')
-            ->where('material_type', '!=', 'Others')
+            ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
+            ->where('operation.operation_name', 'like', '%Assembly%') 
             ->where('owner', 'Operator')
             ->get();
 
