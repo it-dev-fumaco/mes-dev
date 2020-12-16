@@ -101,16 +101,7 @@
                                 <a class="nav-link" href="#qa_setup" data-toggle="tab">QA Inspection Setup</a>
                             </li>
                             <li class="nav-item">
-                              <a class="nav-link" href="#operator_reject_setup" data-toggle="tab">Operator Reject Setup</a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link" href="#qa_lot_size" data-toggle="tab">Sampling Plan Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#qa_reject_category" data-toggle="tab">Reject Category Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#material_type_setup" data-toggle="tab">Material Type Setup</a>
                             </li>
                             <h6 class="text-center" style="padding-top: 10px;">Inventory</h6>
                             <li class="nav-item">
@@ -380,17 +371,35 @@
                             <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
                                 <div class="col-md-12">
                                     <div class="nav-tabs-navigation">
-                                        <div class="nav-tabs-wrapper" id="qa_tab">
-                                            <ul class="nav nav-tabs" data-tabs="tabs">
-                                                <li class="nav-item">
-                                                    <a class="nav-link active" data-qatab="checklist" href="#inspection_checklist" data-toggle="tab">Inspection Checklist</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-qatab="reject" href="#qa_reject_list" data-toggle="tab">QA Inspection List</a>
-                                                </li>
-                                            </ul>
+                                            <div class="nav-tabs-wrapper" id="qa_tab">
+                                                <ul class="nav nav-tabs" data-tabs="tabs">
+                                                    <li class="nav-item">
+                                                        <a class="nav-link active" data-qatab="checklist" href="#inspection_checklist" data-toggle="tab">Inspection Checklist</a>
+                                                    </li>
+                                                    {{--<li class="nav-item">
+                                                        <a class="nav-link" data-qatab="user" href="#qa_user_setup" data-toggle="tab">User Setup</a>
+                                                    </li>--}}
+                                                    <li class="nav-item">
+                                                        <a class="nav-link" data-qatab="category" href="#qa_reject_category" data-toggle="tab">Reject Category</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link" data-qatab="reject" href="#qa_reject_list" data-toggle="tab">QA Reject List</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link" data-qatab="operator_checklist" href="#operator_checklist" data-toggle="tab">Operator Reject List Setup</a>
+                                                    </li>
+                                                    {{--<li class="nav-item">
+                                                        <a class="nav-link" data-qatab="lot" href="#qa_lot_size" data-toggle="tab">Sampling Plan Setup</a>
+                                                    </li>--}}
+                                                   {{-- <li class="nav-item">
+                                                        <a class="nav-link" href="#operator_checklist" data-toggle="tab">Operator Reject Types</a>
+                                                    </li>--}}
+                                                </ul>
+                                            </div>
                                         </div>
-                                    </div>
                                     <div class="tab-content text-center">
                                         <div class="tab-pane active" id="inspection_checklist">
                                             <div class="card card-nav-tabs card-plain">
@@ -458,6 +467,97 @@
                                                 </div>
                                             </div> 
                                         </div>
+                                        <div class="tab-pane" id="operator_checklist">
+                                            <div class="card card-nav-tabs card-plain">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="card" style="min-height: 720px;">
+                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                                                <col style="width: 70%;">
+                                                                <col style="width: 30%;">
+                                                                <tr>
+                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
+                                                                  <td class="text-right">
+                                                                    <button type="button" class="btn btn-primary" id="add-opchecklist-fabrication-button" style="margin: 5px;">
+                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                                                    </button>
+                                                                  </td>
+                                                                </tr>
+                                                              </table>
+                                                                <div class="card-body">
+                                                                    <div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="card" style="min-height: 720px;">
+                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                                                <col style="width: 70%;">
+                                                                <col style="width: 30%;">
+                                                                <tr>
+                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
+                                                                  <td class="text-right">
+                                                                    <button type="button" class="btn btn-primary" id="add-opchecklist-painting-button" style="margin: 5px;">
+                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                                                    </button>
+                                                                  </td>
+                                                                </tr>
+                                                              </table>
+                                                                <div class="card-body">
+                                                                    <div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="card" style="min-height: 720px;">
+                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                                                <col style="width: 70%;">
+                                                                <col style="width: 30%;">
+                                                                <tr>
+                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Wiring and Assembly</b></th>
+                                                                  <td class="text-right">
+                                                                    <button type="button" class="btn btn-primary" id="add-opchecklist-assembly-button" style="margin: 5px;">
+                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                                                    </button>
+                                                                  </td>
+                                                                </tr>
+                                                              </table>
+                                                                <div class="card-body">
+                                                                    <div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> 
+                                        </div>
+                                        <div class="tab-pane" id="qa_user_setup">
+                                           
+                                        </div>
+                                        <div class="tab-pane" id="qa_reject_category">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="card" style="min-height: 720px;">
+                                                        <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                                        <col style="width: 70%;">
+                                                        <col style="width: 30%;">
+                                                        <tr>
+                                                            <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Reject Category</b></th>
+                                                             <td class="text-right">
+                                                            <button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="margin: 5px;">
+                                                                <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                                                    </button>
+                                                            </td>
+                                                        </tr>
+                                                        </table>
+                                                        <div class="card-body">
+                                                            <div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
+                                                        </div>
+                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="tab-pane" id="qa_reject_list">
                                             <div class="row">
                                                 <div class="col-md-12">
@@ -481,6 +581,59 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="tab-pane" id="operator_reject_list">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="card" style="min-height: 720px;">
+                                                        <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                                        <col style="width: 70%;">
+                                                        <col style="width: 30%;">
+                                                        <tr>
+                                                            <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Reject List</b></th>
+                                                            <td class="text-right">
+                                                            <button type="button" class="btn btn-primary" id="add-operator-reject-button" style="margin: 5px;">
+                                                                <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                                            </button>
+                                                            </td>
+                                                        </tr>
+                                                        </table>
+                                                        <div class="card-body">
+                                                            <div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {{--
+                                        <div class="tab-pane" id="operator_checklist">
+                                            <div class="card card-nav-tabs card-plain">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="card" style="min-height: 720px;">
+                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                                                <col style="width: 70%;">
+                                                                <col style="width: 30%;">
+                                                                <tr>
+                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Rejects</b></th>
+                                                                  <td class="text-right">
+                                                                    <button type="button" class="btn btn-primary" id="add-checklist-operator-button" style="margin: 5px;">
+                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                                                    </button>
+                                                                  </td>
+                                                                </tr>
+                                                              </table>
+                                                                <div class="card-body">
+                                                                    <div class="tbl_check_list_operator" id="tbl_check_list_operator"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> 
+                                        </div>
+                                         --}}
                                     </div>
                                 </div>
                             </div>        
@@ -565,202 +718,6 @@
                                                     </div>   
                                     </div>
           
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="operator_reject_setup">
-                  <div class="card" style="background-color: #0277BD;" >
-                      <div class="card-body" style="padding-bottom: 0;">
-                          <div class="row">
-                              <div class="col-md-8">
-                                  <h5 class="text-white font-weight-bold text-left">Operator Reject Setup</h5>
-                              </div>
-                              <div class="col-md-4">
-                                  <div class="form-group">
-                                      <input type="text" class="form-control form-control" placeholder="Search" id="search_operator_reject_setup">
-                                  </div>
-                              </div>
-                          </div>
-                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
-                              <div class="col-md-12">
-                                  <div class="nav-tabs-navigation">
-                                      <div class="nav-tabs-wrapper" id="operator_tab">
-                                          <ul class="nav nav-tabs" data-tabs="tabs">
-                                              <li class="nav-item">
-                                                  <a class="nav-link active" data-qatab="op_fabrication" href="#op_fabrication" data-toggle="tab">Fabrication</a>
-                                              </li>
-                                              <li class="nav-item">
-                                                  <a class="nav-link" data-qatab="op_painting" href="#op_painting" data-toggle="tab">Painting</a>
-                                              </li>
-                                              <li class="nav-item">
-                                                  <a class="nav-link" data-qatab="op_assembly" href="#op_assembly" data-toggle="tab">Wiring and Assembly</a>
-                                              </li>
-                                              <li class="nav-item">
-                                                <a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
-                                              </li>
-                                          </ul>
-                                      </div>
-                                  </div>
-                                  <div class="tab-content text-center">
-                                      <div class="tab-pane" id="qa_reject_list">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                      <col style="width: 70%;">
-                                                      <col style="width: 30%;">
-                                                      <tr>
-                                                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
-                                                          <td class="text-right">
-                                                          <button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5px;">
-                                                              <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                          </td>
-                                                      </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_reject_list" id="tbl_reject_list"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane" id="operator_reject_list">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                      <col style="width: 70%;">
-                                                      <col style="width: 30%;">
-                                                      <tr>
-                                                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Reject List</b></th>
-                                                          <td class="text-right">
-                                                          <button type="button" class="btn btn-primary" id="add-operator-reject-button" style="margin: 5px;">
-                                                              <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                          </td>
-                                                      </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane active" id="op_fabrication">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                    <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                      <col style="width: 70%;">
-                                                      <col style="width: 30%;">
-                                                      <tr>
-                                                        <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
-                                                        <td class="text-right">
-                                                          <button type="button" class="btn btn-primary" id="add-opchecklist-fabrication-button" style="margin: 5px;">
-                                                            <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                        </td>
-                                                      </tr>
-                                                    </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane" id="op_painting">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                        <col style="width: 70%;">
-                                                        <col style="width: 30%;">
-                                                        <tr>
-                                                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
-                                                          <td class="text-right">
-                                                            <button type="button" class="btn btn-primary" id="add-opchecklist-painting-button" style="margin: 5px;">
-                                                              <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                            </button>
-                                                          </td>
-                                                        </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                        <div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane" id="op_assembly">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                        <tr>
-                                                          <td class="text-left" style="padding:13px; font-size: 12pt; margin: 5px;"><b>Wiring and Assembly</b></td>
-                                                        </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>         
-                      </div>
-                  </div>
-              </div>
-                <div class="tab-pane" id="material_type_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Material Type Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_material_type_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-8 offset-md-2">
-                                      <button type="button" class="btn btn-primary" id="add-material-type-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Material Type </button>
-                                        <div id="tbl_material_type"></div>    
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="qa_reject_category">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Reject Category Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_reject_category_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                      <button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Reject Category </button>
-                                      <div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
-                                    </div>
                                 </div>
                             </div>        
                         </div>
@@ -1348,25 +1305,18 @@
             <div class="modal-body">
                <div class="row">
                   <div class="col-md-12">
-                    <div  style="margin:-5px; ">
-                      <a href="#" class="btn btn-primary add-row pull-right" >
-                        <i class="now-ui-icons ui-1_simple-add"></i>Add
-                      </a>
-                    </div>
                     <div class="row">
-                      <div class="col-md-4" style="display:none;" id="div_op_operation">
-                        <div class="form-group">
-                            <label>Operation:</label>
-                            <select class="form-controls sel6" name="op_operation" id="op_operation" class="op_operation">
-                            </select>
-                        </div>
-                      </div>
-                        <div class="col-md-4">
+                        <div class="col-md-8">
                           <div class="form-group">
                               <label>Category:</label>
                               <select class="form-controls sel6" name="reject_category" id="reject_category" class="reject_category" required="">
                               </select>
                           </div>
+                        </div>
+                        <div class="col-md-4">
+                          <a href="#" class="btn btn-primary add-row pull-right" >
+                            <i class="now-ui-icons ui-1_simple-add"></i>Add
+                          </a>
                         </div>
                     </div>
                     
@@ -1415,62 +1365,72 @@
             <div class="modal-body">
                <div class="row">
                   <div class="col-md-12">
-                      <div class="form-group" id="div_operation_edit">
-                          <label>Operation:</label>
-                          <select class="form-control sel7" name="edit_reject_operation" id="edit_reject_operation">
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_reject_operation" id="orig_reject_operation">
-                      </div>
-                      <div class="form-group">
-                          <input type="hidden" class="form-control" name="edit_id_reject" required id="edit_id_reject">
-                          <label>Category:</label>
-                          <select class="form-control sel7" name="edit_reject_category" id="edit_reject_category" required>
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_reject_category" required id="orig_reject_category">
-                      </div>
-                      <input type="hidden" name="reloadtbl_edit" id="reloadtbl_edit">
-                      <input type="hidden"  name="edit_reject_owner" id="edit_reject_owner" class="edit_reject_owner">
-                      <div class="form-group" id="edit_reject_checklist_div">
-                          <label>Reject Checklist:</label>
-                          <input type="text" class="form-control" name="edit_reject_checklist" id="edit_reject_checklist">
-                          <input type="hidden" class="form-control" name="orig_reject_checklist" id="orig_reject_checklist">
-                      </div>
-                      <div class="form-group">
-                          <label>Reject Reason:</label>
-                          <input type="text" class="form-control" name="edit_reject_reason" required id="edit_reject_reason">
-                          <input type="hidden" class="form-control" name="orig_reject_reason" required id="orig_reject_reason">
-                      </div>
-                      <div class="form-group" id="edit_reject_responsible_div" style="">
-                          <label>Responsible:</label>
-                          <select class="form-controls sel7" name="edit_reject_responsible" id="edit_reject_responsible" class="edit_reject_responsible" required>
-                              <option value="" selected>Select Responsible</option>
-                              <option value="Engineering">Engineering</option>
-                              <option value="Operator">Operator</option>
-                              <option value="Assembler">Assembler</option>
-                              <option value="Supplier">Supplier</option>
-                              <option value="Others">Others</option>
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_reject_responsible"  id="orig_reject_responsible">
-                      </div>
-                      <div class="form-group" style="" id="edit_r_action_div">
-                          <label>Recommended Action:</label>
-                          <select class="form-controls sel7" name="edit_r_action" id="edit_r_action" class="edit_r_action" required>
+                    <div class="form-group">
+                        <input type="hidden" class="form-control" name="edit_id_reject" required id="edit_id_reject">
+                        <label>Category:</label>
+                        <select class="form-control sel7" name="edit_reject_category" id="edit_reject_category" required="">
+                        </select>
+                        <input type="hidden" class="form-control" name="orig_reject_category" required id="orig_reject_category">
+                     </div>
+                     <input type="hidden" name="reloadtbl_edit" id="reloadtbl_edit">
+                   
+                     <input type="hidden"  name="edit_reject_owner" id="edit_reject_owner" class="edit_reject_owner">
+                     <div class="form-group" id="edit_reject_checklist_div">
+                        <label>Reject Checklist:</label>
+                        <input type="text" class="form-control" name="edit_reject_checklist" id="edit_reject_checklist">
+                        <input type="hidden" class="form-control" name="orig_reject_checklist" id="orig_reject_checklist">
+                     </div>
+                    <div class="form-group">
+                        <label>Reject Reason:</label>
+                        <input type="text" class="form-control" name="edit_reject_reason" required id="edit_reject_reason">
+                        <input type="hidden" class="form-control" name="orig_reject_reason" required id="orig_reject_reason">
+
+                     </div>
+                     <div class="form-group" id="edit_reject_responsible_div" style="">
+                        <label>Responsible:</label>
+                        <select class="form-controls sel7" name="edit_reject_responsible" id="edit_reject_responsible" class="edit_reject_responsible" required>
+                            <option value="" selected>Select Responsible</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Operator">Operator</option>
+                        </select>
+                        <input type="hidden" class="form-control" name="orig_reject_responsible"  id="orig_reject_responsible">
+
+                     </div>
+                     <div class="form-group" style="" id="edit_r_action_div">
+                        <label>Recommended Action:</label>
+                        <select class="form-controls sel7" name="edit_r_action" id="edit_r_action" class="edit_r_action" required>
                             <option value="" selected>Select Recommended Action</option>
                             <option value="Undefined">Undefined</option>
                             <option value="Rework">Rework</option>
                             <option value="Replace">Replace</option>
                             <option value="Scrap">Scrap</option>
                             <option value="Use as is">Use as is</option>
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_r_action"  id="orig_r_action">
-                      </div>
-                      <div class="form-group">
-                          <label>Material type:</label>
-                          <select class="form-controls sel7" name="edit_material_type" id="edit_material_type" class="edit_material_type">
-                          </select>
+                        </select>
+                        <input type="hidden" class="form-control" name="orig_r_action"  id="orig_r_action">
+
+                     </div>
+                     <div class="form-group">
+                        <label>Material type:</label>
+                          <select class="form-controls sel7" name="edit_material_type" id="edit_material_type" class="edit_material_type" required>
+                            <option value="" selected>Select Material Type</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Lamp">Lamp</option>
+                            <option value="Ballast/Driver/Transformer">Ballast/Driver/Transformer</option>
+                            <option value="Other Electrical Components">Other Electrical Components</option>
+                            <option value="Battery Pack">Battery Pack</option>
+                            <option value="Reflector/ Louver">Reflector/ Louver</option>
+                            <option value="Frame/ Diffuser">Frame/ Diffuser</option>
+                            <option value="Gasketting/Sealing">Gasketting/Sealing</option>
+                            <option value="Packaging/ Labeling">Packaging/ Labeling</option>
+                            <option value="Exit Sign">Exit Sign</option>
+                            <option value="Others">Others</option>
+
+                        </select>
                           <input type="hidden" class="form-control" name="orig_material_type" id="orig_material_type">
-                      </div>
+                     </div>
+                     
                   </div>
+
                </div>
             </div>
             <div class="modal-footer">
@@ -2320,88 +2280,6 @@
      </form>
   </div>
 </div>
-<div class="modal fade" id="add-material-type-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-     <form action="/save_material_type" method="POST" id="add-material-type-frm">
-        @csrf
-        <div class="modal-content">
-           <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Add Material Type<br>
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
-              </button>
-           </div>
-           <div class="modal-body">
-              <div class="form-row">
-                 <div class="form-group col-md-12">
-                    <button type="button" class="btn btn-primary pull-right" id="add-material-type-row" style="margin: 5px;">
-                       <i class="now-ui-icons ui-1_simple-add"></i> Add
-                    </button>
-                 </div>
-                 <hr>
-                 <div class="col-md-12">
-                 <table class="table" id="material-type-table" style="font-size: 10px; ">
-                   <col style="width: 5%;">
-                   <col style="width: 90%;">
-                   <col style="width: 5%;">
-                    <thead>
-                       <tr style="">
-                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                          <th style="width: 40%; text-align: center;font-weight: bold; ">Material Type</th>
-                          <th style="width: 5%; text-align: center;font-weight: bold; "></th>
-                       </tr>
-                    </thead>
-                    <tbody class="table-body text-center" style="">
-                       <tr style="">
-                       </tr>
-                    </tbody>
-                 </table>
-                 </div> 
-              </div>
-           </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
-           </div>
-        </div>
-     </form>
-  </div>
-</div>
-<div class="modal fade" id="edit-material-type-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-     <form action="/edit_material_type" method="POST" id="edit-material-type-frm">
-        @csrf
-        <div class="modal-content">
-           <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Edit Material Type<br>
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
-              </button>
-           </div>
-           <div class="modal-body">
-               <div class="row">
-                   <div class="col-md-12">
-                     <div class="form-group">
-                         <label>Material Type:</label>
-                         <input type="text" name="edit_material_type" id="edit_material_type_setup" class="form-control">
-                         <input type="hidden" name="orig_material_type" id="orig_material_type_setup" class="form-control">
-                         <input type="hidden" name="mtypeid" id="mtypeid" class="form-control">
-
-                     </div>
-                     
-                   </div>
-               </div>
-           </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
-           </div>
-        </div>
-     </form>
-  </div>
-</div>
 
 <style type="text/css">
   .scrolling table {
@@ -2703,8 +2581,11 @@
     border: 1px solid #ccc;
   border-radius: 3px;
   box-shadow: none;
-  margin-bottom: 15px; 
+  margin-bottom: 15px;
+
+  
 }
+
 #add-late-delivery-modal .form-control{
     border: 1px solid #ccc;
   border-radius: 3px;
@@ -2712,18 +2593,6 @@
   margin-bottom: 15px;
 }
 #edit-late-delivery-modal .form-control{
-    border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px;
-}
-#add-material-type-modal .form-control{
-    border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px;
-}
-#edit-material-type-modal .form-control{
     border: 1px solid #ccc;
   border-radius: 3px;
   box-shadow: none;
@@ -4279,14 +4148,15 @@ function get_users(page, query){
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
         success:function(data){
-          $('#reject_category').html(data.category);
+          $('#reject_category').html(data);
         }
     });  
-    $("#op_operation").prop('required',false);
     $('#checklist_th').show();
     $('#add-reject-modal .modal-title').text('Add QA Reject list');
-    $('#div_op_operation').hide();
+
+    
     $('#reject_owner').val('Quality Assurance');
+
     $('#add-reject-modal tbody').empty();
     $('#add-reject-modal').modal('show');
 });
@@ -4295,12 +4165,9 @@ $(document).on('click', '#add-operator-reject-button', function(){
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
         success:function(data){
-          $('#reject_category').html(data.category);
-          $('#op_operation').html(data.operation);
+          $('#reject_category').html(data);
         }
-    }); 
-    $("#op_operation").prop('required',true);
-    $('#div_op_operation').show();
+    });  
     $('#checklist_th').hide();
     $('#reject_owner').val('Operator');
     $('#add-reject-modal .modal-title').text('Add Operator Reject list');
@@ -4676,19 +4543,12 @@ function op_reject_list(page, query){
         var reloadtbl = $(this).attr('data-reloadtbl');
         var rjt_action = $(this).attr('data-action');
         var owner = $(this).attr('data-owner');
-        var opoperation = $(this).attr('data-opoperation');
-
         if(reloadtbl =="Operator"){
           $('#edit_reject_checklist_div').hide();
-          $('#div_operation_edit').show();
-
         }else{
           $('#edit_reject_checklist_div').show();
-          $('#div_operation_edit').hide();
-
 
         }
-        $('#orig_reject_operation').val(opoperation);
         $('#edit_reject_owner').val(owner);
         $('#reloadtbl_edit').val(reloadtbl);
         $('#orig_reject_category').val(rjt_ctg);
@@ -4702,28 +4562,23 @@ function op_reject_list(page, query){
   
         $('#edit_r_action').val(rjt_action);
         $('#orig_r_action').val(rjt_action);
+        $('#edit_material_type').val(rjt_mtype);
         $('#orig_material_type').val(rjt_mtype);
+        $('#edit_material_type').trigger('change');
+        $('#edit_reject_responsible').trigger('change');
+        $('#edit_reject_checklist').trigger('change');
         // $('#edit_reject_owner').trigger('change');
         $('#edit_r_action').trigger('change');
 
         $.ajax({
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
-          success:function(data){
-            $('#edit_reject_category').html(data.category);
-            $('#edit_reject_operation').html(data.operation);
-            $('#edit_material_type').html(data.material_type);
-            $('#edit_reject_category').val(rjt_ctg);
-            $('#edit_reject_operation').val(opoperation);
-            $('#edit_material_type').val(rjt_mtype);
-
-            $('#edit_material_type').trigger('change');
-            $('#edit_reject_responsible').trigger('change');
-            $('#edit_reject_category').trigger('change');
-            $('#edit_reject_operation').trigger('change');
-
-          }
+        success:function(data){
+          $('#edit_reject_category').html(data);
+          $('#edit_reject_category').val(rjt_ctg);
+        }
         }); 
+       
         $('#edit-reject-modal').modal('show');
 
     });
@@ -5508,10 +5363,7 @@ function get_user_group(page, query){
          var selectValues1 = {
           "": "Select Responsible",
           "Engineering": "Engineering",
-          "Operator": "Operator",
-          'Assembler': "Assembler",
-          'Supplier': "Supplier",
-          "Others" : 'Others'
+          "Operator": "Operator"
         };
         
         var selectValues2 = {
@@ -5522,25 +5374,33 @@ function get_user_group(page, query){
           "Scrap": "Scrap",
           "Use as is": "Use as is"
         };
-
-        var selectValues4 = {
-          "": "Select Operation",
-          "Fabrication": "",
-          "Operator": "Operator",
-          'Assembler': "Assembler",
-          'Supplier': "Supplier",
-          "Others" : 'Others'
+        e.preventDefault();
+         var selectValues3 = {
+          "": "Select Material Type",
+          "Housing": "Housing",
+          "Lamp": "Lamp",
+          "Ballast/Driver/Transformer": "Ballast/Driver/Transformer",
+          "Other Electrical Components": "Other Electrical Components",
+          "Battery Pack": "Battery Pack",
+          "Reflector/ Louver": "Reflector/ Louver",
+          "Frame/ Diffuser": "Frame/ Diffuser",
+          "Gasketting/Sealing": "Gasketting/Sealing",
+          "Packaging/ Labeling": "Packaging/ Labeling",
+          "Exit Sign": "Exit Sign",
+          'Others': 'Others'
         };
         var row1 = '';
         var row2 = '';
-        var col1 = '';
-
+        var row3 = '';
 
         $.each(selectValues1, function(i, d){
             row1 += '<option value="' + i + '">' + d + '</option>';
         });
         $.each(selectValues2, function(i, d){
             row2 += '<option value="' + i + '">' + d + '</option>';
+        });
+        $.each(selectValues3, function(i, d){
+            row3 += '<option value="' + i + '">' + d + '</option>';
         });
         var owner = $('#reject_owner').val();
 
@@ -5553,55 +5413,47 @@ function get_user_group(page, query){
         }else{
             var new_id = parseInt(id) + 1;
         }
+              //  alert(new_id);
         var len2 = new_id;
         var id_unique="count"+len2;
-        $.ajax({
-          url: "/get_material_type",
-          type:"get",
-          cache: false,
-          success: function(response) {
-            col1 += '<option value="">Select Material Type</option>';
-              $.each(response.material_type, function(i, d){
-                col1 += '<option value="' + d.reject_material_type_id + '">' + d.material_type + '</option>';
-              });
-              
-              if (owner == "Operator") {
 
-                var tblrow = '<tr>' +
+        if (owner == "Operator") {
+            
+            var tblrow = '<tr>' +
                   '<td>'+len2+'</td>' +
                   '<td><input type="text" class="form-control select-input" name="reject_reason[]" required id="reject_reason"></td>' +
-                  '<td><select name="m_type[]" class="form-control sel6">'+col1+'</select></td>' +
+                  '<td><select name="m_type[]" class="form-control sel6" required>'+row3+'</select></td>' +
                   '<td><select name="responsible[]" class="form-control count-row sel6" required>'+row1+'</select></td>' +
                   '<td><select name="r_action[]" class="form-control sel6" required>'+row2+'</select></td>' +
                   '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
                   '</tr>';
-              }else{
-                var tblrow = '<tr>' +
+
+       }else{
+            var tblrow = '<tr>' +
                   '<td>'+len2+'</td>' +
                   '<td><input type="text" class="form-control select-input" name="reject_checklist[]" required id="reject_reason"></td>' +
                   '<td><input type="text" class="form-control select-input" name="reject_reason[]" required id="reject_reason"></td>' +
-                  '<td><select name="m_type[]" class="form-control sel6">'+col1+'</select></td>' +
+                  '<td><select name="m_type[]" class="form-control sel6" required>'+row3+'</select></td>' +
                   '<td><select name="responsible[]" class="form-control count-row sel6" required>'+row1+'</select></td>' +
                   '<td><select name="r_action[]" class="form-control sel6" required>'+row2+'</select></td>' +
                   '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
                   '</tr>';
-              }
-              $("#add-reject-modal #addreject-table").append(tblrow);
-              $('.sel6').select2({
-                  dropdownParent: $("#add-reject-modal"),
-                  dropdownAutoWidth: false,
-                  width: '100%',
-                  cache: false
-              });
 
-            },
-          error: function(response) {
-            alert('Error!');
+              
+
         }
 
-      });
+         $("#add-reject-modal #addreject-table").append(tblrow);
+         $('.sel6').select2({
+            dropdownParent: $("#add-reject-modal"),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
+        
 
-    });
+
+      });
 </script>
 <script>
 function tbl_wip_list(page, query){
@@ -6443,111 +6295,6 @@ operator_check_list_painting();
         }
       });
     });
-</script>
-<script>
-  tbl_material_type();
-  function tbl_material_type(page, query){
-        $.ajax({
-          url:"/get_material_type_tbl?page="+page,
-          data: {search_string: query},
-          type:"GET",
-          success:function(data){
-            $('#tbl_material_type').html(data);
-          }
-        }); 
-  }
-  $(document).on('click', '#add-material-type-button', function(){
-    $('#add-material-type-modal').modal('show');
-  });
-  $('#add-material-type-row').click(function(e){
-    e.preventDefault();
-      var thizz = document.getElementById('material-type-table');
-      var id = $(thizz).closest('table').find('tr:last td:first').text();
-      var validation = isNaN(parseFloat(id));
-      if(validation){
-        var new_id = 1;
-      }else{
-        var new_id = parseInt(id) + 1;
-      }
-      var len2 = new_id;
-      var id_unique="count"+len2;
-      var tblrow = '<tr>' +
-        '<td>'+len2+'</td>' +
-        '<td><input name="material_type[]" text="text" style="font-size:12px;" class="form-control count-row" required></td>' +
-        '<td> <a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
-        '</tr>';
-      $("#add-material-type-modal #material-type-table").append(tblrow);
-         
-  });
-  $(document).on('click', '#material_type_pagination a', function(event){
-      event.preventDefault();
-      var query = $("#search_material_type_setup").val();
-      var page = $(this).attr('href').split('page=')[1];
-      tbl_material_type(page, query);
-
-    });
-    $(document).on('keyup', '#search_material_type_setup', function(){
-    var query = $(this).val();
-    tbl_material_type(1, query);
-  });
-  $('#add-material-type-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#add-material-type-modal').modal('hide');
-                tbl_material_type();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
-    });
-    $('#edit-material-type-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#edit-material-type-modal').modal('hide');
-                tbl_material_type();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
-    });
-    $(document).on('click', '.btn_edit_material_type', function(){
-      var edit_material_type = $(this).data('reason');
-      var id = $(this).data('id');
-
-      $('#orig_material_type_setup').val(edit_material_type);
-      $('#edit_material_type_setup').val(edit_material_type);
-      $('#mtypeid').val(id);
-  
-       $('#edit-material-type-modal').modal('show');
-
-    });
-    // 
 </script>
 @endsection
 

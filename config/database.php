@@ -42,10 +42,10 @@ return [
 
         'mysql_essex' => [
             'driver' => 'mysql',
-            'host' => '10.0.0.82',
+            'host' => '10.0.1.116',
             'port' => '3306',
             'database' => 'essex',
-            'username' => 'it2',
+            'username' => 'testing',
             'password' => 'fumaco',
             'unix_socket' => '',
             'charset' => 'utf8mb4',
