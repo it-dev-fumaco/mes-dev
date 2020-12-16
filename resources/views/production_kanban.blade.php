@@ -1830,20 +1830,20 @@
           
           $('#custom-production-order').val(production_order);
 
-          if(new Date($(this).attr('id')) > new Date(delivery_date)){
-            $('#select-late-delivery-reason-modal .production-order').text(production_order);
-            $('#select-late-delivery-reason-modal .reference').text(reference);
-            $('#select-late-delivery-reason-modal .item-code').text(item_code);
-            $('#select-late-delivery-reason-modal .item-description').text(description);
-            $('#select-late-delivery-reason-modal .qty-uom').text(qty);
-            $('#select-late-delivery-reason-modal .delivery-date').text(delivery_date);
-            $('#select-late-delivery-reason-modal .rescheduled-date').text($(this).attr('id'));
+          // if(new Date($(this).attr('id')) > new Date(delivery_date)){
+          //   $('#select-late-delivery-reason-modal .production-order').text(production_order);
+          //   $('#select-late-delivery-reason-modal .reference').text(reference);
+          //   $('#select-late-delivery-reason-modal .item-code').text(item_code);
+          //   $('#select-late-delivery-reason-modal .item-description').text(description);
+          //   $('#select-late-delivery-reason-modal .qty-uom').text(qty);
+          //   $('#select-late-delivery-reason-modal .delivery-date').text(delivery_date);
+          //   $('#select-late-delivery-reason-modal .rescheduled-date').text($(this).attr('id'));
 
-            $('#select-late-delivery-reason-modal input[name="delivery_date"]').val(delivery_date);
-            $('#select-late-delivery-reason-modal input[name="reschedule_date"]').val($(this).attr('id'));
+          //   $('#select-late-delivery-reason-modal input[name="delivery_date"]').val(delivery_date);
+          //   $('#select-late-delivery-reason-modal input[name="reschedule_date"]').val($(this).attr('id'));
 
-            $('#select-late-delivery-reason-modal').modal('show');
-          }
+          //   $('#select-late-delivery-reason-modal').modal('show');
+          // }
 
         }
         var id_check = '#print-' + ui.item.data('name');

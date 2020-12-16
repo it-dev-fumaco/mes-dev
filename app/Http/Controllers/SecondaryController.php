@@ -4262,17 +4262,16 @@ class SecondaryController extends Controller
     public function get_production_schedule_calendar($operation_id){
         
         $prod = DB::connection('mysql_mes')->table('production_order')
-        ->join('delivery_date', function ($join) {
-            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-            ->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-            ->orOn('delivery_date.reference_no', '=', 'production_order.material_request'); // inner join new delivery_date schedule to the query
-        })
-        ->where('production_order.status','!=', 'Cancelled')
-        ->where('production_order.planned_start_date','!=', null)
-        ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
-        ->where('production_order.operation_id', $operation_id)
-        ->select('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
-        ->get();
+            ->leftJoin('delivery_date', function($join){
+                $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+            })
+            ->where('production_order.status','!=', 'Cancelled')
+            ->where('production_order.planned_start_date','!=', null)
+            ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
+            ->where('production_order.operation_id', $operation_id)
+            ->select('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
+            ->get();
         // dd($prod);
 
         $data = array();
@@ -7788,7 +7787,7 @@ class SecondaryController extends Controller
         $now = Carbon::now();
         $data = $request->all();
         $reason= $data['late_delivery'];
-
+        $list=[];
                 foreach($reason as $i => $row){
                     if (DB::connection('mysql_mes')
                         ->table('delivery_reschedule_reason')
@@ -7797,10 +7796,7 @@ class SecondaryController extends Controller
                         return response()->json(['success' => 0, 'message' => 'Late Delivery Reason - <b>'.$row.'</b> is already exist']);// validate if already exist in database
                     }else{
                         $list[] = [
-                            'reschedule_reason' => $row,
-                            'last_modified_by' => Auth::user()->email,
-                            'created_by' => Auth::user()->email,
-                            'created_at' => $now->toDateTimeString()
+                            'reschedule_reason' => $row
                             ];
                     } 
             }
@@ -7821,9 +7817,13 @@ class SecondaryController extends Controller
     public function reschedule_prod_details($prod){
         //get production order details and join in delivery table to get the latest delivery date
         $prod_details= DB::connection('mysql_mes')->table('production_order')
-        ->join('delivery_date', function ($join) {
-            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')->on('delivery_date.reference_no', '=', 'production_order.sales_order')->orOn('delivery_date.reference_no', '=', 'production_order.material_request');
-        })->where('production_order',$prod )->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.delivery_date as deli')->first();
+        ->leftJoin('delivery_date', function($join){
+            $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+            $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+        })
+        ->where('production_order',$prod )
+        ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.delivery_date as deli')
+        ->first();
         
         $reference_no=($prod_details->sales_order)? $prod_details->sales_order : $prod_details->material_request;
         //get_reschedule_log and be used in submission in erp

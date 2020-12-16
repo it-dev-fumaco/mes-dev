@@ -645,7 +645,7 @@
               <div class="alert alert-warning text-center" id="manual-prod-note" role="alert">
                 <div class="container">
                  
-                  <strong>Note:</strong> The selected item is a product bundle.
+                  <strong>Note:</strong> The selected item is a product bundle. <span style="font-size: 9pt;" id="view-bundle-components-btn"><a href="#"><i class="now-ui-icons ui-1_zoom-bold" style="font-size: 7pt;"></i> View Components</span></a>
                  
                 </div>
               </div>
@@ -2013,23 +2013,6 @@ $(document).ready(function(){
 });
 </script>
 
-<script type="text/javascript">
-
-  $(document).on('click', '.btn_trackmodal', function(event){
-    event.preventDefault();
-    var guideid = $(this).attr('data-guideid');
-    var itemcode = $(this).attr('data-itemcode');
-    var customer = $(this).attr('data-customer');
-    $.ajax({
-      url: "/get_bom_tracking/" + guideid + "/" + itemcode,
-      type:"GET",
-      success:function(data){
-          $('#track-view-modal #tbl_flowchart').html(data);
-          $('#track-view-modal').modal('show');
-      }
-    });
-  });
-</script>
 <script type="text/javascript">
 
   function item_tracking(get_total, page, query){

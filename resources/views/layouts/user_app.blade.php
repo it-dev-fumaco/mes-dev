@@ -355,7 +355,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.3</b> <span style="font-size: 9pt;">Latest Release: 2020-11-21</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>7.5</b> <span style="font-size: 9pt;">Latest Release: 2020-12-14</span></h5>
             </div>          
           </div>
         </div>
@@ -698,6 +698,26 @@
     margin-bottom: 15px;
   }
   </style>
+
+  <div class="modal fade" id="view-bundle-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title font-weight-bold prod-title">Product Bundle Component(s)</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="min-height: 500px;">
+          <div class="row">
+            <div class="col-md-12">
+              <div id="view-bundle-div"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
     
     @include('modals.return_required_item_modal')
     @include('modals.add_required_item_modal')
@@ -716,7 +736,7 @@
   <script src="{{ asset('/js/plugins/bootstrap-notify.js') }}"></script>
   {{--  <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->  --}}
   <script src="{{ asset('/js/now-ui-dashboard.min.js?v=1.3.0') }}" type="text/javascript"></script>
-  {{--  <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->  --}}
+  {{--  <!-- Now Ui Dashboard DEMO methods, dont include it in your project! -->  --}}
   <script src="{{ asset('/js/demo.js') }}"></script>
   <script src="{{ asset('js/jquery-ui.js') }}"></script>
 
@@ -725,6 +745,29 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+
+    $('#view-bundle-components-btn').click(function(e){
+      e.preventDefault();
+      var item_code = $('#sel-item').val();
+
+      $.ajax({
+        url: '/view_bundle/' + item_code,
+        type:"GET",
+        success:function(data){
+          if (data.status) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            $('#view-bundle-div').html(data);
+            $('#view-bundle-modal').modal('show');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
 
     function get_items_for_return(production_order){
     $.ajax({

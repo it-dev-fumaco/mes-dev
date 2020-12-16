@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+@php
+if($prod_details->rescheduled_delivery_date == null){
+   $deli=  $prod_details->delivery_date;
+}else{
+	$deli= $prod_details->rescheduled_delivery_date;
+}
+@endphp
+=======
+>>>>>>> parent of b84899c... Merge pull request #10 from it-dev-fumaco/MES-717
 <div class="row">
 	<div class="col-md-12">
 		<h5 class=" font-weight-bold m-0">{{ $prod_details->sales_order }}{{ $prod_details->material_request }}</h5>

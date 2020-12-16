@@ -140,9 +140,19 @@
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold qty">{{ $component['transferred_qty'] * 1 }}</span>
+						@php
+							$transferred_qty = $component['transferred_qty'] * 1;
+							$status_color = '';
+							if ($transferred_qty <= 0){
+								$status_color = 'badge badge-danger';
+							}elseif($transferred_qty >= ($component['requested_qty'] * 1)){
+								$status_color = 'badge badge-success';
+							}else{
+								$status_color = '';
+							}
+						@endphp
+						<span class="font-weight-bold qty {{ $status_color }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
-						<span class="d-block font-italic target-warehouse" style="font-size: 7pt;">{{ $details->wip_warehouse }}</span>
 					</td>
 					<td class="text-center">
 						@php
@@ -223,9 +233,19 @@
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold qty">{{ $part['transferred_qty'] * 1 }}</span>
+						@php
+							$transferred_qty = $part['transferred_qty'] * 1;
+							$status_color = '';
+							if ($transferred_qty <= 0){
+								$status_color = 'badge badge-danger';
+							}elseif($transferred_qty >= ($part['requested_qty'] * 1)){
+								$status_color = 'badge badge-success';
+							}else{
+								$status_color = '';
+							}
+						@endphp
+						<span class="font-weight-bold qty {{ $status_color }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
-						<span class="d-block font-italic target-warehouse" style="font-size: 7pt;">{{ $details->wip_warehouse }}</span>
 					</td>
 					<td class="text-center p-0">
 						@php

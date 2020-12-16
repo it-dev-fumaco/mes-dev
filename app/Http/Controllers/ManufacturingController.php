@@ -834,6 +834,14 @@ class ManufacturingController extends Controller
                             }
                         }
                     }else{
+                        if($operation == null){
+                            $operation_db=db::connection('mysql_mes')
+                            ->table('workstation')
+                            ->join('operation', 'operation.operation_id', 'workstation.operation_id')
+                            ->where('workstation_name',$request->workstation[$index])
+                            ->select('operation.operation_name')->first();
+                            $operation=$operation_db->operation_name;
+                        }
                         if ($workstation != 'Painting') {
                             $name = uniqid();
                             $values = [
@@ -1382,14 +1390,13 @@ class ManufacturingController extends Controller
 
     public function get_production_order_items($production_order){
         $details = DB::connection('mysql_mes')->table('production_order')
-        ->join('delivery_date', function ($join) {
-            $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-            ->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-            ->orOn('delivery_date.reference_no', '=', 'production_order.material_request');  //Inner join new table for Delivery Date
-        })
-        ->where('production_order.production_order', $production_order)
-        ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
-        ->first();
+            ->leftJoin('delivery_date', function($join){
+                $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+            })
+            ->where('production_order.production_order', $production_order)
+            ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
+            ->first();
         
         if (!$details) {
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
@@ -1409,7 +1416,7 @@ class ManufacturingController extends Controller
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
             $item_classification = $item_details->item_classification;
 
-            $issued_qty = $item->issued_qty;
+            $issued_qty = $item->qty;
             // $issued_qty = DB::connection('mysql')->table('tabStock Entry as ste')
             //     ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
             //     ->where('ste.production_order', $production_order)
@@ -3744,5 +3751,33 @@ class ManufacturingController extends Controller
 			DB::connection('mysql')->rollback();
 			return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry']);
 		}
+    }
+
+    public function view_bundle_components($item_code){
+        $bundle_details = DB::connection('mysql')->table('tabProduct Bundle as pb')
+            ->join('tabItem as i', 'i.name', 'pb.name')->where('pb.name', $item_code)->first();
+
+        if(!$bundle_details){
+            return response()->json(['status' => 0, 'message' => 'No Product Bundle found for item ' . $item_code]);
+        }
+
+        $components = DB::connection('mysql')->table('tabProduct Bundle Item')->where('parent', $item_code)->orderBy('idx', 'asc')->get();
+        $components_arr = [];
+        foreach ($components as $row) {
+            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $row->item_code)->first();
+            $image_src = 'http://athenaerp.fumaco.local/storage/';
+            $image_path = ($item_details->item_image_path) ? $item_details->item_image_path : 'icon/no_img.png';
+           
+            $components_arr[] = [
+                'idx' => $row->idx,
+                'item_code' => $row->item_code,
+                'image' => $image_src . $image_path,
+                'description' => $row->description,
+                'qty' => $row->qty,
+                'uom' => $row->uom,
+            ];
+        }
+
+        return view('tables.tbl_bundle_components', compact('bundle_details', 'components_arr'));
     }
 }
