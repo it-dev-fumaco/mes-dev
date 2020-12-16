@@ -1,11 +1,11 @@
-<div class="table-responsive" style="font-size:10px;">
+<div class="table-responsive" style="font-size:12px;">
 
 <table class="table table-striped">
           <col style="width: 5%;">
+          <col style="width: 23.75%;">
+          <col style="width: 23.75%;">
+          <col style="width: 27.5%;">
           <col style="width: 20%;">
-          <col style="width: 20%;">
-          <col style="width: 40%;">
-          <col style="width: 15%;">
         <thead class="text-primary" style="font-size: 9px;font-weight: bold;">
           <th class="text-center"><b>No.</b></th>
           <th class="text-left"><b>Workstation</b></th>

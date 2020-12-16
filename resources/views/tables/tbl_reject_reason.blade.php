@@ -115,10 +115,10 @@
                                     <div class="row">
                                         <div class="col-md-12 pr-3 pl-3">
                                             <ul class="list-unstyled">
-                                                @foreach($rows as $row)
+                                                @foreach($tab as $row)
                                                     <li class="p-1 d-block">
-                                                        <div class="inputGroup" style="vertical-align: text-top; border:2px solid black; width:100%;">
-                                                            <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk" data-parentid="{{$string_to_slash}}" data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
+                                                        <div class="inputGroup" style="vertical-align: text-top; border:2px solid white; width:100%;">
+                                                            <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk"  data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
                                                             <label style=" word-wrap: break-word;" for="option{{ $row->reject_list_id }}"> {{ $row->reject_reason }}</label>
                                                         </div>
                                                     </li>
@@ -126,9 +126,7 @@
                                             </ul>
                                         </div>
                                     </div>
-                                @endif   
-                              --}}
-                                                             
+                                @endif                                                                
                         </div>
                         <div id="column2"></div>
                     </div>
