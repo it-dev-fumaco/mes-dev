@@ -3586,7 +3586,7 @@ $('.sel9').select2({
   $(document).on('click', '#op_reject_check_list_pagination a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
-    var query = $('#search_reject_setup').val();
+    var query = $('#search_operator_reject_setup').val();
     op_reject_list(page, query);
 
   });
@@ -4238,21 +4238,19 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
 
     }else if(parent_tab == "reject"){
       qa_reject_list(1, query);
-    }else if(parent_tab == "op_reject"){
-      op_reject_list(1, query);
     }else{
 
     }
   });
-  $(document).on('keyup', '#incorrect signage sticker material type', function(){
+  $(document).on('keyup', '#search_operator_reject_setup', function(){
     var query = $(this).val();
 		var parent_tab = $("#operator_tab li a.active").attr('data-qatab');
     if(parent_tab == "op_fabrication"){
-      check_list_assembly(1, query);
+      operator_check_list_fabrication(1, query);
     }else if(parent_tab == "op_painting"){
-      qa_reject_list(1, query);
+      operator_check_list_painting(1, query);
     }else if(parent_tab == "op_assembly"){
-      op_reject_list(1, query);
+      operator_check_list_assembly(1, query);
     }else if(parent_tab == "op_reject"){
       op_reject_list(1, query);
     }else{
@@ -6397,19 +6395,21 @@ operator_check_list_painting();
    $(document).on('click', '#operator_checklist_list_pagination_fabrication a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
-    operator_check_list_fabrication(page);
-
+    var query = $("#search_operator_reject_setup").val();
+    operator_check_list_fabrication(page, query);
   });
   $(document).on('click', '#operator_checklist_list_pagination_assembly a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
-    operator_check_list_assembly(page);
+    var query = $("#search_operator_reject_setup").val();
+    operator_check_list_assembly(page, query);
 
   });
   $(document).on('click', '#operator_checklist_list_pagination_painting a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
-    operator_check_list_painting(page);
+    var query = $("#search_operator_reject_setup").val();
+    operator_check_list_painting(page, query);
 
   });
   $(document).on('click', '.btn-delete-opchecklist', function(){

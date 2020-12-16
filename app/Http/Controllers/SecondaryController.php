@@ -7723,14 +7723,14 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.operation_id', 1)
-            // ->where(function($q) use ($request) {
-            //     $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //     ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
-            // })
+            ->where(function($q) use ($request) {
+                $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
+                    ->orwhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
+            })
             ->where('w.workstation_name','!=','Painting')
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name')
             ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
@@ -7764,14 +7764,14 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.workstation_name','=','Painting')
-            // ->where(function($q) use ($request) {
-            //     $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //     ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
-            // })
+            ->where(function($q) use ($request) {
+                $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
+                    ->orwhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
+            })
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
             ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
 
