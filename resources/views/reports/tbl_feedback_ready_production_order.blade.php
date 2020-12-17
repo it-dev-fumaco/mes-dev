@@ -1,4 +1,4 @@
-<div class="table-responsive" style="font-size: 9pt;">
+<div class="table-responsive vh-100" style="font-size: 9pt;">
   <table class="table table-striped">
     <col style="width: 7%;">
     <col style="width: 18%;">
