@@ -48,15 +48,10 @@
 		<td class="text-center font-weight-bold">ITEM DETAIL(S)</td>
 		<td colspan="4"><span class="font-weight-bold">{{ $details->item_code }}</span> - {{ $details->description }}</td>
 		<td class="text-center">
-			@php
-				$ref_ste = array_column($required_items, 'ste_docstatus');
-			@endphp
-			@if(count($required_items) > 0)
-			@if(collect($ref_ste)->min() == 0)
+			@if($issued_qty > 0)
 			<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}">Submit Withdrawal Slip</button>
-			@else
+			@elseif(collect($required_items)->sum('required_qty') <= collect($required_items)->sum('transferred_qty'))
 			<button class="btn btn-success m-1 p-3">Withdrawal Slip Submitted</button>
-			@endif
 			@else
 			<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}">Create Withdrawal Slip</button>
 			@endif
@@ -94,20 +89,20 @@
 	<div class="tab-content bg-light" style="border: 1px solid #f2f3f4;">
 		<div class="tab-pane {{ $tab1 }}" id="w1" role="tabpanel" aria-labelledby="w1-tab">
 			@if(count($components) > 0)
-			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
+			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 5%;">
 				<col style="width: 8%;">
 				<col style="width: 32%;">
-				<col style="width: 15%;">
-				<col style="width: 10%;">
-				<col style="width: 10%;">
+				<col style="width: 13%;">
+				<col style="width: 13%;">
+				<col style="width: 9%;">
 				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
 					<th>Source Warehouse</th>
-					<th>Available</th>
+					<th>WIP Warehouse</th>
 					<th>Required</th>
 					<th>Transferred / Issued</th>
 					<th>Action</th>
@@ -118,51 +113,52 @@
 					<td class="text-center">
 						@php
 							$img = ($component['item_image']) ? "/img/" . $component['item_image'] : "/icon/no_img.png";
+
+							$swhb = ($component['actual_qty'] > 0) ? "badge badge-success" : "badge badge-danger";
+							$wwhb = ($component['available_qty_at_wip'] > 0) ? "badge badge-success" : "badge badge-danger";
+
+							if($component['transferred_qty'] == $component['required_qty']){
+								$twhb = "badge badge-success";
+							}elseif($component['transferred_qty'] <= 0){
+								$twhb = "badge badge-danger";
+							}else{
+								$twhb = "badge badge-warning";
+							}
 						@endphp
 						<a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
 					<td class="text-justify">
-						<span class="ste-name d-none">{{ $component['ste_name'] }}</span>
-						<span class="sted-name d-none">{{ $component['sted_name'] }}</span>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $component['item_code'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 					</td>
-					<td class="text-center source-warehouse" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold">{{ $component['actual_qty'] * 1 }}</span>
+						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
+					</td>
+					<td class="text-center" style="font-size: 9pt;">
+						<span class="d-block target-warehouse" style="font-size: 9pt;">{{ $details->wip_warehouse }}</span>
+						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
+					</td>
+					<td class="text-center">
+						<span class="d-block font-weight-bold required-qty">{{ $component['required_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
+					<td class="text-center">
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ $component['requested_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
-					</td>
-					<td class="text-center">
 						@php
-							$transferred_qty = $component['transferred_qty'] * 1;
-							$status_color = '';
-							if ($transferred_qty <= 0){
-								$status_color = 'badge badge-danger';
-							}elseif($transferred_qty >= ($component['requested_qty'] * 1)){
-								$status_color = 'badge badge-success';
-							}else{
-								$status_color = '';
-							}
+							$change_cancel_btn = (!$component['has_pending_ste_for_issue']) ? 'disabled' : null;
+							$return_btn = ($component['transferred_qty'] > 0) ? '' : 'disabled';
 						@endphp
-						<span class="font-weight-bold qty {{ $status_color }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
-					</td>
-					<td class="text-center">
-						@php
-							$change_cancel_btn = ($component['ste_docstatus'] == 1) ? 'disabled' : null;
-							$return_btn = ($component['ste_docstatus'] == 1) ? '' : 'disabled';
-						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" {{ $change_cancel_btn }}> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-secondary  btn-sm p-1 return-required-item-btn" data-sted-id="{{ $component['sted_name'] }}" data-production-order="{{ $details->production_order }}" {{ $return_btn }}>
+						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
 						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
@@ -183,9 +179,9 @@
 				<col style="width: 10%;">
 				<col style="width: 8%;">
 				<col style="width: 22%;">
-				<col style="width: 15%;">
-				<col style="width: 10%;">
-				<col style="width: 10%;">
+				<col style="width: 13%;">
+				<col style="width: 13%;">
+				<col style="width: 9%;">
 				<col style="width: 10%;">
 				<col style="width: 11%;">
 				<tr class="text-center">
@@ -193,7 +189,7 @@
 					<th>Prod. Order</th>
 					<th colspan="2">Item Description</th>
 					<th>Source Warehouse</th>
-					<th>Available</th>
+					<th>WIP Warehouse</th>
 					<th>Required</th>
 					<th>Transferred / Issued</th>
 					<th>Action</th>
@@ -211,54 +207,54 @@
 					<td class="text-center">
 						@php
 							$img = ($part['item_image']) ? "/img/" . $part['item_image'] : "/icon/no_img.png";
+
+							$swhb = ($part['actual_qty'] > 0) ? "badge badge-success" : "badge badge-danger";
+							$wwhb = ($part['available_qty_at_wip'] > 0) ? "badge badge-success" : "badge badge-danger";
+							if($part['transferred_qty'] == $part['required_qty']){
+								$twhb = "badge badge-success";
+							}elseif($part['transferred_qty'] <= 0){
+								$twhb = "badge badge-danger";
+							}else{
+								$twhb = "badge badge-warning";
+							}
 						@endphp
 						<a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
 					<td class="text-justify">
-						<span class="ste-name d-none">{{ $part['ste_name'] }}</span>
-						<span class="sted-name d-none">{{ $part['sted_name'] }}</span>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
 					</td>
-					<td class="text-center source-warehouse" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold">{{ $part['actual_qty'] * 1 }}</span>
-						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $part['actual_qty'] * 1 }}</span>
+					</td>
+					<td class="text-center" style="font-size: 9pt;">
+						<span class="d-block target-warehouse" style="font-size: 9pt;">{{ $details->wip_warehouse }}</span>
+						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ $part['requested_qty'] * 1 }}</span>
+						<span class="d-block font-weight-bold required-qty">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="text-center">
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
 						@php
-							$transferred_qty = $part['transferred_qty'] * 1;
-							$status_color = '';
-							if ($transferred_qty <= 0){
-								$status_color = 'badge badge-danger';
-							}elseif($transferred_qty >= ($part['requested_qty'] * 1)){
-								$status_color = 'badge badge-success';
-							}else{
-								$status_color = '';
-							}
+							$change_cancel_btn = (!$part['has_pending_ste_for_issue']) ? 'disabled' : null;
+							$return_btn = ($part['transferred_qty'] > 0) ? '' : 'disabled';
 						@endphp
-						<span class="font-weight-bold qty {{ $status_color }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
-					</td>
-					<td class="text-center p-0">
-						@php
-							$change_cancel_btn = ($part['ste_docstatus'] == 1) ? 'disabled' : null;
-							$return_btn = ($part['ste_docstatus'] == 1) ? '' : 'disabled';
-						@endphp
-						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" {{ $change_cancel_btn }}> 
-							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $change_cancel_btn }}> 
+								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-secondary p-1 btn-sm return-required-item-btn" data-sted-id="{{ $part['sted_name'] }}" data-production-order="{{ $details->production_order }}" {{ $return_btn }}>
+						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger p-1 btn-sm delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -311,13 +307,13 @@
 					</td>
 					<td class="text-center">
 						<span class="d-block font-weight-bold">{{ $return['received_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $return['stock_uom'] }}</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $return['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
 						@php
 							$issued = ($return['received_qty'] > 0) ? 'disabled' : null;
 						@endphp
-						<button type="button" class="btn btn-danger btn-icon btn-icon-mini delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $issued }}>
+						<button type="button" class="btn btn-danger btn-icon btn-icon-mini cancel-return-item-btn" data-production-order="{{ $details->production_order }}" {{ $issued }}>
 							<i class="now-ui-icons ui-1_simple-remove"></i>
 						</button>
 					</td>
@@ -333,14 +329,17 @@
 
     @if(count($reference_stock_entry) > 0)
     <div class="pull-right font-italic m-2" style="font-size: 9pt;">
-        <b>Reference: </b>{{ implode(', ', $reference_stock_entry) }}
+        <b>Reference: </b>{{ implode(', ', $reference_stock_entry->toArray()) }}
     </div>
-    @endif
+	@endif
+	
+	@if($details->feedback_qty < $details->qty_to_manufacture)
     <div class="pull-left m-1">
         <button class="btn btn-primary btn-sm" id="add-required-item-btn" data-production-order="{{ $details->production_order }}">
             <i class="now-ui-icons ui-1_simple-add"></i> Add Item(s)
         </button>
-    </div>
+	</div>
+	@endif
 @endif
 
 <style>

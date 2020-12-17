@@ -17,7 +17,7 @@
                                 <div class="col-sm-12">
                                     <input type="hidden" name="production_order">
                                     <input type="hidden" name="item_code">
-                                    <input type="hidden" name="sted_id">
+                                    <input type="hidden" name="id">
                                     <input type="hidden" name="qty">
                                     <input type="hidden" name="source_warehouse">
                                     <input type="hidden" name="target_warehouse">
