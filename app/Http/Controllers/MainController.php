@@ -483,6 +483,7 @@ class MainController extends Controller
 				'workstation' => $row->workstation,
 				'process' => $row->process,
 				'job_ticket' => $row->job_ticket_id,
+				'count_good' => (count($operations_arr) <= 1) ? '' : collect($operations_arr)->sum('good'),
 				'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
 				'operations' => $operations_arr,
 				'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
