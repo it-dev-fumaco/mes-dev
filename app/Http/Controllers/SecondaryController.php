@@ -5055,6 +5055,7 @@ class SecondaryController extends Controller
     public function get_item_code_stock_adjustment_entries(){
         $production_orders= DB::connection('mysql_mes')->table('production_order as po')
         ->select('po.item_code', 'po.description')
+        ->where('po.operation_id', '1')
         ->groupBy('po.item_code','po.description')
         ->orderBy('po.item_code')
         ->get();

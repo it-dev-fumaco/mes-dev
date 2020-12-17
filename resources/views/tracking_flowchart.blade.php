@@ -93,52 +93,6 @@
                       </div>
                     </div>
 
-
-<!--                         
-                            <a href="#" class="hvrlink aclass" style="background-color: {{ $colorme }};border:1px solid black;margin-bottom: 10px; display:{{ $displayme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $materials['production_order'] }}" class="prod-details-btn">{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} </span></b><br style="display:{{$hide_ongoing_process}}"><i>{{ $materials['parts_category'] }}</i><br>
-                            <label style="float: right;color:black;display:{{ $hideme }}"><b>Done:</b>&nbsp;{{ $materials['produced_qty'] }}</label>
-                            <label style="float: left;color:black;display:{{ $hideme }}"><b>Qty:</b>&nbsp;{{ $materials['qty_to_manufacture'] }} <span style="color: {{ ($materials['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $materials['available_stock'] }}</b>)</span></label>
-                            </a>
-                          <div class="details-pane">
-                            <h5 class="title">{{ $materials['item_code'] }}</h5>
-                                <p class="desc" style="padding-top: 5px;">
-                                  <b>Description:</b> {!! $materials['description'] !!}<br>  
-                                  <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                                  <b>Production Order : {{ $prod }}</b><br>          
-                                </p>
-                          </div>
-                          <br>
-                          <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt; display:{{ $displayme }}" class="mx-auto w-auto info">
-                            <tr>
-                              <td><b>BOM: </b></td>
-                              <td>{{ $materials['bom_no'] }}</td>
-                            </tr>
-                            <tr style="display: {{ ($materials['start_date'] == '') ? 'none' : '' }}">
-                              <td><b>Start Date: </b></td>
-                              <td>{{ $start_date }}</td>
-                            </tr>
-                            <tr style="display: {{ ($materials['status'] == 'Completed') ? '': 'none' }}">
-                              <td><b>End Date: </b></td>
-                              <td>{{ $end_date }}</td>
-                            </tr>
-                            <tr style="display: {{ ($materials['status'] == 'Completed') ? '': 'none' }}">
-                              <td><b>Duration: </b></td>
-                              <td>{{ $materials['duration'] }}</td>
-                            </tr>
-                            <tr>
-                              <td colspan="2" style="text-align: center; font-size: 9pt;">
-                                @if( $stat == 'Pending')
-                                <i><span>Pending</span><i>
-                                @else
-                                  @forelse($materials['current_load'] as $row)
-                                   {{ $row->workstation }} - {{ $row->process_name }} <br>
-                                  @empty
-                                 <i><span style="display:{{ $hide_ongoing_process }}">No On-going Process</span><i>
-                                  @endforelse
-                                @endif
-                              </td>
-                            </tr>
-                          </table> -->
                     <ul class="ulclass">
                       @foreach($boms as $idx => $item)
                       <li class="liclass">
@@ -519,14 +473,8 @@
             $uom= '';
 
           }
-          if($materials['operation_id'] == "3"){
-            if($materials['produced_qty'] == $materials['qty']){
+          if($timeline['fab_stat'] == "Completed" && $timeline['pain_stat'] == "Completed" && $timeline['assem_stat'] == "Completed"){
               $overall_stat='';
-            }else{
-              $overall_stat='none';
-            }
-            
-            
           }else{
             $overall_stat='none';
           }
@@ -616,7 +564,7 @@
                         <p style="font-size:0.8vw;"><i>{{ $assem_status_label }}</i></p>
                         <span style="display:{{ $display_assem_end}};font-size:0.8vw;"><b>Total Duration:</b>  {{ $timeline['assem_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
-                        <p style="display:{{ $display_assem }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['pain_min']}}</span> </p>
+                        <p style="display:{{ $display_assem }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['assem_min']}}</span> </p>
                         <p style="display:{{ $display_assem_end }}; font-size:0.7vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_assem }}</span></p>
                         </div>
                       </div>
