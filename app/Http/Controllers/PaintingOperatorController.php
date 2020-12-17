@@ -38,7 +38,7 @@ class PaintingOperatorController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
 		}
 
-		if($task_qry->planned_start_date > $now->format('Y-m-d H:i:s')){
+		if(!$task_qry->planned_start_date || $task_qry->planned_start_date > $now->format('Y-m-d H:i:s')){
 			return response()->json(['success' => 2, 'message' => 'Task not scheduled for today.']);
 		}
 
