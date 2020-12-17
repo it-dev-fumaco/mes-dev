@@ -146,14 +146,13 @@
 														</span>
 														<br><span style="font-size:9px;"><i>{{ $b['cycle_time'] }}</i></span>
 													</td>
-													
 													@if (count($b['operations']) > 0)
-														<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
-															<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
-																<b>{{ $b['process'] }}</b>
-															</span>
-															<br><span style="font-size:9px;"><b>{{ $b['count_good'] }}<b></span>
-														</td>
+															<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
+																<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
+																	<b>{{ $b['process'] }}</b>
+																</span>
+																<br><span style="font-size:11px;"><b><i>{{ $b['count_good'] }}</i><b></span>
+															</td>
 														@foreach($b['operations'] as $c)
 															@php
 																$machine = ($c['machine_code']) ? $c['machine_code'] : '-';
@@ -175,7 +174,7 @@
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $to_time }}</td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $operator_name }}</td>
 														</tr>
-													@endforeach
+														@endforeach
 													@else
 														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
 														<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
