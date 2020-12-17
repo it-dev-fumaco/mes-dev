@@ -600,7 +600,6 @@ class InventoryController extends Controller
     }
 
     public function get_scrap_filters($operation){
-        // return $this->get_material_dimenstion();
         $data=[];
         return $data;
     }
@@ -628,7 +627,6 @@ class InventoryController extends Controller
     }
 
     public function get_material_dimenstion(){
-        // $q = DB::connection('mysql_mes')->table('item_specification')->get();
         $q=null;
         $materials = collect($q)->map(function($item, $key) {
             return ['material' => strtoupper($item->material)];
