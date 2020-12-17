@@ -481,7 +481,7 @@ class ManufacturingController extends Controller
                                     'bom_reviewed' => $child_default_bom->is_reviewed,
                                     'planned_qty' => $child_part2['qty'] * $request->qty[$idx],
                                     'reference_no' => $request->so[$idx],
-                                    'planned_start_date' => ($existing_prod3) ? $planned_start_date2 : null,
+                                    'planned_start_date' => ($existing_prod3) ? $planned_start_date3 : null,
                                     'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
                                     's_warehouse' => $s_warehouse,
                                     'wip_warehouse' => ($existing_prod3) ? $existing_prod3->wip_warehouse : null,
