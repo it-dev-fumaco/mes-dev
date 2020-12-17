@@ -723,6 +723,7 @@
     @include('modals.add_required_item_modal')
 	  @include('modals.edit_required_item_modal')
     @include('modals.delete_required_item_modal')
+    @include('modals.cancel_return')
     
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
@@ -822,8 +823,8 @@
     var $row = $(this).closest('tr');
 
     $('#return-required-item-modal form input[name="production_order"]').val($(this).data('production-order'));
+    $('#return-required-item-modal form input[name="id"]').val($(this).data('production-order-item-id'));
     
-    $('#return-required-item-modal form input[name="sted_id"]').val($(this).data('sted-id'));
     $('#return-required-item-modal form input[name="target_warehouse"]').val($row.find('.target-warehouse').eq(0).text());
     $('#return-required-item-modal form input[name="source_warehouse"]').val($row.find('.source-warehouse').eq(0).text());
     $('#return-required-item-modal form input[name="item_code"]').val($row.find('.item-code').eq(0).text());
@@ -841,7 +842,6 @@
       type:"POST",
       data: $(this).serialize(),
       success:function(response){
-        console.log(response);
         if (response.status == 0) {
           showNotification("danger", response.message, "now-ui-icons travel_info");
         }else if(response.status == 2){
@@ -949,9 +949,9 @@
       e.preventDefault();
 
       var $row = $(this).closest('tr');
-      var sted_name = $row.find('.sted-name').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var description = $row.find('.item-description').eq(0).text();
+      var item_name = $row.find('.item-name').eq(0).text();
       var required_qty = $row.find('.required-qty').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
       var stock_uom = $row.find('.stock-uom').eq(0).text();
@@ -976,8 +976,9 @@
       });
 
       $('#change-required-item-modal input[name="item_classification"]').val($(this).data('item-classification'));
-      $('#change-required-item-modal input[name="sted_name"]').val(sted_name);
+      $('#change-required-item-modal input[name="old_item_code"]').val(item_code);
       $('#change-required-item-modal input[name="item_code"]').val(item_code);
+      $('#change-required-item-modal input[name="item_name"]').val(item_name);
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
       $('#change-required-item-modal input[name="quantity"]').val(required_qty);
@@ -1038,18 +1039,61 @@
       });
     });
 
-    $(document).on('click', '.delete-required-item-btn', function(e){
+    $(document).on('click', '.cancel-return-item-btn', function(e){
       e.preventDefault();
       var $row = $(this).closest('tr');
       var item_code = $row.find('.item-code').eq(0).text();
       var ste_no = $row.find('.ste-name').eq(0).text();
       var sted_name = $row.find('.sted-name').eq(0).text();
 
-      $('#delete-required-item-modal input[name="sted_id"]').val(sted_name);
+      console.log(item_code, ste_no, sted_name);
+
+      $('#cancel-return-item-modal input[name="sted_id"]').val(sted_name);
+      $('#cancel-return-item-modal input[name="production_order"]').val($(this).data('production-order'));
+      $('#cancel-return-item-modal input[name="ste_no"]').val(ste_no);
+      $('#cancel-return-item-modal .modal-body span').eq(0).text(item_code);
+      $('#cancel-return-item-modal .modal-body span').eq(1).text('('+ste_no+')');
+
+      $('#cancel-return-item-modal').modal('show');
+    });
+
+    $('#cancel-return-item-modal form').submit(function(e){
+      e.preventDefault();
+      var production_order = $('#cancel-return-item-modal input[name="production_order"]').val();
+      var sted_id = $('#cancel-return-item-modal input[name="sted_id"]').val();
+      var ste_no = $('#cancel-return-item-modal input[name="ste_no"]').val();
+     
+      $.ajax({
+        url:"/cancel_return/" + sted_id,
+        type:"POST",
+        data: {ste_no: ste_no},
+        success:function(response){
+          if (response.error == 1) {
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", response.message, "now-ui-icons ui-1_check");
+            get_stock_entry_items(production_order);
+            $('#cancel-return-item-modal').modal('hide');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    $(document).on('click', '.delete-required-item-btn', function(e){
+      e.preventDefault();
+      var $row = $(this).closest('tr');
+      var item_code = $row.find('.item-code').eq(0).text();
+      var source_warehouse = $row.find('.source-warehouse').eq(0).text();
+      
       $('#delete-required-item-modal input[name="production_order"]').val($(this).data('production-order'));
-      $('#delete-required-item-modal input[name="ste_no"]').val(ste_no);
+      $('#delete-required-item-modal input[name="item_code"]').val(item_code);
+      $('#delete-required-item-modal input[name="source_warehouse"]').val(source_warehouse);
       $('#delete-required-item-modal .modal-body span').eq(0).text(item_code);
-      $('#delete-required-item-modal .modal-body span').eq(1).text('('+ste_no+')');
 
       $('#delete-required-item-modal').modal('show');
     });
@@ -1057,13 +1101,11 @@
     $('#delete-required-item-modal form').submit(function(e){
       e.preventDefault();
       var production_order = $('#delete-required-item-modal input[name="production_order"]').val();
-      var sted_id = $('#delete-required-item-modal input[name="sted_id"]').val();
-      var ste_no = $('#delete-required-item-modal input[name="ste_no"]').val();
-     
+           
       $.ajax({
-        url:"/cancel_request/" + sted_id,
+        url:"/cancel_request/" + production_order,
         type:"POST",
-        data: {ste_no: ste_no},
+        data: $(this).serialize(),
         success:function(response){
           if (response.error == 1) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
