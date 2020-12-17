@@ -601,7 +601,9 @@ Route::get('/get_feedback_logs/{prod}', 'SecondaryController@get_feedbacked_log'
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
-	Route::post('/cancel_request/{sted_id}', 'MainController@delete_pending_material_transfer_for_manufacture');
+	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');
+	Route::post('/cancel_return/{sted_id}', 'MainController@delete_pending_material_transfer_for_return');
+	
 	Route::post('/submit_stock_entries/{production_order}', 'ManufacturingController@submit_stock_entries');
 
 	Route::post('/generate_material_request', 'InventoryController@generate_material_request');

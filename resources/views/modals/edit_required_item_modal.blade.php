@@ -3,8 +3,8 @@
    <div class="modal-dialog modal-md" role="document" style="min-width: 40%;">
       <form action="/update_ste_detail" method="POST" autocomplete="off">
          @csrf
-         <input type="hidden" name="sted_name">
-         <input type="hidden" id="change-required-item-production-order">
+         <input type="hidden" id="change-required-item-production-order" name="production_order">
+         <input type="hidden" name="old_item_code">
          <div class="modal-content">
             <div class="modal-header text-white" style="background-color: #0277BD;">
                <h5 class="modal-title" id="modal-title">Replace Item</h5>

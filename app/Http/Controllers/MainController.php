@@ -5293,33 +5293,84 @@ class MainController extends Controller
 		return view('tables.tbl_pending_material_transfer_for_manufacture', compact('list', 'url', 'production_order_details', 'actual_qty','feedbacked_log'));
 	}
 
-	public function delete_pending_material_transfer_for_manufacture($sted_id, Request $request){
+	public function delete_pending_material_transfer_for_manufacture($production_order, Request $request){
+		DB::connection('mysql')->beginTransaction();
+		try {
+			$production_order_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->first();
+			$now = Carbon::now();
+			// get all pending stock entries based on item code production order
+			$pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
+				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+				->where('ste.docstatus', 0)->where('ste.production_order', $production_order)
+				->where('sted.item_code', $request->item_code)
+				// ->where('sted.s_warehouse', $request->source_warehouse)
+				->where('ste.purpose', 'Material Transfer for Manufacture')
+				->select('sted.name as sted_name', 'ste.name as ste_name')
+				->get()->toArray();
+			
+			if(count($pending_stock_entries) > 0){
+				// delete stock entry item
+				$sted_names = array_column($pending_stock_entries, 'sted_name');
+				DB::connection('mysql')->table('tabStock Entry Detail')->whereIn('name', $sted_names)->delete();
+
+				$ste_names = array_column($pending_stock_entries, 'ste_name');
+				foreach ($ste_names as $ste_name) {
+					// check if ste item is not empty
+					$ste_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $ste_name)->get();
+					if(count($ste_detail) > 0){
+						// set status
+						$for_checking = collect($ste_detail)->where('status', '!=', 'Issued')->count();
+						$item_status = ($for_checking > 0) ? 'For Checking' : 'Issued';
+						// recalculate ste
+						$stock_entry_data = [
+							'modified' => $now->toDateTimeString(),
+							'modified_by' => Auth::user()->email,
+							'posting_time' => $now->format('H:i:s'),
+							'total_outgoing_value' => collect($ste_detail)->sum('basic_amount'),
+							'total_amount' => collect($ste_detail)->sum('basic_amount'),
+							'total_incoming_value' => collect($ste_detail)->sum('basic_amount'),
+							'posting_date' => $now->format('Y-m-d'),
+							'item_status' => $item_status,
+						];
+
+						DB::connection('mysql')->table('tabStock Entry')->where('name', $ste_name)->where('docstatus', 0)->update($stock_entry_data);
+					}else{
+						// delete parent stock entry 
+						DB::connection('mysql')->table('tabStock Entry')->where('name', $ste_name)->where('docstatus', 0)->delete();
+					}
+				}
+			}
+
+			// get all submitted stock entries based on item code warehouse production order
+			$submitted_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
+				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+				->where('ste.docstatus', 1)->where('ste.production_order', $production_order)
+				->where('sted.item_code', $request->item_code)
+				->where('ste.purpose', 'Material Transfer for Manufacture')->count();
+
+			if($submitted_stock_entries <= 0){
+				// delete production order item
+				DB::connection('mysql')->table('tabProduction Order Item')
+					->where('parent', $production_order)->where('item_code', $request->item_code)
+					->delete();
+			}
+			
+			DB::connection('mysql')->commit();
+
+			return response()->json(['error' => 0, 'message'=> 'Stock entry request has been cancelled.']);
+		} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+
+			return response()->json(['error' => 1, 'message' => 'There was a problem creating transaction.']);
+		}
+	}
+
+	public function delete_pending_material_transfer_for_return($sted_id, Request $request){
 		DB::connection('mysql')->beginTransaction();
 		try {
 			$now = Carbon::now();
 			$sted_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $sted_id)->first();
-			if($sted_detail && $sted_detail->production_order_req_item_id){	
-				$production_required_item_detail = DB::connection('mysql')->table('tabProduction Order Item')
-					->where('name', $sted_detail->production_order_req_item_id)->first();
-
-				$remaining_required_qty = $production_required_item_detail->required_qty - $sted_detail->qty;
-
-				if($remaining_required_qty <= 0){
-					DB::connection('mysql')->table('tabProduction Order Item')
-						->where('name', $sted_detail->production_order_req_item_id)->delete();
-				}else{
-					$q = [
-						'modified' => $now->toDateTimeString(),
-						'modified_by' => Auth::user()->email,
-						'required_qty' => $remaining_required_qty,
-					];
-		
-					DB::connection('mysql')->table('tabProduction Order Item')
-						->where('name', $sted_detail->production_order_req_item_id)
-						->update($q);
-				}
-			}
-
+			
 			// delete ste detail
 			DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $sted_id)->where('docstatus', 0)->delete();
 
