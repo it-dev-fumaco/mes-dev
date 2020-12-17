@@ -335,6 +335,9 @@ trait GeneralTrait
                 }
             }
         }
+        if ($stat == "Cancelled") {
+            $status = 'Cancelled';
+        }
         if ($stat == "Completed") {
             $status = 'Ready For Feedback';
         }

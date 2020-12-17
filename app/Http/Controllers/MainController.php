@@ -413,29 +413,23 @@ class MainController extends Controller
 		foreach ($process_arr as $row) {
 			$operations_arr = [];
 			if($row->workstation == "Spotwelding"){
-
 				  $operations =  DB::connection('mysql_mes')->table('spotwelding_qty as qpart')
                   ->where('qpart.job_ticket_id',  $row->job_ticket_id)->get();
-				  
 				  $total_rejects =collect($operations)->sum('reject');
-				  $min_count= collect($operations)->min('from_from');
+				  $min_count= collect($operations)->min('from_time');
 				  $max_count=collect($operations)->max('to_time');
-
-				  
+				  $status = collect($operations)->where('status', 'In Progress');
 				  $operations_arr[] = [
 					'machine_code' => "",
 					'operator_name' => "",
 					'from_time' => $min_count,
 					'to_time' => ($row->status == "In Progress") ? '' : $max_count,
-					'status' =>$row->status,
+					'status' => (count($status) == 0 )? 'Not started': "In Progress",
 					'qa_inspection_status' => "",
 					'good' => $row->completed_qty,
 					'reject' => $total_rejects,
 					'remarks' => "",
 				];
-				// dd($operations);
-                                    
-
 			}else{
 				$operations = DB::connection('mysql_mes')->table('job_ticket AS jt')
 				->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
@@ -479,44 +473,36 @@ class MainController extends Controller
 					];
 				}
 			}
-			
 			$operation_list[] = [
 				'production_order' => $jtno,
 				'workstation' => $row->workstation,
 				'process' => $row->process,
 				'job_ticket' => $row->job_ticket_id,
+				'count_good' => (count($operations_arr) <= 1) ? '' : "Total: ".collect($operations_arr)->sum('good'),
 				'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
 				'operations' => $operations_arr,
 				'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
 			];
 		}
-
-		// return $operation_list;
-
 		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $details->production_order)
 			->distinct()->pluck('job_ticket_id');
 		$process_list = [];
 		foreach ($processes as $row) {
 			$query = DB::connection('mysql_mes')->table('time_logs')
 				->where('job_ticket_id', $row)->where('status', 'Completed')->get();
-			
 			$process_list[] = [
 				'process_id' => $row,
 				'total_good' => collect($query)->sum('good'),
 				'total_reject' => collect($query)->sum('reject'),
 			];
 		}
-
 		$totals = [
 			'produced_qty' => $details->produced_qty,
 			'total_good' => collect(array_column($process_list, 'total_good'))->min(),
 			'total_reject' => collect(array_column($process_list, 'total_reject'))->max(),
 			'balance_qty' => $details->qty_to_manufacture - $details->produced_qty,
 		];
-
-
 		$datas=[];
-
 		$tab_name=$details->item_classification;
 		$po=DB::connection('mysql_mes')->table('production_order')->where('sales_order',$details->sales_order)->where('material_request',$details->material_request)->where('parent_item_code', $details->parent_item_code)->where('sub_parent_item_code', $details->item_code)->whereNotIn('production_order', [$details->production_order])->get();
 		if(count($po) > 0){
@@ -540,7 +526,6 @@ class MainController extends Controller
 					'stock_uom' => $rowss->stock_uom,
 					'material_status' => $this->material_status_stockentry($rowss->production_order, $rowss->status, $rowss->qty_to_manufacture,$rowss->feedback_qty, $rowss->produced_qty)
 				];
-
 			}
 			$tab[]=[
 				'tab' => substr($details->item_code, 0, 2).'-Parts',
@@ -549,8 +534,6 @@ class MainController extends Controller
 			];
 		}
 		$success=1;
-		// dd($datas);
-
 		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab'));
 	}
 

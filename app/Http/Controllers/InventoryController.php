@@ -590,7 +590,7 @@ class InventoryController extends Controller
         $q = DB::connection('mysql_mes')->table('production_order')->orderBy('production_order', 'desc')->get();
 
         $warehouses = DB::connection('mysql_mes')->table('item_classification_warehouse')
-            ->distinct()->pluck('source_warehouse');
+            ->distinct()->pluck('warehouse');
 
         return [
             'production_orders' => collect($q)->pluck('production_order'),
@@ -600,7 +600,8 @@ class InventoryController extends Controller
     }
 
     public function get_scrap_filters($operation){
-        return $this->get_material_dimenstion();
+        $data=[];
+        return $data;
     }
 
     public function get_inventory_filters($operation){
@@ -626,8 +627,7 @@ class InventoryController extends Controller
     }
 
     public function get_material_dimenstion(){
-        $q = DB::connection('mysql_mes')->table('item_specification')->get();
-
+        $q=null;
         $materials = collect($q)->map(function($item, $key) {
             return ['material' => strtoupper($item->material)];
         });
@@ -1699,7 +1699,7 @@ class InventoryController extends Controller
                     });
                 })->get();
                 foreach($q as $rows){
-                    $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication  - FI%')->select('actual_qty')->first();
+                    $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
                     if (empty($actual)) {
                        $data[]=[
         
@@ -1727,10 +1727,10 @@ class InventoryController extends Controller
             ->whereIn('item.item_classification', ['DI - Diffuser'])
             ->select('item.name', 'item.item_name')
             ->orderBy('item.modified', 'desc')->get();
-    
+            $data=[];
             foreach ($item_list as $row) {
                 $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication  - FI%')->select('actual_qty')->first();
+                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
                 $prod = DB::connection('mysql_mes')->table('production_order as pro')
                 ->where('pro.status', 'Not Started')
                 ->distinct()
@@ -1781,7 +1781,6 @@ class InventoryController extends Controller
                     'planned' => round(empty($planned)? 0: $planned,2)
                 ];
                 }
-                
     
             }
             $chart_data=[
@@ -1801,10 +1800,10 @@ class InventoryController extends Controller
             ->whereIn('item.item_classification', ['CS - Crs Steel Coil'])
             ->select('item.name', 'item.item_name')
             ->orderBy('item.modified', 'desc')->get();
-    
+            $data=[];
             foreach ($item_list as $row) {
                 $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication  - FI%')->select('actual_qty')->first();
+                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
                 $prod = DB::connection('mysql_mes')->table('production_order as pro')
                 ->where('pro.status', 'Not Started')
                 ->distinct()
@@ -1875,10 +1874,10 @@ class InventoryController extends Controller
             ->whereIn('item.item_classification', ['AS - Aluminum Sheets'])
             ->select('item.name', 'item.item_name')
             ->orderBy('item.modified', 'desc')->get();
-    
+            $data=[];
             foreach ($item_list as $row) {
                 $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication  - FI%')->select('actual_qty')->first();
+                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
                 $prod = DB::connection('mysql_mes')->table('production_order as pro')
                 ->where('pro.status', 'Not Started')
                 ->distinct()
@@ -1960,7 +1959,7 @@ class InventoryController extends Controller
         $data=[];
         foreach ($item_list as $row) {
         
-        $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication  - FI%')->select('actual_qty')->first();
+        $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
         $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
             if (empty($actual)) {
                $data[]=[

@@ -412,6 +412,9 @@ Route::get('/count_current_painting_production_schedule_monitoring/{date}', 'Sec
 Route::post('/move_today_task', 'SecondaryController@move_today_task');
 Route::post('/addnotes_task', 'SecondaryController@add_notes_task');
 Route::post('/mark_as_done_task_painting', 'SecondaryController@mark_as_done_task_painting');
+Route::get('/print_production_sched/{date}', 'SecondaryController@get_scheduled_for_painting');
+Route::get('/get_production_details_for_edit/{prod}', 'SecondaryController@get_production_details_for_edit');
+Route::post('/edit_cpt_status_qty', 'SecondaryController@edit_cpt_status_qty');
 
 //spotwelding_production_order_search
 Route::get('/spotwelding_production_order_search/{id}', 'SecondaryController@spotwelding_exploded_production_order_search');
