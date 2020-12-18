@@ -2,9 +2,8 @@
 <div class="alert alert-warning text-center" role="alert">
   <span class="d-none"></span>
   <div class="container">
-     <div class="alert-icon">
-      <i class="now-ui-icons travel_info" style="padding-right:5px;"></i><span style="font-size:13pt;"> <b>Notification Change Code Alert</b></span> 
-            <br>
+     <div class="alert-icon" style="color:black;">
+      <i class="now-ui-icons travel_info" style="padding-right:5px;"></i><span style="font-size:13pt;"> <b>Notification Change Code :</b></span> 
             <span style="font-size:11pt;">Parent Item code was change to </span><span class="ml-1 font-weight-bold">{{$change_code['new_item']}}  </span>
      </div>
   </div>
@@ -86,7 +85,7 @@
                     <div  class="row bread justify-content-center" style="border: 1px solid black;border-radius: .2em;overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;">
                       <div class="row text-center bread justify-content-center" style="padding-top:5px">
                         <div class="col-md-12 bread">
-                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} @if($change_code['match'] == "false") [ <span style="color:#ffbc50;">{{$change_code['new_item']}}</span> ]   @endif</b> </span>
+                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} @if($change_code['match'] == "false") [ <span>{{$change_code['new_item']}}</span> ]   @endif</b> </span>
                         <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['item_name'] !!} </span>
                         <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
 
