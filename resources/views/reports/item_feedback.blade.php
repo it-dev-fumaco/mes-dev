@@ -710,30 +710,7 @@
    </div>
 </div>
 
-<!-- Modal Confirm Feedback Production Order -->
-<div class="modal fade" id="confirm-feedback-production-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="min-width: 55%;">
-    <form action="#" method="POST">
-      @csrf
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title">Production Order Feedback</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="production_order">
-          <div class="row">
-            <div class="col-md-12">
-              <div id="feedback-production-items"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
+
 
 <!-- Delete Pending Material Transfer for Manufacture Modal -->
 <div class="modal fade" id="delete-pending-mtfm-modal" tabindex="-1" role="dialog">
@@ -1176,10 +1153,7 @@ $(document).ready(function(){
       '</tr>';
   
       $('#operations-table-tbody').append($row);
-
     }
-
-    
   });
 
   function get_operations(){
@@ -1231,99 +1205,6 @@ $(document).ready(function(){
     $row.find('select[name="process_id[]"]').eq(0).append(opt_1);
   });
 
- 
-
-
-
-
-  // start
-  function get_production_order_items(id){
-    $.ajax({
-      url:"/get_production_order_items/"+ id,
-      type:"GET",
-      success:function(data){
-        $('#tbl_view_transfer_details').html(data);
-        $('#stock-entry-details-modal').modal('show');
-      },
-      error : function(data) {
-        console.log(data.responseText);
-      }
-    });
-  }
-
-  $(document).on('click', '.create-ste-btn', function(e){
-    e.preventDefault();
-    var prod = $(this).data('production-order');
-
-    get_production_order_items(prod);
-  });
-
-  $(document).on('click', '.generate-ste-btn', function(e){
-    e.preventDefault();
-    var production_order = $(this).data('production-order');
-    $.ajax({
-      url:"/generate_stock_entry/" + production_order,
-      type:"POST",
-      success:function(data){
-        console.log(data);
-        if(data.success == 2){
-          showNotification("info", data.message, "now-ui-icons travel_info");
-        }else if(data.success == 1){
-          get_production_order_items(production_order);
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-        }else{
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
-  $(document).on('click', '.delete-pending-mtfm-btn', function(e){
-    e.preventDefault();
-    var $row = $(this).closest('tr');
-    var item_code = $row.find('span').eq(0).text();
-    var ste_no = $row.find('td').eq(0).text();
-    $('#delete-pending-mtfm-modal input[name="sted_id"]').val($(this).data('id'));
-    $('#delete-pending-mtfm-modal input[name="production_order"]').val($(this).data('production-order'));
-    $('#delete-pending-mtfm-modal input[name="ste_no"]').val(ste_no);
-    $('#delete-pending-mtfm-modal .modal-body span').eq(0).text(item_code);
-    $('#delete-pending-mtfm-modal .modal-body span').eq(1).text('('+ste_no+')');
-    $('#delete-pending-mtfm-modal').modal('show');
-  });
-
-  $('#delete-pending-mtfm-modal form').submit(function(e){
-    e.preventDefault();
-    var production_order = $('#delete-pending-mtfm-modal input[name="production_order"]').val();
-    var sted_id = $('#delete-pending-mtfm-modal input[name="sted_id"]').val();
-    var ste_no = $('#delete-pending-mtfm-modal input[name="ste_no"]').val();
-   
-    $.ajax({
-      url:"/cancel_request/" + sted_id,
-      type:"POST",
-      data: {ste_no: ste_no},
-      success:function(response){
-        console.log(response);
-        if (response.error == 1) {
-          showNotification("danger", response.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", response.message, "now-ui-icons travel_info");
-          get_pending_material_transfer_for_manufacture(production_order);
-          $('#delete-pending-mtfm-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
   function get_pending_material_transfer_for_manufacture(production_order){
     $.ajax({
       url:"/get_pending_material_transfer_for_manufacture/" + production_order,
@@ -1340,17 +1221,6 @@ $(document).ready(function(){
     });
   }
 
-  $(document).on('click', '.create-feedback-btn', function(e){
-    e.preventDefault();
-
-    $('#submit-feedback-btn').removeAttr('disabled');
-    var production_order = $(this).data('production-order');
-    $('#confirm-feedback-production-modal input[name="production_order"]').val(production_order);
-    get_pending_material_transfer_for_manufacture(production_order);
-
-    $('#confirm-feedback-production-modal').modal('show');
-  });
-
   $('#confirm-feedback-production-modal form').submit(function(e){
     e.preventDefault();
     $('#submit-feedback-btn').attr('disabled', true);
@@ -1364,7 +1234,6 @@ $(document).ready(function(){
       type:"POST",
       data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
       success:function(response){
-        console.log(response);
         $('#loader-wrapper').attr('hidden', true);
         if (response.success == 0) {
           showNotification("danger", response.message, "now-ui-icons travel_info");
@@ -1382,33 +1251,6 @@ $(document).ready(function(){
       }
     });
   });
-
-  $(document).on('click', '.submit-ste-btn', function(e){
-    e.preventDefault();
-    var production_order = $(this).data('production-order');
-    $.ajax({
-      url:"/submit_stock_entries/" + production_order,
-      type:"POST",
-      success:function(data){
-        if(data.success == 2){
-          showNotification("info", data.message, "now-ui-icons travel_info");
-        }else if(data.success == 1){
-          get_production_order_items(production_order);
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-        }else{
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
-
-  // end
 
   $('#sel-mreq').autocomplete({
     source:function(request,response){

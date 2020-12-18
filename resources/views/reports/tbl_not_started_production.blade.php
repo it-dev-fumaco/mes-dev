@@ -1,4 +1,4 @@
-<div class="table-responsive vh-100">
+<div class="table-responsive min-vh-100">
   <table class="table table-striped">
     <col style="width: 9%;">
     <col style="width: 38%;">
