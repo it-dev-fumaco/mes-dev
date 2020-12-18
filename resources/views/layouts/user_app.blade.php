@@ -1302,12 +1302,16 @@
 
     $(document).on('click', '.btn_trackmodal', function(event){
       event.preventDefault();
-      var guideid = $(this).attr('data-guideid');
-      var itemcode = $(this).attr('data-itemcode');
       var customer = $(this).attr('data-customer');
+      var data = {  
+          guideid : $(this).attr('data-guideid'),
+          itemcode : $(this).attr('data-itemcode'),
+          erp_reference_id:$(this).attr('data-erpreferenceno')
+          }
       $.ajax({
-        url: "/get_bom_tracking/" + guideid + "/" + itemcode,
+        url: "/get_bom_tracking",
         type:"GET",
+        data:data,
         success:function(data){
           if(data.success < 1){
           showNotification("info", data.message, "now-ui-icons travel_info");
