@@ -1224,8 +1224,9 @@
     $(document).on('click', '.create-ste-btn', function(e){
       e.preventDefault();
       var prod = $(this).data('production-order');
-  
-      get_production_order_items(prod);
+      if(!$(this).hasClass('ste-btn')){
+        get_production_order_items(prod);
+      }
     });
 
     $(document).on('click', '.submit-ste-btn', function(e){
