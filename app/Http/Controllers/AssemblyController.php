@@ -66,6 +66,7 @@ class AssemblyController extends Controller
                     'rfd_no' => $rfd_no,
                     'stock' => $stock,
                     'delivery_date' => $item->delivery_date,
+                    'change_code' => $this->erp_change_code_validation($item->name,$item->item_code)
                 ];
             }
 
@@ -79,7 +80,6 @@ class AssemblyController extends Controller
                 'project' => $reference_details->project,
                 'notes' => ($reference_type == 'Sales Order') ? $reference_details->notes : $reference_details->notes00
             ];
-
             return view('assembly_wizard.tbl_reference_details', compact('reference_details', 'item_list'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
