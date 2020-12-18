@@ -1390,10 +1390,10 @@ class ManufacturingController extends Controller
 
     public function get_production_order_items($production_order){
         $details = DB::connection('mysql_mes')->table('production_order')
-            ->join('delivery_date', function ($join) {
-                $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
-                    ->on('delivery_date.reference_no', '=', 'production_order.sales_order')
-                    ->orOn('delivery_date.reference_no', '=', 'production_order.material_request');  //Inner join new table for Delivery Date
+            ->leftJoin('delivery_date', function($join)
+            {
+                $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
             ->where('production_order.production_order', $production_order)
             ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
