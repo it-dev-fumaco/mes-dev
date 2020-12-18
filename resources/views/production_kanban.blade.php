@@ -469,24 +469,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="stock-entry-details-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="min-width: 70%;">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #0277BD;">
-        <h5 class="modal-title text-white">
-          Stock Withdrawal 
-        </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="tbl_view_transfer_details" class="table-responsive"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="view-notifications-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -1372,41 +1354,6 @@
   
     filter_cards($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
   });
-
-    $(document).on('click', '.submit-ste-btn', function(e){
-      e.preventDefault();
-      var production_order = $(this).data('production-order');
-      $.ajax({
-        url:"/submit_stock_entries/" + production_order,
-        type:"POST",
-        success:function(data){
-          if(data.success == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if(data.success == 1){
-            get_production_order_items(production_order);
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
-
-    $(document).on('click', '.create-feedback-btn', function(e){
-      e.preventDefault();
-  
-      $('#submit-feedback-btn').removeAttr('disabled');
-      var production_order = $(this).data('production-order');
-      $('#confirm-feedback-production-modal input[name="production_order"]').val(production_order);
-      get_pending_material_transfer_for_manufacture(production_order);
-  
-      $('#confirm-feedback-production-modal').modal('show');
-    });
 
     function get_pending_material_transfer_for_manufacture(production_order){
       $.ajax({
