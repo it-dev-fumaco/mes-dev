@@ -1042,7 +1042,7 @@ class AssemblyController extends Controller
         if($request->list){
             foreach($request->list as $pos){
                 $q_id = DB::connection('mysql_mes')->table('assembly_conveyor_assignment')
-                    ->where('production_order', $pos[0])->where('scheduled_date', $request->scheduled_date)->first();
+                    ->where('production_order', $pos[0])->first();
 
                 $id = (!$q_id) ? 0 : $q_id->assembly_conveyor_assignment_id;
             
