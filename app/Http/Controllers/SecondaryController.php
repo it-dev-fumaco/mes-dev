@@ -8005,4 +8005,40 @@ class SecondaryController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
+    public function get_reload_tbl_change_code(){
+        $notifs = [];
+        $now = Carbon::now();
+        $start_of_the_week= Carbon::now()->startOfWeek();
+        $end_of_the_week= Carbon::now()->endOfWeek();
+        $get_prod_sched_today=DB::connection('mysql_mes')
+            ->table('production_order')
+            ->where(function($q) use ($start_of_the_week,$end_of_the_week){
+                $q->whereBetween('planned_start_date', [$start_of_the_week, $end_of_the_week])
+                    ->orWhereNull('planned_start_date');
+            })
+            ->groupBy('parent_item_code', 'sales_order', 'material_request')
+            ->select('parent_item_code', 'sales_order', 'material_request')->get();
+        $notifications=[];
+		foreach($get_prod_sched_today as $row){
+			$reference= ($row->sales_order == null)? $row->material_request: $row->sales_order;
+			$tbl_reference= ($row->sales_order == null)? "tabMaterial Request Item": "tabSales Order Item";
+			$get_delivery_date=DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $row->parent_item_code)->first();
+			if(!empty($get_delivery_date)){
+                $erp_sales_order=DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->select('item_code')->first();
+                if(!empty($erp_sales_order)){
+                    if($erp_sales_order->item_code != $row->parent_item_code){
+					$notifications[] = [	
+						'type' => $reference,
+						'message' => 'Parent item code was change from <b>'.$row->parent_item_code.'</b> to <b>'.$erp_sales_order->item_code.'</b>',
+						'created' => $now->toDateTimeString(),
+						'timelog_id' =>	"",
+						'table' => 'ERP'
+					];
+                    }
+                }
+            }
+        }
+        return view('tables.tbl_production_change_code', compact('notifications'));
+
+    }
 }
