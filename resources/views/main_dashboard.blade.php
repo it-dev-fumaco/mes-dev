@@ -385,50 +385,6 @@
     </div>
   </div>
 
-  <!-- Modal Confirm Feedback Production Order -->
-  <div class="modal fade" id="confirm-feedback-production-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 55%;">
-      <form action="#" method="POST">
-        @csrf
-        <div class="modal-content">
-          <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">Production Order Feedback</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" name="production_order">
-            <div class="row">
-              <div class="col-md-12">
-                <div id="feedback-production-items"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="modal fade" id="stock-entry-details-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="min-width: 60%;">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #0277BD;color:white;">
-        <h5 class="modal-title" id="modal-title">
-          <i class="now-ui-icons"></i>Material Tranfer to Manufacture <a href="" id="prod-title" class="prod_order_link_to_search" data-prod="" style="display:inline-block;text-weight:bolder;color:white;"></a>
-        </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="tbl_view_transfer_details" class="table-responsive"></div>
-      </div>
-    </div>
-  </div>
-</div>
-  
-
   <!-- Modal Create STE Production Order -->
 <div class="modal fade" id="create-ste-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -549,39 +505,6 @@
       });
     }
   
-    $(document).on('click', '.create-ste-btn', function(e){
-      e.preventDefault();
-      var prod = $(this).data('production-order');
-  
-      get_production_order_items(prod);
-    });
-  
-    $(document).on('click', '.generate-ste-btn', function(e){
-      e.preventDefault();
-      var production_order = $(this).data('production-order');
-      $.ajax({
-        url:"/generate_stock_entry/" + production_order,
-        type:"POST",
-        success:function(data){
-          console.log(data);
-          if(data.success == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if(data.success == 1){
-            get_production_order_items(production_order);
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#stock-entry-details-modal').modal('hide');
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
-
     function get_target_warehouse(operation_id, target_warehouse){
       $('#target-warehouse-sel').empty();
       $.ajax({

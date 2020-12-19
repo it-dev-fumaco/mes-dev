@@ -633,8 +633,15 @@ Route::get('/get_late_delivery', 'SecondaryController@get_tbl_late_delivery');
 Route::post('/save_late_delivery_reason', 'SecondaryController@save_late_delivery_reason');
 Route::get('/reschedule_prod_details/{production_order}', 'SecondaryController@reschedule_prod_details');
 
+
 //change code alert
 Route::get('/get_reload_tbl_change_code', 'SecondaryController@get_reload_tbl_change_code');
+
+//revise operator reject list setup
+Route::get('/get_material_type', 'SecondaryController@get_material_type');
+Route::post('/edit_material_type', 'SecondaryController@update_material_type');
+Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
+Route::post('/save_material_type', 'SecondaryController@save_material_type');
 
 
 Route::group(['middleware' => 'auth'], function(){

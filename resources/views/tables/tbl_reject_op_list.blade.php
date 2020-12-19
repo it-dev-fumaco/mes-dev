@@ -2,14 +2,16 @@
 
 <table class="table table-striped">
           <col style="width: 5%;">
-          <col style="width: 16%;">
-          <col style="width: 16%;">
-          <col style="width: 16%;">
-          <col style="width: 16%;">
-          <col style="width: 16%;">
-          <col style="width: 15%;">
+          <col style="width: 14%;">
+          <col style="width: 14%;">
+          <col style="width: 14%;">
+          <col style="width: 12%;">
+          <col style="width: 14%;">
+          <col style="width: 14%;">
+          <col style="width: 13%;">
         <thead class="text-primary" style="font-size: 10px;font-weight: bold;">
           <th class="text-center"><b>No.</b></th>
+          <th class="text-left"><b>Operation</b></th>
           <th class="text-left"><b>Reject Category</b></th>
           <th class="text-left"><b>Reject Reason</b></th> 
           <th class="text-left"><b>Responsible</b></th> 
@@ -21,13 +23,14 @@
           @forelse($reject_list as $index => $row)
             <tr>
             <td>{{ $row->reject_list_id }}</td>
+            <td class="text-left">{{ $row->operation_name }}</td>
             <td class="text-left">{{ $row->reject_category_name }}</td>
             <td class="text-left">{{ $row->reject_reason }}</td>
             <td class="text-left">{{ $row->responsible }}</td>
             <td class="text-left">{{ $row->material_type }}</td>
             <td class="text-left">{{ $row->recommended_action }}</td>
             <td>
-              <button type='button' class='btn btn-default hover-icon edit-rejectlist-btn' data-id="{{ $row->reject_list_id }}" data-ctgID="{{ $row->reject_category_id }}" data-rjtlist="{{ $row->reject_checklist }}" data-rjtreason="{{ $row->reject_reason }}" data-responsible="{{$row->responsible}}" data-owner="{{ $row->owner }}" data-action="{{ $row->recommended_action }}" data-mtype="{{$row->material_type}}" data-reloadtbl="Operator">
+              <button type='button' class='btn btn-default hover-icon edit-rejectlist-btn' data-id="{{ $row->reject_list_id }}" data-ctgID="{{ $row->reject_category_id }}" data-rjtlist="{{ $row->reject_checklist }}" data-rjtreason="{{ $row->reject_reason }}" data-responsible="{{$row->responsible}}" data-owner="{{ $row->owner }}" data-action="{{ $row->recommended_action }}" data-mtype="{{$row->material_type}}" data-opoperation="{{$row->operation_id}}" data-reloadtbl="Operator">
                 <i class='now-ui-icons design-2_ruler-pencil'></i>
               </button>
                 
