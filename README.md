@@ -37,6 +37,7 @@ Note: Please specify the Summary and Description on your every commit﻿ Finaliz
 </h2>
 <ul>
 <li>[<a href='https://fumacoinc.atlassian.net/browse/MES-712'>MES-712</a>] -  Display the new code of FG in planning wizzard
+<li>[<a href='https://fumacoinc.atlassian.net/browse/MES-710'>MES-710</a>] - Display original code with new code of FG in sales order tracking
 </li>
 </ul>
 

@@ -508,6 +508,9 @@
           <li class="nav-item">
             <a class="nav-link" id="inprog-tab" data-toggle="tab" href="#inprog" role="tab" aria-controls="inprog" aria-selected="false">Inactive In Progress</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" id="change_code_tab" data-toggle="tab" href="#change_code_prod" role="tab" aria-controls="changecode" aria-selected="false">Change Code Alert</a>
+          </li>
         </ul>
         <div class="tab-content" style="min-height: 620px;">
           <div class="tab-pane active" id="prod-href" role="tabpanel" aria-labelledby="prod-tab">
@@ -595,6 +598,21 @@
                       </div>
                       <div class="col-md-12">
                         <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-inprogress"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" id="change_code_prod" role="tabpanel" aria-labelledby="change_code_tab">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-change-code"></div>
                       </div>
                     </div>
                   </div>
@@ -2223,16 +2241,15 @@ console.log(data.responseText);
 $(document).on('click', '.btn-prod-notif', function(e){
 e.preventDefault();
 var operation_id= $('#primary-operation-id').val();
+get_notif_filters();
+reload_notif_table_inprogress();
+reload_tbl_change_code();
 $.ajax({
 url:"/get_all_prod_notif/"+ operation_id,
 type:"GET",
 success:function(data){
 $('#tbl-notifications').html(data);
 $('#view-notifications-modal').modal('show');
-get_notif_filters();
-reload_notif_table_inprogress();
-
-
 },
 error : function(data) {
 console.log(data.responseText);
@@ -2504,4 +2521,19 @@ $('#btnPrint').on("click", function () {
   });
 });
 </script>
+<script>
+  function reload_tbl_change_code(filters){
+  $.ajax({
+  url:"/get_reload_tbl_change_code",
+  type:"GET",
+  success:function(data){
+  $('#tbl-notifications-change-code').html(data);
+  // $('#view-notifications-modal').modal('show');
+  },
+  error : function(data) {
+  console.log(data.responseText);
+  }
+  });
+  }
+  </script>
 @endsection
