@@ -126,7 +126,8 @@ class ManufacturingController extends Controller
                     'bom_list' => $bom,
                     'rfd_no' => $rfd_no,
                     'stock' => $stock,
-                    'delivery_date' => $item->delivery_date
+                    'delivery_date' => $item->delivery_date,
+                    'change_code' => $this->erp_change_code_validation($item->name,$item->item_code)
                 ];
             }
 
