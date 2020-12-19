@@ -1,3 +1,14 @@
+@if($change_code['match'] == "false")
+<div class="alert alert-warning text-center" role="alert">
+  <span class="d-none"></span>
+  <div class="container">
+     <div class="alert-icon" style="color:black;">
+      <i class="now-ui-icons travel_info" style="padding-right:5px;"></i><span style="font-size:13pt;"> <b>Notification Change Code :</b></span> 
+            <span style="font-size:11pt;">Parent Item code was change to </span><span class="ml-1 font-weight-bold">{{$change_code['new_item']}}  </span>
+     </div>
+  </div>
+  </div>
+@endif
 <div class="content">
   <div class="row">
     <div class="col-md-9">
@@ -24,7 +35,7 @@
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no">{{ ($production->sales_order == '')? $production->material_request: $production->sales_order }}</span></td>
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust">{{$production->customer}}</span></td>
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"> {{$production->project}}</span></td>
-                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="del-date">{{($production->rescheduled_delivery_date == "null")? $production->delivery_date: $production->rescheduled_delivery_date}}</span></td>
+                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="del-date">{{($production->rescheduled_delivery_date == null)? $production->delivery_date: $production->rescheduled_delivery_date}}</span></td>
                
               </tr>
               <tr style="font-size: 10pt;display:none;">
@@ -74,7 +85,7 @@
                     <div  class="row bread justify-content-center" style="border: 1px solid black;border-radius: .2em;overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;">
                       <div class="row text-center bread justify-content-center" style="padding-top:5px">
                         <div class="col-md-12 bread">
-                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}</b> </span>
+                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} @if($change_code['match'] == "false") [ <span>{{$change_code['new_item']}}</span> ]   @endif</b> </span>
                         <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['item_name'] !!} </span>
                         <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
 
@@ -93,52 +104,6 @@
                       </div>
                     </div>
 
-
-<!--                         
-                            <a href="#" class="hvrlink aclass" style="background-color: {{ $colorme }};border:1px solid black;margin-bottom: 10px; display:{{ $displayme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $materials['production_order'] }}" class="prod-details-btn">{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} </span></b><br style="display:{{$hide_ongoing_process}}"><i>{{ $materials['parts_category'] }}</i><br>
-                            <label style="float: right;color:black;display:{{ $hideme }}"><b>Done:</b>&nbsp;{{ $materials['produced_qty'] }}</label>
-                            <label style="float: left;color:black;display:{{ $hideme }}"><b>Qty:</b>&nbsp;{{ $materials['qty_to_manufacture'] }} <span style="color: {{ ($materials['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $materials['available_stock'] }}</b>)</span></label>
-                            </a>
-                          <div class="details-pane">
-                            <h5 class="title">{{ $materials['item_code'] }}</h5>
-                                <p class="desc" style="padding-top: 5px;">
-                                  <b>Description:</b> {!! $materials['description'] !!}<br>  
-                                  <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                                  <b>Production Order : {{ $prod }}</b><br>          
-                                </p>
-                          </div>
-                          <br>
-                          <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt; display:{{ $displayme }}" class="mx-auto w-auto info">
-                            <tr>
-                              <td><b>BOM: </b></td>
-                              <td>{{ $materials['bom_no'] }}</td>
-                            </tr>
-                            <tr style="display: {{ ($materials['start_date'] == '') ? 'none' : '' }}">
-                              <td><b>Start Date: </b></td>
-                              <td>{{ $start_date }}</td>
-                            </tr>
-                            <tr style="display: {{ ($materials['status'] == 'Completed') ? '': 'none' }}">
-                              <td><b>End Date: </b></td>
-                              <td>{{ $end_date }}</td>
-                            </tr>
-                            <tr style="display: {{ ($materials['status'] == 'Completed') ? '': 'none' }}">
-                              <td><b>Duration: </b></td>
-                              <td>{{ $materials['duration'] }}</td>
-                            </tr>
-                            <tr>
-                              <td colspan="2" style="text-align: center; font-size: 9pt;">
-                                @if( $stat == 'Pending')
-                                <i><span>Pending</span><i>
-                                @else
-                                  @forelse($materials['current_load'] as $row)
-                                   {{ $row->workstation }} - {{ $row->process_name }} <br>
-                                  @empty
-                                 <i><span style="display:{{ $hide_ongoing_process }}">No On-going Process</span><i>
-                                  @endforelse
-                                @endif
-                              </td>
-                            </tr>
-                          </table> -->
                     <ul class="ulclass">
                       @foreach($boms as $idx => $item)
                       <li class="liclass">
@@ -519,14 +484,8 @@
             $uom= '';
 
           }
-          if($materials['operation_id'] == "3"){
-            if($materials['produced_qty'] == $materials['qty']){
+          if($timeline['fab_stat'] == "Completed" && $timeline['pain_stat'] == "Completed" && $timeline['assem_stat'] == "Completed"){
               $overall_stat='';
-            }else{
-              $overall_stat='none';
-            }
-            
-            
           }else{
             $overall_stat='none';
           }
@@ -616,7 +575,7 @@
                         <p style="font-size:0.8vw;"><i>{{ $assem_status_label }}</i></p>
                         <span style="display:{{ $display_assem_end}};font-size:0.8vw;"><b>Total Duration:</b>  {{ $timeline['assem_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
-                        <p style="display:{{ $display_assem }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['pain_min']}}</span> </p>
+                        <p style="display:{{ $display_assem }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['assem_min']}}</span> </p>
                         <p style="display:{{ $display_assem_end }}; font-size:0.7vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_assem }}</span></p>
                         </div>
                       </div>

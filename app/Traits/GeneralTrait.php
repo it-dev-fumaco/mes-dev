@@ -335,6 +335,9 @@ trait GeneralTrait
                 }
             }
         }
+        if ($stat == "Cancelled") {
+            $status = 'Cancelled';
+        }
         if ($stat == "Completed") {
             $status = 'Ready For Feedback';
         }
@@ -463,5 +466,23 @@ trait GeneralTrait
             DB::connection('mysql')->rollback();
             return ['status' => 0];
         }
+    }
+    public function erp_change_code_validation($erp_reference_id, $item_code){
+        $delivery_date_tbl= DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id',$erp_reference_id)->first();
+        $change_code[]=["match" => "" ];
+        if($delivery_date_tbl){
+            if($delivery_date_tbl->parent_item_code == $item_code){
+                $change_code[]=[
+                    "match" => "true"
+                ];
+            }else{
+                $change_code[]=[ 
+                    "match" => "false",
+                    "original_item" => $delivery_date_tbl->parent_item_code,
+                    'new_item' => $item_code
+                ];
+            }
+        }
+        return $change_code;
     }
 }

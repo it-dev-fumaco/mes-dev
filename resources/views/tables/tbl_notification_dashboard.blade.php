@@ -6,7 +6,16 @@
                            <col style="width: 10%;">
                            <tbody>
                               @foreach($notifications as $n)
-                              <tr class="{{ $n['type'] == 'Machine Breakdown' ? 'blink' : '' }}">
+                              @php
+                                 if($n['type'] == 'Machine Breakdown'){
+                                    $blink = 'blink';
+                                 }elseif($n['type'] == 'Change Code'){
+                                    $blink = "blink_changecode";
+                                 }else{
+                                    $blink ="";
+                                 }
+                              @endphp
+                              <tr class="{{$blink}}">
                                  <td>@if($n['type'] == 'Machine Breakdown')
                                     <img src="{{ asset('img/warning.png')}}" width="40">
                                     @else

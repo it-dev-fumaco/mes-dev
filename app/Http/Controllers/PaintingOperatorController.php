@@ -31,14 +31,14 @@ class PaintingOperatorController extends Controller
 	}
 
 	public function get_production_order_details($production_order, $process_id){
-		$now = Carbon::now()->format('Y-m-d');
+		$now = Carbon::now();
 		$task_qry = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
 			->where('process_id', $process_id)->first();
 		if (!$task_qry) {
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
 		}
 
-		if(!$task_qry->planned_start_date || $task_qry->planned_start_date != $now){
+		if(!$task_qry->planned_start_date || $task_qry->planned_start_date > $now->format('Y-m-d H:i:s')){
 			return response()->json(['success' => 2, 'message' => 'Task not scheduled for today.']);
 		}
 

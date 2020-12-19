@@ -61,7 +61,7 @@
 		<td class="text-center" colspan="2">
 			@if($issued_qty > 0)
 			<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}">Submit Withdrawal Slip</button>
-			@elseif(collect($required_items)->sum('required_qty') <= collect($required_items)->sum('transferred_qty'))
+			@elseif(collect($required_items)->sum('required_qty') <= collect($required_items)->sum('transferred_qty') && collect($required_items)->sum('transferred_qty') > 0)
 			<button class="btn btn-success m-1 p-3">Withdrawal Slip Submitted</button>
 			@else
 			<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}">Create Withdrawal Slip</button>

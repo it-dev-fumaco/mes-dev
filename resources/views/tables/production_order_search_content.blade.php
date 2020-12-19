@@ -147,6 +147,12 @@
 														<br><span style="font-size:9px;"><i>{{ $b['cycle_time'] }}</i></span>
 													</td>
 													@if (count($b['operations']) > 0)
+															<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
+																<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
+																	<b>{{ $b['process'] }}</b>
+																</span>
+																<br><span style="font-size:11px;"><b><i>{{ $b['count_good'] }}</i><b></span>
+															</td>
 														@foreach($b['operations'] as $c)
 															@php
 																$machine = ($c['machine_code']) ? $c['machine_code'] : '-';
@@ -154,7 +160,6 @@
 																$from_time = ($c['from_time']) ? $c['from_time'] : '-';
 																$to_time = ($c['to_time']) ? $c['to_time'] : '-';
 																$inprogress_class = ($c['status'] == 'In Progress') ? 'active-process' : '';
-
 																if($b['process'] == "Housing and Frame Welding"){
 																	$qc_status = '';
 																}else{
@@ -162,7 +167,6 @@
 																	$qc_status = ($c['qa_inspection_status'] == 'Pending') ? '' : $qc_status;
 																}
 															@endphp
-															<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
 															<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['good']) }}</b></td>
 															<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['reject']) }}</b></td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
@@ -170,7 +174,7 @@
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $to_time }}</td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $operator_name }}</td>
 														</tr>
-													@endforeach
+														@endforeach
 													@else
 														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
 														<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
@@ -249,6 +253,8 @@
 														$stat_badge ="danger";
 														}else if($rows['material_status'] == "Material Issued"){
 														$stat_badge ="primary";
+														}else if($rows['material_status'] == "Cancelled"){
+														$stat_badge ="danger";
 														}else if($rows['material_status'] == "Ready For Feedback"){
 														$stat_badge ="info";
 														}else if($rows['material_status'] == "Partial Feedbacked"){

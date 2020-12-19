@@ -376,7 +376,7 @@ Route::get('/get_shift_list_option', 'SecondaryController@get_shift_list_option'
 Route::get('/item_status_tracking', 'TrackingController@item_status_tracking_page');
 Route::get('/get_item_status_tracking', 'TrackingController@get_item_status_tracking');
 Route::get('/get_search_information_details', 'TrackingController@get_search_information_details');
-Route::get('/get_bom_tracking/{guide_id}/{item}', 'TrackingController@get_bom_tracking');
+Route::get('/get_bom_tracking', 'TrackingController@get_bom_tracking');
 Route::get('/production_schedule_calendar/{id}', 'SecondaryController@production_schedule_calendar');
 Route::get('/get_production_schedule_calendar/{id}', 'SecondaryController@get_production_schedule_calendar');
 
@@ -412,6 +412,9 @@ Route::get('/count_current_painting_production_schedule_monitoring/{date}', 'Sec
 Route::post('/move_today_task', 'SecondaryController@move_today_task');
 Route::post('/addnotes_task', 'SecondaryController@add_notes_task');
 Route::post('/mark_as_done_task_painting', 'SecondaryController@mark_as_done_task_painting');
+Route::get('/print_production_sched/{date}', 'SecondaryController@get_scheduled_for_painting');
+Route::get('/get_production_details_for_edit/{prod}', 'SecondaryController@get_production_details_for_edit');
+Route::post('/edit_cpt_status_qty', 'SecondaryController@edit_cpt_status_qty');
 
 //spotwelding_production_order_search
 Route::get('/spotwelding_production_order_search/{id}', 'SecondaryController@spotwelding_exploded_production_order_search');
@@ -629,6 +632,10 @@ Route::post('/edit_late_delivery_reason', 'SecondaryController@update_late_deliv
 Route::get('/get_late_delivery', 'SecondaryController@get_tbl_late_delivery');
 Route::post('/save_late_delivery_reason', 'SecondaryController@save_late_delivery_reason');
 Route::get('/reschedule_prod_details/{production_order}', 'SecondaryController@reschedule_prod_details');
+
+
+//change code alert
+Route::get('/get_reload_tbl_change_code', 'SecondaryController@get_reload_tbl_change_code');
 
 //revise operator reject list setup
 Route::get('/get_material_type', 'SecondaryController@get_material_type');

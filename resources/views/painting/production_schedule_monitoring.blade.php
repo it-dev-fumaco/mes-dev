@@ -406,6 +406,12 @@
    -webkit-animation-timing-function:ease-in-out;
    -webkit-animation-direction: alternate;
 }
+#editcpt-modal .form-control{	
+	  border: 1px solid #ccc;	
+	  border-radius: 3px;	
+	  box-shadow: none;	
+	  margin-bottom: 15px;	
+	}
 </style>
 
 <!-- Modal Confirm Feedback Production Order -->
