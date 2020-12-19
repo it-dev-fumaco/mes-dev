@@ -511,8 +511,7 @@ class AssemblyController extends Controller
      
         $operation_id = ($operation_details) ? $operation_details->operation_id : 0;
 
-        $assigned_production = DB::connection('mysql_mes')->table('assembly_conveyor_assignment')
-            ->where('scheduled_date', $scheduled_date)->get();
+        $assigned_production = DB::connection('mysql_mes')->table('assembly_conveyor_assignment')->get();
 
         $unassigned_production = DB::connection('mysql_mes')->table('production_order')
             ->where('operation_id', $operation_id)
@@ -521,6 +520,9 @@ class AssemblyController extends Controller
 
         $machines = DB::connection('mysql_mes')->table('machine')
             ->where('operation_id', $operation_id)->orderBy('order_no', 'asc')->get();
+
+        $start = Carbon::parse($scheduled_date)->startOfDay();
+        $end = Carbon::parse($scheduled_date)->endOfDay();
 
         $assigned_production_orders = [];
         foreach($machines as $machine){
@@ -533,13 +535,22 @@ class AssemblyController extends Controller
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
             // get scheduled production order before $scheduled_date
+            $q1 = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
+                ->join('production_order as po', 'aca.production_order', 'po.production_order')
+                ->whereIn('po.status', ['In Progress', 'Not Started'])
+                ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
+                ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description')
+                ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
+
+            // get scheduled production order before $scheduled_date
             $assigned_production_q = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
-                ->whereNotIn('po.status', ['Cancelled', 'Completed'])
+                ->whereIn('po.status', ['Completed'])
+                ->whereBetween('po.actual_end_date', [$start, $end])
                 ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc')
-                ->union($q)->get();
+                ->union($q)->union($q1)->get();
 
             $assigned_production_orders[] = [
                 'machine_code' => $machine->machine_code,
