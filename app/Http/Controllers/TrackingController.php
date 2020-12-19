@@ -84,7 +84,7 @@ class TrackingController extends Controller
                     ->join('tabItem as item', 'item.name', 'sotbl.item_code')
                     ->where('sotbl.parent', $sales_order)
                     ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date')
                     ->get();
         }else{
             $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
@@ -92,7 +92,7 @@ class TrackingController extends Controller
                     ->join('tabItem as item', 'item.name', 'sotbl.item_code')
                     ->where('sotbl.parent', $material_request)
                     ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date')
                     ->get();
         }
         
@@ -106,8 +106,7 @@ class TrackingController extends Controller
                         'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date,
                         'qty' => $row->qty,
                         'project' => $row->project,
-                        'creation' => $row->creation,
-                        'erp_reference_no' => $row->name
+                        'creation' => $row->creation
                     ];
             }
             return $production_order_list;
@@ -163,25 +162,7 @@ class TrackingController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function get_bom_tracking(Request $request){
-        $guide_id= $request->guideid;
-        $itemcode= $request->itemcode;
-        $delivery_date_tbl= DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $request->erp_reference_id)->first();
-        $change_code=["match" => "" ];
-        if($delivery_date_tbl){
-            if($delivery_date_tbl->parent_item_code == $request->itemcode){
-                $change_code=[
-                    "match" => "true"
-                ];
-            }else{
-                $change_code=[ 
-                    "match" => "false",
-                    "original_item" => $delivery_date_tbl->parent_item_code,
-                    'new_item' => $itemcode
-                ];
-                $itemcode= $delivery_date_tbl->parent_item_code;
-            }
-        }
+    public function get_bom_tracking($guide_id, $itemcode){
         $boms = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)->where('docstatus', '<', 2)
             ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description')
             ->orderBy('modified', 'desc')->get();
@@ -202,6 +183,7 @@ class TrackingController extends Controller
             $bom_get= $default_bom->name;
             $bom=$default_bom;
         }
+
         $production= DB::connection('mysql_mes')->table('production_order AS po')
             ->leftJoin('delivery_date', function($join){
                 $join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
@@ -215,6 +197,7 @@ class TrackingController extends Controller
             ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
             ->groupBy('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
             ->first();
+
         $parent_productions= DB::connection('mysql_mes')->table('production_order AS po')
             ->whereNotIn('po.status', ['Cancelled'])
             ->where(function($q) use ($guide_id) {
@@ -223,6 +206,7 @@ class TrackingController extends Controller
                 })
             ->where('item_code', $itemcode)
             ->first(); 
+
             $materials= [];            
             if (!empty($parent_productions)) {
                 $data1=[];
@@ -486,7 +470,7 @@ class TrackingController extends Controller
             $item_codes="";
         }
 
-        return view('tracking_flowchart', compact('boms', 'item_codes','guide_id', 'production','bom', 'materials', 'timeline', 'change_code'));
+        return view('tracking_flowchart', compact('boms', 'item_codes','guide_id', 'production','bom', 'materials', 'timeline'));
     }
     public function get_bom($bom, $guide_id, $item_code, $parent_item_code){
         try {
