@@ -45,7 +45,7 @@
         </td>
         <td class="text-center">
           <!-- <a href="/get_bom_tracking/{{$r['guide_id']}}/{{$rows['item_code']}}"> -->
-          <button class="btn btn-info btn-icon btn-round btn_trackmodal" data-itemcode="{{$rows['item_code']}}" data-guideid="{{$r['guide_id']}}" data-erpreferenceno="{{$rows['erp_reference_no']}}" data-customer="{!! str_limit($rows['customer'], $limit = 50, $end = '...') !!}">
+          <button class="btn btn-info btn-icon btn-round btn_trackmodal" data-itemcode="{{$rows['item_code']}}" data-guideid="{{$r['guide_id']}}" data-customer="{!! str_limit($rows['customer'], $limit = 50, $end = '...') !!}">
             <i class="now-ui-icons ui-1_zoom-bold" style="font-size: 15pt;"></i>
           </button>
         <!-- </a> -->
