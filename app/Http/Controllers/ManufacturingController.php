@@ -1429,6 +1429,18 @@ class ManufacturingController extends Controller
                 ->where('sted.item_code', $item->item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
                 ->sum('qty');
 
+            $item_status = 'For Checking';
+            if($has_pending_ste_for_issue == false){
+                $has_submitted_ste = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.production_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->where('ste.docstatus', 1)->where('sted.item_code', $item->item_code)->exists();
+                
+                if($has_submitted_ste == true){
+                    $item_status = 'Issued';
+                }
+            }
+
             if($has_production_order){
                 $parts[] = [
                     'name' => $item->name,
@@ -1447,6 +1459,7 @@ class ManufacturingController extends Controller
                     'available_qty_at_wip' => $available_qty_at_wip,
                     'has_pending_ste_for_issue' => $has_pending_ste_for_issue,
                     'status' => $has_production_order->status,
+                    'item_status' => $item_status
                 ];
             }else{
                 $components[] = [
@@ -1465,7 +1478,8 @@ class ManufacturingController extends Controller
                     'production_order' => null,
                     'available_qty_at_wip' => $available_qty_at_wip,
                     'has_pending_ste_for_issue' => $has_pending_ste_for_issue,
-                    'status' => null
+                    'status' => null,
+                    'item_status' => $item_status
                 ];
             }
         }

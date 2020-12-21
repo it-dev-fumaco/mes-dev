@@ -110,11 +110,12 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 3%;">
 				<col style="width: 8%;">
-				<col style="width: 34%;">
+				<col style="width: 26%;">
 				<col style="width: 13%;">
 				<col style="width: 13%;">
 				<col style="width: 9%;">
 				<col style="width: 10%;">
+				<col style="width: 8%;">
 				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
@@ -123,6 +124,7 @@
 					<th>WIP Warehouse</th>
 					<th>Required</th>
 					<th>Transferred / Issued</th>
+					<th>Item Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($components as $i => $component)
@@ -132,8 +134,9 @@
 						@php
 							$img = ($component['item_image']) ? "/img/" . $component['item_image'] : "/icon/no_img.png";
 
-							$swhb = ($component['actual_qty'] > 0) ? "badge badge-success" : "badge badge-danger";
-							$wwhb = ($component['available_qty_at_wip'] > 0) ? "badge badge-success" : "badge badge-danger";
+							$balance = $component['required_qty'] - $component['transferred_qty'];
+							$swhb = ($component['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+							$wwhb = ($component['available_qty_at_wip'] < $component['transferred_qty'] || $component['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
 
 							if($component['transferred_qty'] == $component['required_qty']){
 								$twhb = "badge badge-success";
@@ -142,6 +145,8 @@
 							}else{
 								$twhb = "badge badge-warning";
 							}
+
+							$item_status_badge = ($component['item_status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 						@endphp
 						<a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
@@ -167,6 +172,9 @@
 					<td class="text-center">
 						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
+					<td class="text-center">
+						<span class="badge {{ $item_status_badge }}" style="font-size: 9pt;">{{ $component['item_status'] }}</span>
 					</td>
 					<td class="text-center">
 						@php
@@ -195,13 +203,14 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;">
 				<col style="width: 8%;">
-				<col style="width: 25%;">
+				<col style="width: 18%;">
 				<col style="width: 9%;">
 				<col style="width: 13%;">
 				<col style="width: 13%;">
 				<col style="width: 9%;">
 				<col style="width: 9%;">
-				<col style="width: 11%;">
+				<col style="width: 8%;">
+				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
 					<th>Prod. Order</th>
@@ -211,6 +220,7 @@
 					<th>WIP Warehouse</th>
 					<th>Required</th>
 					<th>Transferred / Issued</th>
+					<th>Item Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($parts as $i => $part)
@@ -224,8 +234,10 @@
 						@endif
 					</td>
 					@php
-						$swhb = ($part['actual_qty'] > 0) ? "badge badge-success" : "badge badge-danger";
-						$wwhb = ($part['available_qty_at_wip'] > 0) ? "badge badge-success" : "badge badge-danger";
+						$balance = $part['required_qty'] - $part['transferred_qty'];
+						$swhb = ($part['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+						$wwhb = ($part['available_qty_at_wip'] < $part['transferred_qty'] || $part['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
+
 						if($part['transferred_qty'] == $part['required_qty']){
 							$twhb = "badge badge-success";
 						}elseif($part['transferred_qty'] <= 0){
@@ -239,9 +251,13 @@
 							$stat_badge = 'badge badge-success';
 						}elseif($part['status'] == 'In Progress'){
 							$stat_badge = 'badge badge-warning';
-						}else{
+						}elseif($part['status'] == 'Cancelled'){
 							$stat_badge = 'badge badge-danger';
+						}else{
+							$stat_badge = 'badge badge-secondary';
 						}
+
+						$item_status_badge = ($part['item_status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					@endphp
 					<td class="text-justify">
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
@@ -266,6 +282,9 @@
 					<td class="text-center">
 						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="text-center">
+						<span class="badge {{ $item_status_badge }}" style="font-size: 9pt;">{{ $part['item_status'] }}</span>
 					</td>
 					<td class="text-center">
 						@php
