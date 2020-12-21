@@ -47,11 +47,24 @@
    </thead>
    <tbody>
       @forelse($item_list as $idx => $item)
-      <tr>
+         @php
+               $div_color = ( $item['match'] == "false") ? "change_code_class":""; 
+               $div_hide = ( $item['match'] == "false") ? "" : "none";
+               $div_parent = ( $item['match'] == "false") ?  $item['new_code'] : "";
+               $div_orig = ( $item['match'] == "false") ?  $item['origl_code'] : "";
+         @endphp
+      <tr class="{{$div_color}}">
          <td class="text-center"><b>{{ $item['idx'] }}</b></td>
          <td class="text-justify">
             <span style="display: none;">{{ $item['idx'] }}</span>
             <span style="display: none;">{{ $item['sales_order'] }}</span>
+            <span style="display:{{$div_hide}};" style="text-align:center;">
+                <i class="now-ui-icons travel_info text-center" style="padding-right:5px; font-size:20px;"></i><span style="font-size:13pt;" class="text-center"> <b>Notification: Change Code </b></span> 
+                      <br>
+                      <span style="font-size:11pt;">Parent Item code was change from </span><span class="ml-1 font-weight-bold">{{$div_orig}} </span> to <span class="ml-1 font-weight-bold">{{$div_parent}}  </span>
+               <br>
+               <br>
+            </span>
             <b>{{ $item['item_code'] }}</b><br>{!! $item['description'] !!}
             <br><br><b>{{ $item['item_classification'] }}</b>
          </td>
@@ -100,3 +113,17 @@
 @if($so->notes)
    <span><b>Notes / Instructions:</b><br>{!! $so->notes !!}</span>
 @endif
+<style>
+   .change_code_class {
+      background-color: #ffbc50;
+      color: #000000;
+      animation: blinkingBackground_change_code 2.5s linear infinite;
+    }
+  @keyframes blinkingBackground_change_code{
+    0%    { background-color: #ffffff;}
+    25%   { background-color: #ffbc50;}
+    50%   { background-color: #ffffff;}
+    75%   { background-color: #ffbc50;}
+    100%  { background-color: #ffffff;}
+  }
+</style>

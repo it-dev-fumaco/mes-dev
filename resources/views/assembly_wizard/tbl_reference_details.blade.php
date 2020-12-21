@@ -47,56 +47,84 @@
    </thead>
    <tbody>
       @forelse($item_list as $idx => $item)
-      <tr>
-         <td class="text-center"><b>{{ $item['idx'] }}</b></td>
-         <td class="text-justify">
-            <span style="display: none;">{{ $item['idx'] }}</span>
-            <span style="display: none;">{{ $item['reference'] }}</span>
-            <b>{{ $item['item_code'] }}</b><br>{!! $item['description'] !!}
-            <br><br><b>{{ $item['item_classification'] }}</b>
-         </td>
-         <td class="text-center" style="font-size: 14pt;">
-            <span class="qty" style="display: none;">{{ $item['qty'] }}</span>
-            <b><span>{{ number_format($item['qty']) }}</span><br>{{ $item['uom'] }}</b>
-         </td>
-         <td class="text-center text-white" style="font-size: 14pt; background-color: {{ ($item['delivered_qty'] > 0) ? '#27AE60' : '#A6ACAF' }};"><b>{{ number_format($item['delivered_qty']) }}</b></td>
-         <td class="text-center text-white" style="background-color: {{ ($item['stock'] > 0) ? '#27AE60' : '#A6ACAF' }};">
-            @if(number_format($item['stock']) > 0)
-            <span style="font-size: 14pt;"><b>{{ number_format($item['stock']) > 0 }}</b></span>
-            @else
-            <span style="font-size: 10pt;"><b>Not Available</b></span>
-            @endif
-         <td class="text-center">
-            @if($item['bom'] != '-- No BOM --' || count($item['bom_list']) > 0)
-            <div class="input-group" style="margin: 0;">
-               <select class="custom-select" id="{{ $item['id'] }}">
-                  @foreach($item['bom_list'] as $bom)
-                  <option value="{{ $bom->name }}" {{ ($bom->name == $item['bom']) ? 'selected' : '' }}><b>{{ $bom->name }}</b></option>
-                  @endforeach
-               </select>
-               <div class="input-group-append">
-                  <button class="btn btn-info view-bom" type="button" data-id="{{ $item['id'] }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
-               </div>
-            </div>
-            @else
-            <span>-- No BOM --</span>
-            @endif
-         </td>
-         <td class="td-actions text-center">
-            <span class="item-reference-id d-none">{{ $item['id'] }}</span>
-            <span class="delivery-date d-none">{{ $item['delivery_date'] }}</span>
-            <button type="button" rel="tooltip" class="btn btn-danger delete-row">
-               <i class="now-ui-icons ui-1_simple-remove"></i>
-            </button>
-         </td>
-      </tr>
-      @empty
-      <tr>
-         <td colspan="9" class="text-center">No Material Request Item(s) Found.</td>
-      </tr>
+         @php
+            $div_color = ( $item['match'] == "false") ? "change_code_class":""; 
+            $div_hide = ( $item['match'] == "false") ? "" : "none";
+            $div_parent = ( $item['match'] == "false") ?  $item['new_code'] : "";
+            $div_orig = ( $item['match'] == "false") ?  $item['origl_code'] : "";
+         @endphp
+            <tr class="{{$div_color}}">
+               <td class="text-center"><b>{{ $item['idx'] }}</b></td>
+               <td class="text-justify">
+                  <span style="display: none;">{{ $item['idx'] }}</span>
+                  <span style="display: none;">{{ $item['reference'] }}</span>
+                  <span style="display:{{$div_hide}};" style="text-align:center;">
+                     <i class="now-ui-icons travel_info text-center" style="padding-right:5px; font-size:20px;"></i><span style="font-size:13pt;" class="text-center"> <b>Notification: Change Code </b></span> 
+                           <br>
+                           <span style="font-size:11pt;">Parent Item code was change from </span><span class="ml-1 font-weight-bold">{{$div_orig}} </span> to <span class="ml-1 font-weight-bold">{{$div_parent}}  </span>
+                    <br>
+                    <br>
+                 </span>
+                  <b>{{ $item['item_code'] }}</b><br>{!! $item['description'] !!}
+                  <br><br><b>{{ $item['item_classification'] }}</b>
+               </td>
+               <td class="text-center" style="font-size: 14pt;">
+                  <span class="qty" style="display: none;">{{ $item['qty'] }}</span>
+                  <b><span>{{ number_format($item['qty']) }}</span><br>{{ $item['uom'] }}</b>
+               </td>
+               <td class="text-center text-white" style="font-size: 14pt; background-color: {{ ($item['delivered_qty'] > 0) ? '#27AE60' : '#A6ACAF' }};"><b>{{ number_format($item['delivered_qty']) }}</b></td>
+               <td class="text-center text-white" style="background-color: {{ ($item['stock'] > 0) ? '#27AE60' : '#A6ACAF' }};">
+                  @if(number_format($item['stock']) > 0)
+                  <span style="font-size: 14pt;"><b>{{ number_format($item['stock']) > 0 }}</b></span>
+                  @else
+                  <span style="font-size: 10pt;"><b>Not Available</b></span>
+                  @endif
+               <td class="text-center">
+                  @if($item['bom'] != '-- No BOM --' || count($item['bom_list']) > 0)
+                  <div class="input-group" style="margin: 0;">
+                     <select class="custom-select" id="{{ $item['id'] }}">
+                        @foreach($item['bom_list'] as $bom)
+                        <option value="{{ $bom->name }}" {{ ($bom->name == $item['bom']) ? 'selected' : '' }}><b>{{ $bom->name }}</b></option>
+                        @endforeach
+                     </select>
+                     <div class="input-group-append">
+                        <button class="btn btn-info view-bom" type="button" data-id="{{ $item['id'] }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                     </div>
+                  </div>
+                  @else
+                  <span>-- No BOM --</span>
+                  @endif
+               </td>
+               <td class="td-actions text-center">
+                  <span class="item-reference-id d-none">{{ $item['id'] }}</span>
+                  <span class="delivery-date d-none">{{ $item['delivery_date'] }}</span>
+                  <button type="button" rel="tooltip" class="btn btn-danger delete-row">
+                     <i class="now-ui-icons ui-1_simple-remove"></i>
+                  </button>
+               </td>
+            </tr>
+            @empty
+            <tr>
+               <td colspan="9" class="text-center">No Material Request Item(s) Found.</td>
+            </tr>
+       
       @endforelse
    </tbody>
 </table>
 @if($reference_details['notes'])
    <span><b>Notes / Instructions:</b><br>{!! $reference_details['notes'] !!}</span>
 @endif
+<style>
+   .change_code_class {
+      background-color: #ffbc50;
+      color: #000000;
+      animation: blinkingBackground_change_code 2.5s linear infinite;
+    }
+  @keyframes blinkingBackground_change_code{
+    0%    { background-color: #ffffff;}
+    25%   { background-color: #ffbc50;}
+    50%   { background-color: #ffffff;}
+    75%   { background-color: #ffbc50;}
+    100%  { background-color: #ffffff;}
+  }
+</style>

@@ -206,7 +206,6 @@ class MainController extends Controller
 				}
 			}
 		} catch (\Exception $e) {
-			return $e;
 			return response()->json(['success' => 0, 'message' => '<b>There was a problem connecting to ESSEX.</b>']);
 		}
 	}
@@ -940,7 +939,26 @@ class MainController extends Controller
 
 	public function getNotifications(){
 		$now = Carbon::now();
+		$notifs = [];
+		$get_prod_sched_today=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $now)->groupBy('parent_item_code', 'sales_order', 'material_request')->select('parent_item_code', 'sales_order', 'material_request')->get();
+		foreach($get_prod_sched_today as $row){
+			$reference= ($row->sales_order == null)? $row->material_request: $row->sales_order;
+			$tbl_reference= ($row->sales_order == null)? "tabMaterial Request Item": "tabSales Order Item";
+			$get_delivery_date=DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $row->parent_item_code)->first();
+			if(!empty($get_delivery_date)){
+				$erp_sales_order=DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->first()->item_code;
+				if($erp_sales_order != $row->parent_item_code){
+					$notifs[] = [	
+						'type' => 'Change Code',
+						'message' => 'Parent item code was change <br> from <b>'.$row->parent_item_code.'</b> to <b>'.$erp_sales_order.'</b> <br> Reference no: <b> '.$reference.'</b>',
+						'created' => $now->toDateTimeString(),
+						'timelog_id' =>	"",
+						'table' => 'ERP'
+					];
+				}
+			}
 
+		}
 		$user_permitted_operations = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
             ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
@@ -969,7 +987,6 @@ class MainController extends Controller
 			->select('m.*', 'mb.category', 'mb.date_reported','mb.type')
 			->get();
 
-		$notifs = [];
 		foreach ($machine_breakdown as $mb) {
 			$converted= Carbon::parse($mb->date_reported)->format('Y-m-d');
 			
@@ -987,7 +1004,17 @@ class MainController extends Controller
 				'table' => 'machine'
 			];
 		}
-		$prod_late_delivery= DB::connection('mysql_mes')->table('production_order')->whereRaw('planned_start_date > delivery_date')->where('status', '!=', 'Completed')->whereDate('created_at', '>', '2020-07-01')->select('production_order','delivery_date', 'planned_start_date', 'stock_uom','qty_to_manufacture', 'created_at')->where('operation_id', '3')->get();
+		$prod_late_delivery= DB::connection('mysql_mes')
+		->table('production_order')
+		->leftJoin('delivery_date', function($join){
+			$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+			$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+		})
+		->whereRaw('production_order.planned_start_date > production_order.delivery_date')
+		->where('production_order.status', '!=', 'Completed')
+		->whereDate('production_order.created_at', '>', '2020-07-01')
+		->select( 'delivery_date.rescheduled_delivery_date','production_order.production_order','production_order.delivery_date', 'production_order.planned_start_date', 'production_order.stock_uom','production_order.qty_to_manufacture', 'production_order.created_at')
+		->where('production_order.operation_id', '3')->get();
 		// dd($prod_late_delivery);
 		// $unassigned = Carbon::now()->subHour(8)->toDateTimeString();
 		// $accepted = Carbon::now()->subHour(2)->toDateTimeString();
@@ -1014,15 +1041,14 @@ class MainController extends Controller
 			->get();
 
 		$get_spotwelding_reject= DB::connection('mysql_mes')->table('spotwelding_qty as spotqty')
-			// ->join('spotwelding_part as spotpart', 'spotpart.spotwelding_part_id', 'spotqty.spotwelding_part_id')
-		->join('job_ticket as jt', 'jt.job_ticket_id', 'spotqty.job_ticket_id')
-		->join('process as p','p.process_id','jt.process_id')
-		->whereIn('jt.workstation', $permitted_workstation)
-		->where('spotqty.reject','>', 0)
-		->where('spotqty.is_hide','=',0)
-		->select('spotqty.*', 'jt.workstation', 'p.process_name', 'jt.production_order')
-		->whereDate('spotqty.created_at','>=', $dateMinusOneWeek)
-		->get();
+			->join('job_ticket as jt', 'jt.job_ticket_id', 'spotqty.job_ticket_id')
+			->join('process as p','p.process_id','jt.process_id')
+			->whereIn('jt.workstation', $permitted_workstation)
+			->where('spotqty.reject','>', 0)
+			->where('spotqty.is_hide','=',0)
+			->select('spotqty.*', 'jt.workstation', 'p.process_name', 'jt.production_order')
+			->whereDate('spotqty.created_at','>=', $dateMinusOneWeek)
+			->get();
 		
 		$item_list = DB::connection('mysql')->table('tabItem as item')
             ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
@@ -1055,9 +1081,10 @@ class MainController extends Controller
 				}
 		}
 		foreach ($prod_late_delivery as $prodsched) {
+			$delivery_date=($prodsched->rescheduled_delivery_date == null)? $prodsched->delivery_date:$prodsched->rescheduled_delivery_date;
 			$notifs[] = [	
 				'type' => 'Production Schedule',
-				'message' => '<b>'.$prodsched->production_order.'</b><br> Delivery Date:'.$prodsched->delivery_date.'<br> Planned Start Date:'.$prodsched->planned_start_date.'<br> QTY: <b>' . $prodsched->qty_to_manufacture.'&nbsp;'.$prodsched->stock_uom.'</b>',
+				'message' => '<b>'.$prodsched->production_order.'</b><br> Delivery Date:'.$delivery_date.'<br> Planned Start Date:'.$prodsched->planned_start_date.'<br> QTY: <b>' . $prodsched->qty_to_manufacture.'&nbsp;'.$prodsched->stock_uom.'</b>',
 				'created' => $prodsched->created_at,
 				'timelog_id' =>	"",
 				'table' => 'production_scheduling'
@@ -1086,8 +1113,6 @@ class MainController extends Controller
 			];
 		}
 		$dif= collect($notifs)->SortByDesc('created');
-
-				// dd($dif);
 
 		return $dif;
 	}
@@ -2553,7 +2578,6 @@ class MainController extends Controller
 			}
 	
 			return $scheduled;
-		
 	}
 
 	public function format_for_estimates($cycle_time_in_seconds){
@@ -3041,7 +3065,6 @@ class MainController extends Controller
     		}
 
 			if ($request->qc_type == 'Reject Confirmation') {
-				// return $request->all();
 				// request id = qa id
 				$time_log_details = DB::connection('mysql_mes')->table('time_logs')
 						->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
@@ -4249,8 +4272,6 @@ class MainController extends Controller
 
 		$bom_parts = $this->get_production_order_bom_parts($request->production_order);
 
-		// return $bom_parts;
-
 		$timelogs = DB::connection('mysql_mes')->table('time_logs')
 			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 			->where('job_ticket.job_ticket_id', $request->job_ticket_id)
@@ -4479,17 +4500,17 @@ class MainController extends Controller
 				
 				$qty = $qty_per_item * $request->fg_completed_qty;
 
-				// $is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first();
-				// if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
-				// 	$qty = round($qty);
-				// }
+				$is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row->stock_uom)->first();
+				if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
+					$qty = round($qty);
+				}
 
 				if($qty <= 0){
 					return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0 for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
 				}
 
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
-					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');				
+					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
 
 				// $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
 				// 	->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
@@ -5276,21 +5297,79 @@ class MainController extends Controller
 
 	public function get_pending_material_transfer_for_manufacture($production_order, Request $request){
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')
-				->where('production_order', $production_order)->first();
+            ->join('delivery_date', function ($join) {
+                $join->on('delivery_date.parent_item_code', '=', 'production_order.parent_item_code')
+                    ->on('delivery_date.reference_no', '=', 'production_order.sales_order')
+                    ->orOn('delivery_date.reference_no', '=', 'production_order.material_request');  //Inner join new table for Delivery Date
+            })
+            ->where('production_order.production_order', $production_order)
+            ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
+            ->first();
 				
-		$list = DB::connection('mysql')->table('tabStock Entry as ste')
+		$q = DB::connection('mysql')->table('tabStock Entry as ste')
 			->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 			->where('ste.production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
 			->select('sted.name as sted_id', 'ste.name', 'sted.item_code', 'sted.description', 'sted.qty', 'sted.stock_uom', 'sted.s_warehouse', 'sted.t_warehouse', 'sted.status', 'sted.session_user', 'sted.date_modified')
 			->where('ste.docstatus', 0)->get();
-		
+
+		$components = $parts = [];
+		foreach ($q as $row) {
+			$item_details = DB::connection('mysql')->table('tabItem')->where('name', $row->item_code)->first();
+            // get item stock based on feedbacked qty for housing and other items with sub assemblies
+            $has_production_order = DB::connection('mysql_mes')->table('production_order')
+                ->where('item_code', $row->item_code)->where('parent_item_code', $production_order_details->parent_item_code)
+                ->where('sales_order', $production_order_details->sales_order)
+                ->where('material_request', $production_order_details->material_request)
+                ->where('sub_parent_item_code', $production_order_details->item_code)->first();
+				
+			$available_qty_at_source = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
+				->where('warehouse', $row->s_warehouse)->sum('actual_qty');
+
+			$available_qty_at_wip = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
+				->where('warehouse', $row->t_warehouse)->sum('actual_qty');
+
+            if($has_production_order){
+                $parts[] = [
+					'name' => $row->name,
+					'item_code' => $row->item_code,
+					'item_image' => $item_details->item_image_path,
+					'description' => $row->description,
+					's_warehouse' => $row->s_warehouse,
+					't_warehouse' => $row->t_warehouse,
+					'qty' => $row->qty,
+					'stock_uom' => $row->stock_uom,
+					'status' => $row->status,
+					'available_qty_at_source' => $available_qty_at_source * 1,
+					'available_qty_at_wip' => $available_qty_at_wip * 1,
+                    'production_order' => $has_production_order->production_order,
+                ];
+            }else{
+                $components[] = [
+					'name' => $row->name,
+					'item_code' => $row->item_code,
+					'item_image' => $item_details->item_image_path,
+					'description' => $row->description,
+					's_warehouse' => $row->s_warehouse,
+					't_warehouse' => $row->t_warehouse,
+					'qty' => $row->qty,
+					'stock_uom' => $row->stock_uom,
+					'status' => $row->status,
+					'available_qty_at_source' => $available_qty_at_source * 1,
+					'available_qty_at_wip' => $available_qty_at_wip * 1,
+                    'production_order' => null,
+                ];
+			}
+		}
+
+		$list = array_merge($components, $parts);
+
 		$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $production_order_details->item_code)
 			->where('warehouse', $production_order_details->fg_warehouse)->sum('actual_qty');
 
 		$url = $request->fullUrl();
-		$feedbacked_log= DB::connection('mysql_mes')->table('feedbacked_logs')->where('production_order', $production_order)->get();
+		$feedbacked_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->where('production_order', $production_order)->get();
 
-		return view('tables.tbl_pending_material_transfer_for_manufacture', compact('list', 'url', 'production_order_details', 'actual_qty','feedbacked_log'));
+		return view('tables.tbl_pending_material_transfer_for_manufacture', compact('components', 'parts', 'list', 'url', 'production_order_details', 'actual_qty','feedbacked_logs'));
 	}
 
 	public function delete_pending_material_transfer_for_manufacture($production_order, Request $request){
@@ -5618,7 +5697,7 @@ class MainController extends Controller
 
 				); 
 				if($get_sales_order_owner->owner =! "Administrator"){
-					Mail::to($get_sales_order_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to($get_sales_order_owner->owner, "john.delacruz@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 				}				
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->update($mes_data);//update the reschedule delivery date in delivery date table
@@ -5669,7 +5748,7 @@ class MainController extends Controller
 
 				); 
 				if($get_mreq_owner->owner != "Administrator"){
-					Mail::to($get_mreq_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to($get_mreq_owner->owner, "john.delacruz@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 				}
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->update($mes_data);

@@ -111,7 +111,20 @@ class ManufacturingController extends Controller
                 $default_bom = collect($bom)->where('is_default', 1)->first();
                 $default_bom_no = ($default_bom) ? $default_bom->name : '-- No BOM --';
                 $rfd_no = ($default_bom) ? $default_bom->rf_drawing_no : null;
-
+                $delivery_date_tbl= DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $item->name)->first();
+                $match= "";
+                $new_code= "";
+                $origl_code= "";
+                if($delivery_date_tbl){
+                    if($delivery_date_tbl->parent_item_code == $item->item_code){
+                        $match= "true";
+                       
+                    }else{
+                        $match = "false";
+                        $origl_code = $delivery_date_tbl->parent_item_code;
+                        $new_code= $item->item_code;
+                    }
+                }
                 $item_list[] = [
                     'id' => $item->name,
                     'idx' => $item->idx,
@@ -126,7 +139,10 @@ class ManufacturingController extends Controller
                     'bom_list' => $bom,
                     'rfd_no' => $rfd_no,
                     'stock' => $stock,
-                    'delivery_date' => $item->delivery_date
+                    'delivery_date' => $item->delivery_date,
+                    'match'=> $match,
+                    'origl_code' => $origl_code,
+                    'new_code' => $new_code
                 ];
             }
 
@@ -135,7 +151,6 @@ class ManufacturingController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-
     public function view_bom($bom){
         $bom = $this->get_bom($bom);
 
@@ -1428,6 +1443,18 @@ class ManufacturingController extends Controller
                 ->where('sted.item_code', $item->item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
                 ->sum('qty');
 
+            $item_status = 'For Checking';
+            if($has_pending_ste_for_issue == false){
+                $has_submitted_ste = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.production_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->where('ste.docstatus', 1)->where('sted.item_code', $item->item_code)->exists();
+                
+                if($has_submitted_ste == true){
+                    $item_status = 'Issued';
+                }
+            }
+
             if($has_production_order){
                 $parts[] = [
                     'name' => $item->name,
@@ -1444,7 +1471,9 @@ class ManufacturingController extends Controller
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => $has_production_order->production_order,
                     'available_qty_at_wip' => $available_qty_at_wip,
-                    'has_pending_ste_for_issue' => $has_pending_ste_for_issue
+                    'has_pending_ste_for_issue' => $has_pending_ste_for_issue,
+                    'status' => $has_production_order->status,
+                    'item_status' => $item_status
                 ];
             }else{
                 $components[] = [
@@ -1462,16 +1491,14 @@ class ManufacturingController extends Controller
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => null,
                     'available_qty_at_wip' => $available_qty_at_wip,
-                    'has_pending_ste_for_issue' => $has_pending_ste_for_issue
+                    'has_pending_ste_for_issue' => $has_pending_ste_for_issue,
+                    'status' => null,
+                    'item_status' => $item_status
                 ];
             }
         }
 
         $required_items = array_merge($components, $parts);
-
-        $reference_stock_entry = DB::connection('mysql')->table('tabStock Entry')
-            ->where('production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
-            ->where('docstatus', 1)->pluck('name');
 
         // get returned / for return items linked with production order (stock entry material transfer)
         $item_returns = DB::connection('mysql')->table('tabStock Entry as ste')
@@ -1508,7 +1535,9 @@ class ManufacturingController extends Controller
             ->where('sted.status', 'Issued')->where('ste.purpose', 'Material Transfer for Manufacture')
             ->sum('qty');
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'reference_stock_entry', 'components', 'parts', 'items_return', 'issued_qty'));
+        $feedbacked_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->where('production_order', $production_order)->get();
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs'));
     }
 
     public function create_material_transfer_for_return(Request $request){

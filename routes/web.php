@@ -376,7 +376,7 @@ Route::get('/get_shift_list_option', 'SecondaryController@get_shift_list_option'
 Route::get('/item_status_tracking', 'TrackingController@item_status_tracking_page');
 Route::get('/get_item_status_tracking', 'TrackingController@get_item_status_tracking');
 Route::get('/get_search_information_details', 'TrackingController@get_search_information_details');
-Route::get('/get_bom_tracking/{guide_id}/{item}', 'TrackingController@get_bom_tracking');
+Route::get('/get_bom_tracking', 'TrackingController@get_bom_tracking');
 Route::get('/production_schedule_calendar/{id}', 'SecondaryController@production_schedule_calendar');
 Route::get('/get_production_schedule_calendar/{id}', 'SecondaryController@get_production_schedule_calendar');
 
@@ -632,6 +632,16 @@ Route::post('/edit_late_delivery_reason', 'SecondaryController@update_late_deliv
 Route::get('/get_late_delivery', 'SecondaryController@get_tbl_late_delivery');
 Route::post('/save_late_delivery_reason', 'SecondaryController@save_late_delivery_reason');
 Route::get('/reschedule_prod_details/{production_order}', 'SecondaryController@reschedule_prod_details');
+
+
+//change code alert
+Route::get('/get_reload_tbl_change_code', 'SecondaryController@get_reload_tbl_change_code');
+
+//revise operator reject list setup
+Route::get('/get_material_type', 'SecondaryController@get_material_type');
+Route::post('/edit_material_type', 'SecondaryController@update_material_type');
+Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
+Route::post('/save_material_type', 'SecondaryController@save_material_type');
 
 
 Route::group(['middleware' => 'auth'], function(){

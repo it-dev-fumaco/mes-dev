@@ -5906,18 +5906,23 @@ class SecondaryController extends Controller
 
     }
     public function get_reject_category_for_add_reject_modal(){
-        $output="";
+        $ouput_material_type='<option value="">Select Material Type</option>';
+        $output_category= '<option value="">Select Category</option>';
+        $output_operation='<option value="">Select Operation</option>';
+        $category= DB::connection('mysql_mes')->table('reject_category')->get();
+        $get_operation=DB::connection('mysql_mes')->table('operation')->get();
+        $get_material_type=DB::connection('mysql_mes')->table('reject_material_type')->get();
 
-                $category= DB::connection('mysql_mes')->table('reject_category')
-                        ->get();
-
-            
-            foreach($category as $row)
-                 {
-                $output .= '<option value="'.$row->reject_category_id.'">'.$row->reject_category_name.'</option>';
-                 }
-            
-        return $output;
+        foreach($category as $row){
+            $output_category .= '<option value="'.$row->reject_category_id.'">'.$row->reject_category_name.'</option>';
+        }
+        foreach($get_operation as $row){
+            $output_operation .= '<option value="'.$row->operation_id.'">'.$row->operation_name.'</option>';
+        }
+        foreach($get_material_type as $row){
+            $ouput_material_type .= '<option value="'.$row->reject_material_type_id.'">'.$row->material_type.'</option>';
+        }
+        return response()->json(['success' => 1, 'operation' => $output_operation,'category'=>$output_category, 'material_type' => $ouput_material_type ]);
     }
     public function save_checklist(Request $request){
         $now = Carbon::now();
@@ -6034,6 +6039,7 @@ class SecondaryController extends Controller
                 $workstation= DB::connection('mysql_mes')->table('workstation as w')
                 ->join('operation as op','op.operation_id', 'w.operation_id')
                 ->where('w.operation_id', $operation)
+                ->where('w.workstation_name', '!=', "Painting")
                 ->select('op.operation_name as operation','w.workstation_id', 'w.workstation_name')
                 ->get();
             }
@@ -6046,8 +6052,8 @@ class SecondaryController extends Controller
         return $output;
     }
     public function save_reject_list(Request $request){
+
         $now = Carbon::now();
-        // dd($request->all());
         $data = $request->all();
         $reason= $data['reject_reason'];
         $responsible = $data['responsible'];
@@ -6059,16 +6065,15 @@ class SecondaryController extends Controller
         }else{
             $checklist=$data['reject_checklist'];
         }
-        
-            
                 foreach($reason as $i => $row){
                     if (DB::connection('mysql_mes')
                         ->table('reject_list')
                         ->where('reject_category_id', $request->reject_category)
                         ->where('reject_checklist', $checklist[$i])
-                        ->where('material_type', $request->m_type[$i])
+                        ->where('reject_material_type_id', $request->m_type[$i])
                         ->where('reject_reason', $row)
                         ->where('owner',$r_owner)
+                        ->where('operation_id',$request->op_operation)
                         ->where('responsible', $responsible[$i])
                         ->where('recommended_action', $action[$i])
                         ->where('owner', $request->reject_owner)
@@ -6079,9 +6084,10 @@ class SecondaryController extends Controller
                         $rejectlist[] = [
                             'reject_category_id' => $request->reject_category,
                             'reject_checklist' => $checklist[$i],
-                            'material_type' => $m_type[$i],
+                            'reject_material_type_id' => $m_type[$i],
                             'reject_reason' => $row,
                             'owner' => $r_owner,
+                            'operation_id' => $request->op_operation,
                             'responsible' => $responsible[$i],
                             'recommended_action' => $action[$i],
                             'last_modified_by' => Auth::user()->email,
@@ -6096,18 +6102,19 @@ class SecondaryController extends Controller
     }
     public function get_tbl_qa_reject_list(Request $request){
         $reject_list = DB::connection('mysql_mes')->table('reject_list as rl')
+            ->leftJoin('reject_material_type', 'reject_material_type.reject_material_type_id', 'rl.reject_material_type_id')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
-            ->select('rl.*','rc.reject_category_name')
             ->whereIn('rl.owner', ['Quality Assurance','null'])
             ->where(function($q) use ($request) {
                 $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-                ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
+                    ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('rl.material_type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('reject_material_type.material_type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
+            ->select('rl.*','rc.reject_category_name', 'reject_material_type.material_type')
             ->orderBy('reject_list_id', 'desc')->paginate(8);
             
         return view('tables.tbl_reject_list', compact('reject_list'));
@@ -6116,15 +6123,18 @@ class SecondaryController extends Controller
     public function get_tbl_op_reject_list(Request $request){
         $reject_list = DB::connection('mysql_mes')->table('reject_list as rl')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
-            ->select('rl.*','rc.reject_category_name')
+            ->leftJoin('reject_material_type', 'reject_material_type.reject_material_type_id', 'rl.reject_material_type_id')
+            ->leftJoin('operation', 'operation.operation_id', 'rl.operation_id')
             ->where('rl.owner', 'Operator')
             ->where(function($q) use ($request) {
                 $q->where('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('rl.material_type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('reject_material_type.material_type', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
+            ->select('rl.*','rc.reject_category_name', 'reject_material_type.material_type', 'operation.operation_name')
             ->orderBy('reject_list_id', 'desc')->paginate(8);
             
         return view('tables.tbl_reject_op_list', compact('reject_list'));
@@ -6134,7 +6144,6 @@ class SecondaryController extends Controller
         $now = Carbon::now();
         // dd($request->all());
         $rejectlist = [];
-        
             if (DB::connection('mysql_mes')->table('reject_list')
                 ->where('reject_category_id', $request->edit_reject_category)
                 ->where('reject_checklist', $request->edit_reject_checklist)
@@ -6142,11 +6151,10 @@ class SecondaryController extends Controller
                 ->where('responsible', $request->edit_reject_responsible)
                 ->where('recommended_action', $request->edit_r_action)
                 ->where('owner', $request->edit_reject_owner)
-                ->where('material_type', $request->edit_material_type)
+                ->where('reject_material_type_id', $request->edit_material_type)
                 ->exists()){
 
-                    if(strtoupper($request->orig_reject_category) == strtoupper($request->edit_reject_category) && strtoupper($request->orig_reject_checklist) == strtoupper($request->edit_reject_checklist) && strtoupper($request->orig_reject_reason) == strtoupper($request->edit_reject_reason) && strtoupper($request->edit_reject_responsible) == strtoupper($request->orig_reject_responsible) && strtoupper($request->edit_r_action) == strtoupper($request->orig_r_action) && strtoupper($request->orig_material_type) == strtoupper($request->edit_material_type)){
-                        
+                    if(strtoupper($request->orig_reject_category) == strtoupper($request->edit_reject_category) && strtoupper($request->orig_reject_checklist) == strtoupper($request->edit_reject_checklist) && strtoupper($request->orig_reject_reason) == strtoupper($request->edit_reject_reason) && strtoupper($request->edit_reject_responsible) == strtoupper($request->orig_reject_responsible) && strtoupper($request->edit_r_action) == strtoupper($request->orig_r_action) && strtoupper($request->orig_material_type) == strtoupper($request->edit_material_type) && strtoupper($request->orig_reject_operation) == strtoupper($request->edit_reject_operation)){
                         $rejectlist = [
                         'reject_category_id' => $request->edit_reject_category,
                         'reject_checklist' => $request->edit_reject_checklist,
@@ -6154,8 +6162,9 @@ class SecondaryController extends Controller
                         'owner'=> $request->edit_reject_owner,
                         'responsible' => $request->edit_reject_responsible,
                         'recommended_action' => $request->edit_r_action,
-                        'material_type' => $request->edit_material_type,
+                        'reject_material_type_id' => $request->edit_material_type,
                         'last_modified_by' => Auth::user()->email,
+                        'operation_id' => $request->edit_reject_operation,
                         ];
                         DB::connection('mysql_mes')->table('reject_list')->where('reject_list_id', $request->edit_id_reject)->update($rejectlist);
                         return response()->json(['success' => 1,'message' => 'Reject Checklist is successfully updated.','reloadtbl' => $request->reloadtbl_edit]);
@@ -6163,8 +6172,7 @@ class SecondaryController extends Controller
                         return response()->json(['success' => 0, 'message' => 'Reject - <b>'.$request->edit_reject_checklist.'</b> is already exist']);           
 
                     }
-            }
-            else{
+            }else{
                         $rejectlist = [
                         'reject_category_id' => $request->edit_reject_category,
                         'reject_checklist' => $request->edit_reject_checklist,
@@ -6172,8 +6180,10 @@ class SecondaryController extends Controller
                         'owner'=> $request->edit_reject_owner,
                         'responsible' => $request->edit_reject_responsible,
                         'recommended_action' => $request->edit_r_action,
-                        'material_type' => $request->edit_material_type,
+                        'reject_material_type_id' => $request->edit_material_type,
                         'last_modified_by' => Auth::user()->email,
+                        'operation_id' => $request->edit_reject_operation,
+
                         ];
                         DB::connection('mysql_mes')->table('reject_list')->where('reject_list_id', $request->edit_id_reject)->update($rejectlist);
                         return response()->json(['success' => 1,'message' => 'Reject Checklist is successfully updated.','reloadtbl' => $request->reloadtbl_edit]);
@@ -6385,19 +6395,27 @@ class SecondaryController extends Controller
     }
     public function get_reject_desc($reject_type, $id){
         $output="";
+        if($id == "Operator"){
+            $reject_desc =DB::connection('mysql_mes')->table('reject_list')
+            ->where('reject_category_id', $reject_type)
+            ->where('owner', $id)
+            ->where('operation_id', 1)
+            ->get();
+            
+            foreach($reject_desc as $row){
+                $output .= '<option value="'.$row->reject_list_id.'">'.$row->reject_reason.'</option>';
+            }
+
+        }else{
             $reject_desc =DB::connection('mysql_mes')->table('reject_list')
             ->where('reject_category_id', $reject_type)
             ->where('owner', $id)
             ->get();
-            // dd($reject_desc);
-
-                foreach($reject_desc as $row)
-                 {
+            
+            foreach($reject_desc as $row){
                 $output .= '<option value="'.$row->reject_list_id.'">'.$row->reject_reason.'</option>';
-                 }
-            
-            
-            // dd($output);
+            }
+        }
         return $output;
     }
     public function item_classification_warehouse_tbl_fabrication(Request $request){
@@ -7706,14 +7724,14 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.operation_id', 1)
-            // ->where(function($q) use ($request) {
-            //     $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //     ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
-            // })
+            ->where(function($q) use ($request) {
+                $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
+                    ->orwhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
+            })
             ->where('w.workstation_name','!=','Painting')
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name')
             ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
@@ -7722,12 +7740,10 @@ class SecondaryController extends Controller
 
     }
     public function get_tbl_opchecklist_list_assembly(Request $request){
-        // dd($request->search_string);
-        $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
-            ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
-            ->join('reject_list as rl','rl.reject_list_id', 'oc.reject_list_id')
+        $check_list = DB::connection('mysql_mes')->table('reject_list as rl')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
-            ->where('w.operation_id', 3)
+            ->leftJoin('reject_material_type as rmt','rmt.reject_material_type_id', 'rl.reject_material_type_id')
+            ->where('rl.operation_id', 3)
             ->where(function($q) use ($request) {
                 $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
                 ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
@@ -7736,8 +7752,8 @@ class SecondaryController extends Controller
                     ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
-            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
+            ->select('rl.*','rc.reject_category_name', 'rmt.material_type')
+            ->orderBy('reject_list_id', 'desc')->paginate(9);
 
         return view('tables.tbl_operator_check_list_assembly', compact('check_list'));
 
@@ -7749,14 +7765,14 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.workstation_name','=','Painting')
-            // ->where(function($q) use ($request) {
-            //     $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //     ->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
-            //         ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
-            // })
+            ->where(function($q) use ($request) {
+                $q->where('rl.reject_checklist', 'LIKE', '%'.$request->search_string.'%')
+                    ->orwhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
+            })
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
             ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
 
@@ -8004,5 +8020,111 @@ class SecondaryController extends Controller
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
+    }
+    public function get_reload_tbl_change_code(){
+        $notifs = [];
+        $now = Carbon::now();
+        $start_of_the_week= Carbon::now()->startOfWeek();
+        $end_of_the_week= Carbon::now()->endOfWeek();
+        $get_prod_sched_today=DB::connection('mysql_mes')
+            ->table('production_order')
+            ->where(function($q) use ($start_of_the_week,$end_of_the_week){
+                $q->whereBetween('planned_start_date', [$start_of_the_week, $end_of_the_week])
+                    ->orWhereNull('planned_start_date');
+            })
+            ->groupBy('parent_item_code', 'sales_order', 'material_request')
+            ->select('parent_item_code', 'sales_order', 'material_request')->get();
+        $notifications=[];
+		foreach($get_prod_sched_today as $row){
+			$reference= ($row->sales_order == null)? $row->material_request: $row->sales_order;
+			$tbl_reference= ($row->sales_order == null)? "tabMaterial Request Item": "tabSales Order Item";
+			$get_delivery_date=DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $row->parent_item_code)->first();
+			if(!empty($get_delivery_date)){
+                $erp_sales_order=DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->select('item_code')->first();
+                if(!empty($erp_sales_order)){
+                    if($erp_sales_order->item_code != $row->parent_item_code){
+					$notifications[] = [	
+						'type' => $reference,
+						'message' => 'Parent item code was change from <b>'.$row->parent_item_code.'</b> to <b>'.$erp_sales_order->item_code.'</b>',
+						'created' => $now->toDateTimeString(),
+						'timelog_id' =>	"",
+						'table' => 'ERP'
+					];
+                    }
+                }
+            }
+        }
+        return view('tables.tbl_production_change_code', compact('notifications'));
+    }
+    public function tbl_op_fabrication_list(){
+
+        return view('tables.tbl_operator_fabrication', compact('prod_details','reason', 'data')); 
+    }
+    public function get_material_type(){
+        $get_reject_material_type=DB::connection('mysql_mes')->table('reject_material_type')->get();
+        return response()->json(['material_type' => $get_reject_material_type]);
+
+    }
+    public function save_material_type(Request $request){
+        //save late delivery reason from form to database
+        $now = Carbon::now();
+        $data = $request->all();
+        $reason= $data['material_type'];
+                foreach($reason as $i => $row){
+                    if (DB::connection('mysql_mes')
+                        ->table('reject_material_type')
+                        ->where('material_type', $row)
+                        ->exists()){
+                        return response()->json(['success' => 0, 'message' => 'Material Type - <b>'.$row.'</b> is already exist']);// validate if already exist in database
+                    }else{
+                        $list[] = [
+                            'material_type' => $row,
+                            'last_modified_by' => Auth::user()->email,
+                            'created_by' => Auth::user()->email,
+                            'created_at' => $now->toDateTimeString()
+                            ];
+                    } 
+            }
+            DB::connection('mysql_mes')->table('reject_material_type')->insert($list);
+            return response()->json(['message' => 'New Material Type is successfully inserted.']);
+    }
+    public function get_material_type_tbl(Request $request){
+        //show late delivery reason to table in setting module
+        $list = DB::connection('mysql_mes')->table('reject_material_type')
+            ->where(function($q) use ($request) {
+                $q->where('material_type', 'LIKE', '%'.$request->search_string.'%');
+            })
+            ->orderBy('reject_material_type_id', 'desc')->paginate(8);
+            
+        return view('tables.tbl_material_type', compact('list'));
+
+    }
+    public function update_material_type(Request $request){
+        if (DB::connection('mysql_mes')->table('reject_material_type')
+            ->where('material_type', $request->edit_material_type)
+            ->exists()){
+
+                if(strtoupper($request->edit_material_type) == strtoupper($request->orig_material_type)){
+                    
+                    $list = [
+                    'material_type' => $request->edit_material_type,
+                    'last_modified_by' => Auth::user()->email,
+                    ];
+                    DB::connection('mysql_mes')->table('reject_material_type')->where('reject_material_type_id', $request->mtypeid)->update($list);
+                    return response()->json(['message' => 'Material Type is successfully updated.']);
+                }else{
+                    return response()->json(['success' => 0, 'message' => 'Material Type - <b>'.$request->edit_material_type.'</b> is already exist']);           
+
+                }
+        }else{
+                $list = [
+                'material_type' => $request->edit_material_type,
+                'last_modified_by' => Auth::user()->email,
+                ];
+                DB::connection('mysql_mes')->table('reject_material_type')->where('reject_material_type_id', $request->mtypeid)->update($list);
+                return response()->json(['message' => 'Material Type is successfully updated.']);
+
+        }
+
     }
 }

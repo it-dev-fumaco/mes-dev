@@ -31,33 +31,13 @@ Instructions using GUI and Commands
 Note: Please specify the Summary and Description on your every commit﻿ Finalize and Review Your Code before Pushing to Dev Branch
 
 
-        Release notes - Manufacturing Execution System - Version Version 7.5  (MES Phase 3)
+        Release notes - Manufacturing Execution System - Version Version 7.6  (MES Phase 3)
     
 <h2>        Story
 </h2>
 <ul>
-<li>[<a href='https://fumacoinc.atlassian.net/browse/MES-729'>MES-729</a>] -         Merging of redundant process name displaying with total number of good in production search modal
-</li>
-</ul>
-    
-<h2>        Bug
-</h2>
-<ul>
-<li>- Production Order with status "Cancelled" in Production Order Search tab status.
-</li>
-<li>- No In Progress in timelogs but blinking in Production order search.
-</li>
-<li>- Production Order is cancelled but its shows in action needed (backlogs).
-</li>
-<li>- Error in editing production order in painting.
-</li>
-<li>- For scheduling date, please indicate the word "Today" to easily distinguished today schedule in Production Schedule Monitoring.
-</li>
-<li>- Over all status completed showed even the process is still in progress.
-</li>
-<li>- Error in fabrication inventory page. 
-</li>
-<li>- Not related fabrication items showed in item selection (Stock Adjustment form in fabrication inventory).
+<li>[<a href='https://fumacoinc.atlassian.net/browse/MES-712'>MES-712</a>] -  Display the new code of FG in planning wizzard
+<li>[<a href='https://fumacoinc.atlassian.net/browse/MES-710'>MES-710</a>] - Display original code with new code of FG in sales order tracking
 </li>
 </ul>
 

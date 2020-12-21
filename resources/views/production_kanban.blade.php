@@ -469,24 +469,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="stock-entry-details-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="min-width: 70%;">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #0277BD;">
-        <h5 class="modal-title text-white">
-          Stock Withdrawal 
-        </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="tbl_view_transfer_details" class="table-responsive"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="view-notifications-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -507,6 +489,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" id="inprog-tab" data-toggle="tab" href="#inprog" role="tab" aria-controls="inprog" aria-selected="false">Inactive In Progress</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="change_code_tab" data-toggle="tab" href="#change_code_prod" role="tab" aria-controls="changecode" aria-selected="false">Change Code Alert</a>
           </li>
         </ul>
         <div class="tab-content" style="min-height: 620px;">
@@ -595,6 +580,21 @@
                       </div>
                       <div class="col-md-12">
                         <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-inprogress"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" id="change_code_prod" role="tabpanel" aria-labelledby="change_code_tab">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-change-code"></div>
                       </div>
                     </div>
                   </div>
@@ -1372,41 +1372,6 @@
   
     filter_cards($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
   });
-
-    $(document).on('click', '.submit-ste-btn', function(e){
-      e.preventDefault();
-      var production_order = $(this).data('production-order');
-      $.ajax({
-        url:"/submit_stock_entries/" + production_order,
-        type:"POST",
-        success:function(data){
-          if(data.success == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if(data.success == 1){
-            get_production_order_items(production_order);
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
-
-    $(document).on('click', '.create-feedback-btn', function(e){
-      e.preventDefault();
-  
-      $('#submit-feedback-btn').removeAttr('disabled');
-      var production_order = $(this).data('production-order');
-      $('#confirm-feedback-production-modal input[name="production_order"]').val(production_order);
-      get_pending_material_transfer_for_manufacture(production_order);
-  
-      $('#confirm-feedback-production-modal').modal('show');
-    });
 
     function get_pending_material_transfer_for_manufacture(production_order){
       $.ajax({
@@ -2223,16 +2188,15 @@ console.log(data.responseText);
 $(document).on('click', '.btn-prod-notif', function(e){
 e.preventDefault();
 var operation_id= $('#primary-operation-id').val();
+get_notif_filters();
+reload_notif_table_inprogress();
+reload_tbl_change_code();
 $.ajax({
 url:"/get_all_prod_notif/"+ operation_id,
 type:"GET",
 success:function(data){
 $('#tbl-notifications').html(data);
 $('#view-notifications-modal').modal('show');
-get_notif_filters();
-reload_notif_table_inprogress();
-
-
 },
 error : function(data) {
 console.log(data.responseText);
@@ -2504,4 +2468,19 @@ $('#btnPrint').on("click", function () {
   });
 });
 </script>
+<script>
+  function reload_tbl_change_code(filters){
+  $.ajax({
+  url:"/get_reload_tbl_change_code",
+  type:"GET",
+  success:function(data){
+  $('#tbl-notifications-change-code').html(data);
+  // $('#view-notifications-modal').modal('show');
+  },
+  error : function(data) {
+  console.log(data.responseText);
+  }
+  });
+  }
+  </script>
 @endsection
