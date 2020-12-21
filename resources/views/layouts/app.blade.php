@@ -44,6 +44,7 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <ul class="navbar-nav">
               @if($activePage == 'main_dashboard')
+              @if(isset($operation_id) && $operation_id == 3)
               <li class="nav-item active">
                 <a class="nav-link" href="#" id="view-schedule-btn">
                   <i class="now-ui-icons design_bullet-list-67"></i> Schedule
@@ -52,6 +53,7 @@
                   </p>
                 </a>
               </li>
+              @endif
               @if(isset($operation_id) && $operation_id == 1)
               <li class="nav-item active">
                 <a class="nav-link text-center" href="#" id="select-scrap-to-process-btn" >
