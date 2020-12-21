@@ -1,3 +1,14 @@
+@if($notifications['match'] == "true")
+<div class="alert alert-warning text-center" role="alert">
+  <span class="d-none"></span>
+  <div class="container">
+     <div class="alert-icon" style="color:black;">
+      <i class="now-ui-icons travel_info" style="padding-right:5px;"></i><span style="font-size:13pt;"> <b>Notification Change Code :</b></span> 
+            <span style="font-size:11pt;">{!! $notifications['message'] !!} </span>
+     </div>
+  </div>
+  </div>
+@endif
 <div class="row tabs-banner" style="margin:2px;">
 	<div class="col-md-12">
         <ul class="nav nav-tabs" id="myTabsearchpo" role="tablistsearch">

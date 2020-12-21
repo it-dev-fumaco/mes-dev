@@ -532,8 +532,24 @@ class MainController extends Controller
 
 			];
 		}
+
+		$reference= ($details->sales_order == null)? $details->material_request: $details->sales_order;
+		$tbl_reference= ($details->sales_order == null)? "tabMaterial Request Item": "tabSales Order Item";
+		$get_delivery_date=DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $details->item_code)->first();
+		$notifications=['match' => 'false'];
+		if(!empty($get_delivery_date)){
+            $erp_sales_order=DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->select('item_code')->first();
+            if(!empty($erp_sales_order)){
+                if($erp_sales_order->item_code != $details->parent_item_code){
+					$notifications= [
+						"match"=> 'true',	
+						'message' => 'Parent item code was change from <b>'.$details->parent_item_code.'</b> to <b>'.$erp_sales_order->item_code.'</b>',
+					];
+                    }
+                }
+			}
 		$success=1;
-		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab'));
+		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
