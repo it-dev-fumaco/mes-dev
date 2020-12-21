@@ -642,7 +642,7 @@ Route::get('/get_material_type', 'SecondaryController@get_material_type');
 Route::post('/edit_material_type', 'SecondaryController@update_material_type');
 Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
 Route::post('/save_material_type', 'SecondaryController@save_material_type');
-
+Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
