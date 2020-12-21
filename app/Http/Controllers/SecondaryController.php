@@ -8055,6 +8055,7 @@ class SecondaryController extends Controller
             }
         }
         return view('tables.tbl_production_change_code', compact('notifications'));
+    }
     public function tbl_op_fabrication_list(){
 
         return view('tables.tbl_operator_fabrication', compact('prod_details','reason', 'data')); 
