@@ -50,7 +50,20 @@ class AssemblyController extends Controller
                 $default_bom = collect($bom)->where('is_default', 1)->first();
                 $default_bom_no = ($default_bom) ? $default_bom->name : '-- No BOM --';
                 $rfd_no = ($default_bom) ? $default_bom->rf_drawing_no : null;
-
+                $delivery_date_tbl= DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $item->name)->first();
+                $match= "";
+                $new_code= "";
+                $origl_code= "";
+                if($delivery_date_tbl){
+                    if($delivery_date_tbl->parent_item_code == $item->item_code){
+                        $match= "true";
+                       
+                    }else{
+                        $match = "false";
+                        $origl_code = $delivery_date_tbl->parent_item_code;
+                        $new_code= $item->item_code;
+                    }
+                }
                 $item_list[] = [
                     'id' => $item->name,
                     'idx' => $item->idx,
@@ -66,7 +79,9 @@ class AssemblyController extends Controller
                     'rfd_no' => $rfd_no,
                     'stock' => $stock,
                     'delivery_date' => $item->delivery_date,
-                    'change_code' => $this->erp_change_code_validation($item->name,$item->item_code)
+                    'match'=> $match,
+                    'origl_code' => $origl_code,
+                    'new_code' => $new_code
                 ];
             }
 
