@@ -166,11 +166,11 @@
 						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ $component['required_qty'] * 1 }}</span>
+						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $component['transferred_qty'] * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
@@ -276,11 +276,11 @@
 						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ $part['required_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $part['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">

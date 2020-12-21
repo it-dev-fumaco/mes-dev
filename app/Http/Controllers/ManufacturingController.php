@@ -3839,4 +3839,10 @@ class ManufacturingController extends Controller
 
         return view('tables.tbl_bundle_components', compact('bundle_details', 'components_arr'));
     }
+
+    public function get_available_warehouse_qty($item_code){
+        $inventory_stock = DB::connection('mysql')->table('tabBin')->where('item_code', $item_code)->where('actual_qty', '>', 0)->get();
+
+        return view('tables.tbl_item_inventory', compact('inventory_stock'));
+    }
 }
