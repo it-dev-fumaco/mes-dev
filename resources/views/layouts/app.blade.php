@@ -52,6 +52,7 @@
                   </p>
                 </a>
               </li>
+              @if(isset($operation_id) && $operation_id == 1)
               <li class="nav-item active">
                 <a class="nav-link text-center" href="#" id="select-scrap-to-process-btn" >
                   <i class="now-ui-icons ui-2_settings-90"></i> Process Scrap
@@ -60,6 +61,7 @@
                   </p>
                 </a>
               </li>
+              @endif
               <li class="nav-item active">
                 <a class="nav-link text-center" href="#" id="scan-production-order-btn" >
                   <i class="now-ui-icons shopping_basket"></i> Scan Job Ticket
