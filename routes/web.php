@@ -60,7 +60,7 @@ Route::group(['middleware' => 'auth'], function(){
 	
 	Route::get('/get_quick_view_data', 'QualityInspectionController@get_quick_view_data');
 	Route::get('/get_top_defect_count', 'QualityInspectionController@get_top_defect_count');
-	Route::get('/get_reject_types/{workstation}', 'QualityInspectionController@get_reject_types');
+	Route::get('/get_reject_types/{workstation}/{process_id}', 'QualityInspectionController@get_reject_types');
 
 	Route::post('/submit_stock_entry/{id}', 'ManufacturingController@submit_stock_entry');
 });
