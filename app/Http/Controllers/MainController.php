@@ -4521,22 +4521,24 @@ class MainController extends Controller
 					$qty = round($qty);
 				}
 
+				$consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+					->where('ste.production_order', $production_order)
+					->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
+					->where('ste.docstatus', 1)->sum('qty');
+
+				$remaining_transferred_qty = $row->transferred_qty - $consumed_qty;
+
+				if($remaining_transferred_qty < $qty){
+					return response()->json(['success' => 0, 'message' => 'Insufficient transferred qty for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
+				}
+
 				if($qty <= 0){
 					return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0 for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
 				}
 
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
-
-				// $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-				// 	->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				// 	->where('ste.production_order', $production_order)
-				// 	->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
-				// 	->where('ste.docstatus', 1)->sum('qty');
-
-				// if($produced_qty >= (int)$production_order_details->qty){
-				// 	$qty = ($row->transferred_qty - $consumed_qty);
-				// }
 
 				if($docstatus == 1){
 					if($qty > $actual_qty){
@@ -4744,7 +4746,6 @@ class MainController extends Controller
 					];
 		
 					DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order_details->name)->update($production_data_mes);
-		
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}

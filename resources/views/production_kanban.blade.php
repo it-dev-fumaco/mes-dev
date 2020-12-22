@@ -1192,8 +1192,8 @@
     border: 2px solid rgba(255, 0, 0, 0.5);
     opacity: 0;
     border-radius: 50%;
-    width: 100%;
-    height: 100%;
+
+
   }
 
   @keyframes sonar {
