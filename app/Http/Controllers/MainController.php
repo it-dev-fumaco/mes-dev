@@ -2881,9 +2881,11 @@ class MainController extends Controller
         $workstation_id= $tabWorkstation->workstation_id;
         $workstation_name=$id;
         $date = $now->format('M d Y');
-        $day_name= $now->format('l');
+		$day_name= $now->format('l');
+		
+		$operation_id = $tabWorkstation->operation_id;
 
-        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id'));
+        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id'));
     }
 
     public function current_data_operator($workstation){
