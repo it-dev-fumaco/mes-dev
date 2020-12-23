@@ -4738,13 +4738,26 @@ class MainController extends Controller
 				$this->create_stock_ledger_entry($new_id);
 				$this->create_gl_entry($new_id);
 				
-				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details){
-					$production_data_mes = [
-						'last_modified_at' => $now->toDateTimeString(),
-						'last_modified_by' => Auth::user()->email,
-						'feedback_qty' => $production_order_details->produced_qty + $request->fg_completed_qty,
-					];
-		
+				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details, $mes_production_order_details){
+					$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
+					$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
+
+					if($status == 'Completed'){
+						$production_data_mes = [
+							'last_modified_at' => $now->toDateTimeString(),
+							'last_modified_by' => Auth::user()->email,
+							'feedback_qty' => $manufactured_qty,
+							'produced_qty' => $manufactured_qty,
+							'status' => $status
+						];
+					}else{
+						$production_data_mes = [
+							'last_modified_at' => $now->toDateTimeString(),
+							'last_modified_by' => Auth::user()->email,
+							'feedback_qty' => $manufactured_qty,
+						];
+					}
+
 					DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order_details->name)->update($production_data_mes);
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
