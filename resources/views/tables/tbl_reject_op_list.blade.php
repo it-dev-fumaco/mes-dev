@@ -30,7 +30,7 @@
             <td class="text-left">{{ $row->material_type }}</td>
             <td class="text-left">{{ $row->recommended_action }}</td>
             <td>
-              <button type='button' class='btn btn-default hover-icon edit-rejectlist-btn' data-id="{{ $row->reject_list_id }}" data-ctgID="{{ $row->reject_category_id }}" data-rjtlist="{{ $row->reject_checklist }}" data-rjtreason="{{ $row->reject_reason }}" data-responsible="{{$row->responsible}}" data-owner="{{ $row->owner }}" data-action="{{ $row->recommended_action }}" data-mtype="{{$row->reject_material_type_id}}" data-opoperation="{{$row->operation_id}}" data-reloadtbl="Operator">
+              <button type='button' class='btn btn-default hover-icon edit-rejectlist-btn' data-id="{{ $row->reject_list_id }}" data-ctgID="{{ $row->reject_category_id }}" data-rjtlist="{{ $row->reject_checklist }}" data-rjtreason="{{ $row->reject_reason }}" data-responsible="{{$row->responsible}}" data-owner="{{ $row->owner }}" data-action="{{ $row->recommended_action }}" data-mtype="{{$row->material_type}}" data-opoperation="{{$row->operation_id}}" data-reloadtbl="Operator">
                 <i class='now-ui-icons design-2_ruler-pencil'></i>
               </button>
                 

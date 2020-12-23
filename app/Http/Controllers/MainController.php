@@ -399,7 +399,7 @@ class MainController extends Controller
 			'description' => $details->description,
 			'status' => $task_status,
 			'owner' => $owner,
-			'production_order_status' => $this->production_status_with_stockentry($details->production_order, $details->status, $details->qty_to_manufacture,$details->feedback_qty, $details->produced_qty),
+			'production_order_status' => $details->status,
 			'created_at' =>  Carbon::parse($details->created_at)->format('m-d-Y h:i A')
 		];
 
@@ -2435,7 +2435,6 @@ class MainController extends Controller
 			})
 			->where('jt.planned_start_date', null)->where('pro.status', '!=', 'Cancelled')
 			->where('jt.workstation', 'Painting')
-			->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
 			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty','pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
 			->whereNotIn('pro.status', ['Completed', 'Stopped', 'Cancelled'])
@@ -2539,7 +2538,6 @@ class MainController extends Controller
 		->whereNotIn('pro.status', ['Completed', 'Cancelled'])
 		->where('jt.workstation', 'Painting')
 		->whereDate('jt.planned_start_date', $schedule_date)
-		// ->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
 		->distinct('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
 		->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
 		->orderBy('jt.sequence', 'asc')
@@ -3780,9 +3778,13 @@ class MainController extends Controller
 		try {
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
+
 			}
+
 			$data= $request->all();
 			$reject_reason= $data['reject_list'];
+
+
 			$now = Carbon::now();
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
@@ -4519,22 +4521,24 @@ class MainController extends Controller
 					$qty = round($qty);
 				}
 
+				$consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+					->where('ste.production_order', $production_order)
+					->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
+					->where('ste.docstatus', 1)->sum('qty');
+
+				$remaining_transferred_qty = $row->transferred_qty - $consumed_qty;
+
+				if($remaining_transferred_qty < $qty){
+					return response()->json(['success' => 0, 'message' => 'Insufficient transferred qty for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
+				}
+
 				if($qty <= 0){
 					return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0 for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
 				}
 
 				$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 					->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
-
-				// $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-				// 	->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				// 	->where('ste.production_order', $production_order)
-				// 	->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
-				// 	->where('ste.docstatus', 1)->sum('qty');
-
-				// if($produced_qty >= (int)$production_order_details->qty){
-				// 	$qty = ($row->transferred_qty - $consumed_qty);
-				// }
 
 				if($docstatus == 1){
 					if($qty > $actual_qty){
@@ -4755,7 +4759,6 @@ class MainController extends Controller
 					}
 
 					DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order_details->name)->update($production_data_mes);
-		
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}

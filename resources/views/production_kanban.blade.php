@@ -346,6 +346,7 @@
                                         }else{
                                           $print_stat="";
                                         }
+
                                         @endphp
                                         <a href="#" class="prod_order_link_to_search text-dark" data-prod="{{ $order['name'] }}" style="margin-left: 35px;">
                                           <b>{{ $order['name'] }}</b>
@@ -397,19 +398,13 @@
                                   $colorme="black";
                                 }
                                 if($order['process_stat'] == "Material For Issue"){
-                                $stat_badge ="danger";
+                                  $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Material Issued"){
-                                $stat_badge ="primary";
-                                }else if($order['process_stat'] == "Cancelled"){
-                                $stat_badge ="danger";
+                                  $stat_badge ="info";
                                 }else if($order['process_stat'] == "Ready For Feedback"){
-                                $stat_badge ="info";
-                                }else if($order['process_stat'] == "Partial Feedbacked"){
-                                $stat_badge ="success";
-                                }else if($order['process_stat'] == "Feedbacked"){
-                                $stat_badge ="success";
+                                  $stat_badge ="success";
                                 }else{
-                                $stat_badge ="warning";
+                                  $stat_badge ="warning";
                                 }
                                 @endphp
                                 <div class="col-md-12 text-center create-ste-btn"  data-production-order="{{ $order['name'] }}" style="margin-top:-18px; padding-bottom: -10px; min-width:10%;">
@@ -495,7 +490,7 @@
           <li class="nav-item">
             <a class="nav-link" id="inprog-tab" data-toggle="tab" href="#inprog" role="tab" aria-controls="inprog" aria-selected="false">Inactive In Progress</a>
           </li>
-          <li class="nav-item" id="tab_change_code">
+          <li class="nav-item">
             <a class="nav-link" id="change_code_tab" data-toggle="tab" href="#change_code_prod" role="tab" aria-controls="changecode" aria-selected="false">Change Code Alert</a>
           </li>
         </ul>
@@ -2503,13 +2498,7 @@ $('#btnPrint').on("click", function () {
   url:"/get_reload_tbl_change_code",
   type:"GET",
   success:function(data){
-    if((!$.trim(data))) {
-        $("#tab_change_code").hide();
-    }else{
-      $('#tbl-notifications-change-code').html(data);
-      $("#tab_change_code").show();
-
-    }
+  $('#tbl-notifications-change-code').html(data);
   // $('#view-notifications-modal').modal('show');
   },
   error : function(data) {
