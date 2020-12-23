@@ -399,7 +399,7 @@ class MainController extends Controller
 			'description' => $details->description,
 			'status' => $task_status,
 			'owner' => $owner,
-			'production_order_status' => $details->status,
+			'production_order_status' => $this->production_status_with_stockentry($details->production_order, $details->status, $details->qty_to_manufacture,$details->feedback_qty, $details->produced_qty),
 			'created_at' =>  Carbon::parse($details->created_at)->format('m-d-Y h:i A')
 		];
 
@@ -2434,6 +2434,7 @@ class MainController extends Controller
 				$join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
 			})
 			->where('jt.planned_start_date', null)->where('pro.status', '!=', 'Cancelled')
+			->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
 			->where('jt.workstation', 'Painting')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
 			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty','pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
@@ -2534,7 +2535,8 @@ class MainController extends Controller
 		->leftJoin('delivery_date', function($join){
             $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
             $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
-        })
+		})
+		->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
 		->whereNotIn('pro.status', ['Completed', 'Cancelled'])
 		->where('jt.workstation', 'Painting')
 		->whereDate('jt.planned_start_date', $schedule_date)
