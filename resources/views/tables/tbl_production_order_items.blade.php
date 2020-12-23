@@ -61,9 +61,7 @@
 			<div class="d-flex flex-row">
 				@if ($details->parent_item_code != $details->item_code)
 					<div class="p-2 align-self-center text-center" style="width: 15%;font-size: 12pt;">
-						<span class="font-weight-bold">{{ $details->parent_item_code }} 
-							<i class="now-ui-icons arrows-1_minimal-right"></i><i class="now-ui-icons arrows-1_minimal-right"></i>
-						</span>
+						<span class="font-weight-bold">{{ $details->parent_item_code }}</span>
 						
 						<span class="d-block font-italic" style="font-size: 8pt;">Parent Item Code</span>
 					</div>
