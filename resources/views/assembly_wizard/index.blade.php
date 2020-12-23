@@ -619,6 +619,14 @@
 
          $('#change-raw-mat-modal input[name="production_order_item_id"]').val($(this).data('id'));
 
+         $.ajax({
+            url: "/get_available_warehouse_qty/" + item_code,
+            type:"GET",
+            success: function(data){
+               $('#change-raw-mat-modal .inv-list').html(data);
+            }
+         });
+
          $('#change-raw-mat-modal').modal('show');
       });
 
@@ -632,6 +640,14 @@
 
          $('#a-img').attr('href', img);
          $('#b-img').attr('src', img);
+
+         $.ajax({
+            url: "/get_available_warehouse_qty/" + item_code,
+            type:"GET",
+            success: function(data){
+               $('#change-raw-mat-modal .inv-list').html(data);
+            }
+         });
 
          get_raw_actual_qty(item_code,  $('#raw-mat-warehouse').text());
 
