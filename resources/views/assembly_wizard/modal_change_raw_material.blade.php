@@ -37,6 +37,7 @@
                         <span class="d-block font-weight-bold">Actual Qty: </span>
                         <span class="d-block" id="raw-mat-actual-qty">-</span>
                      </div>
+                     <div class="inv-list"></div>
                   </div>
                </div>
                <div class="row">

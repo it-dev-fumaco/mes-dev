@@ -57,7 +57,22 @@
 		</td>
 	</tr>
 	<tr style="font-size: 10pt;">
-		<td colspan="6"><span class="font-weight-bold">{{ $details->item_code }}</span> - {{ $details->description }}</td>
+		<td colspan="6">
+			<div class="d-flex flex-row">
+				@if ($details->parent_item_code != $details->item_code)
+					<div class="p-2 align-self-center text-center" style="width: 15%;font-size: 12pt;">
+						<span class="font-weight-bold">{{ $details->parent_item_code }} 
+							<i class="now-ui-icons arrows-1_minimal-right"></i><i class="now-ui-icons arrows-1_minimal-right"></i>
+						</span>
+						
+						<span class="d-block font-italic" style="font-size: 8pt;">Parent Item Code</span>
+					</div>
+				@endif
+				<div class="p-2">
+					<span class="font-weight-bold">{{ $details->item_code }}</span> - {{ $details->description }}
+				</div>
+			</div>
+		</td>
 		<td class="text-center" colspan="2">
 			@if($issued_qty > 0)
 			<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}">Submit Withdrawal Slip</button>
@@ -166,15 +181,35 @@
 						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ $component['required_qty'] * 1 }}</span>
+						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $component['transferred_qty'] * 1 }}</span>
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $component['transferred_qty'] * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="badge {{ $item_status_badge }}" style="font-size: 9pt;">{{ $component['item_status'] }}</span>
+						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ $component['item_status'] }}</span>
+						<div class="details-pane" style="font-size:8pt;">
+							<table border="1" style="width: 100%;">
+								<tr>
+									<th class="text-center">Ref. No.</th>
+									<th class="text-center">Date Issued</th>
+									<th class="text-center">Issued by</th>
+								</tr>
+								@forelse ($component['references'] as $ref)
+								<tr>
+									<td class="text-center">{{ $ref->name }} ({{ $ref->qty * 1 }})</td>
+									<td class="text-center">{{ Carbon\Carbon::parse($ref->date_modified)->format('M-d-Y H:i:A') }}</td>
+									<td class="text-center">{{ $ref->session_user }}</td>
+								</tr>
+								@empty
+								<tr>
+									<td colspan="3" class="text-center font-weight-bold">No reference stock entry</td>
+								</tr>
+								@endforelse
+							</table>
+						</div>
 					</td>
 					<td class="text-center">
 						@php
@@ -272,15 +307,35 @@
 						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center">
-						<span class="d-block font-weight-bold required-qty">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="text-center">
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $part['transferred_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="text-center">
-						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 9pt;">{{ $part['transferred_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
-					</td>
-					<td class="text-center">
-						<span class="badge {{ $item_status_badge }}" style="font-size: 9pt;">{{ $part['item_status'] }}</span>
+						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ $part['item_status'] }}</span>
+						<div class="details-pane" style="font-size:8pt;">
+							<table border="1" style="width: 100%;">
+								<tr>
+									<th class="text-center">Ref. No.</th>
+									<th class="text-center">Date Issued</th>
+									<th class="text-center">Issued by</th>
+								</tr>
+								@forelse ($part['references'] as $ref)
+								<tr>
+									<td class="text-center">{{ $ref->name }} ({{ $ref->qty * 1 }})</td>
+									<td class="text-center">{{ Carbon\Carbon::parse($ref->date_modified)->format('M-d-Y H:i:A') }}</td>
+									<td class="text-center">{{ $ref->session_user }}</td>
+								</tr>
+								@empty
+								<tr>
+									<td colspan="3" class="text-center font-weight-bold">No reference stock entry</td>
+								</tr>
+								@endforelse
+							</table>
+						</div>
 					</td>
 					<td class="text-center">
 						@php
@@ -429,5 +484,34 @@
     .custom-table-1-1 th, .custom-table-1-1 td{
         padding: 3px;
         border: 1px solid #ABB2B9;
-    }
+	}
+	
+	.details-pane {
+		display: none;
+		color: #414141;
+		background: #EBEDEF;
+		border: 1px solid #a9a9a9;
+		position: absolute;
+		right: 70px;
+		z-index: 1;
+		width: 400px;
+		padding: 6px 8px;
+		text-align: left;
+		-webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+		-moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+		box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+		white-space: normal;
+	}
+
+	span.hvrlink:hover + .details-pane {
+		display: block;
+	}
+
+	.details-pane:hover {
+		display: block;
+	}
+
+	span.hvrlink{
+		cursor: pointer;
+	}
 </style>
