@@ -74,7 +74,7 @@
             </td>
             <td style="width: 10%; background-color: #D5D8DC; border: 1px solid #ABB2B9;" class="align-top text-center">
               <span style="font-size: 9pt; color: #707B7C; display: block;">IN PROCESS</span>
-              <span style="font-size: 17pt; display: block;"><b>{{ $row['qty_to_manufacture'] - $row['completed_qty'] }}</b></span>
+              <span style="font-size: 17pt; display: block;"><b>{{ ($row['qty_to_manufacture'] - $row['completed_qty'])}}</b></span>
               <span style="font-size: 9pt; display: block;">{{ $row['stock_uom'] }}</span>
             </td>
             <td style="width: 10%; background-color: #D5D8DC; border: 1px solid #ABB2B9;" class="align-top text-center">
@@ -218,7 +218,7 @@
                   @php
                     $disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
                   @endphp
-                  <button type="button" class="btn btn-block enter-reject-btn" data-id="{{ $row['time_log_id'] }}"  data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="1" style="height: 70px; background-color: #C62828; border-radius: 0;">
+                  <button type="button" class="btn btn-block enter-reject-btn" data-id="{{ $row['time_log_id'] }}" data-processid={{$row['process_id']}}  data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="1" style="height: 70px; background-color: #C62828; border-radius: 0;">
                       <i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Enter Reject</span>
                     </button>
                 </td>
@@ -262,7 +262,7 @@
                   @php
                       $disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
                   @endphp
-                  <button type="button" class="btn btn-block enter-reject-btn" data-id="{{ $row['job_ticket_id'] }}"  data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828; border-radius: 0;">
+                  <button type="button" class="btn btn-block enter-reject-btn" data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828; border-radius: 0;">
                     <i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Enter Reject</span>
                   </button>
                 </td>
