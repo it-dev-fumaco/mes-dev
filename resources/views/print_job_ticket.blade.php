@@ -5,8 +5,16 @@
 	    header nav, footer {display: none;}
 	    input {border: 0px;}
 	} --}}
-<style type="text/css">
 	
+<style type="text/css">
+	@page  
+{ 
+    size: auto;   /* auto is the initial value */ 
+
+    /* this affects the margin in the printer settings */ 
+    margin: 15mm 5mm 5mm 5mm;  
+} 
+
 	/*.div-1{    -ms-zoom: 1.665;
 	transform: rotate(270deg) translate(-150mm, 0);
     transform-origin: 0 0;   }*/
@@ -28,19 +36,19 @@
 
 @foreach($jobtickets as $i => $pro)
 <div class="div-1"  style="width: 100%; min-height: 460px; border: 1px solid; margin-bottom: 10px;">
-	<table style="width: 90%; border-collapse: collapse; font-size: 10.5pt; margin: 10px auto;">
+	<table style="width: 90%; border-collapse: collapse; font-size: 10pt; margin: 10px auto;">
 		<col style="width: 18%;">
 		<col style="width: 64%;">
 		<col style="width: 18%;">
 		<tr>
 			<td><img src="{{ asset('img/FUMACO Logo.png') }}" width="80"></td>
-			<td style="text-align: center; font-size: 13pt;"><b>JOB TICKET</b></td>
-			<td style="text-align: center;"><b>{{$pro['operation']}}</b></td>
+			<td style="text-align: center; font-size: 18pt;"><b>JOB TICKET</b></td>
+			<td style="text-align: center; font-size: 10pt;"><b>{{$pro['operation']}}</b></td>
 		</tr>
 		<tr>
 			<td>SCHEDULED DATE:</td>
 			<td style="font-size: 10pt;"><b>{{ date('M-d-Y', strtotime($pro['sched_date'])) }}</b></td>
-			<td style="text-align: center; font-size: 10pt;"><b>{{ $pro['production_order'] }}</b></td>
+			<td style="text-align: center; font-size: 14pt;"><b>{{ $pro['production_order'] }}</b></td>
 		</tr>
 		<tr>
 			<td>MODEL:</td>
@@ -60,7 +68,7 @@
 			<td></td>
 		</tr>
 	</table>
-	<table style="width: 85%; font-size: 10.5pt; border-collapse: collapse; margin: 10px auto;" border="1">
+	<table style="width: 85%; font-size: 10pt; border-collapse: collapse; margin: 10px auto;" border="1">
 		<col style="width: 15%;">
 		<col style="width: 30%;">
 		<col style="width: 30%;">
@@ -78,11 +86,11 @@
 			<td style="text-align: center;">{{ $pro['customer'] }}</b></td>
 			<td style="text-align: center;">{{ $pro['project'] }}</b></td>
 			<td style="text-align: center;">{{ $pro['sales_type'] }}</b></td>
-			<td style="text-align: center;">{{ number_format($pro['qty']) }}</b></td>
+			<td style="text-align: center;font-size: 11.5pt">{{ number_format($pro['qty']) }}</b></td>
 		</tr>
 	</table>
 	<br>
-	<table style="width: 98%; border-collapse: collapse;font-size: 10.5pt; margin-top: 20px; margin: 10px auto; " border="1">
+	<table style="width: 98%; border-collapse: collapse; margin: -5.5px auto; " border="1">
 			<col style="width: 14%; line-height: 30%;">
 			<col style="width: 16%;">
 			<col style="width: 6%;">
@@ -93,28 +101,28 @@
 			<col style="width: 10%;">
 			<col style="width: 12%;">
 			<col style="width: 10%;">
-			<tr style="font-size: 10.5pt;">
-				<th style="text-align: center;">WORKSTATION</th>
-				<th style="text-align: center;">PROCESS</th>
-				<th style="text-align: center;">QTY</th>
-				<th style="text-align: center;">GOOD</th>
-				<th style="text-align: center;">REJECT</th>
-				<th style="text-align: center;">BAL</th>
-				<th style="text-align: center;">OPERATOR</th>
-				<th style="text-align: center;">MACHINE</th>
-				<th style="text-align: center;">QC</th>
-				<th style="text-align: center;">Remarks</th>
+			<tr style="font-size: 9.2pt;">
+				<th style="text-align: center;font-size: 9.2pt;">WORKSTATION</th>
+				<th style="text-align: center;font-size: 9.2pt;">PROCESS</th>
+				<th style="text-align: center;font-size: 9.2pt;">QTY</th>
+				<th style="text-align: center;font-size: 9.2pt;">GOOD</th>
+				<th style="text-align: center;font-size: 9.2pt;">REJECT</th>
+				<th style="text-align: center;font-size: 9.2pt;">BAL</th>
+				<th style="text-align: center;font-size: 9.2pt;">OPERATOR</th>
+				<th style="text-align: center;font-size: 9.2pt;">MACHINE</th>
+				<th style="text-align: center;font-size: 9.2pt;">QC</th>
+				<th style="text-align: center;font-size: 9.2pt;">Remarks</th>
 			</tr>
 			@foreach($pro['workstation'] as $jt)
 			
-			<tr style="line-height: 15px;">
-				<td style="text-align: center;" rowspan="{{ $jt['count'] }}">{{ $jt['workstation'] }}</td>
+			<tr style="line-height: 18px;">
+				<td style="text-align: center; font-size: 11.2pt;" rowspan="{{ $jt['count'] }}">{{ $jt['workstation'] }}</td>
 				@foreach($jt['jobticket_details'] as $rows)
-				<td style="text-align: center;">{{ $rows['process'] }}</td>
-				<td style="text-align: center; font-size: 10pt;">{{ number_format($rows['qty'])}}</td>
-				<td style="text-align: center; font-size: 10pt;">@if($rows['good'] == "") @else {{ number_format($rows['good'])}} @endif </td>
-				<td style="text-align: center; font-size: 10pt;">@if($rows['good'] == "") @else{{ number_format($rows['reject'])}} @endif </td>
-				<td style="text-align: center; font-size: 10pt;">@if($rows['good'] == "") @else{{ number_format($rows['bal'])}} @endif</td>
+				<td style="text-align: center; font-size: 11.2pt;">{{ $rows['process'] }}</td>
+				<td style="text-align: center; font-size: 11.7pt;">{{ number_format($rows['qty'])}}</td>
+				<td style="text-align: center; font-size: 11.2pt;">@if($rows['good'] == "") @else {{ number_format($rows['good'])}} @endif </td>
+				<td style="text-align: center; font-size: 11.2pt;">@if($rows['good'] == "") @else{{ number_format($rows['reject'])}} @endif </td>
+				<td style="text-align: center; font-size: 11.2pt;">@if($rows['good'] == "") @else{{ number_format($rows['bal'])}} @endif</td>
 				<td style="text-align: center;line-height: 10px;">{{ $rows['operator'] }}</td>
 				<td style="text-align: center; font-size: 10px;">@if($rows['machine']){{ $rows['machine'] }}@endif</td>
 				<td style="text-align: center;">{{ $rows['status'] }}</td>
@@ -128,7 +136,7 @@
 	<div style="width:100%;height:100%; padding-top:20px;">
 		<table style="position:relative;bottom: 10px; width:100%;">
 			<tr>
-				<td style="font-size: 10.5pt; width:80%;">&nbsp;&nbsp;&nbsp;Printed by: <i>{{ Auth::user()->employee_name }} - {{  now()->toDateTimeString('h:m:s') }}</i></td>
+				<td style="font-size: 9pt; width:80%;">&nbsp;&nbsp;&nbsp;Printed by: <i>{{ Auth::user()->employee_name }} - {{  now()->toDateTimeString('h:m:s') }}</i></td>
 				<td style="width:30%;">	Checked By:
 				</td>
 			</tr>
