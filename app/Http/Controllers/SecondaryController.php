@@ -7158,6 +7158,7 @@ class SecondaryController extends Controller
           $prod= DB::connection('mysql_mes')->table('production_order as prod')
           ->join('job_ticket as jt','jt.production_order', 'prod.production_order')
           ->where('jt.workstation','Painting')
+          ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
           ->where('jt.status', 'Pending')
           ->whereDate('jt.planned_start_date', '<', $current_date)
           ->where('prod.operation_id', $operation_id)
@@ -7166,6 +7167,7 @@ class SecondaryController extends Controller
           ->get();
           $prod_inprogress= DB::connection('mysql_mes')->table('production_order as prod')
           ->join('job_ticket as jt','jt.production_order', 'prod.production_order')
+          ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
           ->where('jt.workstation','Painting')
           ->where('jt.status', 'In Progress')
           ->whereDate('jt.planned_start_date', '<', $last_date)
@@ -7198,7 +7200,7 @@ class SecondaryController extends Controller
           if($operation_id == 0){
               $datas= DB::connection('mysql_mes')->table('job_ticket as jt')
               ->join('production_order as prod', 'jt.production_order','prod.production_order')
-              ->where('prod.status', "Not Started")
+              ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
               ->where('jt.workstation','Painting')
               ->where('jt.status', 'Pending')
               ->whereDate('jt.planned_start_date', '<', $current_date)
@@ -7284,15 +7286,17 @@ class SecondaryController extends Controller
               $prod= DB::connection('mysql_mes')->table('production_order as prod')
               ->join('job_ticket as jt', 'jt.production_order','prod.production_order')
               ->where('jt.workstation','Painting')
-              ->where('prod.status', 'Not Started')
+              ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
               ->whereDate('jt.planned_start_date', '<', $current_date)
               ->where('prod.operation_id', $operation_id)
+              ->where('jt.status', "Pending")
               ->select('prod.sales_order', 'customer', 'prod.production_order')
               ->orderBy('prod.planned_start_date','DESC')
               ->distinct('prod.production_order')
               ->get();
               $prod_inprogress= DB::connection('mysql_mes')->table('production_order as prod')
               ->join('job_ticket as jt', 'jt.production_order','prod.production_order')
+              ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
               ->where('jt.workstation','Painting')
               ->where('jt.status', 'In Progress')
               ->whereDate('jt.planned_start_date', '<', $last_date)
@@ -7429,6 +7433,7 @@ class SecondaryController extends Controller
               $datas= DB::connection('mysql_mes')->table('production_order as prod')
               ->join('job_ticket as jt', 'jt.production_order', 'prod.production_order')
               ->where('jt.workstation','Painting')
+              ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
               ->where('jt.status', 'In Progress')
               ->whereDate('prod.planned_start_date', '<', $last_date)
               ->where('prod.operation_id', $operation_id)
@@ -8054,7 +8059,11 @@ class SecondaryController extends Controller
                 }
             }
         }
-        return view('tables.tbl_production_change_code', compact('notifications'));
+        if($notifications){
+            return view('tables.tbl_production_change_code', compact('notifications'));
+        }else{
+            return $notifications;
+        }
     }
     public function tbl_op_fabrication_list(){
 
