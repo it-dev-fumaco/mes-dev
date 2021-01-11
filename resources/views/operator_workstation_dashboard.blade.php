@@ -45,7 +45,8 @@
           <h4 class="card-title">Pending</h4>
         </div>
         <div class="card-body">
-          <h1 class="pending_jt">0</h1>
+          <h1 class="pending_jt m-0 p-0">0</h1>
+          <small>unit(s)</small>
         </div>
       </div>
     </div>
@@ -55,7 +56,8 @@
           <h4 class="card-title">In Progress</h4>
         </div>
         <div class="card-body">
-          <h1 class="inprogress_jt">0</h1>
+          <h1 class="inprogress_jt m-0 p-0">0</h1>
+          <small>unit(s)</small>
         </div>
       </div>
     </div>
@@ -65,7 +67,8 @@
           <h4 class="card-title">Completed</h4>
         </div>
         <div class="card-body">
-          <h1 class="completed_jt">0</h1>
+          <h1 class="completed_jt m-0 p-0">0</h1>
+          <small>unit(s)</small>
         </div>
       </div>
     </div>
@@ -75,7 +78,8 @@
           <h4 class="card-title">Rejects</h4>
         </div>
         <div class="card-body">
-          <h1 class="rejects_jt">0</h1>
+          <h1 class="rejects_jt m-0 p-0">0</h1>
+          <small>unit(s)</small>
         </div>
       </div>
     </div>

@@ -2881,39 +2881,37 @@ class MainController extends Controller
         $workstation_id= $tabWorkstation->workstation_id;
         $workstation_name=$id;
         $date = $now->format('M d Y');
-        $day_name= $now->format('l');
+		$day_name= $now->format('l');
+		
+		$operation_id = $tabWorkstation->operation_id;
 
-        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id'));
+        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id'));
     }
 
     public function current_data_operator($workstation){
+		$now = Carbon::now();
         $tasks = DB::connection('mysql_mes')->table('job_ticket AS jt')
         	->join('production_order AS po', 'jt.production_order', 'po.production_order')
-        	->join('time_logs AS t', 't.job_ticket_id', 'jt.job_ticket_id')
-        	->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled'])
-            ->select('po.production_order', 't.status', 't.reject')
-            ->get();
+			->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled'])
+			->whereDate('po.planned_start_date', $now)
+			->distinct('po.production_order')->select('po.production_order', 'po.status', 'po.qty_to_manufacture')
+			->get();
 
-        if ($workstation == 'Spotwelding') {
-	        $tasks = DB::connection('mysql_mes')->table('job_ticket AS jt')
-	        	->join('production_order AS po', 'jt.production_order', 'po.production_order')
-	        	->join('spotwelding_qty AS t', 't.job_ticket_id', 'jt.job_ticket_id')
-	        	->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled'])
-	            ->select('po.production_order', 't.status', 't.reject')
-	            ->get();
-        }
-
-        $pending = DB::connection('mysql_mes')->table('job_ticket')->where('status', 'Pending')
-        	->where('workstation', $workstation)->count();
-        $inprogress = collect($tasks)->where('status', 'In Progress')->count();
-        $rejects = collect($tasks)->where('reject', '>', 0)->count();
-        $completed = collect($tasks)->where('status', 'Completed')->count();
+		$production_orders = array_column($tasks->toArray(), 'production_order');
+		$rejects = DB::connection('mysql_mes')->table('job_ticket AS jt')
+			->join('time_logs AS t', 't.job_ticket_id', 'jt.job_ticket_id')
+			->where('jt.workstation', $workstation)->whereIn('jt.production_order', $production_orders)
+			->sum('t.reject');
+			
+		$pending = collect($tasks)->where('status', 'Not Started')->sum('qty_to_manufacture');
+		$inprogress = collect($tasks)->where('status', 'In Progress')->sum('qty_to_manufacture');
+		$completed = collect($tasks)->where('status', 'Completed')->sum('qty_to_manufacture');
 
         $data = [
-            'completed' => $completed,
-            'pending' => $pending,
-            'inprogress' => $inprogress,
-            'rejects' => $rejects
+            'completed' => number_format($completed),
+            'pending' => number_format($pending),
+            'inprogress' => number_format($inprogress),
+            'rejects' => number_format($rejects)
         ];
 
        	return $data;
@@ -2921,17 +2919,18 @@ class MainController extends Controller
 
     public function operators_workstation_TaskList($workstation, $status){
         try {
+			$now = Carbon::now();
         	if ($status == 'Pending') {
 	    		$job_ticket_qry = DB::connection('mysql_mes')->table('job_ticket')
 	    			->join('production_order', 'job_ticket.production_order', 'production_order.production_order')
 	    			->where('job_ticket.workstation', $workstation)->whereNotIn('production_order.status', ['Cancelled'])
-	    			->where('job_ticket.status', 'Pending')
+					->where('job_ticket.status', 'Pending')->whereDate('production_order.planned_start_date', $now)
 	    			->select('production_order.customer', 'production_order.qty_to_manufacture', 'produced_qty', 'production_order.production_order', 'production_order.item_code', 'job_ticket.status', 'job_ticket.workstation', DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'))
 	                ->orderBy('production_order.order_no', 'asc')->orderBy('production_order.planned_start_date', 'asc')->get();
 
-	            $tasks_list = [];
+	            $task_list = [];
 	            foreach ($job_ticket_qry as $row) {
-		    		$tasks_list[] = [
+		    		$task_list[] = [
 	            		'production_order' => $row->production_order,
 	            		'workstation' => $row->workstation,
 	            		'item_code' => $row->item_code,
@@ -2949,9 +2948,11 @@ class MainController extends Controller
 	            		'qa_inspection_status' => null,
 	            		'machine' => null,
 	            	];
-		    	}
+				}
+				
+				$task_list = collect($task_list)->groupBy('process');
 
-		    	return view('tables.tbl_operator_workstation', compact('tasks_list', 'status'));
+		    	return view('tables.tbl_operator_workstation', compact('task_list', 'status'));
 	    	}
 
         	$today = Carbon::now()->format('Y-m-d');
@@ -2967,11 +2968,12 @@ class MainController extends Controller
     				return $query->where('t.status', $status);
     			}, function ($query) {
     				return $query->where('t.reject', '>', 0);
-    			})
+				})
+				->whereDate('po.planned_start_date', $now)
                 ->select('jt.job_ticket_id', 'po.customer', 'po.qty_to_manufacture', 'po.production_order', 'po.item_code', 't.status', 't.operator_name','jt.workstation', 't.from_time', 't.to_time','t.machine_code', 't.time_log_id', 't.good', 't.reject', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process'))
-                ->orderBy('po.order_no', 'asc')->orderBy('po.planned_start_date', 'asc')->get();
+                ->orderBy('po.order_no', 'asc')->orderBy('po.planned_start_date', 'asc')->paginate(100);
 
-            $tasks_list = [];
+            $task_list = [];
             foreach ($tasks as $row) {
             	$from = Carbon::parse($row->from_time);
 				$to = Carbon::parse($row->to_time);
@@ -2988,7 +2990,7 @@ class MainController extends Controller
 				$reference_type = ($workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
 				$reference_id = ($workstation == 'Spotwelding') ? $row->job_ticket_id : $row->time_log_id;
 				$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
-            	$tasks_list[] = [
+            	$task_list[] = [
             		'production_order' => $row->production_order,
             		'workstation' => $row->workstation,
             		'item_code' => $row->item_code,
@@ -3006,9 +3008,11 @@ class MainController extends Controller
             		'qa_inspection_status' => $qa_inspection_status,
             		'machine' => $row->machine_code,
             	];
-            }
+			}
+			
+			$task_list = collect($task_list)->groupBy('process');
 
-            return view('tables.tbl_operator_workstation', compact('tasks_list', 'status'));
+            return view('tables.tbl_operator_workstation', compact('task_list', 'status'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
