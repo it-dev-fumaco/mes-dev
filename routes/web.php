@@ -644,6 +644,11 @@ Route::post('/edit_material_type', 'SecondaryController@update_material_type');
 Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
 Route::post('/save_material_type', 'SecondaryController@save_material_type');
 
+//reason for cancellation(PO)
+Route::post('/save_cancelled_reason', 'SecondaryController@save_reason_for_cancellation');
+Route::get('/tbl_reason_for_cancellation_po', 'SecondaryController@tbl_reason_for_cancellation_po');
+Route::post('/edit_cancelled_reason', 'SecondaryController@update_reason_for_cancellation');
+Route::post('/delete_cancelled_reason', 'SecondaryController@delete_reason_for_cancellation');
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');

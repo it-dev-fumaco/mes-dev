@@ -8136,4 +8136,76 @@ class SecondaryController extends Controller
         }
 
     }
+    public function save_reason_for_cancellation(Request $request){
+        //save late reason of cancellation to database
+        $now = Carbon::now();
+        $data = $request->all();
+        $reason= $data['reasonofcancel'];
+            foreach($reason as $i => $row){
+                if (DB::connection('mysql_mes')
+                    ->table('reason_for_cancellation_po')
+                    ->where('reason_for_cancellation', $row)
+                    ->exists()){
+                        return response()->json(['success' => 0, 'message' => 'Reason for Cancellation - <b>'.$row.'</b> is already exist']);// validate if already exist in database
+                }else{
+                    $list[] = [
+                        'reason_for_cancellation' => $row,
+                        'last_modified_by' => Auth::user()->email,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                } 
+            }
+            DB::connection('mysql_mes')->table('reason_for_cancellation_po')->insert($list);
+        return response()->json(['message' => 'New reason for cancellation is successfully inserted.']);
+    }
+    public function tbl_reason_for_cancellation_po(Request $request){
+        //show late reason of cancellation to table in setting module
+        $list = DB::connection('mysql_mes')->table('reason_for_cancellation_po')
+            ->where(function($q) use ($request) {
+                $q->where('reason_for_cancellation', 'LIKE', '%'.$request->search_string.'%');
+            })
+            ->orderBy('reason_for_cancellation_id', 'desc')->paginate(8);
+            
+        return view('tables.tbl_reason_for_cancellation', compact('list'));
+
+    }
+    public function update_reason_for_cancellation(Request $request){
+        if (DB::connection('mysql_mes')->table('reason_for_cancellation_po')
+            ->where('reason_for_cancellation', $request->edit_reason_for_cancellation)
+            ->exists()){
+
+                if(strtoupper($request->edit_reason_for_cancellation) == strtoupper($request->orig_reason_for_cancellation)){
+                    $list = [
+                    'reason_for_cancellation' => $request->edit_reason_for_cancellation,
+                    'last_modified_by' => Auth::user()->email,
+                    ];
+                    DB::connection('mysql_mes')->table('reason_for_cancellation_po')->where('reason_for_cancellation_id', $request->edit_reason_for_cancellation_id)->update($list);
+                    return response()->json(['message' => 'Reason for Cancellation is successfully updated.']);
+                }else{
+                    return response()->json(['success' => 0, 'message' => 'Reason for Cancellation - <b>'.$request->edit_reason_for_cancellation.'</b> is already exist']);           
+
+                }
+        }else{
+                $list = [
+                'reason_for_cancellation' => $request->edit_reason_for_cancellation,
+                'last_modified_by' => Auth::user()->email,
+                ];
+                DB::connection('mysql_mes')->table('reason_for_cancellation_po')->where('reason_for_cancellation_id', $request->edit_reason_for_cancellation_id)->update($list);
+                return response()->json(['message' => 'Reason for Cancellation is successfully updated.']);
+
+        }
+
+    }
+    public function delete_reason_for_cancellation(Request $request){
+        $reason = DB::connection('mysql_mes')->table('reason_for_cancellation_po')->where('reason_for_cancellation_id', $request->delete_reason_cancellation_id)->select('reason_for_cancellation')->first();
+        if(DB::connection('mysql_mes')->table('production_order')
+        ->where('remarks', '=', $request->delete_reason_cancellation_id)
+        ->exists()){
+            return response()->json(['success' => 0, 'message' => 'Unable to process request. <b>'.$reason->reason_for_cancellation.'</b> has already existing transaction.']);
+        }else{
+            DB::connection('mysql_mes')->table('reason_for_cancellation_po')->where("reason_for_cancellation_id", $request->delete_reason_cancellation_id)->delete();
+            return response()->json(['success' => 1, 'message' => 'Reason for cancellation successfully deleted.']);
+        } 
+    }
 }
