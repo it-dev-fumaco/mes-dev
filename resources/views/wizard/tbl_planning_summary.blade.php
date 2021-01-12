@@ -7,7 +7,9 @@
 	<col style="width: 12%;">
 	<col style="width: 42%;">
 	<col style="width: 12%;">
+	@if($has_scheduled > 0)
 	<col style="width: 12%;">
+	@endif
 	<thead class="text-white bg-secondary">
 		<th class="text-center"><b>Parent Code</b></th>
 		<th class="text-center"><b>Production Order</b></th>

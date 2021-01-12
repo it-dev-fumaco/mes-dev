@@ -1371,36 +1371,9 @@
       });
     }
 
-     $('#confirm-feedback-production-modal form').submit(function(e){
-    e.preventDefault();
-    $('#submit-feedback-btn').attr('disabled', true);
-    $('#loader-wrapper').removeAttr('hidden');
-    var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
-    var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
-    var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
-
-    $.ajax({
-      url:"/create_stock_entry/" + production_order,
-      type:"POST",
-      data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-      success:function(response){
-        $('#loader-wrapper').attr('hidden', true);
-        if (response.success == 0) {
-          showNotification("danger", response.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", response.message, "now-ui-icons travel_info");
-          get_for_feedback_production(1);
-          $('#confirm-feedback-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
+    $('#confirm-feedback-production-modal').on('hide.bs.modal', function (e) {
+      get_for_feedback_production(1);
     });
-  });
-
     
     $(document).on('click', '.show-merge-modal', function(e){
       e.preventDefault();
@@ -1936,13 +1909,9 @@
   $(document).on('click', '.goto_machine_kanban', function(){
     var operation_id =$('#primary-operation-id').val();
     var date = $(this).data('date');
-    if(operation_id =="1"){
-      window.location.href = "/machine_kanban/15/" + date;  
-    }else if(operation_id =="0"){
-      window.location.href = "/production_schedule_monitoring/" + date;
-    }else{
-      window.location.href = "/production_schedule_monitoring_assembly/" + date;
-    }
+   
+      window.location.href = "/production_schedule_monitoring/" + operation_id + "/" + date;
+   
           
   });
 </script>
