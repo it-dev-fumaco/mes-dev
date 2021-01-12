@@ -2458,12 +2458,8 @@ class SecondaryController extends Controller
                     ->where('job_ticket_id', $request->id)
                     ->get();
                     $total_good_timelogs = collect($timelogs)->sum('good');
-                    $good_qty= $prod_manufacturing_qty->qty_to_manufacture - $total_good_timelogs;
-                    // dd($good_qty);
                     $values1 = [
                     'status' => 'Completed',
-                    'good' => $good_qty,
-                    'to_time' => $now->toDateTimeString(),
                     'last_modified_by' => Auth::user()->employee_name,
                     'last_modified_at' => $now->toDateTimeString()
                     ];
@@ -5649,8 +5645,6 @@ class SecondaryController extends Controller
                     ->exists()){
                     $values = [
                     'status' => 'Completed',
-                    'good' => $prod->qty_to_manufacture,
-                    'to_time' => $now->toDateTimeString(),
                     'last_modified_by' => Auth::user()->employee_name,
                     'last_modified_at' => $now->toDateTimeString()
                     ];
@@ -8208,4 +8202,5 @@ class SecondaryController extends Controller
             return response()->json(['success' => 1, 'message' => 'Reason for cancellation successfully deleted.']);
         } 
     }
+    
 }
