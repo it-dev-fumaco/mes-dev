@@ -41,3 +41,8 @@ Note: Please specify the Summary and Description on your every commit﻿ Finaliz
 </li>
 </ul>
 
+Instructions after pulling master branch on live MES Server
+    - run command "php artisan optimize"
+    - go to bootstrap folder, then delete "config" file
+    - go to storage/framework, then remove all files inside "sessions" folder
+    

@@ -203,8 +203,7 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;">
 				<col style="width: 8%;">
-				<col style="width: 18%;">
-				<col style="width: 9%;">
+				<col style="width: 27%;">
 				<col style="width: 13%;">
 				<col style="width: 13%;">
 				<col style="width: 9%;">
@@ -215,7 +214,6 @@
 					<th>No.</th>
 					<th>Prod. Order</th>
 					<th>Item Description</th>
-					<th>Status</th>
 					<th>Source Warehouse</th>
 					<th>WIP Warehouse</th>
 					<th>Required</th>
@@ -224,48 +222,46 @@
 					<th>Action</th>
 				</tr>
 				@foreach ($parts as $i => $part)
+				@php
+					$balance = $part['required_qty'] - $part['transferred_qty'];
+					$swhb = ($part['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+					$wwhb = ($part['available_qty_at_wip'] < $part['transferred_qty'] || $part['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
+
+					if($part['transferred_qty'] == $part['required_qty']){
+						$twhb = "badge badge-success";
+					}elseif($part['transferred_qty'] <= 0){
+						$twhb = "badge badge-danger";
+					}else{
+						$twhb = "badge badge-warning";
+					}
+
+					$stat_badge = 'badge badge-secondary';
+					if($part['status'] == 'Completed'){
+						$stat_badge = 'badge badge-success';
+					}elseif($part['status'] == 'In Progress'){
+						$stat_badge = 'badge badge-warning';
+					}elseif($part['status'] == 'Cancelled'){
+						$stat_badge = 'badge badge-danger';
+					}else{
+						$stat_badge = 'badge badge-secondary';
+					}
+
+					$item_status_badge = ($part['item_status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
+				@endphp
 				<tr>
 					<td class="text-center">{{ $i + 1 }}</td>
 					<td class="text-center">
 						@if ($part['production_order'])
-						<span class="font-weight-bold view-production-order-details" data-production-order="{{ $part['production_order'] }}" style="color: black; cursor: pointer;">{{ $part['production_order'] }}</span>
+						<span class="d-block font-weight-bold view-production-order-details" data-production-order="{{ $part['production_order'] }}" style="color: black; cursor: pointer;">{{ $part['production_order'] }}</span>
 						@else
 						--
 						@endif
+						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
-					@php
-						$balance = $part['required_qty'] - $part['transferred_qty'];
-						$swhb = ($part['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
-						$wwhb = ($part['available_qty_at_wip'] < $part['transferred_qty'] || $part['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
-
-						if($part['transferred_qty'] == $part['required_qty']){
-							$twhb = "badge badge-success";
-						}elseif($part['transferred_qty'] <= 0){
-							$twhb = "badge badge-danger";
-						}else{
-							$twhb = "badge badge-warning";
-						}
-
-						$stat_badge = 'badge badge-secondary';
-						if($part['status'] == 'Completed'){
-							$stat_badge = 'badge badge-success';
-						}elseif($part['status'] == 'In Progress'){
-							$stat_badge = 'badge badge-warning';
-						}elseif($part['status'] == 'Cancelled'){
-							$stat_badge = 'badge badge-danger';
-						}else{
-							$stat_badge = 'badge badge-secondary';
-						}
-
-						$item_status_badge = ($part['item_status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
-					@endphp
 					<td class="text-justify">
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
-					</td>
-					<td class="text-center">
-						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
 					<td class="text-center">
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>

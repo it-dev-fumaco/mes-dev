@@ -1254,6 +1254,30 @@
     background-color: #F3F3F3;
     color: #242424;
   }
+  @-webkit-keyframes blinker_change_code {
+      from { background-color: #f39c12; }
+      to { background-color: inherit; }
+    }
+    @-moz-keyframes blinker_change_code {
+      from { background-color: #f39c12; }
+      to { background-color: inherit; }
+    }
+    @-o-keyframes blinker_change_code {
+      from { background-color: #f39c12; }
+      to { background-color: inherit; }
+    }
+    @keyframes blinker_change_code {
+      from { background-color: #f39c12; }
+      to { background-color: inherit; }
+    }
+  .blink_changecode{
+      text-decoration: blink;
+      -webkit-animation-name: blinker_change_code;
+      -webkit-animation-duration: 1s;
+      -webkit-animation-iteration-count:infinite;
+      -webkit-animation-timing-function:ease-in-out;
+      -webkit-animation-direction: alternate;
+    }
 </style>
 
 
