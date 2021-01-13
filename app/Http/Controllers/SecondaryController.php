@@ -7670,49 +7670,36 @@ class SecondaryController extends Controller
     public function save_operator_checklist(Request $request){
         $now = Carbon::now();
         $arr = $request->operator_new_checklist_r_desc;
-        $ar=array_unique( array_diff_assoc($arr, array_unique( $arr ) ) );
-        if(!empty($ar)){
-            foreach($ar as $i => $r){
-                $reject_desc =DB::connection('mysql_mes')->table('reject_list')
-                ->where('reject_list_id', $r)
-                ->first();
-                $row= $i +1;
-                $workstation= DB::connection('mysql_mes')->table('workstation')
-                ->where('workstation_id', $request->workstation_id)
-                ->first(); 
-                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$reject_desc->reject_reason.' at ROW '.$row ]);
-            }
-        }else{
-            if ($request->operator_new_checklist_r_desc) {   
-                foreach($request->operator_new_checklist_r_desc as $i => $row){
-                    if (DB::connection('mysql_mes')
-                        ->table('operator_reject_list_setup')
-                        ->where('workstation_id', $request->workstation_id)
-                        ->where('reject_list_id', $row)
-                        ->exists()){
-
-                        $reject_desc =DB::connection('mysql_mes')->table('reject_list')
+        $ar=array_unique( array_diff_assoc($arr, array_unique($arr)));
+        
+        if ($request->operator_new_checklist_r_desc) {   
+            foreach($request->operator_new_checklist_r_desc as $i => $row){
+                if (DB::connection('mysql_mes')
+                    ->table('operator_reject_list_setup')
+                    ->where('workstation_id', $request->workstation_id)
+                    ->where('process_id', $request->operator_new_checklist_r_process[$i])
+                    ->where('reject_list_id', $row)
+                    ->exists()){
+                    $reject_desc =DB::connection('mysql_mes')->table('reject_list')
                         ->where('reject_list_id', $row)
                         ->first();
-
-                        $workstation= DB::connection('mysql_mes')->table('workstation')
+                    $workstation= DB::connection('mysql_mes')->table('workstation')
                         ->where('workstation_id', $request->workstation_id)
                         ->first();
 
-                        return response()->json(['success' => 0, 'message' => 'Operator reject list setup '.$reject_desc->reject_reason.' is already exist in '.$workstation->workstation_name ]);
-                    }else{
-                      $checklist[] = [
+                    return response()->json(['success' => 0, 'message' => 'Operator reject list setup '.$reject_desc->reject_reason.' is already exist in '.$workstation->workstation_name ]);
+                }else{
+                    $checklist[] = [
                         'workstation_id' => $request->workstation_id,
                         'reject_list_id' => $row,
+                        'process_id' => $request->operator_new_checklist_r_process[$i],
                         'last_modified_by' => Auth::user()->email,
                         'created_by' => Auth::user()->email,
                         'created_at' => $now->toDateTimeString()
-                        ];
-                    } 
-                }
-                DB::connection('mysql_mes')->table('operator_reject_list_setup')->insert($checklist);
-                
+                    ];
+                } 
             }
+            DB::connection('mysql_mes')->table('operator_reject_list_setup')->insert($checklist);  
         }
 
         return response()->json(['success' => 1,'message' => 'New operator reject list setup has been created.', 'reloadtbl' => $request->reload_operator_checklist,]);
@@ -7720,6 +7707,7 @@ class SecondaryController extends Controller
     public function get_tbl_opchecklist_list_fabrication(Request $request){
         $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
             ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
+            ->join('process', 'process.process_id', 'oc.process_id')
             ->join('reject_list as rl','rl.reject_list_id', 'oc.reject_list_id')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
@@ -7730,10 +7718,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('process.process_name', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->where('w.workstation_name','!=','Painting')
-            ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name')
+            ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name', 'process.process_name')
             ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
 
         return view('tables.tbl_operator_check_list_fabrication', compact('check_list'));
@@ -7761,6 +7750,7 @@ class SecondaryController extends Controller
     public function get_tbl_opchecklist_list_painting(Request $request){
         $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
             ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
+            ->join('process', 'process.process_id', 'oc.process_id')
             ->join('reject_list as rl','rl.reject_list_id', 'oc.reject_list_id')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
@@ -7771,11 +7761,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.reject_category_name', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('process.process_name', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
+            ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
             ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
-
         return view('tables.tbl_operator_check_list_painting', compact('check_list'));
 
     }
@@ -8125,6 +8115,19 @@ class SecondaryController extends Controller
                 return response()->json(['message' => 'Material Type is successfully updated.']);
 
         }
+
+    }
+    public function get_reject_categ_and_process(Request $request){
+        $caterory = DB::connection('mysql_mes')->table('reject_category')->get();
+        $process_list= DB::connection('mysql_mes')
+        ->table('process_assignment')
+        ->join('process', 'process.process_id','process_assignment.process_id')
+        ->where('process_assignment.workstation_id', $request->workstation)
+        ->select('process_assignment.process_id', 'process.process_name')
+        ->groupBy('process_assignment.process_id', 'process.process_name')
+        ->get();
+
+        return response()->json(['category' => $caterory, 'process'=> $process_list]);
 
     }
 }
