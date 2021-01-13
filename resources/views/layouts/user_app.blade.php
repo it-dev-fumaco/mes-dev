@@ -415,7 +415,13 @@
               <div class="col-md-12">
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
-                <p style="font-size: 14pt; margin: 0;" class="text-center">Cancel Production Order <b><span></span></b>?</p>
+                <p style="font-size: 14pt;" class="text-center m-0">Cancel Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-6 offset-md-3 mt-3">
+                <div class="form-group text-center">
+                  <span class="font-weight-bold">Select Reason for Cancellation</span>
+                  <select name="reason_for_cancellation" class="form-control rounded" required></select>
+                </div>
               </div>
               <div class="col-md-12" id="items-for-return-table"></div>
             </div>
@@ -841,6 +847,7 @@
     $('#cancel-production-modal .modal-title').text('Cancel Production Order');
     $('#cancel-production-modal span').eq(1).text(production_order);
     get_items_for_return(production_order);
+    get_reason_for_cancellation();
     $('#cancel-production-modal').modal('show');
   });
 
@@ -866,6 +873,34 @@
       }
     });
   });
+  
+  function get_reason_for_cancellation(){
+    $('#cancel-production-modal select[name="reason_for_cancellation"]').empty();
+    $.ajax({
+      url: '/get_reason_for_cancellation',
+      type:"GET",
+      success:function(data){
+        if(data.length < 1){
+          $('#cancel-production-modal button[type="submit"]').attr('disabled', true);
+          showNotification("warning", 'Please enter reasons for cancellation in Settings', "now-ui-icons travel_info");
+          return false;
+        }else{
+          $('#cancel-production-modal button[type="submit"]').removeAttr('disabled');
+        }
+        var opt = '';
+        $.each(data, function(i, v){
+          opt += '<option value="' + v.reason_for_cancellation + '">' + v.reason_for_cancellation + '</option>';
+        });
+        
+        $('#cancel-production-modal select[name="reason_for_cancellation"]').append(opt);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  }
 
   $(document).on('click', '.return-required-item-btn', function(e){
     e.preventDefault();

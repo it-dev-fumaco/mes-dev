@@ -1781,41 +1781,6 @@ $(document).ready(function(){
     });
   });
 
-  $(document).on('click', '.cancel-production-btn', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    var production_order = $(this).data('production-order');
-
-    $('#cancel-production-modal input[name="id"]').val(id);
-    $('#cancel-production-modal input[name="production_order"]').val(production_order);
-    $('#cancel-production-modal .modal-title').text('Cancel Production Order');
-    $('#cancel-production-modal span').eq(1).text(production_order);
-    $('#cancel-production-modal').modal('show');
-  });
-
-  $('#cancel-production-modal form').submit(function(e){
-    e.preventDefault();
-    $.ajax({
-      url: '/cancel_production_order',
-      type:"POST",
-      data: $(this).serialize(),
-      success:function(data){
-        if (!data.success) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          location.reload();
-          $('#cancel-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
   $('.modal').on('hidden.bs.modal', function(){
     var frm = $(this).find('form')[0];
     if (frm) frm.reset();
