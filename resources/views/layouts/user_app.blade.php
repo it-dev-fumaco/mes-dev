@@ -1032,6 +1032,14 @@
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
       $('#change-required-item-modal input[name="quantity"]').val(required_qty);
+
+      $.ajax({
+        url: "/get_available_warehouse_qty/" + item_code,
+        type:"GET",
+        success: function(data){
+          $('#change-required-item-modal .inv-list').html(data);
+        }
+      });
       
       $('#change-required-item-modal').modal('show');
     });
@@ -1218,6 +1226,15 @@
       select:function(event,ui){
         $('#change-required-item-modal textarea[name="description"]').text(ui.item.id);
         $('#change-required-item-modal input[name="item_name"]').val(ui.item.item_name);
+
+        var item_code = $('#change-required-item-modal input[name="item_code"]').val();
+        $.ajax({
+          url: "/get_available_warehouse_qty/" + item_code,
+          type:"GET",
+          success: function(data){
+            $('#change-required-item-modal .inv-list').html(data);
+          }
+        });
       }
     });
 

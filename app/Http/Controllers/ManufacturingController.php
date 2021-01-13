@@ -1455,6 +1455,12 @@ class ManufacturingController extends Controller
                 }
             }
 
+            $references = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.production_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->where('ste.docstatus', 1)->where('sted.item_code', $item->item_code)
+                ->select('ste.name', 'sted.date_modified', 'sted.session_user', 'sted.qty')->get();
+
             if($has_production_order){
                 $parts[] = [
                     'name' => $item->name,
@@ -1473,7 +1479,8 @@ class ManufacturingController extends Controller
                     'available_qty_at_wip' => $available_qty_at_wip,
                     'has_pending_ste_for_issue' => $has_pending_ste_for_issue,
                     'status' => $has_production_order->status,
-                    'item_status' => $item_status
+                    'item_status' => $item_status,
+                    'references' => $references
                 ];
             }else{
                 $components[] = [
@@ -1493,7 +1500,8 @@ class ManufacturingController extends Controller
                     'available_qty_at_wip' => $available_qty_at_wip,
                     'has_pending_ste_for_issue' => $has_pending_ste_for_issue,
                     'status' => null,
-                    'item_status' => $item_status
+                    'item_status' => $item_status,
+                    'references' => $references
                 ];
             }
         }
@@ -3852,5 +3860,11 @@ class ManufacturingController extends Controller
         }
 
         return view('tables.tbl_bundle_components', compact('bundle_details', 'components_arr'));
+    }
+
+    public function get_available_warehouse_qty($item_code){
+        $inventory_stock = DB::connection('mysql')->table('tabBin')->where('item_code', $item_code)->where('actual_qty', '>', 0)->get();
+
+        return view('tables.tbl_item_inventory', compact('inventory_stock'));
     }
 }

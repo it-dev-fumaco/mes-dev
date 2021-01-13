@@ -397,11 +397,18 @@
                                 }else{
                                   $colorme="black";
                                 }
+                                
                                 if($order['process_stat'] == "Material For Issue"){
                                   $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Material Issued"){
-                                  $stat_badge ="info";
+                                  $stat_badge ="primary";
+                                }else if($order['process_stat'] == "Cancelled"){
+                                  $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Ready For Feedback"){
+                                  $stat_badge ="info";
+                                }else if($order['process_stat'] == "Partial Feedbacked"){
+                                  $stat_badge ="success";
+                                }else if($order['process_stat'] == "Feedbacked"){
                                   $stat_badge ="success";
                                 }else{
                                   $stat_badge ="warning";
@@ -490,7 +497,7 @@
           <li class="nav-item">
             <a class="nav-link" id="inprog-tab" data-toggle="tab" href="#inprog" role="tab" aria-controls="inprog" aria-selected="false">Inactive In Progress</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item"  id="tab_change_code">
             <a class="nav-link" id="change_code_tab" data-toggle="tab" href="#change_code_prod" role="tab" aria-controls="changecode" aria-selected="false">Change Code Alert</a>
           </li>
         </ul>
@@ -1192,8 +1199,8 @@
     border: 2px solid rgba(255, 0, 0, 0.5);
     opacity: 0;
     border-radius: 50%;
-    width: 100%;
-    height: 100%;
+
+
   }
 
   @keyframes sonar {
@@ -2498,8 +2505,12 @@ $('#btnPrint').on("click", function () {
   url:"/get_reload_tbl_change_code",
   type:"GET",
   success:function(data){
-  $('#tbl-notifications-change-code').html(data);
-  // $('#view-notifications-modal').modal('show');
+    if((!$.trim(data))) {
+        $("#tab_change_code").hide();
+    }else{
+      $('#tbl-notifications-change-code').html(data);
+      $("#tab_change_code").show();
+    }
   },
   error : function(data) {
   console.log(data.responseText);
