@@ -595,37 +595,6 @@
       $('#confirm-feedback-production-modal').modal('show');
     });
 
-    $('#confirm-feedback-production-modal form').submit(function(e){
-      e.preventDefault();
-      $('#submit-feedback-btn').attr('disabled', true);
-      $('#loader-wrapper').removeAttr('hidden');
-      var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
-      var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
-      var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
-  
-      $.ajax({
-        url:"/create_stock_entry/" + production_order,
-        type:"POST",
-        data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-        success:function(response){
-          console.log(response);
-          $('#loader-wrapper').attr('hidden', true);
-          if (response.success == 0) {
-            showNotification("danger", response.message, "now-ui-icons travel_info");
-            $('#submit-feedback-btn').removeAttr('disabled');
-          }else{
-            showNotification("success", response.message, "now-ui-icons travel_info");
-            $('#confirm-feedback-production-modal').modal('hide');
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
-
     $(document).on('click', '.submit-ste-btn', function(e){
       e.preventDefault();
       var production_order = $(this).data('production-order');
