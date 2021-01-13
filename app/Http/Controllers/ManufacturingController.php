@@ -1024,7 +1024,6 @@ class ManufacturingController extends Controller
             $stock_uom = ($request->stock_uom) ? $request->stock_uom : $item_details->stock_uom;
             $item_name = ($request->item_name) ? $request->item_name : $item_details->item_name;
 
-
             $bom = DB::connection('mysql')->table('tabBOM Item as bom')
                 ->join('tabItem as item', 'item.name', 'bom.item_code')
                 ->whereNotIn('item.item_group', ['Raw Material', 'Factory Supplies'])
@@ -1038,6 +1037,19 @@ class ManufacturingController extends Controller
                 ->orderBy('modified', 'desc')
                 ->where('name', $bom->parent)
                 ->first();
+            }
+
+            $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
+            $sub_parent_item_code = ($request->sub_parent_code) ? $request->sub_parent_code : $request->item_code;
+
+            $parent_item_details = DB::connection('mysql')->table('tabItem')->where('name', $parent_item_code)->first();
+            if (!$parent_item_details) {
+                return response()->json(['success' => 0, 'message' => 'Parent Item ' .$parent_item_code. ' not found.']);
+            }
+
+            $sub_parent_item_details = DB::connection('mysql')->table('tabItem')->where('name', $sub_parent_item_code)->first();
+            if (!$sub_parent_item_details) {
+                return response()->json(['success' => 0, 'message' => 'Sub Parent Item ' .$sub_parent_item_code. ' not found.']);
             }
 
             $operation_details = DB::connection('mysql_mes')->table('operation')
@@ -1093,7 +1105,7 @@ class ManufacturingController extends Controller
 
             $params = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $request->item_code)
                 ->where('attribute', 'LIKE', '%cutting size%')->first();
-
+            
             $bom_sub_parent = ($bom)? $default_bom->item : null;
             
             $data_mes = [
@@ -1811,6 +1823,11 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
             }
 
+            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+            if(!$item_details){
+                return response()->json(['status' => 0, 'message' => 'Item <b>'. $request->item_code.'</b> not found.']);
+            }
+
             // get stock entry transferred qty
 			$transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
@@ -2396,6 +2413,19 @@ class ManufacturingController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' not found.']);
             }
 
+            $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
+            $sub_parent_item_code = ($request->sub_parent_code) ? $request->sub_parent_code : $request->item_code;
+
+            $parent_item_details = DB::connection('mysql')->table('tabItem')->where('name', $parent_item_code)->first();
+            if (!$parent_item_details) {
+                return response()->json(['success' => 0, 'message' => 'Parent Item ' .$parent_item_code. ' not found.']);
+            }
+
+            $sub_parent_item_details = DB::connection('mysql')->table('tabItem')->where('name', $sub_parent_item_code)->first();
+            if (!$sub_parent_item_details) {
+                return response()->json(['success' => 0, 'message' => 'Sub Parent Item ' .$sub_parent_item_code. ' not found.']);
+            }
+
             $operation_details = DB::connection('mysql_mes')->table('operation')
                     ->where('operation_id', $request->operation_id)->first();
 
@@ -2442,8 +2472,6 @@ class ManufacturingController extends Controller
             }
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
-
-            $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
 
             $data = [
                 'name' => $new_id,

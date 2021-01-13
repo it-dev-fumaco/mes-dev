@@ -1646,7 +1646,6 @@ $(document).ready(function(){
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success == 0) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
