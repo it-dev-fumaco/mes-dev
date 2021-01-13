@@ -936,7 +936,7 @@
           var row = '<tr>' +
             '<td class="p-1">' +
               '<div class="form-group m-0">' +
-              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" required>' +
+              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" maxlength="7" required>' +
               '</div>' +
             '</td>' +
             '<td class="p-1">' +

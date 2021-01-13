@@ -519,7 +519,7 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Item to Manufacture</label>
-                    <input type="text" class="form-control" id="sel-item" name="item_code" required>
+                    <input type="text" class="form-control" id="sel-item" name="item_code" maxlength="7" required>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -577,13 +577,13 @@
                 <div class="col-md-4">
                   <div class="form-group">
                     <label>Parent Item Code</label>
-                    <input type="text" class="form-control" name="parent_code" id="sel-parent-code">
+                    <input type="text" class="form-control" name="parent_code" id="sel-parent-code" maxlength="7">
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="form-group">
                     <label>Sub Parent Item Code</label>
-                    <input type="text" class="form-control" name="sub_parent_code" id="sel-sub-parent-code">
+                    <input type="text" class="form-control" name="sub_parent_code" id="sel-sub-parent-code" maxlength="7">
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -1646,7 +1646,6 @@ $(document).ready(function(){
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success == 0) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
