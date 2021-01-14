@@ -572,9 +572,8 @@ class ManufacturingController extends Controller
 
     public function view_bom_for_review(Request $request, $bom){
         try {
+            $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
             if($bom == "No BOM"){
-                $details= DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
-                
                 $workstations = DB::connection('mysql_mes')->table('workstation')
                     ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
                 
@@ -591,15 +590,27 @@ class ManufacturingController extends Controller
 
                 return view('reports.tbl_update_no_bom', compact('workstation_process', 'workstations', 'existing_workstation', 'details'));
             }else{
-                $user_permitted_operations = DB::connection('mysql_mes')->table('user')
-                    ->join('operation', 'operation.operation_id', 'user.operation_id')
-                    ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-                    ->where('user_access_id', Auth::user()->user_id)->where('module', 'Production')
-                    ->select('user.operation_id', 'operation_name')->distinct()->pluck('user.operation_id');
+                if(!$request->operation_name){
+                    if(!$details){
+                        // get user permitted operation ids
+                        $operation_ids = DB::connection('mysql_mes')->table('user')
+                            ->join('operation', 'operation.operation_id', 'user.operation_id')
+                            ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+                            ->where('user_access_id', Auth::user()->user_id)->where('module', 'Production')
+                            ->select('user.operation_id', 'operation_name')->distinct()->pluck('user.operation_id');
+                    }else{
+                        $operation_ids = [$details->operation_id];
+                    }
+                }else{
+                    $operation_details = DB::connection('mysql_mes')->table('operation')
+                        ->where('operation_name', 'like', '%'. $request->operation_name .'%')->first();
 
+                    $operation_ids = [$operation_details->operation_id];
+                }
+                
                 $workstations = DB::connection('mysql_mes')
                     ->table('workstation as w')->join('operation as op', 'op.operation_id','w.operation_id')
-                    ->whereIn('op.operation_id', $user_permitted_operations)->get();
+                    ->whereIn('op.operation_id', $operation_ids)->get();
 
                 $workstation_process = DB::connection('mysql_mes')->table('process')
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
