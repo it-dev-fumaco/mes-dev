@@ -370,12 +370,17 @@
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
+          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
+          
+      
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body" style="min-height: 600px;">
+            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
+              <button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails1" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>
+            </div>
           <div id="production-search-content"></div>
         </div>
       </div>
@@ -385,13 +390,17 @@
   <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
+        <div class="modal-header text-white" style="background-color: #0277BD;" id="prod_search2">
+          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body" style="min-height: 600px;">
+            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
+              <button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails2" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>
+
+            </div>
           <div id="production-search-content-modal2"></div>
         </div>
       </div>
@@ -503,6 +512,40 @@
               <div class="col-md-12" id="tbl_reschduled_deli">
                 
               </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal fade" id="confirm-reset-workstation-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <form action="/reset_workstation_data" method="POST" id="reset-works-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title">Confirmation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-md-12">
+                   <input type="hidden" name="reset_job_ticket_id" class="reset_job_ticket_id">
+                   <input type="hidden" name="reset_prod"  class="reset_prod">
+                   <input type="hidden" name="reload_tbl"  class="reset_reload_tbl">
+
+                   <div class="row">
+                     <div class="col-sm-12"style="font-size: 12pt;">
+                         <label> Are you sure you want to reset <span class="reset_job_ticket_workstation" style="font-weight: bold;"></span> ?</label>
+                     </div>               
+                   </div>
+                </div>
             </div>
           </div>
           <div class="modal-footer" style="padding: 5px 10px;">
@@ -1351,6 +1394,36 @@
         }
       });
     });
+    $('#reset-works-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#confirm-reset-workstation-modal').modal('hide');
+                if(data.reload_tbl == "jtdetails1"){
+                  getJtDetails(data.prod);
+                  console.log(data.prod);
+                }else{
+                  getJtDetails2(data.prod);
+                  console.log(data.prod);
+
+                }
+                console.log('hey');
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
     $(document).on('click', '.resched-deli-btn', function(){
       var prod = $(this).data('production-order');
       $.ajax({
@@ -1542,6 +1615,19 @@
         }
       });
     });
+  });
+  $(document).on('click', '.reset_workstation_btn', function(){
+    var getParentID =$(this).attr('data-namemodal');
+    var prod_parent = "#"+ getParentID + " .prod_title_reset";
+    var prod = $(prod_parent).text();
+    var reload_tbl = $(this).attr('data-prodsearch');
+    var jt_id = null;
+    $('#confirm-reset-workstation-modal .reset_job_ticket_workstation').text(prod);
+    $('#confirm-reset-workstation-modal .reset_job_ticket_id').val(jt_id);
+    $('#confirm-reset-workstation-modal .reset_prod').val(prod);
+    $('#confirm-reset-workstation-modal').modal('show');
+    $("#confirm-reset-workstation-modal .modal-title").text("RESET");
+    $('#confirm-reset-workstation-modal .reset_reload_tbl').val(reload_tbl);
   });
 </script>
 </body>

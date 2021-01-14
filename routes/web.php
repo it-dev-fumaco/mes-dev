@@ -651,6 +651,9 @@ Route::post('/save_cancelled_reason', 'SecondaryController@save_reason_for_cance
 Route::get('/tbl_reason_for_cancellation_po', 'SecondaryController@tbl_reason_for_cancellation_po');
 Route::post('/edit_cancelled_reason', 'SecondaryController@update_reason_for_cancellation');
 Route::post('/delete_cancelled_reason', 'SecondaryController@delete_reason_for_cancellation');
+Route::get('/tbl_reset_workstation/{id}', 'SecondaryController@get_tbl_reset_workstation');
+Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done_task');
+
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');

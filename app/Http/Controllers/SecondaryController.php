@@ -5409,8 +5409,7 @@ class SecondaryController extends Controller
                 'operator_name' => $log->operator_name
             ];
         }
-        $total_rejects = DB::connection('mysql_mes')->table('spotwelding_reject')
-            ->where('job_ticket_id', $jt)->sum('rejected_qty');
+        $total_rejects = $prod->reject;
 
         return view('tables.tbl_spotwelding_production_order_search', compact('logs','task_list', 'total_rejects'));
     }
@@ -8202,5 +8201,104 @@ class SecondaryController extends Controller
             return response()->json(['success' => 1, 'message' => 'Reason for cancellation successfully deleted.']);
         } 
     }
+    public function reverse_mark_as_done_task(Request $request){
+        try {
+            $now = Carbon::now();
+            // dd($request->all());
+                $prod = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->reset_prod)->first();
+                if(empty($request->reset_job_ticket_id)){
+                    // dd($request->all());
+                    $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->reset_prod)->get();
+                    foreach($jt_details as $row){
+                        if($row->workstation == "Spotwelding"){
+                            DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $row->job_ticket_id)->delete();
+                            DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->where('reference_id', $row->job_ticket_id)->delete();
+                            DB::connection('mysql_mes')->table('reject_reason')->where('job_ticket_id', $row->job_ticket_id)->delete();
+                            DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $request->reset_prod)->delete();
+                            DB::connection('mysql_mes')->table('spotwelding_reject')->where('job_ticket_id', $row->job_ticket_id)->delete();
+                        }else{
+                            DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $row->job_ticket_id)->delete();
+                            DB::connection('mysql_mes')->table('quality_inspection')->where('reference_id', $row->job_ticket_id)->delete();
+                            DB::connection('mysql_mes')->table('reject_reason')->where('job_ticket_id', $row->job_ticket_id)->delete();
+                        }
+                        $values = [
+                            'status' => 'Pending',
+                            'remarks' => '',
+                            'completed_qty' => 0,
+                            'reject' => 0,
+                            'good' => 0,
+                            'last_modified_by' => Auth::user()->employee_name,
+                            'last_modified_at' => $now->toDateTimeString()
+                        ];
+                        DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
+                    }
+                    $values1 = [
+                        'status' => 'Not Started',
+                        'produced_qty' => 0,
+                        'feedback_qty' => 0,
+                        'actual_start_date' => null,
+                        'actual_end_date' => null,
+                        'last_modified_by' => Auth::user()->employee_name,
+                        'last_modified_at' => $now->toDateTimeString()
+                    ];
+                }else{
+                    $jt = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->reset_job_ticket_id)->first();
+                    if($jt->workstation == "Spotwelding"){
+                        DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->reset_job_ticket_id)->delete();
+                        DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->where('reference_id', $request->reset_job_ticket_id)->delete();
+                        DB::connection('mysql_mes')->table('reject_reason')->where('job_ticket_id', $request->reset_job_ticket_id)->delete();
+                        DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $request->reset_prod)->delete();
+                        DB::connection('mysql_mes')->table('spotwelding_reject')->where('job_ticket_id', $request->reset_job_ticket_id)->delete();
+                    }else{
+                        DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->reset_job_ticket_id)->delete();
+                        DB::connection('mysql_mes')->table('quality_inspection')->where('reference_id', $request->reset_job_ticket_id)->delete();
+                        DB::connection('mysql_mes')->table('reject_reason')->where('job_ticket_id', $request->reset_job_ticket_id)->delete();
+                    }
+                    $values = [
+                        'status' => 'Pending',
+                        'remarks' => '',
+                        'completed_qty' => 0,
+                        'reject' => 0,
+                        'good' => 0,
+                        'last_modified_by' => Auth::user()->employee_name,
+                        'last_modified_at' => $now->toDateTimeString()
+                    ];
+                    DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->reset_job_ticket_id)->update($values);
+                    $jt_workstation_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->reset_prod)->get();
+                    $count_pending=collect($jt_workstation_details)->where('status', 'Pending')->count();
+                    $count_workstation= collect($jt_workstation_details)->count();
+                    if($count_pending == $count_workstation){
+                        $values1 = [
+                            'status' => 'Not Started',
+                            'produced_qty' => 0,
+                            'feedback_qty' => 0,
+                            'actual_start_date' => null,
+                            'actual_end_date' => null,
+                            'last_modified_by' => Auth::user()->employee_name,
+                            'last_modified_at' => $now->toDateTimeString()
+                        ];
+                    }else{
+                        $values1 = [
+                            'status' => 'In Progress',
+                            'produced_qty' => 0,
+                            'feedback_qty' => 0,
+                            'actual_end_date' => null,
+                            'last_modified_by' => Auth::user()->employee_name,
+                            'last_modified_at' => $now->toDateTimeString()
+                        ];
+                    }
+                }
+                DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->reset_prod)->update($values1);
+                return response()->json(['success' => 1, 'message' => 'Task successfully updated', 'prod'=> $request->reset_prod, 'reload_tbl' => $request->reload_tbl]);
+        } catch (Exception $e) {
+            return response()->json(["error" => $e->getMessage()]);
+        }
+    }
+    public function get_tbl_reset_workstation($prod){
+        $list= DB::connection('mysql_mes')->table('job_ticket')->join('process', 'process.process_id', 'job_ticket.process_id')->where('production_order', $prod)->select('job_ticket.*', 'process.process_name')->get();
+        // dd($jt);
+        return view('tables.tbl_reset_workstation', compact('list'));
+    }
+
     
 }
