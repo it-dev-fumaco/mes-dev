@@ -3627,7 +3627,7 @@ class MainController extends Controller
 			->where('process_id', $job_ticket_details->process_id)
 			->where('operator_id', '!=', $operator_id)
 			->whereNotNull('operator_id')
-			->select('operator_id', 'operator_nickname', DB::raw('SUM(good + reject) as completed_qty'))->groupBy('operator_id', 'operator_nickname')->get();
+			->select('operator_id', 'operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))->groupBy('operator_id', 'operator_nickname')->get();
 
     	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
 	}
