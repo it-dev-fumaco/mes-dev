@@ -100,7 +100,12 @@ class PaintingOperatorController extends Controller
 
 	public function reject_task(Request $request){
 		try {
+			if(empty($request->reject_list)){
+				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
+			}
 			$now = Carbon::now();
+			$data= $request->all();
+			$reject_reason= $data['reject_list'];
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
 			
@@ -111,17 +116,33 @@ class PaintingOperatorController extends Controller
                 'reject' => $request->rejected_qty,
 			];
 
-			// $insert = [
-			// 	'time_log_id' => $request->id,
-			// 	'qa_inspection_type' => 'Reject Confirmation',
-			// 	'rejected_qty' => $request->rejected_qty,
-			// 	'total_qty' => $time_log->good,
-			// 	'status' => 'For Confirmation',
-			// 	'created_by' => Auth::user()->employee_name,
-			// 	'created_at' => $now->toDateTimeString(),
-			// ];
+			$reference_type = 'Time Logs';
+			$reference_id =  $request->id;
 
-			// DB::connection('mysql_mes')->table('quality_inspection')->insert($insert);
+			$insert = [
+				'reference_type' => $reference_type,
+				'reference_id' => $reference_id,
+				'qa_inspection_type' => 'Reject Confirmation',
+				'rejected_qty' => $request->rejected_qty,
+				'total_qty' => $time_log->good,
+				'status' => 'For Confirmation',
+				'created_by' => Auth::user()->employee_name,
+				'created_at' => $now->toDateTimeString(),
+			];
+
+			$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+
+			foreach($reject_reason as $i => $row){
+				$reason[] = [
+					'job_ticket_id' => $time_log->job_ticket_id,
+					'qa_id' => $qa_id,
+					'reject_list_id' => $row,
+					'reject_value' => '-'
+				];
+			}
+			
+
+			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 			
 			$this->updateProdOrderOps($request->production_order, 'Painting');

@@ -1315,15 +1315,15 @@
       }
 
       var workstation = '{{ $workstation }}';
-      get_reject_types(workstation);
+      get_reject_types();
 
       $('#enter-reject-modal').modal('show');
     });
 
-    function get_reject_types(workstation){
+    function get_reject_types(){
       $('#rejected-type-sel').empty();
       $.ajax({
-        url: "/get_reject_types/" + workstation,
+        url: "/get_reject_types/{{ $workstation }}/{{ $job_ticket_details->process_id }}",
         type:"GET",
         success:function(data){
           $('#div_reject_reason').html(data);

@@ -397,6 +397,7 @@ class TrackingController extends Controller
             if((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Pending")->count()) == $fabrication){                
                 $fab_timeline_stat = "not_started";
                 $fab_duration="-";
+                $fab_badge="secondary";
             }elseif ($fabrication == $fabrication_completed ){ 
                 $fab_timeline_stat = "Completed";
                 $from = Carbon::parse($min_fab);
@@ -404,13 +405,18 @@ class TrackingController extends Controller
 
                 $duration = $from->diffInSeconds($to);
                 $fab_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $fab_badge="success";
+
             }else{
                  $fab_timeline_stat = "In Progress";
                  $fab_duration="- On Going";
+                 $fab_badge="warning";
+
             }
             if((collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Pending")->count()) == $assembly ){
                 $assem_timeline_stat = "not_started";
                 $assem_duration=" - ";
+                $assem_badge="secondary";
 
             }elseif ($assembly == $assembly_completed){
                 $assem_timeline_stat = "Completed";
@@ -419,15 +425,18 @@ class TrackingController extends Controller
 
                 $duration = $from->diffInSeconds($to);
                 $assem_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $assem_badge="success";
+
             }else{
                  $assem_timeline_stat = "In Progress";
                  $assem_duration=" - On Going";
-
+                 $assem_badge="warning";
             }
 
             if((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Pending")->count()) == $painting){
                 $pain_timeline_stat = "not_started";
                 $pain_duration=" - ";
+                $pain_badge="secondary";
 
             }elseif ($painting == $painting_completed){
                 $pain_timeline_stat = "Completed";
@@ -436,9 +445,12 @@ class TrackingController extends Controller
 
                 $duration = $from->diffInSeconds($to);
                 $pain_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $pain_badge="success";
+
             }else{
                  $pain_timeline_stat = "In Progress";
                  $pain_duration=" - On Going ";
+                 $pain_badge="warning";
 
             }
             if($assem_timeline_stat == "Completed" && $fab_timeline_stat == "Completed" && $pain_timeline_stat="Completed"){
@@ -453,12 +465,12 @@ class TrackingController extends Controller
             }
             $total_qty_fab=0;
             $timeline=[
-                'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('F d, Y h:ia'),
-                'fab_max' => ($max_fab == null) ? '-': Carbon::parse($max_fab)->format('F d, Y h:ia'),
-                'pain_min' => ($min_pain == null) ? '-': Carbon::parse($min_pain)->format('F d, Y h:ia'),
-                'pain_max' => ($max_pain == null) ? '-': Carbon::parse($max_pain)->format('F d, Y h:ia'),
-                'assem_min'=> ($min_assem == null) ? '-': Carbon::parse($min_assem)->format('F d, Y h:ia'),
-                'assem_max' => ($max_assem == null) ? '-': Carbon::parse($max_assem)->format('F d, Y h:ia'),
+                'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('M d, Y h:i A'),
+                'fab_max' => ($max_fab == null) ? '-': Carbon::parse($max_fab)->format('M d, Y h:i A'),
+                'pain_min' => ($min_pain == null) ? '-': Carbon::parse($min_pain)->format('M d, Y h:i A'),
+                'pain_max' => ($max_pain == null) ? '-': Carbon::parse($max_pain)->format('M d, Y h:i A'),
+                'assem_min'=> ($min_assem == null) ? '-': Carbon::parse($min_assem)->format('M d, Y h:i A'),
+                'assem_max' => ($max_assem == null) ? '-': Carbon::parse($max_assem)->format('M d, Y h:i A'),
                 'fab_stat' => $fab_timeline_stat,
                 'assem_stat' => $assem_timeline_stat,
                 'pain_stat' => $pain_timeline_stat,
@@ -468,8 +480,10 @@ class TrackingController extends Controller
                 'assem_duration' => $assem_duration,
                 'fab_required' => empty($total_qty_fab) ? '0' : $total_qty_fab->qty_to_manufacture,
                 'fab_produced' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->produced_qty,
-                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom
-
+                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom,
+                'fab_badge' => $fab_badge,
+                'assem_badge' => $assem_badge,
+                'pain_badge' => $pain_badge
             ];
         if ($bom != null) {
             $boms = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
