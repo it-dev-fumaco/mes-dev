@@ -2907,7 +2907,7 @@ class MainController extends Controller
 			
 		$pending = collect($tasks)->where('status', 'Not Started')->sum('qty_to_manufacture');
 		$inprogress = collect($tasks)->where('status', 'In Progress')->where('jt_status', 'In Progress')->sum('qty_to_manufacture');
-		$completed = collect($tasks)->where('status', 'Completed')->sum('qty_to_manufacture');
+		$completed = collect($tasks)->where('jt_status', 'Completed')->sum('qty_to_manufacture');
 
         $data = [
             'completed' => number_format($completed),
