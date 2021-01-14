@@ -1491,24 +1491,8 @@ $(document).ready(function(){
       }
     });
   }
-  $('#reschedule_delivery_frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#reschedule-delivery-modal').modal('hide');
-            load_list();
-          }
-        }
-      });
-    });
+  
+
   $(document).on('click', '.spotclass', function(event){
     event.preventDefault();
     var jtid = $(this).attr('data-jobticket');

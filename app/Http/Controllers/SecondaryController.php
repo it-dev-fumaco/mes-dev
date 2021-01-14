@@ -7849,11 +7849,14 @@ class SecondaryController extends Controller
         foreach($delivery_id as $row){
             $previous_row=DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->where('delivery_date_id', $row->delivery_date_id)->where('reschedule_log_id', '>', $row->reschedule_log_id)->orderby('reschedule_log_id', 'asc')->first();
             $data[]=[
-                'delivery_date'=> (empty($previous_row))? Carbon::parse($prod_details->rescheduled_delivery_date)->format('M-d-Y'): Carbon::parse($previous_row->previous_delivery_date)->format('M-d-Y'),                
+                'delivery_date'=> (empty($previous_row))? $prod_details->rescheduled_delivery_date: $previous_row->previous_delivery_date,
                 'delivery_reason' => $row->reschedule_reason,
                 'remarks' => $row->remarks
             ];
+
+
         }
+
         $reason= DB::connection('mysql_mes')->table('delivery_reschedule_reason')->get();
         return view('reports.tbl_reschedule_delivery_date', compact('prod_details','reason', 'data'));
 
