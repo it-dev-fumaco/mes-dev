@@ -1214,24 +1214,18 @@
       $('#enter-reject-modal .process-name').text($(this).data('process-name'));
       $('#enter-reject-modal .per-row-reject').val($(this).data('row'));
       $('#enter-reject-modal .good-qty-input').val($(this).data('good-qty'));
-      
-      get_reject_types('Spotwelding');
+      var process_id = $(this).data('processid');
+      get_reject_types(process_id);
       $('#enter-reject-modal').modal('show');
     });
 
-    function get_reject_types(workstation){
+    function get_reject_types(process_id){
       $('#rejected-type-sel').empty();
       $.ajax({
-        url: "/get_reject_types/" + workstation,
+        url: "/get_reject_types/Spotwelding/"+ process_id,
         type:"GET",
-        success:function(response){
-          console.log(response);
-          var row = '';
-          $.each(response, function(i, d){
-            row += '<option value="' + d.reject_list_id + '">' + d.reject_reason + '</option>';
-          });
-
-          $('#rejected-type-sel').append(row);
+        success:function(data){
+          $(".spotwelding_reject_list").html(data);
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(jqXHR);
