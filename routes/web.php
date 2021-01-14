@@ -241,6 +241,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/create_stock_entry', 'ManufacturingController@create_stock_entry');
 
 	Route::post('/cancel_production_order', 'ManufacturingController@cancel_production_order');
+	Route::get('/get_reason_for_cancellation', 'ManufacturingController@get_reason_for_cancellation');
+	
 
 	Route::post('/manual_create_production_order', 'ManufacturingController@manual_create_production_order');
 
