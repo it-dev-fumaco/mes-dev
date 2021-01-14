@@ -21,7 +21,7 @@
                   </div>
                   <div class="col-md-9">
                      <div class="form-group">
-                        <input type="text" class="form-control w-50" id="input-raw-mat" name="item_code_replacecment">
+                        <input type="text" class="form-control w-50" id="input-raw-mat" name="item_code_replacecment" maxlength="7">
                         <div id="autocomplete-box"></div>
                         <input type="hidden" id="item-classification-raw-mat">
                      </div>
