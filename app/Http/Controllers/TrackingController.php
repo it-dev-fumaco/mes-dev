@@ -344,7 +344,6 @@ class TrackingController extends Controller
                         'process'=> [],
                 ];
             }
-            // dd($materials);
             $spotlogss=DB::connection('mysql_mes')->table('job_ticket as jt')
                 ->join('production_order as po', 'po.production_order', 'jt.production_order')
                 ->leftJoin('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
@@ -367,7 +366,7 @@ class TrackingController extends Controller
                     })
                 ->where('po.parent_item_code', $itemcode)
                 ->select(DB::raw('(SELECT MIN(from_time) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS from_time'),DB::raw('(SELECT MAX(to_time) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS to_time'),'p.process_name','jt.production_order','jt.job_ticket_id','jt.workstation', 'po.operation_id')
-                ->union($spotlogss)
+                ->unionAll($spotlogss)
                 ->get();     
                                                              
             
@@ -376,13 +375,16 @@ class TrackingController extends Controller
             ->where(function($q) use ($guide_id) {
                 $q->Where('sales_order', $guide_id)
                     ->orWhere('material_request', $guide_id);
-                })->select('status', 'operation_id')->get();
+                })->select('status', 'operation_id','production_order')->get();             
+            $plucked = collect($status)->pluck('production_order');
+            $job_ticket_per_workstation= db::connection('mysql_mes')->table('job_ticket')->join('production_order as pro', 'pro.production_order', 'job_ticket.production_order')->where('pro.status', '!=', "Cancelled")->whereIn('job_ticket.production_order', $plucked)->select('pro.operation_id', 'job_ticket.*')->get();
+            $fabrication= collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->count();
+            $fabrication_completed= collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Completed")->count();
+            $painting= collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->count();
+            $painting_completed=  collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Completed")->count();
+            $assembly= collect($job_ticket_per_workstation)->where('operation_id', '3')->count();
+            $assembly_completed= collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Completed")->count();
             
-            $get_no_fab= collect($status)->where('operation_id', '1')->count();
-            $completed_fab=  collect($status)->where('status', 'Completed')->where('operation_id', '1')->count();
-            $get_no_assem= collect($status)->where('operation_id', '3')->count();
-            $completed_assem=  collect($status)->where('status', 'Completed')->where('operation_id', '3')->count();
-            // dd($timelogss);
             $min_fab=collect($timelogss)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->min('from_time');
             $max_fab=collect($timelogss)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->max('to_time');
             
@@ -392,58 +394,66 @@ class TrackingController extends Controller
             $min_assem=collect($timelogss)->where('operation_id', '3')->min('from_time');
             $max_assem=collect($timelogss)->where('operation_id', '3')->max('to_time');
 
-            // dd($get_no_fab);
-            if((collect($status)->where('status', 'Not Started')->where('operation_id', '1')->count()) == $get_no_fab){
-                
+            if((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Pending")->count()) == $fabrication){                
                 $fab_timeline_stat = "not_started";
                 $fab_duration="-";
-            }elseif ($get_no_fab == $completed_fab ){
+                $fab_badge="secondary";
+            }elseif ($fabrication == $fabrication_completed ){ 
                 $fab_timeline_stat = "Completed";
                 $from = Carbon::parse($min_fab);
                 $to = Carbon::parse($max_fab);
 
                 $duration = $from->diffInSeconds($to);
                 $fab_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $fab_badge="success";
+
             }else{
                  $fab_timeline_stat = "In Progress";
                  $fab_duration="- On Going";
+                 $fab_badge="warning";
+
             }
-            if((collect($status)->where('status', 'Not Started')->where('operation_id', '3')->count()) == $get_no_assem ){
+            if((collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Pending")->count()) == $assembly ){
                 $assem_timeline_stat = "not_started";
                 $assem_duration=" - ";
+                $assem_badge="secondary";
 
-            }elseif ($get_no_assem == $completed_assem ){
+            }elseif ($assembly == $assembly_completed){
                 $assem_timeline_stat = "Completed";
                 $from = Carbon::parse($min_assem);
                 $to = Carbon::parse($max_assem);
 
                 $duration = $from->diffInSeconds($to);
                 $assem_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $assem_badge="success";
+
             }else{
                  $assem_timeline_stat = "In Progress";
                  $assem_duration=" - On Going";
-
+                 $assem_badge="warning";
             }
 
-            if(empty($min_pain)){
+            if((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Pending")->count()) == $painting){
                 $pain_timeline_stat = "not_started";
                 $pain_duration=" - ";
+                $pain_badge="secondary";
 
-            }elseif ($get_no_fab == $completed_fab){
+            }elseif ($painting == $painting_completed){
                 $pain_timeline_stat = "Completed";
                 $from = Carbon::parse($min_pain);
                 $to = Carbon::parse($max_pain);
 
                 $duration = $from->diffInSeconds($to);
                 $pain_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $pain_badge="success";
+
             }else{
                  $pain_timeline_stat = "In Progress";
                  $pain_duration=" - On Going ";
+                 $pain_badge="warning";
 
             }
-
-
-            if($assem_timeline_stat == "Completed" && $fab_timeline_stat == "Completed"){
+            if($assem_timeline_stat == "Completed" && $fab_timeline_stat == "Completed" && $pain_timeline_stat="Completed"){
                 $from_carbon = Carbon::parse($min_fab);
                 $to_carbon = Carbon::parse($max_assem);
 
@@ -453,17 +463,14 @@ class TrackingController extends Controller
                 $formated_duration=" - ";
                 
             }
-
             $total_qty_fab=0;
-
-            
             $timeline=[
-                'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('F d, Y h:ia'),
-                'fab_max' => ($max_fab == null) ? '-': Carbon::parse($max_fab)->format('F d, Y h:ia'),
-                'pain_min' => ($min_pain == null) ? '-': Carbon::parse($min_pain)->format('F d, Y h:ia'),
-                'pain_max' => ($max_pain == null) ? '-': Carbon::parse($max_pain)->format('F d, Y h:ia'),
-                'assem_min'=> ($min_assem == null) ? '-': Carbon::parse($min_assem)->format('F d, Y h:ia'),
-                'assem_max' => ($max_assem == null) ? '-': Carbon::parse($max_assem)->format('F d, Y h:ia'),
+                'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('M d, Y h:i A'),
+                'fab_max' => ($max_fab == null) ? '-': Carbon::parse($max_fab)->format('M d, Y h:i A'),
+                'pain_min' => ($min_pain == null) ? '-': Carbon::parse($min_pain)->format('M d, Y h:i A'),
+                'pain_max' => ($max_pain == null) ? '-': Carbon::parse($max_pain)->format('M d, Y h:i A'),
+                'assem_min'=> ($min_assem == null) ? '-': Carbon::parse($min_assem)->format('M d, Y h:i A'),
+                'assem_max' => ($max_assem == null) ? '-': Carbon::parse($max_assem)->format('M d, Y h:i A'),
                 'fab_stat' => $fab_timeline_stat,
                 'assem_stat' => $assem_timeline_stat,
                 'pain_stat' => $pain_timeline_stat,
@@ -473,11 +480,11 @@ class TrackingController extends Controller
                 'assem_duration' => $assem_duration,
                 'fab_required' => empty($total_qty_fab) ? '0' : $total_qty_fab->qty_to_manufacture,
                 'fab_produced' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->produced_qty,
-                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom
-
-
+                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom,
+                'fab_badge' => $fab_badge,
+                'assem_badge' => $assem_badge,
+                'pain_badge' => $pain_badge
             ];
-            // return($timeline);
         if ($bom != null) {
             $boms = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
             $item_codes = $itemcode;
@@ -485,7 +492,6 @@ class TrackingController extends Controller
             $boms = [];
             $item_codes="";
         }
-
         return view('tracking_flowchart', compact('boms', 'item_codes','guide_id', 'production','bom', 'materials', 'timeline', 'change_code'));
     }
     public function get_bom($bom, $guide_id, $item_code, $parent_item_code){

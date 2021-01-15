@@ -355,7 +355,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.6</b> <span style="font-size: 9pt;">Latest Release: 2020-12-19</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>7.6.2</b> <span style="font-size: 9pt;">Latest Release: 2020-01-15</span></h5>
             </div>          
           </div>
         </div>
@@ -481,12 +481,12 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog">
+  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog" role="document" style="min-width:40%;">
       <form action="/update_rescheduled_delivery_date" id="reschedule_delivery_frm" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header  text-white" style="background-color: #0277BD;" >
             <h5 class="modal-title">Reschedule Delivery Date</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -499,8 +499,9 @@
               </div>
             </div>
           </div>
+          <input type="hidden" class="tbl_reload_deli_modal" name="reload_tbl" value="reloadpage">
           <div class="modal-footer" style="padding: 5px 10px;">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>
@@ -936,7 +937,7 @@
           var row = '<tr>' +
             '<td class="p-1">' +
               '<div class="form-group m-0">' +
-              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" required>' +
+              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" maxlength="7" required>' +
               '</div>' +
             '</td>' +
             '<td class="p-1">' +
@@ -1032,6 +1033,14 @@
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
       $('#change-required-item-modal input[name="quantity"]').val(required_qty);
+
+      $.ajax({
+        url: "/get_available_warehouse_qty/" + item_code,
+        type:"GET",
+        success: function(data){
+          $('#change-required-item-modal .inv-list').html(data);
+        }
+      });
       
       $('#change-required-item-modal').modal('show');
     });
@@ -1201,6 +1210,36 @@
       $('#confirm-feedback-production-modal').modal('show');
     });
 
+    $('#confirm-feedback-production-modal form').submit(function(e){
+      e.preventDefault();
+      $('#submit-feedback-btn').attr('disabled', true);
+      $('#loader-wrapper').removeAttr('hidden');
+      var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
+      var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
+      var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
+  
+      $.ajax({
+        url:"/create_stock_entry/" + production_order,
+        type:"POST",
+        data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
+        success:function(response){
+          $('#loader-wrapper').attr('hidden', true);
+          if (response.success == 0) {
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+            $('#submit-feedback-btn').removeAttr('disabled');
+          }else{
+            showNotification("success", response.message, "now-ui-icons travel_info");
+            $('#confirm-feedback-production-modal').modal('hide');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $('#change-required-item-modal input[name="item_code"]').autocomplete({
       source:function(request,response){
         $.ajax({
@@ -1218,6 +1257,15 @@
       select:function(event,ui){
         $('#change-required-item-modal textarea[name="description"]').text(ui.item.id);
         $('#change-required-item-modal input[name="item_name"]').val(ui.item.item_name);
+
+        var item_code = $('#change-required-item-modal input[name="item_code"]').val();
+        $.ajax({
+          url: "/get_available_warehouse_qty/" + item_code,
+          type:"GET",
+          success: function(data){
+            $('#change-required-item-modal .inv-list').html(data);
+          }
+        });
       }
     });
 
@@ -1280,25 +1328,6 @@
         }
       });
     }
-    $('#reschedule_delivery_frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#reschedule-delivery-modal').modal('hide');
-            location.reload();
-
-          }
-        }
-      });
-    });
     $(document).on('click', '.resched-deli-btn', function(){
       var prod = $(this).data('production-order');
       $.ajax({
