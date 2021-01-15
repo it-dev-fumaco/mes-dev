@@ -2525,6 +2525,7 @@
                <div class="row">
                    <div class="col-md-12">
                       <input type="hidden" name="delete_reason_cancellation_id" id="delete_reason_cancellation_id">
+                      <input type="hidden" name="delete_reason_cancellation" id="delete_reason_cancellation">
                       <div class="row">
                         <div class="col-sm-12"style="font-size: 12pt;">
                             <label> Remove reason for cancellation -  <span id="delete_label_reason_cancellation_id" style="font-weight: bold;"></span></label>?
@@ -6806,6 +6807,7 @@ operator_check_list_painting();
       var id = $(this).data('id');
       $('#delete_label_reason_cancellation_id').text(delete_reason_for_cancellation);
       $('#delete_reason_cancellation_id').val(id);
+      $('#delete_reason_cancellation').val(delete_reason_for_cancellation);
       $('#delete-cancelled-reason-modal').modal('show');
     });
     $('#delete-cancelled-reason-frm').submit(function(e){

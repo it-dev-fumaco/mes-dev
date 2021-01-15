@@ -8191,11 +8191,10 @@ class SecondaryController extends Controller
 
     }
     public function delete_reason_for_cancellation(Request $request){
-        $reason = DB::connection('mysql_mes')->table('reason_for_cancellation_po')->where('reason_for_cancellation_id', $request->delete_reason_cancellation_id)->select('reason_for_cancellation')->first();
         if(DB::connection('mysql_mes')->table('production_order')
-        ->where('remarks', '=', $request->delete_reason_cancellation_id)
+        ->where('remarks', '=', $request->delete_reason_cancellation)
         ->exists()){
-            return response()->json(['success' => 0, 'message' => 'Unable to process request. <b>'.$reason->reason_for_cancellation.'</b> has already existing transaction.']);
+            return response()->json(['success' => 0, 'message' => 'Unable to process request. <b>'.$request->delete_reason_cancellation.'</b> has already existing transaction.']);
         }else{
             DB::connection('mysql_mes')->table('reason_for_cancellation_po')->where("reason_for_cancellation_id", $request->delete_reason_cancellation_id)->delete();
             return response()->json(['success' => 1, 'message' => 'Reason for cancellation successfully deleted.']);
