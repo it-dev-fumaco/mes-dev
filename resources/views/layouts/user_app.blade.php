@@ -355,7 +355,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.6.1</b> <span style="font-size: 9pt;">Latest Release: 2020-01-11</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>7.6.2</b> <span style="font-size: 9pt;">Latest Release: 2020-01-15</span></h5>
             </div>          
           </div>
         </div>
@@ -937,7 +937,7 @@
           var row = '<tr>' +
             '<td class="p-1">' +
               '<div class="form-group m-0">' +
-              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" required>' +
+              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" maxlength="7" required>' +
               '</div>' +
             '</td>' +
             '<td class="p-1">' +

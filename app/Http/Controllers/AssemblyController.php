@@ -447,6 +447,10 @@ class AssemblyController extends Controller
             $item_code_details = DB::connection('mysql')->table('tabItem')
                 ->where('name', $request->item_code_replacecment)->first();
 
+            if(!$item_code_details){
+                return response()->json(['success' => 0, 'message' => 'Item <b>'.$request->item_code_replacecment.'</b> not found.']);
+            }
+
             $values = [
                 'parent' => $production_order_item_details->parent,
                 'item_code' => $item_code_details->item_code,

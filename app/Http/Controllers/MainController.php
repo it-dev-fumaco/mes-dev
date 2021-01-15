@@ -2900,7 +2900,7 @@ class MainController extends Controller
         	->join('production_order AS po', 'jt.production_order', 'po.production_order')
 			->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled'])
 			->whereDate('po.planned_start_date', $now)
-			->distinct('po.production_order')->select('po.production_order', 'po.status', 'po.qty_to_manufacture')
+			->distinct('po.production_order')->select('po.production_order', 'po.status', 'jt.status as jt_status', 'po.qty_to_manufacture')
 			->get();
 
 		$production_orders = array_column($tasks->toArray(), 'production_order');
@@ -2910,8 +2910,8 @@ class MainController extends Controller
 			->sum('t.reject');
 			
 		$pending = collect($tasks)->where('status', 'Not Started')->sum('qty_to_manufacture');
-		$inprogress = collect($tasks)->where('status', 'In Progress')->sum('qty_to_manufacture');
-		$completed = collect($tasks)->where('status', 'Completed')->sum('qty_to_manufacture');
+		$inprogress = collect($tasks)->where('status', 'In Progress')->where('jt_status', 'In Progress')->sum('qty_to_manufacture');
+		$completed = collect($tasks)->where('jt_status', 'Completed')->sum('qty_to_manufacture');
 
         $data = [
             'completed' => number_format($completed),
@@ -3632,7 +3632,7 @@ class MainController extends Controller
 			->where('process_id', $job_ticket_details->process_id)
 			->where('operator_id', '!=', $operator_id)
 			->whereNotNull('operator_id')
-			->select('operator_id', 'operator_nickname', DB::raw('SUM(good + reject) as completed_qty'))->groupBy('operator_id', 'operator_nickname')->get();
+			->select('operator_id', 'operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))->groupBy('operator_id', 'operator_nickname')->get();
 
     	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
 	}
