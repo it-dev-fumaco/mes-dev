@@ -695,7 +695,9 @@ class MainController extends Controller
 			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
 			$this->update_production_actual_start_end($request->production_order);
-
+			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
+			$this->update_job_ticket_good($current_task->job_ticket_id);
+			$this->update_job_ticket_reject($current_task->job_ticket_id);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -3410,7 +3412,9 @@ class MainController extends Controller
 
 			$this->update_completed_qty_per_workstation($request->job_ticket_id);
 			$this->update_production_actual_start_end($request->production_order);
-			
+			$this->update_jobticket_actual_start_end($request->job_ticket_id);
+			$this->update_job_ticket_good($request->job_ticket_id);
+			$this->update_job_ticket_reject($request->job_ticket_id);
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
     		return response()->json(["success" => 0, "message" => $e->getMessage()]);
@@ -3627,14 +3631,13 @@ class MainController extends Controller
 
 		$in_progress_operator = DB::connection('mysql_mes')->table('job_ticket')
 			->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
-			->where('production_order', $request->production_order)
-			->where('workstation', $request->workstation)
-			->where('process_id', $job_ticket_details->process_id)
-			->where('operator_id', '!=', $operator_id)
-			->whereNotNull('operator_id')
-			->select('operator_id', 'operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))->groupBy('operator_id', 'operator_nickname')->get();
-
-    	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
+			->where('job_ticket.production_order', $request->production_order)
+			->where('job_ticket.workstation', $request->workstation)
+			->where('job_ticket.process_id', $job_ticket_details->process_id)
+			->where('time_logs.operator_id', '!=', $operator_id)
+			->whereNotNull('time_logs.operator_id')
+			->select('time_logs.operator_id', 'time_logs.operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))->groupBy('time_logs.operator_id', 'time_logs.operator_nickname')->get();
+    return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
 	}
 
 	public function operator_scrap_task($workstation, $machine_code, $production_order, $job_ticket_id, $operator_id){
@@ -3843,7 +3846,8 @@ class MainController extends Controller
 			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
 			$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
-
+			$this->update_job_ticket_good($time_log->job_ticket_id);
+			$this->update_job_ticket_reject($time_log->job_ticket_id);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);

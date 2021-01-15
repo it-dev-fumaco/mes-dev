@@ -5424,8 +5424,7 @@ class SecondaryController extends Controller
                 'operator_name' => $log->operator_name
             ];
         }
-        $total_rejects = DB::connection('mysql_mes')->table('spotwelding_reject')
-            ->where('job_ticket_id', $jt)->sum('rejected_qty');
+        $total_rejects =  $prod->reject;
 
         return view('tables.tbl_spotwelding_production_order_search', compact('logs','task_list', 'total_rejects'));
     }
