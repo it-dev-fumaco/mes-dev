@@ -355,7 +355,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.6</b> <span style="font-size: 9pt;">Latest Release: 2020-12-19</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>7.6.1</b> <span style="font-size: 9pt;">Latest Release: 2020-01-11</span></h5>
             </div>          
           </div>
         </div>
@@ -481,12 +481,12 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog">
+  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog" role="document" style="min-width:40%;">
       <form action="/update_rescheduled_delivery_date" id="reschedule_delivery_frm" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header  text-white" style="background-color: #0277BD;" >
             <h5 class="modal-title">Reschedule Delivery Date</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -499,8 +499,9 @@
               </div>
             </div>
           </div>
+          <input type="hidden" class="tbl_reload_deli_modal" name="reload_tbl" value="reloadpage">
           <div class="modal-footer" style="padding: 5px 10px;">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>
@@ -1327,25 +1328,6 @@
         }
       });
     }
-    $('#reschedule_delivery_frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#reschedule-delivery-modal').modal('hide');
-            location.reload();
-
-          }
-        }
-      });
-    });
     $(document).on('click', '.resched-deli-btn', function(){
       var prod = $(this).data('production-order');
       $.ajax({

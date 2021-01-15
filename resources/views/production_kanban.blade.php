@@ -163,8 +163,8 @@
                               $divcolor="white";
                             }
                             @endphp
-                            <div data-parent-item="{{ $row['parent_item_code'] }}" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['sales_order'] }}" class="kanban-card card {{ $row['status'] }}" data-duration="" data-index="{{ $row['id'] }}" data-position="{{ $row['order_no'] }}" data-delivery="{{ $row['delivery_date'] }}" data-card="unscheduled" data-name="{{ $row['production_order'] }}" style="margin-top: -13px;background-color: {{$divcolor}};">
-                              <div class="card-body" style="font-size: 8pt; margin-top: -3px;">
+                            <div data-parent-item="{{ $row['parent_item_code'] }}" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['sales_order'] }}" class="kanban-card card {{ $row['status'] }}" data-duration="" data-index="{{ $row['id'] }}" data-position="{{ $row['order_no'] }}" data-parentitemcode="{{ $row['parent_item_code'] }}" data-itemcode="{{ $row['item_code'] }}" data-delivery="{{ $row['delivery_date'] }}" data-card="unscheduled" data-name="{{ $row['production_order'] }}" style="margin-top: -13px;background-color: {{$divcolor}};">                              
+                              <div class="card-body" style="font-size: 8pt; margin-top: -3px;">                              
                                 <table style="width: 100%;">
                                   <tr>
                                     <td colspan="4" style="font-size: 10pt;">
@@ -318,7 +318,8 @@
                                 }
                             }
                             @endphp
-                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-duration="" style="margin-top: -10px;background-color: {{$divcolor}};">
+                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px;background-color: {{$divcolor}};">                                  
+                                  <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="reference-class d-none">{{ $order['sales_order'] }}</span>
                                   <span class="item-code-class d-none">{{ $order['production_item'] }}</span>
@@ -401,11 +402,11 @@
                                 if($order['process_stat'] == "Material For Issue"){
                                   $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Material Issued"){
-                                  $stat_badge ="primary";
+                                  $stat_badge ="info";
                                 }else if($order['process_stat'] == "Cancelled"){
                                   $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Ready For Feedback"){
-                                  $stat_badge ="info";
+                                  $stat_badge ="primary";
                                 }else if($order['process_stat'] == "Partial Feedbacked"){
                                   $stat_badge ="success";
                                 }else if($order['process_stat'] == "Feedbacked"){
@@ -1491,13 +1492,37 @@
         }
       });
     });
-
-
-
-
+    $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.success == 3){
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+            $('#reschedule-delivery-modal').modal('hide');
+          }else if (data.success == 0){
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            if(data.reload_tbl == "reloadpage"){ 
+              setTimeout(function() {
+                  location.reload();
+              }, 3000);
+            }else{
+              get_for_feedback_production(1);
+            }
+          }
+        }
+      });
+    });
     $('#ready-for-feedback-btn').click(function(e){
       e.preventDefault();
       get_for_feedback_production(1);
+      $('#reschedule-delivery-modal .tbl_reload_deli_modal').val("reload_ajax");
       $('#view-for-feedback-list-modal').modal('show');
     });
     
@@ -1533,32 +1558,6 @@
           }
         }); 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     painting_ready_list();
     function painting_ready_list(){
       $.ajax({
@@ -1746,6 +1745,12 @@
       appendTo: 'body',
       helper: 'clone',
       update:function(event, ui) {
+        var primary_operation_id = $('#primary-operation-id').val();
+        var parent_id = ui.item.attr("data-parentitemcode");
+        var item_code_id = ui.item.attr("data-itemcode");
+        var delivery_id = ui.item.attr("data-delivery");
+        var drop_to = $(ui.item[0]).parent().attr('id');
+        var drop_from = $(ui.item[1]).parent().attr('id');
         var card_id = this.id;
         $(this).children().each(function(index){
           if ($(this).attr('data-position') != (index + 1) || $(this).attr('data-card') != card_id) {
@@ -1762,33 +1767,83 @@
           // console.log(pos);
           $(this).removeClass('updated');
         });
-
-        
-        if (pos) {
-          var p_operation_id = $('#primary-operation-id').val();
-          $.ajax({
-            url:"/reorder_production/"+ p_operation_id,
-            type:"POST",
-            data: {
-              positions: pos
-            },
-            success:function(data){
-              if(data.success < 1){
-                // console.log(data);
-              }else{
-                // console.log(data);
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
+        if(primary_operation_id == 3){//FOR ASSEMBLY VALIDATE IF THE ITEM CODE IS EQUAL TO PARENT ITEM CODE, IF THE TARGET (BOX) TO DROP IS UNSCHEDULED, IF THE DELIVERY DATE IS GREATER THAN THE TARGET BOX TO DROP
+          if(parent_id != item_code_id || drop_to == "unscheduled" || drop_to <= delivery_id){
+            if (pos) {
+              $.ajax({
+                url:"/reorder_production/"+ primary_operation_id,
+                  type:"POST",
+                  data: {
+                    positions: pos
+                  },
+                  success:function(data){
+                    if(data.success < 1){
+                    }else{
+                    }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                  }
+              });
+            }
+          }
+          $('#reschedule_delivery_frm').submit(function(e){ //FUNCTION ONCE THE SUBMIT BUTTON IS CLICK
+            e.preventDefault();
+            if (pos) {
+              $.ajax({
+                url:"/reorder_production/"+ primary_operation_id,// UPDATE PLANNED START DATE
+                  type:"POST",
+                  data: {
+                    positions: pos
+                  },
+                  success:function(data){
+                    if(data.success < 1){
+                    }else{
+                    }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                  }
+              });
             }
           });
+ 
+        }else{ //UPDATE PLANNED START DATE IF NOT OPERATION IS NOT ASSEMBLY
+          if (pos) {
+            $.ajax({
+              url:"/reorder_production/"+ primary_operation_id,
+              type:"POST",
+              data: {
+                positions: pos
+              },
+              success:function(data){
+                if(data.success < 1){
+                  // console.log(data);
+                }else{
+                  // console.log(data);
+                }
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+              }
+            });
+          }
         }
       },
       receive: function(ev, ui) {
         var primary_operation_id = $('#primary-operation-id').val();
+        var primary_operation_id = $('#primary-operation-id').val();
+        var data_delivery_date =  ui.item.data('delivery');
+        var prod = ui.item.data('name');
+        var parent_id = ui.item.attr("data-parentitemcode");
+        var item_code_id = ui.item.attr("data-itemcode");
+        var drop_to = $(ui.item[0]).parent().attr('id');
         if(primary_operation_id =="3"){
           var production_order = ui.item.find('.production-order-class').eq(0).text();
           var reference = ui.item.find('.reference-class').eq(0).text();
@@ -1796,32 +1851,38 @@
           var description = ui.item.find('.description-class').eq(0).text();
           var qty = ui.item.find('.qty-to-manufacture-class').eq(0).text();
           var delivery_date = ui.item.find('.delivery-date-class').eq(0).text();
-          
+          var parent_id = ui.item.attr("data-parentitemcode");
+          var item_code_id = ui.item.attr("data-itemcode");
+          var dragndrop = "reloadpage";
           $('#custom-production-order').val(production_order);
-
-          // if(new Date($(this).attr('id')) > new Date(delivery_date)){
-          //   $('#select-late-delivery-reason-modal .production-order').text(production_order);
-          //   $('#select-late-delivery-reason-modal .reference').text(reference);
-          //   $('#select-late-delivery-reason-modal .item-code').text(item_code);
-          //   $('#select-late-delivery-reason-modal .item-description').text(description);
-          //   $('#select-late-delivery-reason-modal .qty-uom').text(qty);
-          //   $('#select-late-delivery-reason-modal .delivery-date').text(delivery_date);
-          //   $('#select-late-delivery-reason-modal .rescheduled-date').text($(this).attr('id'));
-
-          //   $('#select-late-delivery-reason-modal input[name="delivery_date"]').val(delivery_date);
-          //   $('#select-late-delivery-reason-modal input[name="reschedule_date"]').val($(this).attr('id'));
-
-          //   $('#select-late-delivery-reason-modal').modal('show');
-          // }
-
+          if(parent_id == item_code_id){
+            if(new Date($(this).attr('id')) > new Date(data_delivery_date)){
+              $.ajax({
+                url: "/reschedule_prod_details/" + prod,
+                type:"GET",
+                success:function(data){
+                    $('#tbl_reschduled_deli').html(data);
+                    $('#reschedule-delivery-modal').modal('show');
+                    $('#reschedule-delivery-modal .close').hide();
+                    $('#reschedule-delivery-modal .tbl_reload_deli_modal').val(dragndrop);
+                    // $('#reschedule-delivery-modal .btn-close').hide();
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                      console.log(jqXHR);
+                      console.log(textStatus);
+                      console.log(errorThrown);
+                  },
+                });
+              }
+            }
+          $(document).on('click', '#reschedule-delivery-modal .btn-close', function(){
+            ui.sender.sortable("cancel");
+          });
         }
         var id_check = '#print-' + ui.item.data('name');
         var sched = $(this).attr('id');
-        var delivery_date =  ui.item.data('delivery');
         var date = $(this).attr('id');
         var prod_id = "#sched-" +  ui.item.data('name');
-        var primary_operation_id= $('#primary-operation-id').val();
-        var prod = ui.item.data('name');
         $(id_check).attr("data-dateslct", sched); //setter
 
 
@@ -1839,7 +1900,7 @@
                   if($(this).attr('id') == "unscheduled"){
                     $(prod_id).css('background-color', 'white');
                     // alert(delivery_date);
-                  }else if(date > delivery_date){
+                  }else if(date > data_delivery_date){
                     $(prod_id).css('background-color', '#e74c3c');
                     // alert(delivery_date);
                   }else{
@@ -1851,9 +1912,43 @@
                       $(prod_id).css('background-color', 'white');
                     }
                   }
+                if(parent_id != item_code_id || drop_to == "unscheduled" || drop_to <= data_delivery_date){
+                    $.ajax({
+                      url:"/update_production_task_schedules",
+                      type:"POST",
+                      data: {
+                        production_order: ui.item.data('name'),
+                        planned_start_date: ev.target.id,
+                        current: ui.sender.attr('id')
+                      },
+                      success:function(data){
+                        // console.log(data);
+                      },
+                      error : function(data) {
+                        console.log(data.responseText);
+                      }
+                    });
+                  }
+                  $('#reschedule_delivery_frm').submit(function(e){ //FUNCTION ONCE THE SUBMIT BUTTON IS CLICK
+                    // alert(ui.item.data('name'));
+                    $.ajax({
+                      url:"/update_production_task_schedules",
+                      type:"POST",
+                      data: {
+                        production_order: ui.item.data('name'),
+                        planned_start_date: ev.target.id,
+                        current: ui.sender.attr('id')
+                      },
+                      success:function(data){
+                        // console.log(data);
+                      },
+                      error : function(data) {
+                        console.log(data.responseText);
+                      }
+                    });
+                  });
                 }
-
-                if(primary_operation_id > 0){
+                if(primary_operation_id < 3){
                   $.ajax({
                     url:"/update_production_task_schedules",
                     type:"POST",
@@ -1878,49 +1973,27 @@
               console.log(errorThrown);
             }
           });
-
-                
-
-
-                
-                // console.log(ui.item.data('name'));
-                // console.log($(this).attr('id'));
-                var fromt = '#'+ ui.sender.attr('id');
-                var to = '#'+sched;
-                var datas = ['#'+ ui.sender.attr('id'),'#'+sched ];
-
-                $(datas).each(function(index, value){
-                  var card_id = value;
-                  $(value).children().each(function(index, value){
-
-                  if ($(this).attr('data-position') != (index + 1) || $(this).attr('data-card') != card_id) {
-                    $(this).attr('data-position', (index + 1)).attr('data-card', card_id).addClass('updated');
-                    $(this).find('.badgecount').text( (index + 1));
-                  }
-                  
-                  });
-                  // alert(value);
-                  var pos = [];
-                  $('.updated').each(function(){
-                    var name = $(this).attr('data-index');
-                    var position = $(this).attr('data-position');
-                    var prod = $(this).attr('data-name');
-                    pos.push([name, position, card_id, prod]);
-                    console.log(pos);
-                    $(this).removeClass('updated');
-                  });
-                });
-                var pos = [];
-
-                  $('.updated').each(function(){
-                    var name = $(this).attr('data-index');
-                    var position = $(this).attr('data-position');
-                    var prod = $(this).attr('data-name');
-                    pos.push([name, position, card_id, prod]);
-                    console.log(pos);
-                    $(this).removeClass('updated');
-                  });
-
+          var fromt = '#'+ ui.sender.attr('id');
+          var to = '#'+sched;
+          var datas = ['#'+ ui.sender.attr('id'),'#'+sched ];
+          $(datas).each(function(index, value){
+            var card_id = value;
+            $(value).children().each(function(index, value){
+              if ($(this).attr('data-position') != (index + 1) || $(this).attr('data-card') != card_id) {
+                $(this).attr('data-position', (index + 1)).attr('data-card', card_id).addClass('updated');
+                $(this).find('.badgecount').text( (index + 1));
+              }     
+            });
+            var pos = [];
+            $('.updated').each(function(){
+              var name = $(this).attr('data-index');
+              var position = $(this).attr('data-position');
+              var prod = $(this).attr('data-name');
+              pos.push([name, position, card_id, prod]);
+              console.log(pos);
+              $(this).removeClass('updated');
+            });
+          });   
       }
     }).disableSelection();
     
