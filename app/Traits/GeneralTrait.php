@@ -510,7 +510,6 @@ trait GeneralTrait
     public function update_job_ticket_good($job_ticket_id){
 		$total_good = DB::connection('mysql_mes')->table('time_logs as tl')
 			->where('tl.job_ticket_id', $job_ticket_id)
-            ->select('tl.good')
             ->sum('tl.good');
 		DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $job_ticket_id)->update(['good' => $total_good]);
@@ -518,7 +517,6 @@ trait GeneralTrait
     public function update_job_ticket_reject($job_ticket_id){
 		$total_reject = DB::connection('mysql_mes')->table('time_logs as tl')
 			->where('tl.job_ticket_id', $job_ticket_id)
-            ->select('tl.reject')
             ->sum('tl.reject');
 		DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $job_ticket_id)->update(['reject' => $total_reject]);
