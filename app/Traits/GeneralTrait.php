@@ -494,7 +494,8 @@ trait GeneralTrait
 
 		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('spotwelding_qty as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-			->where('jt.job_ticket_id', $job_ticket_id)
+            ->where('jt.job_ticket_id', $job_ticket_id)
+            ->where('jt.workstation', '=', 'Spotwelding')
 			->select('workstation', 'tl.from_time', 'tl.to_time')
 			->union($q)->get();
 		
@@ -507,26 +508,24 @@ trait GeneralTrait
 			->where('job_ticket_id', $job_ticket_id)->update(['actual_start_date' => $actual_start_date, 'actual_end_date' => $actual_end_date]);
     }
     public function update_job_ticket_good($job_ticket_id){
-		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+		$total_good = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
 			->where('jt.job_ticket_id', $job_ticket_id)
 			->where('jt.workstation', '!=', 'Spotwelding')
             ->select('workstation', 'tl.good')
-            ->get();
+            ->sum('good');
         
-        $total_good= collect($q)->sum('good');// get time_log total good
 		DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $job_ticket_id)->update(['good' => $total_good]);
     }
     public function update_job_ticket_reject($job_ticket_id){
-		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+		$total_reject = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
 			->where('jt.job_ticket_id', $job_ticket_id)
 			->where('jt.workstation', '!=', 'Spotwelding')
             ->select('workstation', 'tl.reject')
-            ->get();
+            ->sum('reject');
         
-        $total_reject= collect($q)->sum('reject');		// get time_log total reject
 		DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $job_ticket_id)->update(['reject' => $total_reject]);
     }
