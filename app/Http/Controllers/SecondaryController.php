@@ -5425,7 +5425,6 @@ class SecondaryController extends Controller
             ];
         }
         $total_rejects =  $prod->reject;
-
         return view('tables.tbl_spotwelding_production_order_search', compact('logs','task_list', 'total_rejects'));
     }
 
