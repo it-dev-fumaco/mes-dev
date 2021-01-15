@@ -1103,6 +1103,7 @@
          $.ajax({
             url: "/view_bom_for_review/" + $(this).data('bom'),
             type:"GET",
+            data: {operation_name: 'Fabrication'},
             success:function(data){
                $('#review-bom-details-div').html(data);
             }

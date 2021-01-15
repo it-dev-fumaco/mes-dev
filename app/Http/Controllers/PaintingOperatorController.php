@@ -13,9 +13,10 @@ use DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Image;
-
+use App\Traits\GeneralTrait;
 class PaintingOperatorController extends Controller
-{
+{	
+	use GeneralTrait;
 	// R E V I S E D - 06/18/2020
 	public function index($process_name){
 		$painting_process = DB::connection('mysql_mes')->table('process_assignment')
@@ -148,7 +149,8 @@ class PaintingOperatorController extends Controller
 			$this->updateProdOrderOps($request->production_order, 'Painting');
 			$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
-
+			$this->update_job_ticket_good($time_log->job_ticket_id);
+			$this->update_job_ticket_reject($time_log->job_ticket_id);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -256,6 +258,9 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 
 			$this->update_completed_qty_per_workstation($request->job_ticket_id);
+			$this->update_jobticket_actual_start_end($request->job_ticket_id);
+			$this->update_job_ticket_good($request->job_ticket_id);
+			$this->update_job_ticket_reject($request->job_ticket_id);
     	}
 
 		return response()->json(['success' => 1, 'message' => 'Task updated.']);
@@ -287,6 +292,34 @@ class PaintingOperatorController extends Controller
 			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
 
+			// get completed qty in painting workstation
+			$painting_completed_qty = DB::connection('mysql_mes')->table('job_ticket')
+				->where('production_order', $request->production_order)
+				->where('workstation', 'Painting')->min('completed_qty');
+
+			// get production order qty_to_manufacture
+			$qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('qty_to_manufacture');
+
+			if($qty_to_manufacture == $painting_completed_qty){
+				// update spotwelding status and completed qty
+				$values = [
+					'completed_qty' => $painting_completed_qty,
+					'status' => 'Completed',
+					'remarks' => 'Override'
+				];
+
+				DB::connection('mysql_mes')->table('job_ticket')
+					->where('production_order', $request->production_order)
+					->where('workstation', 'Spotwelding')
+					->whereIn('status', ['In Progress', 'Pending'])
+					->update($values);
+
+				$this->updateProdOrderOps($request->production_order, $request->workstation);
+				$this->update_produced_qty($request->production_order);
+			}
+			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
+			$this->update_job_ticket_good($current_task->job_ticket_id);
+			$this->update_job_ticket_reject($current_task->job_ticket_id);
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
