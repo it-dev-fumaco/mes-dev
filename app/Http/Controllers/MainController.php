@@ -5916,18 +5916,10 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($completed_production_orders as $row) {
-				// get total rejects from all workstations except for spotwelding
-				$other_workstation_rejects = DB::connection('mysql_mes')->table('job_ticket as jt')
+				// get total rejects from all workstations
+				$rejects = DB::connection('mysql_mes')->table('job_ticket as jt')
 					->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
-					->where('jt.production_order', $row->production_order)->sum('reject');
-
-				// get total rejects from spotwelding workstation only
-				$spotwelding_workstation_rejects = DB::connection('mysql_mes')->table('job_ticket as jt')
-					->join('spotwelding_reject as sr', 'sr.job_ticket_id', 'jt.job_ticket_id')
-					->where('sr.status', '!=', 'For Confirmation')->where('jt.production_order', $row->production_order)
-					->sum('rejected_qty');
-
-				$rejects = $other_workstation_rejects + $spotwelding_workstation_rejects;
+					->where('jt.production_order', $row->production_order)->sum('jt.reject');
 
 				$production_orders[] = [
 					'production_order' => $row->production_order,
