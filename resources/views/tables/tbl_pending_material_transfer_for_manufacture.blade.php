@@ -287,7 +287,7 @@
 						<td class="text-center p-2">{{ $i + 1 }}</td>
 						<td class="text-center p-2">{{ $log->ste_no }}</td>
 						<td class="text-center p-2">
-							<span class="font-weight-bold">{{ $log->feedbacked_qty }}</span> {{ $details->stock_uom }}</td>
+							<span class="font-weight-bold">{{ $log->feedbacked_qty }}</span> {{ $production_order_details->stock_uom }}</td>
 						<td class="text-center p-2">{{ Carbon\Carbon::parse($log->transaction_date)->format('M-d-Y') }}</td>
 						<td class="text-center p-2">{{ Carbon\Carbon::parse($log->transaction_time)->format('h:i:A') }}</td>
 						<td class="text-center p-2">{{ $created_by }}</td>

@@ -619,6 +619,14 @@
 
          $('#change-raw-mat-modal input[name="production_order_item_id"]').val($(this).data('id'));
 
+         $.ajax({
+            url: "/get_available_warehouse_qty/" + item_code,
+            type:"GET",
+            success: function(data){
+               $('#change-raw-mat-modal .inv-list').html(data);
+            }
+         });
+
          $('#change-raw-mat-modal').modal('show');
       });
 
@@ -632,6 +640,14 @@
 
          $('#a-img').attr('href', img);
          $('#b-img').attr('src', img);
+
+         $.ajax({
+            url: "/get_available_warehouse_qty/" + item_code,
+            type:"GET",
+            success: function(data){
+               $('#change-raw-mat-modal .inv-list').html(data);
+            }
+         });
 
          get_raw_actual_qty(item_code,  $('#raw-mat-warehouse').text());
 
@@ -673,6 +689,11 @@
             type:"POST",
             data: $(this).serialize(),
             success: function(data){
+               if(data.success == 0){
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+               
                var t = $('.tr-' + data.values.parent);
                t.find('.item-code').eq(0).text(data.values.item_code);
                t.find('.item-description').eq(0).text(data.values.description);
@@ -790,6 +811,7 @@
          $.ajax({
             url: "/view_bom_for_review/" + $(this).data('bom'),
             type:"GET",
+            data: {operation_name: 'Assembly'},
             success:function(data){
                $('#review-bom-details-div').html(data);
             }

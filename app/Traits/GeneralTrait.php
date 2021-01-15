@@ -529,4 +529,36 @@ trait GeneralTrait
 		DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $job_ticket_id)->update(['reject' => $total_reject]);
     }
+    public function production_status_with_stockentry($production_order, $stat, $manufacture, $feedback_qty, $produced){
+        
+        $is_transferred = DB::connection('mysql')->table('tabStock Entry')
+            ->where('purpose', 'Material Transfer for Manufacture')
+            ->where('production_order', $production_order)
+            ->where('docstatus', 1)->first();
+
+        if ($is_transferred) {
+            $status = 'Material Issued';
+        }else{
+            $status = 'Material For Issue';
+        }
+        if($stat == "In Progress"){
+           $status = "In Progress";
+        }
+        if ($stat == "Cancelled") {
+            $status = 'Cancelled';
+        }
+        if ($stat == "Completed") {
+            $status = 'Ready For Feedback';
+        }
+        if($feedback_qty > 0){
+            $status = 'Partial Feedbacked';
+
+        }
+        if($manufacture <= $feedback_qty){
+            $status = 'Feedbacked';
+
+        }
+
+        return $status;
+    }
 }

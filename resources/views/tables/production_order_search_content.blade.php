@@ -1,3 +1,14 @@
+@if($notifications['match'] == "true")
+<div class="alert alert-warning text-center" role="alert">
+  <span class="d-none"></span>
+  <div class="container">
+     <div class="alert-icon" style="color:black;">
+      <i class="now-ui-icons travel_info" style="padding-right:5px;"></i><span style="font-size:13pt;"> <b>Notification Change Code :</b></span> 
+            <span style="font-size:11pt;">{!! $notifications['message'] !!} </span>
+     </div>
+  </div>
+  </div>
+@endif
 <div class="row tabs-banner" style="margin:2px;">
 	<div class="col-md-12">
         <ul class="nav nav-tabs" id="myTabsearchpo" role="tablistsearch">
@@ -18,14 +29,20 @@
 						<div class="row">
 							<div class="col-md-12">
 							@php	
-								if($item_details['production_order_status'] == "Cancelled"){
+								if($item_details['production_order_status'] == "Material For Issue"){
 									$badge_color ="danger";
-								}else if($item_details['production_order_status'] == "Completed"){
+								}else if($item_details['production_order_status'] == "Material Issued"){
+									$badge_color ="primary";
+								}else if($item_details['production_order_status'] == "Cancelled"){
+									$badge_color ="danger";
+								}else if($item_details['production_order_status'] == "Ready For Feedback"){
+									$badge_color ="info";
+								}else if($item_details['production_order_status'] == "Partial Feedbacked"){
 									$badge_color ="success";
-								}else if($item_details['production_order_status'] == "In Progress"){
-									$badge_color ="warning";
+								}else if($item_details['production_order_status'] == "Feedbacked"){
+									$badge_color ="success";
 								}else{
-									$badge_color ="secondary";
+									$badge_color ="warning";
 								}
 							@endphp
 							<span class="badge badge-{{$badge_color}}  pull-right" style="margin-top:-50px;text-align: center;font-size:13px;color:white; font-size:18px;">{{ $item_details['production_order_status'] }}</span>
@@ -167,7 +184,7 @@
 																	$qc_status = ($c['qa_inspection_status'] == 'Pending') ? '' : $qc_status;
 																}
 															@endphp
-															<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['good']) }}</b></td>
+															<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['good']) }}</b></td>
 															<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['reject']) }}</b></td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $from_time }}</td>

@@ -2254,8 +2254,9 @@
                     <thead>
                        <tr>
                           <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                          <th style="width: 45%; text-align: center;font-weight: bold;">Type</th>
-                          <th style="width: 45%; text-align: center;font-weight: bold;">Description</th>
+                          <th style="width: 30%; text-align: center;font-weight: bold;">Type</th>
+                          <th style="width: 30%; text-align: center;font-weight: bold;">Process</th>
+                          <th style="width: 30%; text-align: center;font-weight: bold;">Description</th>
                           <th style="width: 5%; text-align: center;font-weight: bold;"></th>
                        </tr>
                     </thead>
@@ -2269,6 +2270,11 @@
                                @endforeach
                              </select>
                           </td>
+                          <td>
+                            <select name="operator_new_checklist_r_process[]" class="form-control">
+                               <option value="">--Process--</option>
+                            </select>
+                         </td>
                           <td>
                              <select name="operator_new_checklist_r_desc[]" class="form-control operator-second-selection-only" id="">
                                 <option value="">--Description--</option>
@@ -6249,15 +6255,22 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
     $('#add-operator-checklist-modal .add-row').click(function(e){
          e.preventDefault();
          var row = '';
+         var row2 = '';
+         var workstation = $("#opchecklist_workstation_id").val();
          $.ajax({
-            url: "/get_reject_type_desc",
+            url: "/get_reject_categ_and_process",
             type:"get",
-            cache: false,
+            data:{workstation:workstation},
             success: function(response) {
                row += '<option value="none">--Type--</option>';
-               $.each(response, function(i, d){
+               $.each(response.category, function(i, d){
                   row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
                });
+               row2 += '<option value="none">--Process--</option>';
+               $.each(response.process, function(i, d){
+                  row2 += '<option value="' + d.process_id + '">' + d.process_name + '</option>';
+               });
+
                var thizz = document.getElementById('operator-checklist-table');
                var id = $(thizz).closest('table').find('tr:last td:first').text();
                var validation = isNaN(parseFloat(id));
@@ -6273,6 +6286,7 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
                var tblrow = '<tr>' +
                   '<td>'+len2+'</td>' +
                   '<td><select name="operator_new_checklist_r_type[]" class="form-control operator-onchange-selection count-row operator-checklist-sel"   data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
+                  '<td><select name="operator_new_checklist_r_process[]" class="form-control count-row operator-checklist-sel">'+row2+'</select></td>' +
                   '<td><select name="operator_new_checklist_r_desc[]" class="form-control operator-checklist-sel" id='+id_unique+' required></select></td>' +
                   '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
                   '</tr>';
@@ -6561,7 +6575,9 @@ operator_check_list_painting();
        $('#edit-material-type-modal').modal('show');
 
     });
-    // 
+    $(document).on('change', '#opchecklist_workstation_id', function(){
+      $('#operator-checklist-table tbody').empty();
+    });
 </script>
 @endsection
 

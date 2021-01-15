@@ -447,7 +447,24 @@
         }
       });
     }
-
+    $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            get_for_feedback_production(1);
+          }
+        }
+      });
+    });
     $(document).on('click', '.for-feedback-production-pagination a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
@@ -593,37 +610,6 @@
       get_pending_material_transfer_for_manufacture(production_order);
   
       $('#confirm-feedback-production-modal').modal('show');
-    });
-
-    $('#confirm-feedback-production-modal form').submit(function(e){
-      e.preventDefault();
-      $('#submit-feedback-btn').attr('disabled', true);
-      $('#loader-wrapper').removeAttr('hidden');
-      var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
-      var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
-      var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
-  
-      $.ajax({
-        url:"/create_stock_entry/" + production_order,
-        type:"POST",
-        data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-        success:function(response){
-          console.log(response);
-          $('#loader-wrapper').attr('hidden', true);
-          if (response.success == 0) {
-            showNotification("danger", response.message, "now-ui-icons travel_info");
-            $('#submit-feedback-btn').removeAttr('disabled');
-          }else{
-            showNotification("success", response.message, "now-ui-icons travel_info");
-            $('#confirm-feedback-production-modal').modal('hide');
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
     });
 
     $(document).on('click', '.submit-ste-btn', function(e){
