@@ -519,7 +519,7 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Item to Manufacture</label>
-                    <input type="text" class="form-control" id="sel-item" name="item_code" required>
+                    <input type="text" class="form-control" id="sel-item" name="item_code" maxlength="7" required>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -577,13 +577,13 @@
                 <div class="col-md-4">
                   <div class="form-group">
                     <label>Parent Item Code</label>
-                    <input type="text" class="form-control" name="parent_code" id="sel-parent-code">
+                    <input type="text" class="form-control" name="parent_code" id="sel-parent-code" maxlength="7">
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="form-group">
                     <label>Sub Parent Item Code</label>
-                    <input type="text" class="form-control" name="sub_parent_code" id="sel-sub-parent-code">
+                    <input type="text" class="form-control" name="sub_parent_code" id="sel-sub-parent-code" maxlength="7">
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -1542,42 +1542,24 @@ $(document).ready(function(){
       }
     });
   }
-  
-  $('#prod-list-reset-works-frm').submit(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#prod-list-confirm-reset-workstation-modal').modal('hide');
-                $.ajax({
-                  url: "/tbl_reset_workstation/" + data.prod,
-                  type:"GET",
-                  success:function(data){
-                      $('#tbl_workstation_reset').html(data);
-                      load_list(); 
-                      console.log('hi');
-                  },
-                  error: function(jqXHR, textStatus, errorThrown) {
-                      console.log(jqXHR);
-                      console.log(textStatus);
-                      console.log(errorThrown);
-                  },
-                });
-         
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
+
+  $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            load_list();
+          }
+        }
+      });
     });
   $(document).on('click', '.spotclass', function(event){
     event.preventDefault();
@@ -1732,7 +1714,6 @@ $(document).ready(function(){
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success == 0) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{

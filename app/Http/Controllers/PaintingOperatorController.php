@@ -13,9 +13,10 @@ use DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Image;
-
+use App\Traits\GeneralTrait;
 class PaintingOperatorController extends Controller
-{
+{	
+	use GeneralTrait;
 	// R E V I S E D - 06/18/2020
 	public function index($process_name){
 		$painting_process = DB::connection('mysql_mes')->table('process_assignment')
@@ -100,7 +101,12 @@ class PaintingOperatorController extends Controller
 
 	public function reject_task(Request $request){
 		try {
+			if(empty($request->reject_list)){
+				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
+			}
 			$now = Carbon::now();
+			$data= $request->all();
+			$reject_reason= $data['reject_list'];
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
 			
@@ -111,23 +117,40 @@ class PaintingOperatorController extends Controller
                 'reject' => $request->rejected_qty,
 			];
 
-			// $insert = [
-			// 	'time_log_id' => $request->id,
-			// 	'qa_inspection_type' => 'Reject Confirmation',
-			// 	'rejected_qty' => $request->rejected_qty,
-			// 	'total_qty' => $time_log->good,
-			// 	'status' => 'For Confirmation',
-			// 	'created_by' => Auth::user()->employee_name,
-			// 	'created_at' => $now->toDateTimeString(),
-			// ];
+			$reference_type = 'Time Logs';
+			$reference_id =  $request->id;
 
-			// DB::connection('mysql_mes')->table('quality_inspection')->insert($insert);
+			$insert = [
+				'reference_type' => $reference_type,
+				'reference_id' => $reference_id,
+				'qa_inspection_type' => 'Reject Confirmation',
+				'rejected_qty' => $request->rejected_qty,
+				'total_qty' => $time_log->good,
+				'status' => 'For Confirmation',
+				'created_by' => Auth::user()->employee_name,
+				'created_at' => $now->toDateTimeString(),
+			];
+
+			$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+
+			foreach($reject_reason as $i => $row){
+				$reason[] = [
+					'job_ticket_id' => $time_log->job_ticket_id,
+					'qa_id' => $qa_id,
+					'reject_list_id' => $row,
+					'reject_value' => '-'
+				];
+			}
+			
+
+			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 			
 			$this->updateProdOrderOps($request->production_order, 'Painting');
 			$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
-
+			$this->update_job_ticket_good($time_log->job_ticket_id);
+			$this->update_job_ticket_reject($time_log->job_ticket_id);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -235,6 +258,9 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 
 			$this->update_completed_qty_per_workstation($request->job_ticket_id);
+			$this->update_jobticket_actual_start_end($request->job_ticket_id);
+			$this->update_job_ticket_good($request->job_ticket_id);
+			$this->update_job_ticket_reject($request->job_ticket_id);
     	}
 
 		return response()->json(['success' => 1, 'message' => 'Task updated.']);
@@ -274,6 +300,9 @@ class PaintingOperatorController extends Controller
 			// get production order qty_to_manufacture
 			$qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('qty_to_manufacture');
 
+			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
+			$this->update_job_ticket_good($current_task->job_ticket_id);
+			$this->update_job_ticket_reject($current_task->job_ticket_id);
 			if($qty_to_manufacture == $painting_completed_qty){
 				// update spotwelding status and completed qty
 				$values = [
@@ -291,7 +320,7 @@ class PaintingOperatorController extends Controller
 				$this->updateProdOrderOps($request->production_order, $request->workstation);
 				$this->update_produced_qty($request->production_order);
 			}
-
+			
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);

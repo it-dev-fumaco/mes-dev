@@ -485,6 +485,42 @@ trait GeneralTrait
         }
         return $change_code;
     }
+    public function update_jobticket_actual_start_end($job_ticket_id){
+		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+			->where('jt.job_ticket_id', $job_ticket_id)
+			->where('jt.workstation', '!=', 'Spotwelding')
+			->select('workstation', 'tl.from_time', 'tl.to_time');
+
+		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('spotwelding_qty as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+            ->where('jt.job_ticket_id', $job_ticket_id)
+            ->where('jt.workstation', '=', 'Spotwelding')
+			->select('workstation', 'tl.from_time', 'tl.to_time')
+			->union($q)->get();
+		
+		// get time logs min start time
+		$actual_start_date = collect($q)->min('from_time');
+		// get item logs max end time
+		$actual_end_date = collect($q)->max('to_time');
+
+		DB::connection('mysql_mes')->table('job_ticket')
+			->where('job_ticket_id', $job_ticket_id)->update(['actual_start_date' => $actual_start_date, 'actual_end_date' => $actual_end_date]);
+    }
+    public function update_job_ticket_good($job_ticket_id){
+		$total_good = DB::connection('mysql_mes')->table('time_logs as tl')
+			->where('tl.job_ticket_id', $job_ticket_id)
+            ->sum('tl.good');
+		DB::connection('mysql_mes')->table('job_ticket')
+			->where('job_ticket_id', $job_ticket_id)->update(['good' => $total_good]);
+    }
+    public function update_job_ticket_reject($job_ticket_id){
+		$total_reject = DB::connection('mysql_mes')->table('time_logs as tl')
+			->where('tl.job_ticket_id', $job_ticket_id)
+            ->sum('tl.reject');
+		DB::connection('mysql_mes')->table('job_ticket')
+			->where('job_ticket_id', $job_ticket_id)->update(['reject' => $total_reject]);
+    }
     public function production_status_with_stockentry($production_order, $stat, $manufacture, $feedback_qty, $produced){
         
         $is_transferred = DB::connection('mysql')->table('tabStock Entry')
