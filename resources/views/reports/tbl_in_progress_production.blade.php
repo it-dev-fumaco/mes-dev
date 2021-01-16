@@ -68,6 +68,7 @@
                 <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
                 <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
                 <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['production_order'] }}">View Materials</a>
+                <a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>
               </div>
             </div>
           </td>
