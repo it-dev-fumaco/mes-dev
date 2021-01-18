@@ -410,7 +410,11 @@ trait GeneralTrait
 
 		DB::connection('mysql_mes')->table('production_order')
 			->where('production_order', $production_order)->whereNotIn('status', ['Completed', 'Cancelled'])
-			->update(['actual_start_date' => $actual_start_date, 'actual_end_date' => $actual_end_date]);
+            ->update(['actual_start_date' => $actual_start_date]);
+            
+        DB::connection('mysql_mes')->table('production_order')
+			->where('production_order', $production_order)->whereIn('status', ['Completed'])
+			->update(['actual_end_date' => $actual_end_date]);
     }
     
     public function update_production_order_transferred_qty($production_order){
