@@ -693,11 +693,11 @@ class MainController extends Controller
 			
 			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
 			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
-			$this->update_production_actual_start_end($request->production_order);
 			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
 			$this->update_job_ticket_good($current_task->job_ticket_id);
 			$this->update_job_ticket_reject($current_task->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
+			$this->update_production_actual_start_end($request->production_order);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);

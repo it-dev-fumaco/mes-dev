@@ -289,7 +289,6 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 			
 			$this->updateProdOrderOps($request->production_order, $request->workstation);
-			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
 
 			// get completed qty in painting workstation
@@ -303,6 +302,7 @@ class PaintingOperatorController extends Controller
 			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
 			$this->update_job_ticket_good($current_task->job_ticket_id);
 			$this->update_job_ticket_reject($current_task->job_ticket_id);
+			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
 			if($qty_to_manufacture == $painting_completed_qty){
 				// update spotwelding status and completed qty
 				$values = [
