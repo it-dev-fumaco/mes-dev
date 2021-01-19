@@ -5927,8 +5927,7 @@ class SecondaryController extends Controller
     public function save_checklist(Request $request){
         $now = Carbon::now();
         $arr = $request->new_checklist_r_desc;
-
-        $ar=array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
+        $ar=array_unique(array_diff_assoc($arr, array_unique( $arr ) ) );
         if(!empty($ar)){
             foreach($ar as $i => $r){
                 $reject_desc =DB::connection('mysql_mes')->table('reject_list')
@@ -5950,7 +5949,7 @@ class SecondaryController extends Controller
                         ->table('qa_checklist')
                         ->where('workstation_id', $request->workstation_id)
                         ->where('reject_list_id', $request->new_checklist_r_desc[$i])
-                        ->where('reject_list_id', $request->new_checklist_r_desc[$i])
+                        ->where('process_id', $request->new_checklist_r_process[$i])
                         ->exists()){
 
                         $reject_desc =DB::connection('mysql_mes')->table('reject_list')
@@ -5965,6 +5964,7 @@ class SecondaryController extends Controller
                     }else{
                       $checklist[] = [
                         'workstation_id' => $request->workstation_id,
+                        'process_id' => $request->new_checklist_r_process[$i],
                         'reject_list_id' => $request->new_checklist_r_desc[$i],
                         'last_modified_by' => Auth::user()->email,
                         'created_by' => Auth::user()->email,
@@ -6002,16 +6002,16 @@ class SecondaryController extends Controller
     }
     public function get_tbl_checklist_list_painting(Request $request){
         $check_list = DB::connection('mysql_mes')->table('qa_checklist as qc')
+            ->leftJoin('process', 'process.process_id', 'qc.process_id')
             ->join('workstation as w','w.workstation_id', 'qc.workstation_id')
             ->join('reject_list as rl','rl.reject_list_id', 'qc.reject_list_id')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.workstation_name','=','Painting')
-            ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
+            ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
             ->orderBy('qa_checklist_id', 'desc')->paginate(9);
 
         return view('tables.tbl_check_list_painting', compact('check_list'));
-
     }
     public function get_tbl_checklist_list_assembly(Request $request){
         $check_list = DB::connection('mysql_mes')->table('qa_checklist as qc')
@@ -7707,7 +7707,7 @@ class SecondaryController extends Controller
     public function get_tbl_opchecklist_list_fabrication(Request $request){
         $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
             ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
-            ->join('process', 'process.process_id', 'oc.process_id')
+            ->leftJoin('process', 'process.process_id', 'oc.process_id')
             ->join('reject_list as rl','rl.reject_list_id', 'oc.reject_list_id')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
@@ -7750,7 +7750,7 @@ class SecondaryController extends Controller
     public function get_tbl_opchecklist_list_painting(Request $request){
         $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
             ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
-            ->join('process', 'process.process_id', 'oc.process_id')
+            ->leftJoin('process', 'process.process_id', 'oc.process_id')
             ->join('reject_list as rl','rl.reject_list_id', 'oc.reject_list_id')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
