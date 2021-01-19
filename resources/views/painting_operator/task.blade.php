@@ -103,6 +103,7 @@
    </div>
 </div>
 
+
 @include('painting_operator.modal_view_schedule')
 @include('painting_operator.modal_view_production_order_details')
 @include('painting_operator.modal_end_task')
@@ -325,7 +326,7 @@
       var production_order = '{{ $production_order }}';
       var process_id = {{ $process_details->process_id }};
       $.ajax({
-        url:"/get_task/" + production_order + "/" + process_id,
+        url:"/get_task/" + production_order + "/" + process_id + '/{{ Auth::user()->user_id }}',
         type:"GET",
         success:function(data){
           $('#row-tbl').html(data);
@@ -574,7 +575,29 @@
       console.log($(this).data('timelog-id'));
       var max_qty = $(this).data('good');
       var production_order = '{{ $production_order }}';
+      
+      $('#reject-sel-batch').empty();
+      $('#reject-sel-batch').append($('#sel-batch').html());
+      var has_batch = $('#count-batch').val();
+      $('#enter-reject-modal .production-order').text(production_order);
+      $('#enter-reject-modal .production-order-input').val(production_order);
+      $('#enter-reject-modal .workstation-input').val('Painting');
+      
+      if(has_batch > 1){
+        $('#enter-reject-modal .max-qty').text(0);
+        $('#enter-reject-modal .timelog-id').val('');
+        $('#enter-reject-modal .process-name').text('--');
+        $('#enter-reject-modal #sel-batch-div').removeAttr('hidden');
+      }else{
+        var max_qty = $($(this).data('tabid') + ' .good-qty').text();
+        $('#enter-reject-modal .max-qty').text(max_qty);
+        $('#enter-reject-modal #sel-batch-div').attr('hidden', true);
+        $('#enter-reject-modal .timelog-id').val($(this).data('timelog-id'));
+        $('#enter-reject-modal .max-qty').text($(this).data('good-qty'));
+        $('#enter-reject-modal .process-name').text($(this).data('process-name'));
+      }
 
+      
       $.ajax({
         url: "/get_reject_types/" + "Painting/"+{{ $process_details->process_id }},
         type:"GET",
@@ -587,12 +610,8 @@
           console.log(errorThrown);
         }
       });
-    
-      $('#enter-reject-modal .timelog-id').val($(this).data('timelog-id'));
+  
       $('#enter-reject-modal .process-id-input').val('{{ $process_details->process_id }}');
-      $('#enter-reject-modal .production-order-input').val(production_order);
-      $('#enter-reject-modal .process-name').text('{{ $process_details->process_name }}');
-      $('#enter-reject-modal .max-qty').text(max_qty);
       $('#enter-reject-modal').modal('show');
     });
 
@@ -803,5 +822,20 @@
         $("#warning_div").attr("style", "display:none");
       }
   }
+  $(document).on('change', '#reject-sel-batch', function(e){
+    e.preventDefault();
+    if($(this).val()){
+      var good = $(this).find(':selected').data('good');
+      var process_name = $(this).find(':selected').data('process');
+      $('#enter-reject-modal .max-qty').text(good);
+      $('#enter-reject-modal .timelog-id').val($(this).val());
+      $('#enter-reject-modal .process-name').text(process_name);
+    }else{
+      $('#enter-reject-modal .max-qty').text('0');
+      $('#enter-reject-modal .timelog-id').val('');
+      $('#enter-reject-modal .process-name').text('--');
+    }
+  });
+
 </script>
 @endsection

@@ -157,9 +157,9 @@ class PaintingOperatorController extends Controller
         }
 	}
 
-	public function get_task($production_order, $process_id){
+	public function get_task($production_order, $process_id, $operator_id){
 		$process_details = DB::connection('mysql_mes')->table('process')->where('process_id', $process_id)->first();
-
+		$jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->where('process_id',$process_id)->select('job_ticket_id')->first();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
 
 		$machine_status = $this->get_machine_status();
@@ -211,13 +211,19 @@ class PaintingOperatorController extends Controller
 			$pending_qty = $qty_loaded - $production_task->completed_qty;
 		}
 
+		$batch_list = DB::connection('mysql_mes')->table('job_ticket')
+			->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+			->where('time_logs.job_ticket_id', $jt_details->job_ticket_id)
+			->where('operator_id', $operator_id)
+			->select('*', DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process_name'))
+			->where('time_logs.status', 'Completed')->get();
 		$qty_arr = [
 			'required_qty' => $production_order_details->qty_to_manufacture,
 			'completed_qty' => $production_task->completed_qty,
 			'pending_qty' => $pending_qty
 		];
 
-		return view('painting_operator.tbl_task', compact('production_order_details', 'process_details', 'task_details', 'machine_status', 'qty_arr'));
+		return view('painting_operator.tbl_task', compact('production_order_details', 'process_details', 'task_details', 'machine_status', 'qty_arr', 'batch_list'));
 	}
 
 	public function start_task(Request $request){
