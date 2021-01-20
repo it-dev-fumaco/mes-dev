@@ -85,6 +85,9 @@
                             <li class="nav-item">
                               <a class="nav-link" href="#late_delivery_setup" data-toggle="tab">Reschedule Delivery Reason Setup</a>
                             </li>
+                            <li class="nav-item">
+                              <a class="nav-link" href="#cancel_po_setup" data-toggle="tab">Reason/s for Cancellation Setup</a>
+                            </li>
                             <h6 class="text-center" style="padding-top: 10px;">User</h6>
                             <li class="nav-item">
                                 <a class="nav-link" href="#users_setup" data-toggle="tab">Users Setup</a>
@@ -200,6 +203,30 @@
                         </div>
                     </div>
                 </div>
+                <div class="tab-pane" id="cancel_po_setup">
+                  <div class="card" style="background-color: #0277BD;" >
+                      <div class="card-body" style="padding-bottom: 0;">
+                          <div class="row">
+                              <div class="col-md-8">
+                                  <h5 class="text-white font-weight-bold text-left">Reason/s for Cancellation Setup</h5>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="form-group">
+                                      <input type="text" class="form-control form-control" placeholder="Search" id="search_reason_cancelled_po">
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                              <div class="card card-nav-tabs card-plain">
+                                  <div class="col-md-8 offset-md-2">
+                                    <button type="button" class="btn btn-primary" id="add-cancelled-reason-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
+                                      <div class="tbl_reason_for_cancellation_po" id="tbl_reason_for_cancellation_po"></div>
+                                  </div>
+                              </div>
+                          </div>        
+                      </div>
+                  </div>
+              </div>
                 <div class="tab-pane" id="users_setup">
                     <div class="card" style="background-color: #0277BD;" >
                         <div class="card-body" style="padding-bottom: 0;">
@@ -2471,7 +2498,119 @@
     </form>
  </div>
 </div>
-
+<div class="modal fade" id="add-cancelled-reason-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/save_cancelled_reason" method="POST" id="add-cancelled-reason-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title "> Add Reason for Cancellation<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="form-row">
+                 <div class="form-group col-md-12">
+                    <button type="button" class="btn btn-primary pull-right" id="add-reason-of-cancel-row" style="margin: 5px;">
+                       <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                 </div>
+                 <hr>
+                 <div class="col-md-12">
+                 <table class="table" id="cancelled-reason-table" style="font-size: 10px; ">
+                   <col style="width: 5%;">
+                   <col style="width: 90%;">
+                   <col style="width: 5%;">
+                    <thead>
+                       <tr style="">
+                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                          <th style="width: 40%; text-align: center;font-weight: bold; ">Reason for Cancellation</th>
+                          <th style="width: 5%; text-align: center;font-weight: bold; "></th>
+                       </tr>
+                    </thead>
+                    <tbody class="table-body text-center" style="">
+                       <tr style="">
+                       </tr>
+                    </tbody>
+                 </table>
+                 </div> 
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="edit-cancelled-reason-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/edit_cancelled_reason" method="POST" id="edit-cancelled-reason-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" class="modal-title"> Edit Reason for Cancellation<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+               <div class="row">
+                   <div class="col-md-12">
+                     <div class="form-group">
+                         <label>Reason for Cancellation:</label>
+                         <input type="text" name="edit_reason_for_cancellation" id="edit_reason_for_cancellation_setup" class="form-control">
+                         <input type="hidden" name="orig_reason_for_cancellation" id="orig_reason_for_cancellation_setup" class="form-control">
+                         <input type="hidden" name="edit_reason_for_cancellation_id" id="edit_reason_for_cancellation_id" class="form-control">
+                     </div>
+                   </div>
+               </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="delete-cancelled-reason-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/delete_cancelled_reason" method="POST" id="delete-cancelled-reason-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" class="modal-title"> Remove Reason for Cancellation<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+               <div class="row">
+                   <div class="col-md-12">
+                      <input type="hidden" name="delete_reason_cancellation_id" id="delete_reason_cancellation_id">
+                      <input type="hidden" name="delete_reason_cancellation" id="delete_reason_cancellation">
+                      <div class="row">
+                        <div class="col-sm-12"style="font-size: 12pt;">
+                            <label> Remove reason for cancellation -  <span id="delete_label_reason_cancellation_id" style="font-weight: bold;"></span></label>?
+                        </div>               
+                      </div>
+                   </div>
+               </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
 <style type="text/css">
   .scrolling table {
     table-layout: fixed;
@@ -2794,6 +2933,18 @@
 }
 #edit-material-type-modal .form-control{
     border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+}
+#add-cancelled-reason-modal .form-control{
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+}
+#edit-cancelled-reason-modal .form-control{
+  border: 1px solid #ccc;
   border-radius: 3px;
   box-shadow: none;
   margin-bottom: 15px;
@@ -6639,6 +6790,138 @@ operator_check_list_painting();
        $('#edit-material-type-modal').modal('show');
 
     });
+
+    $(document).on('click', '#add-cancelled-reason-button', function(){
+    $('#add-cancelled-reason-modal').modal('show');
+    $('#add-cancelled-reason-modal tbody').empty();
+
+    });
+    $('#add-reason-of-cancel-row').click(function(e){
+    e.preventDefault();
+      var thizz = document.getElementById('cancelled-reason-table');
+      var id = $(thizz).closest('table').find('tr:last td:first').text();
+      var validation = isNaN(parseFloat(id));
+      if(validation){
+        var new_id = 1;
+      }else{
+        var new_id = parseInt(id) + 1;
+      }
+      var len2 = new_id;
+      var id_unique="count"+len2;
+      var tblrow = '<tr>' +
+        '<td>'+len2+'</td>' +
+        '<td><input name="reasonofcancel[]" text="text" style="font-size:12px;" class="form-control count-row" required></td>' +
+        '<td> <a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
+        '</tr>';
+      $("#add-cancelled-reason-modal #cancelled-reason-table").append(tblrow);
+    });
+    $('#add-cancelled-reason-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#add-cancelled-reason-modal').modal('hide');
+                tbl_reason_for_cancellation_po();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    tbl_reason_for_cancellation_po();
+  function tbl_reason_for_cancellation_po(page, query){
+    $.ajax({
+      url:"/tbl_reason_for_cancellation_po?page="+page,
+      data: {search_string: query},
+      type:"GET",
+      success:function(data){
+        $('#tbl_reason_for_cancellation_po').html(data);
+      }
+    }); 
+  }
+  $(document).on('click', '.btn_edit_reason_for_cancellation', function(){
+      var edit_reason_for_cancellation = $(this).data('reason');
+      var id = $(this).data('id');
+      $('#orig_reason_for_cancellation_setup').val(edit_reason_for_cancellation);
+      $('#edit_reason_for_cancellation_setup').val(edit_reason_for_cancellation);
+      $('#edit_reason_for_cancellation_id').val(id);
+      $('#edit-cancelled-reason-modal').modal('show');
+
+    });
+    $('#edit-cancelled-reason-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#edit-cancelled-reason-modal').modal('hide');
+                tbl_reason_for_cancellation_po();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $(document).on('click', '.btn_delete_reason_for_cancellation', function(){
+      var delete_reason_for_cancellation = $(this).data('reason');
+      var id = $(this).data('id');
+      $('#delete_label_reason_cancellation_id').text(delete_reason_for_cancellation);
+      $('#delete_reason_cancellation_id').val(id);
+      $('#delete_reason_cancellation').val(delete_reason_for_cancellation);
+      $('#delete-cancelled-reason-modal').modal('show');
+    });
+    $('#delete-cancelled-reason-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#delete-cancelled-reason-modal').modal('hide');
+                tbl_reason_for_cancellation_po();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $(document).on('click', '#reason_cancellation_pagination a', function(event){
+      event.preventDefault();
+      var query = $('#search_reason_cancelled_po').val();
+      var page = $(this).attr('href').split('page=')[1];
+      tbl_reason_for_cancellation_po(page, query);
+    })
+    $(document).on('keyup', '#search_reason_cancelled_po', function(){
+      var query = $(this).val();
+      tbl_reason_for_cancellation_po(1, query);
+    });
+
     $(document).on('change', '#opchecklist_workstation_id', function(){
       $('#operator-checklist-table tbody').empty();
     });
