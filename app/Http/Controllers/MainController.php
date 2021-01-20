@@ -405,7 +405,7 @@ class MainController extends Controller
 
 		$process_arr = DB::connection('mysql_mes')->table('job_ticket')
 			->where('production_order', $details->production_order)
-			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty')
+			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
 			->get();
 
 		$operation_list = [];
@@ -414,7 +414,7 @@ class MainController extends Controller
 			if($row->workstation == "Spotwelding"){
 				  $operations =  DB::connection('mysql_mes')->table('spotwelding_qty as qpart')
                   ->where('qpart.job_ticket_id',  $row->job_ticket_id)->get();
-				  $total_rejects =collect($operations)->sum('reject');
+				  $total_rejects =$row->reject;
 				  $min_count= collect($operations)->min('from_time');
 				  $max_count=collect($operations)->max('to_time');
 				  $status = collect($operations)->where('status', 'In Progress');

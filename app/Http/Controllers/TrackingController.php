@@ -85,6 +85,7 @@ class TrackingController extends Controller
                     ->where('sotbl.parent', $sales_order)
                     ->where('item.item_group', '!=', 'Raw Material')
                     ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                    ->distinct('sotbl.parent')
                     ->get();
         }else{
             $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
@@ -93,6 +94,7 @@ class TrackingController extends Controller
                     ->where('sotbl.parent', $material_request)
                     ->where('item.item_group', '!=', 'Raw Material')
                     ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                    ->distinct('sotbl.parent')
                     ->get();
         }
         
@@ -110,6 +112,7 @@ class TrackingController extends Controller
                         'erp_reference_no' => $row->name
                     ];
             }
+        // dd($production_order_list);
             return $production_order_list;
                     
 
@@ -126,14 +129,14 @@ class TrackingController extends Controller
                         ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
                         ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
                 })
-                ->select('sales_order', 'material_request', 'customer', 'parent_item_code')
-                ->groupBy('sales_order','material_request', 'customer', 'parent_item_code')
+                ->select('sales_order', 'material_request', 'customer')
+                ->groupBy('sales_order','material_request', 'customer')
                 ->paginate(10);
 
             $so_item_list = [];
             foreach ($production_orders as $row) {
                 $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order; 
-                $function_function= $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code);
+                $function_function= $this->get_so_item_list($row->sales_order,$row->material_request);
 
                     $so_item_list[] = [
                         'guide_id' => $guide_id,
@@ -155,9 +158,7 @@ class TrackingController extends Controller
             // $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
             // // set url path for generted links
             // $paginatedItems->setPath($request->url());
-
             // $so_item_list = $paginatedItems;
-
             return view('tables.tbl_item_list_for_tracking', compact('so_item_list', 'production_orders'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
