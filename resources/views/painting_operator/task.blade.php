@@ -574,6 +574,20 @@
       console.log($(this).data('timelog-id'));
       var max_qty = $(this).data('good');
       var production_order = '{{ $production_order }}';
+
+      $.ajax({
+        url: "/get_reject_types/" + "Painting/"+{{ $process_details->process_id }},
+        type:"GET",
+        success:function(data){
+          $('.op_reject_checklist').html(data);
+        }, 
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    
       $('#enter-reject-modal .timelog-id').val($(this).data('timelog-id'));
       $('#enter-reject-modal .process-id-input').val('{{ $process_details->process_id }}');
       $('#enter-reject-modal .production-order-input').val(production_order);

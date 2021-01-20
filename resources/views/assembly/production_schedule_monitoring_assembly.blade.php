@@ -650,7 +650,7 @@
 							scheduled_date: scheduled_date
 						},
 						success:function(data){
-							//console.log(data);
+							console.log(data);
 						},
 						error: function(jqXHR, textStatus, errorThrown) {
 							console.log(jqXHR);

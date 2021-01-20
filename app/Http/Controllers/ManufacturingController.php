@@ -1410,12 +1410,12 @@ class ManufacturingController extends Controller
                 }
             }
 
-            DB::table('tabProduction Order')->where('name', $request->production_order)
+            DB::connection('mysql')->table('tabProduction Order')->where('name', $request->production_order)
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)
-                ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'remarks' => $request->reason_for_cancellation]);
 
             DB::connection('mysql')->commit();
 
@@ -3906,4 +3906,8 @@ class ManufacturingController extends Controller
 
         return view('tables.tbl_item_inventory', compact('inventory_stock'));
     }
+
+    public function get_reason_for_cancellation(){
+		return DB::connection('mysql_mes')->table('reason_for_cancellation_po')->orderBy('reason_for_cancellation', 'asc')->get();
+	}
 }
