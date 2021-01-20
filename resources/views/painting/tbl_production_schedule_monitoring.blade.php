@@ -28,9 +28,9 @@
   <tbody style="font-size: 9pt;">
     @forelse($data as $row)
     @php
-        $painting_completed_qty = collect($row['job_ticket'])->min('completed_qty');
-        $display_duration = ($row['qty'] == $painting_completed_qty) ? null : 'd-none';
-        $rowspan = ($display_duration) ? 'rowspan="2"' : null;
+      $painting_completed_qty = collect($row['job_ticket'])->min('completed_qty');
+      $display_duration = ($painting_completed_qty > 0 && $row['qty'] == $painting_completed_qty) ? null : 'd-none';
+      $rowspan = ($display_duration != 'd-none') ? 'rowspan="2"' : null;
     @endphp
     <tr>
       <td class="text-center" {!! $rowspan !!}>
@@ -79,7 +79,7 @@
         <span class="d-block font-weight-bold">{{ number_format($row['reject']) }}</span>
         <span class="d-block">{{ $row['stock_uom'] }}</span>
       </td>
-      <td class="text-center" {!! $rowspan !!}>{{ $row['remarks']}} </td>
+      <td class="text-center" {!! $rowspan !!}>{{ $row['remarks'] }} </td>
       <td {!! $rowspan !!}>
         <div class="btn-group">
           <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
@@ -91,9 +91,11 @@
         </div>
       </td>
     </tr>
-    <tr class="heightcustom text-white {{ $display_duration }}" style="{{ ($row['prod_status'] == 'Completed') ? 'background-color: #2ecc71' : null }};">
-      <td class="text-center" style="border: none;" colspan="2">{{ $row['duration'] }}</td>
+    @if($display_duration != 'd-none')
+    <tr class="text-white" style="{{ ($row['prod_status'] == 'Completed') ? 'background-color: #2ecc71' : null }};">
+      <td class="text-center p-1" style="border: none;" colspan="2">{{ $row['duration'] }}</td>
     </tr>
+    @endif
     @empty
     <tr>
       <td colspan="12" class="text-center">No task(s) found</td>
@@ -103,16 +105,8 @@
 </table>
 
 <style type="text/css">
-  .custom-table-striped > tbody > tr:nth-child(4n+1) > td, .custom-table-striped > tbody > tr:nth-child(4n+1) > th {
+.custom-table-striped > tbody > tr:nth-child(4n+1) > td, .custom-table-striped > tbody > tr:nth-child(4n+1) > th {
    background-color: whitesmoke;
-}
-  td.heightcustom > div {
-    width: 100%;
-    height: 100%;
-    overflow:hidden;
-}
-td.heightcustom {
-    height: 20px;
 }
 
 th.sticky-header {
@@ -122,9 +116,9 @@ th.sticky-header {
   background-color: white;
 }
 
-  .truncate {
-    white-space: nowrap;
-    /*overflow: hidden;*/
-    text-overflow: ellipsis;
-  }
+.truncate {
+  white-space: nowrap;
+  /*overflow: hidden;*/
+  text-overflow: ellipsis;
+}
 </style>
