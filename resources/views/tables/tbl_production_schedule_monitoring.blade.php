@@ -1,5 +1,5 @@
 <div class="row">
-  <div class="col-md-6 offset-md-2 pl-5" style="margin-top: -52px;">
+  <div class="col-md-6 offset-md-1" style="margin-top: -52px;">
     <table class="w-100 mt-2 p-0" id="filter-form">
       <col style="width: 40%;">
       <col style="width: 25%;">
