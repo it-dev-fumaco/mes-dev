@@ -5514,16 +5514,22 @@ class SecondaryController extends Controller
                 ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
             })
             ->distinct('prod.production_order', 'tsd.sequence')
-            ->select('prod.*','tsd.sequence')
+            ->select('prod.*','tsd.sequence', 'tsd.planned_start_date as planned_start')
             ->orderBy('tsd.sequence','asc')
             ->get();
         
         $data = [];
         foreach($orders as $row){
+
+            $is_backlog = (Carbon::parse($row->planned_start)->format('Y-m-d') < Carbon::now()->format('Y-m-d')) ? 1 : 0;
+
             $data[]=[
                 'customer' => $row->customer,
                 'reference_no' => ($row->sales_order) ? $row->sales_order : $row->material_request,
                 'item_code' => $row->item_code,
+                'parent_item_code' => $row->parent_item_code,
+                'planned_start_date' => $row->planned_start,
+                'is_backlog' => $is_backlog,
                 'item_description'=> strtok($row->description, ","),
                 'stock_uom' => $row->stock_uom,
                 'balance_qty' => ($row->qty_to_manufacture - $row->produced_qty),
@@ -5541,9 +5547,15 @@ class SecondaryController extends Controller
             ];
         }
 
-        $current_date= $schedule_date;
+        $current_date = $schedule_date;
 
-        return view('painting.tbl_production_schedule_monitoring', compact('data','current_date'));
+        $filters = [
+            'customers' => array_unique(array_column($data, 'customer')),
+            'reference_nos' => array_unique(array_column($data, 'reference_no')),
+            'parent_item_codes' => array_unique(array_column($data, 'parent_item_code'))
+        ];
+
+        return view('painting.tbl_production_schedule_monitoring', compact('data', 'current_date', 'filters'));
     }
     public function duration_for_completed_painting($prod){
         $orders = DB::connection('mysql_mes')->table('job_ticket as tsd')
