@@ -43,7 +43,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/add_ste_items', 'ManufacturingController@add_ste_items');
 
 	Route::get('/operator/Painting/{process_name}/{machine_code}/{production_order}', 'PaintingOperatorController@operator_task');
-	Route::get('/get_task/{production_order}/{process_id}', 'PaintingOperatorController@get_task');
+	Route::get('/get_task/{production_order}/{process_id}/{operator_id}', 'PaintingOperatorController@get_task');
 	Route::post('/start_painting', 'PaintingOperatorController@start_task');
 	Route::post('/end_painting', 'PaintingOperatorController@end_task');
 	Route::post('/restart_painting', 'PaintingOperatorController@restart_task');

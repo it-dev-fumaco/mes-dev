@@ -17,6 +17,12 @@
                <div class="row">
                   <div class="col-md-8">
                      <div class="row">
+                        <div class="col-md-12 text-center" id="sel-batch-div">
+                           <div class="form-group">
+                              <label for="sel-batch" style="font-size: 14pt;">Select Batch Date</label>
+                              <select class="form-control-lg" id="reject-sel-batch"></select>
+                           </div>
+                        </div>
                         <div class="col-md-12 text-center">
                            <div style="font-size: 14pt; margin-bottom: 8px;" class="text-center">
                               <span class="production-order" style="font-weight: bold;"></span>
