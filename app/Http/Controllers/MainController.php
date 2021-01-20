@@ -485,20 +485,10 @@ class MainController extends Controller
 		}
 		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $details->production_order)
 			->distinct()->pluck('job_ticket_id');
-		$process_list = [];
-		foreach ($processes as $row) {
-			$query = DB::connection('mysql_mes')->table('time_logs')
-				->where('job_ticket_id', $row)->where('status', 'Completed')->get();
-			$process_list[] = [
-				'process_id' => $row,
-				'total_good' => collect($query)->sum('good'),
-				'total_reject' => collect($query)->sum('reject'),
-			];
-		}
 		$totals = [
 			'produced_qty' => $details->produced_qty,
-			'total_good' => collect(array_column($process_list, 'total_good'))->min(),
-			'total_reject' => collect(array_column($process_list, 'total_reject'))->max(),
+			'total_good' => collect($process_arr)->min('completed_qty'),
+			'total_reject' => collect($process_arr)->sum('reject'),
 			'balance_qty' => $details->qty_to_manufacture - $details->produced_qty,
 		];
 		$datas=[];
