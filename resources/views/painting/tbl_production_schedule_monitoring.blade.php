@@ -1,7 +1,53 @@
+<div class="row">
+  <div class="col-md-6 offset-md-2 pl-5" style="margin-top: -52px;">
+    <table class="w-100 mt-2 p-0" id="filter-form">
+      <col style="width: 40%;">
+      <col style="width: 25%;">
+      <col style="width: 25%;">
+      <col style="width: 10%;">
+      <tr>
+        <td>
+          <div class="form-group mb-0 mr-1">
+            <select class="form-control select-custom" id="customer-filter">
+              <option value="all">Select Customer</option>
+              @foreach ($filters['customers'] as $i => $customer)
+              <option value="{{ $customer }}">{{ $customer }}</option>
+              @endforeach
+            </select>
+          </div>
+        </td>
+        <td>
+          <div class="form-group mb-0 mr-1">
+            <select class="form-control select-custom" id="reference-filter">
+              <option value="all">Select Reference No.</option>
+              @foreach ($filters['reference_nos'] as $i => $reference)
+              <option value="{{ $reference }}">{{ $reference }}</option>
+              @endforeach
+            </select>
+          </div>
+        </td>
+        <td>
+          <div class="form-group mb-0 mr-1">
+            <select class="form-control select-custom rounded-0" id="parent-item-filter">
+              <option value="all">Select Parent Item</option>
+              @foreach ($filters['parent_item_codes'] as $i => $parent_item)
+              <option value="{{ $parent_item }}">{{ $parent_item }}</option>
+              @endforeach
+            </select>
+          </div>
+        </td>
+        <td class="pl-2">
+          <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
 <table class="table custom-table-striped text-center" id="monitoring-table">
-  <col style="width: 9%;">
-  <col style="width: 13%;">
-  <col style="width: 13%;">
+  <col style="width: 8%;">
+  <col style="width: 7%;">
+  <col style="width: 12%;">
+  <col style="width: 12%;">
   <col style="width: 7%;">
   <col style="width: 7%;">
   <col style="width: 7%;">
@@ -9,10 +55,11 @@
   <col style="width: 7%;">
   <col style="width: 7%;">
   <col style="width: 7%;">
-  <col style="width: 10%;">
+  <col style="width: 7%;">
   <col style="width: 6%;">
   <thead class="text-primary" style="font-size: 7pt;">
     <th class="text-center"><b>Prod. Order</b></th>
+    <th class="text-center"><b>Planned Start</b></th>
     <th class="text-center"><b>Customer</b></th>
     <th class="text-center"><b>Item Description</b></th>
     <th class="text-center"><b>Qty</b></th>
@@ -32,11 +79,13 @@
       $display_duration = ($painting_completed_qty > 0 && $row['qty'] == $painting_completed_qty) ? null : 'd-none';
       $rowspan = ($display_duration != 'd-none') ? 'rowspan="2"' : null;
     @endphp
-    <tr>
+    <tr class="tbl-row" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['reference_no'] }}" data-parent-item="{{ $row['parent_item_code'] }}">
       <td class="text-center" {!! $rowspan !!}>
         <span class="badge badge-info mr-2" style="font-size: 9pt;">{{ $row['sequence']}}</span>
         <a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn font-weight-bold text-dark">{{ $row['production_order'] }}</a>
+        <span class="badge {{ ($row['is_backlog']) ? 'badge-danger' : 'd-none' }}" style="font-size: 9pt;">Backlog</span>
       </td>
+      <td class="text-center p-0 font-weight-bold" {!! $rowspan !!}>{{ date('M-d-Y', strtotime($row['planned_start_date'])) }}</td>
       <td class="text-center" {!! $rowspan !!}>
         <span class="d-block font-weight-bold">{{ $row['reference_no'] }}</span>
         <span>{{ $row['customer'] }}</span>

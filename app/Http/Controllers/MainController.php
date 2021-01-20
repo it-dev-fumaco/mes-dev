@@ -5840,47 +5840,6 @@ class MainController extends Controller
 		if($operation < 1){
 			$operation_details = DB::connection('mysql_mes')->table('operation')
 				->where('operation_name', 'Painting')->first();
-
-				
-		// $orders = DB::connection('mysql_mes')->table('production_order as prod')
-        //     ->join('job_ticket as tsd','tsd.production_order','=','prod.production_order')
-        //     ->whereNotIn('prod.status', ['Cancelled'])
-        //     // ->where('tsd.planned_start_date', $schedule_date)
-        //     ->where('tsd.workstation', 'Painting')
-        //     ->where(function($q) use ($request) {
-        //         $q->where('prod.production_order', 'LIKE', '%'.$request->search_string.'%')
-        //         ->orWhere('prod.item_code', 'LIKE', '%'.$request->search_string.'%')
-        //         ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
-        //     })
-        //     ->distinct('prod.production_order', 'tsd.sequence')
-        //     ->select('prod.*','tsd.sequence')
-        //     ->orderBy('tsd.sequence','asc')
-        //     ->get();
-        
-        // $data = [];
-        // foreach($orders as $row){
-        //     $data[]=[
-        //         'customer' => $row->customer,
-        //         'item_code' => $row->item_code,
-        //         'item_description'=> strtok($row->description, ","),
-        //         'stock_uom' => $row->stock_uom,
-        //         'balance_qty' => ($row->qty_to_manufacture - $row->produced_qty),
-        //         'completed_qty'=> $row->produced_qty,
-        //         'qty'=> $row->qty_to_manufacture, 
-        //         'production_order' => $row->production_order,
-        //         'remarks' => $row->notes,
-        //         'sequence' => $row->sequence,
-        //         // 'duration' =>$this->duration_for_completed_painting($row->production_order),
-        //         'feedback_qty' => ($row->feedback_qty == null)? 0 : $row->feedback_qty,
-        //         // 'job_ticket'=> $this->get_jt_details($row->production_order),
-        //         'prod_status'=> $row->status,
-        //         // 'reject' => $this->get_reject_production_sched_monitoring($row->production_order)
-        //     ];
-        // }
-
-        // $current_date= $schedule_date;
-
-        // return view('painting.tbl_production_schedule_monitoring', compact('data','current_date'));
 		}
 
 		$workstation_list = DB::connection('mysql_mes')->table('workstation')
@@ -5917,9 +5876,12 @@ class MainController extends Controller
 					->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
 					->where('jt.production_order', $row->production_order)->sum('jt.reject');
 
+				$is_backlog = (Carbon::parse($row->planned_start_date)->format('Y-m-d') < Carbon::now()->format('Y-m-d')) ? 1 : 0;
+
 				$production_orders[] = [
 					'production_order' => $row->production_order,
-					'production_order' => $row->production_order,
+					'planned_start_date' => $row->planned_start_date,
+					'parent_item_code' => $row->parent_item_code,
 					'reference_no' => ($row->sales_order) ? $row->sales_order : $row->material_request,
 					'customer' => $row->customer,
 					'item_code' => $row->item_code,
@@ -5930,11 +5892,18 @@ class MainController extends Controller
 					'feedback_qty' => $row->feedback_qty,
 					'balance_qty' => ($row->qty_to_manufacture - $row->feedback_qty),
 					'notes' => $row->notes,
-					'rejects' => $rejects
+					'rejects' => $rejects,
+					'is_backlog' => $is_backlog
 				];
 			}
-			
-			return view('tables.tbl_production_schedule_monitoring', compact('production_orders'));
+
+			$filters = [
+				'customers' => array_unique(array_column($production_orders, 'customer')),
+				'reference_nos' => array_unique(array_column($production_orders, 'reference_no')),
+				'parent_item_codes' => array_unique(array_column($production_orders, 'parent_item_code'))
+			];
+
+			return view('tables.tbl_production_schedule_monitoring', compact('production_orders', 'filters'));
 		}
 
 		$production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);
