@@ -86,7 +86,7 @@
                               <a class="nav-link" href="#late_delivery_setup" data-toggle="tab">Reschedule Delivery Reason Setup</a>
                             </li>
                             <li class="nav-item">
-                              <a class="nav-link" href="#cancel_po_setup" data-toggle="tab">Cancelled Production Order Reason Setup</a>
+                              <a class="nav-link" href="#cancel_po_setup" data-toggle="tab">Reason/s for Cancellation Setup</a>
                             </li>
                             <h6 class="text-center" style="padding-top: 10px;">User</h6>
                             <li class="nav-item">
@@ -208,7 +208,7 @@
                       <div class="card-body" style="padding-bottom: 0;">
                           <div class="row">
                               <div class="col-md-8">
-                                  <h5 class="text-white font-weight-bold text-left">Cancelled Production Order Reason Setup</h5>
+                                  <h5 class="text-white font-weight-bold text-left">Reason/s for Cancellation Setup</h5>
                               </div>
                               <div class="col-md-4">
                                   <div class="form-group">

@@ -379,7 +379,7 @@
         </div>
         <div class="modal-body" style="min-height: 600px;">
             <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
-              <button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails1" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>
+              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails1" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
             </div>
           <div id="production-search-content"></div>
         </div>
@@ -398,7 +398,7 @@
         </div>
         <div class="modal-body" style="min-height: 600px;">
             <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
-              <button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails2" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>
+              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails2" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
 
             </div>
           <div id="production-search-content-modal2"></div>

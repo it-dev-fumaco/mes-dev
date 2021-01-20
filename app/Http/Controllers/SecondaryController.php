@@ -8137,6 +8137,13 @@ class SecondaryController extends Controller
         $now = Carbon::now();
         $data = $request->all();
         $reason= $data['reasonofcancel'];
+        $duplicate_row=array_unique(array_diff_assoc($reason,array_unique($reason)));
+        if(!empty($duplicate_row)){
+            foreach($duplicate_row as $i => $r){
+                $row= $i +1;
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+            }
+        }else{
             foreach($reason as $i => $row){
                 if (DB::connection('mysql_mes')
                     ->table('reason_for_cancellation_po')
@@ -8154,6 +8161,7 @@ class SecondaryController extends Controller
             }
             DB::connection('mysql_mes')->table('reason_for_cancellation_po')->insert($list);
         return response()->json(['message' => 'New reason for cancellation is successfully inserted.']);
+        }
     }
     public function tbl_reason_for_cancellation_po(Request $request){
         //show late reason of cancellation to table in setting module

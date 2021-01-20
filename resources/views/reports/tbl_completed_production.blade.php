@@ -87,7 +87,7 @@
                 @endif
                 <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}" data-item-code="{{ $r['item_code'] }}" data-qty="{{ number_format($r['qty']) }}" data-uom="{{ $r['stock_uom'] }}">View Materials</a>
                 <a class="dropdown-item feedbacked_log_btn" href="#" data-production-order="{{ $r['production_order'] }}">Feedbacked Log/s</a>
-                <a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>
+                {{--<a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>--}}
 
               </div>
             </div>
