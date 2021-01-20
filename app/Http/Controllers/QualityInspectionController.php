@@ -24,8 +24,22 @@ class QualityInspectionController extends Controller
         if(!$process_details){
             return response()->json(['success' => 0, 'message' => 'Process not found.']);
         }
-
-        $q = DB::connection('mysql_mes')->table('qa_checklist')
+        if($workstation_name == "Painting"){
+            $q = DB::connection('mysql_mes')->table('qa_checklist')
+            ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
+            ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+            ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
+            ->where(function($q) use ($process_id) {
+                $q->where('qa_checklist.process_id', $process_id)
+                    ->orWhere('qa_checklist.process_id', null);
+            })
+            ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
+            // ->orderBy('reject_list.reject_category_id', 'desc')
+            // ->orderBy('reject_category.reject_category_name', 'asc')
+            ->get();
+            
+        }else{
+            $q = DB::connection('mysql_mes')->table('qa_checklist')
             ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
             ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
             ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
@@ -33,6 +47,8 @@ class QualityInspectionController extends Controller
             // ->orderBy('reject_list.reject_category_id', 'desc')
             // ->orderBy('reject_category.reject_category_name', 'asc')
             ->get();
+        }
+        
 
         $checklist = collect($q)->groupBy(['type', 'reject_category_name']);
 
