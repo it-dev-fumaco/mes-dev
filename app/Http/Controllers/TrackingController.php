@@ -41,8 +41,8 @@ class TrackingController extends Controller
                     ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->select('sales_order', 'material_request', 'parent_item_code')
-            ->groupBy('sales_order','material_request', 'parent_item_code')
+            ->select('sales_order', 'material_request')
+            ->groupBy('sales_order','material_request')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -55,7 +55,7 @@ class TrackingController extends Controller
             $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order;
             $so_item_list[] = [
                 'guide_id' => $guide_id,
-                'item' => $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code)
+                'item' => $this->get_so_item_list($row->sales_order,$row->material_request)
             ];
         }
         // // $array = collect($production_order_list)->sortBy('item')->reverse()->toArray();

@@ -503,6 +503,7 @@ class MainController extends Controller
 		];
 		$datas=[];
 		$tab_name=$details->item_classification;
+		$production_order_no=$jtno;
 		$po=DB::connection('mysql_mes')->table('production_order')->where('sales_order',$details->sales_order)->where('material_request',$details->material_request)->where('parent_item_code', $details->parent_item_code)->where('sub_parent_item_code', $details->item_code)->whereNotIn('production_order', [$details->production_order])->get();
 		if(count($po) > 0){
 			foreach($po as $rowss){
@@ -549,7 +550,7 @@ class MainController extends Controller
                 }
 			}
 		$success=1;
-		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications'));
+		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
