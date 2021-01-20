@@ -88,7 +88,7 @@
               @endif
               <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['name'] }}">Update Process</a>
               <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}">View Materials</a>
-              <a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>
+              {{--<a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>--}}
 
             </div>
           </div>
