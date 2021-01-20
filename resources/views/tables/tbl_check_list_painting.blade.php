@@ -9,7 +9,7 @@
                                   <col style="width: 15%;">
                                 <thead class="text-primary" style="font-size: 9px;font-weight: bold;">
                                   <th class="text-center"><b>No.</b></th>
-                                  <th class="text-left"><b>Workstation</b></th>
+                                  <th class="text-left"><b>Process</b></th>
                                   <th class="text-left"><b>Category</b></th>
                                   <th class="text-left"><b>Checklist</b></th>
                                   <th class="text-left"><b>Reason</b></th>
@@ -20,7 +20,7 @@
                                   @forelse($check_list as $index => $row)
                                     <tr>
                                     <td>{{ $row->qa_checklist_id }}</td>
-                                    <td class="text-left">{{ $row->workstation_name }}</td>
+                                    <td class="text-left">{{ $row->process_name }}</td>
                                     <td class="text-left"> {{ $row->reject_category_name }}</td>
                                     <td class="text-left"> {{ $row->reject_checklist }}</td>
                                     <td class="text-left"> {{ $row->reject_reason }}</td>
