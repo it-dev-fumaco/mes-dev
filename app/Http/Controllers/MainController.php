@@ -485,24 +485,15 @@ class MainController extends Controller
 		}
 		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $details->production_order)
 			->distinct()->pluck('job_ticket_id');
-		$process_list = [];
-		foreach ($processes as $row) {
-			$query = DB::connection('mysql_mes')->table('time_logs')
-				->where('job_ticket_id', $row)->where('status', 'Completed')->get();
-			$process_list[] = [
-				'process_id' => $row,
-				'total_good' => collect($query)->sum('good'),
-				'total_reject' => collect($query)->sum('reject'),
-			];
-		}
 		$totals = [
 			'produced_qty' => $details->produced_qty,
-			'total_good' => collect(array_column($process_list, 'total_good'))->min(),
-			'total_reject' => collect(array_column($process_list, 'total_reject'))->max(),
+			'total_good' => collect($process_arr)->min('completed_qty'),
+			'total_reject' => collect($process_arr)->sum('reject'),
 			'balance_qty' => $details->qty_to_manufacture - $details->produced_qty,
 		];
 		$datas=[];
 		$tab_name=$details->item_classification;
+		$production_order_no=$jtno;
 		$po=DB::connection('mysql_mes')->table('production_order')->where('sales_order',$details->sales_order)->where('material_request',$details->material_request)->where('parent_item_code', $details->parent_item_code)->where('sub_parent_item_code', $details->item_code)->whereNotIn('production_order', [$details->production_order])->get();
 		if(count($po) > 0){
 			foreach($po as $rowss){
@@ -549,7 +540,7 @@ class MainController extends Controller
                 }
 			}
 		$success=1;
-		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications'));
+		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
