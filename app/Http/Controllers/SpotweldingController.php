@@ -154,7 +154,8 @@ class SpotweldingController extends Controller
 
 			$this->update_completed_qty_per_workstation($request->job_ticket_id);
 			$this->update_production_actual_start_end($request->production_order);
-			
+			$this->update_jobticket_actual_start_end($request->job_ticket_id);
+
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
     		return response()->json(["success" => 0, "message" => $e->getMessage()]);
@@ -196,9 +197,9 @@ class SpotweldingController extends Controller
 			
 			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
 			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
+			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
 			$this->update_produced_qty($request->production_order);
 			$this->update_production_actual_start_end($request->production_order);
-
 			$ho_bom = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first()->bom_no;
 
 			$parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->get();
@@ -632,7 +633,7 @@ class SpotweldingController extends Controller
 			];
 			// modified end
 		}
-		$total_rejects=$job_ticket_details->reject;
+		$total_rejects = $job_ticket_details->reject;
 
     	return view('tables.tbl_spotwelding_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator', 'helpers', 'count_helpers', 'bom_parts', 'logs', 'total_rejects'));
 	}

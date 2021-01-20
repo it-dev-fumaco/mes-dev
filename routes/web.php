@@ -43,7 +43,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/add_ste_items', 'ManufacturingController@add_ste_items');
 
 	Route::get('/operator/Painting/{process_name}/{machine_code}/{production_order}', 'PaintingOperatorController@operator_task');
-	Route::get('/get_task/{production_order}/{process_id}', 'PaintingOperatorController@get_task');
+	Route::get('/get_task/{production_order}/{process_id}/{operator_id}', 'PaintingOperatorController@get_task');
 	Route::post('/start_painting', 'PaintingOperatorController@start_task');
 	Route::post('/end_painting', 'PaintingOperatorController@end_task');
 	Route::post('/restart_painting', 'PaintingOperatorController@restart_task');
@@ -243,6 +243,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/create_stock_entry', 'ManufacturingController@create_stock_entry');
 
 	Route::post('/cancel_production_order', 'ManufacturingController@cancel_production_order');
+	Route::get('/get_reason_for_cancellation', 'ManufacturingController@get_reason_for_cancellation');
+	
 
 	Route::post('/manual_create_production_order', 'ManufacturingController@manual_create_production_order');
 
@@ -649,7 +651,18 @@ Route::get('/get_material_type', 'SecondaryController@get_material_type');
 Route::post('/edit_material_type', 'SecondaryController@update_material_type');
 Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
 Route::post('/save_material_type', 'SecondaryController@save_material_type');
+
+
+//reason for cancellation(PO)
+Route::post('/save_cancelled_reason', 'SecondaryController@save_reason_for_cancellation');
+Route::get('/tbl_reason_for_cancellation_po', 'SecondaryController@tbl_reason_for_cancellation_po');
+Route::post('/edit_cancelled_reason', 'SecondaryController@update_reason_for_cancellation');
+Route::post('/delete_cancelled_reason', 'SecondaryController@delete_reason_for_cancellation');
+Route::get('/tbl_reset_workstation/{id}', 'SecondaryController@get_tbl_reset_workstation');
+Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done_task');
+
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
+
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
