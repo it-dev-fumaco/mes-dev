@@ -1161,7 +1161,8 @@ class ManufacturingController extends Controller
             ];
 
             $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
-                ->where('erp_reference_id', $request->item_reference_id)->exists();
+                ->where('erp_reference_id', $request->item_reference_id)->where('parent_item_code', $request->parent_code)
+                ->exists();
 
             if(!$existing_del_data){
                 DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
@@ -2603,8 +2604,9 @@ class ManufacturingController extends Controller
                 ];
 
                 $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
-                    ->where('erp_reference_id', $reference_child_details->name)->exists();
-
+                    ->where('erp_reference_id', $reference_child_details->name)->where('parent_item_code', $parent_item_code)
+                    ->exists();
+                
                 if(!$existing_del_data){
                     DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
                 }
