@@ -2698,7 +2698,7 @@ class ManufacturingController extends Controller
                 }
 
                 $pending_ste = DB::connection('mysql')->table('tabStock Entry Detail as sted')
-                    ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')
+                    ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')->where('ste.purpose', 'Material Transfer for Manufacture')
                     ->where('sted.item_code', $row->item_code)->where('ste.production_order', $row->parent)
                     ->where('ste.docstatus', 0)->first();
 
