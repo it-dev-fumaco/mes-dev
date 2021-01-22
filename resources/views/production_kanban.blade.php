@@ -1344,11 +1344,24 @@
     display: none;
   }
   
+  .ui-autocomplete {
+    position: absolute;
+    z-index: 2150000000 !important;
+    cursor: default;
+    border: 2px solid #ccc;
+    padding: 5px 0;
+    border-radius: 2px;
+  }
 </style>
 
 @endsection
 
 @section('script')
+
+<link rel="stylesheet" href="{{ asset('css/jquery-ui-1-12.css') }}">
+<script src="{{ asset('js/jquery-ui-1.12.js') }}"></script>
+
+
 <script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
