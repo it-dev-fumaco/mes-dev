@@ -133,3 +133,12 @@
     </table>
   </div>
 </div>
+<input id="count-batch" value="{{ count($batch_list) }}" style="display: none;">
+<select id="sel-batch" style="display: none;">
+  <option value="">Select Batch Date</option>
+  @foreach ($batch_list as $row)
+      <option value="{{ $row->time_log_id }}" data-good="{{ $row->good }}" data-process="{{ $row->process_name }}">
+        {{ date('M-d-Y h:i A', strtotime($row->from_time)) }} - {{ date('M-d-Y h:i A', strtotime($row->to_time)) }}
+      </option>
+  @endforeach
+</select>

@@ -1161,7 +1161,8 @@ class ManufacturingController extends Controller
             ];
 
             $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
-                ->where('erp_reference_id', $request->item_reference_id)->exists();
+                ->where('erp_reference_id', $request->item_reference_id)->where('parent_item_code', $request->parent_code)
+                ->exists();
 
             if(!$existing_del_data){
                 DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
@@ -1410,12 +1411,12 @@ class ManufacturingController extends Controller
                 }
             }
 
-            DB::table('tabProduction Order')->where('name', $request->production_order)
+            DB::connection('mysql')->table('tabProduction Order')->where('name', $request->production_order)
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)
-                ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'remarks' => $request->reason_for_cancellation]);
 
             DB::connection('mysql')->commit();
 
@@ -2603,8 +2604,9 @@ class ManufacturingController extends Controller
                 ];
 
                 $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
-                    ->where('erp_reference_id', $reference_child_details->name)->exists();
-
+                    ->where('erp_reference_id', $reference_child_details->name)->where('parent_item_code', $parent_item_code)
+                    ->exists();
+                
                 if(!$existing_del_data){
                     DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
                 }
@@ -2751,7 +2753,7 @@ class ManufacturingController extends Controller
                 }
 
                 $pending_ste = DB::connection('mysql')->table('tabStock Entry Detail as sted')
-                    ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')
+                    ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')->where('ste.purpose', 'Material Transfer for Manufacture')
                     ->where('sted.item_code', $row->item_code)->where('ste.production_order', $row->parent)
                     ->where('ste.docstatus', 0)->first();
 
@@ -3906,4 +3908,8 @@ class ManufacturingController extends Controller
 
         return view('tables.tbl_item_inventory', compact('inventory_stock'));
     }
+
+    public function get_reason_for_cancellation(){
+		return DB::connection('mysql_mes')->table('reason_for_cancellation_po')->orderBy('reason_for_cancellation', 'asc')->get();
+	}
 }

@@ -802,6 +802,57 @@
       </div>
   </div>
 </div>
+<div class="modal fade" id="reset-workstation-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width:40%;">
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title" id="modal-title">Reset Workstation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="col-md-12" id="tbl_workstation_reset">
+            
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+<div class="modal fade" id="prod-list-confirm-reset-workstation-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <form action="/reset_workstation_data" method="POST" id="prod-list-reset-works-frm">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title">Confirmation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+              <div class="col-md-12">
+                 <input type="hidden" name="reset_job_ticket_id"  class="reset_job_ticket_id">
+                 <input type="hidden" name="reset_prod"  class="reset_prod">
+                 <input type="hidden" name="reload_tbl"  class="reset_reload_tbl">
+
+                 <div class="row">
+                   <div class="col-sm-12"style="font-size: 12pt;">
+                       <label> Are you sure you want to reset <span class="reset_job_ticket_workstation" style="font-weight: bold;"></span> ?</label>
+                   </div>               
+                 </div>
+              </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 5px 10px;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 
 <style type="text/css">
   .ui-autocomplete {
@@ -1221,37 +1272,6 @@ $(document).ready(function(){
     });
   }
 
-  $('#confirm-feedback-production-modal form').submit(function(e){
-    e.preventDefault();
-    $('#submit-feedback-btn').attr('disabled', true);
-    $('#loader-wrapper').removeAttr('hidden');
-    var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
-    var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
-    var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
-
-    $.ajax({
-      url:"/create_stock_entry/" + production_order,
-      type:"POST",
-      data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-      success:function(response){
-        $('#loader-wrapper').attr('hidden', true);
-        if (response.success == 0) {
-          showNotification("danger", response.message, "now-ui-icons travel_info");
-          $('#submit-feedback-btn').removeAttr('disabled');
-        }else{
-          showNotification("success", response.message, "now-ui-icons travel_info");
-          load_list();
-          $('#confirm-feedback-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
   $('#sel-mreq').autocomplete({
     source:function(request,response){
       $.ajax({
@@ -1491,8 +1511,25 @@ $(document).ready(function(){
       }
     });
   }
-  
 
+  $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            load_list();
+          }
+        }
+      });
+    });
   $(document).on('click', '.spotclass', function(event){
     event.preventDefault();
     var jtid = $(this).attr('data-jobticket');
@@ -1780,41 +1817,6 @@ $(document).ready(function(){
     });
   });
 
-  $(document).on('click', '.cancel-production-btn', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    var production_order = $(this).data('production-order');
-
-    $('#cancel-production-modal input[name="id"]').val(id);
-    $('#cancel-production-modal input[name="production_order"]').val(production_order);
-    $('#cancel-production-modal .modal-title').text('Cancel Production Order');
-    $('#cancel-production-modal span').eq(1).text(production_order);
-    $('#cancel-production-modal').modal('show');
-  });
-
-  $('#cancel-production-modal form').submit(function(e){
-    e.preventDefault();
-    $.ajax({
-      url: '/cancel_production_order',
-      type:"POST",
-      data: $(this).serialize(),
-      success:function(data){
-        if (!data.success) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          location.reload();
-          $('#cancel-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
   $('.modal').on('hidden.bs.modal', function(){
     var frm = $(this).find('form')[0];
     if (frm) frm.reset();
@@ -1920,6 +1922,35 @@ $(document).on('click', '.feedbacked_log_btn', function(){
        },
     });
 });
+$(document).on('click', '.prod-reset-btn', function(){
+  var prod = $(this).data('production-order');
+    $.ajax({
+       url: "/tbl_reset_workstation/" + prod,
+       type:"GET",
+       success:function(data){
+          $('#tbl_workstation_reset').html(data);
+          $('#reset-workstation-modal').modal('show');
+       },
+       error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+       },
+    });
+});
+$(document).on('click', '.btn_reset_workstation', function(){
+  var jt_id = $(this).data('id');
+  var prod = $(this).data('prod');
+  var work = $(this).data('workstation');
+  var process = $(this).data('process');
+  $('#prod-list-confirm-reset-workstation-modal .reset_job_ticket_workstation').text(work+"-"+ process);
+  $('#prod-list-confirm-reset-workstation-modal .reset_job_ticket_id').val(jt_id);
+  $('#prod-list-confirm-reset-workstation-modal .reset_prod').val(prod);
+  $('#prod-list-confirm-reset-workstation-modal').modal('show');
+  $('#prod-list-confirm-reset-workstation-modal .reset_reload_tbl').val("prod_list");
+});
+
+
 
 </script>
 @endsection

@@ -1,18 +1,20 @@
 <div class="table-responsive" style="font-size:12px;">
 
-<table class="table table-striped">
-        <col style="width: 5%;">
-        <col style="width: 23.75%;">
-        <col style="width: 23.75%;">
-        <col style="width: 27.5%;">
-        <col style="width: 20%;">
+  <table class="table table-striped">
+      <col style="width: 5%;">
+      <col style="width: 17.5%;">
+      <col style="width: 22.5%;">
+      <col style="width: 22.5%;">
+      <col style="width: 23.5%;">
+      <col style="width: 10%;">
         <thead class="text-primary" style="font-size: 9px;font-weight: bold;">
-          <th class="text-center"><b>No.</b></th>
-          <th class="text-left"><b>Workstation</b></th>
-          <th class="text-left"><b>Category</b></th>
-          <th class="text-left"><b>Reason</b></th>
-          
-          <th class="text-center"><b>Action(s)</b></th>
+            <th class="text-center"><b>No.</b></th>
+            <th class="text-left"><b>Workstation</b></th>
+            <th class="text-left"><b>Category</b></th>
+            <th class="text-left"><b>Process</b></th>
+            <th class="text-left"><b>Reason</b></th>
+            
+            <th class="text-center"><b>Action(s)</b></th>
         </thead>
         <tbody>
           @forelse($check_list as $index => $row)
@@ -20,6 +22,7 @@
             <td>{{ $row->operator_reject_list_setup_id }}</td>
             <td class="text-left">{{ $row->workstation_name }}</td>
             <td class="text-left"> {{ $row->reject_category_name }}</td>
+            <td class="text-left"> {{ $row->process_name }}</td>
             <td class="text-left"> {{ $row->reject_reason }}</td>
             
             <td>

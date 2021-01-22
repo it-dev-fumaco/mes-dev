@@ -43,7 +43,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/add_ste_items', 'ManufacturingController@add_ste_items');
 
 	Route::get('/operator/Painting/{process_name}/{machine_code}/{production_order}', 'PaintingOperatorController@operator_task');
-	Route::get('/get_task/{production_order}/{process_id}', 'PaintingOperatorController@get_task');
+	Route::get('/get_task/{production_order}/{process_id}/{operator_id}', 'PaintingOperatorController@get_task');
 	Route::post('/start_painting', 'PaintingOperatorController@start_task');
 	Route::post('/end_painting', 'PaintingOperatorController@end_task');
 	Route::post('/restart_painting', 'PaintingOperatorController@restart_task');
@@ -60,7 +60,7 @@ Route::group(['middleware' => 'auth'], function(){
 	
 	Route::get('/get_quick_view_data', 'QualityInspectionController@get_quick_view_data');
 	Route::get('/get_top_defect_count', 'QualityInspectionController@get_top_defect_count');
-	Route::get('/get_reject_types/{workstation}', 'QualityInspectionController@get_reject_types');
+	Route::get('/get_reject_types/{workstation}/{process_id}', 'QualityInspectionController@get_reject_types');
 
 	Route::post('/submit_stock_entry/{id}', 'ManufacturingController@submit_stock_entry');
 });
@@ -83,6 +83,8 @@ Route::get('/login', 'MainController@loginUserFrm')->name('login');
 Route::get('/logout_user', 'MainController@logoutUser');
 // PPC STAFF
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/production_fabrication_machine_board/{workstation_id}/{scheduled_date}', 'MainController@production_fabrication_machine_board');
+	Route::get('/get_qa_details/{timelog}', 'SecondaryController@qa_details');
 	// PAGE
 	Route::get('/workstation_overview', 'MainController@workstationOverview');
 	Route::get('/item_feedback', 'MainController@itemFeedback');
@@ -105,7 +107,7 @@ Route::group(['middleware' => 'auth'], function(){
 
 	// FOR UPDATE PROCESS
 	Route::get('/get_process_list/{workstation}', 'SecondaryController@get_process_list');
-	Route::post('/update_process', 'SecondaryController@update_process');
+	Route::post('/update_process', 'MainController@update_process');
 	Route::post('/mark_as_done_task', 'SecondaryController@mark_as_done_task');
 	Route::post('/reset_task', 'SecondaryController@reset_task');
 	
@@ -241,6 +243,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/create_stock_entry', 'ManufacturingController@create_stock_entry');
 
 	Route::post('/cancel_production_order', 'ManufacturingController@cancel_production_order');
+	Route::get('/get_reason_for_cancellation', 'ManufacturingController@get_reason_for_cancellation');
+	
 
 	Route::post('/manual_create_production_order', 'ManufacturingController@manual_create_production_order');
 
@@ -350,6 +354,8 @@ Route::get('/production_scheduling_tbl', 'SecondaryController@tbl_production_sch
 
 //fabrication_calendar
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
+	
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
     Route::post('/calendar/update_planned_start_date_by_click', 
         ['uses' => 'SecondaryController@update_planned_start_date_by_click', 'as' => 'fabrication.ajax_update']);
@@ -379,6 +385,7 @@ Route::get('/get_search_information_details', 'TrackingController@get_search_inf
 Route::get('/get_bom_tracking', 'TrackingController@get_bom_tracking');
 Route::get('/production_schedule_calendar/{id}', 'SecondaryController@production_schedule_calendar');
 Route::get('/get_production_schedule_calendar/{id}', 'SecondaryController@get_production_schedule_calendar');
+Route::get('/get_production_details_for_edit/{prod}', 'SecondaryController@get_production_details_for_edit');
 
 //Reject Checklist
 Route::get('/get_operation_checklist_jquery', 'SecondaryController@get_operation_checklist_jquery');
@@ -396,10 +403,11 @@ Route::get('/get_reject_assembly_production_order/{schedule_date}', 'AssemblyCon
 Route::get('/count_current_assembly_production_schedule_monitoring/{date}', 'AssemblyController@count_current_assembly_production_schedule_monitoring');
 Route::post('/move_today_task_assembly', 'AssemblyController@move_today_task');
 Route::post('/mark_as_done_task_assembly', 'AssemblyController@mark_as_done_task_assembly');
-Route::get('/print_production_sched_assembly/{date}', 'AssemblyController@get_scheduled_for_assembly');
+Route::get('/get_scheduled_production_order/{operation_id}/{scheduled_date}', 'AssemblyController@get_scheduled_production_order');
 Route::get('/get_production_sched_assembly/{date}', 'AssemblyController@get_production_schedule_monitoring_list_assembly');
 Route::get('/get_production_sched_assembly_backlog/{date}', 'AssemblyController@get_production_schedule_monitoring_list_backlogs');
 Route::get('/get_production_sched_assembly_view_process/{id}', 'AssemblyController@get_production_sched_assembly_view_process');
+Route::post('/edit_cpt_status_qty', 'SecondaryController@edit_cpt_status_qty');
 
 //painting_material_request
 Route::get('/tbl_painting_material_request_list/{id}', 'InventoryController@tbl_material_request_list');
@@ -643,6 +651,17 @@ Route::get('/get_material_type', 'SecondaryController@get_material_type');
 Route::post('/edit_material_type', 'SecondaryController@update_material_type');
 Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
 Route::post('/save_material_type', 'SecondaryController@save_material_type');
+
+
+//reason for cancellation(PO)
+Route::post('/save_cancelled_reason', 'SecondaryController@save_reason_for_cancellation');
+Route::get('/tbl_reason_for_cancellation_po', 'SecondaryController@tbl_reason_for_cancellation_po');
+Route::post('/edit_cancelled_reason', 'SecondaryController@update_reason_for_cancellation');
+Route::post('/delete_cancelled_reason', 'SecondaryController@delete_reason_for_cancellation');
+Route::get('/tbl_reset_workstation/{id}', 'SecondaryController@get_tbl_reset_workstation');
+Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done_task');
+
+Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
 
 Route::group(['middleware' => 'auth'], function(){

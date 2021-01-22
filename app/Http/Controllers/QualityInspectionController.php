@@ -24,8 +24,22 @@ class QualityInspectionController extends Controller
         if(!$process_details){
             return response()->json(['success' => 0, 'message' => 'Process not found.']);
         }
-
-        $q = DB::connection('mysql_mes')->table('qa_checklist')
+        if($workstation_name == "Painting"){
+            $q = DB::connection('mysql_mes')->table('qa_checklist')
+            ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
+            ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+            ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
+            ->where(function($q) use ($process_id) {
+                $q->where('qa_checklist.process_id', $process_id)
+                    ->orWhere('qa_checklist.process_id', null);
+            })
+            ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
+            // ->orderBy('reject_list.reject_category_id', 'desc')
+            // ->orderBy('reject_category.reject_category_name', 'asc')
+            ->get();
+            
+        }else{
+            $q = DB::connection('mysql_mes')->table('qa_checklist')
             ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
             ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
             ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
@@ -33,6 +47,8 @@ class QualityInspectionController extends Controller
             // ->orderBy('reject_list.reject_category_id', 'desc')
             // ->orderBy('reject_category.reject_category_name', 'asc')
             ->get();
+        }
+        
 
         $checklist = collect($q)->groupBy(['type', 'reject_category_name']);
 
@@ -735,40 +751,44 @@ class QualityInspectionController extends Controller
         return view($view, compact('production_order_details', 'workstation_details', 'process_details', 'checklist', 'qa_details', 'reject_details'));
     }
 
-    public function get_reject_types($workstation){
+    public function get_reject_types($workstation, $process_id){
         $workstation_id = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation)->first();
-        if($workstation_id->operation_id == 1){
-            // $tab=[];
+        if(empty($workstation_id)){
             $tab= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
             ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
             ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            ->where('opset.workstation_id', $workstation_id->workstation_id)
+            ->where('opset.process_id', $workstation_id)
             ->get();
-            // dd($tab);
-            
             $validation_tab="no_tab";
         }else{
-            $data= DB::connection('mysql_mes')->table('reject_list')
-            ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
-            ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
-            ->where('operation.operation_name', 'like', '%Assembly%') 
-            ->where('owner', 'Operator')
-            ->get();
-
-            // $data= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
-            // ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
-            // ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            // ->where('opset.workstation_id', $workstation_id->workstation_id)
-            // ->get();
-
-            $tab = $data->groupBy('material_type');
-
-            $tab->all();
-            $validation_tab="with_tab";
-
+            if($workstation_id->operation_id < 3){
+                // $tab=[];
+                $tab= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
+                ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
+                ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+                ->where('opset.workstation_id', $workstation_id->workstation_id)
+                ->where(function($q) use ($process_id) {
+					$q->where('opset.process_id', $process_id)
+						->orWhere('opset.process_id', null);
+				})
+                ->get();
+                
+                $validation_tab="no_tab";
+            }else{
+                $data= DB::connection('mysql_mes')->table('reject_list')
+                ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
+                ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
+                ->where('operation.operation_name', 'like', '%Assembly%') 
+                ->where('owner', 'Operator')
+                ->get();
+                $tab = $data->groupBy('material_type');
+                $tab->all();
+                $validation_tab="with_tab";
+            }
         }
         // dd($tab);
-            return view('tables.tbl_reject_reason', compact('tab', 'validation_tab'));
+            
+        return view('tables.tbl_reject_reason', compact('tab', 'validation_tab'));
     }
 
     // public function submit_reject_confirmation(Request $request){
