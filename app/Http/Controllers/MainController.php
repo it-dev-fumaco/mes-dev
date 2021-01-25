@@ -387,7 +387,7 @@ class MainController extends Controller
 		$owner = ucwords(str_replace('.', ' ', $owner[0]));
 
 		$item_details = [
-			'planned_start_date' => Carbon::parse($details->planned_start_date)->format('M-d-Y'),
+			'planned_start_date' => ($details->planned_start_date == null)? NULL : Carbon::parse($details->planned_start_date)->format('M-d-Y'),
 			'sales_order' => $details->sales_order,
 			'material_request' => $details->material_request,
 			'production_order' => $details->production_order,
@@ -402,7 +402,6 @@ class MainController extends Controller
 			'production_order_status' => $this->production_status_with_stockentry($details->production_order, $details->status, $details->qty_to_manufacture,$details->feedback_qty, $details->produced_qty),
 			'created_at' =>  Carbon::parse($details->created_at)->format('m-d-Y h:i A')
 		];
-
 		$process_arr = DB::connection('mysql_mes')->table('job_ticket')
 			->where('production_order', $details->production_order)
 			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
