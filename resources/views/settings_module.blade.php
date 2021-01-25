@@ -1448,6 +1448,7 @@
                               <option value="Operator">Operator</option>
                               <option value="Assembler">Assembler</option>
                               <option value="Supplier">Supplier</option>
+                              <option value="Machine/Equipment">Machine/Equipment</option>
                               <option value="Others">Others</option>
                           </select>
                           <input type="hidden" class="form-control" name="orig_reject_responsible"  id="orig_reject_responsible">
@@ -4608,9 +4609,10 @@ function check_list_assembly(page, query){
            var owner = $('#owner_checklist').val();
            var first_selection_data = $(this).val();
            var id_for_second_selection = $(this).attr('data-idcolumn');
+           var operation = $('#add-checklist-modal .modal-title').text();
            var format_id_for_second_selection = "#"+id_for_second_selection;
             $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner,
+            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
             type:"GET",
             success:function(data){
               $(format_id_for_second_selection).html(data);
@@ -5528,7 +5530,8 @@ function get_user_group(page, query){
           "Engineering": "Engineering",
           "Operator": "Operator",
           'Assembler': "Assembler",
-          'Supplier': "Supplier",
+          'Supplier': "Supplier",                             
+          'Machine/Equipment': "Machine/Equipment", 
           "Others" : 'Others'
         };
         
@@ -6311,8 +6314,9 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
            var first_selection_data = $(this).val();
            var id_for_second_selection = $(this).attr('data-idcolumn');
            var format_id_for_second_selection = "#"+id_for_second_selection;
+           var operation = $('#add-operator-checklist-modal .modal-title').text();
             $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner,
+            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
             type:"GET",
             success:function(data){
               $(format_id_for_second_selection).html(data);
