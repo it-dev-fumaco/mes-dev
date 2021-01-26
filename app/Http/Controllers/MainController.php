@@ -5822,6 +5822,8 @@ class MainController extends Controller
 	}
 
 	public function production_schedule_monitoring($operation, $schedule_date, Request $request){
+		$permissions = $this->get_user_permitted_operation();
+
 		$operation_details = DB::connection('mysql_mes')->table('operation')
 			->where('operation_id', $operation)->first();
 
@@ -5896,7 +5898,7 @@ class MainController extends Controller
 
 		$production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);
 
-        return view('production_schedule_monitoring', compact('schedule_date', 'production_machine_board', 'workstation_list', 'operation_details'));
+        return view('production_schedule_monitoring', compact('schedule_date', 'production_machine_board', 'workstation_list', 'operation_details', 'permissions'));
 	}
 
 	public function production_assembly_machine_board($operation_id, $scheduled_date){

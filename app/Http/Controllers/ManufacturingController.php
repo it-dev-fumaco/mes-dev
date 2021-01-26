@@ -1105,6 +1105,7 @@ class ManufacturingController extends Controller
                 'item_name' => $item_name,
                 'customer' => $customer,
                 'sales_order_no' => $sales_order,
+                'sales_order' => $sales_order,
                 'material_request' => $material_request,
                 'scheduled' => ($request->planned_date) ? 1 : 0,
                 'order_no' => 0,
