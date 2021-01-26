@@ -5842,35 +5842,48 @@ class MainController extends Controller
 			// get schedule production order against $schedule_date
 			$scheduled_production = DB::connection('mysql_mes')->table('production_order')
 				->whereNotIn('status', ['Cancelled'])->whereDate('planned_start_date', $schedule_date)
-				->where('operation_id', $operation);
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
 			// get pending backlogs before $schedule_date
 			$pending_backlogs = DB::connection('mysql_mes')->table('production_order')
 				->whereIn('status', ['In Progress', 'Not Started'])
 				->whereDate('planned_start_date', '<', $schedule_date)
-				->where('operation_id', $operation);
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
 			// get completed backlogs before $schedule_date based on production order actual_end_date
 			$completed_production_orders = DB::connection('mysql_mes')->table('production_order')
 				->whereIn('status', ['Completed'])->whereBetween('actual_end_date', [$start, $end])
 				->whereDate('planned_start_date', '<', $schedule_date)
-				->where('operation_id', $operation)
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
 				->union($pending_backlogs)->union($scheduled_production)->get();
 
 			$production_orders = [];
 			foreach ($completed_production_orders as $row) {
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				// get total rejects from all workstations
 				$rejects = DB::connection('mysql_mes')->table('job_ticket as jt')
 					->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
 					->where('jt.production_order', $row->production_order)->sum('jt.reject');
+
+				$delivery_details = DB::connection('mysql_mes')->table('delivery_date')
+					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
+					->first();
+
+				if ($delivery_details) {
+					$delivery_date = ($delivery_details->rescheduled_delivery_date) ? $delivery_details->rescheduled_delivery_date : $delivery_details->delivery_date;
+				}else{
+					$delivery_date = $row->delivery_date;
+				}
 
 				$is_backlog = (Carbon::parse($row->planned_start_date)->format('Y-m-d') < Carbon::now()->format('Y-m-d')) ? 1 : 0;
 
 				$production_orders[] = [
 					'production_order' => $row->production_order,
 					'planned_start_date' => $row->planned_start_date,
+					'actual_start_date' => (!in_array($row->status, ['Not Started', 'Pending'])) ? Carbon::parse($row->actual_start_date)->format('Y-m-d h:i:A') : null,
+					'delivery_date' => $delivery_date,
 					'parent_item_code' => $row->parent_item_code,
-					'reference_no' => ($row->sales_order) ? $row->sales_order : $row->material_request,
+					'reference_no' => $reference_no,
 					'customer' => $row->customer,
 					'item_code' => $row->item_code,
 					'description' => $row->description,
