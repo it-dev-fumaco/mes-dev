@@ -1311,6 +1311,28 @@
         }
       });
     }
+
+    $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr("action"),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            if(operation_name == 'Painting'){
+              load_scheduled_painting();
+            }else{
+              load_scheduled_production_order();
+            }
+          }
+        }
+      });
+    });
   });
 </script>
 @endsection

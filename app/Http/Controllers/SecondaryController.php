@@ -5514,10 +5514,23 @@ class SecondaryController extends Controller
         
         $data = [];
         foreach($orders as $row){
+            $reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+            
+            $delivery_details = DB::connection('mysql_mes')->table('delivery_date')
+                ->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
+                ->first();
+
+            if ($delivery_details) {
+                $delivery_date = ($delivery_details->rescheduled_delivery_date) ? $delivery_details->rescheduled_delivery_date : $delivery_details->delivery_date;
+            }else{
+                $delivery_date = $row->delivery_date;
+            }
 
             $is_backlog = (Carbon::parse($row->planned_start)->format('Y-m-d') < Carbon::now()->format('Y-m-d')) ? 1 : 0;
 
             $data[]=[
+                'delivery_date' => $delivery_date,
+                'actual_start_date' => (!in_array($row->status, ['Not Started', 'Pending'])) ? Carbon::parse($row->actual_start_date)->format('Y-m-d h:i:A') : null,
                 'customer' => $row->customer,
                 'reference_no' => ($row->sales_order) ? $row->sales_order : $row->material_request,
                 'item_code' => $row->item_code,
