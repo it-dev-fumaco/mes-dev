@@ -2211,18 +2211,12 @@ class MainController extends Controller
 							->where('jt.production_order', $name)
 							->where('spotpart.status', "In Progress")
 							->exists()){
-								
-								return response()->json(['success' => 0, 'message' => 'error.']);
-
-
 						}else{
 							if(DB::connection('mysql_mes')->table('job_ticket as jt')
 							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
 							->where('jt.production_order', $name)
 							->where('tl.status', "In Progress")
 							->exists()){
-								return response()->json(['success' => 0, 'message' => 'error.']);
-
 							}else{
 								DB::table('tabProduction Order')->where('name', $prod)->update($val_erp);
 								DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_mes);
@@ -5669,7 +5663,7 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date', 'reload_tbl' => $request->reload_tbl]);
 		}
 		if(!$production_order_details->planned_start_date){
-			if($reschedule_date->toDateTimeString() <= $planned_start_date->toDateTimeString()){
+			if($reschedule_date->toDateTimeString() < $planned_start_date->toDateTimeString()){
 				return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current production schedule date', 'reload_tbl' => $request->reload_tbl]);
 			}
 		}
