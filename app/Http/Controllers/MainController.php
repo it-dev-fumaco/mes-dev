@@ -387,7 +387,7 @@ class MainController extends Controller
 		$owner = ucwords(str_replace('.', ' ', $owner[0]));
 
 		$item_details = [
-			'planned_start_date' => Carbon::parse($details->planned_start_date)->format('M-d-Y'),
+			'planned_start_date' => ($details->planned_start_date == null)? NULL : Carbon::parse($details->planned_start_date)->format('M-d-Y'),
 			'sales_order' => $details->sales_order,
 			'material_request' => $details->material_request,
 			'production_order' => $details->production_order,
@@ -402,7 +402,6 @@ class MainController extends Controller
 			'production_order_status' => $this->production_status_with_stockentry($details->production_order, $details->status, $details->qty_to_manufacture,$details->feedback_qty, $details->produced_qty),
 			'created_at' =>  Carbon::parse($details->created_at)->format('m-d-Y h:i A')
 		];
-
 		$process_arr = DB::connection('mysql_mes')->table('job_ticket')
 			->where('production_order', $details->production_order)
 			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
@@ -2212,18 +2211,12 @@ class MainController extends Controller
 							->where('jt.production_order', $name)
 							->where('spotpart.status', "In Progress")
 							->exists()){
-								
-								return response()->json(['success' => 0, 'message' => 'error.']);
-
-
 						}else{
 							if(DB::connection('mysql_mes')->table('job_ticket as jt')
 							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
 							->where('jt.production_order', $name)
 							->where('tl.status', "In Progress")
 							->exists()){
-								return response()->json(['success' => 0, 'message' => 'error.']);
-
 							}else{
 								DB::table('tabProduction Order')->where('name', $prod)->update($val_erp);
 								DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_mes);
@@ -5670,7 +5663,7 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date', 'reload_tbl' => $request->reload_tbl]);
 		}
 		if(!$production_order_details->planned_start_date){
-			if($reschedule_date->toDateTimeString() <= $planned_start_date->toDateTimeString()){
+			if($reschedule_date->toDateTimeString() < $planned_start_date->toDateTimeString()){
 				return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current production schedule date', 'reload_tbl' => $request->reload_tbl]);
 			}
 		}
@@ -5849,35 +5842,48 @@ class MainController extends Controller
 			// get schedule production order against $schedule_date
 			$scheduled_production = DB::connection('mysql_mes')->table('production_order')
 				->whereNotIn('status', ['Cancelled'])->whereDate('planned_start_date', $schedule_date)
-				->where('operation_id', $operation);
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
 			// get pending backlogs before $schedule_date
 			$pending_backlogs = DB::connection('mysql_mes')->table('production_order')
 				->whereIn('status', ['In Progress', 'Not Started'])
 				->whereDate('planned_start_date', '<', $schedule_date)
-				->where('operation_id', $operation);
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
 			// get completed backlogs before $schedule_date based on production order actual_end_date
 			$completed_production_orders = DB::connection('mysql_mes')->table('production_order')
 				->whereIn('status', ['Completed'])->whereBetween('actual_end_date', [$start, $end])
 				->whereDate('planned_start_date', '<', $schedule_date)
-				->where('operation_id', $operation)
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
 				->union($pending_backlogs)->union($scheduled_production)->get();
 
 			$production_orders = [];
 			foreach ($completed_production_orders as $row) {
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				// get total rejects from all workstations
 				$rejects = DB::connection('mysql_mes')->table('job_ticket as jt')
 					->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
 					->where('jt.production_order', $row->production_order)->sum('jt.reject');
+
+				$delivery_details = DB::connection('mysql_mes')->table('delivery_date')
+					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
+					->first();
+
+				if ($delivery_details) {
+					$delivery_date = ($delivery_details->rescheduled_delivery_date) ? $delivery_details->rescheduled_delivery_date : $delivery_details->delivery_date;
+				}else{
+					$delivery_date = $row->delivery_date;
+				}
 
 				$is_backlog = (Carbon::parse($row->planned_start_date)->format('Y-m-d') < Carbon::now()->format('Y-m-d')) ? 1 : 0;
 
 				$production_orders[] = [
 					'production_order' => $row->production_order,
 					'planned_start_date' => $row->planned_start_date,
+					'actual_start_date' => (!in_array($row->status, ['Not Started', 'Pending'])) ? Carbon::parse($row->actual_start_date)->format('Y-m-d h:i:A') : null,
+					'delivery_date' => $delivery_date,
 					'parent_item_code' => $row->parent_item_code,
-					'reference_no' => ($row->sales_order) ? $row->sales_order : $row->material_request,
+					'reference_no' => $reference_no,
 					'customer' => $row->customer,
 					'item_code' => $row->item_code,
 					'description' => $row->description,

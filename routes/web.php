@@ -452,7 +452,7 @@ Route::post('/submit_painting_chemical_records', 'SecondaryController@submit_pai
 
 // qa_checklist
 Route::get('/get_reject_type_desc', 'SecondaryController@get_reject_type_desc');
-Route::get('/get_reject_desc/{reject_type}/{id}', 'SecondaryController@get_reject_desc');
+Route::get('/get_reject_desc/{reject_type}/{id}/{operation}', 'SecondaryController@get_reject_desc');
 Route::post('/save_checklist', 'SecondaryController@save_checklist');
 Route::get('/get_tbl_checklist_list_fabrication', 'SecondaryController@get_tbl_checklist_list_fabrication');
 Route::get('/get_tbl_checklist_list_painting', 'SecondaryController@get_tbl_checklist_list_painting');
