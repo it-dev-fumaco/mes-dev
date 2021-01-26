@@ -1340,6 +1340,24 @@ class ManufacturingController extends Controller
         DB::connection('mysql')->beginTransaction();
         try {
             $now = Carbon::now();
+
+            // get returned items reference stock entry
+            $returned_stes = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
+                ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
+                ->distinct()->pluck('return_reference');
+
+            // get submitted stock entries
+            $submitted_ste = DB::connection('mysql')->table('tabStock Entry')
+                ->where('production_order', $request->production_order)
+                ->where('purpose', 'Material Transfer for Manufacture')
+                ->whereNotIn('name', $returned_stes)
+                ->where('docstatus', 1)->count();
+
+            if($submitted_ste > 0){
+                return response()->json(['success' => 0, 'message' => 'Please return issued items before cancelling production order.']);
+            }
             // check for task in progress
             $task_in_progress = DB::connection('mysql_mes')->table('job_ticket')
                 ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
@@ -1349,13 +1367,11 @@ class ManufacturingController extends Controller
             if ($task_in_progress > 0) {
                 return response()->json(['success' => 0, 'message' => 'Cannot cancel production order with on-going task by operator.' . $request->production_order]);
             }
-
             // get sum total of feedback qty in production order
             $feedbacked_qty = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('feedback_qty');
             if($feedbacked_qty > 0){
                 return response()->json(['success' => 0, 'message' => 'Cannot cancel' . $request->production_order . '. Production Order has been partially feedbacked.']);
             }
-
             // get pending material transfer for manufacture stock entries of production order
             $pending_withdrawal_slips = DB::connection('mysql')->table('tabStock Entry')
                 ->where('production_order', $request->production_order)
@@ -1596,8 +1612,9 @@ class ManufacturingController extends Controller
             $stock_entry_details = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 				->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
-				->where('sted.item_code', $request->item_code)
-				->where('ste.purpose', 'Material Transfer for Manufacture')->first();
+                ->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->where('sted.item_code', $request->item_code)
+                ->select('ste.*', 'sted.*', 'ste.name as ste_name')->first();
             
             if (!$stock_entry_details) {
                 return response()->json(['status' => 0, 'message' => 'Stock entry item ' . $request->item_code . ' not found.']);
@@ -1678,6 +1695,7 @@ class ManufacturingController extends Controller
                 'date_modified' => ($item_status == 'Issued') ? $now->toDateTimeString() : null,
                 'session_user' => ($item_status == 'Issued') ? Auth::user()->employee_name : null,
                 'remarks' => ($item_status == 'Issued') ? 'MES' : null,
+                'return_reference' => $stock_entry_details->ste_name
             ];
 
             $stock_entry_data = [
