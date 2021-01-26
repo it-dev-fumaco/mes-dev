@@ -6470,13 +6470,14 @@ class SecondaryController extends Controller
     public function get_reject_type_desc(Request $request){
         return  DB::connection('mysql_mes')->table('reject_category')->get();
     }
-    public function get_reject_desc($reject_type, $id){
+    public function get_reject_desc($reject_type, $id, $operation){
         $output="";
+        $operation_id= ($operation == "Painting")? '2':'1';
         if($id == "Operator"){
             $reject_desc =DB::connection('mysql_mes')->table('reject_list')
             ->where('reject_category_id', $reject_type)
             ->where('owner', $id)
-            ->where('operation_id', 1)
+            ->where('operation_id', $operation_id)
             ->get();
             
             foreach($reject_desc as $row){
