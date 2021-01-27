@@ -294,14 +294,14 @@
                                               <span style="display: block; font-size: 9pt; margin-top: -8px;"></span>
                                                 <div class="form-group">
                                                   <label style="color: black;">Date Range:</label>
-                                                  <input type="text" class="date form-control" name="daterange" autocomplete="off" placeholder="Select Date From" id="daterange" value="" style="text-align:center;display:inline-block;width:100%;height:30px;" onchange="tbl_log_fabrication()">
+                                                  <input type="text" class="date form-control" name="daterange" autocomplete="off" placeholder="Select Date From" id="daterange_fabrication" value="" style="text-align:center;display:inline-block;width:100%;height:30px;" >
                                                 </div>
                                                 <div class="form-group">
                                                       <label style="color: black;">Workstation</label>
-                                                      <select class="form-control text-center sel6" name="workstation" id="workstation" onchange="tbl_log_fabrication()">
-                                                          <option value="none"> Select Workstation</option>
-                                                          @foreach($workstation as $row)
-                                                          <option value="{{$row->workstation_id}}">{{$row->workstation_name}}</option>
+                                                      <select class="form-control text-center sel6" name="workstation" id="workstation">
+                                                          <option value=""> Select Workstation</option>
+                                                          @foreach($fab_workstation as $row)
+                                                          <option value="{{$row->workstation_name}}">{{$row->workstation_name}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -338,7 +338,7 @@
                                                       <label style="color: black;">Process</label>
                                                       <select class="form-control text-center sel6 " name="process" id="process">
                                                         <option value=""> Select Process</option>
-                                                         @foreach($process as $row)
+                                                         @foreach($fab_process as $row)
                                                           <option value="{{$row->process_name}}">{{$row->process_name}}</option>
                                                           @endforeach
                                                         </select>
@@ -376,26 +376,14 @@
                                       </div>
                                     </div>
                                     <div class="col-md-10">
-                                      <div class="card" style="background-color: #0277BD;" >
+                                      <div class="card" style="">
                                         <div class="card-body" style="padding-bottom: 0;">
-                                          <div class="row">
-                                            <div class="col-md-8">
-                                              
-                                              <h5 class="text-white font-weight-bold align-middle">Fabrication Random Inspection Logsheet</h5>
-                                            </div>
-                                            <div class="col-md-4">
+                                            {{--<div class="col-md-4">
                                               <img style="float:right;" src="{{ asset('img/export.png') }}" id="fabrication-btn-export" width="40" height="40" class="btn-export">
 
-                                            </div>
-                                          </div>
-                                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                            <div class="card card-nav-tabs card-plain">
-                                              <div class="card-body">
-                                                <div class="col-md-12">
-                                                  <div id="tbl_log_fabrication" style="width: 100%;overflow: auto;min-height: 750px;"></div>
-                                                </div>
-                                              </div>
-                                            </div>
+                                            </div>--}}
+                                          <div class="col-md-12" style="margin:0px; padding:0px;">
+                                            <div id="tbl_log_fabrication" style="width: 100%;overflow: auto;min-height: 750px;"></div>
                                           </div>
                                         </div>
                                       </div>
@@ -425,8 +413,8 @@
                                                 <div class="form-group">
                                                       <label style="color: black;">Workstation</label>
                                                       <select class="form-control text-center sel3" name="workstation_painting" id="workstation_painting" onchange="tbl_log_fabrication()">
-                                                          <option value="none"> Select Workstation</option>
-                                                          @foreach($workstation_painting as $row)
+                                                          <option value=""> Select Workstation</option>
+                                                          @foreach($pain_workstation as $row)
                                                           <option value="{{$row->workstation_id}}">{{$row->workstation_name}}</option>
                                                           @endforeach
                                                         </select>
@@ -502,25 +490,14 @@
                                       </div>
                                     </div>
                                     <div class="col-md-10">
-                                      <div class="card" style="background-color: #0277BD;" >
+                                      <div class="card" >
                                         <div class="card-body" style="padding-bottom: 0;">
-                                          <div class="row">
-                                            <div class="col-md-8">
-                                              <h5 class="text-white font-weight-bold align-middle">Painting Random Inspection Logsheet</h5>
-                                            </div>
-                                            <div class="col-md-4">
-                                              <img style="float:right;" src="{{ asset('img/export.png') }}" width="40" height="40" class="painting-btn-export" id="painting-btn-export">
-
-                                            </div>
-                                          </div>
                                           <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;max-height: 750px;">
-                                            <div class="card card-nav-tabs card-plain" style="max-height: 750px;">
-                                              <div class="card-body" style="max-height: 750px;">
+                                            
                                                 <div class="col-md-12" style="max-height: 750px;">
                                                 <div id="tbl_log_painting" style="width: 100%;overflow: auto;min-height: 750px;max-height: 750px;"></div>
                                                 </div>
-                                              </div>
-                                            </div>
+                                             
                                           </div>
                                         </div>
                                       </div>
@@ -537,13 +514,90 @@
                                               <h5 class="text-white" style="font-size: 13pt; margin-bottom: 5px;">Filter/s</h5>
                                             </div>
                                             <div class="col-md-4" style="margin-top: -20px;">
-                                              <button type="button" class="btn btn-default" id="clear-button" style="margin-bottom:5px;font-size: 12px;padding: 7px 9px 6px 10px;float: right;">Clear</button>
+                                              <button type="button" class="btn btn-default" id="clear-button-assem" style="margin-bottom:5px;font-size: 12px;padding: 7px 9px 6px 10px;float: right;">Clear</button>
                                             </div>
                                           </div>
                                           <div class="row" style="background-color: #ffffff; padding-top: 9px;">
-                                            <div class="col-md-12" style="margin: 0;height: 400px;" id="filter_qa_inspection_assembly">
+                                            <div class="col-md-12" style="margin: 0;height: 730px;" id="filter_qa_inspection_assembly">
                                               <span style="display: block; font-size: 9pt; margin-top: -8px;"></span>
+                                              <div class="form-group">
+                                                <label style="color: black;">Date Range:</label>
+                                                <input type="text" class="date form-control" name="daterange_assem" autocomplete="off" placeholder="Select Date From" id="daterange_assem" value="" style="text-align:center;display:inline-block;width:100%;height:30px;" onchange="tbl_log_fabrication()">
+                                              </div>
+                                              <div class="form-group">
+                                                    <label style="color: black;">Workstation</label>
+                                                    <select class="form-control text-center sel4" name="workstation_assem" id="workstation_assem">
+                                                        <option value=""> Select Workstation</option>
+                                                        @foreach($assem_workstation as $row)
+                                                        <option value="{{$row->workstation_id}}">{{$row->workstation_name}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
+                                                <div class="form-group" style="margin-top: -14px;">
+                                                    <label style="color: black;">Item Code</label>
+                                                    <select class="form-control text-center sel4 " name="item_code_assem" id="item_code_assem">
+                                                        <option value=""> Select Item Code</option>
+                                                        @foreach($item_code as $row)
+                                                        <option value="{{$row->item_code}}">{{$row->item_code}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
 
+                                                <div class="form-group">
+                                                    <label style="color: black;">Production Order</label>
+                                                     <select class="form-control text-center sel4 " name="prod_assem" id="prod_assem">
+                                                        <option value=""> Select Production Order</option>
+                                                        @foreach($production_order as $row)
+                                                        <option value="{{$row->production_order}}">{{$row->production_order}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
+                                                <div class="form-group">
+                                                    <label style="color: black;">Customer</label>
+                                                    <select class="form-control text-center sel4 " name="customer_assem" id="customer_assem">
+                                                        <option value=""> Select Customer</option>
+                                                        @foreach($customer as $row)
+                                                        <option value="{{$row->customer}}">{{$row->customer}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
+                                                 
+                                                 <div class="form-group">
+                                                    <label style="color: black;">Process</label>
+                                                    <select class="form-control text-center sel4 " name="process_assem" id="process_assem">
+                                                      <option value=""> Select Process</option>
+                                                       @foreach($assem_process as $row)
+                                                        <option value="{{$row->process_name}}">{{$row->process_name}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
+                                                 <div class="form-group">
+                                                    <label style="color: black;">QC Status</label>
+                                                    <select class="form-control text-center sel4 " name="qa_status_assem" id="qa_status_assem">
+                                                        <option value="">Select Status</option>
+                                                        <option value="For Confirmation">For Confirmation</option>
+                                                        <option value="QC Passed">QC Passed</option>
+                                                        <option value="QC Failed">QC Failed</option>
+                                                      </select>
+                                                 </div>
+                                                 <div class="form-group">
+                                                    <label style="color: black;">QC Inspector</label>
+                                                    <select class="form-control text-center sel4 " name="qa_inspector_assem" id="qa_inspector_assem">
+                                                        <option value="">Select QC Inspector</option>
+                                                        @foreach($qc_name as $row)
+                                                        <option value="{{$row['user_id']}}">{{$row['name']}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
+                                                 <div class="form-group">
+                                                    <label style="color: black;">Operator</label>
+                                                    <select class="form-control text-center sel4 " name="operator_assem" id="operator_assem">
+                                                        <option value="">Select Operator</option>
+                                                        @foreach($operators as $row)
+                                                        <option value="{{$row->user_id}}">{{$row->employee_name}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                 </div>
                                                 
                      
                                             </div>
@@ -552,25 +606,11 @@
                                       </div>
                                     </div>
                                     <div class="col-md-10">
-                                      <div class="card" style="background-color: #0277BD;" >
+                                      <div class="card">
                                         <div class="card-body" style="padding-bottom: 0;">
-                                          <div class="row">
-                                            <div class="col-md-8">
-                                              
-                                              <h5 class="text-white font-weight-bold align-middle">Assembly Random Inspection Logsheet</h5>
-                                            </div>
-                                            <div class="col-md-4">
-                                              <img style="float:right;" src="{{ asset('img/export.png') }}" width="40" height="40" class="btn-export">
-
-                                            </div>
-                                          </div>
                                           <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                            <div class="card card-nav-tabs card-plain">
-                                              <div class="card-body">
-                                                <div class="col-md-12">
-                                                  <div id="tbl_chemical" style="width: 100%;"class="table-responsive"></div>
-                                                </div>
-                                              </div>
+                                            <div class="col-md-12" style="max-height: 750px;">
+                                              <div id="tbl_log_assem" style="width: 100%;overflow: auto;min-height: 750px;max-height: 750px;" class="table-responsive"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -1403,7 +1443,7 @@
 </script>
 <script type="text/javascript">
   $(document).ready(function(){
-
+    // tbl_log_fabrication();
   $('.sel3').select2({
     dropdownParent: $("#filter_qa_inspection_painting"),
     dropdownAutoWidth: false,
@@ -1430,9 +1470,11 @@
   });
 
 
-  $('#daterange').daterangepicker({
+  $('#daterange_fabrication').daterangepicker({
     "showDropdowns": true,
-    ranges: {
+    "startDate": moment().startOf('month'),
+    "endDate": moment().endOf('month'),
+    "ranges": {
         'Today': [moment(), moment()],
         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
@@ -1441,20 +1483,25 @@
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
     },
     "linkedCalendars": false,
-    "autoUpdateInput": false,
+    "autoUpdateInput": true,
     "alwaysShowCalendars": true,
   }, function(start, end, label) {
     console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
     tbl_log_fabrication();
   });
+  tbl_log_fabrication();
 
-   $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+   $('#daterange_fabrication').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+      tbl_log_fabrication();
+
   });
   
   $('#daterange_painting').daterangepicker({
     "showDropdowns": true,
-    ranges: {
+    "startDate": moment().startOf('month'),
+    "endDate": moment().endOf('month'),
+    "ranges": {
         'Today': [moment(), moment()],
         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
@@ -1463,15 +1510,44 @@
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
     },
     "linkedCalendars": false,
-    "autoUpdateInput": false,
+    "autoUpdateInput": true,
     "alwaysShowCalendars": true,
   }, function(start, end, label) {
     console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
     tbl_log_painting();
   });
+  tbl_log_painting();
 
    $('#daterange_painting').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+      tbl_log_painting();
+
+  });
+  $('#daterange_assem').daterangepicker({
+    "showDropdowns": true,
+    "startDate": moment().startOf('month'),
+    "endDate": moment().endOf('month'),
+    "ranges": {
+        'Today': [moment(), moment()],
+        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    },
+    "linkedCalendars": false,
+    "autoUpdateInput": true,
+    "alwaysShowCalendars": true,
+  }, function(start, end, label) {
+    console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+    tbl_log_assem();
+  });
+  tbl_log_assem();
+
+   $('#daterange_assem').on('apply.daterangepicker', function(ev, picker) {
+      $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+      tbl_log_assem();
+
   });
  });
 </script>
@@ -1492,11 +1568,13 @@
 </script>
 <script type="text/javascript">
 function tbl_log_fabrication(){
-  var date = $('#daterange').val();
+  var date = $('#daterange_fabrication').val();
   var workstation = $('#workstation').val();
-  var startDate = $('#daterange').data('daterangepicker').startDate.format('YYYY-MM-DD');
-  var endDate = $('#daterange').data('daterangepicker').endDate.format('YYYY-MM-DD');
+  var startDate = $('#daterange_fabrication').data('daterangepicker').startDate.format('YYYY-MM-DD');
+  var endDate = $('#daterange_fabrication').data('daterangepicker').endDate.format('YYYY-MM-DD');
+  var operation_id=1;
   var data = {
+        workstation : workstation,
         customer: $('#customer').val(),
         prod:$('#prod').val(),
         item_code: $('#item_code').val(),
@@ -1504,7 +1582,7 @@ function tbl_log_fabrication(){
         process: $('#process').val()
       }
   $.ajax({
-          url:"/tbl_qa_inspection_log_report_fabrication/"+ startDate +"/" +endDate+"/"+workstation,
+          url:"/tbl_qa_inspection_log_report/"+ startDate +"/" +endDate+'/'+ operation_id,
           type:"GET",
           data: data,
           success:function(data){
@@ -1517,11 +1595,13 @@ function tbl_log_fabrication(){
 </script>
 <script>
 $(document).on('change', '.sel6', function(event){
-  var date = $('#daterange').val();
+  var date = $('#daterange_fabrication').val();
   var workstation = $('#workstation').val();
-  var startDate = $('#daterange').data('daterangepicker').startDate.format('YYYY-MM-DD');
-  var endDate = $('#daterange').data('daterangepicker').endDate.format('YYYY-MM-DD');
+  var startDate = $('#daterange_fabrication').data('daterangepicker').startDate.format('YYYY-MM-DD');
+  var endDate = $('#daterange_fabrication').data('daterangepicker').endDate.format('YYYY-MM-DD');
+  var operation_id=1;
   var data = {
+        workstation: workstation,
         customer: $('#customer').val(),
         prod:$('#prod').val(),
         item_code: $('#item_code').val(),
@@ -1531,12 +1611,12 @@ $(document).on('change', '.sel6', function(event){
         operator: $('#operator').val(),
       }
   if(workstation == 'none'){
-    showNotification("danger", 'Please Select Workstation', "now-ui-icons travel_info");
+    
   }else if(date == ""){
-    showNotification("danger", 'Please Select Date Range', "now-ui-icons travel_info");
+    
   }else{
     $.ajax({
-          url:"/tbl_qa_inspection_log_report_fabrication/"+ startDate +"/" +endDate+"/"+workstation,
+          url:"/tbl_qa_inspection_log_report/"+ startDate +"/" +endDate + "/"+ operation_id,
           type:"GET",
           data: data,
           success:function(data){
@@ -1584,9 +1664,9 @@ $(document).on('change', '.sel6', function(event){
         var operator="none";
       }
       if(workstation == 'none'){
-        showNotification("danger", 'Please Select Workstation', "now-ui-icons travel_info");
+        
       }else if(date == ""){
-        showNotification("danger", 'Please Select Date Range', "now-ui-icons travel_info");
+        
       }else{
           location.href= "/get_tbl_qa_inspection_log_export/"+ startDate +"/" +endDate+"/"+workstation+"/"+ customer +"/" + prod + "/" + item_code + "/" + status + "/" + processs + "/" + qa_inspector + "/" +  operator;
       }
@@ -1599,7 +1679,9 @@ function tbl_log_painting(){
   var workstation = $('#workstation_painting').val();
   var startDate = $('#daterange_painting').data('daterangepicker').startDate.format('YYYY-MM-DD');
   var endDate = $('#daterange_painting').data('daterangepicker').endDate.format('YYYY-MM-DD');
+  var operation_id= 1;
   var data = {
+        workstation: 'Painting',
         customer: $('#customer_painting').val(),
         prod:$('#prod_painting').val(),
         item_code: $('#item_code_painting').val(),
@@ -1607,7 +1689,7 @@ function tbl_log_painting(){
         process: $('#process_painting').val()
       }
   $.ajax({
-          url:"/tbl_qa_inspection_log_report_painting/"+ startDate +"/" +endDate+"/"+workstation,
+          url:"/tbl_qa_inspection_log_report/"+ startDate +"/" +endDate+"/"+operation_id,
           type:"GET",
           data: data,
           success:function(data){
@@ -1624,7 +1706,9 @@ $(document).on('change', '.sel3', function(event){
   var workstation = $('#workstation_painting').val();
   var startDate = $('#daterange_painting').data('daterangepicker').startDate.format('YYYY-MM-DD');
   var endDate = $('#daterange_painting').data('daterangepicker').endDate.format('YYYY-MM-DD');
+  var operation_id = 1;
   var data = {
+        workstation: "Painting",
         customer: $('#customer_painting').val(),
         prod:$('#prod_painting').val(),
         item_code: $('#item_code_painting').val(),
@@ -1634,12 +1718,12 @@ $(document).on('change', '.sel3', function(event){
         operator: $('#operator_painting').val(),
       }
   if(workstation == 'none'){
-    showNotification("danger", 'Please Select Workstation', "now-ui-icons travel_info");
+    
   }else if(date == ""){
-    showNotification("danger", 'Please Select Date Range', "now-ui-icons travel_info");
+    
   }else{
     $.ajax({
-          url:"/tbl_qa_inspection_log_report_painting/"+ startDate +"/" +endDate+"/"+workstation,
+          url:"/tbl_qa_inspection_log_report/"+ startDate +"/" +endDate+"/"+operation_id,
           type:"GET",
           data: data,
           success:function(data){
@@ -1667,9 +1751,9 @@ $(document).on('change', '.sel3', function(event){
       var operator= $('#operator_painting').val();
 
       if(workstation == 'none'){
-        showNotification("danger", 'Please Select Workstation', "now-ui-icons travel_info");
+        
       }else if(date == ""){
-        showNotification("danger", 'Please Select Date Range', "now-ui-icons travel_info");
+        
       }else{
           location.href= "/get_tbl_qa_inspection_log_export_painting/"+ startDate +"/" +endDate+"/"+workstation+"/"+ customer +"/" + prod + "/" + item_code + "/" + status + "/" + processs + "/" + qa_inspector + "/" +  operator;
       }
@@ -1704,7 +1788,19 @@ $(document).on('change', '.sel3', function(event){
         $("#qa_status_painting").select2('val', 'All');
     });
 });
-
+$(function(){
+    $("#clear-button-assem").click(function(){
+        $("#workstation_assem").select2('val', 'All');
+        $("#customer_assem").select2('val', 'All');
+        $("#prod_assem").select2('val', 'All');
+        $("#status_assem").select2('val', 'All');
+        $("#process_assem").select2('val', 'All');
+        $("#qa_inspector_assem").select2('val', 'All');
+        $("#operator_assem").select2('val', 'All');
+        $("#item_code_assem").select2('val', 'All');
+        $("#qa_status_assem").select2('val', 'All');
+    });
+});
 </script>
 <script type="text/javascript">
     $(document).on('click', '.prod-details-btn', function(e){
@@ -1833,4 +1929,65 @@ function getJtDetails(jtno){
       });
     });
 </script>
+<script type="text/javascript">
+  function tbl_log_assem(){
+    var date = $('#daterange_assem').val();
+    var workstation = $('#workstation_assem').val();
+    var startDate = $('#daterange_assem').data('daterangepicker').startDate.format('YYYY-MM-DD');
+    var endDate = $('#daterange_assem').data('daterangepicker').endDate.format('YYYY-MM-DD');
+    var operation_id= 3;
+    var data = {
+          workstation: workstation,
+          customer: $('#customer_assem').val(),
+          prod:$('#prod_assem').val(),
+          item_code: $('#item_code_assem').val(),
+          status: $('#qa_status_assem').val(),
+          process: $('#process_assem').val()
+        }
+    $.ajax({
+            url:"/tbl_qa_inspection_log_report/"+ startDate +"/" +endDate+"/"+operation_id,
+            type:"GET",
+            data: data,
+            success:function(data){
+              $('#tbl_log_assem').html(data);
+            }
+          });
+    };
+  
+  </script>
+  <script>
+  $(document).on('change', '.sel4', function(event){
+    var date = $('#daterange_assem').val();
+    var workstation = $('#workstation_assem').val();
+    var startDate = $('#daterange_assem').data('daterangepicker').startDate.format('YYYY-MM-DD');
+    var endDate = $('#daterange_assem').data('daterangepicker').endDate.format('YYYY-MM-DD');
+    var operation_id = 3;
+    var data = {
+          workstation:workstation,
+          customer: $('#customer_assem').val(),
+          prod:$('#prod_assem').val(),
+          item_code: $('#item_code_assem').val(),
+          status: $('#qa_status_assem').val(),
+          process: $('#process_assem').val(),
+          qa_inspector: $('#qa_inspector_assem').val(),
+          operator: $('#operator_assem').val(),
+        }
+    if(workstation == 'none'){
+      
+    }else if(date == ""){
+      
+    }else{
+      $.ajax({
+            url:"/tbl_qa_inspection_log_report/"+ startDate +"/" +endDate+"/"+operation_id,
+            type:"GET",
+            data: data,
+            success:function(data){
+              
+              $('#tbl_log_assem').html(data);
+            }
+          });
+    }
+    
+    });
+  </script> 
 @endsection

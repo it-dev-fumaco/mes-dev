@@ -494,7 +494,7 @@ Route::post('/delete_user_group', 'SecondaryController@delete_user_group');
 
 //QA_inspection_log_report
 
-Route::get('/tbl_qa_inspection_log_report_fabrication/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_fabrication');
+Route::get('/tbl_qa_inspection_log_report/{start}/{end}/{operation}', 'QualityInspectionController@tbl_qa_inspection_log_report');
 Route::get('/get_tbl_qa_inspection_log_export/{start}/{end}/{workstation}/{customer}/{prod}/{item_code}/{status}/{processs}/{qa_inspector}/{operator}', 'QualityInspectionController@get_tbl_qa_inspection_log_export');
 Route::get('/tbl_qa_inspection_log_report_painting/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_painting');
 Route::get('/get_tbl_qa_inspection_log_export_painting/{start}/{end}/{workstation}/{customer?}/{prod?}/{item_code?}/{status?}/{processs?}/{qa_inspector?}/{operator?}', 'QualityInspectionController@get_tbl_qa_inspection_log_export_painting');

@@ -153,16 +153,9 @@
                     <div class="col-md-10">
                       <div class="card" style="background-color: #0277BD;" >
                         <div class="card-body" style="padding-bottom: 0;">
-                          <div class="row">
-                            <div class="col-md-8">
-                              
-                              <h5 class="text-white font-weight-bold align-middle">Fabrication Random Inspection Logsheet</h5>
-                            </div>
-                            <div class="col-md-4">
+                            {{--<div class="col-md-4">
                               <img style="float:right;" src="{{ asset('img/export.png') }}" id="fabrication-btn-export" width="40" height="40" class="btn-export">
-
-                            </div>
-                          </div>
+                            </div>--}}
                           <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
                             <div class="card card-nav-tabs card-plain">
                               <div class="card-body">
