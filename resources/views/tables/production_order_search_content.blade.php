@@ -59,10 +59,15 @@
 								</div>
 							</div>
 							<div class="col-md-12">
-									<div style="margin: 5px;">
+								@php 
+								@endphp
+									<div style="margin: 5px; display:{{($item_details['planned_start_date'] == null )? 'none':''}};">
 										<span style="font-size: 12pt; margin: auto;">Scheduled Date: </span>
 										<span class="font-weight-bold" style="font-size: 12pt; margin: auto;">{{ $item_details['planned_start_date'] }}</span>
 										<span class="badge badge-{{ ($item_details['status'] == 'Late') ? 'danger' : 'info' }}">{{ $item_details['status'] }}</span>
+									</div>
+									<div style="margin: 5px; display:{{($item_details['planned_start_date'] == null )? '':'none'}};">
+										<span style="font-size: 12pt; margin: auto;color:#dc3545;font-weight:bolder;">Unscheduled</span>
 									</div>
 								<table style="width: 100%; border-color: #D5D8DC;">
 										<col style="width: 18%;">
