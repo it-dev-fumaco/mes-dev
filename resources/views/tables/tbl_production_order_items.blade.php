@@ -309,7 +309,6 @@
 					$rowspan = (count($part['withdrawals']) > 1) ? 'rowspan="' . (count($part['withdrawals']) + 1) .'"' : 'rowspan="2"';
 					$balance = $part['required_qty'] - $part['transferred_qty'];
 					$wwhb = ($part['available_qty_at_wip'] < $part['transferred_qty'] || $part['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
-
 					$stat_badge = 'badge badge-secondary';
 					if($part['status'] == 'Completed'){
 						$stat_badge = 'badge badge-success';
@@ -325,10 +324,11 @@
 					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
 					<td class="text-center" {!! $rowspan !!}>
 						@if ($part['production_order'])
-						<span class="font-weight-bold view-production-order-details" data-production-order="{{ $part['production_order'] }}" style="color: black; cursor: pointer;">{{ $part['production_order'] }}</span>
+						<span class="d-block font-weight-bold view-production-order-details" data-production-order="{{ $part['production_order'] }}" style="color: black; cursor: pointer;">{{ $part['production_order'] }}</span>
 						@else
 						--
 						@endif
+						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
 					<td class="text-justify" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>

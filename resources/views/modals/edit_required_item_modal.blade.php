@@ -17,7 +17,7 @@
                <div class="form-row">
                   <div class="form-group col-md-6">
                      <label>Item Code</label>
-                     <input type="text" class="form-control" name="item_code" placeholder="Item Code" required>
+                     <input type="text" class="form-control" name="item_code" placeholder="Item Code" maxlength="7" required>
                      <input type="hidden" name="item_name">
                   </div>
                   <div class="form-group col-md-3">

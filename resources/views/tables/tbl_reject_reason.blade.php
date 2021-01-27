@@ -94,8 +94,8 @@
                                                 @forelse ($res as $rows)
                                                     <li class="p-1 d-block">
                                                         <div class="inputGroup" style="vertical-align: text-top; border:2px solid white; width:100%;">
-                                                            <input id="option{{ $rows->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk" data-reject-reason="{{ $rows->reject_reason }}" value="{{ $rows->reject_list_id }}" />
-                                                            <label for="option{{ $rows->reject_list_id }}"> {{ $rows->reject_reason }}</label>
+                                                            <input id="option{{ $rows->operator_reject_list_setup_id }}" name="reject_list[]" type="checkbox" class="qc-chk" data-reject-reason="{{ $rows->reject_reason }}" value="{{ $rows->reject_list_id }}" />
+                                                            <label for="option{{ $rows->operator_reject_list_setup_id }}"> {{ $rows->reject_reason }}</label>
                                                         </div>
                                                     </li>
                                                 @empty
@@ -114,8 +114,8 @@
                                             @forelse($tab as $row)
                                                 <li class="p-1 d-block">
                                                     <div class="inputGroup" style="vertical-align: text-top; border:2px solid white; width:100%;">
-                                                        <input id="option{{ $row->reject_list_id }}" name="reject_list[]" type="checkbox" class="qc-chk"  data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
-                                                        <label style=" word-wrap: break-word;" for="option{{ $row->reject_list_id }}"> {{ $row->reject_reason }}</label>
+                                                        <input id="option{{ $row->operator_reject_list_setup_id}}" name="reject_list[]" type="checkbox" class="qc-chk"  data-reject-reason="{{ $row->reject_reason }}" value="{{ $row->reject_list_id }}" style="padding:0px 0px 0px 0px;" />
+                                                        <label style=" word-wrap: break-word;" for="option{{ $row->operator_reject_list_setup_id }}"> {{ $row->reject_reason }}</label>
                                                     </div>
                                                 </li>
                                             @empty
