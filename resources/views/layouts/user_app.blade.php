@@ -875,6 +875,7 @@
     $('#return-required-item-modal form input[name="production_order"]').val($(this).data('production-order'));
     $('#return-required-item-modal form input[name="id"]').val($(this).data('production-order-item-id'));
     
+    $('#return-required-item-modal form input[name="ste_names"]').val($row.find('.ste-names').eq(0).text());
     $('#return-required-item-modal form input[name="target_warehouse"]').val($row.find('.target-warehouse').eq(0).text());
     $('#return-required-item-modal form input[name="source_warehouse"]').val($row.find('.source-warehouse').eq(0).text());
     $('#return-required-item-modal form input[name="item_code"]').val($row.find('.item-code').eq(0).text());
@@ -999,6 +1000,7 @@
       e.preventDefault();
 
       var $row = $(this).closest('tr');
+      var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var description = $row.find('.item-description').eq(0).text();
       var item_name = $row.find('.item-name').eq(0).text();
@@ -1025,6 +1027,7 @@
         }
       });
 
+      $('#change-required-item-modal input[name="ste_names"]').val(ste_names);
       $('#change-required-item-modal input[name="item_classification"]').val($(this).data('item-classification'));
       $('#change-required-item-modal input[name="old_item_code"]').val(item_code);
       $('#change-required-item-modal input[name="item_code"]').val(item_code);
@@ -1104,8 +1107,6 @@
       var ste_no = $row.find('.ste-name').eq(0).text();
       var sted_name = $row.find('.sted-name').eq(0).text();
 
-      console.log(item_code, ste_no, sted_name);
-
       $('#cancel-return-item-modal input[name="sted_id"]').val(sted_name);
       $('#cancel-return-item-modal input[name="production_order"]').val($(this).data('production-order'));
       $('#cancel-return-item-modal input[name="ste_no"]').val(ste_no);
@@ -1145,10 +1146,12 @@
     $(document).on('click', '.delete-required-item-btn', function(e){
       e.preventDefault();
       var $row = $(this).closest('tr');
+      var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
       
       $('#delete-required-item-modal input[name="production_order"]').val($(this).data('production-order'));
+      $('#delete-required-item-modal input[name="ste_names"]').val(ste_names);
       $('#delete-required-item-modal input[name="item_code"]').val(item_code);
       $('#delete-required-item-modal input[name="source_warehouse"]').val(source_warehouse);
       $('#delete-required-item-modal .modal-body span').eq(0).text(item_code);
@@ -1341,14 +1344,12 @@
     $(document).on('click', '.view-production-order-details', function(e){
       e.preventDefault();
       var production_order = $(this).data('production-order');
-      console.log(production_order);
       $('#jt-workstations-modal .modal-title').text(production_order);
       getJtDetails(production_order);
     });
     $(document).on('click', '.prod-details-btn', function(e){
       e.preventDefault();
       var production_order = $(this).attr('data-jtno');
-      console.log(production_order);
       $('#jt-workstations-modal .modal-title').text(production_order);
       getJtDetails(production_order);
     });

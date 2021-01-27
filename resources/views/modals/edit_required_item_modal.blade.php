@@ -5,6 +5,7 @@
          @csrf
          <input type="hidden" id="change-required-item-production-order" name="production_order">
          <input type="hidden" name="old_item_code">
+         <input type="hidden" name="ste_names">
          <div class="modal-content">
             <div class="modal-header text-white" style="background-color: #0277BD;">
                <h5 class="modal-title" id="modal-title">Replace Item</h5>

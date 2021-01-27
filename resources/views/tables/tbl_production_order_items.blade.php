@@ -122,72 +122,75 @@
 			@if(count($components) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 3%;">
+				<col style="width: 7%;">
+				<col style="width: 38%;">
 				<col style="width: 8%;">
-				<col style="width: 26%;">
-				<col style="width: 13%;">
-				<col style="width: 13%;">
-				<col style="width: 9%;">
+				<col style="width: 12%;">
+				<col style="width: 12%;">
 				<col style="width: 10%;">
-				<col style="width: 8%;">
 				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
-					<th>Source Warehouse</th>
-					<th>WIP Warehouse</th>
 					<th>Required</th>
+					<th>Source Warehouse</th>
 					<th>Transferred / Issued</th>
 					<th>Item Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($components as $i => $component)
+				@php
+					$rowspan = (count($component['withdrawals']) > 1) ? 'rowspan="' . (count($component['withdrawals']) + 1) .'"' : 'rowspan="2"';
+					$img = ($component['item_image']) ? "/img/" . $component['item_image'] : "/icon/no_img.png";
+					$balance = $component['required_qty'] - $component['transferred_qty'];
+					$wwhb = ($component['available_qty_at_wip'] < $component['transferred_qty'] || $component['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
+				@endphp
 				<tr>
-					<td class="text-center">{{ $i + 1 }}</td>
-					<td class="text-center">
-						@php
-							$img = ($component['item_image']) ? "/img/" . $component['item_image'] : "/icon/no_img.png";
-
-							$balance = $component['required_qty'] - $component['transferred_qty'];
-							$swhb = ($component['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
-							$wwhb = ($component['available_qty_at_wip'] < $component['transferred_qty'] || $component['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
-
-							if($component['transferred_qty'] == $component['required_qty']){
-								$twhb = "badge badge-success";
-							}elseif($component['transferred_qty'] <= 0){
-								$twhb = "badge badge-danger";
-							}else{
-								$twhb = "badge badge-warning";
-							}
-
-							$item_status_badge = ($component['item_status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
-						@endphp
+					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
+					<td class="text-center" {!! $rowspan !!}>
 						<a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
-					<td class="text-justify">
+					<td class="text-justify" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $component['item_code'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
+
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
-					<td class="text-center">
-						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
-						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
-					</td>
-					<td class="text-center" style="font-size: 9pt;">
-						<span class="d-block target-warehouse" style="font-size: 9pt;">{{ $details->wip_warehouse }}</span>
-						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
-					</td>
-					<td class="text-center">
+					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
-					<td class="text-center">
-						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $component['transferred_qty'] * 1 }}</span>
+					<td class="text-center p-0 border-bottom-0" colspan="4"></td>
+				</tr>
+				@forelse ($component['withdrawals'] as $a)	
+				@php
+					$twhb = ($a['status'] == 'Issued') ? "badge badge-success" : "badge badge-danger";
+
+					$swhb = ($a['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
+					
+					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+				@endphp
+				<tr>
+					<td class="border-top-0 text-center">
+						<span class="d-none ste-names">{{ $a['ste_names'] }}</span>
+						<span class="d-none item-code">{{ $component['item_code'] }}</span>
+						<span class="d-none item-name">{{ $component['item_name'] }}</span>
+						<span class="d-none item-description">{!! $component['description'] !!}</span>
+						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+
+						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
-					<td class="text-center">
-						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ $component['item_status'] }}</span>
+					<td class="border-top-0 text-center">
+						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ $a['status'] }}</span>
 						<div class="details-pane" style="font-size:8pt;">
 							<table border="1" style="width: 100%;">
 								<tr>
@@ -209,10 +212,10 @@
 							</table>
 						</div>
 					</td>
-					<td class="text-center">
+					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = (!$component['has_pending_ste_for_issue']) ? 'disabled' : null;
-							$return_btn = ($component['transferred_qty'] > 0) ? '' : 'disabled';
+							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
@@ -225,6 +228,55 @@
 						</button>
 					</td>
 				</tr>
+				@empty
+				@php
+					$swhb_1 = ($component['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+				@endphp
+				<tr>
+					<td class="border-top-0 text-center">
+						<span class="d-block" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
+						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="font-weight-bold badge badge-danger" style="font-size: 10pt;">{{ $component['transferred_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="badge badge-warning hvrlink" style="font-size: 9pt;">For Checking</span>
+						<div class="details-pane" style="font-size:8pt;">
+							<table border="1" style="width: 100%;">
+								<tr>
+									<th class="text-center">Ref. No.</th>
+									<th class="text-center">Date Issued</th>
+									<th class="text-center">Issued by</th>
+								</tr>
+								@forelse ($component['references'] as $ref)
+								<tr>
+									<td class="text-center">{{ $ref->name }} ({{ $ref->qty * 1 }})</td>
+									<td class="text-center">{{ Carbon\Carbon::parse($ref->date_modified)->format('M-d-Y H:i:A') }}</td>
+									<td class="text-center">{{ $ref->session_user }}</td>
+								</tr>
+								@empty
+								<tr>
+									<td colspan="3" class="text-center font-weight-bold">No reference stock entry</td>
+								</tr>
+								@endforelse
+							</table>
+						</div>
+					</td>
+					<td class="border-top-0 text-center">
+						<button type="button" class="btn btn-info  btn-sm p-1" disabled> 
+							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						</button>
+						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
+							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+						</button>
+						<button type="button" class="btn btn-danger  btn-sm p-1" disabled>
+							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
+						</button>
+					</td>
+				</tr>
+				@endforelse
 				@endforeach
 			</table>
 			@else
@@ -235,89 +287,87 @@
 			@if(count($parts) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;">
-				<col style="width: 8%;">
-				<col style="width: 18%;">
 				<col style="width: 9%;">
-				<col style="width: 13%;">
-				<col style="width: 13%;">
-				<col style="width: 9%;">
-				<col style="width: 9%;">
-				<col style="width: 8%;">
+				<col style="width: 34%;">
+				<col style="width: 10%;">
+				<col style="width: 12%;">
+				<col style="width: 12%;">
+				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
 					<th>Prod. Order</th>
 					<th>Item Description</th>
-					<th>Status</th>
-					<th>Source Warehouse</th>
-					<th>WIP Warehouse</th>
 					<th>Required</th>
+					<th>Source Warehouse</th>
 					<th>Transferred / Issued</th>
 					<th>Item Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($parts as $i => $part)
+				@php
+					$rowspan = (count($part['withdrawals']) > 1) ? 'rowspan="' . (count($part['withdrawals']) + 1) .'"' : 'rowspan="2"';
+					$balance = $part['required_qty'] - $part['transferred_qty'];
+					$wwhb = ($part['available_qty_at_wip'] < $part['transferred_qty'] || $part['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
+
+					$stat_badge = 'badge badge-secondary';
+					if($part['status'] == 'Completed'){
+						$stat_badge = 'badge badge-success';
+					}elseif($part['status'] == 'In Progress'){
+						$stat_badge = 'badge badge-warning';
+					}elseif($part['status'] == 'Cancelled'){
+						$stat_badge = 'badge badge-danger';
+					}else{
+						$stat_badge = 'badge badge-secondary';
+					}
+				@endphp
 				<tr>
-					<td class="text-center">{{ $i + 1 }}</td>
-					<td class="text-center">
+					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
+					<td class="text-center" {!! $rowspan !!}>
 						@if ($part['production_order'])
 						<span class="font-weight-bold view-production-order-details" data-production-order="{{ $part['production_order'] }}" style="color: black; cursor: pointer;">{{ $part['production_order'] }}</span>
 						@else
 						--
 						@endif
 					</td>
-					@php
-						$balance = $part['required_qty'] - $part['transferred_qty'];
-						$swhb = ($part['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
-						$wwhb = ($part['available_qty_at_wip'] < $part['transferred_qty'] || $part['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
-
-						if($part['transferred_qty'] == $part['required_qty']){
-							$twhb = "badge badge-success";
-						}elseif($part['transferred_qty'] <= 0){
-							$twhb = "badge badge-danger";
-						}else{
-							$twhb = "badge badge-warning";
-						}
-
-						$stat_badge = 'badge badge-secondary';
-						if($part['status'] == 'Completed'){
-							$stat_badge = 'badge badge-success';
-						}elseif($part['status'] == 'In Progress'){
-							$stat_badge = 'badge badge-warning';
-						}elseif($part['status'] == 'Cancelled'){
-							$stat_badge = 'badge badge-danger';
-						}else{
-							$stat_badge = 'badge badge-secondary';
-						}
-
-						$item_status_badge = ($part['item_status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
-					@endphp
-					<td class="text-justify">
+					<td class="text-justify" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
-					<td class="text-center">
-						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
-					</td>
-					<td class="text-center">
-						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>
-						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $part['actual_qty'] * 1 }}</span>
-					</td>
-					<td class="text-center" style="font-size: 9pt;">
-						<span class="d-block target-warehouse" style="font-size: 9pt;">{{ $details->wip_warehouse }}</span>
-						<span class="font-weight-bold {{ $wwhb }}" style="font-size: 9pt;">Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
-					</td>
-					<td class="text-center">
+					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
-					<td class="text-center">
-						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $part['transferred_qty'] * 1 }}</span>
-						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					<td class="text-center p-0 border-bottom-0" colspan="4"></td>
+				</tr>
+				@forelse ($part['withdrawals'] as $a)	
+				@php
+					$twhb = ($a['status'] == 'Issued') ? "badge badge-success" : "badge badge-danger";
+
+					$swhb = ($a['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
+					
+					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+				@endphp
+				<tr>
+					<td class="border-top-0 text-center">
+						<span class="d-none ste-names">{{ $a['ste_names'] }}</span>
+						<span class="d-none item-code">{{ $part['item_code'] }}</span>
+						<span class="d-none item-name">{{ $part['item_name'] }}</span>
+						<span class="d-none item-description">{!! $part['description'] !!}</span>
+						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+
+						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
-					<td class="text-center">
-						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ $part['item_status'] }}</span>
+					<td class="border-top-0 text-center">
+						<span class="font-weight-bold {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ $a['status'] }}</span>
 						<div class="details-pane" style="font-size:8pt;">
 							<table border="1" style="width: 100%;">
 								<tr>
@@ -339,15 +389,15 @@
 							</table>
 						</div>
 					</td>
-					<td class="text-center">
+					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = (!$part['has_pending_ste_for_issue']) ? 'disabled' : null;
-							$return_btn = ($part['transferred_qty'] > 0) ? '' : 'disabled';
+							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $change_cancel_btn }}> 
-							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
+								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }}>
+						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
 						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
@@ -355,6 +405,55 @@
 						</button>
 					</td>
 				</tr>
+				@empty
+				@php
+					$swhb_1 = ($part['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
+				@endphp
+				<tr>
+					<td class="border-top-0 text-center">
+						<span class="d-block" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>
+						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $part['actual_qty'] * 1 }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="font-weight-bold badge badge-danger" style="font-size: 10pt;">{{ $part['transferred_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="badge badge-warning hvrlink" style="font-size: 9pt;">For Checking</span>
+						<div class="details-pane" style="font-size:8pt;">
+							<table border="1" style="width: 100%;">
+								<tr>
+									<th class="text-center">Ref. No.</th>
+									<th class="text-center">Date Issued</th>
+									<th class="text-center">Issued by</th>
+								</tr>
+								@forelse ($part['references'] as $ref)
+								<tr>
+									<td class="text-center">{{ $ref->name }} ({{ $ref->qty * 1 }})</td>
+									<td class="text-center">{{ Carbon\Carbon::parse($ref->date_modified)->format('M-d-Y H:i:A') }}</td>
+									<td class="text-center">{{ $ref->session_user }}</td>
+								</tr>
+								@empty
+								<tr>
+									<td colspan="3" class="text-center font-weight-bold">No reference stock entry</td>
+								</tr>
+								@endforelse
+							</table>
+						</div>
+					</td>
+					<td class="border-top-0 text-center">
+						<button type="button" class="btn btn-info  btn-sm p-1" disabled> 
+							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						</button>
+						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
+							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+						</button>
+						<button type="button" class="btn btn-danger  btn-sm p-1" disabled>
+							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
+						</button>
+					</td>
+				</tr>
+				@endforelse
 				@endforeach
 			</table>
 			@else
