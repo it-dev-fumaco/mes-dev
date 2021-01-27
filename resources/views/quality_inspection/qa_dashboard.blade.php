@@ -415,7 +415,7 @@
                                                       <select class="form-control text-center sel3" name="workstation_painting" id="workstation_painting" onchange="tbl_log_fabrication()">
                                                           <option value=""> Select Workstation</option>
                                                           @foreach($pain_workstation as $row)
-                                                          <option value="{{$row->workstation_id}}">{{$row->workstation_name}}</option>
+                                                          <option value="{{$row->workstation_name}}">{{$row->workstation_name}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -529,7 +529,7 @@
                                                     <select class="form-control text-center sel4" name="workstation_assem" id="workstation_assem">
                                                         <option value=""> Select Workstation</option>
                                                         @foreach($assem_workstation as $row)
-                                                        <option value="{{$row->workstation_id}}">{{$row->workstation_name}}</option>
+                                                        <option value="{{$row->workstation_name}}">{{$row->workstation_name}}</option>
                                                         @endforeach
                                                       </select>
                                                  </div>
