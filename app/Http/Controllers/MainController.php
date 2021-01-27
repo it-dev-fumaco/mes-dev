@@ -5410,7 +5410,7 @@ class MainController extends Controller
 			$pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 				->where('ste.docstatus', 0)->where('ste.production_order', $production_order)
-				->where('sted.item_code', $request->item_code)
+				->where('sted.item_code', $request->item_code)->whereIn('ste.name', explode(',', $request->ste_names))
 				// ->where('sted.s_warehouse', $request->source_warehouse)
 				->where('ste.purpose', 'Material Transfer for Manufacture')
 				->select('sted.name as sted_name', 'ste.name as ste_name')
@@ -5449,7 +5449,7 @@ class MainController extends Controller
 				}
 			}
 
-			// get all submitted stock entries based on item code warehouse production order
+			// get all submitted stock entries based on item code production order
 			$submitted_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 				->where('ste.docstatus', 1)->where('ste.production_order', $production_order)
@@ -5460,6 +5460,7 @@ class MainController extends Controller
 				// delete production order item
 				DB::connection('mysql')->table('tabProduction Order Item')
 					->where('parent', $production_order)->where('item_code', $request->item_code)
+					->where('name', 'like', '%pri%')
 					->delete();
 			}
 			
