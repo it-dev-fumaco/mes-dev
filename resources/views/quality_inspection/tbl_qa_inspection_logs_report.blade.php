@@ -19,18 +19,18 @@
 </tr>
 <tr style="border-bottom:1px solid white;">
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Production Order</th>
-  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:70px;" class="classme" data-sort="name" rowspan="2">Ref No</th>
-  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Description</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:8px;" class="classme" data-sort="name" rowspan="2">Ref No</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:360px;" class="classme" data-sort="name" rowspan="2">Description</th>
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Workstation</th>
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Process</th>
-  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:70px;" class="classme" data-sort="name" rowspan="2">Machine</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:50px;" class="classme" data-sort="name" rowspan="2">Machine</th>
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Date</th>
 </tr>
 <tr style="border-bottom:1px solid white;">
-  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:20px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Batch</th>
-  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:20px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Samples</th>
- <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:20px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Actual</th>
-<th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:40px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Reject</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Batch</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Samples</th>
+ <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Actual</th>
+<th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Reject</th>
   @foreach($header as $values)
  <th style="color: #ffffff;width:10px;background-color:#0277BD;padding: 7px 5px 6px 12px ;font-size: 11px;font-weight: bold;border:1px solid white;border-bottom: 50px;" class="classme" data-sort="name">{{$values->reject_category_name}}</th>
   @endforeach
@@ -45,7 +45,7 @@
   <tr class="item" style="font-size: 11.5px;">
     <td style="padding:0px; margin:0px;"><a class="prod-details-btn" data-jtno="{{$rows['production_order']}}"><b><span>{{$rows['production_order']}}</span></b></a><span style="display: block;font-size: 10px;">{{$rows['customer']}}</span></td>
     <td style="">{{$rows['reference_id']}} </td>
-    <td style="padding:0px; margin:0px;"><b>{{$rows['item_code']}}</b> - {{$rows['decsription']}}</td>
+    <td style="padding:0px; margin:0px;text-align:justify;"><b>{{$rows['item_code']}}</b> - {{$rows['decsription']}}</td>
     <td style="padding:0px; margin:0px;">{{$rows['workstation']}} </td>
     <td style="padding:0px; margin:0px;">{{$rows['process']}}</td>
     <td style="padding:0px; margin:0px;">{{$rows['machine']}}</td>

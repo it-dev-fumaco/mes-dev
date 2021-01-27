@@ -982,7 +982,7 @@ class QualityInspectionController extends Controller
                        'customer' => $order->customer,
                        'project' => $order->project,
                        'item_code'=> $order->item_code,
-                       'decsription'=>strtok($order->description, ","),
+                       'decsription'=>$order->description,
                        'batch_qty'=> $order->good,
                        'workstation' => $order->workstation,
                        'process' => $order->process_name,
