@@ -19,7 +19,7 @@
 </tr>
 <tr style="border-bottom:1px solid white;">
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Production Order</th>
-  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:8px;" class="classme" data-sort="name" rowspan="2">Ref No</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:60px;" class="classme" data-sort="name" rowspan="2">Ref No</th>
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:360px;" class="classme" data-sort="name" rowspan="2">Description</th>
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Workstation</th>
   <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:1px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Process</th>
