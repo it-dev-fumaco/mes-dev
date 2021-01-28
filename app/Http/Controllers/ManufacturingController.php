@@ -1867,17 +1867,10 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Item <b>'. $request->item_code.'</b> not found.']);
             }
 
-            // get stock entry transferred qty
-			$transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
-                ->where('sted.item_code', $request->old_item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
-                ->sum('qty');
-
-            if($transferred_qty > 0){
-                return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
+            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+            if(!$item_details){
+                return response()->json(['status' => 0, 'message' => 'Item <b>'. $request->item_code.'</b> not found.']);
             }
-
 			// get all pending stock entries based on item code production order
 			$pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
