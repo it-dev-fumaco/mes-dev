@@ -1459,52 +1459,6 @@
 
       
     });
-
-    function get_production_order_items(id){
-      $.ajax({
-        url:"/get_production_order_items/"+ id,
-        type:"GET",
-        success:function(data){
-          $('#tbl_view_transfer_details').html(data);
-          $('#stock-entry-details-modal').modal('show');
-        },
-        error : function(data) {
-          console.log(data.responseText);
-        }
-      });
-    }
-
-    $(document).on('click', '.create-ste-btn', function(e){
-      e.preventDefault();
-      var prod = $(this).data('production-order');
-  
-      get_production_order_items(prod);
-    });
-
-    $(document).on('click', '.generate-ste-btn', function(e){
-      e.preventDefault();
-      var production_order = $(this).data('production-order');
-      $.ajax({
-        url:"/generate_stock_entry/" + production_order,
-        type:"POST",
-        success:function(data){
-          console.log(data);
-          if(data.success == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if(data.success == 1){
-            get_production_order_items(production_order);
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
     $('#reschedule_delivery_frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
