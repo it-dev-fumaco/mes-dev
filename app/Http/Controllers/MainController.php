@@ -4746,7 +4746,6 @@ class MainController extends Controller
 							'last_modified_at' => $now->toDateTimeString(),
 							'last_modified_by' => Auth::user()->email,
 							'feedback_qty' => $manufactured_qty,
-							'produced_qty' => $manufactured_qty,
 							'status' => $status
 						];
 					}else{
