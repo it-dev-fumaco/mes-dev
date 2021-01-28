@@ -1879,11 +1879,6 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Item <b>'. $request->item_code.'</b> not found.']);
             }
 
-            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
-            if(!$item_details){
-                return response()->json(['status' => 0, 'message' => 'Item <b>'. $request->item_code.'</b> not found.']);
-            }
-
 			// get all pending stock entries based on item code production order
 			$pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
