@@ -6985,8 +6985,10 @@ operator_check_list_painting();
            var first_selection_data = $(this).val();
            var id_for_second_selection = $(this).attr('data-idcolumn');
            var format_id_for_second_selection = "#"+id_for_second_selection;
-            $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner,
+           var operation = $('#add-checklist-painting-modal .modal-title').text();
+           
+          $.ajax({
+            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/' + operation,
             type:"GET",
             success:function(data){
               $(format_id_for_second_selection).html(data);

@@ -37,8 +37,7 @@
 				</a>
 			</td>
 			<td class="text-justify">
-				<span class="ste-name d-none">{{ $row['ste_name'] }}</span>
-				<span class="sted-id d-none">{{ $row['sted_name'] }}</span>
+				<span class="ste-names d-none">{{ $row['ste_names'] }}</span>
 				<span class="d-block font-weight-bold item-code">{{ $row['item_code'] }}</span>
 				<span class="d-block item-description" style="font-size: 8pt;">{!! $row['description'] !!}</span>
 			</td>

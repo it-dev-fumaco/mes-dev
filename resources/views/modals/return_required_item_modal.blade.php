@@ -15,6 +15,7 @@
                         <div class="col-md-8 offset-md-2">
                             <div class="row m-0">
                                 <div class="col-sm-12">
+                                    <input type="hidden" name="ste_names">
                                     <input type="hidden" name="production_order">
                                     <input type="hidden" name="item_code">
                                     <input type="hidden" name="id">
