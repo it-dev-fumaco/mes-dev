@@ -797,20 +797,9 @@ class MainController extends Controller
 	}
 	
 	public function update_produced_qty($production_order){
-		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->distinct()->pluck('process_id');
-		$process_list = [];
-		foreach ($processes as $process) {
-			$total_completed = DB::connection('mysql_mes')->table('job_ticket')
-				->where('production_order', $production_order)
-				->where('process_id', $process)->sum('completed_qty');
+		$produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+			->where('production_order', $production_order)->min('completed_qty');
 
-			$process_list[] = [
-				'process_id' => $process,
-				'total_completed' => $total_completed
-			];
-		}
-
-		$produced_qty = collect(array_column($process_list, 'total_completed'))->min();
 		if ($produced_qty > 0) {
 			DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update(['produced_qty' => $produced_qty]);
 		}
@@ -3829,9 +3818,9 @@ class MainController extends Controller
 			
 			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
 			$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
 			$this->update_job_ticket_good($time_log->job_ticket_id);
 			$this->update_job_ticket_reject($time_log->job_ticket_id);
+			$this->update_produced_qty($request->production_order);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);

@@ -1459,7 +1459,6 @@
 
       
     });
-  
     $('#reschedule_delivery_frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
