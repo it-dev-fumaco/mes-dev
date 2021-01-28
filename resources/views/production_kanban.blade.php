@@ -84,7 +84,7 @@
 
         <div class="col-md-4 p-0 text-center" style="font-size: 9pt;">
           <input type="hidden" id="primary-operation-id" value="{{ $primary_id }}">
-
+          <input type="hidden" id="reload_point_page">
           <button type="button" class="btn btn-success m-1" id="ready-for-feedback-btn">
             Ready for Feedback <span class="badge badge-danger m-0" id="ready-for-feedback-badge" style="font-size: 9pt;">0</span>
           </button>
@@ -270,11 +270,15 @@
                               <img src="{{ asset('img/scheduling.png') }}" width="25" class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
                               <img src="{{ asset('img/print.png') }}" width="25" class="printbtnprint" data-print="{{ $r['schedule'] }}">
                               <img src="{{ asset('img/wid.png') }}" width="25" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/shift.png') }}" width="32" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+
 
                               @else
                               <img src="{{ asset('img/down.png') }}" width="25">
                               <img src="{{ asset('img/print.png') }}" width="25" class="printbtnprint" data-print="{{ $r['schedule'] }}">
                               <img src="{{ asset('img/wid.png') }}" width="25" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/shift.png') }}" width="32" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+
                               @endif
                               @if($r['duplicate_item_code'] < 0)
                               <i class="now-ui-icons ui-1_bell-53 bell show-merge-modal" style="font-size: 15pt;"></i>
@@ -763,10 +767,135 @@
       </div>
   </div>
 </div>
+<div class="modal fade" id="shift-schedule-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width:40%;">
+    <form action="#" method="POST">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title">Shift Schedule</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="btn-close-click-validator">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <input type="hidden" id="date_tobe_sched_shift">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-12 pull-right">
+              <div class="form-group text-center pull-right">
+                <button type="button" class="btn btn-primary" id="add-shift-schedule-button" style="margin: 5px;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                </button>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="tbl_shift_schedule_sched"></div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="add-shift-schedule-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/add_shift_schedule" method="POST" id="add-shift-schedule-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title "> Add Shift Schedule<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="form-row">
+                 <div class="form-group col-md-6">
+                   <label for="sched_date">Date</label>
+                   <input type="text" autocomplete="off" id="sched_date" name="sched_date" class="form-control date" placeholder="Date" required>
+                 </div>
+                 <div class="form-group col-md-6">
+                  <label for="shift_id">Select Shift Schedule</label>
+                    <select id="shift_id" name="shift_id" class="form-control shift_id" onchange="get_shift_details()" required>
+                       <option selected disabled>Please select one option</option>
+                       <option value="">Select Shift</option>
+                    </select>
+                 </div>
+                 <div class="form-group col-md-12 text-center" style="text-align: Center;">
+                    
+                    <i><label class="time_in"></label>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <label class="time_out"></label></i>
+                 </div>
+                
+                 <div class="form-group col-md-12">
+                    <label for="remarks"> Remarks</label>
+                    <input type="text" class="form-control" autocomplete="off" id="remarks" name="remarks" placeholder="Remarks"> 
+                 </div>
+
+              </div>
+              
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="delete-shift-sched-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-sm" role="document" style="min-width:30%;">
+     <form action="/delete_shift_schedule" method="POST" id="delete-shift-sched-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 Delete Shift Schedule
+              </h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body" style="font-size:18px;">
+              <div class="row">
+                 <div class="col-md-12">
+                       <input type="hidden" name="shift_sched_id" id="delete_shift_sched_id" class="delete_shift_sched_id">
+                       <input type="hidden" name="delete_shift_date" id="delete_shift_date" class="delete_shift_date">
+                       <div class="row" style="margin-top: -3%;">
+                          <div class="col-sm-12" style="margin-top:10px;">
+                             <span >Delete shift schedule permanently?</span>
+                          </div>               
+                       </div>
+                 </div>
+
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding-top: -100px;">Cancel</button>
+              &nbsp;
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+
+
 @include('modals.modal_select_item_merge')
 @include('modals.select_late_delivery_reason_modal')
 
 <style type="text/css">
+ #add-shift-schedule-modal .form-control{
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;  
+  }
+
   .bell{
     font-size: 40px;
     width: 30px;
@@ -1355,6 +1484,7 @@
 
 <script>
   $(document).ready(function(){
+    $('#reload_point_page').val('');
     $('.select-custom').select2({
       dropdownParent: $("#filter-form"),
       dropdownAutoWidth: false,
@@ -2560,4 +2690,125 @@ $('#btnPrint').on("click", function () {
   });
   }
   </script>
+    <script type="text/javascript">
+      function tbl_shift_schedule_sched(page, date, operation){
+          
+            $.ajax({
+              url:"/get_tbl_shiftsched_list/?page="+page,
+              type:"GET",
+              data: {date_sched: date, operation: operation},
+              success:function(data){
+                $('.tbl_shift_schedule_sched').html(data);
+              }
+            }); 
+      }
+    </script>
+  <script>
+    $(document).on('click', '.btnshift', function(e){
+      e.preventDefault();
+      var date = $(this).attr('data-date');
+      var primary_operation_id = $('#primary-operation-id').val();
+      $("#date_tobe_sched_shift").val(date);
+      tbl_shift_schedule_sched(1, date,primary_operation_id );
+      $('#shift-schedule-modal').modal('show');
+
+    });
+  </script>
+  <script type="text/javascript">
+    $(document).on('click', '#add-shift-schedule-button', function(){
+      var date=  $("#date_tobe_sched_shift").val();
+      var operation = $('#primary-operation-id').val();
+      $("#sched_date").val(date);
+      $('#add-shift-schedule-frm .time_in').text("");
+        $('#add-shift-schedule-frm .time_out').text("");
+        $.ajax({
+          url:"/get_shift_list_option",
+          type:"GET",
+          data: {operation: operation},
+          success:function(data){
+            $('#add-shift-schedule-frm .shift_id').html(data);
+            $('#add-shift-schedule-modal').modal('show');
+          }
+        });
+    });
+</script>
+<script type="text/javascript">
+  function get_shift_details(){
+    var shift_sched_id = $('#add-shift-schedule-frm #shift_id').val();
+    $.ajax({
+          url:"/get_shift_details/"+ shift_sched_id,
+          type:"GET",
+          success:function(data){
+            $('#add-shift-schedule-frm .time_in').text("Time-in:  " + data.time_in + "  " + " " + "  ");
+            $('#add-shift-schedule-frm .time_out').text("         Time-out:  " + data.time_out);
+          }
+        }); 
+  }
+</script>
+<script type="text/javascript">
+  $('#add-shift-schedule-frm').submit(function(e){
+    e.preventDefault();
+    var url = $(this).attr("action");
+    var operation = $('#primary-operation-id').val();
+    var date = $('#sched_date').val();
+    var reload_page_point = $('#reload_point_page').val();
+
+    $.ajax({
+      url: url,
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (data.success < 1) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          $('#add-shift-schedule-modal').modal('hide');
+          tbl_shift_schedule_sched(1,date, operation);
+          $('#reload_point_page').val( reload_page_point + 1);
+        }
+      }
+    });
+  });
+</script>
+<script type="text/javascript">
+  $(document).on('click', '.delete-shift-sched-list', function(){
+    var shift_sched_id = $(this).attr('data-shiftschedid');
+    var date=  $("#date_tobe_sched_shift").val();
+    $('#delete-shift-sched-frm .delete_shift_sched_id').val(shift_sched_id);
+    $('#delete-shift-sched-frm .delete_shift_date').val(date);
+    $('#delete-shift-sched-modal').modal('show');
+  });
+</script>
+<script type="text/javascript">
+  $('#delete-shift-sched-frm').submit(function(e){
+    e.preventDefault();
+    var operation = $('#primary-operation-id').val();
+    var date = $('#delete-shift-sched-frm .delete_shift_date').val();
+    var url = $(this).attr("action");
+    var reload_page_point = $('#reload_point_page').val();
+    $.ajax({
+      url: url,
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (data.success < 1) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          $('#delete-shift-sched-modal').modal('hide');
+          tbl_shift_schedule_sched(1,date, operation);
+          $('#reload_point_page').val( reload_page_point + 1);
+        }
+      }
+    });
+  });
+  $(document).on('click', '#btn-close-click-validator', function(){
+    var reload_page_point = $('#reload_point_page').val();
+    if(reload_page_point < 0 || reload_page_point == null || reload_page_point == ""){
+    }else{
+      location.reload();
+    }
+  });
+  
+</script>
 @endsection

@@ -3527,12 +3527,15 @@ class SecondaryController extends Controller
 
     }
     public function get_tbl_shiftsched_list(Request $request){
+        $operation= ($request->operation == 0) ? 2 : $request->operation;
 
         $shift_sched_list= DB::connection('mysql_mes')
                 ->table('shift_schedule')
                 ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
                 ->join('operation', 'operation.operation_id', 'shift.operation_id')
-                ->select('shift_schedule.*', 'operation.operation_name', 'shift.shift_type')
+                ->where('operation.operation_id','like','%'. $operation.'%')
+                ->whereDate('shift_schedule.date','like','%'. $request->date_sched.'%')
+                ->select('shift_schedule.*', 'operation.operation_name', 'shift.shift_type', 'shift.time_in', 'shift.time_out')
                 ->get();
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -3617,13 +3620,14 @@ class SecondaryController extends Controller
 
         return view('shift', compact('operation_list', 'shift_list', 'out_today', 'calendar'));
     }
-    public function get_shift_list_option(){
+    public function get_shift_list_option(Request $request){
         $output = '<option value=""></option>';
-        
+            $operation= ($request->operation == 0) ? 2 : $request->operation;
             $shift_list=DB::connection('mysql_mes')
                 ->table('shift')
                 ->join('operation', 'operation.operation_id', 'shift.operation_id')
                 ->where('shift.shift_type','!=', 'Regular Shift')
+                ->where('shift.operation_id', $operation)
                 ->get();
 
             foreach($shift_list as $row)
