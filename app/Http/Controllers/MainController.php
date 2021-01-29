@@ -2408,15 +2408,14 @@ class MainController extends Controller
 			$customers = array_merge($customers, array_column($orders, 'customer'));
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
-
+			$shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
 			$scheduled[] = [
-				'shift'=> [],
+				'shift'=> $shift_sched,
 				'schedule' => $date->format('Y-m-d'),
 				'duplicate_item_code' => 0,
 				'orders' => $orders,
 			];
 		}
-
 		$filters = [
 			'customers' => array_unique($customers),
 			'reference_nos' => array_unique($reference_nos),
@@ -2506,10 +2505,10 @@ class MainController extends Controller
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
 
-			// $shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
+			$shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
 			// $total_seconds= collect($orders)->sum('cycle_in_seconds');
 			$scheduled[] = [
-				'shift'=> [],
+				'shift'=> $shift_sched,
 				'schedule' => $date->format('Y-m-d'),
 				// 'estimates' => $this->format_for_estimates($total_seconds),
 				// 'estimates_in_seconds' => $total_seconds,
@@ -2517,7 +2516,6 @@ class MainController extends Controller
 				'orders' => $orders,
 			];
 		}
-
 		$filters = [
 			'customers' => array_unique($customers),
 			'reference_nos' => array_unique($reference_nos),
@@ -2616,33 +2614,63 @@ class MainController extends Controller
 	}
 
 	public function get_prod_shift_sched($date, $operation_id){
+		$operation_id=($operation_id == 0)? '2' : $operation_id;
 		$scheduled = [];
-		if (DB::connection('mysql_mes')
-        ->table('shift_schedule')
-		->where('date', $date)
-        ->exists()){
-
-			$shift_sched = DB::connection('mysql_mes')
-			->table('shift_schedule')
-			->where('date', $date)->get();
-			foreach($shift_sched as $r){
-				$shift_sched = DB::connection('mysql_mes')
-				->table('shift')
-                ->where('shift_id', $r->shift_id)
-                ->where('operation_id', $operation_id)
-                ->operat
-				->first();
-				$scheduled1[] = [
-					'time_in'=> $shift_sched->time_in,
-					'time_out' =>  $shift_sched->time_out,
-					'shift_type' =>  $shift_sched->shift_type,
+		$special_shift_shift= DB::connection('mysql_mes')
+		->table('shift_schedule')
+		->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+		->where('shift_schedule.date', $date)
+		->where('shift.operation_id', $operation_id)
+		->where('shift.shift_type', 'Special Shift')
+		->select('shift.shift_type', 'shift.time_in', 'shift.time_out')
+		->get();
+		
+		if(count($special_shift_shift) == 0){
+			$shifts= DB::connection('mysql_mes')
+			->table('shift')
+			->where('shift.operation_id', $operation_id)
+			->where('shift_type', 'Regular Shift')
+			->first();
+			if(empty($shifts)){
+				$scheduled[] = [
+					'time_in'=> 'NO SHIFT FOUND',
+					'time_out' =>  '',
+					'shift_type' =>  "No Shift",
+				];
+			}else{
+				$scheduled[] = [
+					'time_in'=> $shifts->time_in,
+					'time_out' =>  $shifts->time_out,
+					'shift_type' =>  $shifts->shift_type,
 				];
 			}
-			
 		}else{
-			$scheduled1 = [];
+			foreach($special_shift_shift as $r){
+				$scheduled[] = [
+					'time_in'=> $r->time_in,
+					'time_out' =>  $r->time_out,
+					'shift_type' =>  $r->shift_type,
+				];
+			}
 		}
-		return $scheduled1;
+		$o_shift_shift= DB::connection('mysql_mes')
+		->table('shift_schedule')
+		->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+		->where('shift_schedule.date', $date)
+		->where('shift.operation_id', $operation_id)
+		->where('shift.shift_type', 'Overtime Shift')
+		->select('shift.shift_type', 'shift.time_in', 'shift.time_out')
+		->get();
+		foreach($o_shift_shift as $r){
+			$scheduled[] = [
+				'time_in'=> $r->time_in,
+				'time_out' =>  $r->time_out,
+				'shift_type' =>  $r->shift_type,
+			];
+		}	
+
+		$sched= collect($scheduled);
+		return $scheduled;
     }
 
 	public function get_customer_reference_no($customer){

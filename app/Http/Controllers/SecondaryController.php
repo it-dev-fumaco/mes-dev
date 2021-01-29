@@ -3182,76 +3182,11 @@ class SecondaryController extends Controller
     public function edit_shift(Request $request){
          $now = Carbon::now();
          $check_if_exit = DB::connection('mysql_mes')->table('shift')->where('shift_type', '=' ,'Regular Shift')->where('operation_id', $request->operation )->first();
+         
         // dd($request->all());
-            if($check_if_exit->shift_type == $request->old_shift_type){
-                $values1 = [
-                    'time_in' => $request->time_in,
-                    'time_out' => $request->time_out,
-                    'qty_capacity' => $request->qty_capacity,
-                    'operation_id' =>$request->operation,
-                    'remarks' => $request->remarks,
-                    'shift_type' => $request->shift_type,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-                DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
-                // for delete
-                if ($request->old_break) {
-                    $delete_break= DB::connection('mysql_mes')
-                        ->table('breaktime')
-                        ->where('shift_id', $request->shift_id)
-                        ->whereIn('id', $request->old_break)
-                        ->whereNotIn('id', $request->oldshiftbreakid)
-                        ->delete();
-                }
-                // for insert
-                if ($request->newshiftcategory) {
-                    foreach($request->newshiftcategory as $i => $row){
-                        $start = Carbon::parse($request->newtimein[$i]);
-                        $end = Carbon::parse($request->newtimeout[$i]);
-                        $totalDuration = $end->diffInMinutes($start);
-
-                        $new_breaktime[] = [
-                            'shift_id'=> $request->shift_id,
-                            'category' => $row,
-                            'time_from' => date("H:i:s", strtotime($request->newtimein[$i])),
-                            'time_to' => date("H:i:s", strtotime($request->newtimeout[$i])),
-                            'breaktime_in_mins' => $totalDuration,
-                            'last_modified_by' => Auth::user()->email,
-                            'created_by' => Auth::user()->email,
-                            'created_at' => $now->toDateTimeString()
-                        ];
-                    }
-
-                    DB::connection('mysql_mes')->table('breaktime')->insert($new_breaktime);
-                }
-                //update
-                if ($request->oldshiftcategory) {
-                    foreach($request->oldshiftcategory as $i => $row){
-                        $start = Carbon::parse($request->oldtimein[$i]);
-                        $end = Carbon::parse($request->oldtimeout[$i]);
-                        $totalDuration = $end->diffInMinutes($start);
-
-                        $update_breaktime= [
-                            'category' => $row,
-                            'time_from' => date("H:i:s", strtotime($request->oldtimein[$i])),
-                            'time_to' => date("H:i:s", strtotime($request->oldtimeout[$i])),
-                            'breaktime_in_mins' => $totalDuration,
-                            'last_modified_by' => Auth::user()->email
-                        ];
-                        $shift_id_forupdate= $request->oldshiftbreakid[$i];
-                        DB::connection('mysql_mes')->table('breaktime')->where('id',$shift_id_forupdate)->update($update_breaktime);
-
-                    }
-
-                }
-                return response()->json(['success' => 1, 'message' => 'Shift successfully updated']);
-                
-            }elseif($check_if_exit->shift_type == $request->shift_type)  {
+            if((empty($check_if_exit)? '' : $check_if_exit->shift_type) == $request->shift_type){
                 return response()->json(['success' => 0, 'message' => 'Shift already exists']);  
-            }
-            else{
-
+            }else{
                 $values1 = [
                     'time_in' => $request->time_in,
                     'time_out' => $request->time_out,
@@ -3466,6 +3401,14 @@ class SecondaryController extends Controller
                 ->where('shift_id', '=', $request->shift_id)
                 ->exists()){
                 return response()->json(['success' => 0, 'message' => 'Shift schedule already exists']);            
+            }
+            elseif(DB::connection('mysql_mes')->table('shift_schedule')
+            ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+            ->where('date', '=', $request->sched_date)
+            ->where('shift.shift_type', '=', $shift_details->shift_type)
+            ->where('shift.operation_id', '=', $shift_details->operation_id)
+            ->exists()){
+                return response()->json(['success' => 0, 'message' => $shift_details->shift_type.' already exists in '.$request->sched_date]);            
             }
             else{
                 if($shift_details->shift_type == "Special Shift"){

@@ -258,7 +258,7 @@
                     <tr id="containers">
                       @foreach($scheduled as $r)
                       <td class="td unique_container">
-                        <div class="card" style="background-color:#e5e7e9;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
+                        <div class="card" style="background-color:#e5e7e9;height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
                           <div class="card-header" style="margin-top: -15px;">
                             <input type="hidden" id="divcount-{{ $r['schedule'] }}" style="margin-bott0m:20px;" value="">
                             <h5 class="card-title text-center" style="font-size: 12pt;">
@@ -290,7 +290,7 @@
                               </span>
                             </h5>
                             <br>
-                            <div class="form-check" style="margin: -65px 0 40px 0;">
+                            <div class="form-check" style="margin: -65px 0 28px 0;">
                               <label class="customcontainer">
                                 <input type="checkbox" id="check-{{ $r['schedule'] }}" class="checkmeall" data-checkall="{{ $r['schedule'] }}">
                                 <span class="checkmark1" style="margin-left: -5px !important;"></span>
@@ -298,15 +298,18 @@
                             </div>
                             <input type="hidden" id="tryme-{{ $r['schedule'] }}" class="printbox"></input>
                             @forelse($r['shift'] as $i => $sched)
-                            <span class="text-center" style="font-size:8pt;display:block; margin-top: -75px;">
-                              <span style="display: {{($sched['shift_type'] == 'Special Shift') ? '' : 'none'}}">Shift - &nbsp;</span>
+                            <span class="text-center" style="font-size:8pt;display:block; margin: -15px 0 5px 0;line-height:20px;">
+                              <span style="display: {{($sched['shift_type'] == 'No Shift') ? '' : 'none'}};">-&nbsp;</span>
+                              <span style="display: {{($sched['shift_type'] == 'Regular Shift') ? '' : 'none'}}">Regular Shift - &nbsp;</span>
+                              <span style="display: {{($sched['shift_type'] == 'Special Shift') ? '' : 'none'}}">Special Shift - &nbsp;</span>
                               <span style="display: {{($sched['shift_type'] == 'Overtime Shift') ? '' : 'none'}}">Overtime - &nbsp;</span>{{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}
+                              
                             </span>
                             @empty
                             <span class="text-center" style="font-size:8pt;display:block; margin-top: -8px;"></span>
                             @endforelse
                           </div>
-                          <div class="card-body sortable_list connectedSortable" id="{{ $r['schedule'] }}" style="height: 750px; position: relative; overflow-y: auto;">
+                          <div class="card-body sortable_list connectedSortable" id="{{ $r['schedule'] }}" style="height: 700px; position: relative; overflow-y: auto;">
                           @foreach($r['orders'] as $i => $order)
                             @php
                             if( $order['status'] == 'Completed'){
