@@ -680,6 +680,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/assembly/print_machine_schedule/{scheduled_date}/{machine_code}', 'AssemblyController@print_assembly_machine_schedule');
 	
 	Route::post('/update_conveyor_assignment', 'AssemblyController@update_conveyor_assignment');
+
+	Route::post('/cancel_production_order_feedback/{stock_entry}', 'ManufacturingController@cancel_production_order_feedback');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

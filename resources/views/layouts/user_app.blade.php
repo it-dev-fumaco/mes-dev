@@ -508,6 +508,36 @@
     </div>
   </div>
   @include('modals.item_track_modal')
+
+  <div class="modal fade" id="cancel-production-order-feedback-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+      <form action="/cancel_production_order_feedback" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title">Cancel Production Order Feedback</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row m-0 p-0">
+              <div class="col-md-12 p-0">
+                  <input type="hidden" name="stock_entry">
+                  <p class="text-center p-0 m-0">
+                  <span class="d-block">Do you want to cancel production order feedback</span> for <span class="production-order font-weight-bold">-</span> <span class="qty font-weight-bold">-</span>?</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer p-2">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Confirm</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <style type="text/css">
     .qc_passed{
       background-image: url("{{ asset('img/chk.png') }}");
@@ -772,6 +802,44 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+
+    $(document).on('click', '.cancel-production-order-feedback-btn', function(e){
+      e.preventDefault();
+      var $row = $(this).closest('tr');
+
+      var qty_uom = '[' + $row.find('.qty').eq(0).text() + ' ' + $row.find('.uom').eq(0).text() + ']';
+
+      $('#cancel-production-order-feedback-modal input[name="stock_entry"]').val($(this).data('stock-entry'));
+      $('#cancel-production-order-feedback-modal .production-order').text($row.find('.production-order').eq(0).text());
+      $('#cancel-production-order-feedback-modal .qty').text(qty_uom);
+      $('#cancel-production-order-feedback-modal').modal('show');
+    });
+
+    $('#cancel-production-order-feedback-modal form').submit(function(e){
+      e.preventDefault();
+
+      var production_order = $('#cancel-production-order-feedback-modal .production-order').eq(0).text();
+      var stock_entry = $('#cancel-production-order-feedback-modal input[name="stock_entry"]').val();
+      $.ajax({
+        url:"/cancel_production_order_feedback/" + stock_entry,
+        type:"POST",
+        success:function(data){
+          if(data.status == 1){
+            get_production_order_items(production_order);
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#cancel-production-order-feedback-modal').modal('hide');
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
 
     $(document).on('click', '.generate-ste-btn', function(e){
       e.preventDefault();
