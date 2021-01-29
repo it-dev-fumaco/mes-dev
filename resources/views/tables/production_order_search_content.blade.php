@@ -13,17 +13,17 @@
 	<div class="col-md-12">
         <ul class="nav nav-tabs" id="myTabsearchpo" role="tablistsearch">
           <li class="nav-item protab">
-            <a class="nav-link active" id="prodserach-tab" data-toggle="tab" href="#prod_search_tab" role="tab" aria-controls="search_tab" aria-selected="true">{{ $tab_name }}</a>
+            <a class="nav-link active" id="prodserach-tab{{ $production_order_no }}" data-toggle="tab" href="#prod_search_tab{{ $production_order_no }}" role="tab" aria-controls="search_tab" aria-selected="true">{{ $tab_name }}</a>
           </li>
           @foreach($tab as $index => $row)
             <li class="nav-item protab">
-                <a class="nav-link" id="tab{{$index}}" onclick="return false;" data-toggle="tab" href="#tab_{{$index}}" role="tab" aria-controls="search_tab" aria-selected="true">{{$row['tab']}}</a>
+                <a class="nav-link" id="tab{{$index}}{{$row['tab']}}" onclick="return false;" data-toggle="tab" href="#tab_{{$index}}{{$row['tab']}}" role="tab" aria-controls="search_tab" aria-selected="true">{{$row['tab']}}</a>
             </li>
           @endforeach                  
         </ul>
         <!-- Tab panes -->
         <div class="tab-content">
-             <div class="tab-pane active" id="prod_search_tab" role="tabpanel" aria-labelledby="search_tab">
+             <div class="tab-pane active" id="prod_search_tab{{ $production_order_no }}" role="tabpanel" aria-labelledby="search_tab">
                 <div class="row" style="margin-top: 12px;">
                     <div class="col-md-12">
 						<div class="row">
@@ -59,10 +59,15 @@
 								</div>
 							</div>
 							<div class="col-md-12">
-									<div style="margin: 5px;">
+								@php 
+								@endphp
+									<div style="margin: 5px; display:{{($item_details['planned_start_date'] == null )? 'none':''}};">
 										<span style="font-size: 12pt; margin: auto;">Scheduled Date: </span>
 										<span class="font-weight-bold" style="font-size: 12pt; margin: auto;">{{ $item_details['planned_start_date'] }}</span>
 										<span class="badge badge-{{ ($item_details['status'] == 'Late') ? 'danger' : 'info' }}">{{ $item_details['status'] }}</span>
+									</div>
+									<div style="margin: 5px; display:{{($item_details['planned_start_date'] == null )? '':'none'}};">
+										<span style="font-size: 12pt; margin: auto;color:#dc3545;font-weight:bolder;">Unscheduled</span>
 									</div>
 								<table style="width: 100%; border-color: #D5D8DC;">
 										<col style="width: 18%;">
@@ -216,7 +221,7 @@
 			<br>
             @foreach($tab as $index => $row)
             
-            <div class="tab-pane" id="tab_{{$index}}" role="tabpanel" aria-labelledby="search_tab">
+            <div class="tab-pane" id="tab_{{$index}}{{$row['tab']}}" role="tabpanel" aria-labelledby="search_tab">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="row" style="margin: 0 8px;">
