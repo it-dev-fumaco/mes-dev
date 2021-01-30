@@ -24,13 +24,33 @@
             <td style="width: 55%;">
               <h2 class="title" style="margin: 2px auto; padding-left: 10px;">{{ $workstation_name }}</h2>
             </td>
+            
+          </tr>
+          <tr style="margin-top:50px;" class="text-center">
+            <td style="width: 20%; text-center">
+            </td>
+            <td style="width: 25%; text-center">
+             {{-- <span class="title" style="margin: 20px auto;font-size:20px; ">{{($breaktime != null)? $breaktime['break_type'].": ":"" }}{{($breaktime != null)? $breaktime['time_in']."-":"" }}{{($breaktime != null)?  $breaktime['time_out']:""}}</span>--}}
+            </td>
           </tr>
         </table>
       </div>
     </div>
-    
   </div>
 </div>
+@foreach($breaktime_data as $r => $row)
+<div class="col-md-12" id="{{$r}}{{$row['div_id']}}" style="display:none; margin-top:-120px;margin-bottom:100px;">
+  <div class="alert alert-primary text-center" role="alert">
+    <span class="d-none"></span>
+    <div class="container">
+      <div class="alert-icon" style="color:black;">
+        <i class="now-ui-icons ui-2_time-alarm" style="padding-right:5px;font-size:30px;"></i><span style="font-size:18pt;"> <b>{{$row['break_type']}} :</b></span> 
+              <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
+      </div>
+    </div>
+  </div>
+</div>
+@endforeach
 @include('modals.view_operators_load')
 @include('modals.select_scrap_modal')
 @include('modals.select_process_modal')
@@ -107,7 +127,9 @@
     </div>
   </div>
 </div>
-
+@foreach($breaktime_data as $r => $row)
+  <input type="hidden" class="breaktime_input" value="{{$row['break_type']}}" data-timein="{{$row['time_in']}}" data-timeout="{{$row['time_out']}}" data-type="{{$row['break_type']}}" data-divid="{{$r}}{{$row['div_id']}}">
+@endforeach
 @include('modals.search_productionorder')
 
 <!-- Modal -->
@@ -285,6 +307,32 @@
 </div>
 
 <style type="text/css">
+    @-webkit-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @-moz-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @-o-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    
+    .blink_break{
+      text-decoration: blink;
+      -webkit-animation-name: blinker;
+      -webkit-animation-duration: 3s;
+      -webkit-animation-iteration-count:infinite;
+      -webkit-animation-timing-function:ease-in-out;
+      -webkit-animation-direction: alternate;
+    }
+
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
     background-size: 28%;
@@ -1510,6 +1558,7 @@
 </script>
 <script>
   var now = new Date(<?php echo time() * 1000 ?>);
+  
   function startInterval(){  
     setInterval('showTime();', 1000);
   }
@@ -1520,6 +1569,18 @@
     if(clock){
       clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
     }
+    var timeformat = manilaTime.toTimeString();
+    $('.breaktime_input').each(function() {
+      var div_id= "#" + $(this).data('divid');
+      if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
+        $(div_id).show();
+        $(div_id).addClass("blink_break");
+      }else{
+        $(div_id).hide();
+        $("#div_id").removeClass("blink_break");
+
+      }
+    });
   }
 </script>
 <script type="text/javascript">
