@@ -1975,9 +1975,26 @@ class ManufacturingController extends Controller
                 $qty = $request->quantity[$id];
 
                 $existing_production_item = DB::connection('mysql')->table('tabProduction Order Item')
-                    ->where('parent', $request->production_order)->where('item_code', $item_code)->exists();
+                    ->where('parent', $request->production_order)->where('item_code', $item_code)->first();
 
                 if(!$existing_production_item){
+                    // get remaining required qty if item is an alternative
+                    if($request->item_as[$id] != 'new_item'){
+                        $alternative_for = DB::connection('mysql')->table('tabProduction Order Item')
+                            ->where('parent', $request->production_order)->where('item_code', $request->item_as[$id])
+                            ->first();
+                        
+                        // validate qty vs remaining required qty
+                        $remaining_required_qty = $alternative_for->required_qty - $alternative_for->transferred_qty;
+                        if($remaining_required_qty < $qty){
+                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than ' . $remaining_required_qty . ' for <b>' . $item_code .'</b>.']);
+                        }
+
+                        DB::connection('mysql')->table('tabProduction Order Item')
+                            ->where('parent', $request->production_order)->where('item_code', $alternative_for->item_code)
+                            ->update(['required_qty' => ($alternative_for->required_qty - $qty)]);
+                    }
+
                     // insert items to production order item table in erp
                     $production_order_required_item_id = 'prid' . uniqid();
                     $production_order_item = [
@@ -2003,9 +2020,16 @@ class ManufacturingController extends Controller
                     ];
 
                     DB::connection('mysql')->table('tabProduction Order Item')->insert($production_order_item);
-                }
+                }else{
+                    // update required_qty for additional 
+                    $production_order_item = [
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->email,
+                        'required_qty' => $existing_production_item->required_qty + $qty,
+                    ];
 
-                
+                    DB::connection('mysql')->table('tabProduction Order Item')->where('name', $existing_production_item->name)->update($production_order_item);
+                }
 
                 $latest_ste = DB::connection('mysql')->table('tabStock Entry')->max('name');
                 $latest_ste_exploded = explode("-", $latest_ste);

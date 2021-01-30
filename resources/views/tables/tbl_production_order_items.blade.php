@@ -152,9 +152,10 @@
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
-					<td class="text-justify" {!! $rowspan !!}>
+					<td class="text-justify for-add-item" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $component['item_code'] }}</span>
+						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
 						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
@@ -330,9 +331,10 @@
 						@endif
 						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
-					<td class="text-justify" {!! $rowspan !!}>
+					<td class="text-justify for-add-item" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
+						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
 						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
