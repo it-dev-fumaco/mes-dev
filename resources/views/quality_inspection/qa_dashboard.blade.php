@@ -296,7 +296,7 @@
                                                   <label style="color: black;">Date Range:</label>
                                                   <input type="text" class="date form-control" name="daterange" autocomplete="off" placeholder="Select Date From" id="daterange_fabrication" value="" style="text-align:center;display:inline-block;width:100%;height:30px;" >
                                                 </div>
-                                                <div class="form-group">
+                                                <div class="form-group margin-top">
                                                       <label style="color: black;">Workstation</label>
                                                       <select class="form-control text-center sel6" name="workstation" id="workstation">
                                                           <option value=""> Select Workstation</option>
@@ -305,7 +305,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                  <div class="form-group" style="margin-top: -14px;">
+                                                  <div class="form-group margin-top">
                                                       <label style="color: black;">Item Code</label>
                                                       <select class="form-control text-center sel6 " name="item_code" id="item_code">
                                                           <option value=""> Select Item Code</option>
@@ -315,7 +315,7 @@
                                                         </select>
                                                    </div>
 
-                                                  <div class="form-group">
+                                                  <div class="form-group margin-top">
                                                       <label style="color: black;">Production Order</label>
                                                        <select class="form-control text-center sel6 " name="prod" id="prod">
                                                           <option value=""> Select Production Order</option>
@@ -324,7 +324,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                  <div class="form-group">
+                                                  <div class="form-group margin-top">
                                                       <label style="color: black;">Customer</label>
                                                       <select class="form-control text-center sel6 " name="customer" id="customer">
                                                           <option value=""> Select Customer</option>
@@ -334,7 +334,7 @@
                                                         </select>
                                                    </div>
                                                    
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">Process</label>
                                                       <select class="form-control text-center sel6 " name="process" id="process">
                                                         <option value=""> Select Process</option>
@@ -343,7 +343,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">QC Status</label>
                                                       <select class="form-control text-center sel6 " name="qa_status" id="qa_status">
                                                           <option value="">Select Status</option>
@@ -352,7 +352,7 @@
                                                           <option value="QC Failed">QC Failed</option>
                                                         </select>
                                                    </div>
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">QC Inspector</label>
                                                       <select class="form-control text-center sel6 " name="qa_inspector" id="qa_inspector">
                                                           <option value="">Select QC Inspector</option>
@@ -361,7 +361,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">Operator</label>
                                                       <select class="form-control text-center sel6 " name="operator" id="operator">
                                                           <option value="">Select Operator</option>
@@ -410,7 +410,7 @@
                                                   <label style="color: black;">Date Range:</label>
                                                   <input type="text" class="date form-control" name="daterange_painting" autocomplete="off" placeholder="Select Date From" id="daterange_painting" value="" style="text-align:center;display:inline-block;width:100%;height:30px;" onchange="tbl_log_fabrication()">
                                                 </div>
-                                                <div class="form-group">
+                                                <div class="form-group margin-top">
                                                       <label style="color: black;">Workstation</label>
                                                       <select class="form-control text-center sel3" name="workstation_painting" id="workstation_painting" onchange="tbl_log_fabrication()">
                                                           <option value=""> Select Workstation</option>
@@ -419,7 +419,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                  <div class="form-group" style="margin-top: -14px;">
+                                                  <div class="form-group margin-top">
                                                       <label style="color: black;">Item Code</label>
                                                       <select class="form-control text-center sel3 " name="item_code_painting" id="item_code_painting">
                                                           <option value=""> Select Item Code</option>
@@ -429,7 +429,7 @@
                                                         </select>
                                                    </div>
 
-                                                  <div class="form-group">
+                                                  <div class="form-group margin-top">
                                                       <label style="color: black;">Production Order</label>
                                                        <select class="form-control text-center sel3 " name="prod_painting" id="prod_painting">
                                                           <option value=""> Select Production Order</option>
@@ -438,7 +438,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                  <div class="form-group">
+                                                  <div class="form-group margin-top">
                                                       <label style="color: black;">Customer</label>
                                                       <select class="form-control text-center sel3 " name="customer_painting" id="customer_painting">
                                                           <option value=""> Select Customer</option>
@@ -448,7 +448,7 @@
                                                         </select>
                                                    </div>
                                                    
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">Process</label>
                                                       <select class="form-control text-center sel3 " name="process_painting" id="process_painting">
                                                         <option value=""> Select Process</option>
@@ -457,7 +457,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">QC Status</label>
                                                       <select class="form-control text-center sel3 " name="qa_status_painting" id="qa_status_painting">
                                                           <option value="">Select Status</option>
@@ -466,7 +466,7 @@
                                                           <option value="QC Failed">QC Failed</option>
                                                         </select>
                                                    </div>
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">QC Inspector</label>
                                                       <select class="form-control text-center sel3 " name="qa_inspector_painting" id="qa_inspector_painting">
                                                           <option value="">Select QC Inspector</option>
@@ -475,7 +475,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                   <div class="form-group">
+                                                   <div class="form-group margin-top">
                                                       <label style="color: black;">Operator</label>
                                                       <select class="form-control text-center sel3 " name="operator_painting" id="operator_painting">
                                                           <option value="">Select Operator</option>
@@ -524,7 +524,7 @@
                                                 <label style="color: black;">Date Range:</label>
                                                 <input type="text" class="date form-control" name="daterange_assem" autocomplete="off" placeholder="Select Date From" id="daterange_assem" value="" style="text-align:center;display:inline-block;width:100%;height:30px;" onchange="tbl_log_fabrication()">
                                               </div>
-                                              <div class="form-group">
+                                              <div class="form-group margin-top">
                                                     <label style="color: black;">Workstation</label>
                                                     <select class="form-control text-center sel4" name="workstation_assem" id="workstation_assem">
                                                         <option value=""> Select Workstation</option>
@@ -533,7 +533,7 @@
                                                         @endforeach
                                                       </select>
                                                  </div>
-                                                <div class="form-group" style="margin-top: -14px;">
+                                                <div class="form-group margin-top">
                                                     <label style="color: black;">Item Code</label>
                                                     <select class="form-control text-center sel4 " name="item_code_assem" id="item_code_assem">
                                                         <option value=""> Select Item Code</option>
@@ -543,7 +543,7 @@
                                                       </select>
                                                  </div>
 
-                                                <div class="form-group">
+                                                <div class="form-group margin-top">
                                                     <label style="color: black;">Production Order</label>
                                                      <select class="form-control text-center sel4 " name="prod_assem" id="prod_assem">
                                                         <option value=""> Select Production Order</option>
@@ -552,7 +552,7 @@
                                                         @endforeach
                                                       </select>
                                                  </div>
-                                                <div class="form-group">
+                                                <div class="form-group margin-top">
                                                     <label style="color: black;">Customer</label>
                                                     <select class="form-control text-center sel4 " name="customer_assem" id="customer_assem">
                                                         <option value=""> Select Customer</option>
@@ -562,7 +562,7 @@
                                                       </select>
                                                  </div>
                                                  
-                                                 <div class="form-group">
+                                                 <div class="form-group margin-top">
                                                     <label style="color: black;">Process</label>
                                                     <select class="form-control text-center sel4 " name="process_assem" id="process_assem">
                                                       <option value=""> Select Process</option>
@@ -571,7 +571,7 @@
                                                         @endforeach
                                                       </select>
                                                  </div>
-                                                 <div class="form-group">
+                                                 <div class="form-group margin-top">
                                                     <label style="color: black;">QC Status</label>
                                                     <select class="form-control text-center sel4 " name="qa_status_assem" id="qa_status_assem">
                                                         <option value="">Select Status</option>
@@ -580,7 +580,7 @@
                                                         <option value="QC Failed">QC Failed</option>
                                                       </select>
                                                  </div>
-                                                 <div class="form-group">
+                                                 <div class="form-group margin-top">
                                                     <label style="color: black;">QC Inspector</label>
                                                     <select class="form-control text-center sel4 " name="qa_inspector_assem" id="qa_inspector_assem">
                                                         <option value="">Select QC Inspector</option>
@@ -589,7 +589,7 @@
                                                         @endforeach
                                                       </select>
                                                  </div>
-                                                 <div class="form-group">
+                                                 <div class="form-group margin-top">
                                                     <label style="color: black;">Operator</label>
                                                     <select class="form-control text-center sel4 " name="operator_assem" id="operator_assem">
                                                         <option value="">Select Operator</option>
@@ -813,6 +813,9 @@
     </div>
   </div>
 <style>
+  .margin-top{
+    margin-top: -18px;
+  }
 #fabrication .form-control, #painting .form-control{
     border: 1px solid #ccc;
   border-radius: 3px;
