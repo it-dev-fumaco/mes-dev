@@ -3937,6 +3937,134 @@ class ManufacturingController extends Controller
     }
 
     public function get_reason_for_cancellation(){
-		return DB::connection('mysql_mes')->table('reason_for_cancellation_po')->orderBy('reason_for_cancellation', 'asc')->get();
+		  return DB::connection('mysql_mes')->table('reason_for_cancellation_po')->orderBy('reason_for_cancellation', 'asc')->get();
+    }
+    
+    public function cancel_production_order_feedback($stock_entry){
+        DB::connection('mysql')->beginTransaction();
+        try {
+            $now = Carbon::now();
+            $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry')
+                ->where('name', $stock_entry)->where('docstatus', 1)->where('purpose', 'Manufacture')->first();
+            // check if stock entry (manufacture) exists
+            if(!$stock_entry_detail){
+                return response()->json(['status' => 0, 'message' => 'Production Order Feedback not found. Ref. No: <b>' . $stock_entry . '</b>']);
+            }
+            // get production order details
+            $production_order_detail = DB::connection('mysql')->table('tabProduction Order')->where('name', $stock_entry_detail->production_order)->first();
+            // check if production order exists
+            if(!$production_order_detail){
+                return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $stock_entry . '</b> not found.']);
+            }
+            // get production order reference order no
+            if(!$production_order_detail->material_request){
+                $sales_order = ($production_order_detail->sales_order) ? $production_order_detail->sales_order : $production_order_detail->sales_order_no;
+                // get sales order detail
+                $sales_order_detail = DB::connection('mysql')->table('tabSales Order')->where('name', $sales_order)->first();
+                // check if sales order exists
+                if(!$sales_order_detail){
+                    return response()->json(['status' => 0, 'message' => 'Sales Order <b>' . $sales_order . '</b> not found.']);
+                }
+                // check sales order if fully delivered
+                if($sales_order_detail->per_delivered >= 100){
+                    return response()->json(['status' => 0, 'message' => 'Unable to cancel feedback. <b>' . $sales_order . '</b> has been fully delivered.']);
+                }
+                // get total delivered qty per parent item code
+                $delivered_qty = DB::connection('mysql')->table('tabSales Order Item')
+                    ->where('parent', $sales_order)->where('item_code', $production_order_detail->parent_item_code)
+                    ->sum('delivered_qty');
+                // validate delivered qty per parent item code
+                if($delivered_qty > $stock_entry_detail->fg_completed_qty){
+                    return response()->json(['status' => 0, 'message' => 'Unable to cancel feedback. <b>' . $production_order_detail->parent_item_code . '</b> has been fully delivered.']);
+                }
+            }
+            // get stock entry items
+            $stock_entry_items = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
+
+            $bin = [];
+            foreach ($stock_entry_items as $row) {
+                if ($row->s_warehouse) {
+                    $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
+                        ->where('item_code', $row->item_code)->first();
+
+                    $actual_qty = $bin_qry->actual_qty + $row->transfer_qty;
+
+                    $bin = [
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->email,
+                        'actual_qty' => $actual_qty,
+                        'stock_value' => $bin_qry->valuation_rate * $actual_qty,
+                        'valuation_rate' => $bin_qry->valuation_rate,
+                    ];
+
+                    // update bin for stock entry item (raw materials)
+                    DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
+                }
+
+                if ($row->t_warehouse) {
+                    $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
+                        ->where('item_code', $row->item_code)->first();
+
+                    $actual_qty = $bin_qry->actual_qty - $row->transfer_qty;
+
+                    if($actual_qty < 0){
+                        return response()->json(['status' => 0, 'message' => '<b>' . abs($actual_qty) . ' units of item <b>' . $row->item_code . '</b> in warehouse <b>' . $row->t_warehouse . '</b> to complete this transaction.']);
+                    }
+
+                    $bin = [
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->email,
+                        'actual_qty' => $actual_qty,
+                        'stock_value' => $bin_qry->valuation_rate * $actual_qty,
+                        'valuation_rate' => $bin_qry->valuation_rate,
+                    ];
+
+                    // update bin for stock entry item (finished good)
+                    DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
+                }
+            }
+
+            // update stock entry parent and child table as cancelled
+            $log = [
+                'modified' => $now->toDateTimeString(),
+                'modified_by' => Auth::user()->email,
+                'docstatus' => 2
+            ];
+
+            DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->update($log);
+            DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->update($log);
+            // delete stock ledger and gl entries
+            DB::connection('mysql')->table('tabGL Entry')->where('voucher_no', $stock_entry)->delete();
+            DB::connection('mysql')->table('tabStock Ledger Entry')->where('voucher_no', $stock_entry)->delete();
+
+            // get production order remaining feedbacked qty 
+            $remaining_feedbacked_qty = $production_order_detail->produced_qty - $stock_entry_detail->fg_completed_qty;
+            // update production order produced qty and status in ERP
+            DB::connection('mysql')->table('tabProduction Order')
+                ->where('name', $stock_entry_detail->production_order)->update(['produced_qty' => $remaining_feedbacked_qty, 'modified' => $now->toDateTimeString(),
+                'modified_by' => Auth::user()->email, 'status' => 'In Process']);
+
+            DB::connection('mysql_mes')->beginTransaction();
+            // update production order feedbacked qty  in MES
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->production_order)
+                ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+            
+             // update feedback logs as cancelled in MES
+            DB::connection('mysql_mes')->table('feedbacked_logs')
+                ->where('ste_no', $stock_entry)->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+
+            DB::connection('mysql_mes')->commit();
+
+            DB::connection('mysql')->commit();
+
+            return response()->json(['status' => 1, 'message' => 'Production Order Feedback has been cancelled.']);
+        } catch (Exception $th) {
+            DB::connection('mysql_mes')->rollback();
+
+            DB::connection('mysql')->rollback();
+
+            return response()->json(['status' => 0, 'message' => 'There was a problem cancelling production order feedback.']);
+        }
+    }
 	}
 }

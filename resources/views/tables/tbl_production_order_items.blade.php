@@ -521,22 +521,26 @@
 		</div>
 		<div class="tab-pane" id="w4" role="tabpanel" aria-labelledby="w4-tab">
 			@if(count($feedbacked_logs) > 0)
-			<div class="row">
-				<div class="col-md-8 offset-md-2">
-					<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
+			<div class="row m-0">
+				<div class="col-md-10 offset-md-1">
+					<table class="custom-table-1-1 w-100 mt-3">
+						<col style="width: 8%;">
+						<col style="width: 15%;">
+						<col style="width: 14.5%;">
+						<col style="width: 13%;">
+						<col style="width: 12%;">
+						<col style="width: 17.5%;">
 						<col style="width: 10%;">
-						<col style="width: 20%;">
-						<col style="width: 20%;">
-						<col style="width: 17%;">
-						<col style="width: 17%;">
-						<col style="width: 16%;">
+						<col style="width: 10%;">
 						<tr class="text-center">
 							<th>No.</th>
 							<th >STE No.</th>
 							<th>Feedbacked Qty</th>
-							<th>Transaction Date</th>
-							<th>Transaction Time</th>
+							<th>Date</th>
+							<th>Time</th>
 							<th>Created by</th>
+							<th>Status</th>
+							<th>Action</th>
 						</tr>
 						@foreach ($feedbacked_logs as $i => $log)
 						@php
@@ -547,10 +551,18 @@
 							<td class="text-center p-2">{{ $i + 1 }}</td>
 							<td class="text-center p-2">{{ $log->ste_no }}</td>
 							<td class="text-center p-2">
-								<span class="font-weight-bold">{{ $log->feedbacked_qty }}</span> {{ $details->stock_uom }}</td>
+								<span class="font-weight-bold qty">{{ $log->feedbacked_qty }}</span> <span class="uom">{{ $details->stock_uom }}</span>
+							</td>
 							<td class="text-center p-2">{{ Carbon\Carbon::parse($log->transaction_date)->format('M-d-Y') }}</td>
 							<td class="text-center p-2">{{ Carbon\Carbon::parse($log->transaction_time)->format('h:i:A') }}</td>
 							<td class="text-center p-2">{{ $created_by }}</td>
+							<td class="text-center p-2">
+								<span class="badge {{ ($log->status == 'Cancelled') ? 'badge-danger' : 'badge-success' }}" style="font-size: 10pt;">{{ $log->status }}</span>
+							</td>
+							<td class="text-center p-2">
+								<span class="d-none production-order">{{ $log->production_order }}</span>
+								<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}">Cancel</button>
+							</td>
 						</tr>
 						@endforeach
 					</table>
@@ -573,7 +585,8 @@
 
 <style>
     .custom-table-1-1{
-        border: 1px solid #ABB2B9;
+		border: 1px solid #ABB2B9;
+		border-collapse: collapse;
     }
 
     .custom-table-1-1 th{
