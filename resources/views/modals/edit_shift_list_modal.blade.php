@@ -32,10 +32,11 @@
                      </select>
                  </div>
                  <input type="hidden" name="old_shift_type" class="shift_type">
-                 <div class="form-group col-md-6">
+                 <input type="hidden" name="old_operation_id" class="old_operation_id">
+                 {{--<div class="form-group col-md-6">
                      <label for="qty_capacity"> QTY Capacity</label>
                      <input type="text" class="form-control qty_capacity" id="qty_capacity_edit" name="qty_capacity" placeholder="QTY Capacity" required>
-                   </div>
+                   </div>--}}
                    <div class="form-group col-md-6">
                      <label for="qty_capacity">Operation</label>
                      <select class="form-control operation" name="operation" id="operation" required>
@@ -44,9 +45,10 @@
                            @endforeach
                       </select>
                   </div>
-                 <div class="form-group col-md-6">
+                 <div class="form-group col-md-12">
                      <label for="remarks"> Remarks</label>
-                     <input type="text" class="form-control remarks" id="remarks_edit" name="remarks" placeholder="Remarks"> 
+                     <textarea name="remarks" id="remarks_edit" cols="30" rows="10" class="form-control remarks"></textarea>
+                     {{--<input type="text" class="form-control remarks" id="remarks_edit" name="remarks" placeholder="Remarks"> --}}
                    </div>
                    
                    

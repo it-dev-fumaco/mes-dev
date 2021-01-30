@@ -5921,6 +5921,7 @@ function tbl_wip_list(page, query){
 	      var operation_id = $(this).attr('data-operation');
 	
 	      $('#edit-shift-frm .operation').val(operation_id).prop('selected', true);
+        $('#edit-shift-frm .old_operation_id').val(operation_id);
 	      $('#edit-shift-frm .time_in').val(time_in);
 	      $('#edit-shift-frm .time_out').val(time_out);
 	      $('#edit-shift-frm .shift_type').val(shift_type);

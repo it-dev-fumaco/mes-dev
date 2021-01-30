@@ -29,10 +29,10 @@
                        <option value="Special Shift">Special Shift</option>
                      </select>
                  </div>
-                 <div class="form-group col-md-6">
+                 {{--<div class="form-group col-md-6">
                      <label for="qty_capacity"> QTY Capacity</label>
                      <input type="text" class="form-control" id="qty_capacity" name="qty_capacity" placeholder="QTY Capacity" required>
-                  </div>
+                  </div>--}}
                   <div class="form-group col-md-6">
                      <label for="qty_capacity">Operation</label>
                      <select class="form-control" name="operation" id="operation" required>
@@ -43,7 +43,8 @@
                   </div>
                  <div class="form-group col-md-6">
                      <label for="remarks"> Remarks</label>
-                     <input type="text" class="form-control" id="remarks" name="remarks" placeholder="Remarks"> 
+                     {{--<input type="text" class="form-control" id="remarks" name="remarks" placeholder="Remarks"> --}}
+                     <textarea name="remarks" id="remarks" cols="30" rows="10" class="form-control"></textarea>
                    </div>
                    
                    

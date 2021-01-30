@@ -6,7 +6,6 @@
                         <th class="text-center"><b>Time out</b></th>
                         <th class="text-center"><b>Shift type</b></th>
                         <th class="text-center"><b>Operation</b></th>
-                        <th class="text-center"><b>Qty Capacity</b></th>
                         <th class="text-center"><b>Action/s</b></th>
                       </thead>
                       <tbody style="font-size: 9pt;">
@@ -17,7 +16,6 @@
                           <td>{{ $row->time_out }}</td>
                           <td>{{ $row->shift_type }}</td>
                           <td>{{ $row->operation_name }}</td>
-                          <td>{{ $row->qty_capacity }}</td>
                           <td>
                             
                               <a href="#" class="hover-icon edit-shift-list" data-toggle="modal" data-timein="{{ $row->time_in }}" data-timeout="{{ $row->time_out }}" data-shifttype="{{ $row->shift_type }}" data-qtycapacity="{{ $row->qty_capacity }}" data-remarks="{{ $row->remarks }}" data-shiftid="{{ $row->shift_id }}" data-breakinmin="{{ $row->breaktime_in_mins}}" data-operation="{{ $row->operation_id }}" style="padding-left: 5px;">
