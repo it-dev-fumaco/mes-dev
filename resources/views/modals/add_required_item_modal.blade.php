@@ -1,6 +1,6 @@
 <!-- Modal -->
 <div class="modal fade modal-ste" id="add-required-item-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document" style="min-width: 45%;">
+   <div class="modal-dialog modal-md" role="document" style="min-width: 50%;">
       <form action="/add_ste_items" method="POST" autocomplete="off">
          @csrf
          <div class="modal-content">
@@ -13,11 +13,13 @@
             <div class="modal-body">
                 <input type="hidden" name="production_order" id="add-required-item-production-order">
                 <table class="table table-bordered">
-                    <col style="width: 30%;">
+                    <col style="width: 22%;">
+                    <col style="width: 22%;">
                     <col style="width: 20%;">
-                    <col style="width: 40%;">
-                    <col style="width: 10%;">
+                    <col style="width: 28%;">
+                    <col style="width: 8%;">
                     <tr>
+                        <th class="text-center">Add Item As</th>
                         <th class="text-center">Item Code</th>
                         <th class="text-center">Quantity</th>
                         <th class="text-center">Source Warehouse</th>

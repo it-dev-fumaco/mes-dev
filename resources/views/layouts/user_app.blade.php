@@ -1069,8 +1069,39 @@
       add_row_required_item();
     });
 
+    $(document).on('click', '.add-item-as-select', function(e){
+      e.preventDefault();
+
+      var item_classification = $(this).find(':selected').data('item-classification');
+
+      $(this).closest('tr').find('.selected-item-classification').eq(0).val(item_classification);
+
+      $(this).closest('tr').find('.autocomplete-item-code').eq(0).val('');
+
+      if($(this).val() == 'new_item'){
+        $(this).closest('tr').find('.selected-item-classification').eq(0).val('');
+      }
+    });
+
     function add_row_required_item(){
       var opt = '';
+      var item_as = '<option value="new_item">New Item</option>';
+
+      item_as += '<optgroup label="Alternative For">';
+
+      var production_order_items = [];
+      $('#tbl_view_transfer_details .for-add-item').each(function(d){
+        var item_code = $(this).find('.item-code').eq(0).text();
+        var item_classification = $(this).find('.item-classification').eq(0).text();
+
+        if(production_order_items.indexOf(item_code) < 0){
+          item_as += '<option value="' + item_code + '" data-item-classification="' + item_classification + '">' + item_code + '</option>';
+          production_order_items.push($(this).text());
+        }
+      });
+
+      item_as += '</optgroup>';
+  
       $.ajax({
         url: "/get_mes_warehouse",
         type:"GET",
@@ -1082,6 +1113,12 @@
           });
 
           var row = '<tr>' +
+            '<td class="p-1">' +
+              '<div class="form-group m-0">' +
+                '<select name="item_as[]" class="form-control m-0 add-item-as-select" required>' + item_as + '</select>' +
+                '<input type="hidden" class="selected-item-classification">' +
+              '</div>' +
+            '</td>' +
             '<td class="p-1">' +
               '<div class="form-group m-0">' +
               '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" maxlength="7" required>' +
@@ -1105,25 +1142,29 @@
           '</tr>';
           
           $('#add-required-item-tbody').append(row);
-
-          $('.autocomplete-item-code').autocomplete({
-            source:function(request,response){
-              $.ajax({
-                url: '/items',
-                dataType: "json",
-                data: {
-                  term : request.term
-                },
-                success: function(data) {
-                  response(data);
-                }
-              });
-            },
-            minLength: 1,
-          });
         }
       });   
     }
+
+    $(document).on('keypress', '.autocomplete-item-code', function(){
+      var item_classification = $(this).closest('tr').find('.selected-item-classification').eq(0).val();
+      $(this).autocomplete({
+        source:function(request,response){
+          $.ajax({
+            url: '/items',
+            dataType: "json",
+            data: {
+              term : request.term,
+              item_classification: item_classification
+            },
+            success: function(data) {
+              response(data);
+            }
+          });
+        },
+        minLength: 1,
+      });
+    }); 
 
     $('#add-required-item-modal').on('hidden.bs.modal', function(){
       $('#add-required-item-tbody').empty();

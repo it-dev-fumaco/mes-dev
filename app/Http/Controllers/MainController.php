@@ -5283,6 +5283,7 @@ class MainController extends Controller
 		return DB::connection('mysql')->table('tabItem')->where('is_stock_item', 1)->where('disabled', 0)
 				->where('has_variants', 0)
 				->where('name', 'like', '%'.$request->term.'%')
+				->where('item_classification', 'like', '%'.$request->item_classification.'%')
 				->select('name as value', 'name as id')->orderBy('modified', 'desc')->limit(5)->get();
 	}
 
