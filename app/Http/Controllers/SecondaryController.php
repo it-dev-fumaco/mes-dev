@@ -3548,7 +3548,7 @@ class SecondaryController extends Controller
                                 'last_modified_at' => $now->toDateTimeString()
                             ];
                                 DB::connection('mysql_mes')->table('shift_schedule')->insert($values1);
-                                return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
+                                return response()->json(['success' => 1, 'message' => 'Shift successfully added', "reload_tbl" => $request->reload_tbl_page]);
 
                 }elseif ($special == null){
                     if ((strtotime($regular->time_in) < strtotime($shift_details->time_out)) && (strtotime($regular->time_out) > strtotime($shift_details->time_in))){
@@ -3566,7 +3566,7 @@ class SecondaryController extends Controller
                             ];
                                 DB::connection('mysql_mes')->table('shift_schedule')->insert($values1);
 
-                            return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
+                            return response()->json(['success' => 1, 'message' => 'Shift successfully added', "reload_tbl" => $request->reload_tbl_page]);
                     }
                 }else{
                     if ((strtotime($regular->time_in) < strtotime($shift_details->time_out)) && (strtotime($regular->time_out) > strtotime($shift_details->time_in))){
@@ -3587,7 +3587,7 @@ class SecondaryController extends Controller
                 ];
                     DB::connection('mysql_mes')->table('shift_schedule')->insert($values1);
 
-                return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
+                return response()->json(['success' => 1, 'message' => 'Shift successfully added', "reload_tbl" => $request->reload_tbl_page]);
                         }
                 
                 }
@@ -8418,5 +8418,56 @@ class SecondaryController extends Controller
 
         return response()->json(['category' => $caterory, 'process'=> $process_list]);
 
+    }
+    public function get_warning_notif_for_custom_shift($operation){
+        $now = Carbon::now();
+        $to=$now;
+        $from=Carbon::now()->subDays(30);
+        $period = CarbonPeriod::create($from, $to);
+        $data=[];
+        foreach ($period as $date) {
+            $prod= DB::connection('mysql_mes')->table('production_order')
+                ->whereDate('production_order.planned_start_date', $date)
+                ->where('production_order.operation_id', $operation)->groupBy('production_order.production_order')->select('production_order.production_order')->pluck('production_order.production_order');
+            $shift_sched= DB::connection('mysql_mes')->table('shift_schedule')
+            ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+            ->whereDate('shift_schedule.date', $date)
+            ->where('shift.operation_id', $operation)
+            ->max('time_out');
+            if(empty($shift_sched)){
+                $shift_sched= DB::connection('mysql_mes')->table('shift')->where('operation_id', $operation)->where('shift_type', 'Regular Shift')->max('time_out');
+            }
+            $shift_sched= date('H:i:s', strtotime($shift_sched));
+            $timelogs=DB::connection('mysql_mes')->table('time_logs')
+                ->join('job_ticket as jt','jt.job_ticket_id', 'time_logs.job_ticket_id')
+                ->join('process', 'process.process_id', 'jt.process_id')
+                ->where('jt.workstation', '!=', 'Painting')
+                ->whereIn('jt.production_order', $prod)
+                ->whereDate('time_logs.to_time',$date )
+                ->selectRaw('jt.workstation, time_logs.operator_name,process.process_name,jt.production_order, MAX(to_time) as to_time')
+                ->groupBy('jt.workstation', 'time_logs.operator_name', 'process.process_name', 'jt.production_order')
+                ->orderBy('to_time', 'desc')
+                ->first();
+            // $max= collect($timelogs)->max('to_time');
+            // $max_works= collect($timelogs)->max('to_time')->get();
+            if($timelogs){
+                $timelogss = date('H:i:s', strtotime($timelogs->to_time));
+                if($shift_sched < $timelogss) {
+                    $operator_out = date('h:i A', strtotime($timelogs->to_time));
+                    $shift_out = date('h:i A', strtotime($shift_sched));
+                    $data[]=[
+                        'date'=> date('Y-m-d', strtotime($date)),
+                        'data' => $timelogs,
+                        'shift' => $shift_sched,
+                        'timelogs' => $timelogs->to_time,
+                        'shift_out' =>$shift_out,
+                        'operator_out' =>$operator_out
+                        // 'workstation' =>$max_works
+                    ];
+                }
+            }
+        }
+        // dd($data);
+        return view('tables.tbl_get_prod_sched_shift_warning', compact('data'));
     }
 }

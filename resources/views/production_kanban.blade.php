@@ -259,25 +259,25 @@
                       @foreach($scheduled as $r)
                       <td class="td unique_container">
                         <div class="card" style="background-color:#e5e7e9;height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
-                          <div class="card-header" style="margin-top: -15px;">
+                          <div class="card-header text-center" style="margin-top: -25px;">
                             <input type="hidden" id="divcount-{{ $r['schedule'] }}" style="margin-bott0m:20px;" value="">
-                            <h5 class="card-title text-center" style="font-size: 12pt;">
+                            <h5 class="card-title text-center" style="font-size: 11pt;">
                               <img src="{{ asset('img/calendar4.png') }}" width="20">
                               <span class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
                                 {{ date('D, M-d-Y', strtotime($r['schedule'])) }} <span style="font-size: 11pt;"><b>{{ (date('Y-m-d') == date('Y-m-d', strtotime($r['schedule']))) ? '[Today]' : '' }}</b></span>
                               </span>
                               @if(date('Y-m-d', strtotime($r['schedule'])) >= date('Y-m-d'))
-                              <img src="{{ asset('img/scheduling.png') }}" width="25" class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
-                              <img src="{{ asset('img/print.png') }}" width="25" class="printbtnprint" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/wid.png') }}" width="25" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/shift.png') }}" width="32" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                              <img src="{{ asset('img/scheduling.png') }}" width="20" class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                              <img src="{{ asset('img/print.png') }}" width="20" class="printbtnprint" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/wid.png') }}" width="20" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
 
 
                               @else
-                              <img src="{{ asset('img/down.png') }}" width="25">
-                              <img src="{{ asset('img/print.png') }}" width="25" class="printbtnprint" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/wid.png') }}" width="25" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/shift.png') }}" width="32" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                              <img src="{{ asset('img/down.png') }}" width="20">
+                              <img src="{{ asset('img/print.png') }}" width="20" class="printbtnprint" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/wid.png') }}" width="20" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
 
                               @endif
                               @if($r['duplicate_item_code'] < 0)
@@ -290,21 +290,22 @@
                               </span>
                             </h5>
                             <br>
-                            <div class="form-check" style="margin: -65px 0 28px 0;">
+                            <div class="form-check" style="margin: -60px 0 20px 0;">
                               <label class="customcontainer">
                                 <input type="checkbox" id="check-{{ $r['schedule'] }}" class="checkmeall" data-checkall="{{ $r['schedule'] }}">
                                 <span class="checkmark1" style="margin-left: -5px !important;"></span>
                               </label>
                             </div>
                             <input type="hidden" id="tryme-{{ $r['schedule'] }}" class="printbox"></input>
+
                             @forelse($r['shift'] as $i => $sched)
-                            <span class="text-center" style="font-size:8pt;display:block; margin: -15px 0 5px 0;line-height:20px;">
-                              <span style="display: {{($sched['shift_type'] == 'No Shift') ? '' : 'none'}};">-&nbsp;</span>
-                              <span style="display: {{($sched['shift_type'] == 'Regular Shift') ? '' : 'none'}}">Regular Shift - &nbsp;</span>
-                              <span style="display: {{($sched['shift_type'] == 'Special Shift') ? '' : 'none'}}">Special Shift - &nbsp;</span>
-                              <span style="display: {{($sched['shift_type'] == 'Overtime Shift') ? '' : 'none'}}">Overtime - &nbsp;</span>{{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}
+                            <div class="text-center" style="font-size:8pt; margin: -20px 0 5px 0;line-height:20px;text-align:center;display:inline;">
+                              <span class="noshift_blink" style="display: {{($sched['shift_type'] == 'No Shift') ? '' : 'none'}}; color:red;font-weight:bold;">-&nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
+                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Regular Shift') ? 'inline' : 'none'}}"> <b>Shift</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
+                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Special Shift') ? 'inline' : 'none'}}"> <b>Shift</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
+                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Overtime Shift') ? 'inline' : 'none'}}">| &nbsp;<span style="background-color:#2980b9  ;color:white;font-weight:bold;"> <b>OT</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span></span>
                               
-                            </span>
+                            </div>
                             @empty
                             <span class="text-center" style="font-size:8pt;display:block; margin-top: -8px;"></span>
                             @endforelse
@@ -508,6 +509,9 @@
           <li class="nav-item"  id="tab_change_code">
             <a class="nav-link" id="change_code_tab" data-toggle="tab" href="#change_code_prod" role="tab" aria-controls="changecode" aria-selected="false">Change Code Alert</a>
           </li>
+          <li class="nav-item"  id="tab_warning_fromshift">
+            <a class="nav-link" id="warning_fromshift_tab" data-toggle="tab" href="#warning_fromshift" role="tab" aria-controls="warning_fromshift" aria-selected="false">Shift Warning</a>
+          </li>
         </ul>
         <div class="tab-content" style="min-height: 620px;">
           <div class="tab-pane active" id="prod-href" role="tabpanel" aria-labelledby="prod-tab">
@@ -610,6 +614,21 @@
                     <div class="row">
                       <div class="col-md-12">
                         <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-change-code"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" id="warning_fromshift" role="tabpanel" aria-labelledby="change_code_tab">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-warning-fromshift"></div>
                       </div>
                     </div>
                   </div>
@@ -782,6 +801,8 @@
           </button>
         </div>
         <input type="hidden" id="date_tobe_sched_shift">
+        <input type="hidden" id="date_reload_tbl">
+
         <div class="modal-body">
           <div class="row">
             <div class="col-md-12 pull-right">
@@ -815,6 +836,7 @@
               </button>
            </div>
            <div class="modal-body">
+             <input type="hidden" id="reload_tbl_page" name="reload_tbl_page">
               <div class="form-row">
                  <div class="form-group col-md-6">
                    <label for="sched_date">Date</label>
@@ -1418,6 +1440,14 @@
       -webkit-animation-timing-function:ease-in-out;
       -webkit-animation-direction: alternate;
     }
+   .noshift_blink {
+    color: red;
+    animation: blinker 3s linear infinite;
+  }
+
+  @keyframes blinker {  
+    50% { opacity: 0; }
+  }
 </style>
 
 
@@ -2408,6 +2438,7 @@ error : function(data) {
 console.log(data.responseText);
 }
 });
+warning_notif_for_custom_shift();
 
 });
 $(document).on('click', '.reschedule-prod-btn', function(e){
@@ -2710,8 +2741,11 @@ $('#btnPrint').on("click", function () {
     $(document).on('click', '.btnshift', function(e){
       e.preventDefault();
       var date = $(this).attr('data-date');
+      var reload_tbl = $(this).attr('data-reloadtbl');
       var primary_operation_id = $('#primary-operation-id').val();
       $("#date_tobe_sched_shift").val(date);
+      $("#date_reload_tbl").val(reload_tbl);
+
       tbl_shift_schedule_sched(1, date,primary_operation_id );
       $('#shift-schedule-modal').modal('show');
 
@@ -2721,7 +2755,10 @@ $('#btnPrint').on("click", function () {
     $(document).on('click', '#add-shift-schedule-button', function(){
       var date=  $("#date_tobe_sched_shift").val();
       var operation = $('#primary-operation-id').val();
+      var reload_tbl = $('#date_reload_tbl').val();
+      
       $("#sched_date").val(date);
+      $("#reload_tbl_page").val(reload_tbl);
       $('#add-shift-schedule-frm .time_in').text("");
         $('#add-shift-schedule-frm .time_out').text("");
         $.ajax({
@@ -2764,10 +2801,18 @@ $('#btnPrint').on("click", function () {
         if (data.success < 1) {
           showNotification("danger", data.message, "now-ui-icons travel_info");
         }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          $('#add-shift-schedule-modal').modal('hide');
-          tbl_shift_schedule_sched(1,date, operation);
-          $('#reload_point_page').val( reload_page_point + 1);
+          if(data.reload_tbl == "reloadtbl_warning"){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            tbl_shift_schedule_sched(1,date, operation);
+            warning_notif_for_custom_shift(1,operation);
+            $('#add-shift-schedule-modal').modal('hide');
+            
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-shift-schedule-modal').modal('hide');
+            tbl_shift_schedule_sched(1,date, operation);
+            $('#reload_point_page').val( reload_page_point + 1);
+          }
         }
       }
     });
@@ -2814,4 +2859,22 @@ $('#btnPrint').on("click", function () {
   });
   
 </script>
+<script>
+  function warning_notif_for_custom_shift(filters){
+  var operation_id = $('#primary-operation-id').val();
+  $.ajax({
+  url:"/get_warning_notif_for_custom_shift/"+ operation_id,
+  type:"GET",
+  data: filters,
+  success:function(data){
+  $('#tbl-warning-fromshift').html(data);
+  // $('#view-notifications-modal').modal('show');
+  
+  },
+  error : function(data) {
+  console.log(data.responseText);
+  }
+  });
+  }
+  </script>
 @endsection
