@@ -3182,16 +3182,7 @@ class SecondaryController extends Controller
         $check_if_exit = DB::connection('mysql_mes')->table('shift')->where('shift_type', '=' ,'Regular Shift')->where('operation_id', $request->operation )->first();
        //insert if no regular shift existing in database in particular operation
         if(empty($check_if_exit)){
-            $values1 = [
-                'time_in' => $request->time_in,
-                'time_out' => $request->time_out,
-                'operation_id' =>$request->operation,
-                'remarks' => $request->remarks,
-                'shift_type' => $request->shift_type,
-                'last_modified_by' => Auth::user()->employee_name,
-                'last_modified_at' => $now->toDateTimeString()
-            ];
-            DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
+            
             // for delete
             if ($request->old_break) {
                 $delete_break= DB::connection('mysql_mes')
@@ -3242,20 +3233,39 @@ class SecondaryController extends Controller
                 }
 
             }
+            $breaktime_in_minutes=DB::connection('mysql_mes')->table('breaktime')->where('shift_id', $request->shift_id)->max('breaktime_in_mins');
+            if($breaktime_in_minutes != null){
+                $start = Carbon::parse($request->time_in);
+                $end = Carbon::parse($request->time_out);
+                $totalDuration = $end->diffInMinutes($start);
+
+                if($breaktime_in_minutes >= 60){
+                    $hrs_of_work= round((($totalDuration - $breaktime_in_minutes)/ 60), 2);
+                }else{
+                    $hrs_of_work= round((($totalDuration)/ 60), 2);
+                }   
+            }else{
+                $start = Carbon::parse($request->time_in);
+                $end = Carbon::parse($request->time_out);
+                $totalDuration = $end->diffInMinutes($start);
+                $hrs_of_work= round((($totalDuration)/ 60), 2);
+            }
+            $values1 = [
+                'time_in' => $request->time_in,
+                'time_out' => $request->time_out,
+                'hrs_of_work' => $hrs_of_work,
+                'operation_id' =>$request->operation,
+                'remarks' => $request->remarks,
+                'shift_type' => $request->shift_type,
+                'last_modified_by' => Auth::user()->employee_name,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
+            DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
             return response()->json(['success' => 1, 'message' => 'Shift successfully updated']);
             
         }else{//check if no changes in shift and operation
             if($request->shift_type == $request->old_shift_type && $request->old_operation_id == $request->operation){
-                $values1 = [
-                    'time_in' => $request->time_in,
-                    'time_out' => $request->time_out,
-                    'operation_id' =>$request->operation,
-                    'remarks' => $request->remarks,
-                    'shift_type' => $request->shift_type,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-                DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
+                
                 // for delete
                 if ($request->old_break) {
                     $delete_break= DB::connection('mysql_mes')
@@ -3306,6 +3316,35 @@ class SecondaryController extends Controller
                     }
 
                 }
+                $breaktime_in_minutes=DB::connection('mysql_mes')->table('breaktime')->where('shift_id', $request->shift_id)->max('breaktime_in_mins');
+                if($breaktime_in_minutes != null){
+                    $start = Carbon::parse($request->time_in);
+                    $end = Carbon::parse($request->time_out);
+                    $totalDuration = $end->diffInMinutes($start);
+
+                    if($breaktime_in_minutes >= 60){
+                        $hrs_of_work= round((($totalDuration - $breaktime_in_minutes)/ 60), 2);
+                    }else{
+                        $hrs_of_work= round((($totalDuration)/ 60), 2);
+                    }   
+                }else{
+                    $start = Carbon::parse($request->time_in);
+                    $end = Carbon::parse($request->time_out);
+                    $totalDuration = $end->diffInMinutes($start);
+                    $hrs_of_work= round((($totalDuration)/ 60), 2);
+                }
+
+                $values1 = [
+                    'time_in' => $request->time_in,
+                    'time_out' => $request->time_out,
+                    'hrs_of_work' => $hrs_of_work,
+                    'operation_id' =>$request->operation,
+                    'remarks' => $request->remarks,
+                    'shift_type' => $request->shift_type,
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString()
+                ];
+                DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
                 return response()->json(['success' => 1, 'message' => 'Shift successfully updated']);
                 
             }elseif($check_if_exit->shift_type == $request->shift_type)  {
@@ -3315,17 +3354,7 @@ class SecondaryController extends Controller
             //changes with no conflicts
             else{
 
-                $values1 = [
-                    'time_in' => $request->time_in,
-                    'time_out' => $request->time_out,
-                    'operation_id' =>$request->operation,
-                    'remarks' => $request->remarks,
-                    'shift_type' => $request->shift_type,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-                DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
-
+               
                 // for delete
                 if ($request->old_break) {
                     $delete_break=DB::connection('mysql_mes')
@@ -3375,6 +3404,35 @@ class SecondaryController extends Controller
 
                     }
                 }
+                $breaktime_in_minutes=DB::connection('mysql_mes')->table('breaktime')->where('shift_id', $request->shift_id)->max('breaktime_in_mins');
+                if($breaktime_in_minutes != null){
+                    $start = Carbon::parse($request->time_in);
+                    $end = Carbon::parse($request->time_out);
+                    $totalDuration = $end->diffInMinutes($start);
+
+                    if($breaktime_in_minutes >= 60){
+                        $hrs_of_work= round((($totalDuration - $breaktime_in_minutes)/ 60), 2);
+                    }else{
+                        $hrs_of_work= round((($totalDuration)/ 60), 2);
+                    }   
+                }else{
+                    $start = Carbon::parse($request->time_in);
+                    $end = Carbon::parse($request->time_out);
+                    $totalDuration = $end->diffInMinutes($start);
+                    $hrs_of_work= round((($totalDuration)/ 60), 2);
+                }
+                $values1 = [
+                    'time_in' => $request->time_in,
+                    'time_out' => $request->time_out,
+                    'hrs_of_work' => $hrs_of_work,
+                    'operation_id' =>$request->operation,
+                    'remarks' => $request->remarks,
+                    'shift_type' => $request->shift_type,
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString()
+                ];
+                DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift_id)->update($values1);
+
                 return response()->json(['success' => 1, 'message' => 'Shift successfully updated']);
             }
         }
