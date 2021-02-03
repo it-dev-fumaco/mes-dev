@@ -664,6 +664,12 @@ Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
 
+//Daily Report
+Route::get('/fabrication_daily_report', 'ReportsController@fabrication_daily_report');
+Route::get('/fabrication_daily_report_page', 'ReportsController@fabrication_daily_report_page');
+Route::get('/fabrication_daily_chart', 'ReportsController@fabrication_daily_chart');
+
+
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
 	
