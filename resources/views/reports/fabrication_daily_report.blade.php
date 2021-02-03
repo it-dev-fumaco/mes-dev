@@ -45,7 +45,7 @@
                            <div class="col-md-4 text-center">
                               <div class="form-group">
                                     <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                    <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From" id="daterange_report" value="" style="display: inline-block; width: 40%; font-weight: bolder;">
+                                    <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 40%; font-weight: bolder;">
                               </div>
                            </div>
                          </div>
@@ -86,6 +86,8 @@
 $(document).ready(function(){
     $('#daterange_report').daterangepicker({
     "showDropdowns": true,
+    "startDate": moment().startOf('month'),
+    "endDate": moment().endOf('month'),
     ranges: {
         'Today': [moment(), moment()],
         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -95,7 +97,7 @@ $(document).ready(function(){
         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
     },
     "linkedCalendars": false,
-    "autoUpdateInput": false,
+    "autoUpdateInput": true,
     "alwaysShowCalendars": true,
   }, function(start, end, label) {
     console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
@@ -103,7 +105,8 @@ $(document).ready(function(){
     rfdTimeliness();
     
   });
-
+  tbl_log_report();
+    rfdTimeliness();
    $('#daterange_report').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
   });
@@ -176,9 +179,6 @@ $(document).ready(function(){
             for(var i in data.produced) {
                produced.push(data.produced[i].value);
             }
-            console.log(days);
-            console.log(planned);
-
             var chartdata = {
                labels: days,
                datasets : [{
