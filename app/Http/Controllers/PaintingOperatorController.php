@@ -48,8 +48,11 @@ class PaintingOperatorController extends Controller
 							foreach($breaktime_tbl as $r){
 								$breaktime[]=[
 									"break_type" => $r->category,
-									"time_in" => date("h:i a", strtotime($r->time_from)),
-									'time_out' =>date("h:i a", strtotime($r->time_to)),
+									"time_in" => $r->time_from,
+									'time_out' =>$r->time_to,
+									'div_id'=> str_replace(' ', '', $r->category),
+									"time_in_show" => date("h:i a", strtotime($r->time_from)),
+									'time_out_show' =>date("h:i a", strtotime($r->time_to))
 								];
 							}
 						}
@@ -91,7 +94,6 @@ class PaintingOperatorController extends Controller
 				}
 			}
 		$breaktime_data= collect($breaktime);
-
         return view('painting_operator.index', compact('process_details', 'machine_status', 'painting_process', 'breaktime_data'));
 	}
 

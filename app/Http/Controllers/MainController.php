@@ -2938,8 +2938,12 @@ class MainController extends Controller
 							foreach($breaktime_tbl as $r){
 								$breaktime[]=[
 									"break_type" => $r->category,
-									"time_in" => date("h:i a", strtotime($r->time_from)),
-									'time_out' =>date("h:i a", strtotime($r->time_to)),
+									"time_in" => $r->time_from,
+									'time_out' =>$r->time_to,
+									'div_id'=> str_replace(' ', '', $r->category),
+									"time_in_show" => date("h:i a", strtotime($r->time_from)),
+									'time_out_show' =>date("h:i a", strtotime($r->time_to))
+									
 								];
 							}
 						}
@@ -2982,7 +2986,6 @@ class MainController extends Controller
 			}
 		$breaktime_data= collect($breaktime);
 		$operation_id = $tabWorkstation->operation_id;
-
         return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id', 'breaktime_data'));
     }
 
