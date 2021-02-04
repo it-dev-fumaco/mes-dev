@@ -496,8 +496,6 @@ Route::post('/delete_user_group', 'SecondaryController@delete_user_group');
 
 Route::get('/tbl_qa_inspection_log_report/{start}/{end}/{operation}', 'QualityInspectionController@tbl_qa_inspection_log_report');
 Route::get('/get_tbl_qa_inspection_log_export/{start}/{end}/{workstation}/{customer}/{prod}/{item_code}/{status}/{processs}/{qa_inspector}/{operator}', 'QualityInspectionController@get_tbl_qa_inspection_log_export');
-Route::get('/tbl_qa_inspection_log_report_painting/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_painting');
-Route::get('/get_tbl_qa_inspection_log_export_painting/{start}/{end}/{workstation}/{customer?}/{prod?}/{item_code?}/{status?}/{processs?}/{qa_inspector?}/{operator?}', 'QualityInspectionController@get_tbl_qa_inspection_log_export_painting');
 
 //item_classification_warehouse_setup
 Route::post('/save_item_classification_warehouse', 'SecondaryController@insert_item_classification_warehouse');
