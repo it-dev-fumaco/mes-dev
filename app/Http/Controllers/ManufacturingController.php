@@ -4090,5 +4090,4 @@ class ManufacturingController extends Controller
             return response()->json(['status' => 0, 'message' => 'There was a problem cancelling production order feedback.']);
         }
     }
-	}
 }
