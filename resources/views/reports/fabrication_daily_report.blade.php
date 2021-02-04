@@ -39,7 +39,7 @@
                          <div class="row text-black" style=" padding-top:50px auto;">
                            <div class="col-md-8">
                               <div class="form-group">
-                                  <h5><b>Fabrication Daily Report</b></h5>
+                                  <h5><b>Daily Fabrication Output</b></h5>
                               </div>
                            </div>
                            <div class="col-md-4 text-center">
