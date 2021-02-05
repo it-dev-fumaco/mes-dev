@@ -6163,4 +6163,10 @@ class MainController extends Controller
 
 		return view('tables.tbl_production_machine_schedules_board', compact('data'));
 	}
+	public function get_tbl_default_shift_sched(Request $request){
+		$date= "2021-02-05";
+		$operation_id= 1;
+		$shift_sched = $this->get_prod_shift_sched($request->date, $request->operation);
+		return view('tables.tbl_default_shift_sched', compact('shift_sched'));
+	}
 }

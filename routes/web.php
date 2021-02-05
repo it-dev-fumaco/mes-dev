@@ -666,6 +666,10 @@ Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_cate
 //warning notif for custom shift sched
 Route::get('/get_warning_notif_for_custom_shift/{id}', 'SecondaryController@get_warning_notif_for_custom_shift');
 
+//Additional shift sched
+Route::get('/shift_sched_details', 'SecondaryController@shift_sched_details');
+Route::get('/get_tbl_default_shift_sched', 'MainController@get_tbl_default_shift_sched');
+
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');

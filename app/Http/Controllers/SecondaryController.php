@@ -3564,97 +3564,64 @@ class SecondaryController extends Controller
     }
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
-
-        $shift_details = DB::connection('mysql_mes')->table('shift')
-        ->where('shift_id', $request->shift_id)->first();
-
-        $special = DB::connection('mysql_mes')->table('shift_schedule')
-        ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
-        ->whereDate('shift_schedule.date', $request->sched_date)
-        ->where('shift_type', 'Special Shift')
-        ->select('shift.*','shift.operation_id')->first();
-
-        $regular = DB::connection('mysql_mes')->table('shift')
-        ->join('operation', 'operation.operation_id', 'shift.operation_id')
-        ->where('operation.operation_id', $shift_details->operation_id)
-        ->where('shift_type', 'Regular Shift')->select('shift.*')->first();
-
-            if (DB::connection('mysql_mes')->table('shift_schedule')
-                ->where('date', '=', $request->sched_date)
-                ->where('shift_id', '=', $request->shift_id)
-                ->exists()){
-                return response()->json(['success' => 0, 'message' => 'Shift schedule already exists']);            
+        if(empty($request->shifttype)){
+            $arr= null;
+        }else{
+            $arr=$request->shifttype;
+            $ar=array_unique(array_diff_assoc($arr, array_unique( $arr ) ) );
+        }
+        if(!empty($ar)){
+            foreach($ar as $i => $r){
+                $row= $i +1; 
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
             }
-            elseif(DB::connection('mysql_mes')->table('shift_schedule')
-            ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
-            ->where('date', '=', $request->sched_date)
-            ->where('shift.shift_type', '=', $shift_details->shift_type)
-            ->where('shift.operation_id', '=', $shift_details->operation_id)
-            ->exists()){
-                return response()->json(['success' => 0, 'message' => $shift_details->shift_type.' already exists in '.$request->sched_date]);            
-            }
-            else{
-                if($shift_details->shift_type == "Special Shift"){
-                    $values1 = [
-                                'shift_id' => $request->shift_id,
-                                'date' => $request->sched_date,
-                                'scheduled_by' => Auth::user()->employee_name,
-                                'remarks' => $request->remarks,
-                                'last_modified_by' => Auth::user()->employee_name,
-                                'created_by' => Auth::user()->employee_name,
-                                'created_at' => $now->toDateTimeString(),
-                                'last_modified_at' => $now->toDateTimeString()
-                            ];
-                                DB::connection('mysql_mes')->table('shift_schedule')->insert($values1);
-                                return response()->json(['success' => 1, 'message' => 'Shift successfully added', "reload_tbl" => $request->reload_tbl_page]);
-
-                }elseif ($special == null){
-                    if ((strtotime($regular->time_in) < strtotime($shift_details->time_out)) && (strtotime($regular->time_out) > strtotime($shift_details->time_in))){
-                        return response()->json(['success' => 0, 'message' => 'Shift overlap in regular shift']);
-                    }else{
-                            $values1 = [
-                                'shift_id' => $request->shift_id,
-                                'date' => $request->sched_date,
-                                'scheduled_by' => Auth::user()->employee_name,
-                                'remarks' => $request->remarks,
-                                'last_modified_by' => Auth::user()->employee_name,
-                                'created_by' => Auth::user()->employee_name,
-                                'created_at' => $now->toDateTimeString(),
-                                'last_modified_at' => $now->toDateTimeString()
-                            ];
-                                DB::connection('mysql_mes')->table('shift_schedule')->insert($values1);
-
-                            return response()->json(['success' => 1, 'message' => 'Shift successfully added', "reload_tbl" => $request->reload_tbl_page]);
-                    }
+        }else{
+            // dd($request->all());
+            if ($request->old_shift_sched) {
+                if($request->oldshift_sched_id == null ){
+                    DB::connection('mysql_mes')
+                    ->table('shift_schedule')
+                    ->whereDate('date',$request->date)->delete();
                 }else{
-                    if ((strtotime($regular->time_in) < strtotime($shift_details->time_out)) && (strtotime($regular->time_out) > strtotime($shift_details->time_in))){
-                        return response()->json(['success' => 0, 'message' => 'Shift overlap in regular shift']);
-                    }elseif ((strtotime($special->time_in) < strtotime($shift_details->time_out)) && (strtotime($special->time_out) > strtotime($shift_details->time_in))) {
-                        return response()->json(['success' => 0, 'message' => 'Shift overlap in special shift']);
-                    }else{
-
-                $values1 = [
-                    'shift_id' => $request->shift_id,
-                    'date' => $request->sched_date,
-                    'scheduled_by' => Auth::user()->employee_name,
-                    'remarks' => $request->remarks,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'created_by' => Auth::user()->employee_name,
-                    'created_at' => $now->toDateTimeString(),
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-                    DB::connection('mysql_mes')->table('shift_schedule')->insert($values1);
-
-                return response()->json(['success' => 1, 'message' => 'Shift successfully added', "reload_tbl" => $request->reload_tbl_page]);
-                        }
-                
+                    $delete_shift=DB::connection('mysql_mes')
+                    ->table('shift_schedule')
+                    ->whereIn('shift_schedule_id', $request->old_shift_sched)
+                    ->whereNotIn('shift_schedule_id', $request->oldshift_sched_id)
+                    ->delete();
                 }
             }
+            // for insert
+            if ($request->newshift) {
+                foreach($request->newshift as $i => $row){
 
+                    $new_shift_sched[] = [
+                        'shift_id'=> $row,
+                        'date' =>  $request->date,
+                        'scheduled_by' => Auth::user()->employee_name,
+                        'last_modified_by' => Auth::user()->email,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                    DB::connection('mysql_mes')->table('shift_schedule')->insert($new_shift_sched);
+                }
+            }
+            //update
+            if ($request->oldshift) {
+                foreach($request->oldshift as $i => $row){
+                    $update_shift= [
+                        'shift_id'=> $row,
+                        'date' =>  $request->date,
+                        'last_modified_by' => Auth::user()->email,
+                    ];
+                    $shift_id_forupdate= $request->oldshift_sched_id[$i];
+                    DB::connection('mysql_mes')->table('shift_schedule')->where('shift_schedule_id',$shift_id_forupdate)->update($update_shift);
+                }
+            }
+            return response()->json(['success' => 1, 'message' => 'Shift schedule successfully updated', "reload_tbl" => $request->date_reload_tbl]);
+        }
     }
     public function get_tbl_shiftsched_list(Request $request){
         $operation= ($request->operation == 0) ? 2 : $request->operation;
-
         $shift_sched_list= DB::connection('mysql_mes')
                 ->table('shift_schedule')
                 ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
@@ -3663,28 +3630,13 @@ class SecondaryController extends Controller
                 ->whereDate('shift_schedule.date','like','%'. $request->date_sched.'%')
                 ->select('shift_schedule.*', 'operation.operation_name', 'shift.shift_type', 'shift.time_in', 'shift.time_out')
                 ->get();
-
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($shift_sched_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_shift_sched_list', compact('data'));
-
+        $shift_list=DB::connection('mysql_mes')
+                ->table('shift')
+                ->join('operation', 'operation.operation_id', 'shift.operation_id')
+                ->where('shift.shift_type','!=', 'Regular Shift')
+                ->where('shift.operation_id', $operation)
+                ->get();
+        return response()->json(['success' => 1, 'shift' => $shift_sched_list, 'shift_type' =>$shift_list]); 
     }
     public function edit_shift_schedule(Request $request){
          $now = Carbon::now();
@@ -8527,5 +8479,11 @@ class SecondaryController extends Controller
         }
         // dd($data);
         return view('tables.tbl_get_prod_sched_shift_warning', compact('data'));
+    }
+    public function shift_sched_details(Request $request){
+        if($request->shift){
+            $shift=DB::connection('mysql_mes')->table('shift')->where('shift_id', $request->shift)->first();
+            return response()->json($shift);
+        }
     }
 }

@@ -789,41 +789,54 @@
       </div>
   </div>
 </div>
-<div class="modal fade" id="shift-schedule-modal" tabindex="-1" role="dialog">
+<div class="modal fade shift-sched-class " id="shift-schedule-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document" style="min-width:40%;">
-    <form action="#" method="POST">
+    <form action="/add_shift_schedule"  method="POST" id="add-shift-schedule-frm">
       @csrf
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title">Shift Schedule</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="btn-close-click-validator">
+        <div class="modal-header text-white align-top" style="background-color: #0277BD;">
+          <img src="{{ asset('img/calendar4.png') }}" width="30" class="align-middle" style="display: inline-block; margin-right:5px;">
+          <h5 class="modal-title" style="display: inline;">Shift Schedule</h5>
+          <button type="button" class="close btn-close-click-validator" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <input type="hidden" id="date_tobe_sched_shift">
-        <input type="hidden" id="date_reload_tbl">
-
+        <input type="hidden" id="date_tobe_sched_shift" name="date">
+        <input type="hidden" id="date_reload_tbl" name="date_reload_tbl">
         <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12 pull-right">
-              <div class="form-group text-center pull-right">
-                <button type="button" class="btn btn-primary" id="add-shift-schedule-button" style="margin: 5px;">
-                  <i class="now-ui-icons ui-1_simple-add"></i> Add
-                </button>
-              </div>
-            </div>
-            <div class="col-md-12">
-              <div class="tbl_shift_schedule_sched"></div>
+          <div id="default_shift_sched"></div>
 
-            </div>
+          <div id="old_ids"></div>
+          <table class="table table-bordered" style="margin-top: 10px;">
+            <col style="width: 50%;">
+            <col style="width: 20%;">
+            <col style="width: 20%;">
+            <col style="width: 10%;">
+            <tr>
+              <th class="text-center">Shift</th>
+              <th class="text-center">Time-in</th>
+              <th class="text-center">Time-out</th>
+              <th></th>
+            </tr>
+            <tbody id="shiftsched-table">
+            </tbody>
+          </table>
+          <div class="pull-left">
+            <button type="button" class="btn btn-info btn-sm" id="add-row-shift-btn">
+              <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+            </button>
           </div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-secondary btn-close-click-validator" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </div>
     </form>
   </div>
 </div>
 <!-- Modal -->
-<div class="modal fade" id="add-shift-schedule-modal" tabindex="-1" role="dialog">
+{{-- <div class="modal fade" id="add-shift-schedule-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-md" role="document">
      <form action="/add_shift_schedule" method="POST" id="add-shift-schedule-frm">
         @csrf
@@ -870,7 +883,7 @@
         </div>
      </form>
   </div>
-</div>
+</div> --}}
 <!-- Modal -->
 <div class="modal fade" id="delete-shift-sched-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-sm" role="document" style="min-width:30%;">
@@ -914,11 +927,23 @@
 @include('modals.select_late_delivery_reason_modal')
 
 <style type="text/css">
- #add-shift-schedule-modal .form-control{
+ #shift-schedule-modal .form-control{
     border: 1px solid #ccc;
     border-radius: 3px;
     box-shadow: none;
     margin-bottom: 15px;  
+  }
+  .shift-sched-class .form-control {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
+  }
+  .shift-sched-class .form-control:hover, .shift-sched-class .form-control:focus, .shift-sched-class .form-control:active {
+    box-shadow: none;
+  }
+  .shift-sched-class .form-control:focus {
+    border: 1px solid #34495e;
   }
 
   .bell{
@@ -2726,29 +2751,148 @@ $('#btnPrint').on("click", function () {
   </script>
     <script type="text/javascript">
       function tbl_shift_schedule_sched(page, date, operation){
-          
+        $("#shiftsched-table").empty();
             $.ajax({
               url:"/get_tbl_shiftsched_list/?page="+page,
               type:"GET",
               data: {date_sched: date, operation: operation},
-              success:function(data){
-                $('.tbl_shift_schedule_sched').html(data);
+              success: function(data){
+                var old_break = '';
+                $.each(data.shift, function(i, d){
+	                var sel_id = d.shift_id;
+	                var break_id = d.shift_schedule_id;
+	                old_break += '<input type="hidden" name="old_shift_sched[]" value="'+d.shift_schedule_id+'">';
+	                console.log(d.shift_schedule_id);
+                  var s_type= d.shift_type;
+	                var row1 = '';
+	                $.each(data.shift_type, function(i, d){
+	                  selected = (d.shift_id == sel_id) ? 'selected' : null;
+	                  row1 += '<option value="' + d.shift_id  + '" '+selected+'>' + d.shift_type + '</option>';
+	                });
+	                var thizz = document.getElementById('shiftsched-table');
+	                var id = $(thizz).closest('table').find('tr:last td:first').text();
+	                var validation = isNaN(parseFloat(id));
+	                if(validation){
+	                  var new_id = 1;
+	                }else{
+	                  var new_id = parseInt(id) + 1;
+	                }
+	                var len2 = new_id;
+	                var id_unique="shiftin"+len2;
+                  var id_unique1="shiftout"+len2;
+                  var id_unique2="shifttype"+len2;
+                  var id_stype= "#" + id_unique2;
+	                var tblrow = '<tr>' +
+                    '<td style="display:none;">'+len2+'</td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="oldshift_sched_id[]"  value="'+break_id+'"><input type="hidden" style="width:100%;" name="shifttype[]" id='+id_unique2+'><select name="oldshift[]" data-shifttype='+id_unique2+' data-timein='+id_unique +' data-timeout='+id_unique1+' class="form-control m-0 count-row onchange-shift-select" required>'+row1+'</select></div></td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="From Time" value="'+ d.time_in +'" id='+id_unique+' class="form-control m-0 select-input"  readonly></div></td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="To Time" value="'+ d.time_out +'" id='+id_unique1+' class="form-control m-0 select-input" readonly></div></td>' +
+	                  '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+	                  '</tr>';
+	                $("#shift-schedule-modal #shiftsched-table").append(tblrow);
+	                $("#shift-schedule-modal #old_ids").html(old_break);
+                  $(id_stype).val(s_type);
+	              });
               }
             }); 
       }
-    </script>
+    $('#add-row-shift-btn').click(function(e){
+        var date = $('#date_tobe_sched_shift').val();
+        var operation = $('#primary-operation-id').val();
+        $.ajax({
+              url:"/get_tbl_shiftsched_list",
+              type:"GET",
+              data: {date_sched: date, operation: operation},
+              success: function(data){
+	                var row1 = '<option value=""></option>';
+	                $.each(data.shift_type, function(i, d){
+	                  row1 += '<option value="' + d.shift_id + '">' + d.shift_type + '</option>';
+	                });
+	                var thizz = document.getElementById('shiftsched-table');
+                  var id = $(thizz).closest('table').find('tr:last td:first').text();
+                  var validation = isNaN(parseFloat(id));
+                  if(validation){
+                      var new_id = 1;
+                  }else{
+                      var new_id = parseInt(id) + 1;
+                  }
+                  var len2 = new_id;
+                  var id_unique="shiftin"+len2;
+                  var id_unique1="shiftout"+len2;
+                  var id_unique2="shifttype"+len2;
+                  var tblrow = '<tr>' +
+                    '<td style="display:none;">'+len2+'</td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="shifttype[]" id='+id_unique2+'><select name="newshift[]" class="form-control m-0 count-row onchange-shift-select"  data-timein='+id_unique +' data-shifttype='+id_unique2+' data-timeout='+id_unique1+' required>'+row1+'</select></div></td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="From Time" value="" class="form-control m-0 select-input" id='+id_unique+'  readonly></div></td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="To Time" value="" class="form-control m-0 select-input" id='+id_unique1+'  readonly></div></td>' +
+	                  '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+	                  '</tr>';
+	
+	                $("#shift-schedule-modal #shiftsched-table").append(tblrow);
+              } 
+	      });
+      });
+      $(document).on('change', '.onchange-shift-select', function(){
+           var shift_id = $(this).val();
+           var shift_in = $(this).attr('data-timein');
+           var shift_out = $(this).attr('data-timeout');
+           var shift_type = $(this).attr('data-shifttype');
+           var show_data_shiftin = "#"+shift_in;
+           var show_data_shiftout = "#"+shift_out;
+           var show_data_shifttype = "#"+shift_type;
+            $.ajax({
+            url:"/shift_sched_details",
+            data:{shift:shift_id},
+            type:"GET",
+            success:function(data){
+              if(data == null){
+                $(show_data_shiftin).val("");
+                $(show_data_shiftout).val("");
+                $(show_data_shiftout).val("");
+              }else{
+                $(show_data_shiftin).val(data.time_in);
+                $(show_data_shiftout).val(data.time_out);
+                $(show_data_shifttype).val(data.shift_type);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+          });
+      });
+  </script>
   <script>
+    function changeDate(date){
+    let currentDate = new Date(date);
+    var fd = currentDate.toDateString();
+    return fd;
+    }
+    function get_default_shift_sched(date, operation){
+      $.ajax({
+        url:"/get_tbl_default_shift_sched",
+        type:"GET",
+        data: {date: date , operation: operation},
+        success:function(data){
+          $('#default_shift_sched').html(data);
+        }
+      });
+    }
     $(document).on('click', '.btnshift', function(e){
       e.preventDefault();
       var date = $(this).attr('data-date');
+      var newDate = changeDate(date);
       var reload_tbl = $(this).attr('data-reloadtbl');
       var primary_operation_id = $('#primary-operation-id').val();
       $("#date_tobe_sched_shift").val(date);
       $("#date_reload_tbl").val(reload_tbl);
-
       tbl_shift_schedule_sched(1, date,primary_operation_id );
+      $('#shift-schedule-modal .modal-title').text(newDate);
+      get_default_shift_sched(date,primary_operation_id );
       $('#shift-schedule-modal').modal('show');
-
+      add_row();
+      
     });
   </script>
   <script type="text/javascript">
@@ -2790,7 +2934,7 @@ $('#btnPrint').on("click", function () {
     e.preventDefault();
     var url = $(this).attr("action");
     var operation = $('#primary-operation-id').val();
-    var date = $('#sched_date').val();
+    var date = $('#date_tobe_sched_shift').val();
     var reload_page_point = $('#reload_point_page').val();
 
     $.ajax({
@@ -2804,13 +2948,14 @@ $('#btnPrint').on("click", function () {
           if(data.reload_tbl == "reloadtbl_warning"){
             showNotification("success", data.message, "now-ui-icons ui-1_check");
             tbl_shift_schedule_sched(1,date, operation);
+            get_default_shift_sched(date,operation );
             warning_notif_for_custom_shift(1,operation);
             $('#add-shift-schedule-modal').modal('hide');
-            
           }else{
             showNotification("success", data.message, "now-ui-icons ui-1_check");
             $('#add-shift-schedule-modal').modal('hide');
             tbl_shift_schedule_sched(1,date, operation);
+            get_default_shift_sched(date,operation );
             $('#reload_point_page').val( reload_page_point + 1);
           }
         }
@@ -2850,7 +2995,7 @@ $('#btnPrint').on("click", function () {
       }
     });
   });
-  $(document).on('click', '#btn-close-click-validator', function(){
+  $(document).on('click', '.btn-close-click-validator', function(){
     var reload_page_point = $('#reload_point_page').val();
     if(reload_page_point < 0 || reload_page_point == null || reload_page_point == ""){
     }else{
@@ -2867,14 +3012,50 @@ $('#btnPrint').on("click", function () {
   type:"GET",
   data: filters,
   success:function(data){
-  $('#tbl-warning-fromshift').html(data);
-  // $('#view-notifications-modal').modal('show');
-  
+  $('#tbl-warning-fromshift').html(data);  
   },
   error : function(data) {
   console.log(data.responseText);
   }
   });
   }
+  </script>
+  <script>
+    function add_row(){
+      var date = $('#date_tobe_sched_shift').val();
+        var operation = $('#primary-operation-id').val();
+        $.ajax({
+              url:"/get_tbl_shiftsched_list",
+              type:"GET",
+              data: {date_sched: date, operation: operation},
+              success: function(data){
+	                var row1 = '<option value=""></option>';
+	                $.each(data.shift_type, function(i, d){
+	                  row1 += '<option value="' + d.shift_id + '">' + d.shift_type + '</option>';
+	                });
+	                var thizz = document.getElementById('shiftsched-table');
+                  var id = $(thizz).closest('table').find('tr:last td:first').text();
+                  var validation = isNaN(parseFloat(id));
+                  if(validation){
+                      var new_id = 1;
+                  }else{
+                      var new_id = parseInt(id) + 1;
+                  }
+                  var len2 = new_id;
+                  var id_unique="shiftin"+len2;
+                  var id_unique1="shiftout"+len2;
+                  var id_unique2="shifttype"+len2;
+                  var tblrow = '<tr>' +
+                    '<td style="display:none;">'+len2+'</td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="shifttype[]" id='+id_unique2+'><select name="newshift[]" class="form-control m-0 count-row onchange-shift-select"  data-timein='+id_unique +' data-shifttype='+id_unique2+' data-timeout='+id_unique1+' required>'+row1+'</select></div></td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="From Time" value="" class="form-control m-0 select-input" id='+id_unique+'  readonly></div></td>' +
+	                  '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="To Time" value="" class="form-control m-0 select-input" id='+id_unique1+'  readonly></div></td>' +
+	                  '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+	                  '</tr>';
+	
+	                $("#shift-schedule-modal #shiftsched-table").append(tblrow);
+              } 
+	      });
+    }
   </script>
 @endsection
