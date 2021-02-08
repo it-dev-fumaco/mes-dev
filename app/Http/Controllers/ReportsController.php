@@ -252,14 +252,14 @@ class ReportsController extends Controller
             'data' =>$avg_man_power,
             'row_name' =>"AVERAGE MAN-HR UTILIZATION",
             'total' => collect($avg_man_power)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($avg_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($avg_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 2)
 
         ];
         $data9=[
             'data' =>$man_hr_with_overtime,
             'row_name' =>"TOTAL MANPOWER W/ OVERTIME",
             'total' => collect($man_hr_with_overtime)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($man_hr_with_overtime)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 2)
+            'avg' => round(collect($man_hr_with_overtime)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
 
         ];
         $data=[
