@@ -383,7 +383,7 @@
 
                                             </div>--}}
                                           <div class="col-md-12" style="margin:0px; padding:0px;">
-                                            <div id="tbl_log_fabrication" style="width: 100%;overflow: auto;min-height: 750px;"></div>
+                                            <div class="tableFixHead" id="tbl_log_fabrication" style="width: 100%;overflow: auto;max-height: 750px;min-height:750px;"></div>
                                           </div>
                                         </div>
                                       </div>
@@ -813,6 +813,12 @@
     </div>
   </div>
 <style>
+  .classheader{
+    position: sticky; top: 0; 
+  z-index:2;
+  position: -webkit-sticky;
+  border: 0.8px solid white;
+  }
   .margin-top{
     margin-top: -18px;
   }
