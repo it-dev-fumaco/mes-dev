@@ -252,7 +252,9 @@
                 <a class="dropdown-item" href="/operators_load_utilization">Operator Load Utilization</a>
                 <a class="dropdown-item" href="/production_schedule_report">Production Schedule Report</a>
                 <a class="dropdown-item" href="/item_feedback">Production Order(s)</a>
-                <a class="dropdown-item" href="/fabrication_daily_report_page">Fabrication Reports</a>
+                <a class="dropdown-item" href="/fabrication_report">Fabrication Reports</a>
+                <a class="dropdown-item" href="/assembly_report">Assembly Reports</a>
+
               </div>
             </li>
             @endif

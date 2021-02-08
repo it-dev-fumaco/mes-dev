@@ -51,7 +51,7 @@
 
         @endforeach
         <td class="text-center tableclass" style="">{{$row['total']}}</td>
-        <td class="text-center tableclass" style="">0</td>
+        <td class="text-center tableclass" style="">{{$row['avg']}}</td>
 
       </tr>
     @endforeach

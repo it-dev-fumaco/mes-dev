@@ -665,9 +665,13 @@ Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_cate
 
 
 //Daily Report
-Route::get('/fabrication_daily_report', 'ReportsController@fabrication_daily_report');
-Route::get('/fabrication_daily_report_page', 'ReportsController@fabrication_daily_report_page');
-Route::get('/fabrication_daily_chart', 'ReportsController@fabrication_daily_chart');
+Route::get('/daily_output_report', 'ReportsController@daily_output_report');
+Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
+Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
+
+Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
+Route::get('/assembly_report', 'ReportsController@assembly_report_page');
+
 
 
 Route::group(['middleware' => 'auth'], function(){

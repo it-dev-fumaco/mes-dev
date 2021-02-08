@@ -139,12 +139,14 @@ $(document).ready(function(){
       var date = $('#daterange_report').val();
       var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
       var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
+      var operation = 1;
       var data = {
             start_date: startDate,
-            end_date:endDate
+            end_date:endDate,
+            operation: operation
           }
       $.ajax({
-              url:"/fabrication_daily_report",
+              url:"/daily_output_report",
               type:"GET",
               data: data,
               success:function(data){
@@ -156,12 +158,14 @@ $(document).ready(function(){
          var date = $('#daterange_report').val();
          var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
          var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
+         var operation = 1;
          var data = {
             start_date: startDate,
-            end_date:endDate
+            end_date:endDate,
+            operation:operation
           }
       $.ajax({
-         url: "/fabrication_daily_chart",
+         url: "/daily_output_chart",
          method: "GET",
          data: data,
          success: function(data) {
@@ -208,6 +212,9 @@ $(document).ready(function(){
                type: 'line',
                data: chartdata,
                options: {
+                  tooltips: {
+                     mode: 'index'
+                  },
                   responsive: true,
                   legend: {
                      position: 'top',
