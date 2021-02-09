@@ -20,7 +20,7 @@
                       <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
                    </td>
                    <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Assembly Report</h3>
+                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Assembly Reports</h3>
                    </td>
                 </tr>
              </table>
@@ -29,49 +29,76 @@
     </div>
  </div>
  <br>
- <div class="content" style="margin-top: -145px;">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                   <div class="row ">
-                      <div class="col-md-12">
-                         <div class="row text-black" style=" padding-top:50px auto;">
-                           <div class="col-md-8">
-                              <div class="form-group">
-                                  <h5><b>Daily Assembly Output</b></h5>
-                              </div>
-                           </div>
-                           <div class="col-md-4 text-center">
-                              <div class="form-group">
-                                    <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                    <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
-                              </div>
-                           </div>
-                         </div>
-                      </div>
+ <div class="content">
+   <div class="row" style="margin-top: -145px;">
+     <div class="col-md-12">
+       <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
+         <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#tab0" role="tab" aria-controls="tab0" aria-selected="true">Daily Assembly Output</a>
+         </li>
+         <li class="nav-item">
+           <a class="nav-link" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" id="olu_click">Operator Load Utilization</a>
+         </li>
+       </ul>
+       <div class="tab-content" style="min-height: 500px;">
+         <div class="tab-pane active" id="tab0" role="tabpanel" aria-labelledby="tab0">
+           <div class="row">
+             <div class="col-md-12">
+               <div class="card" style="border-radius: 0 0 3px 3px;">
+                 <div class="card-body">
+                   <div class="row m-0">
+                     <div class="col-md-12">
+                        <div class="row text-black" style=" padding-top:50px auto;">
+                          <div class="col-md-8">
+                             <div class="form-group">
+                                 <h5><b>Daily Assembly Output</b></h5>
+                             </div>
+                          </div>
+                          <div class="col-md-4 text-center">
+                             <div class="form-group">
+                                   <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
+                                   <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                             </div>
+                          </div>
+                        </div>
+                     </div>
+                     <div class="col-md-12">
+                       <div class="card">
+                          <div class="card-body">
+                             <div class="col-md-12">
+                                <canvas id="assembly_daily_report_chart" height="50"></canvas>
+                             </div>
+                          </div>
+                       </div>
+                     </div>
+                     <div class="col-md-12">
+                       <div class="row">
+                          <div class="col-md-12" style="">
+                             <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
+                          </div>
+                       </div>
+                    </div>
                    </div>
-                  
-                    <div class="card">
-                        <div class="card-body">
-                           <div class="col-md-12">
-                              <canvas id="fabrication_daily_report_chart" height="50"></canvas>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="row">
-                        <div class="col-md-12" style="">
-                           <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
-                        </div>
-                     </div>
-                   
-                </div>
-            </div>
-        </div>
-    </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+         <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2">
+            <div class="row">
+               <div class="col-md-12">
+                  <div class="card">
+                      <div class="card-body" style="min-height: 450px;">
+                          <div id="sked2"></div>
+                      </div>
+                  </div>
+              </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
  </div>
-<div id="active-tab"></div>
-
 @endsection
 
 @section('script')
@@ -82,6 +109,9 @@
 <script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
+
+<link rel="stylesheet" href="{{ asset('css/jquery.skedTape.css') }}">
+<script src="{{ asset('js/jquery.skedTape.js') }}"></script>
 <script>
 $(document).ready(function(){
     $('#daterange_report').daterangepicker({
@@ -202,7 +232,7 @@ $(document).ready(function(){
                   }]
             };
 
-            var ctx = $("#fabrication_daily_report_chart");
+            var ctx = $("#assembly_daily_report_chart");
 
             if (window.rfdTimelinessCtx != undefined) {
                window.rfdTimelinessCtx.destroy();
@@ -236,5 +266,110 @@ $(document).ready(function(){
       });
    }
 
-    </script>
+</script>
+<script>
+
+   $(document).on('click', '#olu_click', function(){
+      $("#sked2").empty();
+      var operator_list = function () {
+       var tmp = null;
+       var operation = 3;
+
+       $.ajax({
+           async: false,
+           url:"/get_operators",
+           data:{operation:operation},
+           type:"GET",
+           success:function(data){
+               var operator_arr = [];
+               $.each(data, function (i, value) {
+                   operator_arr.push({id: i, name: value});
+               }); 
+ 
+               tmp = operator_arr;
+           }
+       }); 
+ 
+       return tmp;
+     }();
+ 
+     var timelogs = function () {
+       var tmp = null;
+       var operation = 3;
+       $.ajax({
+           async: false,
+           url:"/get_operator_timelogs",
+           data:{operation:operation},
+           type:"GET",
+           success:function(data){
+               var operator_logs = [];
+               $.each(data, function (i, value) {
+                   operator_logs.push({
+                       name: value.workstation + ' - ' + value.completed_qty + ' pcs',
+                       location: value.operator_id,
+                       start: new Date(value.from_time),
+                       end: new Date(value.to_time),
+                   });
+               }); 
+ 
+               tmp = operator_logs;
+           }
+       }); 
+ 
+       return tmp;
+     }();
+ 
+     console.log(timelogs);
+ 
+     // -------------------------- Helpers ------------------------------
+     function today(hours, minutes) {
+         var date = new Date();
+         date.setHours(hours, minutes, 0, 0);
+         return date;
+     }
+     function yesterday(hours, minutes) {
+         var date = today(hours, minutes);
+         date.setTime(date.getTime() - 24 * 60 * 60 * 1000);
+         return date;
+     }
+     function tomorrow(hours, minutes) {
+         var date = today(hours, minutes);
+         date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
+         return date;
+     }
+     var start_date = new Date();
+     start_date.setDate(start_date.getDate() - 7);
+     start_date.setHours(6,0,0,0);
+     var sked2Config = {
+         caption: 'Operator Name',
+         start: start_date,
+         end: tomorrow(0, 0),
+         showEventTime: true,
+         showEventDuration: true,
+         //locations: locations.map(function(location) {
+           // var newLocation = $.extend({}, location);
+             //delete newLocation.tzOffset;
+           // return newLocation;
+         //}),
+         formatters: {
+             date: function (date) {
+                 return $.fn.skedTape.format.date(date, 'm', '/');
+             },
+         },
+         locations: operator_list.slice(),
+         events: timelogs.slice(),
+         tzOffset: 0,
+         sorting: true,
+         orderBy: 'name',
+         showIntermission: true
+     };
+     var $sked2 = $.skedTape(sked2Config);
+     $sked2.appendTo('#sked2').skedTape('render');
+     //$sked2.skedTape('destroy');
+     $sked2.skedTape(sked2Config);
+   
+   });
+       
+
+ </script>
 @endsection
