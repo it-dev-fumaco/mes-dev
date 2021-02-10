@@ -134,8 +134,6 @@ Route::group(['middleware' => 'auth'], function(){
 
 	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');
 
-	//reports
-	Route::get('/reports_index', 'MainController@report_index');
 });
 
 //machine overview
@@ -494,10 +492,8 @@ Route::post('/delete_user_group', 'SecondaryController@delete_user_group');
 
 //QA_inspection_log_report
 
-Route::get('/tbl_qa_inspection_log_report_fabrication/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_fabrication');
+Route::get('/tbl_qa_inspection_log_report/{start}/{end}/{operation}', 'QualityInspectionController@tbl_qa_inspection_log_report');
 Route::get('/get_tbl_qa_inspection_log_export/{start}/{end}/{workstation}/{customer}/{prod}/{item_code}/{status}/{processs}/{qa_inspector}/{operator}', 'QualityInspectionController@get_tbl_qa_inspection_log_export');
-Route::get('/tbl_qa_inspection_log_report_painting/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_painting');
-Route::get('/get_tbl_qa_inspection_log_export_painting/{start}/{end}/{workstation}/{customer?}/{prod?}/{item_code?}/{status?}/{processs?}/{qa_inspector?}/{operator?}', 'QualityInspectionController@get_tbl_qa_inspection_log_export_painting');
 
 //item_classification_warehouse_setup
 Route::post('/save_item_classification_warehouse', 'SecondaryController@insert_item_classification_warehouse');
@@ -663,6 +659,19 @@ Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done
 
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
+
+//Daily Report
+Route::get('/daily_output_report', 'ReportsController@daily_output_report');
+Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
+Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
+
+Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
+Route::get('/assembly_report', 'ReportsController@assembly_report_page');
+
+Route::get('/painting_report', 'ReportsController@painting_report_page');
+Route::get('/qa_report', 'ReportsController@qa_report');
+
+Route::get('/report_index', 'ReportsController@index');
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');

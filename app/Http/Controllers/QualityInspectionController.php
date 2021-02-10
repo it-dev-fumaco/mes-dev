@@ -823,78 +823,17 @@ class QualityInspectionController extends Controller
     //         ->update(['reject_list_id' =>$request->reject_list_id]);
     // }
 
-    public function tbl_qa_inspection_log_report_fabrication(Request $request, $start, $end, $workstation){
+    public function tbl_qa_inspection_log_report(Request $request, $start, $end, $operation_id){
         $data=[];
         $qa_table = DB::connection('mysql_mes')
         ->table('quality_inspection as qa')
         ->whereBetween(DB::raw('DATE_FORMAT(qa_inspection_date, "%Y-%m-%d")'),[$start,$end])
         ->select('qa_id','reference_type')
         ->get();
-        $type_variable="Major Reject(s)";
-        $type_visual="Minor Reject(s)";
-        $t_variable="Remarks";
-        $t_visual="Remarks";
-        $status_index_for_variable=0;
-        $status_index_for_visual=0.1;
 
-        
-        $header_variable=$this->tbl_th_workstation_header($workstation, $type_variable);
-        $data_array_variable = explode(',',$header_variable);
-        foreach ($data_array_variable as $row) {
-            $header[]=[
-                'reject_checklist' => $row
-            ];
-        }
-
-
-        $header_visual=$this->tbl_th_workstation_header($workstation, $type_visual).'';
-        $data_array_visual = explode(',',$header_visual);
-        foreach ($data_array_visual as $row) {
-            $header[]=[
-                'reject_checklist' => $row
-            ];
-        }
-        $count_header_visual= count(collect($data_array_visual));
-        $count_header_variable= count(collect($data_array_variable));
-
-        
-        $quality_check= ($count_header_variable + $count_header_visual);
-        $colspan_variable = $count_header_variable +1;
-        $colspan_visual = $count_header_visual +1;
-
-        $width_size=round(100/ $quality_check, 2);
-
-       for($i=1;$i<=$width_size;$i++){
-            $width[]=[
-                'value'=> $width_size
-            ];
-        }
-
-
-        $workstation_name= DB::connection('mysql_mes')->table('workstation')->where('workstation_id', $workstation)->first();
+        $header=db::connection('mysql_mes')->table('reject_category')->orderBy('reject_category_id', 'ASC')->get();
         foreach ($qa_table as $row) {
-
-            $checklist_id_varible=DB::connection('mysql_mes')->table('qa_checklist as ql')
-                ->leftJoin('reject_list as rl','rl.reject_list_id', 'ql.reject_list_id')
-                ->leftJoin('reject_category','rl.reject_category_id','reject_category.reject_category_id')
-                ->where('reject_category.type','like', '%'.$type_variable.'%')
-                ->where('workstation_id', $workstation)
-                ->selectRaw('ql.workstation_id,GROUP_CONCAT(ql.reject_list_id ORDER BY ql.reject_list_id SEPARATOR ",") as reject_id')
-                ->groupBy('ql.workstation_id')
-                ->orderBy('ql.reject_list_id', 'asc')
-                ->first();
-
-            $checklist_id_visual=DB::connection('mysql_mes')->table('qa_checklist as ql')
-                ->leftJoin('reject_list as rl','rl.reject_list_id', 'ql.reject_list_id')
-                ->leftJoin('reject_category','rl.reject_category_id','reject_category.reject_category_id')
-                ->where('reject_category.type','like', '%'.$type_visual.'%')
-                ->where('workstation_id', $workstation)
-                ->selectRaw('ql.workstation_id,GROUP_CONCAT(ql.reject_list_id ORDER BY ql.reject_list_id SEPARATOR ",") as reject_id')
-                ->groupBy('ql.workstation_id')
-                ->orderBy('ql.reject_list_id', 'asc')
-                ->first();
-            // dd($checklist_id_visual);
-
+            
             if ($row->reference_type == "Spotwelding") {
                 $order=DB::connection('mysql_mes')
                 ->table('quality_inspection as qa')
@@ -905,7 +844,8 @@ class QualityInspectionController extends Controller
                 ->leftjoin('process as process','process.process_id','jt.process_id')
                 ->join('production_order as po','jt.production_order','po.production_order')
                 ->where('qa.qa_id', $row->qa_id)
-                ->where('jt.workstation', $workstation_name->workstation_name)
+                ->where('po.operation_id', $operation_id)
+                ->where('jt.workstation', 'LIKE', '%'.$request->workstation.'%')
                 ->where('po.production_order', 'LIKE', '%'.$request->prod.'%')
                 ->Where('po.customer', 'LIKE', '%'.$request->customer.'%')
                 ->Where('po.item_code', 'LIKE', '%'.$request->item_code.'%')
@@ -917,29 +857,23 @@ class QualityInspectionController extends Controller
                 ->first();
 
                 if(!empty($order)){
-                    $emp_name= DB::connection('mysql_essex')
-                        ->table('users')
-                        ->where('users.user_id', $order->qa_staff_id)
-                        ->select('users.employee_name')
-                        ->first();
-                        $status_index_for_variable=0;
-                        $status_index_for_visual=0.1;
+                        $emp_name= DB::connection('mysql_essex')
+                            ->table('users')
+                            ->where('users.user_id', $order->qa_staff_id)
+                            ->select('users.employee_name')
+                            ->first();
+                        $workstation_id= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $order->workstation)->first()->workstation_id;
                         $count= ($order->actual_qty_checked);
                         $goods= ($order->actual_qty_checked - $order->rejected_qty);
                         $reject = $order->rejected_qty;
-                        $string = $checklist_id_varible->reject_id.",". $checklist_id_visual->reject_id;
-                        // dd($string);
-
                         $checklist_status=DB::connection('mysql_mes')->table('reject_reason')
                         ->leftJoin('reject_list','reject_list.reject_list_id','reject_reason.reject_list_id')
                         ->leftJoin('reject_category','reject_list.reject_category_id','reject_category.reject_category_id')
                         ->selectRaw('qa_id,GROUP_CONCAT(DISTINCT reject_list.reject_reason) as reject_reason')
                         ->where('reject_reason.qa_id',$row->qa_id)
-                        // ->where('reject_category.type','like', '%'.'Major Reject(s)'.'%')
                         ->orderBy('reject_reason.reject_list_id')
                         ->groupBy('reject_reason.qa_id')
                         ->first();
-
 
                         $data[]=[
                        "inspection_date" => date('F d, Y', strtotime($order->qa_inspection_date)),
@@ -957,9 +891,9 @@ class QualityInspectionController extends Controller
                        'samples' => $order->sample_size,
                        'reject' =>$reject,
                        'good'=> $goods,
-                       'count' => ($count == 0 )? 0 : $count+1,
+                       'count' => $row->qa_id,
                        'actual_qty' =>$order->actual_qty_checked,
-                       'checklist' =>$this->qa_log_checklist($order->qa_id, $goods, $reject, $count,$string,$order->cutting_size),
+                       'checklist' => $this->get_qa_checklist($order->status, $row->qa_id, $workstation_id, $header),
                        'reference_document' =>'',
                        'status'=> $order->status,
                        'operator' => $order->operator_name,
@@ -967,11 +901,9 @@ class QualityInspectionController extends Controller
                         'remarks' => empty($checklist_status)? "Good" : $checklist_status->reject_reason
                ];
                 }
-                 
-                    
-
 
             }else{
+                $validate= $request->workstation;
                 $order=DB::connection('mysql_mes')
                 ->table('quality_inspection as qa')
                 ->leftJoin('reject_reason as rjr','rjr.qa_id', 'qa.qa_id')
@@ -981,8 +913,14 @@ class QualityInspectionController extends Controller
                 ->leftJoin('process as process', 'process.process_id','jt.process_id')
                 ->join('production_order as po','jt.production_order','po.production_order')
                 ->where('qa.qa_id', $row->qa_id)
-                ->where('jt.workstation', $workstation_name->workstation_name)
                 ->where('qa.actual_qty_checked',"!=", 0)
+                ->where('po.operation_id', $operation_id)
+                ->when($validate, function ($query, $validate) {
+                    return $query->where('jt.workstation', 'LIKE', $validate);
+                })
+                ->when($validate == null, function ($query, $validate) {
+                    return $query->where('jt.workstation', '!=', "Painting");
+                })
                 ->where('po.production_order', 'LIKE', '%'.$request->prod.'%')
                 ->Where('po.customer', 'LIKE', '%'.$request->customer.'%')
                 ->Where('po.item_code', 'LIKE', '%'.$request->item_code.'%')
@@ -994,41 +932,23 @@ class QualityInspectionController extends Controller
                 ->first();
 
                 if (!empty($order)) {
-                        
                         $emp_name= DB::connection('mysql_essex')
                         ->table('users')
                         ->where('users.user_id', $order->qa_staff_id)
                         ->select('users.employee_name')
                         ->first();
-                        $status_index_for_variable=0;
-                        $status_index_for_visual=0.1;
+                        $workstation_id= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $order->workstation)->first()->workstation_id;
                         $count= ($order->actual_qty_checked);
                         $goods= ($order->actual_qty_checked - $order->rejected_qty);
                         $reject = $order->rejected_qty;
-                        if(empty($checklist_id_varible) && empty($checklist_id_visual)){
-                            $string = null;
-
-                        }elseif(empty($checklist_id_visual) && !empty($checklist_id_varible)){
-                            $string = $checklist_id_varible->reject_id;
-
-                        }elseif(!empty($checklist_id_visual)  && empty($checklist_id_varible) ){
-                            $string = $checklist_id_visual->reject_id;
-
-                        }else{
-                            $string = $checklist_id_varible->reject_id.",". $checklist_id_visual->reject_id;
-
-                        }
-
                         $checklist_status=DB::connection('mysql_mes')->table('reject_reason')
                         ->leftJoin('reject_list','reject_list.reject_list_id','reject_reason.reject_list_id')
                         ->leftJoin('reject_category','reject_list.reject_category_id','reject_category.reject_category_id')
                         ->selectRaw('qa_id,GROUP_CONCAT(DISTINCT reject_list.reject_reason) as reject_reason')
                         ->where('reject_reason.qa_id',$row->qa_id)
-                        // ->where('reject_category.type','like', '%'.'Major Reject(s)'.'%')
                         ->orderBy('reject_reason.reject_list_id')
                         ->groupBy('reject_reason.qa_id')
                         ->first();
-                        // dd($string);
                         $data[]=[
                        "inspection_date" => date('F d, Y', strtotime($order->qa_inspection_date)),
                        "time" => date('h:ia', strtotime($order->qa_inspection_date)),
@@ -1037,7 +957,7 @@ class QualityInspectionController extends Controller
                        'customer' => $order->customer,
                        'project' => $order->project,
                        'item_code'=> $order->item_code,
-                       'decsription'=>strtok($order->description, ","),
+                       'decsription'=>$order->description,
                        'batch_qty'=> $order->good,
                        'workstation' => $order->workstation,
                        'process' => $order->process_name,
@@ -1047,7 +967,7 @@ class QualityInspectionController extends Controller
                        'good'=> $goods,
                        'count' => ($count == 0 )? 0 : $count+1,
                        'actual_qty' =>$order->actual_qty_checked,
-                       'checklist' =>$this->qa_log_checklist($order->qa_id, $goods, $reject, $count,$string, $order->cutting_size),
+                       'checklist' => $this->get_qa_checklist($order->status, $row->qa_id, $workstation_id, $header),
                        'reference_document' =>'',
                        'status'=> $order->status,
                        'operator' => $order->operator_name,
@@ -1057,15 +977,57 @@ class QualityInspectionController extends Controller
 
                 }
                     
-            }
-
-           
+            } 
         }
-           
+        return view('quality_inspection.tbl_qa_inspection_logs_report', compact('header','data'));
+    }
+    public function get_qa_checklist($status, $qa_id, $workstation, $header){
+        $data_array = array_pluck( $header, 'reject_category_id');
+        foreach($data_array as $row){
+            $data1= DB::connection('mysql_mes')
+            ->table('qa_checklist')
+            ->leftjoin('reject_list', 'reject_list.reject_list_id', 'qa_checklist.reject_list_id')
+            ->where('reject_list.reject_category_id', $row)
+            ->where('qa_checklist.workstation_id', $workstation)->groupBy('reject_list.reject_category_id')->select('reject_list.reject_category_id')->first();
+            
+            if (!empty($data1)) {
+                $reject_reasons=DB::connection('mysql_mes')->table('reject_list')
+                    ->leftJoin('reject_reason','reject_list.reject_list_id','reject_reason.reject_list_id')
+                    ->leftJoin('reject_category','reject_list.reject_category_id','reject_category.reject_category_id')
+                    ->where('reject_category.reject_category_id', $row)
+                    ->where('reject_reason.qa_id', $qa_id)
+                    ->select('reject_reason.reject_value', 'reject_list.reject_reason')
+                    ->get();
+                    if(count($reject_reasons) > 0){
+                        $data[]=[
+                            'category' => $row,
+                            'value' =>  $reject_reasons,
+                            'stat' =>  "QC Failed",
+                            'count' => 1,
+                        ];
+                    }else{
+                        $data[]=[
+                            'category' =>  $row,
+                            'value' =>  [],
+                            'stat' =>   "QC Passed",
+                            'count' => 0,
+                            'colspan' => 2
 
-        
-        // return $data;
-         return view('quality_inspection.tbl_qa_inspection_logs_report', compact('colspan_variable','colspan_visual','header_variable','count_header_variable','header_visual','count_header_visual', 'quality_check','data','width','header'));
+                        ]; 
+                    }
+                    
+            }else{
+                $data[]=[
+                    'category' => 'n/a',
+                    'value' =>  [],
+                    'stat' =>  'n/a',
+                    'count' => 0,
+                    'colspan' => 2
+
+                ]; 
+            }
+        }
+        return $data;
     }
     public function tbl_th_workstation_header($workstation, $category_type){
         
