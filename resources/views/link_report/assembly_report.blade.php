@@ -176,7 +176,7 @@ $(document).ready(function(){
             operation:operation
           }
       $.ajax({
-              url:"/daily_output_report",
+              url:"/link_daily_output_report",
               type:"GET",
               data: data,
               success:function(data){
@@ -195,7 +195,7 @@ $(document).ready(function(){
             operation: operation
           }
       $.ajax({
-         url: "/daily_output_chart",
+         url: "/link_daily_output_chart",
          method: "GET",
          data: data,
          success: function(data) {

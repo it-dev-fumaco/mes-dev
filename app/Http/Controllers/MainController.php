@@ -5141,8 +5141,41 @@ class MainController extends Controller
 
     	return $data;
 	}
-	
+	public function report_index(){
+		$workstation= DB::connection('mysql_mes')->table('workstation AS w')
+                    ->join("operation as op","op.operation_id", "w.operation_id")
+                    ->select("w.workstation_name", "w.workstation_id")
+                    ->where('op.operation_name','Fabrication')
+                    ->orderBy('w.workstation_name', 'asc')
+                    ->get();
 
+        $process= DB::connection('mysql_mes')->table('process AS p')
+                    ->select("p.process_name", "p.process_id")
+                    ->orderBy('p.process_name', 'asc')
+                    ->get();
+
+        $parts= DB::connection('mysql_mes')->table('production_order AS po')
+                    ->select("po.parts_category")
+                    ->where('po.parts_category', '!=', null)
+                    ->groupBy('po.parts_category')
+                    ->orderBy('po.parts_category', 'asc')
+                    ->get();
+
+        $sacode= DB::connection('mysql_mes')->table('production_order AS po')
+                    ->select("po.item_code")
+                    ->where('po.item_code', '!=', null)
+                    ->groupBy('po.item_code')
+                    ->orderBy('po.item_code', 'asc')
+                    ->get();
+
+        $mes_user_operations = DB::connection('mysql_mes')->table('user')
+					->join('operation', 'operation.operation_id', 'user.operation_id')
+					->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+                    ->where('module', 'Production')
+                    ->where('user_access_id', Auth::user()->user_id)->pluck('operation_name')->toArray();
+
+		return view('reports.index', compact('workstation', 'process', 'parts','sacode', 'mes_user_operations'));
+	}
 	public function painting_ready_list(Request $request){
 		$orders = DB::connection('mysql_mes')->table('production_order as prod')
 			->join('job_ticket as tsd', 'tsd.production_order', 'prod.production_order')

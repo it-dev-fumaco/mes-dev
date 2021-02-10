@@ -131,7 +131,9 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/update_production_order_schedule', 'MainController@update_production_order_schedule');
 
 	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');
-
+	
+	//reports
+	Route::get('/reports_index', 'MainController@report_index');
 });
 
 //machine overview
@@ -655,22 +657,6 @@ Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done
 
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
-
-//Daily Report
-Route::get('/daily_output_report', 'ReportsController@daily_output_report');
-Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
-Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
-
-Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
-Route::get('/assembly_report', 'ReportsController@assembly_report_page');
-
-Route::get('/painting_report', 'ReportsController@painting_report_page');
-Route::get('/qa_report', 'ReportsController@qa_report');
-
-Route::get('/report_index', 'ReportsController@index');
-
-
-
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
 	
@@ -731,3 +717,5 @@ Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_r
 Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
 Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
 Route::get('/link_qa_report', 'LinkReportController@qa_report');
+Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
+Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
