@@ -4094,30 +4094,35 @@ class MainController extends Controller
 		return view('operators_load_utilization');
 	}
 
-	public function get_operators(){
+	public function get_operators(Request $request){
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
 
-		return DB::connection('mysql_mes')->table('time_logs')->whereNotNull('operator_id')
-			->whereBetween('from_time', [$d1, $d2])
+		return DB::connection('mysql_mes')->table('time_logs')
+		->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+		->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+		->whereNotNull('time_logs.operator_id')->where('production_order.operation_id', $request->operation)
+			->whereBetween('time_logs.from_time', [$d1, $d2])
 			// ->where(function($q) {
 			// 	$q->whereNull('remarks')
 			// 		->orWhere('remarks', '!=', 'Override');
 			// })
-			->distinct()->pluck('operator_name', 'operator_id');
+			->distinct()->pluck('time_logs.operator_name', 'time_logs.operator_id');
 	}
 
-	public function get_operator_timelogs(){
+	public function get_operator_timelogs(Request $request){
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
 		
 		return DB::connection('mysql_mes')->table('time_logs')
 			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-			->whereNotNull('operator_id')->where('time_logs.status', 'Completed')
-			->whereNotNull('from_time')
-			->whereNotNull('to_time')
-			->whereBetween('from_time', [$d1, $d2])
-			->select('time_logs.*', 'job_ticket.workstation', 'job_ticket.production_order', 'job_ticket.planned_start_date', 'job_ticket.planned_end_date', DB::raw('(good + reject) as completed_qty'))
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->whereNotNull('time_logs.operator_id')->where('time_logs.status', 'Completed')
+			->whereNotNull('time_logs.from_time')
+			->whereNotNull('time_logs.to_time')
+			->where('production_order.operation_id', $request->operation)
+			->whereBetween('time_logs.from_time', [$d1, $d2])
+			->select('time_logs.*', 'job_ticket.workstation', 'job_ticket.production_order', 'job_ticket.planned_start_date', 'job_ticket.planned_end_date', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'))
 			// ->where(function($q) {
 			// 	$q->whereNull('remarks')
 			// 		->orWhere('remarks', '!=', 'Override');
@@ -5136,8 +5141,7 @@ class MainController extends Controller
 
     	return $data;
 	}
-	
-    public function report_index(){
+	public function report_index(){
 		$workstation= DB::connection('mysql_mes')->table('workstation AS w')
                     ->join("operation as op","op.operation_id", "w.operation_id")
                     ->select("w.workstation_name", "w.workstation_id")
@@ -5149,14 +5153,14 @@ class MainController extends Controller
                     ->select("p.process_name", "p.process_id")
                     ->orderBy('p.process_name', 'asc')
                     ->get();
-        
+
         $parts= DB::connection('mysql_mes')->table('production_order AS po')
                     ->select("po.parts_category")
                     ->where('po.parts_category', '!=', null)
                     ->groupBy('po.parts_category')
                     ->orderBy('po.parts_category', 'asc')
                     ->get();
-        
+
         $sacode= DB::connection('mysql_mes')->table('production_order AS po')
                     ->select("po.item_code")
                     ->where('po.item_code', '!=', null)
@@ -5172,7 +5176,6 @@ class MainController extends Controller
 
 		return view('reports.index', compact('workstation', 'process', 'parts','sacode', 'mes_user_operations'));
 	}
-
 	public function painting_ready_list(Request $request){
 		$orders = DB::connection('mysql_mes')->table('production_order as prod')
 			->join('job_ticket as tsd', 'tsd.production_order', 'prod.production_order')
