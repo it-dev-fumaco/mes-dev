@@ -1,4 +1,4 @@
-@extends('layouts.user_app', [
+@extends('link_report.app', [
   'namePage' => 'Fabrication',
   'activePage' => 'production_schedule',
 ])
