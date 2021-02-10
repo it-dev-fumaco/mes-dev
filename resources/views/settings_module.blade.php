@@ -979,7 +979,7 @@
                                 <div class="card card-nav-tabs card-plain">
                                     <div class="card-body">
                                         <div class="row">
-                                          <div class="col-md-7">
+                                          <div class="col-md-12">
                                             <div class="card" style="min-height: 400px;">
                                               <table class="text-white" style="width: 100%;background-color:#34495e;">
                                                 <col style="width: 70%;">
@@ -993,74 +993,11 @@
                                                   </td>
                                                 </tr>
                                               </table>
-                                                <!-- <table class="table">
-                                                    <col style="width: 70%;">
-                                                    <col style="width: 30%;">
-                                                    <thead class="text-white" style="background-color:#34495e  ;border: 0;">
-                                                        <th style="text-align: left;padding-left: 20px;"><b>Shift</b></th>
-                                                        <th style="font-size: 9pt;">
-                                                          <button type="button" class="btn btn-primary" id="add-shift-button" style="float: right;">
-                                                            <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                        </th>
-                                                    </thead>
-                                                </table> -->
                                                 <div class="card-body">
                                                     <div class="tbl_shift" id="tbl_shift"></div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-5">
-                                                        <div class="card" style="min-height: 400px;">
-                                                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                <col style="width: 70%;">
-                                                <col style="width: 30%;">
-                                                <tr>
-                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Shift Schedule</b></th>
-                                                  <td class="text-right">
-                                                    <button type="button" class="btn btn-primary" id="add-shift-schedule-button" style="margin: 5px;">
-                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                    </button>
-                                                  </td>
-                                                </tr>
-                                              </table>
-                                                          <!--   <table class="table" border="0">
-                                                                <col style="width: 60%;">
-                                                                <col style="width: %;">
-                                                                <thead class="text-white" style="background-color:#34495e;">
-                                                                    <th style="text-align: left;padding-left: 20px;"><b>Shift Schedule</b></th>
-                                                                    <th style="font-size: 9pt;"><button type="button" class="btn btn-primary" id="add-shift-schedule-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button></th>
-                                                                </thead>
-                                                            </table> -->
-                                                            <div class="card-body">
-                                                                <div class="tbl_shift_schedule_sched"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                     <div class="col-md-6">
-                                                <div class="card" style="min-height: 300px;">
-                                                  <table class="text-white" style="width: 100%; background-color:#34495e;">
-                                                <tr style="line-height: 39px;">
-                                                  <th class="text-center" style="font-size: 12pt;"><b>Upcoming Holiday/s</b></th>
-                                                </tr>
-                                              </table>
-                                                  
-                                                    <div class="card-body">
-                                                    </div>
-                                                </div>
-                                                </div>
-                                                     <div class="col-md-6">
-                                                <div class="card" style="min-height: 300px;">
-                                                   <table class="text-white" style="width: 100%; background-color:#34495e;">
-                                                <tr style="line-height: 39px;">
-                                                  <th class="text-center" style="font-size: 12pt;"><b>On Leave / Absent Today</b></th>
-                                                </tr>
-                                              </table>
-                                                   
-                                                    <div class="card-body">
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                             </div>        
@@ -1475,6 +1412,7 @@
                               <option value="Operator">Operator</option>
                               <option value="Assembler">Assembler</option>
                               <option value="Supplier">Supplier</option>
+                              <option value="Machine/Equipment">Machine/Equipment</option>
                               <option value="Others">Others</option>
                           </select>
                           <input type="hidden" class="form-control" name="orig_reject_responsible"  id="orig_reject_responsible">
@@ -4823,9 +4761,10 @@ function check_list_assembly(page, query){
            var owner = $('#owner_checklist').val();
            var first_selection_data = $(this).val();
            var id_for_second_selection = $(this).attr('data-idcolumn');
+           var operation = $('#add-checklist-modal .modal-title').text();
            var format_id_for_second_selection = "#"+id_for_second_selection;
             $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner,
+            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
             type:"GET",
             success:function(data){
               $(format_id_for_second_selection).html(data);
@@ -4910,7 +4849,6 @@ function op_reject_list(page, query){
         var rjt_action = $(this).attr('data-action');
         var owner = $(this).attr('data-owner');
         var opoperation = $(this).attr('data-opoperation');
-
         if(reloadtbl =="Operator"){
           $('#edit_reject_checklist_div').hide();
           $('#div_operation_edit').show();
@@ -5743,7 +5681,8 @@ function get_user_group(page, query){
           "Engineering": "Engineering",
           "Operator": "Operator",
           'Assembler': "Assembler",
-          'Supplier': "Supplier",
+          'Supplier': "Supplier",                             
+          'Machine/Equipment': "Machine/Equipment", 
           "Others" : 'Others'
         };
         
@@ -5985,6 +5924,7 @@ function tbl_wip_list(page, query){
 	      var operation_id = $(this).attr('data-operation');
 	
 	      $('#edit-shift-frm .operation').val(operation_id).prop('selected', true);
+        $('#edit-shift-frm .old_operation_id').val(operation_id);
 	      $('#edit-shift-frm .time_in').val(time_in);
 	      $('#edit-shift-frm .time_out').val(time_out);
 	      $('#edit-shift-frm .shift_type').val(shift_type);
@@ -6526,8 +6466,9 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
            var first_selection_data = $(this).val();
            var id_for_second_selection = $(this).attr('data-idcolumn');
            var format_id_for_second_selection = "#"+id_for_second_selection;
+           var operation = $('#add-operator-checklist-modal .modal-title').text();
             $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner,
+            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
             type:"GET",
             success:function(data){
               $(format_id_for_second_selection).html(data);
@@ -6981,8 +6922,10 @@ operator_check_list_painting();
            var first_selection_data = $(this).val();
            var id_for_second_selection = $(this).attr('data-idcolumn');
            var format_id_for_second_selection = "#"+id_for_second_selection;
-            $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner,
+           var operation = $('#add-checklist-painting-modal .modal-title').text();
+           
+          $.ajax({
+            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/' + operation,
             type:"GET",
             success:function(data){
               $(format_id_for_second_selection).html(data);

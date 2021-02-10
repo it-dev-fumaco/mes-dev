@@ -32,6 +32,19 @@
 <div class="content" style="margin-top: -100px; min-height: 10px;">
 
 <div class="row" style="margin-top: -230px;">
+  @foreach($breaktime_data as $r => $row)
+  <div class="col-md-12" id="{{$r}}{{$row['div_id']}}" style="display:none; margin-top:-30px;margin-bottom:10px;">
+    <div class="alert alert-primary text-center" role="alert">
+      <span class="d-none"></span>
+      <div class="container">
+        <div class="alert-icon" style="color:black;">
+          <i class="now-ui-icons ui-2_time-alarm" style="padding-right:5px;font-size:30px;"></i><span style="font-size:18pt;"> <b>{{$row['break_type']}} :</b></span> 
+                <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endforeach
   <div class="col-md-6">
     <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
     <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process_details->process_name }} Area</h2>
@@ -102,7 +115,9 @@
     </div>
   </div>
 </div>
-
+@foreach($breaktime_data as $r => $row)
+  <input type="hidden" class="breaktime_input" value="{{$row['break_type']}}" data-timein="{{$row['time_in']}}" data-timeout="{{$row['time_out']}}" data-type="{{$row['break_type']}}" data-divid="{{$r}}{{$row['div_id']}}">
+@endforeach
 <!-- Modal -->
 <div class="modal fade" id="machine-enter-operator-id-modal" tabindex="-1" role="dialog">
    <div class="modal-dialog" role="document">
@@ -215,6 +230,31 @@
 @include('painting_operator.modal_view_schedule')
 
 <style type="text/css">
+    @-webkit-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @-moz-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @-o-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    
+    .blink_break{
+      text-decoration: blink;
+      -webkit-animation-name: blinker;
+      -webkit-animation-duration: 3s;
+      -webkit-animation-iteration-count:infinite;
+      -webkit-animation-timing-function:ease-in-out;
+      -webkit-animation-direction: alternate;
+    }
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
     background-size: 28%;
@@ -1164,6 +1204,18 @@
     if(clock){
       clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
     }
+    var timeformat = manilaTime.toTimeString();
+    $('.breaktime_input').each(function() {
+      var div_id= "#" + $(this).data('divid');
+      if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
+        $(div_id).show();
+        $(div_id).addClass("blink_break");
+      }else{
+        $(div_id).hide();
+        $("#div_id").removeClass("blink_break");
+
+      }
+    });
   }
 </script>
 <script type="text/javascript">

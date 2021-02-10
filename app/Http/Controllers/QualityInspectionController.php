@@ -425,20 +425,9 @@ class QualityInspectionController extends Controller
     }
     
     public function update_produced_qty($production_order){
-		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->distinct()->pluck('process_id');
-		$process_list = [];
-		foreach ($processes as $process) {
-			$total_completed = DB::connection('mysql_mes')->table('job_ticket')
-				->where('production_order', $production_order)
-				->where('process_id', $process)->sum('completed_qty');
-
-			$process_list[] = [
-				'process_id' => $process,
-				'total_completed' => $total_completed
-			];
-		}
-
-		$produced_qty = collect(array_column($process_list, 'total_completed'))->min();
+		$produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+            ->where('production_order', $production_order)->min('completed_qty');
+            
 		if ($produced_qty > 0) {
 			DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update(['produced_qty' => $produced_qty]);
 		}
@@ -945,7 +934,6 @@ class QualityInspectionController extends Controller
                 ->when($validate == null, function ($query, $validate) {
                     return $query->where('jt.workstation', '!=', "Painting");
                 })
-                // ->where('jt.workstation', 'LIKE', '%'.$request->workstation.'%')
                 ->where('po.production_order', 'LIKE', '%'.$request->prod.'%')
                 ->Where('po.customer', 'LIKE', '%'.$request->customer.'%')
                 ->Where('po.item_code', 'LIKE', '%'.$request->item_code.'%')
@@ -1004,12 +992,7 @@ class QualityInspectionController extends Controller
                     
             } 
         }
-           
-        // dd($data);
-
-        
-        // return $data;
-         return view('quality_inspection.tbl_qa_inspection_logs_report', compact('header','data'));
+        return view('quality_inspection.tbl_qa_inspection_logs_report', compact('header','data'));
     }
     public function get_qa_checklist($status, $qa_id, $workstation, $header){
         $data_array = array_pluck( $header, 'reject_category_id');
@@ -1059,7 +1042,6 @@ class QualityInspectionController extends Controller
         }
         return $data;
     }
-
     public function get_tbl_qa_inspection_log_export($start, $end, $workstation,$customer, $prod, $item_code, $status,$processs, $qa_inspector, $operator){
         if($customer ==  'none'){
             $customer= "";
