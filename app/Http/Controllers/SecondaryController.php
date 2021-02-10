@@ -4656,6 +4656,11 @@ class SecondaryController extends Controller
         return view('reports.operator_report', compact('workstation', 'process', 'parts','sacode'));
     }
     public function tbl_operator_item_produced_report($date_from, $date_to, $workstation, $process, $parts, $item_code){
+        $workstation= ($workstation =="All")?'': $workstation;
+        $process = ($process=="All")?'': $process;
+        $parts = ($parts =="All")? '': $parts;
+        $item_code= ($item_code =="All")? '': $item_code;
+        
         $get_all_operator=  DB::connection('mysql_mes')->table('job_ticket as jt')
         ->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
         ->join('production_order as po', 'po.production_order', 'jt.production_order')
@@ -4664,57 +4669,17 @@ class SecondaryController extends Controller
         ->where('tl.operator_name','!=', null)
         ->whereDate('tl.from_time', '>=', $date_from)
         ->whereDate('tl.to_time', '<=', $date_to)
+        ->where('po.parts_category','like','%'.$parts.'%')
+        ->where('jt.workstation','like','%'.$workstation.'%')
+        ->where('jt.process_id','like','%'.$process.'%')
+        ->where('po.item_code','like','%'.$item_code.'%')
         ->select('tl.operator_name', 'tl.operator_id', 'jt.workstation', 'jt.process_id', 'po.parts_category', 'process.process_name','po.item_code')
         ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category', 'po.item_code')
         ->groupBy('tl.operator_name', 'tl.operator_id', 'jt.workstation', 'jt.process_id', 'po.parts_category', 'process.process_name','po.item_code')
         ->get();
-        // dd($get_all_operator);
-        // $try= collect($get_all_operator)->where('workstation', 'Shearing');
-        
-        if($workstation =="All" && $process=="All" && $parts =="All" && $item_code =="All"){
-            $query= collect($get_all_operator);
-        }elseif($workstation !="All" && $process=="All" && $parts =="All" && $item_code =="All"){
-            $query= collect($get_all_operator)->where('workstation', $workstation);
-        }elseif($workstation =="All" && $process !="All" && $parts =="All" && $item_code =="All"){
-            $query= collect($get_all_operator)->where('process_id', $process);
-        }elseif($workstation =="All" && $process=="All" && $parts !="All" && $item_code =="All"){
-            $query= collect($get_all_operator)->where('parts_category', $parts);
-        }elseif($workstation =="All" && $process=="All" && $parts =="All" && $item_code !="All"){
-            $query= collect($get_all_operator)->where('item_code', $item_code);
-        }elseif($workstation !="All" && $process =="All" && $parts !="All" && $item_code =="All"){
-           //x,check,x,check
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('parts_category', $parts);
-        }elseif($workstation =="All" && $process !="All" && $parts =="All" && $item_code !="All"){
-            //check,x,check,x
-             $query= collect($get_all_operator)->where('process_id', $process)->where('item_code', $item_code);
-         
-        }elseif($workstation =="All" && $process!="All" && $parts !="All" && $item_code !="All"){
-            //new
-            $query= collect($get_all_operator)->where('process_id', $process)->where('parts_category', $parts)->where('item_code', $item_code);
-        }elseif($workstation !="All" && $process=="All" && $parts !="All" && $item_code !="All"){
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('parts_category', $parts)->where('item_code', $item_code);
-        }elseif($workstation !="All" && $process!="All" && $parts =="All" && $item_code !="All"){
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('process_id', $process)->where('item_code', $item_code);
-        }elseif($workstation !="All" && $process!="All" && $parts !="All" && $item_code =="All"){
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('process_id', $process)->where('parts_category', $parts);
-        //new
-        }elseif($workstation =="All" && $process=="All" && $parts !="All" && $item_code !="All"){
-            $query= collect($get_all_operator)->where('parts_category', $parts)->where('item_code', $item_code);
-        }elseif($workstation !="All" && $process!="All" && $parts =="All" && $item_code =="All"){
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('process_id', $process);
-        }elseif($workstation =="All" && $process!="All" && $parts !="All" && $item_code =="All"){
-            $query= collect($get_all_operator)->where('process_id', $process)->where('parts_category', $parts);
-        }elseif($workstation !="All" && $process=="All" && $parts =="All" && $item_code !="All"){
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('item_code', $item_code);
-        }else{
-            $query= collect($get_all_operator)->where('workstation', $workstation)->where('process_id', $process)->where('parts_category', $parts)->where('item_code', $item_code);
-        }
-
-
-
+       
         $jobtickets= [];
-
-        foreach($query as $rss){
+        foreach($get_all_operator as $rss){
             $timelogs= DB::connection('mysql_mes')->table('job_ticket as jt')
             ->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
             ->join('process', 'process.process_id', 'jt.process_id')
@@ -4741,7 +4706,6 @@ class SecondaryController extends Controller
                     $rate =  round(($reject/$var)*100, 2);
                     $duration=collect($timelogs)->sum('duration');
                     $duration_in_sec=$duration * 3600;
-                    $changeover= $this->getchangeover($date_from, $date_to,$rss->operator_id,$rss->workstation, $rss->process_id, $rss->parts_category);
                 
                     $jobtickets[]=[
                     'operator_name' => $rss->operator_name,
@@ -4750,11 +4714,10 @@ class SecondaryController extends Controller
                     'parts_category' => $rss->parts_category,
                     'item_code' => $rss->item_code,
                     'operator_id' => $rss->operator_id,
-                    'duration' => $duration_in_sec/$var,
+                    'duration' => round($duration_in_sec/$var, 2),
                     'process'=>  $rss->process_id,
                     'quantity' => collect($timelogs)->sum('good'),
                     'cycle_time' => $this->seconds2human($duration_in_sec/$var),
-                    'change_over' =>  $this->seconds2human($changeover),
                     'total_rejects' => collect($timelogs)->sum('reject'),
                     'reject_rate' => $rate.'%'
                     ];

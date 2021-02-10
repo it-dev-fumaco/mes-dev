@@ -121,8 +121,6 @@ Route::group(['middleware' => 'auth'], function(){
 
 	Route::get('/production_schedule_per_workstation', 'MainController@production_schedule_per_workstation');
 	Route::get('/operators_load_utilization', 'MainController@operators_load_utilization');
-	Route::get('/get_operators', 'MainController@get_operators');
-	Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 	Route::get('/get_reference_production_items/{reference}', 'MainController@get_reference_production_items');
 	Route::get('/get_customer_reference_no/{customer}', 'MainController@get_customer_reference_no');
 	Route::get('/get_customers', 'MainController@get_customers');
@@ -308,8 +306,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/hide_reject', 'SecondaryController@hidereject_notif_dash');
 
 	Route::get('/operator_item_produced_report', 'SecondaryController@operator_item_produced_report');
-	Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
-	Route::get('/getprocess_query/{workstation}', 'SecondaryController@getprocess_query');
 	Route::get('/export/view/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@export_view');
 
 
@@ -673,6 +669,8 @@ Route::get('/qa_report', 'ReportsController@qa_report');
 
 Route::get('/report_index', 'ReportsController@index');
 
+
+
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
 	
@@ -721,4 +719,15 @@ Route::get('/operations', 'MainController@operation_query');
 Route::get('/workstations/{operation_id}', 'MainController@workstation_query');
 Route::get('/processes/{workstation_id}', 'MainController@process_query');
 
+//exclude from authentication
+Route::get('/getprocess_query/{workstation}', 'SecondaryController@getprocess_query');
+Route::get('/get_operators', 'MainController@get_operators');
+Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
+Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 
+
+//Daily Report
+Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page');
+Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
+Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
+Route::get('/link_qa_report', 'LinkReportController@qa_report');
