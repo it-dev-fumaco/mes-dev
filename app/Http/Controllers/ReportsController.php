@@ -206,7 +206,6 @@ class ReportsController extends Controller
 
             ];
         }
-        // return $day;
         $data2=[
             'data' =>$planned_qty,
             'row_name' =>"PLANNED QUANTITY",
@@ -444,22 +443,20 @@ class ReportsController extends Controller
         $assem_workstation=  DB::connection('mysql_mes')->table('workstation')->where('operation_id', 3)->select('workstation_name','workstation_id')->get();
 
         $fab_process=  DB::connection('mysql_mes')
-        ->table('process_assignment')
-        ->join('process', 'process.process_id', 'process_assignment.process_id')
-        ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-        ->whereNotIn('process.process_name',['Loading','Unloading'])
-        ->where('workstation.operation_id', 1)
-        ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
+            ->table('process_assignment')
+            ->join('process', 'process.process_id', 'process_assignment.process_id')
+            ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
+            ->whereNotIn('process.process_name',['Loading','Unloading'])
+            ->where('workstation.operation_id', 1)
+            ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
         $assem_process=  DB::connection('mysql_mes')
-        ->table('process_assignment')
-        ->join('process', 'process.process_id', 'process_assignment.process_id')
-        ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-        ->where('workstation.operation_id', 3)
-        ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
-        // dd($fab_process);
-
+            ->table('process_assignment')
+            ->join('process', 'process.process_id', 'process_assignment.process_id')
+            ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
+            ->where('workstation.operation_id', 3)
+            ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
         $qc_staff= DB::connection('mysql_mes')->table('quality_inspection as qa')
-        ->groupBy('qa.qa_staff_id')->select('qa.qa_staff_id')->get();
+            ->groupBy('qa.qa_staff_id')->select('qa.qa_staff_id')->get();
         foreach ($qc_staff as $row) {
         $emp_name= DB::connection('mysql_essex')
                         ->table('users')

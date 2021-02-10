@@ -921,7 +921,6 @@ class QualityInspectionController extends Controller
                 ->when($validate == null, function ($query, $validate) {
                     return $query->where('jt.workstation', '!=', "Painting");
                 })
-                // ->where('jt.workstation', 'LIKE', '%'.$request->workstation.'%')
                 ->where('po.production_order', 'LIKE', '%'.$request->prod.'%')
                 ->Where('po.customer', 'LIKE', '%'.$request->customer.'%')
                 ->Where('po.item_code', 'LIKE', '%'.$request->item_code.'%')
@@ -980,12 +979,7 @@ class QualityInspectionController extends Controller
                     
             } 
         }
-           
-        // dd($data);
-
-        
-        // return $data;
-         return view('quality_inspection.tbl_qa_inspection_logs_report', compact('header','data'));
+        return view('quality_inspection.tbl_qa_inspection_logs_report', compact('header','data'));
     }
     public function get_qa_checklist($status, $qa_id, $workstation, $header){
         $data_array = array_pluck( $header, 'reject_category_id');
