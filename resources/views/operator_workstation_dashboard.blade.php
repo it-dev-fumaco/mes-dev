@@ -30,7 +30,6 @@
             <td style="width: 20%; text-center">
             </td>
             <td style="width: 25%; text-center">
-             {{-- <span class="title" style="margin: 20px auto;font-size:20px; ">{{($breaktime != null)? $breaktime['break_type'].": ":"" }}{{($breaktime != null)? $breaktime['time_in']."-":"" }}{{($breaktime != null)?  $breaktime['time_out']:""}}</span>--}}
             </td>
           </tr>
         </table>

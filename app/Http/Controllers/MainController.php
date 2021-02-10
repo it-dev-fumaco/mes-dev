@@ -2345,7 +2345,6 @@ class MainController extends Controller
 			$scheduled = $this->productionKanban($primary_id)['scheduled'];
 			$filters = $this->productionKanban($primary_id)['filters'];
 		}
-
 		return view('production_kanban', compact('operation_name_text','primary_id','unscheduled', 'scheduled', 'mes_user_operations', 'permissions', 'filters'));
 
 	}
@@ -2421,7 +2420,6 @@ class MainController extends Controller
 			'reference_nos' => array_unique($reference_nos),
 			'parent_items' => array_unique($parent_items),
 		];
-
 		return [
 			'unscheduled' => $unscheduled,
 			'scheduled' => $scheduled,
@@ -2631,19 +2629,11 @@ class MainController extends Controller
 			->where('shift.operation_id', $operation_id)
 			->where('shift_type', 'Regular Shift')
 			->first();
-			if(empty($shifts)){
-				$scheduled[] = [
-					'time_in'=> 'NO SHIFT FOUND',
-					'time_out' =>  '',
-					'shift_type' =>  "No Shift",
-				];
-			}else{
-				$scheduled[] = [
-					'time_in'=> $shifts->time_in,
-					'time_out' =>  $shifts->time_out,
-					'shift_type' =>  $shifts->shift_type,
-				];
-			}
+			$scheduled[] = [
+				'time_in'=> empty($shifts)? 'NO SHIFT FOUND' : $shifts->time_in,
+				'time_out' =>  empty($shifts)? '' : $shifts->time_out,
+				'shift_type' =>  empty($shifts)? "No Shift" : $shifts->shift_type,
+			];
 		}else{
 			foreach($special_shift_shift as $r){
 				$scheduled[] = [
