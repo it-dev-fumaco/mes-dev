@@ -659,6 +659,13 @@ Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done
 
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
+//warning notif for custom shift sched
+Route::get('/get_warning_notif_for_custom_shift/{id}', 'SecondaryController@get_warning_notif_for_custom_shift');
+
+//Additional shift sched
+Route::get('/shift_sched_details', 'SecondaryController@shift_sched_details');
+Route::get('/get_tbl_default_shift_sched', 'MainController@get_tbl_default_shift_sched');
+
 
 //Daily Report
 Route::get('/daily_output_report', 'ReportsController@daily_output_report');
