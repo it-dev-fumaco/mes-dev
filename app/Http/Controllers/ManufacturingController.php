@@ -1486,8 +1486,8 @@ class ManufacturingController extends Controller
 
             $item_withdrawals = DB::connection('mysql')->table('tabStock Entry Detail')
                 ->whereIn('parent', $stock_entry_arr)->where('item_code', $item->item_code)
-                ->selectRaw('SUM(qty) as qty, s_warehouse, status, SUM(issued_qty) as issued_qty, GROUP_CONCAT(DISTINCT parent) as ste_names')
-                ->groupBy('s_warehouse', 'status')->get();
+                ->selectRaw('SUM(qty) as qty, s_warehouse, status, SUM(issued_qty) as issued_qty, GROUP_CONCAT(DISTINCT parent) as ste_names, docstatus')
+                ->groupBy('s_warehouse', 'status', 'docstatus')->get();
 
             $withdrawals = [];
             foreach ($item_withdrawals as $i) {
@@ -1497,7 +1497,8 @@ class ManufacturingController extends Controller
                     'qty' => $i->qty,
                     'issued_qty' => $i->issued_qty,
                     'status' => $i->status,
-                    'ste_names' => $i->ste_names
+                    'ste_names' => $i->ste_names,
+                    'ste_docstatus' => $i->docstatus
                 ];
             }
 
@@ -1853,6 +1854,13 @@ class ManufacturingController extends Controller
 			$now = Carbon::now();
             $production_order_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $request->production_order)->first();
 
+            // get stock entry transferred qty
+            $ste_transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
+                ->where('sted.item_code', $request->old_item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->sum('qty');
+
             if($request->old_item_code != $request->item_code){
                 // get production order item transferred qty
                 $transferred_qty = DB::connection('mysql')->table('tabProduction Order Item')
@@ -1862,14 +1870,7 @@ class ManufacturingController extends Controller
                     return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
                 }
 
-                // get stock entry transferred qty
-                $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                    ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
-                    ->where('sted.item_code', $request->old_item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
-                    ->sum('qty');
-
-                if($transferred_qty > 0){
+                if($ste_transferred_qty > 0){
                     return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
                 }
             }
@@ -1917,22 +1918,42 @@ class ManufacturingController extends Controller
                 }
             }
 
-            $production_order_item = [
-                'modified' => $now->toDateTimeString(),
-                'modified_by' => Auth::user()->email,
-                'item_code' => strtoupper($request->item_code),
-                'item_name' => $request->item_name,
-                'description' => $request->description,
-                // 'required_qty' => $request->quantity,
-                'available_qty_at_source_warehouse' => 0,
-                'available_qty_at_wip_warehouse' => 0,
-                // 'source_warehouse' => $request->source_warehouse
-            ];
+            if(!$request->ste_names){
+                $production_order_item = [
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->email,
+                    'item_code' => strtoupper($request->item_code),
+                    'item_name' => $request->item_name,
+                    'description' => $request->description,
+                    'required_qty' => $request->quantity,
+                    'available_qty_at_source_warehouse' => 0,
+                    'available_qty_at_wip_warehouse' => 0,
+                    'source_warehouse' => $request->source_warehouse
+                ];
 
-            DB::connection('mysql')->table('tabProduction Order Item')
-                ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)
-                ->update($production_order_item);
-            
+                DB::connection('mysql')->table('tabProduction Order Item')
+                    ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)
+                    ->update($production_order_item);
+            }else{
+                if($request->quantity >= $ste_transferred_qty){
+                    $production_order_item = [
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->email,
+                        'item_code' => strtoupper($request->item_code),
+                        'item_name' => $request->item_name,
+                        'description' => $request->description,
+                        'required_qty' => $request->quantity,
+                        'available_qty_at_source_warehouse' => 0,
+                        'available_qty_at_wip_warehouse' => 0,
+                        'source_warehouse' => $request->source_warehouse
+                    ];
+    
+                    DB::connection('mysql')->table('tabProduction Order Item')
+                        ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)
+                        ->update($production_order_item);
+                }
+            }
+
             DB::connection('mysql')->commit();
 
             return response()->json(['status' => 1, 'message' => 'Stock entry item has been changed.']);

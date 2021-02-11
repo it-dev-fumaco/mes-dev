@@ -174,6 +174,8 @@
 					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
@@ -181,7 +183,7 @@
 						<span class="d-none item-code">{{ $component['item_code'] }}</span>
 						<span class="d-none item-name">{{ $component['item_name'] }}</span>
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
-						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+						<span class="d-none required-qty">{{ $ste_qty * 1 }}</span>
 
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
@@ -215,10 +217,10 @@
 					</td>
 					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }}>
@@ -266,13 +268,19 @@
 						</div>
 					</td>
 					<td class="border-top-0 text-center">
-						<button type="button" class="btn btn-info  btn-sm p-1" disabled> 
+						<span class="d-none item-code">{{ $component['item_code'] }}</span>
+						<span class="d-none item-description">{!! $component['description'] !!}</span>
+						<span class="d-none item-name">{{ $component['item_name'] }}</span>
+						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+						<span class="d-none stock-uom">{{ $component['stock_uom'] }}</span>
+						<span class="d-none source-warehouse">{{ $component['source_warehouse'] }}</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
 							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1" disabled>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}">
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -352,6 +360,8 @@
 					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
@@ -359,7 +369,7 @@
 						<span class="d-none item-code">{{ $part['item_code'] }}</span>
 						<span class="d-none item-name">{{ $part['item_name'] }}</span>
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
-						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+						<span class="d-none required-qty">{{ $ste_qty * 1 }}</span>
 
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
@@ -393,10 +403,10 @@
 					</td>
 					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $change_cancel_btn }}> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }}>
@@ -444,13 +454,19 @@
 						</div>
 					</td>
 					<td class="border-top-0 text-center">
-						<button type="button" class="btn btn-info  btn-sm p-1" disabled> 
+						<span class="d-none item-code">{{ $part['item_code'] }}</span>
+						<span class="d-none item-description">{!! $part['description'] !!}</span>
+						<span class="d-none item-name">{{ $part['item_name'] }}</span>
+						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+						<span class="d-none stock-uom">{{ $part['stock_uom'] }}</span>
+						<span class="d-none source-warehouse">{{ $part['source_warehouse'] }}</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
 							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1" disabled>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
