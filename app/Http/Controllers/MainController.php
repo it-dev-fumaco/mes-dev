@@ -5502,7 +5502,6 @@ class MainController extends Controller
 				// delete production order item
 				DB::connection('mysql')->table('tabProduction Order Item')
 					->where('parent', $production_order)->where('item_code', $request->item_code)
-					// ->where('name', 'like', '%pri%')
 					->delete();
 			}
 			

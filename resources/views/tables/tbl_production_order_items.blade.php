@@ -361,7 +361,7 @@
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
 
-					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $part['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">

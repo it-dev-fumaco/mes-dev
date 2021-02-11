@@ -1494,9 +1494,9 @@ class ManufacturingController extends Controller
                 $withdrawals[] = [
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
-                    'qty' => $i->qty,
-                    'issued_qty' => $i->issued_qty,
-                    'status' => $i->status,
+                    'qty' => ($i->docstatus == 1) ? $i->qty : 0,
+                    'issued_qty' => ($i->docstatus == 1) ? $i->issued_qty : 0,
+                    'status' => ($i->docstatus == 1) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus
                 ];
