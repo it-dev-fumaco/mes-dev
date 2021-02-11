@@ -1471,6 +1471,11 @@ class MainController extends Controller
 
 		if ($status == 'Not Started') {
 			$q = DB::connection('mysql_mes')->table('production_order')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
 						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
@@ -1481,6 +1486,7 @@ class MainController extends Controller
 				})
 				->whereIn('production_order.operation_id', $user_permitted_operations)
 				->where('production_order.status', 'Not Started')
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 				->orderBy('production_order.created_at', 'desc')->paginate(10);
 
 			if($request->get_total){
@@ -1489,17 +1495,6 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-				$delivery_date_detail = DB::connection('mysql_mes')->table('delivery_date')
-					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
-					->first();
-
-				if($delivery_date_detail){
-					$delivery_date = ($delivery_date_detail->rescheduled_delivery_date) ? $delivery_date_detail->delivery_date : $delivery_date_detail->rescheduled_delivery_date;
-				}else{
-					$delivery_date = $row->delivery_date;
-				}
-
 				$is_transferred = DB::connection('mysql')->table('tabProduction Order')
 					->where('material_transferred_for_manufacturing', '>', 0)
 					->where('name', $row->production_order)->where('docstatus', 1)->first();
@@ -1514,6 +1509,7 @@ class MainController extends Controller
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
 
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				$production_orders[] = [
 					'production_order' => $row->production_order,
 					'item_code' => $row->item_code,
@@ -1525,7 +1521,7 @@ class MainController extends Controller
 					'operation_id' => $row->operation_id,
 					'stock_uom' => $row->stock_uom,
 					'reference_no' => $reference_no,
-					'delivery_date' => $delivery_date,
+					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
 					'status' => $status,
@@ -1557,6 +1553,11 @@ class MainController extends Controller
 			$in_progress_production_orders = array_merge($in_progress_time_logs, $in_progress_spotwelding_logs);
 
 			$q = DB::connection('mysql_mes')->table('production_order')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('production_order', $in_progress_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1568,6 +1569,7 @@ class MainController extends Controller
 				})
 				->whereIn('production_order.operation_id', $user_permitted_operations)
 				->where('production_order.status', 'In Progress')
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 				->orderBy('production_order.created_at', 'desc')->paginate(10);
 
 			if($request->get_total){
@@ -1576,21 +1578,11 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-				$delivery_date_detail = DB::connection('mysql_mes')->table('delivery_date')
-					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
-					->first();
-
-				if($delivery_date_detail){
-					$delivery_date = ($delivery_date_detail->rescheduled_delivery_date) ? $delivery_date_detail->delivery_date : $delivery_date_detail->rescheduled_delivery_date;
-				}else{
-					$delivery_date = $row->delivery_date;
-				}
-
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
 				
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				$production_orders[] = [
 					'production_order' => $row->production_order,
 					'item_code' => $row->item_code,
@@ -1602,7 +1594,7 @@ class MainController extends Controller
 					'operation_id' => $row->operation_id,
 					'stock_uom' => $row->stock_uom,
 					'reference_no' => $reference_no,
-					'delivery_date' => $delivery_date,
+					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
 					'status' => $row->status,
@@ -1636,6 +1628,11 @@ class MainController extends Controller
 				->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('production_order', $pending_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1648,6 +1645,7 @@ class MainController extends Controller
 				->whereIn('production_order.operation_id', $user_permitted_operations)
 				->whereRaw('production_order.qty_to_manufacture > feedback_qty')
 				->where('production_order.status', 'In Progress')
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 				->orderBy('production_order.created_at', 'desc')->paginate(10);
 			
 			if($request->get_total){
@@ -1656,21 +1654,11 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-				$delivery_date_detail = DB::connection('mysql_mes')->table('delivery_date')
-					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
-					->first();
-
-				if($delivery_date_detail){
-					$delivery_date = ($delivery_date_detail->rescheduled_delivery_date) ? $delivery_date_detail->delivery_date : $delivery_date_detail->rescheduled_delivery_date;
-				}else{
-					$delivery_date = $row->delivery_date;
-				}
-
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
 				
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				$production_orders[] = [
 					'production_order' => $row->production_order,
 					'item_code' => $row->item_code,
@@ -1682,7 +1670,7 @@ class MainController extends Controller
 					'operation_id' => $row->operation_id,
 					'stock_uom' => $row->stock_uom,
 					'reference_no' => $reference_no,
-					'delivery_date' => $delivery_date,
+					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
 					'status' => 'On Queue',
@@ -1702,6 +1690,11 @@ class MainController extends Controller
 
 		if ($status == 'Cancelled') {
 			$q = DB::connection('mysql_mes')->table('production_order')->where('status', 'Cancelled')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('production_order.operation_id', $user_permitted_operations)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1711,7 +1704,9 @@ class MainController extends Controller
 						->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
 						->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 				->orderBy('production_order.created_at', 'desc')->paginate(10);
+
 
 			if($request->get_total){
 				return ['div' => '#cancelled-total', 'total' => number_format($q->total())];
@@ -1720,16 +1715,6 @@ class MainController extends Controller
 			$production_orders = [];
 			foreach ($q as $row) {
 				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-				$delivery_date_detail = DB::connection('mysql_mes')->table('delivery_date')
-					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
-					->first();
-
-				if($delivery_date_detail){
-					$delivery_date = ($delivery_date_detail->rescheduled_delivery_date) ? $delivery_date_detail->delivery_date : $delivery_date_detail->rescheduled_delivery_date;
-				}else{
-					$delivery_date = $row->delivery_date;
-				}
-				
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1741,7 +1726,7 @@ class MainController extends Controller
 					'qty_to_manufacture' => $row->qty_to_manufacture,
 					'stock_uom' => $row->stock_uom,
 					'reference_no' => $reference_no,
-					'delivery_date' => $delivery_date,
+					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
 					'status' => $row->status,
@@ -1779,6 +1764,11 @@ class MainController extends Controller
 				->whereIn('status', ['In Progress', 'Completed'])->distinct()->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order AS po')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('po.parent_item_code','=','delivery_date.parent_item_code');
+				})
 				->whereIn('po.production_order', $jt_production_orders)
 				->whereNotIn('po.status', ['Cancelled'])
 				->where(function($q) use ($request) {
@@ -1791,6 +1781,7 @@ class MainController extends Controller
 				})
 				->where('po.produced_qty', '>', 0)
 				->whereRaw('po.produced_qty > feedback_qty')
+				->select('po.*', 'delivery_date.rescheduled_delivery_date')
 				->paginate(10);
 
 			if($request->get_total){
@@ -1799,17 +1790,6 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-				$delivery_date_detail = DB::connection('mysql_mes')->table('delivery_date')
-					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
-					->first();
-
-				if($delivery_date_detail){
-					$delivery_date = ($delivery_date_detail->rescheduled_delivery_date) ? $delivery_date_detail->delivery_date : $delivery_date_detail->rescheduled_delivery_date;
-				}else{
-					$delivery_date = $row->delivery_date;
-				}
-
 				$manufacture_entry = DB::connection('mysql')->table('tabStock Entry')
 					->where('production_order', $row->production_order)->where('docstatus', 1)
 					->orderBy('posting_date', 'desc')->orderBy('posting_time', 'desc')
@@ -1871,7 +1851,7 @@ class MainController extends Controller
 					'produced_qty' => $row->produced_qty,
 					'feedback_qty' => $row->feedback_qty,
 					'stock_uom' => $row->stock_uom,
-					'delivery_date' => $delivery_date,
+					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'completed_qty' => 0,
 					'status' => $status,
 					'bom_no' => $row->bom_no,
@@ -1904,7 +1884,12 @@ class MainController extends Controller
 			$erp_completed_production_orders = DB::connection('mysql')->table('tabProduction Order')
 				->where('status', 'Completed')->whereIn('name', $mes_production_orders)->pluck('name')->toArray();
 
-			$q = DB::connection('mysql_mes')->table('production_order')
+				$q = DB::connection('mysql_mes')->table('production_order')
+				->leftJoin('delivery_date', function($join)
+            	{
+                    $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                    $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+                })
 				->whereIn('production_order.production_order', $erp_completed_production_orders)
 				->where(function($q) use ($request) {
 					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1915,6 +1900,7 @@ class MainController extends Controller
 						->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
 				->whereIn('production_order.operation_id', $user_permitted_operations)
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 				->orderBy('production_order.created_at', 'desc')->paginate(10);
 
 			if($request->get_total){
@@ -1923,17 +1909,6 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-				$delivery_date_detail = DB::connection('mysql_mes')->table('delivery_date')
-					->where('reference_no', $reference_no)->where('parent_item_code', $row->parent_item_code)
-					->first();
-
-				if($delivery_date_detail){
-					$delivery_date = ($delivery_date_detail->rescheduled_delivery_date) ? $delivery_date_detail->delivery_date : $delivery_date_detail->rescheduled_delivery_date;
-				}else{
-					$delivery_date = $row->delivery_date;
-				}
-
 				$manufacture_entry = DB::connection('mysql')->table('tabStock Entry')
 					->where('production_order', $row->production_order)->where('docstatus', 1)
 					->orderBy('posting_date', 'desc')->orderBy('posting_time', 'desc')
@@ -1985,7 +1960,7 @@ class MainController extends Controller
 					'produced_qty' => $row->produced_qty,
 					'feedback_qty' => $row->feedback_qty,
 					'stock_uom' => $row->stock_uom,
-					'delivery_date' => $delivery_date,
+					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'completed_qty' => 0,
 					'status' => $status,
 					'ste_manufacture' => ($manufacture_entry) ? $manufacture_entry->name : '',
@@ -2010,6 +1985,7 @@ class MainController extends Controller
 			return view('reports.tbl_completed_production', compact('production_order_list', 'q'));
 		}
 	}
+
 
 	public function get_for_feedback_production(Request $request){
 		try {
