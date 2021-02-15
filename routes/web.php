@@ -657,6 +657,27 @@ Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done
 
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
+//warning notif for custom shift sched
+Route::get('/get_warning_notif_for_custom_shift/{id}', 'SecondaryController@get_warning_notif_for_custom_shift');
+
+//Additional shift sched
+Route::get('/shift_sched_details', 'SecondaryController@shift_sched_details');
+Route::get('/get_tbl_default_shift_sched', 'MainController@get_tbl_default_shift_sched');
+
+
+//Daily Report
+Route::get('/daily_output_report', 'ReportsController@daily_output_report');
+Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
+Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
+
+Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
+Route::get('/assembly_report', 'ReportsController@assembly_report_page');
+
+Route::get('/painting_report', 'ReportsController@painting_report_page');
+Route::get('/qa_report', 'ReportsController@qa_report');
+
+Route::get('/report_index', 'ReportsController@index');
+
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
 	
@@ -692,6 +713,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/assembly/print_machine_schedule/{scheduled_date}/{machine_code}', 'AssemblyController@print_assembly_machine_schedule');
 	
 	Route::post('/update_conveyor_assignment', 'AssemblyController@update_conveyor_assignment');
+
+	Route::post('/cancel_production_order_feedback/{stock_entry}', 'ManufacturingController@cancel_production_order_feedback');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

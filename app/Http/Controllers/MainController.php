@@ -2299,7 +2299,6 @@ class MainController extends Controller
 			$scheduled = $this->productionKanban($primary_id)['scheduled'];
 			$filters = $this->productionKanban($primary_id)['filters'];
 		}
-
 		return view('production_kanban', compact('operation_name_text','primary_id','unscheduled', 'scheduled', 'mes_user_operations', 'permissions', 'filters'));
 
 	}
@@ -2362,21 +2361,19 @@ class MainController extends Controller
 			$customers = array_merge($customers, array_column($orders, 'customer'));
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
-
+			$shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
 			$scheduled[] = [
-				'shift'=> [],
+				'shift'=> $shift_sched,
 				'schedule' => $date->format('Y-m-d'),
 				'duplicate_item_code' => 0,
 				'orders' => $orders,
 			];
 		}
-
 		$filters = [
 			'customers' => array_unique($customers),
 			'reference_nos' => array_unique($reference_nos),
 			'parent_items' => array_unique($parent_items),
 		];
-
 		return [
 			'unscheduled' => $unscheduled,
 			'scheduled' => $scheduled,
@@ -2460,10 +2457,10 @@ class MainController extends Controller
 			$reference_nos = array_merge($reference_nos, array_column($orders, 'sales_order'));
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
 
-			// $shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
+			$shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
 			// $total_seconds= collect($orders)->sum('cycle_in_seconds');
 			$scheduled[] = [
-				'shift'=> [],
+				'shift'=> $shift_sched,
 				'schedule' => $date->format('Y-m-d'),
 				// 'estimates' => $this->format_for_estimates($total_seconds),
 				// 'estimates_in_seconds' => $total_seconds,
@@ -2471,7 +2468,6 @@ class MainController extends Controller
 				'orders' => $orders,
 			];
 		}
-
 		$filters = [
 			'customers' => array_unique($customers),
 			'reference_nos' => array_unique($reference_nos),
@@ -2570,33 +2566,55 @@ class MainController extends Controller
 	}
 
 	public function get_prod_shift_sched($date, $operation_id){
+		$operation_id=($operation_id == 0)? '2' : $operation_id;
 		$scheduled = [];
-		if (DB::connection('mysql_mes')
-        ->table('shift_schedule')
-		->where('date', $date)
-        ->exists()){
-
-			$shift_sched = DB::connection('mysql_mes')
-			->table('shift_schedule')
-			->where('date', $date)->get();
-			foreach($shift_sched as $r){
-				$shift_sched = DB::connection('mysql_mes')
-				->table('shift')
-                ->where('shift_id', $r->shift_id)
-                ->where('operation_id', $operation_id)
-                ->operat
-				->first();
-				$scheduled1[] = [
-					'time_in'=> $shift_sched->time_in,
-					'time_out' =>  $shift_sched->time_out,
-					'shift_type' =>  $shift_sched->shift_type,
+		$special_shift_shift= DB::connection('mysql_mes')
+		->table('shift_schedule')
+		->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+		->where('shift_schedule.date', $date)
+		->where('shift.operation_id', $operation_id)
+		->where('shift.shift_type', 'Special Shift')
+		->select('shift.shift_type', 'shift.time_in', 'shift.time_out')
+		->get();
+		
+		if(count($special_shift_shift) == 0){
+			$shifts= DB::connection('mysql_mes')
+			->table('shift')
+			->where('shift.operation_id', $operation_id)
+			->where('shift_type', 'Regular Shift')
+			->first();
+			$scheduled[] = [
+				'time_in'=> empty($shifts)? 'NO SHIFT FOUND' : $shifts->time_in,
+				'time_out' =>  empty($shifts)? '' : $shifts->time_out,
+				'shift_type' =>  empty($shifts)? "No Shift" : $shifts->shift_type,
+			];
+		}else{
+			foreach($special_shift_shift as $r){
+				$scheduled[] = [
+					'time_in'=> $r->time_in,
+					'time_out' =>  $r->time_out,
+					'shift_type' =>  $r->shift_type,
 				];
 			}
-			
-		}else{
-			$scheduled1 = [];
 		}
-		return $scheduled1;
+		$o_shift_shift= DB::connection('mysql_mes')
+		->table('shift_schedule')
+		->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+		->where('shift_schedule.date', $date)
+		->where('shift.operation_id', $operation_id)
+		->where('shift.shift_type', 'Overtime Shift')
+		->select('shift.shift_type', 'shift.time_in', 'shift.time_out')
+		->get();
+		foreach($o_shift_shift as $r){
+			$scheduled[] = [
+				'time_in'=> $r->time_in,
+				'time_out' =>  $r->time_out,
+				'shift_type' =>  $r->shift_type,
+			];
+		}	
+
+		$sched= collect($scheduled);
+		return $scheduled;
     }
 
 	public function get_customer_reference_no($customer){
@@ -2844,10 +2862,75 @@ class MainController extends Controller
         $workstation_name=$id;
         $date = $now->format('M d Y');
 		$day_name= $now->format('l');
-		
+		$time=$now->format('h:i:s');
+		$breaktime = [];
+		$shift= DB::connection('mysql_mes')->table('shift_schedule')
+			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+			->whereDate('shift_schedule.date', $now)
+			->where('shift.operation_id', $tabWorkstation->operation_id)
+			->where('shift.shift_type', 'Special Shift')
+			->select('shift.shift_id')->first();
+			if(empty($shift)){
+				$reg_shift= DB::connection('mysql_mes')
+					->table('shift')
+					->where('shift.operation_id',  $tabWorkstation->operation_id)
+					->where('shift_type', 'Regular Shift')
+					->first();
+					if($reg_shift){
+						$breaktime_tbl= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $reg_shift->shift_id)->get();
+						if(!empty($breaktime_tbl)){
+							foreach($breaktime_tbl as $r){
+								$breaktime[]=[
+									"break_type" => $r->category,
+									"time_in" => $r->time_from,
+									'time_out' =>$r->time_to,
+									'div_id'=> str_replace(' ', '', $r->category),
+									"time_in_show" => date("h:i a", strtotime($r->time_from)),
+									'time_out_show' =>date("h:i a", strtotime($r->time_to))
+									
+								];
+							}
+						}
+					}	
+			}else{
+				$breaktime_tbl= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $shift->shift_id)->get();
+				if(!empty($breaktime_tbl)){
+					foreach($breaktime_tbl as $r){
+						$breaktime[]=[
+							"break_type" => $r->category,
+							"time_in" => $r->time_from,
+							'time_out' =>$r->time_to,
+							'div_id'=> str_replace(' ', '', $r->category),
+							"time_in_show" => date("h:i a", strtotime($r->time_from)),
+							'time_out_show' =>date("h:i a", strtotime($r->time_to))
+						];
+					}
+				}
+			}
+		$o_shift_shift= DB::connection('mysql_mes')->table('shift_schedule')
+			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+			->whereDate('shift_schedule.date', $now)
+			->where('shift.operation_id', $tabWorkstation->operation_id)
+			->where('shift.shift_type', 'Overtime Shift')
+			->select('shift.shift_id')->first();
+			if($o_shift_shift){
+				$breaktime_tbll= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $o_shift_shift->shift_id)->get();
+				if($breaktime_tbll){
+					foreach($breaktime_tbll as $r){
+						$breaktime[]=[
+							"break_type" => $r->category,
+							"time_in" => $r->time_from,
+							'time_out' =>$r->time_to,
+							'div_id'=> str_replace(' ', '', $r->category),
+							"time_in_show" => date("h:i a", strtotime($r->time_from)),
+							'time_out_show' =>date("h:i a", strtotime($r->time_to))
+						];
+					}
+				}
+			}
+		$breaktime_data= collect($breaktime);
 		$operation_id = $tabWorkstation->operation_id;
-
-        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id'));
+        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id', 'breaktime_data'));
     }
 
     public function current_data_operator($workstation){
@@ -5267,6 +5350,7 @@ class MainController extends Controller
 		return DB::connection('mysql')->table('tabItem')->where('is_stock_item', 1)->where('disabled', 0)
 				->where('has_variants', 0)
 				->where('name', 'like', '%'.$request->term.'%')
+				->where('item_classification', 'like', '%'.$request->item_classification.'%')
 				->select('name as value', 'name as id')->orderBy('modified', 'desc')->limit(5)->get();
 	}
 
@@ -5432,7 +5516,6 @@ class MainController extends Controller
 				// delete production order item
 				DB::connection('mysql')->table('tabProduction Order Item')
 					->where('parent', $production_order)->where('item_code', $request->item_code)
-					->where('name', 'like', '%pri%')
 					->delete();
 			}
 			
@@ -5695,6 +5778,7 @@ class MainController extends Controller
 				if($get_sales_order_owner->owner != "Administrator"){
 					Mail::to($get_sales_order_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 					Mail::to("john.delacruz@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 				}				
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->update($mes_data);//update the reschedule delivery date in delivery date table
@@ -5744,6 +5828,7 @@ class MainController extends Controller
 				if($get_mreq_owner->owner != "Administrator"){
 					Mail::to($get_mreq_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 					Mail::to("john.delacruz@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 				}
 				DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
 				DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->update($mes_data);
@@ -6028,5 +6113,11 @@ class MainController extends Controller
 		}
 
 		return view('tables.tbl_production_machine_schedules_board', compact('data'));
+	}
+	public function get_tbl_default_shift_sched(Request $request){
+		$date= "2021-02-05";
+		$operation_id= 1;
+		$shift_sched = $this->get_prod_shift_sched($request->date, $request->operation);
+		return view('tables.tbl_default_shift_sched', compact('shift_sched'));
 	}
 }
