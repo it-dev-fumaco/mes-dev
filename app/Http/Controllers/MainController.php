@@ -1578,11 +1578,6 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				// $actual_start_date = DB::connection('mysql_mes')->table('job_ticket')
-				// 	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				// 	->where('job_ticket.production_order', $row->production_order)
-				// 	->min('time_logs.from_time');
-
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1659,11 +1654,6 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				// $actual_start_date = DB::connection('mysql_mes')->table('job_ticket')
-				// 	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				// 	->where('job_ticket.production_order', $row->production_order)
-				// 	->min('time_logs.from_time');
-
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1829,13 +1819,8 @@ class MainController extends Controller
 					$status = 'Material For Issue';
 				}
 
-				$time_logs_qry = DB::connection('mysql_mes')->table('job_ticket')
-					->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-					->where('job_ticket.production_order', $row->production_order)->whereIn('job_ticket.status', ['Completed', 'In Progress'])
-					->get();
-
-				$from_time = collect($time_logs_qry)->min('from_time');
-				$to_time = collect($time_logs_qry)->max('to_time');
+				$from_time = $row->actual_start_date;
+				$to_time = $row->actual_end_date;
 
 				$actual_start_date = Carbon::parse($from_time);
 				$actual_end_date = Carbon::parse($to_time);
@@ -1943,13 +1928,8 @@ class MainController extends Controller
 					}
 				}
 
-				$time_logs_qry = DB::connection('mysql_mes')->table('job_ticket')
-					->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-					->where('job_ticket.production_order', $row->production_order)->where('job_ticket.status', 'Completed')
-					->get();
-
-				$from_time = collect($time_logs_qry)->min('from_time');
-				$to_time = collect($time_logs_qry)->max('to_time');
+				$from_time = $row->actual_start_date;
+				$to_time = $row->actual_end_date;
 
 				$actual_start_date = Carbon::parse($from_time);
 				$actual_end_date = Carbon::parse($to_time);
@@ -2005,6 +1985,7 @@ class MainController extends Controller
 			return view('reports.tbl_completed_production', compact('production_order_list', 'q'));
 		}
 	}
+
 
 	public function get_for_feedback_production(Request $request){
 		try {
@@ -5224,8 +5205,41 @@ class MainController extends Controller
 
     	return $data;
 	}
-	
+	public function report_index(){
+		$workstation= DB::connection('mysql_mes')->table('workstation AS w')
+                    ->join("operation as op","op.operation_id", "w.operation_id")
+                    ->select("w.workstation_name", "w.workstation_id")
+                    ->where('op.operation_name','Fabrication')
+                    ->orderBy('w.workstation_name', 'asc')
+                    ->get();
 
+        $process= DB::connection('mysql_mes')->table('process AS p')
+                    ->select("p.process_name", "p.process_id")
+                    ->orderBy('p.process_name', 'asc')
+                    ->get();
+
+        $parts= DB::connection('mysql_mes')->table('production_order AS po')
+                    ->select("po.parts_category")
+                    ->where('po.parts_category', '!=', null)
+                    ->groupBy('po.parts_category')
+                    ->orderBy('po.parts_category', 'asc')
+                    ->get();
+
+        $sacode= DB::connection('mysql_mes')->table('production_order AS po')
+                    ->select("po.item_code")
+                    ->where('po.item_code', '!=', null)
+                    ->groupBy('po.item_code')
+                    ->orderBy('po.item_code', 'asc')
+                    ->get();
+
+        $mes_user_operations = DB::connection('mysql_mes')->table('user')
+					->join('operation', 'operation.operation_id', 'user.operation_id')
+					->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+                    ->where('module', 'Production')
+                    ->where('user_access_id', Auth::user()->user_id)->pluck('operation_name')->toArray();
+
+		return view('reports.index', compact('workstation', 'process', 'parts','sacode', 'mes_user_operations'));
+	}
 	public function painting_ready_list(Request $request){
 		$orders = DB::connection('mysql_mes')->table('production_order as prod')
 			->join('job_ticket as tsd', 'tsd.production_order', 'prod.production_order')
