@@ -3565,18 +3565,18 @@ class SecondaryController extends Controller
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
         if(empty($request->shifttype)){
-            $arr= null;
+            $arr= [];
+            return response()->json(['success' => 0, 'message' => 'No shift selected' ]);
+
         }else{
             $arr=$request->shifttype;
-            $ar=array_unique(array_diff_assoc($arr, array_unique( $arr ) ) );
         }
-        if(!empty($ar)){
-            foreach($ar as $i => $r){
-                $row= $i +1; 
-                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
-            }
+        $data= (array_count_values($arr));
+        if($data['Special Shift'] > 1){
+            return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE Special Shift' ]);
+                
         }else{
-            // dd($request->all());
+            // delete
             if ($request->old_shift_sched) {
                 if($request->oldshift_sched_id == null ){
                     DB::connection('mysql_mes')
@@ -3593,7 +3593,6 @@ class SecondaryController extends Controller
             // for insert
             if ($request->newshift) {
                 foreach($request->newshift as $i => $row){
-
                     $new_shift_sched[] = [
                         'shift_id'=> $row,
                         'date' =>  $request->date,
@@ -3602,8 +3601,8 @@ class SecondaryController extends Controller
                         'created_by' => Auth::user()->email,
                         'created_at' => $now->toDateTimeString()
                     ];
-                    DB::connection('mysql_mes')->table('shift_schedule')->insert($new_shift_sched);
                 }
+                DB::connection('mysql_mes')->table('shift_schedule')->insert($new_shift_sched);
             }
             //update
             if ($request->oldshift) {
