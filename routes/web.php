@@ -726,3 +726,6 @@ Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_p
 Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
 Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
 Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+
+Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
+Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');

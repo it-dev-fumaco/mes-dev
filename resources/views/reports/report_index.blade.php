@@ -67,14 +67,14 @@
                                 </tr>
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
-                                {{--<tr>
-                                    <td><a href="/link_#" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Painting Output Report </span></a></td>
-                                </tr>--}}
                                 <tr>
-                                    <td><a href="/link_painting_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Painting Chemical Record  </span></a></td>
+                                    <td><a href="/link_painting_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Painting Output Report </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/link_painting_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
+                                    <td><a href="/link_painting_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Painting Chemical Record  </span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/link_painting_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
 
                                 </tr>
                                 
