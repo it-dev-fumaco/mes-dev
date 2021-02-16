@@ -34,14 +34,14 @@
      <div class="col-md-12">
        <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
          <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#tab0" role="tab" aria-controls="tab0" aria-selected="true">Daily Assembly Output</a>
+            <a class="nav-link {{ (request()->segment(2) == '1') ? 'active' : '' }}" data-toggle="tab" href="#tab0" role="tab" aria-controls="tab0" aria-selected="true">Daily Assembly Output</a>
          </li>
          <li class="nav-item">
-           <a class="nav-link" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" id="olu_click">Operator Load Utilization</a>
+           <a class="nav-link {{ (request()->segment(2) == '2') ? 'active' : '' }}" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" id="olu_click">Operator Load Utilization</a>
          </li>
        </ul>
        <div class="tab-content" style="min-height: 500px;">
-         <div class="tab-pane active" id="tab0" role="tabpanel" aria-labelledby="tab0">
+         <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab0" role="tabpanel" aria-labelledby="tab0">
            <div class="row">
              <div class="col-md-12">
                <div class="card" style="border-radius: 0 0 3px 3px;">
@@ -49,17 +49,30 @@
                    <div class="row m-0">
                      <div class="col-md-12">
                         <div class="row text-black" style=" padding-top:50px auto;">
-                          <div class="col-md-8">
-                             <div class="form-group">
+                           <div class="col-md-5">
+                              <div class="form-group">
                                  <h5><b>Daily Assembly Output</b></h5>
-                             </div>
-                          </div>
-                          <div class="col-md-4 text-center">
-                             <div class="form-group">
-                                   <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                   <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
-                             </div>
-                          </div>
+                              </div>
+                           </div>
+                           <div class="col-md-3 text-center">
+                              <div class="form-group row">
+                                 <label for="parts_filter" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block; margin-top:5px;"><b>Parts Category:</b></label>
+											<div class="col-sm-7">
+                                    <select class="form-control form-control-lg text-center" style="display:inline;" name="parts_filter" id="parts_filter">
+                                       <option value="All">Select Parts Category</option>
+                                       @foreach($parts_category as $rows)
+                                          <option value="{{$rows->parts_category}}">{{$rows->parts_category}}</option>
+                                       @endforeach
+                                    </select>
+                                  </div>
+                              </div>
+                           </div>
+                           <div class="col-md-4 pull-right">
+                              <div class="form-group">
+                                 <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
+                                 <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                              </div>
+                           </div>
                         </div>
                      </div>
                      <div class="col-md-12">
@@ -84,7 +97,7 @@
              </div>
            </div>
          </div>
-         <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2">
+         <div class="tab-pane {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="tab2" role="tabpanel" aria-labelledby="tab2">
             <div class="row">
                <div class="col-md-12">
                   <div class="card">
@@ -133,14 +146,112 @@ $(document).ready(function(){
   }, function(start, end, label) {
     console.log('New date range selected: ' + start.format('MMMM D, YYYY') + ' to ' + end.format('MMMM D, YYYY') + ' (predefined range: ' + label + ')');
     tbl_log_report();
-    rfdTimeliness();
+    tbl_chart();
     
   });
   tbl_log_report();
-    rfdTimeliness();
+    tbl_chart();
    $('#daterange_report').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
   });
+  if ( $( "#olu_click" ).is( ".active" ) ) {
+      var operator_list = function () {
+       var tmp = null;
+       var operation = 1;
+
+       $.ajax({
+           async: false,
+           url:"/get_operators",
+           data:{operation:operation},
+           type:"GET",
+           success:function(data){
+               var operator_arr = [];
+               $.each(data, function (i, value) {
+                   operator_arr.push({id: i, name: value});
+               }); 
+ 
+               tmp = operator_arr;
+           }
+       }); 
+ 
+       return tmp;
+     }();
+ 
+     var timelogs = function () {
+       var tmp = null;
+       var operation = 1;
+       $.ajax({
+           async: false,
+           url:"/get_operator_timelogs",
+           data:{operation:operation},
+           type:"GET",
+           success:function(data){
+               var operator_logs = [];
+               $.each(data, function (i, value) {
+                   operator_logs.push({
+                       name: value.workstation + ' - ' + value.completed_qty + ' pcs',
+                       location: value.operator_id,
+                       start: new Date(value.from_time),
+                       end: new Date(value.to_time),
+                   });
+               }); 
+ 
+               tmp = operator_logs;
+           }
+       }); 
+ 
+       return tmp;
+     }();
+ 
+     console.log(timelogs);
+ 
+     // -------------------------- Helpers ------------------------------
+     function today(hours, minutes) {
+         var date = new Date();
+         date.setHours(hours, minutes, 0, 0);
+         return date;
+     }
+     function yesterday(hours, minutes) {
+         var date = today(hours, minutes);
+         date.setTime(date.getTime() - 24 * 60 * 60 * 1000);
+         return date;
+     }
+     function tomorrow(hours, minutes) {
+         var date = today(hours, minutes);
+         date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
+         return date;
+     }
+     var start_date = new Date();
+     start_date.setDate(start_date.getDate() - 7);
+     start_date.setHours(6,0,0,0);
+     var sked2Config = {
+         caption: 'Operator Name',
+         start: start_date,
+         end: tomorrow(0, 0),
+         showEventTime: true,
+         showEventDuration: true,
+         //locations: locations.map(function(location) {
+           // var newLocation = $.extend({}, location);
+             //delete newLocation.tzOffset;
+           // return newLocation;
+         //}),
+         formatters: {
+             date: function (date) {
+                 return $.fn.skedTape.format.date(date, 'm', '/');
+             },
+         },
+         locations: operator_list.slice(),
+         events: timelogs.slice(),
+         tzOffset: 0,
+         sorting: true,
+         orderBy: 'name',
+         showIntermission: true
+     };
+     var $sked2 = $.skedTape(sked2Config);
+     $sked2.appendTo('#sked2').skedTape('render');
+     //$sked2.skedTape('destroy');
+     $sked2.skedTape(sked2Config);
+   }
   setInterval(updateClock, 1000);
   function updateClock(){
     var currentTime = new Date();
@@ -167,13 +278,15 @@ $(document).ready(function(){
 <script type="text/javascript">
     function tbl_log_report(){
       var date = $('#daterange_report').val();
+      var parts_category = $('#parts_filter').val();
       var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
       var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
       var operation= 3;
       var data = {
             start_date: startDate,
             end_date:endDate,
-            operation:operation
+            operation:operation,
+            parts_category : parts_category
           }
       $.ajax({
               url:"/link_daily_output_report",
@@ -184,15 +297,17 @@ $(document).ready(function(){
               }
             });
       };
-      function rfdTimeliness(){
+      function tbl_chart(){
          var date = $('#daterange_report').val();
+         var parts_category = $('#parts_filter').val();
          var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
          var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
          var operation = 3;
          var data = {
             start_date: startDate,
             end_date:endDate,
-            operation: operation
+            operation: operation,
+            parts_category : parts_category
           }
       $.ajax({
          url: "/link_daily_output_chart",
@@ -234,11 +349,11 @@ $(document).ready(function(){
 
             var ctx = $("#assembly_daily_report_chart");
 
-            if (window.rfdTimelinessCtx != undefined) {
-               window.rfdTimelinessCtx.destroy();
+            if (window.tbl_chartCtx != undefined) {
+               window.tbl_chartCtx.destroy();
             }
 
-            window.rfdTimelinessCtx = new Chart(ctx, {
+            window.tbl_chartCtx = new Chart(ctx, {
                type: 'line',
                data: chartdata,
                options: {
@@ -369,7 +484,9 @@ $(document).ready(function(){
      $sked2.skedTape(sked2Config);
    
    });
-       
-
+   $(document).on('change', '#parts_filter', function(event){
+      tbl_log_report();
+      tbl_chart(); 
+   }); 
  </script>
 @endsection

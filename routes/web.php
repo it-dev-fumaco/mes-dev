@@ -742,3 +742,13 @@ Route::get('/link_painting_report', 'LinkReportController@painting_report_page')
 Route::get('/link_qa_report', 'LinkReportController@qa_report');
 Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
 Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
+Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
+
+Route::get('/report_index', 'LinkReportController@index');
+Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
+Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
+Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
+Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+
+Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
+Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
