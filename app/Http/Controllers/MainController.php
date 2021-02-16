@@ -5506,14 +5506,34 @@ class MainController extends Controller
 			}
 
 			// get all submitted stock entries based on item code production order
-			$submitted_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
+			$submitted_pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				->where('ste.docstatus', 1)->where('ste.production_order', $production_order)
+				->where('ste.docstatus', '<', 2)->where('ste.production_order', $production_order)
 				->where('sted.item_code', $request->item_code)
 				->where('ste.purpose', 'Material Transfer for Manufacture')->count();
 
-			if($submitted_stock_entries <= 0){
+			if($submitted_pending_stock_entries <= 0){
 				// delete production order item
+				$production_order_item = DB::connection('mysql')->table('tabProduction Order Item')
+					->where('parent', $production_order)->where('name', $request->production_order_item_id)
+					->first();
+
+				if($production_order_item){
+					if($production_order_item->item_alternative_for){
+						$item_code_with_alternative = DB::connection('mysql')->table('tabProduction Order Item')
+							->where('parent', $production_order)->where('item_code', $production_order_item->item_alternative_for)
+							->first();
+
+						if($item_code_with_alternative){
+							$required_qty = $item_code_with_alternative->required_qty + $production_order_item->required_qty;
+
+							DB::connection('mysql')->table('tabProduction Order Item')
+								->where('parent', $production_order)->where('item_code', $production_order_item->item_alternative_for)
+								->update(['required_qty' => $required_qty]);
+						}
+					}
+				}
+
 				DB::connection('mysql')->table('tabProduction Order Item')
 					->where('parent', $production_order)->where('item_code', $request->item_code)
 					->delete();

@@ -558,6 +558,7 @@
     </div>
   </div>
   @include('modals.item_track_modal')
+  @include('modals.change_required_qty_modal')
 
   <div class="modal fade" id="cancel-production-order-feedback-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-md" role="document">
@@ -852,6 +853,38 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+
+    $('#change-required-qty-btn').click(function(e){
+      e.preventDefault();
+  
+      var production_order_item_id = $('#change-required-item-modal input[name="production_order_item_id"]').val();
+      var required_qty = $('#change-required-item-modal input[name="required_qty"]').val();
+  
+      $('#change-required-qty-modal input[name="production_order_item_id"]').val(production_order_item_id);
+      $('#change-required-qty-modal input[name="required_qty"]').val(required_qty);
+      $('#change-required-qty-modal input[name="qty"]').val(required_qty);
+  
+      $('#change-required-qty-modal').modal('show');
+    });
+  
+    $('#change-required-qty-modal form').submit(function(e){
+      e.preventDefault();
+  
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#change-required-qty-modal').modal('hide');
+            get_production_order_items(data.production_order);
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
 
     $(document).on('click', '.cancel-production-order-feedback-btn', function(e){
       e.preventDefault();
@@ -1193,9 +1226,11 @@
       var description = $row.find('.item-description').eq(0).text();
       var item_name = $row.find('.item-name').eq(0).text();
       var required_qty = $row.find('.required-qty').eq(0).text();
+      var requested_qty = $row.find('.requested-qty').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
       var stock_uom = $row.find('.stock-uom').eq(0).text();
-      
+      var production_order_item_id = $row.find('.production-order-item-id').eq(0).text();
+
       $('#change-required-item-production-order').val($(this).data('production-order'));
 
       var row = '';
@@ -1222,7 +1257,10 @@
       $('#change-required-item-modal input[name="item_name"]').val(item_name);
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
-      $('#change-required-item-modal input[name="quantity"]').val(required_qty);
+      $('#change-required-item-modal input[name="requested_quantity"]').val(requested_qty);
+
+      $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
+      $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
       $.ajax({
         url: "/get_available_warehouse_qty/" + item_code,
@@ -1337,11 +1375,13 @@
       var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
+      var production_order_item_id = $row.find('.production-order-item-id').eq(0).text();
       
       $('#delete-required-item-modal input[name="production_order"]').val($(this).data('production-order'));
       $('#delete-required-item-modal input[name="ste_names"]').val(ste_names);
       $('#delete-required-item-modal input[name="item_code"]').val(item_code);
       $('#delete-required-item-modal input[name="source_warehouse"]').val(source_warehouse);
+      $('#delete-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
       $('#delete-required-item-modal .modal-body span').eq(0).text(item_code);
 
       $('#delete-required-item-modal').modal('show');
