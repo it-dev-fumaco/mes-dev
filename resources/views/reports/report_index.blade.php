@@ -45,16 +45,16 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 <tr>
-                                    <td><a href="/fabrication_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Fabrication Output Report </span></a></td>
+                                    <td><a href="/link_fabrication_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Fabrication Output Report </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/fabrication_report#!tab1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Fabrication Operator Log Report  </span></a></td>
+                                    <td><a href="/link_fabrication_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Fabrication Operator Log Report  </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/fabrication_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
+                                    <td><a href="/link_fabrication_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
                                {{-- <tr>
-                                    <td><a href="/production_schedule_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Schedule Report  </span></a></td>
+                                    <td><a href="/link_production_schedule_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Schedule Report  </span></a></td>
                                 </tr> --}}
                             </tbody>
                         </table>
@@ -68,13 +68,13 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 {{--<tr>
-                                    <td><a href="/#" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Painting Output Report </span></a></td>
+                                    <td><a href="/link_#" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Painting Output Report </span></a></td>
                                 </tr>--}}
                                 <tr>
-                                    <td><a href="/painting_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Painting Chemical Record  </span></a></td>
+                                    <td><a href="/link_painting_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Painting Chemical Record  </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/painting_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
+                                    <td><a href="/link_painting_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
 
                                 </tr>
                                 
@@ -90,10 +90,10 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 <tr>
-                                    <td><a href="/assembly_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Assembly Output Report </span></a></td>
+                                    <td><a href="/link_assembly_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Daily Assembly Output Report </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/assembly_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
+                                    <td><a href="/link_assembly_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
                                 
                             </tbody>
@@ -108,7 +108,7 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 <tr>
-                                    <td><a href="/qa_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
+                                    <td><a href="/link_qa_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
                                 </tr>
                             </tbody>
                         </table>

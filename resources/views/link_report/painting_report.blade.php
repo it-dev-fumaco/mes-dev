@@ -41,15 +41,15 @@
 								  <div class="col-md-12">
 									 <ul class="nav nav-tabs" id="myTab" role="tablist">
 										<li class="nav-item">
-										  <a class="nav-link active" id="chem-monitoring-tab" data-toggle="tab" href="#chem-monitoring" role="tab" aria-controls="chem-monitoring" aria-selected="true">Painting Chemical Records</a>
+										  <a class="nav-link {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="chem-monitoring-tab" data-toggle="tab" href="#chem-monitoring" role="tab" aria-controls="chem-monitoring" aria-selected="true">Painting Chemical Records</a>
 										</li>
 										<li class="nav-item">
-										  <a class="nav-link" id="water-discharge-tab" data-toggle="tab" href="#water-discharge" role="tab" aria-controls="water-discharge" aria-selected="false">Water Discharged Monitoring</a>
+										  <a class="nav-link {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="water-discharge-tab" data-toggle="tab" href="#water-discharge" role="tab" aria-controls="water-discharge" aria-selected="false">Water Discharged Monitoring</a>
 										</li>
 									 </ul>
 									 <!-- Tab panes -->
 									 <div class="tab-content">
-										<div class="tab-pane active" id="chem-monitoring" role="tabpanel" aria-labelledby="chem-monitoring">
+										<div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="chem-monitoring" role="tabpanel" aria-labelledby="chem-monitoring">
 										  <div class="row" style="margin-top: 12px;">
 											 <div class="col-md-2">
 												<div class="card" style="background-color: #0277BD;" >
@@ -137,7 +137,7 @@
 											 </div>
 										  </div>
 										</div>
-										<div class="tab-pane" id="water-discharge" role="tabpanel" aria-labelledby="water-discharge">
+										<div class="tab-pane {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="water-discharge" role="tabpanel" aria-labelledby="water-discharge">
 										  <div class="row" style="margin-top: 12px;">
 											 <div class="col-md-2">
 												<div class="card" style="background-color: #0277BD;" >

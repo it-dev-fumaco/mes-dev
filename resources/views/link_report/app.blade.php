@@ -22,46 +22,28 @@
 
 <body class="">
   <div class="wrapper">
-    <div class="main-panel" id="main-panel">
-      <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute">
-        <div class="container-fluid">
-          <div class="navbar-wrapper">
-            <div class="navbar-toggle">
-              <button type="button" class="navbar-toggler">
-                <span class="navbar-toggler-bar bar1"></span>
-                <span class="navbar-toggler-bar bar2"></span>
-                <span class="navbar-toggler-bar bar3"></span>
-              </button>
-            </div>
-            <a class="navbar-brand" href="#"></a>
-          </div>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-          </button>
-          <div class="collapse navbar-collapse justify-content-end" id="navigation">
-            <ul class="navbar-nav">
+     <div class="sidebar" data-color="orange">
+      <!--
+        Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
+    -->
+      <div class="logo">
+        {{-- <a href="http://www.creative-tim.com" class="simple-text logo-mini">
+          CT
+        </a> --}}
+        <a href="#" class="simple-text logo-normal text-center">
+          {{--  {{ $namePage }}  --}}
+          MES
+        </a>
+      </div>
+      <div class="sidebar-wrapper" id="sidebar-wrapper">
+        
 
-              {{-- <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <i class="now-ui-icons location_world"></i>
-                  <p>
-                    <span class="d-lg-none d-md-block">Some Actions</span>
-                  </p>
-                </a>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                  <a class="dropdown-item" href="#">Action</a>
-                  <a class="dropdown-item" href="#">Another action</a>
-                  <a class="dropdown-item" href="#">Something else here</a>
-                </div>
-              </li> --}}
-            </ul>
-          </div>
-        </div>
-      </nav>
-      <!-- End Navbar -->
+    </div>
+  </div>
+ 
+  <div class="main-panel" id="main-panel">
+    <!-- Navbar -->
+    <!-- End Navbar -->
       @yield('content')
       <footer class="footer">
         <div class="container-fluid">
@@ -76,7 +58,199 @@
       </footer>
     </div>
   </div>
+  <style type="text/css">
+    .qc_passed{
+      background-image: url("{{ asset('img/chk.png') }}");
+      background-size: 28%;
+      background-repeat: no-repeat;
+      background-position: center; 
+    }
+  
+    .qc_failed{
+      background-image: url("{{ asset('img/x.png') }}");
+      background-size: 20%;
+      background-repeat: no-repeat;
+      background-position: center; 
+    }
 
+    .active-process {
+      background-color: #FFC107;
+      color: #000000;
+      animation: blinkingBackground 2.5s linear infinite;
+    }
+
+  @keyframes blinkingBackground{
+    0%    { background-color: #ffffff;}
+    25%   { background-color: #FFC107;}
+    50%   { background-color: #ffffff;}
+    75%   { background-color: #FFC107;}
+    100%  { background-color: #ffffff;}
+  }
+  
+  .breadcrumb-c {
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 0;
+    background: transparent;
+    list-style: none;
+    overflow: hidden;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    width: 100%;
+    border-radius: 4px;
+  }
+
+  .breadcrumb-c>li {
+    display: table-cell;
+    vertical-align: top;
+    width: 0.8%;
+  }
+
+  .breadcrumb-c>li+li:before {
+    padding: 0;
+  }
+
+  .breadcrumb-c li a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 0 10px 5px;
+    position: relative;
+    display: inline-block;
+    width: calc( 100% - 10px );
+    background-color: hsla(0, 0%, 83%, 1);
+    text-align: center;
+    text-transform: capitalize;
+  }
+
+  .breadcrumb-c li.completed a {
+    background: brown;
+    background: hsla(153, 57%, 51%, 1);
+  }
+
+  .breadcrumb-c li.completed a:after {
+    border-left: 30px solid hsla(153, 57%, 51%, 1);
+  }
+
+  .breadcrumb-c li.active a {
+    background: #ffc107;
+  }
+
+  .breadcrumb-c li.active a:after {
+    border-left: 30px solid #ffc107;
+  }
+
+  .breadcrumb-c li:first-child a {
+    padding-left: 1px;
+  }
+
+  .breadcrumb-c li:last-of-type a {
+    width: calc( 100% - 38px );
+  }
+
+  .breadcrumb-c li a:before {
+    content: " ";
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-left: 30px solid white;
+    position: absolute;
+    top: 50%;
+    margin-top: -50px;
+    margin-left: 1px;
+    left: 100%;
+    z-index: 1;
+  }
+
+  .breadcrumb-c li a:after {
+    content: " ";
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-left: 30px solid hsla(0, 0%, 83%, 1);
+    position: absolute;
+    top: 50%;
+    margin-top: -50px;
+    left: 100%;
+    z-index: 2;
+  }
+
+  .truncate {
+    white-space: nowrap;
+    /*overflow: hidden;*/
+    text-overflow: ellipsis;
+  }
+
+  .scrolltbody tbody {
+    display:block;
+    height:300px;
+    overflow:auto;
+  }
+  .scrolltbody thead, .scrolltbody tbody tr {
+      display:table;
+      width:100%;
+      table-layout:fixed;
+  }
+  .scrolltbody thead {
+      width: calc(100%)
+  }
+    .numpad-div .row1{
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+    /* Not implemented yet */
+    -o-user-select: none;
+    user-select: none;   
+  }
+
+  .numpad{
+    display: inline-block;
+    border: 1px solid #333;
+    border-radius: 5px;
+    text-align: center;
+    width: 27%;
+    height: 27%;
+    line-height: 60px;
+    margin: 3px;
+    font-size: 15pt;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .numpad:active,
+  .numpad:hover {
+    cursor: pointer ;
+    box-shadow: inset 0 0 2px #000000;
+  }
+
+  .modal-ste .form-control {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
+  }
+  .modal-ste .form-control:hover, .modal-ste .form-control:focus, .modal-ste .form-control:active {
+    box-shadow: none;
+  }
+  .modal-ste .form-control:focus {
+    border: 1px solid #34495e;
+  }
+
+  .modal { overflow: auto !important; }
+  #reschedule-delivery-modal .form-control {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
+  }
+  </style>
+
+
+    
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
   <script src="{{ asset('js/core/jquery.min.js') }}"></script>
@@ -89,26 +263,34 @@
   <script src="{{ asset('/js/plugins/bootstrap-notify.js') }}"></script>
   {{--  <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->  --}}
   <script src="{{ asset('/js/now-ui-dashboard.min.js?v=1.3.0') }}" type="text/javascript"></script>
-  {{--  <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->  --}}
+  {{--  <!-- Now Ui Dashboard DEMO methods, dont include it in your project! -->  --}}
   <script src="{{ asset('/js/demo.js') }}"></script>
   <script src="{{ asset('js/jquery-ui.js') }}"></script>
+
+  <script src="{{ asset('/js/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
   @yield('script')
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
-     
-   
 
-    $(document).on('show.bs.modal', '.modal', function (event) {
-      var zIndex = 1040 + (10 * $('.modal:visible').length);
-      $(this).css('z-index', zIndex);
-      setTimeout(function() {
-        $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
-      }, 0);
-    });
+    function showNotification(color, message, icon){
+      $.notify({
+        icon: icon,
+        message: message
+      },{
+        type: color,
+        timer: 500,
+        placement: {
+          from: 'top',
+          align: 'center'
+        }
+      });
+    }
 
   });
+
 </script>
 </body>
 
 </html>
+
