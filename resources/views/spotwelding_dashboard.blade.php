@@ -1020,7 +1020,6 @@
         type:"GET",
         data: data,
         success:function(data){
-          console.log(data);
           $('#end-task-modal .balance-qty').val(data);
           $('#end-task-modal .max-qty').text(data);
         },
@@ -1090,7 +1089,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
@@ -1146,6 +1144,34 @@
       });
     });
 
+    $(document).on('click', '.continue-log-btn', function(e){
+      e.preventDefault();
+
+      var data = {  
+        machine_code: '{{ $machine_details->machine_code }}', 
+        _token: '{{ csrf_token() }}', 
+      }
+
+      $.ajax({
+        url: "/continue_log_task/" + $(this).data('timelog-id'),
+        type:"POST",
+        data: data,
+        success:function(response){
+          if (response.success > 0) {
+            get_current_job_ticket_tasks();
+            showNotification("success", response.message, "now-ui-icons ui-1_check");
+          }else{
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+          }
+        }, 
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $(document).on('click', '.start-task-btn', function(e){
       e.preventDefault();
       var count_selected_parts = $('#select-part-div .selected-part').length;
@@ -1159,9 +1185,9 @@
       $('#select-part-div .selected-part').each(function(){
         process_description += $(this).find('span').eq(0).text() + ',';
         parts.push({
-          part_code: $(this).find('span').eq(0).text(),
-          category: $(this).find('span').eq(1).text(),
-          production_order: $(this).find('span').eq(3).text(),
+          part_code: $(this).find('.part-item-code').eq(0).text(),
+          category: $(this).find('.part-category').eq(0).text(),
+          production_order: $(this).find('.part-production-order').eq(0).text(),
         });
       });
 
@@ -1184,7 +1210,6 @@
         type:"POST",
         data: data,
         success:function(response){
-          console.log(response);
           if (response.success > 0) {
             get_current_job_ticket_tasks();
             showNotification("success", response.message, "now-ui-icons ui-1_check");
@@ -1259,7 +1284,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(response){
-          console.log(response);
           if (response.success < 1) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
           }else{
