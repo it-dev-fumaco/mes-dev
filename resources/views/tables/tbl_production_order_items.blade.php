@@ -176,6 +176,8 @@
 					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
@@ -189,7 +191,6 @@
 						<span class="d-none item-name">{{ $component['item_name'] }}</span>
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
 						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
-
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
@@ -373,6 +374,8 @@
 					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $part['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
@@ -386,7 +389,6 @@
 						<span class="d-none item-name">{{ $part['item_name'] }}</span>
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
 						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
-
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>

@@ -853,7 +853,6 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
-
     $('#change-required-qty-btn').click(function(e){
       e.preventDefault();
   

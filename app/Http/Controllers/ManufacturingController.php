@@ -2040,7 +2040,6 @@ class ManufacturingController extends Controller
                     $production_order_item = [
                         'modified' => $now->toDateTimeString(),
                         'modified_by' => Auth::user()->email,
-                        // 'required_qty' => $existing_production_item->required_qty + $qty,
                     ];
 
                     DB::connection('mysql')->table('tabProduction Order Item')->where('name', $existing_production_item->name)->update($production_order_item);
