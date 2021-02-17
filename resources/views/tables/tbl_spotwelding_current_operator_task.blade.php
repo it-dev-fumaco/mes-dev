@@ -94,6 +94,153 @@
         <span class="process-name" style="display: none;">{{ $row['process_name'] }}</span>
         <span class="process-id" style="display: none;">{{ $row['process_id'] }}</span>
 
+								if($part['status'] == 'Completed'){
+									$selected_status = 'completed';
+									$selected = 'selected-box';
+								}
+              			@endphp
+							<div class="custom-box part-items {{ $selected }} {{ $selected_status }}" data-tabid="task{{ $index }}">
+								<div class="d-block">
+									<span class="font-weight-bold part-item-code">{{ $part['item_code'] }}</span> - <span style="font-size: 10pt;">Qty:[{{ $part['qty'] }}]</span>
+								</div>
+								<span class="d-none part-category">{{ $part['parts_category'] }}</span>
+								<span class="d-block" style="font-size: 10pt;">{{ $part['item_name'] }}</span>
+								<span class="d-block" style="font-size: 9pt;">{{ $status }}</span>
+								<span class="d-none part-production-order">{{ $part['production_order'] }}</span>
+								<span class="d-block" style="font-size: 9pt;">Available Qty: {{ $part['available_stock'] }}</span>
+							</div>
+							@endforeach
+							<p class="clear"></p>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<center>
+							<h5 class="title" style="font-size: 13pt;">{{ $row['production_order'] }}</h5>
+							<button type="button" class="btn btn-block btn-danger start-task-btn {{ ($row['status'] == 'Pending') ? '' : 'd-none' }}" style="width: 190px; height: 190px;" data-jobticket-id="{{ $row['job_ticket_id'] }}" data-process-id="{{ $row['process_id'] }}" data-ho-code="{{ $row['item_code'] }}" data-refno="{{ $row['sales_order'] }}{{ $row['material_request'] }}" data-reqqty="{{ $row['qty_to_manufacture'] }}">
+								<i class="now-ui-icons media-1_button-play" style="font-size: 30pt; padding: 3px;"></i>
+								<span class="d-block p-2">Start Work</span>
+							</button>
+							<div id="jt-status" class="d-none">{{ $row['status'] }}</div>
+							<button type="button" class="btn btn-block btn-warning end-task-btn {{ ($row['status'] == 'In Progress') ? '' : 'd-none' }}" data-timelog-id="{{ $row['time_log_id'] }}" data-process-name="{{ $row['process_name'] }}" data-jobticket="{{ $row['job_ticket_id'] }}" data-reqqty="{{ $row['qty_to_manufacture'] }}" data-spotwelding-part-id="{{ $row['spotwelding_part_id'] }}" style="width: 190px; height: 190px;">
+								<div class="waves-effect waves z-depth-4">
+									<div class="spinner-grow" style="width: 4rem; height: 4rem;">
+										<span class="sr-only">Loading...</span>
+									</div>
+									<h4 class="text-center blinking font-weight-bold text-dark">In Progress</h4>
+								</div>
+							</button>
+							<button type="button" class="btn btn-block btn-success completed-btn {{ ($row['status'] == 'Completed') ? '' : 'd-none' }}" style="width: 190px; height: 190px;">
+								<i class="now-ui-icons ui-1_check" style="font-size: 30pt; padding: 3px;"></i>
+								<span class="d-block p-2">Completed</span>
+							</button>
+						</center>
+					</div>
+					<div class="col-md-12 p-0 mt-2" style="font-size: 8pt;">
+						<table class="table table-bordered">
+							<col style="width: 34%;">
+							<col style="width: 10%;">
+							<col style="width: 8%;">
+							<col style="width: 8%;">
+							<col style="width: 20%;">
+							<col style="width: 10%;">
+							<col style="width: 10%;">
+							<tbody>
+								<tr>
+									<th class="text-center">PROCESS</th>
+									<th class="text-center">MACHINE</th>
+									<th class="text-center">GOOD</th>
+									<th class="text-center">REJECT</th>
+									<th class="text-center">OPERATOR</th>
+									<th class="text-center" colspan="2">ACTIONS</th>
+								</tr>
+								@forelse($logs as $log)
+								<tr style="font-size: 10pt;" class="{{ ($log['status'] == 'In Progress') ? 'blink-bg' : '' }}">
+									<td class="text-center">
+										@php
+											$continue_btn = ($log['total_completed_qty'] >= $row['qty_to_manufacture']) ? 'disabled' : '';
+											$process_description = (count($bom_parts) == $log['count_parts']) ? 'ALL PARTS' : $log['process_description'];
+										@endphp
+										<span class="d-block">{{ $process_description }}</span>
+										<span style="font-size: 10pt;" class="badge badge-{{ ($log['status'] == 'Completed') ? 'success' : 'warning' }} text-white">{{ $log['status']}}</span>
+									</td>
+									<td class="text-center">
+										<span class="d-block">{{ $log['machine'] }}</span>
+										<span class="d-block font-italic" style="font-size: 8pt;">{{ ($log['status'] == 'Completed') ? $log['duration'] : '-' }}</span>
+									</td>
+									<td class="text-center">{{ $log['completed_qty'] }}</td>
+									<td class="text-center">{{ $log['reject'] }}</td>
+									<td class="text-center">{{ $log['operator_name'] }}</td>
+									<td class="text-center p-1">
+										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress') ? 'disabled' : '' }} {{ $continue_btn }}>
+											<i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i>
+											<span class="d-block" style="font-size: 8pt;">Continue</span>
+										</button>
+									</td>
+									<td class="text-center p-1">
+										@php
+											$disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
+										@endphp
+										<button type="button" class="btn btn-block enter-reject-btn rounded-0" data-id="{{ $row['time_log_id'] }}" data-processid={{$row['process_id']}}  data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="1" style="height: 60px; background-color: #C62828;">
+											<i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i>
+											<span class="d-block" style="font-size: 8pt;">Reject</span>
+										</button>
+									</td>
+								</tr>
+								@empty
+								<tr>
+									<td class="text-center" colspan="7">No Record(s) Found.</td>
+								</tr>
+								@endforelse
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<table class="w-100">
+							<tr>
+								<td class="text-center w-25">
+									@php
+										$disabled_restart = ($row['operator_id'] != Auth::user()->user_id) ? 'disabled' : '';
+									@endphp
+									<button type="button" class="btn btn-block restart-task-btn rounded-0" data-timelog-id="{{ $row['time_log_id'] }}" style="height: 70px; background-color: #00838f;" {{ $disabled_restart }} {{ ($row['status'] == 'In Progress') ? '' : 'disabled' }}>
+										<i class="now-ui-icons loader_refresh" style="font-size: 15pt;"></i>
+										<span class="d-block" style="font-size: 10pt;">Restart</span>
+									</button>
+								</td>
+								<td class="text-center w-25">
+									@php
+										$disabled_qc = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'Pending') ? 'disabled' : '';
+									@endphp
+									<button type="button" class="btn btn-block quality-inspection-btn rounded-0" data-timelog-id="{{ $row['time_log_id'] }}" data-production-order="{{ $row['production_order'] }}" data-processid="{{ $row['process_id'] }}" data-inspection-type="Random Inspection" style="height: 70px; background-color: #f57f17;" {{ $disabled_qc }}>
+										<i class="now-ui-icons ui-1_check" style="font-size: 15pt;"></i>
+										<span class="d-block" style="font-size: 10pt;">Quality Check</span>
+									</button>
+								</td>
+								<td class="text-center w-25">
+									<button type="button" class="btn btn-block machine-breakdown-modal-btn rounded-0" style="height: 70px; background-color: #6a1b9a;">
+										<i class="now-ui-icons ui-2_settings-90" style="font-size: 15pt;"></i>
+										<span class="d-block" style="font-size: 10pt;">Maintenance Request</span>
+									</button>
+								</td>
+								<td class="text-center w-25">
+									@php
+										$disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
+									@endphp
+									<button type="button" class="btn btn-block enter-reject-btn rounded-0" data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828;">
+										<i class="now-ui-icons ui-1_simple-remove" style="font-size: 15pt;"></i>
+										<span class="d-block" style="font-size: 10pt;">Enter Reject</span>
+									</button>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+			@endforeach
+    	</div>
+  	</div>
+</div>
 
           <div class="col-md-8" style="padding: 0;" id="select-part-div">
             <h5 class="title text-center" style="margin: 0 0 8px 0; font-size: 12pt;">Select Parts</h5>
