@@ -73,6 +73,14 @@
             <ul class="navbar-nav">
               @if(!in_array($activePage, ['painting_task']))
               <li class="nav-item active">
+                <a class="nav-link text-center" href="#" id="refresh_page_id" onClick="document.location.reload(true)">
+                  <i class="now-ui-icons arrows-1_refresh-69"></i> Refresh
+                  <p hidden>
+                    <span class="d-lg-none d-md-block">Refresh</span>
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item active">
                 <a class="nav-link text-center" href="#" id="quality-check-modal-btn" >
                   <i class="now-ui-icons ui-1_check"></i> Quality Check
                   <p hidden>
@@ -165,6 +173,5 @@
   <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
   {{-- <script src="{{ asset('/js/demo.js') }}"></script> --}}
   @yield('script')
-
 </body>
 </html>
