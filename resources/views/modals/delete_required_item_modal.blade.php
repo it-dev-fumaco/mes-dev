@@ -16,6 +16,7 @@
                         <input type="hidden" name="production_order">
                         <input type="hidden" name="item_code">
                         <input type="hidden" name="source_warehouse">
+                        <input type="hidden" name="production_order_item_id">
                         <p class="text-center m-0">Cancel withdrawal request(s) for <span class="font-weight-bold"></span></p>
                     </div>
                     </div>

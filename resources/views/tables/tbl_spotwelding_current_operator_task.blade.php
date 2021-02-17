@@ -166,6 +166,7 @@
 								<tr style="font-size: 10pt;" class="{{ ($log['status'] == 'In Progress') ? 'blink-bg' : '' }}">
 									<td class="text-center">
 										@php
+											$continue_btn = ($log['total_completed_qty'] >= $row['qty_to_manufacture']) ? 'disabled' : '';
 											$process_description = (count($bom_parts) == $log['count_parts']) ? 'ALL PARTS' : $log['process_description'];
 										@endphp
 										<span class="d-block">{{ $process_description }}</span>
@@ -179,7 +180,7 @@
 									<td class="text-center">{{ $log['reject'] }}</td>
 									<td class="text-center">{{ $log['operator_name'] }}</td>
 									<td class="text-center p-1">
-										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress') ? 'disabled' : '' }}>
+										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress') ? 'disabled' : '' }} {{ $continue_btn }}>
 											<i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i>
 											<span class="d-block" style="font-size: 8pt;">Continue</span>
 										</button>

@@ -608,6 +608,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_return/{sted_id}', 'MainController@delete_pending_material_transfer_for_return');
+
+	Route::post('/update_production_order_item_required_qty', 'ManufacturingController@update_production_order_item_required_qty');
 	
 	Route::post('/submit_stock_entries/{production_order}', 'ManufacturingController@submit_stock_entries');
 
