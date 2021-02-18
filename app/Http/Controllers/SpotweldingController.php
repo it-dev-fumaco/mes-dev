@@ -98,6 +98,16 @@ class SpotweldingController extends Controller
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
 
+			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			if($production_order->qty_to_manufacture == 1 && $production_order){
+				$in_progress_part = DB::connection('mysql_mes')->table('spotwelding_qty')
+					->where('spotwelding_part_id', $spotwelding_part_id)->where('status', 'In Progress')->first();
+
+				if($in_progress_part){
+					return response()->json(['success' => 0, 'message' => 'Selected parts already in progress.', 'details' => []]);
+				}
+			}
+
 	    	$log = [
 				'job_ticket_id' => $request->job_ticket_id,
 				'spotwelding_part_id' => $spotwelding_part_id,
@@ -142,7 +152,6 @@ class SpotweldingController extends Controller
 	    		'process_id' => $request->process_id,
 	    	];
 	    	
-			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 			if ($production_order && $production_order->status == 'Not Started') {
 				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
