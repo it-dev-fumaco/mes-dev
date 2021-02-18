@@ -180,7 +180,7 @@
 									<td class="text-center">{{ $log['reject'] }}</td>
 									<td class="text-center">{{ $log['operator_name'] }}</td>
 									<td class="text-center p-1">
-										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress') ? 'disabled' : '' }} {{ $continue_btn }}>
+										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress' || $log['status'] == 'In Progress') ? 'disabled' : '' }} {{ $continue_btn }}>
 											<i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i>
 											<span class="d-block" style="font-size: 8pt;">Continue</span>
 										</button>
@@ -208,16 +208,16 @@
 					<div class="col-md-12">
 						<table class="w-100">
 							<tr>
-								<td class="text-center w-25">
+								<td class="text-center" style="width: 20%;">
 									@php
 										$disabled_restart = ($row['operator_id'] != Auth::user()->user_id) ? 'disabled' : '';
 									@endphp
 									<button type="button" class="btn btn-block restart-task-btn rounded-0" data-timelog-id="{{ $row['time_log_id'] }}" style="height: 70px; background-color: #00838f;" {{ $disabled_restart }} {{ ($row['status'] == 'In Progress') ? '' : 'disabled' }}>
 										<i class="now-ui-icons loader_refresh" style="font-size: 15pt;"></i>
-										<span class="d-block" style="font-size: 10pt;">Restart</span>
+										<span class="d-block" style="font-size: 10pt;">Reset</span>
 									</button>
 								</td>
-								<td class="text-center w-25">
+								<td class="text-center" style="width: 20%;">
 									@php
 										$disabled_qc = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'Pending') ? 'disabled' : '';
 									@endphp
@@ -226,19 +226,25 @@
 										<span class="d-block" style="font-size: 10pt;">Quality Check</span>
 									</button>
 								</td>
-								<td class="text-center w-25">
-									<button type="button" class="btn btn-block machine-breakdown-modal-btn rounded-0" style="height: 70px; background-color: #6a1b9a;">
+								<td class="text-center" style="width: 20%;">
+									<button type="button" class="btn btn-block machine-breakdown-modal-btn rounded-0 p-0" style="height: 70px; background-color: #6a1b9a;">
 										<i class="now-ui-icons ui-2_settings-90" style="font-size: 15pt;"></i>
-										<span class="d-block" style="font-size: 10pt;">Maintenance Request</span>
+										<span class="d-block" style="font-size: 9pt;">Maintenance Request</span>
 									</button>
 								</td>
-								<td class="text-center w-25">
+								<td class="text-center" style="width: 20%;">
 									@php
 										$disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
 									@endphp
 									<button type="button" class="btn btn-block enter-reject-btn rounded-0" data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828;">
 										<i class="now-ui-icons ui-1_simple-remove" style="font-size: 15pt;"></i>
 										<span class="d-block" style="font-size: 10pt;">Enter Reject</span>
+									</button>
+								</td>
+								<td class="text-center" style="width: 20%;">
+									<button type="button" class="btn btn-block rounded-0 reload-btn" style="height: 70px; background-color:#566573;">
+										<i class="now-ui-icons loader_refresh" style="font-size: 15pt;"></i>
+										<span class="d-block" style="font-size: 10pt;">Refresh</span>
 									</button>
 								</td>
 							</tr>

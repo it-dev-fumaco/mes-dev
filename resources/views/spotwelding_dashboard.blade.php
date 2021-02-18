@@ -932,6 +932,11 @@
             }
           });
         });
+
+        $(document).on('click', '.reload-btn', function(e){
+          e.preventDefault();
+          get_current_job_ticket_tasks();
+        });
   
       $(document).on('click', '.view-in-progress-operator', function(e){
         e.preventDefault();
