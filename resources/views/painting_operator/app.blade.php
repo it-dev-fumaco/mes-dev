@@ -34,16 +34,7 @@
       </div>
       <div class="sidebar-wrapper" id="sidebar-wrapper">
         <ul class="nav">
-          @if(isset($painting_process))
-          @foreach ($painting_process as $process)
-          <li>
-            <a href="/operator/Painting/{{ $process }}">
-              <i class="now-ui-icons design_app"></i>
-              <p>{{ $process }}</p>
-            </a>
-          </li>
-          @endforeach
-          @endif
+          
         </ul>
       </div>
     </div>
@@ -52,18 +43,7 @@
       <!-- Navbar -->
       <nav class="navbar navbar-expand-lg navbar-transparent  bg-primary  navbar-absolute">
         <div class="container-fluid">
-          @if(!in_array($activePage, ['painting_task']))
-          <div class="navbar-wrapper">
-            <div class="navbar-toggle">
-              <button type="button" class="navbar-toggler">
-                <span class="navbar-toggler-bar bar1"></span>
-                <span class="navbar-toggler-bar bar2"></span>
-                <span class="navbar-toggler-bar bar3"></span>
-              </button>
-            </div>
-            <a class="navbar-brand" href="#">{{ $namePage }}</a>
-          </div>
-          @endif
+          
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-bar navbar-kebab"></span>
             <span class="navbar-toggler-bar navbar-kebab"></span>
@@ -72,14 +52,7 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <ul class="navbar-nav">
               @if(!in_array($activePage, ['painting_task']))
-              <li class="nav-item active">
-                <a class="nav-link text-center" href="#" id="refresh_page_id" onClick="document.location.reload(true)">
-                  <i class="now-ui-icons arrows-1_refresh-69"></i> Refresh
-                  <p hidden>
-                    <span class="d-lg-none d-md-block">Refresh</span>
-                  </p>
-                </a>
-              </li>
+              
               <li class="nav-item active">
                 <a class="nav-link text-center" href="#" id="quality-check-modal-btn" >
                   <i class="now-ui-icons ui-1_check"></i> Quality Check
@@ -99,9 +72,9 @@
               @endif
               <li class="nav-item active">
                 <a class="nav-link" href="#" id="view-painting-schedule-btn">
-                  <i class="now-ui-icons design_bullet-list-67"></i> Painting Schedule
+                  <i class="now-ui-icons design_bullet-list-67"></i>Schedule
                   <p>
-                    <span class="d-lg-none d-md-block">Painting Schedule</span>
+                    <span class="d-lg-none d-md-block">Schedule</span>
                   </p>
                 </a>
               </li>
@@ -130,6 +103,14 @@
                   <a class="dropdown-item"  id="view-powder-Monitoring-btn" href="#">Powder Coating Monitoring</a>
 
                 </div>
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link text-center" href="#" id="refresh_page_id" onClick="document.location.reload(true)">
+                  <i class="now-ui-icons arrows-1_refresh-69"></i> 
+                  <p hidden>
+                    <span class="d-lg-none d-md-block"></span>
+                  </p>
+                </a>
               </li>
             </ul>
           </div>
