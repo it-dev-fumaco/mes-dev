@@ -2934,7 +2934,7 @@ class ManufacturingController extends Controller
                             'use_multi_level_bom' => 1,
                             'delivery_note_no' => null,
                             'naming_series' => 'STE-',
-                            'fg_completed_qty' => $mes_production_order_details->qty_to_manufacture,
+                            'fg_completed_qty' => ($index == 0) ? $mes_production_order_details->qty_to_manufacture : 0,
                             'letter_head' => null,
                             '_liked_by' => null,
                             'purchase_receipt_no' => null,
@@ -3008,11 +3008,20 @@ class ManufacturingController extends Controller
                             DB::connection('mysql')->table('tabProduction Order Item')->where('name', $row->name)->update($production_order_item);
 
                             if($mes_production_order_details->status == 'Not Started'){
-                                DB::connection('mysql')->table('tabProduction Order')
-                                    ->where('name', $mes_production_order_details->production_order)
-                                    ->update(['status' => 'In Process', 'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture]);
+                                $values = [
+                                    'status' => 'In Process',
+                                    'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture
+                                ];
+                            }else{
+                                $values = [
+                                    'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture
+                                ];
                             }
-                
+                            
+                            DB::connection('mysql')->table('tabProduction Order')
+                                ->where('name', $mes_production_order_details->production_order)
+                                ->update($values);
+
                             $this->update_bin($new_id);
                             $this->create_stock_ledger_entry($new_id);
                             $this->create_gl_entry($new_id);
