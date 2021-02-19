@@ -60,10 +60,10 @@
                                  </div>
                                  <div class="col-md-3 text-center align-middle">
                                     <div class="form-group row align-middle">
-                                       <label for="parts_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Parts Category:</b></label>
+                                       <label for="parts_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Item Classification:</b></label>
 											      <div class="col-sm-7 align-middle">
                                           <select class="form-control form-control-lg text-center" style="display:inline;" name="parts_filter" id="parts_filter">
-                                             <option value="All">Select Parts Category</option>
+                                             <option value="All">Select Item Classification</option>
                                                 @foreach($item_classification as $rows)
                                                    <option value="{{$rows->item_classification}}">{{$rows->item_classification}}</option>
                                                 @endforeach
