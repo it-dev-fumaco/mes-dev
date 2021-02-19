@@ -6,20 +6,20 @@
 @section('content')
 <div class="panel-header" style="border: 1px solid; min-height: 350px;">
   <div class="header">
-    <div class="row" style="margin-top: -70px; margin-left: 60px;">
+    <div class="row" style="margin-top: -70px; margin-left: -160px;">
       <div class="col-md-8 text-white">  
           <table style="width: 85%; margin-left: 15px;">  
             <tr>  
               <td style="width: 50%; border-right: 5px solid;">
-              <h2 class="title text-center">
+              <h2 class="title text-center" style="font-size:10px;">
                 <div class="pull-right" style="margin-right: 30px;">
                   <span style="display: block; font-size: 17pt;">{{ date('M-d-Y') }}</span>
                   <span style="display: block; font-size: 13pt;">{{ date('l') }}</span>
                 </div>
               </h2>
             </td>
-            <td style="width: 50%;">
-              <h4 id="qwe" class="title text-center" style="margin: 1px auto; font-size: 25pt;">-:--:-- --</h4>
+            <td style="width: 50%;" style="pull-left">
+              <h4 id="qwe" class="title text-center" style="margin: 1px auto; font-size: 25pt;margin-left:-100px;">-:--:-- --</h4>
             </td>
           </tr>
         </table>
@@ -31,18 +31,35 @@
 @include('modals.search_productionorder')
 <div class="content" style="margin-top: -100px; min-height: 10px;">
 
-<div class="row" style="margin-top: -230px;">
-  <div class="col-md-6">
-    <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
-    <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process_details->process_name }} Area</h2>
-    <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
-      <span style="font-size: 17pt;"><b>Machine Status</b></span>
-    </h5>
-    <center>
-    <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};">
-      <i class="now-ui-icons media-1_button-power"></i>
-      <span style="padding: 3px;">{{ ($machine_status == 'Start Up') ? 'Unavailable' : 'Available' }}</span>
-    </button></center>
+<div class="row" style="margin-top: -270px;">
+  @foreach($breaktime_data as $r => $row)
+  <div class="col-md-12" id="{{$r}}{{$row['div_id']}}" style="display:none; margin-top:-30px;margin-bottom:10px;">
+    <div class="alert alert-primary text-center" role="alert">
+      <span class="d-none"></span>
+      <div class="container">
+        <div class="alert-icon" style="color:black;">
+          <i class="now-ui-icons ui-2_time-alarm" style="padding-right:5px;font-size:30px;"></i><span style="font-size:18pt;"> <b>{{$row['break_type']}} :</b></span> 
+                <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endforeach
+  <div class="col-md-6" style="margin-top: 20px;">
+    <div style="margin-top:0px; padding-bottom:25px;">
+      <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
+      <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process_details->process_name }} Area</h2>
+      <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
+        <span style="font-size: 17pt;"><b>Machine Status</b></span>
+      </h5>
+      <center>
+      <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};">
+        <i class="now-ui-icons media-1_button-power"></i>
+        <span style="padding: 3px;">{{ ($machine_status == 'Start Up') ? 'Unavailable' : 'Available' }}</span>
+      </button></center>
+    </div>
+    
+    
   </div>
   <div class="col-md-6">
     <div class="card" style="min-height: 500px;">
@@ -101,8 +118,30 @@
       </div>
     </div>
   </div>
-</div>
+    @if(isset($painting_process))
+    <div class="col-md-12" style="margin-top: 20px;">
+      <center>
+      <table style="width: 100%; display: block; overflow-x: auto; white-space: nowrap; margin:0 auto;" class="">
+        <tr style="width: 100%;" class="text-center d-md-flex justify-content-center"> 
+          @foreach ($painting_process as $process)
+          <td class="">
+            <a href="/operator/Painting/{{ $process }}" class="custom-a ">
+              <div class="card " style="width: 300px; height: 80px; margin: 5px; font-size: 14pt;">
+                <div style="white-space: normal; margin: 20px auto;" class=""><b>{{ $process }}</b></div>
+              </div>
+            </a>
+          </td>
+          @endforeach
+        </tr>
+      </table>
+      </center>
+    </div>
+    @endif
 
+</div>
+@foreach($breaktime_data as $r => $row)
+  <input type="hidden" class="breaktime_input" value="{{$row['break_type']}}" data-timein="{{$row['time_in']}}" data-timeout="{{$row['time_out']}}" data-type="{{$row['break_type']}}" data-divid="{{$r}}{{$row['div_id']}}">
+@endforeach
 <!-- Modal -->
 <div class="modal fade" id="machine-enter-operator-id-modal" tabindex="-1" role="dialog">
    <div class="modal-dialog" role="document">
@@ -215,6 +254,31 @@
 @include('painting_operator.modal_view_schedule')
 
 <style type="text/css">
+    @-webkit-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @-moz-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @-o-keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    @keyframes blinker_break {
+      from { background-color: #fa764b; }
+      to { background-color: inherit; }
+    }
+    
+    .blink_break{
+      text-decoration: blink;
+      -webkit-animation-name: blinker;
+      -webkit-animation-duration: 3s;
+      -webkit-animation-iteration-count:infinite;
+      -webkit-animation-timing-function:ease-in-out;
+      -webkit-animation-direction: alternate;
+    }
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
     background-size: 28%;
@@ -1164,6 +1228,18 @@
     if(clock){
       clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
     }
+    var timeformat = manilaTime.toTimeString();
+    $('.breaktime_input').each(function() {
+      var div_id= "#" + $(this).data('divid');
+      if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
+        $(div_id).show();
+        $(div_id).addClass("blink_break");
+      }else{
+        $(div_id).hide();
+        $("#div_id").removeClass("blink_break");
+
+      }
+    });
   }
 </script>
 <script type="text/javascript">

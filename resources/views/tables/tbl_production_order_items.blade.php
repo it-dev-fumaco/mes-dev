@@ -123,19 +123,21 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 3%;">
 				<col style="width: 7%;">
-				<col style="width: 38%;">
+				<col style="width: 32%;">
+				<col style="width: 8%;">
 				<col style="width: 8%;">
 				<col style="width: 12%;">
-				<col style="width: 12%;">
+				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
-					<th>Required</th>
+					<th>Required Qty</th>
+					<th>Requested Qty</th>
 					<th>Source Warehouse</th>
-					<th>Transferred / Issued</th>
-					<th>Item Status</th>
+					<th>Transferred Qty</th>
+					<th>Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($components as $i => $component)
@@ -152,9 +154,10 @@
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
-					<td class="text-justify" {!! $rowspan !!}>
+					<td class="text-justify for-add-item" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $component['item_code'] }}</span>
+						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
 						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
@@ -173,15 +176,21 @@
 					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="d-none production-order-item-id">{{ $component['name'] }}</span>
 						<span class="d-none ste-names">{{ $a['ste_names'] }}</span>
 						<span class="d-none item-code">{{ $component['item_code'] }}</span>
 						<span class="d-none item-name">{{ $component['item_name'] }}</span>
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
-						<span class="d-none required-qty">{{ $balance * 1 }}</span>
-
+						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
@@ -214,10 +223,10 @@
 					</td>
 					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }}>
@@ -233,6 +242,10 @@
 					$swhb_1 = ($component['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
 				@endphp
 				<tr>
+					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold" style="font-size: 10pt;">0</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
 					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
@@ -265,13 +278,21 @@
 						</div>
 					</td>
 					<td class="border-top-0 text-center">
-						<button type="button" class="btn btn-info  btn-sm p-1" disabled> 
+						<span class="d-none production-order-item-id">{{ $component['name'] }}</span>
+						<span class="d-none item-code">{{ $component['item_code'] }}</span>
+						<span class="d-none item-description">{!! $component['description'] !!}</span>
+						<span class="d-none item-name">{{ $component['item_name'] }}</span>
+						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
+						<span class="d-none requested-qty">{{ $component['required_qty'] * 1 }}</span>
+						<span class="d-none stock-uom">{{ $component['stock_uom'] }}</span>
+						<span class="d-none source-warehouse">{{ $component['source_warehouse'] }}</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
 							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1" disabled>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}">
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -288,7 +309,8 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;">
 				<col style="width: 9%;">
-				<col style="width: 34%;">
+				<col style="width: 24%;">
+				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<col style="width: 12%;">
 				<col style="width: 12%;">
@@ -298,10 +320,11 @@
 					<th>No.</th>
 					<th>Prod. Order</th>
 					<th>Item Description</th>
-					<th>Required</th>
+					<th>Required Qty</th>
+					<th>Requested Qty</th>
 					<th>Source Warehouse</th>
-					<th>Transferred / Issued</th>
-					<th>Item Status</th>
+					<th>Transferred Qty</th>
+					<th>Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($parts as $i => $part)
@@ -330,9 +353,10 @@
 						@endif
 						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
-					<td class="text-justify" {!! $rowspan !!}>
+					<td class="text-justify for-add-item" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
+						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
 						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
@@ -350,15 +374,21 @@
 					$item_status_badge = ($a['status'] == 'For Checking') ? 'badge-warning' : 'badge-success';
 					
 					$transferred_issued_qty = ($a['status'] != 'For Checking') ? $a['qty'] : $a['issued_qty'];
+
+					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $part['required_qty'];
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="d-none production-order-item-id">{{ $part['name'] }}</span>
 						<span class="d-none ste-names">{{ $a['ste_names'] }}</span>
 						<span class="d-none item-code">{{ $part['item_code'] }}</span>
 						<span class="d-none item-name">{{ $part['item_name'] }}</span>
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
-						<span class="d-none required-qty">{{ $balance * 1 }}</span>
-
+						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
@@ -391,10 +421,10 @@
 					</td>
 					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $change_cancel_btn }}> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }}>
@@ -410,6 +440,10 @@
 					$swhb_1 = ($part['actual_qty'] < $balance) ? "badge badge-danger" : "badge badge-success";
 				@endphp
 				<tr>
+					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold" style="font-size: 10pt;">0</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
 					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $part['actual_qty'] * 1 }}</span>
@@ -442,13 +476,21 @@
 						</div>
 					</td>
 					<td class="border-top-0 text-center">
-						<button type="button" class="btn btn-info  btn-sm p-1" disabled> 
+						<span class="d-none production-order-item-id">{{ $part['name'] }}</span>
+						<span class="d-none item-code">{{ $part['item_code'] }}</span>
+						<span class="d-none item-description">{!! $part['description'] !!}</span>
+						<span class="d-none item-name">{{ $part['item_name'] }}</span>
+						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-none requested-qty">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-none stock-uom">{{ $part['stock_uom'] }}</span>
+						<span class="d-none source-warehouse">{{ $part['source_warehouse'] }}</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
 							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1" disabled>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}">
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -521,22 +563,26 @@
 		</div>
 		<div class="tab-pane" id="w4" role="tabpanel" aria-labelledby="w4-tab">
 			@if(count($feedbacked_logs) > 0)
-			<div class="row">
-				<div class="col-md-8 offset-md-2">
-					<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
+			<div class="row m-0">
+				<div class="col-md-10 offset-md-1">
+					<table class="custom-table-1-1 w-100 mt-3">
+						<col style="width: 8%;">
+						<col style="width: 15%;">
+						<col style="width: 14.5%;">
+						<col style="width: 13%;">
+						<col style="width: 12%;">
+						<col style="width: 17.5%;">
 						<col style="width: 10%;">
-						<col style="width: 20%;">
-						<col style="width: 20%;">
-						<col style="width: 17%;">
-						<col style="width: 17%;">
-						<col style="width: 16%;">
+						<col style="width: 10%;">
 						<tr class="text-center">
 							<th>No.</th>
 							<th >STE No.</th>
 							<th>Feedbacked Qty</th>
-							<th>Transaction Date</th>
-							<th>Transaction Time</th>
+							<th>Date</th>
+							<th>Time</th>
 							<th>Created by</th>
+							<th>Status</th>
+							<th>Action</th>
 						</tr>
 						@foreach ($feedbacked_logs as $i => $log)
 						@php
@@ -547,10 +593,18 @@
 							<td class="text-center p-2">{{ $i + 1 }}</td>
 							<td class="text-center p-2">{{ $log->ste_no }}</td>
 							<td class="text-center p-2">
-								<span class="font-weight-bold">{{ $log->feedbacked_qty }}</span> {{ $details->stock_uom }}</td>
+								<span class="font-weight-bold qty">{{ $log->feedbacked_qty }}</span> <span class="uom">{{ $details->stock_uom }}</span>
+							</td>
 							<td class="text-center p-2">{{ Carbon\Carbon::parse($log->transaction_date)->format('M-d-Y') }}</td>
 							<td class="text-center p-2">{{ Carbon\Carbon::parse($log->transaction_time)->format('h:i:A') }}</td>
 							<td class="text-center p-2">{{ $created_by }}</td>
+							<td class="text-center p-2">
+								<span class="badge {{ ($log->status == 'Cancelled') ? 'badge-danger' : 'badge-success' }}" style="font-size: 10pt;">{{ $log->status }}</span>
+							</td>
+							<td class="text-center p-2">
+								<span class="d-none production-order">{{ $log->production_order }}</span>
+								<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}">Cancel</button>
+							</td>
 						</tr>
 						@endforeach
 					</table>
@@ -573,7 +627,8 @@
 
 <style>
     .custom-table-1-1{
-        border: 1px solid #ABB2B9;
+		border: 1px solid #ABB2B9;
+		border-collapse: collapse;
     }
 
     .custom-table-1-1 th{

@@ -428,7 +428,6 @@ $(document).ready(function(){
             end_date:endDate,
             operation: operation,
             item_classification : item_classification
-
           }
       $.ajax({
               url:"/link_daily_output_report",
@@ -451,7 +450,6 @@ $(document).ready(function(){
             end_date:endDate,
             operation:operation,
             item_classification : item_classification
-
           }
       $.ajax({
          url: "/link_daily_output_chart",

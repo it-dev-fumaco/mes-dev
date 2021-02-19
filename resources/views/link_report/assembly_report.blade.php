@@ -62,6 +62,7 @@
                                        <option value="All">Select Item Classification</option>
                                        @foreach($item_classification as $rows)
                                           <option value="{{$rows->item_classification}}">{{$rows->item_classification}}</option>
+
                                        @endforeach
                                     </select>
                                   </div>
@@ -172,10 +173,10 @@ $(document).ready(function(){
     console.log('New date range selected: ' + start.format('MMMM D, YYYY') + ' to ' + end.format('MMMM D, YYYY') + ' (predefined range: ' + label + ')');
     tbl_log_report();
     tbl_chart();
-
   });
    tbl_log_report();
    tbl_chart();
+
    $('#daterange_report').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
   });
@@ -320,6 +321,7 @@ $(document).ready(function(){
               success:function(data){
                 $('#tbl_log_report').html(data);
                 tbl_log_partcateg_report();
+
               }
             });
       };
@@ -426,7 +428,6 @@ $(document).ready(function(){
               }
             });
       };
-
 </script>
 <script>
 

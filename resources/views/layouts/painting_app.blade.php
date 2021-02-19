@@ -198,7 +198,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.7</b> <span style="font-size: 9pt;">Latest Release: 2020-01-21</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>8.1</b> <span style="font-size: 9pt;">Latest Release: 2021-02-19</span></h5>
             </div>          
           </div>
         </div>

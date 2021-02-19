@@ -82,9 +82,8 @@
               @if($r['status'] == 'Partially Feedbacked')
               <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['name'] }}" href="#">Print Transfer Slip</a>
               @endif
-              <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}" data-item-code="{{ $r['item_code'] }}" data-qty="{{ number_format($r['qty']) }}" data-uom="{{ $r['stock_uom'] }}">Create Stock Entry</a>
               @else
-              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty'] - $r['feedback_qty'] }}">Create Feedback</a>
+              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty'] - $r['feedback_qty'] }}">Feedback</a>
               @endif
               <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['name'] }}">Update Process</a>
               <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}">View Materials</a>

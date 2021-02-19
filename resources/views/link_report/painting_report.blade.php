@@ -570,6 +570,7 @@
    tbl_log_report();
    tbl_chart();
    $('#daterange_report').on('apply.daterangepicker', function(ev, picker) {
+
      $(this).val(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
  });
 });
