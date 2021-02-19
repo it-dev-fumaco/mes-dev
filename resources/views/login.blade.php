@@ -6,7 +6,7 @@
 @section('content')
 <div class="panel-header">
         <div class="header text-center">
-          <h2 class="title">Manufacturing Execution System v8.0</h2>
+          <h2 class="title">Manufacturing Execution System v8.1</h2>
         </div>
       </div>
       <div class="content" style="margin-top: -80px;">
