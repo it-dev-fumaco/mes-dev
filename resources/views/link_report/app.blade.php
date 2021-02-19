@@ -22,25 +22,122 @@
 
 <body class="">
   <div class="wrapper">
-     <div class="sidebar" data-color="orange">
-      <!--
-        Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
-    -->
-      <div class="logo">
-        {{-- <a href="http://www.creative-tim.com" class="simple-text logo-mini">
-          CT
-        </a> --}}
-        <a href="#" class="simple-text logo-normal text-center">
-          {{--  {{ $namePage }}  --}}
-          MES
-        </a>
-      </div>
-      <div class="sidebar-wrapper" id="sidebar-wrapper">
-        
+    <div class="sidebar" data-color="orange">
+     <!--
+       Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
+   -->
+     <div class="logo">
+       {{-- <a href="http://www.creative-tim.com" class="simple-text logo-mini">
+         CT
+       </a> --}}
+       <a href="#" class="simple-text logo-normal text-center">
+         {{--  {{ $namePage }}  --}}
+         MES
+       </a>
+     </div>
+     <div class="sidebar-wrapper" id="sidebar-wrapper">
+       <ul class="nav">
+         @isset($permissions)
+           @php
+           $a = array_intersect($permissions['permitted_modules'], ['Production']);
+           $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
+           @endphp
+           @if (count($b) > 0)
+           <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
+             <a href="/main_dashboard">
+               <i class="now-ui-icons business_chart-bar-32"></i>
+               <p>QA Dashboard</p>
+             </a>
+           </li>
+           @endif
+           @if (count($a) > 0)
+           <li class="{{ $activePage == 'main_dashboard' ? 'active' : '' }}">
+             <a href="/main_dashboard">
+               <i class="now-ui-icons business_chart-bar-32"></i>
+               <p>Dashboard</p>
+             </a>
+           </li>
+           <li class="{{ $activePage == 'item_feedback' ? 'active' : '' }}">
+             <a href="/item_feedback">
+               <i class="now-ui-icons education_atom"></i>
+               <p>Production Order(s)</p>
+             </a>
+           </li>
+           <li class="{{ $activePage == 'inventory' ? 'active' : '' }}">
+             <a href="/inventory">
+               <i class="now-ui-icons files_box"></i>
+               <p>Inventory</p>
+             </a>
+           </li>
+           <li class="{{ $activePage == 'production_planning' ? 'active' : '' }}">
+             <a href="/wizard">
+               <i class="now-ui-icons files_paper"></i>
+               <p>Production Planning</p>
+             </a>
+           </li>
+           <li class="{{ $activePage == 'production_planning_assembly' ? 'active' : '' }}">
+             <a href="/assembly/wizard">
+               <i class="now-ui-icons files_paper"></i>
+               <p>Assembly Planning Wizard</p>
+             </a>
+           </li>
+           <li class="{{ $activePage == 'production_schedule_assembly' ? 'active' : '' }}">
+             <a href="/production_schedule/3">
+               <i class="now-ui-icons files_paper"></i>
+               <p>Production Schedule Assembly</p>
+             </a>
+           </li>
+           <li class="{{ $activePage == 'production_schedule' ? 'active' : '' }}">
+             <a href="/production_schedule/1">
+               <i class="now-ui-icons ui-1_calendar-60"></i>
+               <p>Production Schedule</p>
+             </a>
+           </li>
+           @if(in_array('Painting', $permissions['permitted_operations']))
+           <li class="{{ $activePage == 'production_schedule_painting' ? 'active' : '' }}">
+             <a href="/production_schedule/0">
+               <i class="now-ui-icons ui-1_calendar-60"></i>
+               <p>Painting Schedule</p>
+             </a>
+           </li>
+           @endif
+           <li>
+             <a href="#">
+               <i class="now-ui-icons users_single-02"></i>
+               <p>Resources</p>
+             </a>
+           </li>
+           <li>
+             <a href="#">
+               <i class="now-ui-icons ui-2_settings-90"></i>
+               <p>Maintenance Requests</p>
+             </a>
+           </li>
+           <li>
+             <a href="#">
+               <i class="now-ui-icons location_map-big"></i>
+               <p>Quality Inspection Logs</p>
+             </a>
+           </li>
+           @endif
+         @endisset
+         <li>
+           <a href="/report/production_schedule_report">
+             <i class="now-ui-icons files_single-copy-04"></i>
+             <p>Reports</p>
+           </a>
+         </li>
+         <li class="{{ $activePage == 'settings_module' ? 'active' : '' }}">
+           <a href="/settings_module">
+             <i class="now-ui-icons ui-1_settings-gear-63"></i>
+             <p>Settings</p>
+           </a>
+         </li>
+       </ul>
 
-    </div>
-  </div>
- 
+   </div>
+ </div>
+
   <div class="main-panel" id="main-panel">
     <!-- Navbar -->
     <!-- End Navbar -->

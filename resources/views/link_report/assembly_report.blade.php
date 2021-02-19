@@ -1,6 +1,6 @@
-@extends('link_report.app', [
-  'namePage' => 'Fabrication',
-  'activePage' => 'production_schedule',
+@extends('layouts.user_app', [
+  'namePage' => 'Assembly',
+  'activePage' => 'operation_report',
 ])
 
 @section('content')
@@ -56,12 +56,13 @@
                            </div>
                            <div class="col-md-3 text-center">
                               <div class="form-group row">
-                                 <label for="parts_filter" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block; margin-top:5px;"><b>Parts Category:</b></label>
+                                 <label for="parts_filter" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block; margin-top:5px;"><b>Item Classification:</b></label>
 											<div class="col-sm-7">
                                     <select class="form-control form-control-lg text-center" style="display:inline;" name="parts_filter" id="parts_filter">
-                                       <option value="All">Select Parts Category</option>
-                                       @foreach($parts_category as $rows)
-                                          <option value="{{$rows->parts_category}}">{{$rows->parts_category}}</option>
+                                       <option value="All">Select Item Classification</option>
+                                       @foreach($item_classification as $rows)
+                                          <option value="{{$rows->item_classification}}">{{$rows->item_classification}}</option>
+
                                        @endforeach
                                     </select>
                                   </div>
@@ -85,12 +86,37 @@
                        </div>
                      </div>
                      <div class="col-md-12">
-                       <div class="row">
-                          <div class="col-md-12" style="">
-                             <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
-                          </div>
-                       </div>
-                    </div>
+                        <div class="row m-0">
+                           <div class="col-md-12" style="padding: 0;">
+                              <ul class="nav nav-tabs" id="myTab" role="tablist">
+                              <li class="nav-item">
+                                 <a class="nav-link active" id="tab01-tab" data-toggle="tab" href="#tabclass01" role="tab" aria-controls="tab01" aria-selected="true">Item Classification</a>
+                              </li>
+                              <li class="nav-item">
+                                 <a class="nav-link" id="tab02-tab" data-toggle="tab" href="#tabcateg02" role="tab" aria-controls="tab02" aria-selected="false"> Parts Category</a>
+                              </li>
+                              
+                              </ul>
+                              <!-- Tab panes -->
+                              <div class="tab-content">
+                                 <div class="tab-pane active" id="tabclass01" role="tabpanel" aria-labelledby="tabclass01">
+                                    <div class="row" style="margin-top: 12px;">
+                                       <div class="col-md-12">
+                                          <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="tab-pane" id="tabcateg02" role="tabpanel" aria-labelledby="tabcateg02">
+                                    <div class="row" style="margin-top: 12px;">
+                                       <div class="col-md-12">
+                                          <div id="tbl_log_partscateg_report" style="width: 100%;overflow: auto;"></div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
                    </div>
                  </div>
                </div>
@@ -147,10 +173,10 @@ $(document).ready(function(){
     console.log('New date range selected: ' + start.format('MMMM D, YYYY') + ' to ' + end.format('MMMM D, YYYY') + ' (predefined range: ' + label + ')');
     tbl_log_report();
     tbl_chart();
-    
   });
-  tbl_log_report();
-    tbl_chart();
+   tbl_log_report();
+   tbl_chart();
+
    $('#daterange_report').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
   });
@@ -294,6 +320,8 @@ $(document).ready(function(){
               data: data,
               success:function(data){
                 $('#tbl_log_report').html(data);
+                tbl_log_partcateg_report();
+
               }
             });
       };
@@ -380,7 +408,26 @@ $(document).ready(function(){
          }
       });
    }
-
+   function tbl_log_partcateg_report(){
+      var date = $('#daterange_report').val();
+      var parts_category = $('#parts_filter').val();
+      var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
+      var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
+      var operation= 3;
+      var data = {
+            start_date: startDate,
+            end_date:endDate,
+            operation:operation,
+          }
+      $.ajax({
+              url:"/link_parts_category_daily_output",
+              type:"GET",
+              data: data,
+              success:function(data){
+                $('#tbl_log_partscateg_report').html(data);
+              }
+            });
+      };
 </script>
 <script>
 

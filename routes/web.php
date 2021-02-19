@@ -738,7 +738,6 @@ Route::get('/get_operators', 'MainController@get_operators');
 Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 
-
 //Daily Report
 Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page');
 Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
@@ -756,3 +755,6 @@ Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
+Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
+
