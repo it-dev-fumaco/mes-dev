@@ -430,16 +430,11 @@ trait GeneralTrait
                 ->where('production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
                 ->where('docstatus', 1)->sum('fg_completed_qty');
 
+            $transferred_for_manufacturing = ($transferred_for_manufacturing > $production_req_qty) ? $production_req_qty : $transferred_for_manufacturing;
+            
             $values = [
                 'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
             ];
-            
-            if($transferred_for_manufacturing > $production_req_qty){
-                $transferred_for_manufacturing = $production_req_qty;
-                $values = [
-                    'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
-                ];
-            }
 
             if($production_details->status == 'Not Started'){
                 $values = [

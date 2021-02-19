@@ -123,19 +123,21 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 3%;">
 				<col style="width: 7%;">
-				<col style="width: 38%;">
+				<col style="width: 32%;">
+				<col style="width: 8%;">
 				<col style="width: 8%;">
 				<col style="width: 12%;">
-				<col style="width: 12%;">
+				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
-					<th>Required</th>
+					<th>Required Qty</th>
+					<th>Requested Qty</th>
 					<th>Source Warehouse</th>
-					<th>Transferred / Issued</th>
-					<th>Item Status</th>
+					<th>Transferred Qty</th>
+					<th>Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($components as $i => $component)
@@ -179,12 +181,16 @@
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="d-none production-order-item-id">{{ $component['name'] }}</span>
 						<span class="d-none ste-names">{{ $a['ste_names'] }}</span>
 						<span class="d-none item-code">{{ $component['item_code'] }}</span>
 						<span class="d-none item-name">{{ $component['item_name'] }}</span>
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
-						<span class="d-none required-qty">{{ $ste_qty * 1 }}</span>
-
+						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
@@ -237,6 +243,10 @@
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold" style="font-size: 10pt;">0</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
 					</td>
@@ -268,10 +278,12 @@
 						</div>
 					</td>
 					<td class="border-top-0 text-center">
+						<span class="d-none production-order-item-id">{{ $component['name'] }}</span>
 						<span class="d-none item-code">{{ $component['item_code'] }}</span>
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
 						<span class="d-none item-name">{{ $component['item_name'] }}</span>
-						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
+						<span class="d-none requested-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-none stock-uom">{{ $component['stock_uom'] }}</span>
 						<span class="d-none source-warehouse">{{ $component['source_warehouse'] }}</span>
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
@@ -297,7 +309,8 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;">
 				<col style="width: 9%;">
-				<col style="width: 34%;">
+				<col style="width: 24%;">
+				<col style="width: 10%;">
 				<col style="width: 10%;">
 				<col style="width: 12%;">
 				<col style="width: 12%;">
@@ -307,10 +320,11 @@
 					<th>No.</th>
 					<th>Prod. Order</th>
 					<th>Item Description</th>
-					<th>Required</th>
+					<th>Required Qty</th>
+					<th>Requested Qty</th>
 					<th>Source Warehouse</th>
-					<th>Transferred / Issued</th>
-					<th>Item Status</th>
+					<th>Transferred Qty</th>
+					<th>Status</th>
 					<th>Action</th>
 				</tr>
 				@foreach ($parts as $i => $part)
@@ -365,12 +379,16 @@
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
+						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
+						<span class="d-none production-order-item-id">{{ $part['name'] }}</span>
 						<span class="d-none ste-names">{{ $a['ste_names'] }}</span>
 						<span class="d-none item-code">{{ $part['item_code'] }}</span>
 						<span class="d-none item-name">{{ $part['item_name'] }}</span>
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
-						<span class="d-none required-qty">{{ $ste_qty * 1 }}</span>
-
+						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
@@ -423,6 +441,10 @@
 				@endphp
 				<tr>
 					<td class="border-top-0 text-center">
+						<span class="d-block font-weight-bold" style="font-size: 10pt;">0</span>
+						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
+					</td>
+					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>
 						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $part['actual_qty'] * 1 }}</span>
 					</td>
@@ -454,10 +476,12 @@
 						</div>
 					</td>
 					<td class="border-top-0 text-center">
+						<span class="d-none production-order-item-id">{{ $part['name'] }}</span>
 						<span class="d-none item-code">{{ $part['item_code'] }}</span>
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
 						<span class="d-none item-name">{{ $part['item_name'] }}</span>
-						<span class="d-none required-qty">{{ $balance * 1 }}</span>
+						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
+						<span class="d-none requested-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-none stock-uom">{{ $part['stock_uom'] }}</span>
 						<span class="d-none source-warehouse">{{ $part['source_warehouse'] }}</span>
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
