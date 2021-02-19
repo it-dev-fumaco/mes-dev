@@ -121,8 +121,8 @@
             </li>
             @endif
           @endisset
-          <li>
-            <a href="/report/production_schedule_report">
+          <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
+            <a href="/report_index">
               <i class="now-ui-icons files_single-copy-04"></i>
               <p>Reports</p>
             </a>
@@ -134,7 +134,6 @@
             </a>
           </li>
         </ul>
-
     </div>
   </div>
  

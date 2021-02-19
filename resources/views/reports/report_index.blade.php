@@ -1,6 +1,6 @@
 @extends('layouts.user_app', [
-  'namePage' => 'Fabrication',
-  'activePage' => 'production_schedule',
+  'namePage' => 'Report',
+  'activePage' => 'operation_report',
 ])
 
 @section('content')
