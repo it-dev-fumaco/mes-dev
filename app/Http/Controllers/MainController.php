@@ -4580,7 +4580,7 @@ class MainController extends Controller
 
 				$consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
 					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-					->where('ste.production_order', $production_order)
+					->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
 					->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
 					->where('ste.docstatus', 1)->sum('qty');
 
