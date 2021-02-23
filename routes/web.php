@@ -752,3 +752,7 @@ Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+
+Route::get('/rejection_report', 'LinkReportController@rejection_report');
+Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
+

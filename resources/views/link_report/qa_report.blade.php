@@ -1,4 +1,4 @@
-@extends('link_report.app', [
+@extends('layouts.user_app', [
   'namePage' => 'Fabrication',
   'activePage' => 'production_schedule',
 ])
@@ -34,12 +34,15 @@
       <div class="col-md-12">
         <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
           <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Inspection Logsheet Report</a>
+            <a class="nav-link {{ (request()->segment(2) == '1') ? 'active' : '' }}" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Inspection Logsheet Report</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ (request()->segment(2) == '2') ? 'active' : '' }}" data-toggle="tab" href="#tab02" role="tab" aria-controls="tab02" aria-selected="false">Rejection Report</a>
           </li>
         </ul>
         <div class="tab-content" style="min-height: 500px;">
           
-          <div class="tab-pane active" id="tab1" role="tabpanel" aria-labelledby="tab1">
+          <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab1" role="tabpanel" aria-labelledby="tab1">
             <div class="row">
               <div class="col-md-12">
                 <div class="card" style="border-radius: 0 0 3px 3px;">
@@ -418,51 +421,110 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2">
+          <div class="tab-pane {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="tab02" role="tabpanel" aria-labelledby="tab2">
             <div class="row">
               <div class="col-md-12">
                 <div class="card" style="border-radius: 0 0 3px 3px;">
                   <div class="card-body">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="card">
-                          <div class="card-header" style="background-color: #0277BD;">
-                            <div class="row" style="margin-top: -15px;">
-                              <div class="col-md-12" style="padding: 10px;">
-                                  <h5 class="text-white font-weight-bold align-middle text-center" style="font-size:13pt; margin: 0;">Defect(s) reported by QA Inspector</h5>
-                              </div>
+                    <div class="row m-0">
+                       <div class="col-md-12">
+                          <div class="row text-black" style=" padding-top:50px auto;">
+                             <div class="col-md-4">
+                                <div class="form-group">
+                                   <h5><b>Rejection Report</b></h5>
+                                   </div>
+                                </div>
+                                <div class="col-md-3 text-center align-middle">
+                                   <div class="form-group row align-middle">
+                                      <label for="operation_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Operation:</b></label>
+                                      <div class="col-sm-7 align-middle">
+                                         <select class="form-control form-control-lg text-center class-dynamic" style="display:inline;" name="operation_filter" id="operation_filter">
+                                            <option value="1">Fabrication</option>
+                                            <option value="2">Painting</option>
+                                            <option value="3">Wiring and Assembly</option>
+                                         </select>
+                                      </div>
+                                   </div>
+                                </div>
+                                <div class="col-md-3 text-center align-middle">
+                                   <div class="form-group row align-middle">
+                                      <label for="parts_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Reject Category:</b></label>
+                                      <div class="col-sm-7 align-middle">
+                                         <select class="form-control form-control-lg text-center  class-dynamic" style="display:inline;" name="reject_filter" id="reject_filter">
+                                            @foreach($reject_category as $rows)
+                                               <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                            @endforeach
+                                         </select>
+                                      </div>
+                                   </div>
+                                </div>
+                                <div class="col-md-2 pull-right">
+                                   <div class="form-group">
+                                      <label for="yearpicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Year:</b></label>
+                                      {{-- <input type="text" class="form-control form-control-lg  class-dynamic" name="yearpicker" autocomplete="off" placeholder="Select Date From and To" id="yearpicker" value="" style="display: inline-block; width: 60%; font-weight: bolder;" readonly> --}}
+                                      <select id="yearpicker" style="display: inline-block; width: 60%; font-weight: bolder;" name="yearpicker" class="form-control form-control-lg">
+                                        <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                        <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                        <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                        <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                        <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                        <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                        <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                        <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                        <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                        <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                     </select>
+                                    </div>
+                                </div>
+                             </div>
+                             </div>
+                             
+                             <div class="col-md-8">
+                                <div class="row">
+                                   <div class="col-md-12" style="">
+                                      <div id="tbl_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                   </div>
+                                </div>
+                             </div>
+                             <div class="col-md-4">
+                               <div class="row">
+                                  <div class="card">
+                                    <div class="card-body">
+                                      <div class="col-md-12">
+                                        <h5 id="label_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                          <canvas id="tbl_reject_report_chart" height="250"></canvas>
+                                      </div>
+                                    </div>
+                                  </div>
+                               </div>
+                                <div class="row">
+                                  <div class="card">
+                                    <div class="card-body">
+                                       <div class="col-md-12">
+                                         <h5 id="label_rate_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                         <canvas id="tbl_rate_report_chart" height="250"></canvas>
+                                       </div>
+                                    </div>
+                                 </div>
+                                </div>
+                                
+                             </div>
+                             <div class="col-md-4">
+                              
                             </div>
+                             {{-- <div class="col-md-4">
+                                <div class="row">
+                                <div class="col-md-12" style="">
+                                  <canvas id="tbl_reject_report_chart" height="150"></canvas>
+                                </div>
+                             </div> --}}
                           </div>
-                          <div class="card-body" style="min-height: 350px; background-color: #263238;">
-                            <div class="chart-area pt-4" style="min-height: 350px;">
-                              <canvas id="bigDashboardChart"></canvas>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="card">
-                          <div class="card-header" style="background-color: #0277BD;">
-                            <div class="row" style="margin-top: -15px;">
-                              <div class="col-md-12" style="padding: 10px;">
-                                  <h5 class="text-white font-weight-bold align-middle text-center" style="font-size:13pt; margin: 0;">Top 5 Defect(s)</h5>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="card-body" style="min-height: 350px;">
-                            <div class="chart-area pt-4" style="min-height: 350px;">
-                              <canvas id="myChart" width="50" height="18"></canvas>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                       </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   </div>
@@ -930,7 +992,12 @@
   <script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
   <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
   <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
-  
+  <script type="text/javascript" src="{{ asset('css/datepicker/jquery.timepicker.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/jquery.timepicker.css') }}" />
+  <script type="text/javascript" src="{{ asset('css/datepicker/datepair.js') }}"></script>
+  <script type="text/javascript" src="{{ asset('css/datepicker/jquery.datepair.js') }}"></script>
+  <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
   <script>
     $(document).ready(function(){
 
@@ -1542,4 +1609,202 @@
       
       });
     </script> 
+<script>
+  // $("#yearpicker").datepicker({
+  //   format: "yyyy",
+  //   viewMode: "years", 
+  //   minViewMode: "years",
+  //   autoclose: true,
+  //  });
+   var currentTime = new Date()
+   var year = currentTime.getFullYear();
+$("#yearpicker").val(year)
+tbl_log_reject_report();
+
+function tbl_log_reject_report(){
+      var reject_category = $('#reject_filter').val();  
+      var reject_cat_name = $('#reject_filter option:selected').text();      
+      var operation = $('#operation_filter').val();
+      var year = $('#yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+         }
+      $.ajax({
+              url:"/rejection_report",
+              type:"GET",
+              data: data,
+              success:function(data){
+                $('#tbl_log_reject_report').html(data);
+              }
+            });
+      };
+
+   optyStats();
+   function optyStats(){
+    var reject_category = $('#reject_filter').val();  
+      var reject_cat_name = $('#reject_filter option:selected').text();      
+      var operation = $('#operation_filter').val();
+      var year = $('#yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+      // console.log('helllo');
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+            var reject = [];
+            var val = [];
+
+            for(var i in data.year) {
+              reject.push(data.year[i].reject);
+              val.push(data.year[i].per_month);
+
+            }
+            var chartdata = {
+               labels: reject,
+               datasets : [{
+                     data: val,
+                     backgroundColor: '#2874a6',
+                     borderColor: "#2874a6",
+                     borderWidth: 3,
+                     label: "Total Reject/s",
+                  }]
+            };
+
+            var ctx = $("#tbl_reject_report_chart");
+            if (window.optyCtx != undefined) {
+               window.optyCtx.destroy();
+            }
+
+            window.optyCtx = new Chart(ctx, {
+               type: 'horizontalBar',
+               data: chartdata,
+               options: {
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+               }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   $(document).on('change', '#reject_filter', function(event){
+      tbl_log_reject_report();
+      optyStats();
+      tblreject_rate_chart();
+   }); 
+   $(document).on('change', '#yearpicker', function(event){
+      tbl_log_reject_report();
+      optyStats();
+      tblreject_rate_chart();
+   }); 
+   $(document).on('change', '#operation_filter', function(event){
+      tbl_log_reject_report();
+      optyStats();
+      tblreject_rate_chart();
+   }); 
+   tblreject_rate_chart();
+   function tblreject_rate_chart(){
+    var reject_category = $('#reject_filter').val();  
+      var reject_cat_name = $('#reject_filter option:selected').text();      
+      var operation = $('#operation_filter').val();
+      var year = $('#yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_rate_chart_reject').text('Reject Rate ('+ year +')');
+
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+            var reject = [];
+            var target = [];
+            var planned =[];
+            var rate =[];
+
+            for(var i in data.year) {
+               rate.push(data.year[i].per_rate);
+               planned.push(data.year[i].target);
+               reject.push(data.year[i].id);
+            }
+            for(var i in data.year) {
+            }
+            var chartdata = {
+               labels: reject,
+               datasets : [{
+                     data: rate,
+                     backgroundColor: '#3cba9f',
+                     borderColor: "#3cba9f",
+                     label: "Reject Rate",
+                     fill: false
+                  },
+                  {
+                     data: planned,
+                     backgroundColor: '#3e95cd',
+                     borderColor: "#3e95cd",
+                     label: "Target",
+                     fill: false
+                  }]
+            };
+
+            var ctx = $("#tbl_rate_report_chart");
+
+            if (window.tbl_chartCtx != undefined) {
+               window.tbl_chartCtx.destroy();
+            }
+
+            window.tbl_chartCtx = new Chart(ctx, {
+               type: 'line',
+               data: chartdata,
+               options: {
+                  tooltips: {
+                     mode: 'index'
+                  },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+                  elements: {
+                     line: {
+                         tension: 0 // disables bezier curves
+                     }
+                  }
+               },
+               plugins: {
+                    datalabels: {
+                        display: false,
+                    },
+                }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+ </script>
   @endsection
