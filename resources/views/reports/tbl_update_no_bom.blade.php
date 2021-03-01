@@ -29,28 +29,10 @@
 	</div>
 </div>
 <div class="row" style="margin-top: 10px;">
-	{{--<div class="col-md-6">
-		<table class="table table-striped table-bordered" style="font-size: 9pt;">
-			<thead class="text-primary">
-				<th class="text-center"><b>No.</b></th>
-				<th class="text-center"><b>Raw Material</b></th>
-				<th class="text-center"><b>Qty</b></th>
-			</thead>
-			<tbody>
-				@foreach($bom_materials as $rm)
-				<tr>
-					<td class="text-center">{{ $rm->idx }}</td>
-					<td class="text-justify"><b>{{ $rm->item_code }}</b><br>{!! $rm->description !!}</td>
-					<td class="text-center">{{ $rm->qty }} {{ $rm->uom }}</td>
-				</tr>
-				@endforeach
-			</tbody>
-		</table>
-	</div>--}}
 	<div class="col-md-6 offset-md-3">
 		<form id="bom-review-frm">
 		@csrf
-		<table class="table table-striped table-bordered" id="bom-workstations-tbl" style=" font-size: 9pt;">
+		<table class="table table-striped table-bordered" id="bom-workstations-tbl" style="font-size: 9pt;">
 			<thead class="text-primary">
 				<th class="text-center" style="width: 10%;"><b>No.</b></th>
 				<th class="text-center" style="width: 40%;"><b>Workstation</b></th>
@@ -59,7 +41,7 @@
 			</thead>
 			<input type="hidden" name="bom_id" value="no_bom">
 			<input type="hidden" name="username" value="{{ Auth::user()->employee_name }}">
-			<input type="hidden" name="operation" value="{{ $details->operation_name }}">
+			<input type="hidden" name="operation" value="{{ $details->operation_id }}">
 			<tbody class="sortable-operation-list">
 				@foreach($existing_workstation as $index => $ops)
 				@if($ops->workstation != 'Painting')
