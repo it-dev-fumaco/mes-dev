@@ -947,13 +947,16 @@ class ManufacturingController extends Controller
                 }
             }
             if ($request->production_order) {
-                $pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)
-                    ->where('status', '=', 'Completed')->count();
+                $pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $request->production_order)
+                    ->where('status', 'Pending')->count();
                 if ($pending_job_ticket > 0) {
                     DB::connection('mysql_mes')->table('production_order')
                         ->where('production_order', $request->production_order)
                         ->update(['status' => 'In Progress', 'produced_qty' => 0]);
                 }
+
+                $this->update_production_order_produced_qty($request->production_order);
             }
             DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $request->user, 'last_date_reviewed' => $now->toDateTimeString()]);
             

@@ -207,7 +207,7 @@ class QualityInspectionController extends Controller
                     DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
                 }
                 
-	    		$this->update_completed_qty_per_workstation($job_ticket_details->job_ticket_id);
+	    		$this->update_job_ticket($job_ticket_details->job_ticket_id);
     		}else{
                 if ($request->workstation == 'Spotwelding') {
                     $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
@@ -270,7 +270,7 @@ class QualityInspectionController extends Controller
                     DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->time_log_id)->update($update);
                 }
 
-                $this->update_completed_qty_per_workstation($job_ticket_details->job_ticket_id);
+                $this->update_job_ticket($job_ticket_details->job_ticket_id);
 
                 // 
                 if ($request->qa_disposition == 'Scrap') {
@@ -352,9 +352,6 @@ class QualityInspectionController extends Controller
                     }
                 }
             }
-
-			$this->updateProdOrderOps($production_order, $workstation);
-			$this->update_produced_qty($production_order);
 
 			return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
 		}
@@ -788,53 +785,9 @@ class QualityInspectionController extends Controller
                 $validation_tab="with_tab";
             }
         }
-        // dd($tab);
-            
+
         return view('tables.tbl_reject_reason', compact('tab', 'validation_tab'));
     }
-
-    // public function submit_reject_confirmation(Request $request){
-    //     $qa_details = DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request->qa_id)->first();
-    //     if(!$qa_details){
-    //         return response()->json(['success' => 0, 'message' => 'Inspection not found.']);
-    //     }
-
-    //     if($qa_details->reference_type == 'Spotwelding'){
-    //         $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $qa_details->reference_id)->first();
-    //         $rejected_qty = $request->old_reject_qty - $request->rejected_qty;
-    //         $completed_qty_after_transaction = $jt_details->completed_qty - $rejected_qty;
-
-    //         DB::connection('mysql_mes')->table('job_ticket')
-    //             ->where('job_ticket_id', $jt_details->job_ticket_id)
-    //             ->update(['completed_qty' => $completed_qty_after_transaction]);
-    //     }else{
-    //         $time_log_details = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $qa_details->reference_id)->first();
-    //         $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $qa_details->reference_id)->first();
-    //         $rejected_qty = $request->old_reject_qty - $request->rejected_qty;
-    //         $completed_qty_after_transaction = $jt_details->completed_qty - $rejected_qty;
-
-    //         DB::connection('mysql_mes')->table('time_logs')
-    //             ->where('time_log_id', $qa_details->reference_id)
-    //             ->update(['good' => $completed_qty_after_transaction, 'reject' => $request->rejected_qty]);
-    //     }
-
-    //     $this->update_completed_qty_per_workstation($jt_details->job_ticket_id);
-    //     $this->updateProdOrderOps($jt_details->production_order, $jt_details->workstation);
-    //     $this->update_produced_qty($jt_details->production_order);
-
-    //     $update = [
-    //         'qa_staff_id' => $request->qa_staff_id,
-    //         'rejected_qty' => $request->rejected_qty,
-    //         'status' => ($request->rejected_qty > 0) ? 'QC Failed' : 'QC Passed',
-    //         'last_modified_by' => $request->qa_staff_name,
-    //     ];
-
-    //     DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request->qa_id)->update($update);
-
-    //     DB::connection('mysql_mes')->table('reject_reason')
-    //         ->where('reject_list_id', $request->old_reject_list_id)->where('qa_id', $request->qa_id)
-    //         ->update(['reject_list_id' =>$request->reject_list_id]);
-    // }
 
     public function tbl_qa_inspection_log_report(Request $request, $start, $end, $operation_id){
         $data=[];

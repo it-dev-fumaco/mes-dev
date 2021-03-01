@@ -211,12 +211,9 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-			
-			$this->updateProdOrderOps($request->production_order, 'Painting');
-			$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
-			$this->update_job_ticket_good($time_log->job_ticket_id);
-			$this->update_job_ticket_reject($time_log->job_ticket_id);
+
+			$this->uodate_job_ticket($time_log->job_ticket_id);
+		
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -329,10 +326,7 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 
-			$this->update_completed_qty_per_workstation($request->job_ticket_id);
-			$this->update_jobticket_actual_start_end($request->job_ticket_id);
-			$this->update_job_ticket_good($request->job_ticket_id);
-			$this->update_job_ticket_reject($request->job_ticket_id);
+			$this->uodate_job_ticket($request->job_ticket_id);
     	}
 
 		return response()->json(['success' => 1, 'message' => 'Task updated.']);
@@ -359,10 +353,8 @@ class PaintingOperatorController extends Controller
 			];
 			
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-			
-			$this->updateProdOrderOps($request->production_order, $request->workstation);
-			$this->update_produced_qty($request->production_order);
 
+			$this->update_job_ticket($current_task->job_ticket_id);
 			// get completed qty in painting workstation
 			$painting_completed_qty = DB::connection('mysql_mes')->table('job_ticket')
 				->where('production_order', $request->production_order)
@@ -371,12 +363,6 @@ class PaintingOperatorController extends Controller
 			// get production order qty_to_manufacture
 			$qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('qty_to_manufacture');
 
-			$this->updateProdOrderOps($request->production_order, $request->workstation);
-			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
-			$this->update_job_ticket_good($current_task->job_ticket_id);
-			$this->update_job_ticket_reject($current_task->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
-			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
 			if($qty_to_manufacture == $painting_completed_qty){
 				// update spotwelding status and completed qty
 				$values = [
@@ -391,10 +377,9 @@ class PaintingOperatorController extends Controller
 					->whereIn('status', ['In Progress', 'Pending'])
 					->update($values);
 
-				$this->updateProdOrderOps($request->production_order, $request->workstation);
-				$this->update_produced_qty($request->production_order);
+				$this->update_job_ticket($current_task->job_ticket_id);
 			}
-			
+
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -617,7 +602,7 @@ class PaintingOperatorController extends Controller
 		DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
 		
 		if($qry){
-			$this->update_completed_qty_per_workstation($qry->job_ticket_id);
+			$this->update_job_ticket($qry->job_ticket_id);
 		}
  
     	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
