@@ -756,3 +756,4 @@ Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_d
 Route::get('/rejection_report', 'LinkReportController@rejection_report');
 Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
 
+

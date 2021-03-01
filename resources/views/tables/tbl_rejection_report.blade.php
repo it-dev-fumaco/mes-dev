@@ -24,13 +24,13 @@
     <tbody style=" border:1px solid black;" class="tableclass">
       
       @foreach($data as $rows => $row)
-      <tr class="item tableclass text-center" style="font-size: 10.5px; ">
-        <td class="text-center tableclass" style=""><i>{{$row['reject']}}</i></td>
+      <tr class="item tableclass text-left" style="font-size: 10.5px; ">
+        <td class="text-left tableclass" style=""><span style="padding-left:15px;"><b>{{$row['series']}}.</b>&nbsp;<i>{{$row['reject']}}</i></span></td>
         @foreach($row['data'] as $r)
-          <td class="text-center tableclass" > {{$r['sum']}}</td>
+          <td class="text-center tableclass" style="color:{{($r['sum'] == 0) ? '#196f3d' :'#922b21'}};font-weight:{{($r['sum'] == 0) ? '' :'bold'}};"> {{$r['sum']}}</td>
 
         @endforeach
-        <td class="text-center tableclass" > {{$row['per_month']}}</td>
+        <td class="text-center tableclass" style="color:{{($row['per_month'] == 0) ? '#196f3d' :'#922b21'}};font-weight:{{($row['per_month'] == 0) ? '' :'bold'}}; " > {{$row['per_month']}}</td>
         <td class="text-center tableclass" style="background-color:#2ecc71;"><b> {{$row['per_rate']}}%</b></td>
         <td class="text-center tableclass"  style="background-color:#2ecc71;"><b> 2.0000%</b></td>
 

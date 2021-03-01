@@ -504,7 +504,7 @@ class LinkReportController extends Controller
             ->get();
         $process_painting=  DB::connection('mysql_mes')->table('process')->whereIn('process_name',['Loading','Unloading'])->get();
         $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();       
-
+        
         return view('link_report.qa_report', compact('reject_category','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process"));
     } 
     
@@ -842,6 +842,7 @@ class LinkReportController extends Controller
         }else{
             $total_output= DB::connection('mysql_mes')->table('production_order')->whereYear('actual_end_date', $year)->where('production_order.operation_id', $operation)->sum('produced_qty');
         }
+        $ir= 1;
         foreach($uniq_rej as $row){
             $node=[];
             $days=[];
@@ -866,8 +867,10 @@ class LinkReportController extends Controller
                 'per_rate' => ($total_output == 0)? 0 :round(collect($node)->sum('sum') /(($total_output) == 0? 1 : $total_output), 4),
                 'test'=> $var1,
                 'data'=> $node,
+                'series' => 'A'.$ir++
             ];
         }
+
         $month_column=$months;
         $colspan_month=12;
         foreach ($months as $i => $month) {
@@ -906,7 +909,6 @@ class LinkReportController extends Controller
         $total_reject_rate= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
         $reject_rate_for_total_reject= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
         return view('tables.tbl_rejection_report', compact('data', "month_column", 'colspan_month', 'total_reject_per_month', 'reject_category_name', 'total_output_per_month', 'reject_rate', 'total_output', 'total_reject', 'total_reject_rate', 'reject_rate_for_total_reject'));
-
     }
     public function rejection_report_chart(Request $request){
         $months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];        
@@ -954,6 +956,7 @@ class LinkReportController extends Controller
         }else{
             $total_output= DB::connection('mysql_mes')->table('production_order')->whereYear('actual_end_date', $year)->where('production_order.operation_id', $operation)->sum('produced_qty');
         }
+        $ir= 1;
         foreach($uniq_rej as $row){
             $node=[];
             $days=[];
@@ -976,14 +979,11 @@ class LinkReportController extends Controller
                 'id'=> $row->reject_list_id,
                 'per_month' => collect($node)->sum('sum'),
                 'per_rate' => ($total_output == 0)? 0 :round(collect($node)->sum('sum') /(($total_output) == 0? 1 : $total_output), 4),
-                'target'=> "2.0000"
-                // 'test'=> $var1,
-                // 'data'=> $node,
+                'target'=> "2.0000",
+                'series' => 'A'.$ir++
             ];
         }
-        // return $data;
         return response()->json(['year'=> $data]);
-        // return view('tables.tbl_rejection_report', compact('data'));
 
     }
 }
