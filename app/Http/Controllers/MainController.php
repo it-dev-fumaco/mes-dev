@@ -4571,7 +4571,7 @@ class MainController extends Controller
 
 				$remaining_transferred_qty = $row->transferred_qty - $consumed_qty;
 
-				if(number_format($remaining_transferred_qty, 5) < number_format($qty, 5)){
+				if(number_format($remaining_transferred_qty, 5, '.', '') < number_format($qty, 5, '.', '')){
 					return response()->json(['success' => 0, 'message' => 'Insufficient transferred qty for ' . $row->item_code . ' in ' . $production_order_details->wip_warehouse]);
 				}
 
