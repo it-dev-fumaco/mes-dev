@@ -862,4 +862,77 @@ class LinkReportController extends Controller
         $colspan_date = count($days);
         return view('tables.tbl_parts_category_report', compact('data', "date_column", 'colspan_date'));
     }
+
+    public function powder_coating_usage_report(Request $request){
+        $year = Carbon::createFromDate($request->year);
+
+        $start_date = $year->copy()->startOfYear()->format('Y-m-d');
+        $end_date = $year->copy()->endOfYear()->format('Y-m-d');
+
+        $period = CarbonPeriod::create($start_date, '1 month', $end_date);
+
+        $data = DB::connection('mysql_mes')->table('powder_coating')
+            ->whereBetween('date', [$start_date, $end_date])
+            ->selectRaw('SUM(consumed_qty) as total_consumed_qty, item_code, MONTH(date) as month, YEAR(date) as year')
+            ->whereRaw('YEAR(date) = ' . $request->year)
+            ->groupBy('item_code', 'month', 'year')->get();
+
+        $item_codes = array_unique(array_column($data->toArray(), 'item_code'));
+
+        $arr_list = [];
+        foreach($period as $i => $date){
+            $month = Carbon::parse($date)->format('m');
+            $month_name = Carbon::parse($date)->format('M');
+            $arr_list[$i]['month'] = $month_name;
+            foreach($item_codes as $e => $item_code){
+                $total = collect($data)->where('item_code', $item_code)->where('month', $month)->sum('total_consumed_qty');
+
+                $arr_list[$i]['item_' . $e] = $total;
+            }
+        }
+
+        $result = [
+            'item_codes' => $item_codes,
+            'data' => $arr_list
+        ];
+
+        return $result;
+    }
+
+    public function powder_coat_usage_history(Request $request){
+        $data=[];
+        $powder_data= DB::connection('mysql_mes')->table('powder_coating')
+            ->join('shift', 'shift.shift_id','powder_coating.operating_hrs')
+            ->whereRaw('YEAR(powder_coating.date) = ' . $request->year)
+            ->orderBy('powder_coating_id','desc')->paginate(10);
+
+        $count = DB::connection('mysql_mes')->table('powder_coating')
+            ->join('shift', 'shift.shift_id','powder_coating.operating_hrs')
+            ->whereRaw('YEAR(powder_coating.date) = ' . $request->year)
+            ->sum('consumed_qty');
+
+        foreach ($powder_data as $row) {
+            $shift=DB::connection('mysql_mes')->table('shift')
+                ->join('operation as op','op.operation_id','shift.operation_id')
+                ->where('op.operation_name','Painting')
+                ->where('shift.shift_id',  $row->operating_hrs)
+                ->select('shift.*')->first();
+
+            $item_details = DB::connection('mysql_mes')->table('fabrication_inventory')
+                ->where('item_code',$row->item_code)->select('uom')->first();
+
+            $data[]=[
+                'date' =>  date('F d, Y', strtotime($row->date)),
+                'operating_hrs' => $shift->shift_type.'<br>'.$shift->time_in.'-'.$shift->time_out,
+                'current_qty' => ($row->current_qty == null)? '0':$row->current_qty,
+                'consumed_qty' => ($row->consumed_qty == null)? '0':$row->consumed_qty,
+                'balance_qty' => $row->balance_qty,
+                'item_code' => $row->item_code,
+                'operator_name' => $row->operator,
+                'uom'=>empty($item_details->uom) ? "":$item_details->uom
+            ];
+        }
+        
+        return view('link_report.powder_coat_usage_report', compact('data', 'count', 'powder_data'));
+    }
 }
