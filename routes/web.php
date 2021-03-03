@@ -757,4 +757,5 @@ Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
 Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
 Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
-
+Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
+Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');

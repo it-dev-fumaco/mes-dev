@@ -42,9 +42,59 @@
             <li class="nav-item">
                <a class="nav-link {{ (request()->segment(2) == '3') ? 'active' : '' }}" id="water-discharge-tab" data-toggle="tab" href="#water-discharge" role="tab" aria-controls="water-discharge" aria-selected="false">Water Discharged Monitoring</a>
             </li>
+            <li class="nav-item">
+               <a class="nav-link {{ (request()->segment(2) == '4') ? 'active' : '' }}" data-toggle="tab" href="#powder-consumption-report" role="tab">Powder Coat Consumption Report</a>
+            </li>
 		   </ul>
 			<!-- Tab panes -->
 			<div class="tab-content">
+            <div class="tab-pane {{ (request()->segment(2) == '4') ? 'active' : '' }}" id="powder-consumption-report" role="tabpanel" aria-labelledby="tab0">
+               <div class="row">
+                  <div class="col-md-12">
+                     <div class="card" style="border-radius: 0 0 3px 3px;">
+                        <div class="card-body">
+                           <div class="row m-0">
+                              <div class="col-md-12">
+                                 <div class="row text-black" style=" padding-top:50px auto;">
+                                    <div class="col-md-6">
+                                       <div class="form-group">
+                                          <h5 class="font-weight-bold">Powder Coat Consumption Report</h5>
+                                       </div>
+                                    </div>
+                                    <div class="col-md-6 text-center mb-2">
+                                       <div class="form-group row m-0">
+                                          <div class="col-md-8 p-0 text-right">
+                                             <label for="select-year" class="text-dark m-2" style="font-size: 12pt;"><b>Select Year:</b></label>
+                                          </div>
+                                          <div class="col-md-4 p-0">
+                                             <select class="form-control form-control-lg m-0" id="select-year">
+                                                @for ($i = 2019; $i < now()->year + 1; $i++)
+                                                <option value="{{ $i }}" {{ ($i == (now()->year)) ? 'selected' : ''  }}>{{ $i }}</option>
+                                                @endfor
+                                             </select>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-12">
+                                 <div class="card">
+                                    <div class="card-body">
+                                       <div class="col-md-12">
+                                          <canvas id="powder-consumption-ctx" height="50"></canvas>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-12">
+                                 <div id="powder-consumption-history-div"></div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
             <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab0" role="tabpanel" aria-labelledby="tab0">
                <div class="row">
                   <div class="col-md-12">
@@ -295,6 +345,100 @@
 
 <script>
     $(document).ready(function(){
+      powder_consumption_chart();
+      $('#select-year').change(function(){
+         powder_consumption_chart();
+         tbl_powder_consumed_list();
+      });
+      function powder_consumption_chart(){
+         var year = $('#select-year').val();
+
+      $.ajax({
+         url: "/powder_coating_usage_report",
+         method: "GET",
+         data: {year: year},
+         success: function(data) {
+
+            var sets = [];
+            console.log(data);
+            for(var i in data.item_codes) {
+               var randomColor = Math.floor(Math.random()*16777215).toString(16);
+               var per_month = [];
+
+               for(s in data.data){
+                  per_month.push(data.data[s]['item_' + i]);
+               }
+
+               sets.push({
+                  data: per_month,
+                  label: data.item_codes[i],
+                  borderColor: '#' + randomColor
+               });
+            }
+            
+            var labels = [];
+            for(var i in data.data) {
+               labels.push(data.data[i].month); 
+            }
+
+            var chartdata = {
+               labels: labels,
+               datasets: sets
+            };
+ 
+            var ctx_pwder = $("#powder-consumption-ctx");
+ 
+            if (window.pwder != undefined) {
+               window.pwder.destroy();
+            }
+ 
+            window.pwder = new Chart(ctx_pwder, {
+               type: 'line',
+               data: chartdata,
+               options: {
+                  tooltips: {
+                     mode: 'index'
+                  },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+                  elements: {
+                     line: {
+                         tension: 0 // disables bezier curves
+                     }
+                  }
+               }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+
+      tbl_powder_consumed_list();
+      function tbl_powder_consumed_list(page){
+         var year = $('#select-year').val();
+         $.ajax({
+            url:"/powder_coat_usage_history?page="+page,
+            type:"GET",
+            data: {year: year},
+            success:function(data){
+            $('#powder-consumption-history-div').html(data);
+            }
+         });
+      }
+
+      $(document).on('click', '#tbl_painting_consumed_pagination a', function(event){
+         event.preventDefault();
+         var page = $(this).attr('href').split('page=')[1];
+         tbl_powder_consumed_list(page);
+      });
+
          tbl_chem_records();
    water_discharge_tbl();
    $('#daterange').val('');
@@ -686,6 +830,7 @@
      tbl_chart(); 
   }); 
   function tbl_log_partcateg_report(){
+     return false;
       var date = $('#daterange_report').val();
       var item_classification = $('#parts_filter').val();
       var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
