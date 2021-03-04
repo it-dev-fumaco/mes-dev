@@ -814,7 +814,7 @@ class LinkReportController extends Controller
                 ->whereNotNull('production_order.parts_category')
                 ->where('production_order.operation_id', 1)
                 ->where('jt.process_id', 122)
-                ->selectRaw('production_order.parts_category, SUM(production_order.produced_qty) as qty, DAY(jt.planned_start_date) as day, MONTH(jt.planned_start_date) as month, YEAR(jt.planned_start_date) as year')
+                ->selectRaw('production_order.parts_category, SUM(production_order.produced_qty) as qty, DAY(jt.actual_end_date) as day, MONTH(jt.actual_end_date) as month, YEAR(jt.actual_end_date) as year')
                 ->groupBy('production_order.parts_category','day', 'month', 'year')
                 ->get();
         }else{
@@ -823,15 +823,16 @@ class LinkReportController extends Controller
                 ->whereBetween('actual_end_date',[$from, $to])
                 ->whereNotNull('parts_category')
                 ->where('operation_id', $operation)
-                ->selectRaw('parts_category, SUM(produced_qty) as qty, DAY(planned_start_date) as day, MONTH(planned_start_date) as month, YEAR(planned_start_date) as year')
+                ->selectRaw('parts_category, SUM(produced_qty) as qty, DAY(actual_end_date) as day, MONTH(actual_end_date) as month, YEAR(actual_end_date) as year')
                 ->groupBy('parts_category','day', 'month', 'year')->get();
         }
         
         $uniq_parts= collect($parts_category)->unique('parts_category')->all();
-        
+        $data=[];
         foreach($uniq_parts as $row){
             $node=[];
             $days=[];
+
             foreach ($period as $date) {
                 $day= date('d', strtotime($date));
                 $month= date('m', strtotime($date));
@@ -858,8 +859,13 @@ class LinkReportController extends Controller
                 't_day' =>  round( (collect($node)->sum('sum')) / $grad_total, 0)
             ];
         }
-        $date_column=collect($days)->unique('date')->all();
-        $colspan_date = count($days);
+        if(!empty($uniq_parts)){
+            $date_column=collect($days)->unique('date')->all();
+            $colspan_date = count($days);
+        }else{
+            $date_column=[];
+            $colspan_date =0;
+        }
         return view('tables.tbl_parts_category_report', compact('data', "date_column", 'colspan_date'));
     }
 }
