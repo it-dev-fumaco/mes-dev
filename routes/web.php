@@ -130,10 +130,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/update_production_task_schedules', 'MainController@update_production_task_schedules');
 	Route::post('/update_production_order_schedule', 'MainController@update_production_order_schedule');
 
-	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');
-	
-	//reports
-	Route::get('/reports_index', 'MainController@report_index');
+	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');	
 });
 
 //machine overview
@@ -679,8 +676,6 @@ Route::get('/assembly_report', 'ReportsController@assembly_report_page');
 
 Route::get('/painting_report', 'ReportsController@painting_report_page');
 Route::get('/qa_report', 'ReportsController@qa_report');
-
-Route::get('/report_index', 'ReportsController@index');
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');

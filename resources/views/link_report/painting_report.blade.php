@@ -830,7 +830,6 @@
      tbl_chart(); 
   }); 
   function tbl_log_partcateg_report(){
-     return false;
       var date = $('#daterange_report').val();
       var item_classification = $('#parts_filter').val();
       var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');

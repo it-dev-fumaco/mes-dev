@@ -77,6 +77,10 @@
                                     <td><a href="/link_painting_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
 
                                 </tr>
+                                <tr>
+                                    <td><a href="/link_painting_report/4" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Powder Coat Consumption Report </span></a></td>
+
+                                </tr>
                                 
                             </tbody>
                         </table>
