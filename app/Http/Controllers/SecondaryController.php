@@ -5873,6 +5873,7 @@ class SecondaryController extends Controller
     }
     public function submit_water_discharge_monitoring(Request $request){
         $now = Carbon::now();
+        $date= Carbon::parse($request->water_date)->format('Y-m-d');
         $email= DB::connection('mysql_essex')
             ->table('users')
             ->where('users.user_id', $request->inspected_by)
@@ -5880,9 +5881,9 @@ class SecondaryController extends Controller
             ->first();
         if (DB::connection('mysql_mes')
             ->table('water_discharged_monitoring')
-            ->whereDate('date', $now->format('Y-m-d'))
+            ->whereDate('date', $date)
             ->exists()){
-                return response()->json(['success' => 0, 'message' => 'Water discharge record for today already exist.']);
+                return response()->json(['success' => 0, 'message' => 'Water discharge record for '.$request->water_date.' already exist.']);
         }else{
             $data=[];
             $wd_monitoring=[];
@@ -5892,7 +5893,7 @@ class SecondaryController extends Controller
                 'present' => $request->present_inputs,
                 'incoming_water_discharged' => $request->incoming_water_discharged,
                 'operator_id' => $request->inspected_by,
-                'date' =>  $now->toDateTimeString(),
+                'date' =>   $date,
                 'last_modified_by' =>$email->email,
                 'created_by' => $email->email,
                 'created_at' => $now->toDateTimeString()

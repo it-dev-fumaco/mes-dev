@@ -31,7 +31,7 @@
 @include('modals.search_productionorder')
 <div class="content" style="margin-top: -100px; min-height: 10px;">
 
-<div class="row" style="margin-top: -270px;">
+<div class="row" style="margin-top: -265px;">
   @foreach($breaktime_data as $r => $row)
   <div class="col-md-12" id="{{$r}}{{$row['div_id']}}" style="display:none; margin-top:-30px;margin-bottom:10px;">
     <div class="alert alert-primary text-center" role="alert">
@@ -46,7 +46,7 @@
   </div>
   @endforeach
   <div class="col-md-6" style="margin-top: 20px;">
-    <div style="margin-top:0px; padding-bottom:25px;">
+    <div style="margin-top:-25px; padding-bottom:25px;">
       <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
       <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process_details->process_name }} Area</h2>
       <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
@@ -618,6 +618,7 @@
   $(document).ready(function(){
     var workstation = "Painting";
     var active_input = null;
+    
     $.ajaxSetup({
       headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

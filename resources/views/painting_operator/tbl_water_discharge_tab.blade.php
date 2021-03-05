@@ -22,7 +22,7 @@
                       <div class="row">
                           <div class="col-md-12">
                               <div class="form-group text-center">
-                                  <b><span class="date_today font-weight-bold" style="font-size: 16px;padding-left: 10px;">{{ $date_today }}</span></b>
+                                  <input type="text" class="form-control" name="water_date" id="datepairExample_water"  style="margin:0 auto;width:200px;text-align: center;font-size: 17pt;font-weight:bold;">
                               </div>
                           </div>
                  
@@ -236,9 +236,21 @@
  font-weight: 600;
  line-height: 36px;
  }
- 
+
  </style>
+ <script type="text/javascript" src="{{ asset('css/datepicker/jquery.timepicker.js') }}"></script>
+ <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/jquery.timepicker.css') }}" />
+ <script type="text/javascript" src="{{ asset('css/datepicker/datepair.js') }}"></script>
+ <script type="text/javascript" src="{{ asset('css/datepicker/jquery.datepair.js') }}"></script>
+ <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
+ <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
  <script type="text/javascript">
+ var d = new Date();
+var ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d);
+var mo = new Intl.DateTimeFormat('en', { month: 'short' }).format(d);
+var da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(d);
+var datee = `${mo} ${da}, ${ye}`;
+    $('#datepairExample_water').val(datee);
 $('#water-discharged-modal .next-tab').click(function(){
   $('.nav-tabs > .active').next('li').find('a').trigger('click');
 });
@@ -246,4 +258,8 @@ $('#water-discharged-modal .next-tab').click(function(){
   $('#water-discharged-modal .prevtab').click(function(){
   $('.nav-tabs > .active').prev('li').find('a').trigger('click');
 });
+$('#datepairExample_water').datepicker({
+        'format': "M d, yyyy",
+        'autoclose': true
+    });
  </script>
