@@ -29,8 +29,10 @@ class LinkReportController extends Controller
 
     }
     public function painting_report_page(){
+        $permissions = $this->get_user_permitted_operation();
+
         $item_classification= DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->where('production_order.operation_id',1 )->whereNotNull('production_order.item_classification')->groupBy('production_order.item_classification')->select('production_order.item_classification')->get();       
-        return view('link_report.painting_report', compact('item_classification'));
+        return view('link_report.painting_report', compact('item_classification', 'permissions'));
     }
     public function daily_output_report(Request $request){
         $operation= 1;
@@ -340,6 +342,8 @@ class LinkReportController extends Controller
         return $timelogs;
     }
     public function fabrication_daily_report_page(Request $request){
+        $permissions = $this->get_user_permitted_operation();
+
         $workstation= DB::connection('mysql_mes')->table('workstation AS w')
                     ->join("operation as op","op.operation_id", "w.operation_id")
                     ->select("w.workstation_name", "w.workstation_id")
@@ -367,7 +371,7 @@ class LinkReportController extends Controller
                     ->get();
 
         $item_classification= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 1)->whereNotNull('item_classification')->groupBy('item_classification')->select('item_classification')->get();       
-        return view('link_report.fabrication_report',  compact('workstation', 'process', 'parts','sacode', 'item_classification'));
+        return view('link_report.fabrication_report',  compact('workstation', 'process', 'parts','sacode', 'item_classification', 'permissions'));
     }
     public function daily_output_chart(Request $request){
         $now = Carbon::now();
@@ -455,8 +459,10 @@ class LinkReportController extends Controller
         return response()->json(['per_day' => $date_column, 'planned' => $planned_data, 'produced' => $produce_data]);
     }
     public function assembly_report_page(){
+        $permissions = $this->get_user_permitted_operation();
+
         $item_classification= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 3)->whereNotNull('item_classification')->groupBy('item_classification')->select('item_classification')->get();       
-        return view('link_report.assembly_report', compact('item_classification'));
+        return view('link_report.assembly_report', compact('item_classification', 'permissions'));
     }
     
     public function qa_report(){
@@ -879,20 +885,24 @@ class LinkReportController extends Controller
 
         $item_codes = array_unique(array_column($data->toArray(), 'item_code'));
 
+        $item_code_inv = DB::connection('mysql_mes')->table('fabrication_inventory')
+            ->whereIn('item_code', $item_codes)->select('item_code', 'color_code')
+            ->distinct('item_code')->orderBy('item_code', 'desc')->get();
+
         $arr_list = [];
         foreach($period as $i => $date){
             $month = Carbon::parse($date)->format('m');
             $month_name = Carbon::parse($date)->format('M');
             $arr_list[$i]['month'] = $month_name;
-            foreach($item_codes as $e => $item_code){
-                $total = collect($data)->where('item_code', $item_code)->where('month', $month)->sum('total_consumed_qty');
+            foreach($item_code_inv as $e => $item){
+                $total = collect($data)->where('item_code', $item->item_code)->where('month', $month)->sum('total_consumed_qty');
 
                 $arr_list[$i]['item_' . $e] = $total;
             }
         }
 
         $result = [
-            'item_codes' => $item_codes,
+            'item_codes' => $item_code_inv,
             'data' => $arr_list
         ];
 
@@ -919,17 +929,19 @@ class LinkReportController extends Controller
                 ->select('shift.*')->first();
 
             $item_details = DB::connection('mysql_mes')->table('fabrication_inventory')
-                ->where('item_code',$row->item_code)->select('uom')->first();
+                ->where('item_code', $row->item_code)->select('uom', 'description')->first();
 
             $data[]=[
                 'date' =>  date('F d, Y', strtotime($row->date)),
-                'operating_hrs' => $shift->shift_type.'<br>'.$shift->time_in.'-'.$shift->time_out,
+                'shift_type' => $shift->shift_type,
+                'operating_hrs' => $shift->time_in.' - '.$shift->time_out,
                 'current_qty' => ($row->current_qty == null)? '0':$row->current_qty,
                 'consumed_qty' => ($row->consumed_qty == null)? '0':$row->consumed_qty,
                 'balance_qty' => $row->balance_qty,
                 'item_code' => $row->item_code,
                 'operator_name' => $row->operator,
-                'uom'=>empty($item_details->uom) ? "":$item_details->uom
+                'uom'=> empty($item_details->uom) ? "" : $item_details->uom,
+                'description'=> ($item_details) ? $item_details->description : null,
             ];
         }
         
