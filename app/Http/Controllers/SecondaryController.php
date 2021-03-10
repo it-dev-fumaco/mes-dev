@@ -5866,8 +5866,10 @@ class SecondaryController extends Controller
         $totalDuration = $end->diffInSeconds($start);
         $op_hrs= $this->format_operating_hrs($totalDuration);
         $previous_wd = ($previous == null)? 0: $previous->previous;
+
+        $formatted_transaction_date = $transaction_date->format('M d, Y');
     
-        return view('painting_operator.tbl_water_discharge_tab', compact('op_hrs', 'previous_wd'));               
+        return view('painting_operator.tbl_water_discharge_tab', compact('op_hrs', 'previous_wd', 'formatted_transaction_date'));               
     }
     
     public function submit_water_discharge_monitoring(Request $request){

@@ -20,7 +20,7 @@
                         <div class="col-md-10 offset-md-1">
                            <div class="form-group text-center">
                               <label class="font-weight-bold text-uppercase">Transaction Date</label>
-                              <input type="text" class="form-control m-0 rounded-0" name="water_date" id="datepairExample_water" style="text-align: center; font-size: 15pt;" readonly>
+                              <input type="text" class="form-control m-0 rounded-0" name="water_date" id="datepairExample_water" style="text-align: center; font-size: 15pt;" value="{{ $formatted_transaction_date }}" readonly>
                            </div>
                         </div>
                         <div class="col-md-10 offset-md-1 mt-3">
@@ -149,13 +149,6 @@
    <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
    <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
    <script type="text/javascript">
-      var d = new Date();
-      var ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d);
-      var mo = new Intl.DateTimeFormat('en', { month: 'short' }).format(d);
-      var da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(d);
-      var datee = `${mo} ${da}, ${ye}`;
-      $('#datepairExample_water').val(datee);
-
       $('#water-discharged-modal .next-tab').click(function(){
          $('.nav-tabs > .active').next('li').find('a').trigger('click');
       });
@@ -168,7 +161,6 @@
          'format': "M d, yyyy",
          'autoclose': true,
       }).on('changeDate', function(e) {
-         console.log(e.format());
          get_water_discharged_modal_details(e.format());
       });
 
