@@ -1327,14 +1327,7 @@
         input.val(0);
       }
     });
-    $(document).on('change','#present_input', function(){
-      // var valpre = $(this).val();
-      // var valprev = $('#previous_input').val();
-      // var diff = valpre - valprev;
-      // alert(diff);
-      //  $("#incoming_water_discharged").val(diff);
-      console.log('hi');
-    });
+
 
 </script>
 <script type="text/javascript">
