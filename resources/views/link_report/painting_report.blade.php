@@ -360,9 +360,7 @@
          success: function(data) {
 
             var sets = [];
-            console.log(data);
             for(var i in data.item_codes) {
-               var randomColor = Math.floor(Math.random()*16777215).toString(16);
                var per_month = [];
 
                for(s in data.data){
@@ -371,8 +369,9 @@
 
                sets.push({
                   data: per_month,
-                  label: data.item_codes[i],
-                  borderColor: '#' + randomColor
+                  label: data.item_codes[i]['item_code'],
+                  borderColor: data.item_codes[i]['color_code'],
+                  backgroundColor: data.item_codes[i]['color_code']
                });
             }
             
@@ -393,7 +392,7 @@
             }
  
             window.pwder = new Chart(ctx_pwder, {
-               type: 'line',
+               type: 'bar',
                data: chartdata,
                options: {
                   tooltips: {

@@ -1,67 +1,60 @@
-<table class="text-center table table-striped">
-   <col style="width: 13.33%;">
-   <col style="width: 13.33%;">
-   <col style="width: 13.33%;">
-   <col style="width: 13.33%;">
-   <col style="width: 13.33%;">
-   <col style="width: 13.33%;">
+<table class="table table-striped border">
+   <col style="width: 10%;">
    <col style="width: 20%;">
-   <thead class="text-primary font-weight-bold" style="font-size: 6pt;">
-      <th>Date</th>
-      <th>Shift</th>
-      <th>Item Code</th>
-      <th>Current Qty</th>
-      <th>Consumed Qty</th>
-      <th>Balance Qty</th>
-      <th>Operator</th>
+   <col style="width: 28%;">
+   <col style="width: 10%;">
+   <col style="width: 10%;">
+   <col style="width: 10%;">
+   <col style="width: 12%;">
+   <thead class="text-primary text-center" style="font-size: 7pt;">
+      <th class="font-weight-bold">Date</th>
+      <th class="font-weight-bold">Shift</th>
+      <th class="font-weight-bold">Item Code</th>
+      <th class="font-weight-bold">Current Qty</th>
+      <th class="font-weight-bold">Consumed Qty</th>
+      <th class="font-weight-bold">Balance Qty</th>
+      <th class="font-weight-bold">Operator</th>
    </thead>
-   <tbody style="font-size: 8pt;">
+   <tbody style="font-size: 9pt;">
       @forelse($data as $rows)
       <tr class="item">
-         <td>{{ $rows['date'] }}</td>
-         <td>{!! $rows['operating_hrs'] !!}</td>
-         <td>{!! $rows['item_code'] !!}</td>
-         <td>
-            <span class="font-weight-bold">{!! $rows['current_qty'] !!}</span>
-            <span style="display:block; font-size:10px;">{{$rows['uom']}}</span></td>
-         <td><b>{!! $rows['consumed_qty'] !!}</b> <span style="display:block; font-size:10px;">{{$rows['uom']}}</span></td>
-         <td><b>{!! $rows['balance_qty'] !!}</b> <span style="display:block; font-size:10px;">{{$rows['uom']}}</span></td>
-         <td>{{$rows['operator_name']}}</td>
-      </tr>  
-   
-   @empty
-      <tr>
-         <td colspan="12" class="text-center" style="font-size: 11pt;">No Record Found</td>
+         <td class="text-center">{{ $rows['date'] }}</td>
+         <td class="text-center">
+            <span class="d-block">{{ $rows['shift_type'] }} ({{  $rows['operating_hrs']  }})</span>
+         </td>
+         <td class="text-justify">
+            <span class="d-block font-weight-bold">{!! $rows['item_code'] !!}</span>
+            <span class="d-block">{!! $rows['description'] !!}</span>
+         </td>
+         <td class="text-center">
+            <span class="d-block font-weight-bold" style="font-size: 11pt;">{{ number_format($rows['current_qty']) }}</span>
+            <span class="d-block">{{ $rows['uom'] }}</span>
+         </td>
+         <td class="text-center">
+            <span class="d-block font-weight-bold" style="font-size: 11pt;">{{ number_format($rows['consumed_qty']) }}</span>
+            <span class="d-block">{{ $rows['uom'] }}</span>
+         </td>
+         <td class="text-center">
+            <span class="d-block font-weight-bold" style="font-size: 11pt;">{{ number_format($rows['balance_qty']) }}</span>
+            <span class="d-block">{{ $rows['uom'] }}</span>
+         </td>
+         <td class="text-center">{{ $rows['operator_name'] }}</td>
       </tr>
-   @endforelse
-</tbody>
+      @if ($loop->last)
+      <tr>
+         <td colspan="7" class="text-right font-weight-bold text-uppercase p-1">
+            <span style="font-size: 11pt;">Total Consumed Qty: </span><span class="mr-2" style="font-size: 14pt;">{{ number_format($count) }} Kg</span>
+         </td>
+      </tr>
+      @endif
+      @empty
+      <tr>
+         <td colspan="6"></td>
+         <td class="text-center" style="font-size: 11pt;">No Record Found</td>
+      </tr>
+      @endforelse
+   </tbody>
 </table>
-<div class="text-right" style="margin-right: 15%;margin-top: 20px;"> <h6 style="display: inline;">Total Consumed Qty =</h6><span style="padding-left: 10px;font-size: 20px; display: inline-block;"> <b>{{ $count}} Kg</b></span></div>
-<center>
-<div id="tbl_painting_consumed_pagination" class="col-md-12 text-center" style="text-align: center;">
-{{ $powder_data->links() }}
+<div class="pull-right">
+   <div id="tbl_painting_consumed_pagination" class="col-md-12 text-center">{{ $powder_data->links() }}</div>
 </div>
-</center>
-<style>
-.sortable th,.sortable td {
-padding: 10px 30px;
-}
-
-
-.sortable th.asc:after {
-display: inline;
-content: '↓';
-color: black;
-font-size: 20px;
-}
-.sortable th.desc:after {
-display: inline;
-content: '↑';
-color: black;
-font-size: 20px;
-}
-
-
-</style>
-
-
