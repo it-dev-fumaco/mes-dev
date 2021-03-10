@@ -122,9 +122,16 @@
                                        </div>
                                     </div>
                                     <div class="col-md-4 pull-right">
-                                       <div class="form-group">
-                                          <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                          <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                                       <div class="row">
+                                          <div class="col-md-10">
+                                             <div class="form-group">
+                                                <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
+                                                <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                                             </div>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <div style="float: right;" id="printthisasap"><img src="{{ asset('img/print.png') }}" width="35" class="printbtnprint" data-print=""  ></div>
+                                          </div>
                                        </div>
                                     </div>
                                  </div>
@@ -133,7 +140,7 @@
                                  <div class="card">
                                     <div class="card-body">
                                        <div class="col-md-12">
-                                          <canvas id="assembly_daily_report_chart" height="50"></canvas>
+                                          <canvas id="painting_daily_report_chart" height="50"></canvas>
                                        </div>
                                     </div>
                                  </div>
@@ -151,7 +158,7 @@
                                        
                                        </ul>
                                        <!-- Tab panes -->
-                                       <div class="tab-content">
+                                       <div class="tab-content" id="printtbl">
                                           <div class="tab-pane active" id="tabclass01" role="tabpanel" aria-labelledby="tabclass01">
                                              <div class="row" style="margin-top: 12px;">
                                                 <div class="col-md-12">
@@ -791,7 +798,7 @@
                  }]
            };
 
-           var ctx = $("#assembly_daily_report_chart");
+           var ctx = $("#painting_daily_report_chart");
 
            if (window.tbl_chartCtx != undefined) {
               window.tbl_chartCtx.destroy();
@@ -848,5 +855,32 @@
               }
             });
       };
+      $('#printthisasap').on("click", function () {
+    var dataUrl = document.getElementById('painting_daily_report_chart').toDataURL(); //attempt to save base64 string to server using this var  
+    var tbldata=   document.getElementById('printtbl').innerHTML;
+    var div2 = document.createElement('div');
+    var labelrange= $('#daterange_report').text();
+    var date = $('#daterange_report').val();
+     var windowContent = '<!DOCTYPE html>';
+     windowContent += '<html>'
+      windowContent += '<head><title>Print</title>';
+         windowContent += '<style> *{ -webkit-print-color-adjust: exact !important; /*Chrome, Safari */color-adjust: exact !important;  /*Firefox*/} @page { size: landscape; }</style>';
+
+      windowContent += '</head>';
+     windowContent += '<body style="font-size:12px;"><div class="row"><div class="col-md-12"><h2 style="float:left;">Daily Painting Output Report</h2><h3 style="float:right;">'+ date +'</h3></div></div>'
+     windowContent += '<img style="display: block; width: 100%; height: 100%;" src="' + dataUrl + '">';
+     windowContent += '<div style="width: 100%; height: 100%;font-size:30pt;">'+ tbldata +'</div>';
+     windowContent += '</body>';
+     windowContent += '<style> #tbl_id_report{min-height:200px !important;font-size:12px;}</style>';
+
+     windowContent += '</html>';
+     var printWin = window.open('','','width=340,height=260');
+     printWin.document.open();
+     printWin.document.write(windowContent);
+     printWin.document.close();
+     printWin.focus();
+     printWin.print();
+     printWin.close();
+ });
 </script>
 @endsection
