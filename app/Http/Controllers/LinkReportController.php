@@ -29,10 +29,10 @@ class LinkReportController extends Controller
 
     }
     public function painting_report_page(){
-        $parts_category= DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->where('production_order.operation_id',1 )->whereNotNull('production_order.parts_category')->groupBy('production_order.parts_category')->select('production_order.parts_category')->get();       
-        // dd($parts_category);
-        return view('link_report.painting_report', compact('parts_category'));
+        $permissions = $this->get_user_permitted_operation();
 
+        $item_classification= DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->where('production_order.operation_id',1 )->whereNotNull('production_order.item_classification')->groupBy('production_order.item_classification')->select('production_order.item_classification')->get();       
+        return view('link_report.painting_report', compact('item_classification', 'permissions'));
     }
     public function daily_output_report(Request $request){
         $operation= 1;
@@ -44,7 +44,6 @@ class LinkReportController extends Controller
         $day=[];
         foreach ($period as $date) {
             $overtime_hour=0;
-            $production_order=($request->parts_category != "All")? (DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->where('parts_category', 'like','%'.$request->parts_category.'%')->get()):(DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->get());
             $over_time_shift= DB::connection('mysql_mes')->table('shift_schedule')
             ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
             ->whereDate('shift_schedule.date', $date)
@@ -55,8 +54,45 @@ class LinkReportController extends Controller
             $special_shift= DB::connection('mysql_mes')->table('shift_schedule')
             ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
             ->whereDate('shift_schedule.date', $date)->where('shift.operation_id', $operation)->where('shift.shift_type', "Special Shift")->select('shift.time_in', 'shift.time_out', 'shift.hrs_of_work')->first();
-           
-            $pluck_pro= collect($production_order)->pluck('production_order');
+
+
+            if($special_shift){
+                $reg_hours = $special_shift->hrs_of_work; 
+            }else{
+                $reg_shift= DB::connection('mysql_mes')->table('shift')->where('shift.operation_id', $operation)->where('shift.shift_type', "Regular Shift")->select('shift.time_in', 'shift.time_out', 'shift.hrs_of_work')->first();
+                $reg_hours = $reg_shift->hrs_of_work;
+            }
+
+            $overtime_hour = ($over_time_shift != null) ?  $over_time_shift->hrs_of_work: 0;
+            if($request->item_classification == 'All'){
+                if($operation == 3){
+                    $production_order_planned=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->whereRaw('parent_item_code = item_code')->get();
+                    $production_order_output=DB::connection('mysql_mes')->table('production_order')->whereDate('actual_end_date', $date)->where('operation_id', $operation)->whereRaw('parent_item_code = item_code')->get();
+                    $produced_qty= collect($production_order_output)->sum('feedback_qty');
+                    $output_qty = (collect($production_order_planned)->sum('qty_to_manufacture') == 0)?  1 :collect($production_order_planned)->sum('qty_to_manufacture');            
+                    $per_day_planned= collect($production_order_planned)->sum('qty_to_manufacture');
+                    $per_day_produced= collect($production_order_output)->sum('feedback_qty');
+
+                }else{
+                    $production_order_planned=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->where('operation_id', $operation)->get();
+                    $production_order_ouput=DB::connection('mysql_mes')->table('production_order')->whereDate('actual_end_date', $date)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->where('operation_id', $operation)->get();
+                    $produced_qty=  collect($production_order_ouput)->sum('produced_qty');
+                    $output_qty = (collect($production_order_planned)->sum('qty_to_manufacture') == 0)?  1 :collect($production_order_planned)->sum('qty_to_manufacture');
+                    $per_day_planned= collect($production_order_planned)->sum('qty_to_manufacture');
+                    $per_day_produced= collect($production_order_ouput)->sum('produced_qty');
+
+                }
+            }else{
+                $production_order_planned=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->where('item_classification', 'like','%'.$request->item_classification.'%')->get();
+                $production_order_ouput=DB::connection('mysql_mes')->table('production_order')->whereDate('actual_end_date', $date)->where('operation_id', $operation)->where('item_classification', 'like','%'.$request->item_classification.'%')->get();
+                $produced_qty= ($operation == 3)? collect($production_order_ouput)->sum('feedback_qty'):collect($production_order_ouput)->sum('produced_qty');
+                $output_qty = (collect($production_order_planned)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order_planned)->sum('qty_to_manufacture');
+                $per_day_planned=  collect($production_order_planned)->sum('qty_to_manufacture');
+                $per_day_produced= ($operation == 3)? collect($production_order_ouput)->sum('feedback_qty'):collect($production_order_ouput)->sum('produced_qty');
+
+            }
+
+            $pluck_pro= collect($production_order_planned)->pluck('production_order');
             $job_ticket1=DB::connection('mysql_mes')->table('job_ticket as jt')->whereIn('production_order', $pluck_pro)
             ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
             ->whereDate('tl.from_time', $date)
@@ -90,38 +126,6 @@ class LinkReportController extends Controller
             ->distinct('op')
             ->groupBy('op')
             ->get();
-            
-            if($special_shift){
-                $reg_hours = $special_shift->hrs_of_work; 
-            }else{
-                $reg_shift= DB::connection('mysql_mes')->table('shift')->where('shift.operation_id', $operation)->where('shift.shift_type', "Regular Shift")->select('shift.time_in', 'shift.time_out', 'shift.hrs_of_work')->first();
-                $reg_hours = $reg_shift->hrs_of_work;
-            }
-
-            $overtime_hour = ($over_time_shift != null) ?  $over_time_shift->hrs_of_work: 0;
-            if($request->parts_category == 'All'){
-                if($operation == 3){
-                    $production=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->whereRaw('parent_item_code = item_code')->get();
-                    $produced_qty= collect($production)->sum('feedback_qty');
-                    $output_qty = (collect($production)->sum('qty_to_manufacture') == 0)?  1 :collect($production)->sum('qty_to_manufacture');            
-                    $per_day_planned= collect($production)->sum('qty_to_manufacture');
-                    $per_day_produced= collect($production)->sum('feedback_qty');
-
-                }else{
-                    $produced_qty=  collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('produced_qty');
-                    $output_qty = (collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('qty_to_manufacture') == 0)?  1 :collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('qty_to_manufacture');
-                    $per_day_planned= collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('qty_to_manufacture');
-                    $per_day_produced= collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('produced_qty');
-
-                }
-            }else{
-                $produced_qty= ($operation == 3)? collect($production_order)->sum('feedback_qty'):collect($production_order)->sum('produced_qty');
-                $output_qty = (collect($production_order)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order)->sum('qty_to_manufacture');
-                $per_day_planned=  collect($production_order)->sum('qty_to_manufacture');
-                $per_day_produced= ($operation == 3)? collect($production_order)->sum('feedback_qty'):collect($production_order)->sum('produced_qty');
-
-            }
-
             if($this->overallStatus($date) == "Sunday" || $this->overallStatus($date) == "Holiday"){
                 if($overtime_hour == 0){
                     $per_day_planned=0;
@@ -338,6 +342,8 @@ class LinkReportController extends Controller
         return $timelogs;
     }
     public function fabrication_daily_report_page(Request $request){
+        $permissions = $this->get_user_permitted_operation();
+
         $workstation= DB::connection('mysql_mes')->table('workstation AS w')
                     ->join("operation as op","op.operation_id", "w.operation_id")
                     ->select("w.workstation_name", "w.workstation_id")
@@ -363,11 +369,11 @@ class LinkReportController extends Controller
                     ->groupBy('po.item_code')
                     ->orderBy('po.item_code', 'asc')
                     ->get();
+
         $parts_category= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 1)->whereNotNull('parts_category')->groupBy('parts_category')->select('parts_category')->get();       
         $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();       
 
-        // dd($reject_category);
-        return view('link_report.fabrication_report',  compact('workstation', 'process', 'parts','sacode', 'parts_category', 'reject_category'));
+        return view('link_report.fabrication_report',  compact('workstation', 'process', 'parts','sacode', 'parts_category', 'reject_category', 'permissions'));
     }
     public function daily_output_chart(Request $request){
         $now = Carbon::now();
@@ -378,7 +384,6 @@ class LinkReportController extends Controller
         $day=[];
         $hours=0;
         foreach ($period as $date) {
-            $production_order=($request->parts_category != "All")? (DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->where('parts_category', 'like','%'.$request->parts_category.'%')->get()):(DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->get());
             $over_time_shift= DB::connection('mysql_mes')->table('shift_schedule')
             ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
             ->whereDate('shift_schedule.date', $date)
@@ -400,9 +405,6 @@ class LinkReportController extends Controller
                 $hours = $over_time_shift->hrs_of_work; 
             }
             $overtime_hour = ($over_time_shift != null) ?  $over_time_shift->hrs_of_work: 0;
-            $produced_qty = (($operation == 3)? collect($production_order)->sum('feedback_qty'):collect($production_order)->sum('produced_qty'));
-            $output_qty = (collect($production_order)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order)->sum('qty_to_manufacture');
-            
             if($special_shift){
                 $reg_hours = $special_shift->hrs_of_work; 
             }else{
@@ -411,21 +413,26 @@ class LinkReportController extends Controller
             }
 
             $overtime_hour = ($over_time_shift != null) ?  $over_time_shift->hrs_of_work: 0;
-            if($request->parts_category == 'All'){
+
+            if($request->item_classification == 'All'){
                 if($operation == 3){
-                    $production=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->whereRaw('parent_item_code = item_code')->get();
-                    $per_day_planned= collect($production)->sum('qty_to_manufacture');
-                    $per_day_produced= collect($production)->sum('feedback_qty');
+                    $production_order_planned=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->whereRaw('parent_item_code = item_code')->get();
+                    $production_order_output=DB::connection('mysql_mes')->table('production_order')->whereDate('actual_end_date', $date)->where('operation_id', $operation)->whereRaw('parent_item_code = item_code')->get();
+                    $per_day_planned= collect($production_order_planned)->sum('qty_to_manufacture');
+                    $per_day_produced= collect($production_order_output)->sum('feedback_qty');
 
                 }else{
-                    $per_day_planned= collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('qty_to_manufacture');
-                    $per_day_produced= collect($production_order)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->sum('produced_qty');
+                    $production_order_planned=(DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+                    $production_order_output=(DB::connection('mysql_mes')->table('production_order')->whereDate('actual_end_date', $date)->where('operation_id', $operation)->where('parts_category', 'SA - Housing')->where('item_classification', 'HO - Housing')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+                    $per_day_planned= collect($production_order_planned)->sum('qty_to_manufacture');
+                    $per_day_produced= collect($production_order_output)->sum('produced_qty');
 
                 }
             }else{
-                $per_day_planned=  collect($production_order)->sum('qty_to_manufacture');
-                $per_day_produced= ($operation == 3)? collect($production_order)->sum('feedback_qty'):collect($production_order)->sum('produced_qty');
-
+                $production_order_planned=(DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $date)->where('operation_id', $operation)->where('item_classification', 'like','%'.$request->item_classification.'%')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+                $production_order_output=(DB::connection('mysql_mes')->table('production_order')->whereDate('actual_end_date', $date)->where('operation_id', $operation)->where('item_classification', 'like','%'.$request->item_classification.'%')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+                $per_day_planned=  collect($production_order_planned)->sum('qty_to_manufacture');
+                $per_day_produced= ($operation == 3)? collect($production_order_output)->sum('feedback_qty'):collect($production_order_output)->sum('produced_qty');
             }
 
             if($this->overallStatus($date) == "Sunday" || $this->overallStatus($date) == "Holiday"){
@@ -454,9 +461,10 @@ class LinkReportController extends Controller
         return response()->json(['per_day' => $date_column, 'planned' => $planned_data, 'produced' => $produce_data]);
     }
     public function assembly_report_page(){
-        $parts_category= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 3)->whereNotNull('parts_category')->groupBy('parts_category')->select('parts_category')->get();       
+        $permissions = $this->get_user_permitted_operation();
 
-        return view('link_report.assembly_report', compact('parts_category'));
+        $item_classification= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 3)->whereNotNull('item_classification')->groupBy('item_classification')->select('item_classification')->get();       
+        return view('link_report.assembly_report', compact('item_classification', 'permissions'));
     }
     
     public function qa_report(){
@@ -509,7 +517,6 @@ class LinkReportController extends Controller
     } 
     
     public function painting_output_report(Request $request){
-        $operation= 1;
         $now = Carbon::now();
         $to=$request->end_date;
         $from=$request->start_date;
@@ -518,7 +525,8 @@ class LinkReportController extends Controller
         $day=[];
         foreach ($period as $date) {
             $overtime_hour=0;
-            $production_order=($request->parts_category != "All")? (DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->where('production_order.parts_category', 'like','%'.$request->parts_category.'%')->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get()):(DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+            $production_order_planned=($request->item_classification != "All")? (DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->where('production_order.item_classification', 'like','%'.$request->item_classification.'%')->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get()):(DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+            $production_order_output=($request->item_classification != "All")? (DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.actual_end_date', $date)->where('production_order.operation_id', $operation)->where('production_order.item_classification', 'like','%'.$request->item_classification.'%')->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get()):(DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.actual_end_date', $date)->where('production_order.operation_id', $operation)->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
             $over_time_shift= DB::connection('mysql_mes')->table('shift_schedule')
             ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
             ->whereDate('shift_schedule.date', $date)
@@ -529,7 +537,8 @@ class LinkReportController extends Controller
             ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
             ->whereDate('shift_schedule.date', $date)->where('shift.operation_id', $operation)->where('shift.shift_type', "Special Shift")->select('shift.time_in', 'shift.time_out', 'shift.hrs_of_work')->first();
            
-            $pluck_pro= collect($production_order)->pluck('production_order');
+            $pluck_pro= collect($production_order_planned)->pluck('production_order');
+
             $job_ticket1=DB::connection('mysql_mes')->table('job_ticket as jt')->whereIn('production_order', $pluck_pro)
             ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
             ->whereDate('tl.from_time', $date)
@@ -555,10 +564,11 @@ class LinkReportController extends Controller
             }
 
             $overtime_hour = ($over_time_shift != null) ?  $over_time_shift->hrs_of_work: 0;
-            $produced_qty= collect($production_order)->sum('produced_qty');
-            $output_qty = (collect($production_order)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order)->sum('qty_to_manufacture');
-            $per_day_planned=  collect($production_order)->sum('qty_to_manufacture');
-            $per_day_produced= collect($production_order)->sum('produced_qty');
+            $produced_qty= collect($production_order_output)->sum('produced_qty');
+            $output_qty = (collect($production_order_planned)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order_planned)->sum('qty_to_manufacture');
+            $per_day_planned=  collect($production_order_planned)->sum('qty_to_manufacture');
+            $per_day_produced= collect($production_order_output)->sum('produced_qty');
+
 
             if($this->overallStatus($date) == "Sunday" || $this->overallStatus($date) == "Holiday"){
                 if($overtime_hour == 0){
@@ -747,7 +757,8 @@ class LinkReportController extends Controller
         $day=[];
         $hours=0;
         foreach ($period as $date) {
-            $production_order=($request->parts_category != "All")? (DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->where('production_order.parts_category', 'like','%'.$request->parts_category.'%')->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get()):(DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+            $production_order_planned=($request->item_classification != "All")? (DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->where('production_order.item_classification', 'like','%'.$request->item_classification.'%')->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get()):(DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', $date)->where('production_order.operation_id', $operation)->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
+            $production_order_output=($request->item_classification != "All")? (DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.actual_end_date', $date)->where('production_order.operation_id', $operation)->where('production_order.item_classification', 'like','%'.$request->item_classification.'%')->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get()):(DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->whereDate('jt.actual_end_date', $date)->where('production_order.operation_id', $operation)->groupBy('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->select('production_order.production_order', 'production_order.produced_qty', 'production_order.feedback_qty', 'production_order.qty_to_manufacture')->get());
             $over_time_shift= DB::connection('mysql_mes')->table('shift_schedule')
             ->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
             ->whereDate('shift_schedule.date', $date)
@@ -766,10 +777,10 @@ class LinkReportController extends Controller
             }
             
             $overtime_hour = ($over_time_shift != null) ?  $over_time_shift->hrs_of_work: 0;
-            $produced_qty= collect($production_order)->sum('produced_qty');
-            $output_qty = (collect($production_order)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order)->sum('qty_to_manufacture');
-            $per_day_planned=  collect($production_order)->sum('qty_to_manufacture');
-            $per_day_produced= collect($production_order)->sum('produced_qty');
+            $produced_qty= collect($production_order_planned)->sum('produced_qty');
+            $output_qty = (collect($production_order_output)->sum('qty_to_manufacture') == 0) ? 1 : collect($production_order_output)->sum('qty_to_manufacture');
+            $per_day_planned=  collect($production_order_planned)->sum('qty_to_manufacture');
+            $per_day_produced= collect($production_order_output)->sum('produced_qty');
 
             if($this->overallStatus($date) == "Sunday" || $this->overallStatus($date) == "Holiday"){
                 if($overtime_hour == 0){
@@ -796,6 +807,7 @@ class LinkReportController extends Controller
         $colspan_date = count($day);
         return response()->json(['per_day' => $date_column, 'planned' => $planned_data, 'produced' => $produce_data]);
     }
+
     public function rejection_report(Request $request){
         $months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];        
         $current= date('n');
@@ -984,6 +996,155 @@ class LinkReportController extends Controller
             ];
         }
         return response()->json(['year'=> $data]);
+    }
+  
+    public function parts_output_report(Request $request){
+        $now = Carbon::now();
+        $to=$request->end_date;
+        $from=$request->start_date;
+        $operation= $request->operation;
+        $period = CarbonPeriod::create($from, $to);
+        $day=[];
+        if($operation == 2){
+            $parts_category=DB::connection('mysql_mes')
+                ->table('production_order')
+                ->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')
+                ->where('jt.workstation', "Painting")
+                ->whereBetween('jt.actual_end_date',[$from, $to])
+                ->whereNotNull('production_order.parts_category')
+                ->where('production_order.operation_id', 1)
+                ->where('jt.process_id', 122)
+                ->selectRaw('production_order.parts_category, SUM(production_order.produced_qty) as qty, DAY(jt.actual_end_date) as day, MONTH(jt.actual_end_date) as month, YEAR(jt.actual_end_date) as year')
+                ->groupBy('production_order.parts_category','day', 'month', 'year')
+                ->get();
+        }else{
+            $parts_category=DB::connection('mysql_mes')
+                ->table('production_order')
+                ->whereBetween('actual_end_date',[$from, $to])
+                ->whereNotNull('parts_category')
+                ->where('operation_id', $operation)
+                ->selectRaw('parts_category, SUM(produced_qty) as qty, DAY(actual_end_date) as day, MONTH(actual_end_date) as month, YEAR(actual_end_date) as year')
+                ->groupBy('parts_category','day', 'month', 'year')->get();
+        }
+        
+        $uniq_parts= collect($parts_category)->unique('parts_category')->all();
+        $data=[];
+        foreach($uniq_parts as $row){
+            $node=[];
+            $days=[];
 
+            foreach ($period as $date) {
+                $day= date('d', strtotime($date));
+                $month= date('m', strtotime($date));
+                $year= date('Y', strtotime($date));
+                $node[]=[ 
+                    'date' =>  date('d', strtotime($date)),
+                    'stat' => $this->overallStatus($date),
+                    'sum' => collect($parts_category)->where('parts_category', $row->parts_category)->where('day', $day)->where('month', $month)->where('year', $year)->sum('qty')
+                ];
+                $days[]=[
+                    'date' =>  date('d', strtotime($date)),
+                    'stat' => ($this->overallStatus($date) != null) ? 0: null,
+                    'stat_sunday' => $this->overallStatus($date),
+                ];
+            }
+            $total_day_wtih_qty_fall_in_sundayHoli= collect($node)->whereIn('stat', ['Sunday', 'Holiday'])->where('sum', '!=', 0)->count();
+            $total_day_with_qty_wtihout_sundayHoli= collect($node)->whereNotIn('stat', ['Sunday', 'Holiday'])->count();
+            $grad_total=$total_day_wtih_qty_fall_in_sundayHoli + $total_day_with_qty_wtihout_sundayHoli;
+
+            $data[]=[
+                'parts'=> $row->parts_category,
+                'data' => $node,
+                'total' => collect($node)->sum('sum'),
+                't_day' =>  round( (collect($node)->sum('sum')) / $grad_total, 0)
+            ];
+        }
+        if(!empty($uniq_parts)){
+            $date_column=collect($days)->unique('date')->all();
+            $colspan_date = count($days);
+        }else{
+            $date_column=[];
+            $colspan_date =0;
+        }
+        return view('tables.tbl_parts_category_report', compact('data', "date_column", 'colspan_date'));
+    }
+
+    public function powder_coating_usage_report(Request $request){
+        $year = Carbon::createFromDate($request->year);
+
+        $start_date = $year->copy()->startOfYear()->format('Y-m-d');
+        $end_date = $year->copy()->endOfYear()->format('Y-m-d');
+
+        $period = CarbonPeriod::create($start_date, '1 month', $end_date);
+
+        $data = DB::connection('mysql_mes')->table('powder_coating')
+            ->whereBetween('date', [$start_date, $end_date])
+            ->selectRaw('SUM(consumed_qty) as total_consumed_qty, item_code, MONTH(date) as month, YEAR(date) as year')
+            ->whereRaw('YEAR(date) = ' . $request->year)
+            ->groupBy('item_code', 'month', 'year')->get();
+
+        $item_codes = array_unique(array_column($data->toArray(), 'item_code'));
+
+        $item_code_inv = DB::connection('mysql_mes')->table('fabrication_inventory')
+            ->whereIn('item_code', $item_codes)->select('item_code', 'color_code')
+            ->distinct('item_code')->orderBy('item_code', 'desc')->get();
+
+        $arr_list = [];
+        foreach($period as $i => $date){
+            $month = Carbon::parse($date)->format('m');
+            $month_name = Carbon::parse($date)->format('M');
+            $arr_list[$i]['month'] = $month_name;
+            foreach($item_code_inv as $e => $item){
+                $total = collect($data)->where('item_code', $item->item_code)->where('month', $month)->sum('total_consumed_qty');
+
+                $arr_list[$i]['item_' . $e] = $total;
+            }
+        }
+
+        $result = [
+            'item_codes' => $item_code_inv,
+            'data' => $arr_list
+        ];
+
+        return $result;
+    }
+
+    public function powder_coat_usage_history(Request $request){
+        $data=[];
+        $powder_data= DB::connection('mysql_mes')->table('powder_coating')
+            ->join('shift', 'shift.shift_id','powder_coating.operating_hrs')
+            ->whereRaw('YEAR(powder_coating.date) = ' . $request->year)
+            ->orderBy('powder_coating_id','desc')->paginate(10);
+
+        $count = DB::connection('mysql_mes')->table('powder_coating')
+            ->join('shift', 'shift.shift_id','powder_coating.operating_hrs')
+            ->whereRaw('YEAR(powder_coating.date) = ' . $request->year)
+            ->sum('consumed_qty');
+
+        foreach ($powder_data as $row) {
+            $shift=DB::connection('mysql_mes')->table('shift')
+                ->join('operation as op','op.operation_id','shift.operation_id')
+                ->where('op.operation_name','Painting')
+                ->where('shift.shift_id',  $row->operating_hrs)
+                ->select('shift.*')->first();
+
+            $item_details = DB::connection('mysql_mes')->table('fabrication_inventory')
+                ->where('item_code', $row->item_code)->select('uom', 'description')->first();
+
+            $data[]=[
+                'date' =>  date('F d, Y', strtotime($row->date)),
+                'shift_type' => $shift->shift_type,
+                'operating_hrs' => $shift->time_in.' - '.$shift->time_out,
+                'current_qty' => ($row->current_qty == null)? '0':$row->current_qty,
+                'consumed_qty' => ($row->consumed_qty == null)? '0':$row->consumed_qty,
+                'balance_qty' => $row->balance_qty,
+                'item_code' => $row->item_code,
+                'operator_name' => $row->operator,
+                'uom'=> empty($item_details->uom) ? "" : $item_details->uom,
+                'description'=> ($item_details) ? $item_details->description : null,
+            ];
+        }
+        
+        return view('link_report.powder_coat_usage_report', compact('data', 'count', 'powder_data'));
     }
 }

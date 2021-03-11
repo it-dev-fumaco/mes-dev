@@ -6,6 +6,8 @@
          <input type="hidden" id="change-required-item-production-order" name="production_order">
          <input type="hidden" name="old_item_code">
          <input type="hidden" name="ste_names">
+         <input type="hidden" name="production_order_item_id">
+         <input type="hidden" name="required_qty">
          <div class="modal-content">
             <div class="modal-header text-white" style="background-color: #0277BD;">
                <h5 class="modal-title" id="modal-title">Replace Item</h5>
@@ -14,15 +16,22 @@
                </button>
             </div>
             <div class="modal-body">
-               <div class="form-row">
+               <div class="row m-0 p-0">
+                  <div class="col-md-6 offset-md-6">
+                     <div class="pull-right p-0">
+                        <button type="button" class="btn btn-secondary m-0" id="change-required-qty-btn">Update Required Qty</button>
+                     </div>
+                  </div>
+               </div>
+               <div class="form-row mt-2">
                   <div class="form-group col-md-6">
                      <label>Item Code</label>
                      <input type="text" class="form-control" name="item_code" placeholder="Item Code" maxlength="7" required>
                      <input type="hidden" name="item_name">
                   </div>
                   <div class="form-group col-md-3">
-                     <label>Quantity</label>
-                     <input type="text" class="form-control" name="quantity" placeholder="Quantity" required>
+                     <label>Requested Quantity</label>
+                     <input type="text" class="form-control" name="requested_quantity" placeholder="Quantity" required>
                   </div>
                   <div class="form-group col-md-3">
                      <label>Stock UOM</label>

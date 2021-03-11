@@ -6,6 +6,168 @@ use Carbon\Carbon;
 
 trait GeneralTrait
 {
+    public function update_job_ticket($job_ticket_id){
+        // get job ticket detail
+        $job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
+            ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+            ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status')->first();
+
+        if(!$job_ticket_id){
+            return 0;
+        }
+
+        $time_logs_table = ($job_ticket_detail->workstation == 'Spotwelding') ? 'spotwelding_qty' : 'time_logs';
+        // get job_ticket operator time logs
+        $logs = DB::connection('mysql_mes')->table($time_logs_table)->where('job_ticket_id', $job_ticket_id)->get();
+        $logs = collect($logs);
+
+        $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
+
+        // get total good, total reject, actual start and end date
+        $total_good = ($job_ticket_detail->workstation == 'Spotwelding') ? $total_good_spotwelding->min('total_good') : $logs->sum('good');
+        $total_reject = ($job_ticket_detail->workstation == 'Spotwelding') ? $job_ticket_detail->reject : $logs->sum('reject');
+        $job_ticket_actual_start_date = $logs->min('from_time');
+        $job_ticket_actual_end_date = $logs->min('to_time');
+
+        // set job ticket status
+        if($job_ticket_detail->qty_to_manufacture <= $total_good){
+            $job_ticket_status = 'Completed';
+        }else if(count($logs) > 0){
+            $job_ticket_status = 'In Progress';
+        }else{
+            $job_ticket_status = $job_ticket_detail->status;
+        }
+        // update job ticket details
+        $job_ticket_values = [
+            'completed_qty' => $total_good,
+            'good' => $total_good,
+            'reject' => $total_reject,
+            'status' => $job_ticket_status,
+            'actual_start_date' => $job_ticket_actual_start_date,
+            'actual_end_date' => $job_ticket_actual_end_date
+        ];
+
+        DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->update($job_ticket_values);
+
+        // update production order operation in ERP
+        $actual_start = Carbon::parse($job_ticket_actual_start_date);
+        $actual_end = Carbon::parse($job_ticket_actual_end_date);
+        $operation_time = $actual_end->diffInSeconds($actual_start);
+        $operation_time = $operation_time / 60;
+
+        $production_order_operation_values = [
+            'status' => ($job_ticket_detail->qty_to_manufacture <= $total_good) ? "Completed" : "Pending",
+            'completed_qty' => $total_good,
+            'actual_start_time' => $job_ticket_actual_start_date,
+            'actual_end_time' => $job_ticket_actual_end_date,
+            'actual_operation_time' => $operation_time,
+        ];
+
+        DB::connection('mysql')->table('tabProduction Order Operation')
+            ->where('parent', $job_ticket_detail->production_order)->where('workstation', $job_ticket_detail->workstation)
+            ->where('process', $job_ticket_detail->process_id)->update($production_order_operation_values);
+
+        // get production order produced qty
+        $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+			->where('production_order', $job_ticket_detail->production_order)->min('completed_qty');
+
+        // set production order status
+        if($job_ticket_detail->qty_to_manufacture <= $produced_qty){
+            $production_order_status = 'Completed';
+        }else if(count($logs) > 0){
+            $production_order_status = 'In Progress';
+        }else{
+            $production_order_status = $job_ticket_detail->production_order_status;
+        }
+        // update production order status and produced qty
+		DB::connection('mysql_mes')->table('production_order')
+            ->where('production_order', $job_ticket_detail->production_order)->update(['produced_qty' => $produced_qty, 'status' => $production_order_status]);
+
+        // update production order status in ERP
+        $production_order_status = ($production_order_status == 'In Progress') ? 'In Process' : $production_order_status;
+        DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
+
+        // get job ticket actual start and end time 
+        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
+        $actual_start_date = collect($production_order_logs)->min('actual_start_date');
+        $actual_end_date = collect($production_order_logs)->max('actual_end_date');
+
+        if(in_array($production_order_status, ['Completed'])){
+            $values = [
+                'actual_start_date' => $actual_start_date,
+                'actual_end_date' => $actual_end_date
+            ];
+        }else{
+            $values = [
+                'actual_start_date' => $actual_start_date,
+            ];
+        }
+
+        DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_detail->production_order)
+            ->update($values);
+
+        DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)
+            ->update($values);
+
+        return 1;
+    }
+
+    public function update_production_order_produced_qty($production_order){
+        // production order details 
+        $production_order_details = DB::connection('mysql_mes')->table('production_order')
+            ->where('production_order', $production_order)->first();
+        // get in progress job ticket
+        $logs = DB::connection('mysql_mes')->table('job_ticket')
+            ->where('production_order', $production_order)
+            ->whereIn('status', ['In Progress'])->get();
+         // get production order produced qty
+         $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+            ->where('production_order', $production_order)->min('completed_qty');
+        // set production order status
+        if($production_order_details->qty_to_manufacture <= $produced_qty){
+            $production_order_status = 'Completed';
+        }else if(count($logs) > 0){
+            $production_order_status = 'In Progress';
+        }else{
+            $production_order_status = $production_order_details->status;
+        }
+        // update production order status and produced qty
+        DB::connection('mysql_mes')->table('production_order')
+            ->where('production_order', $production_order)->update(['produced_qty' => $produced_qty, 'status' => $production_order_status]);
+
+        // update production order status in ERP
+        $production_order_status = ($production_order_status == 'In Progress') ? 'In Process' : $production_order_status;
+        DB::connection('mysql')->table('tabProduction Order')
+            ->where('name', $production_order)
+            ->update(['status' => $production_order_status]);
+
+        // get job ticket actual start and end time 
+        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')
+            ->where('production_order', $production_order)->get();
+        $actual_start_date = collect($production_order_logs)->min('actual_start_date');
+        $actual_end_date = collect($production_order_logs)->max('actual_end_date');
+
+        if(in_array($production_order_status, ['Completed'])){
+            $values = [
+                'actual_start_date' => $actual_start_date,
+                'actual_end_date' => $actual_end_date
+            ];
+        }else{
+            $values = [
+                'actual_start_date' => $actual_start_date,
+            ];
+        }
+
+        DB::connection('mysql_mes')->table('production_order')
+            ->where('production_order', $production_order)
+            ->update($values);
+
+        DB::connection('mysql')->table('tabProduction Order')
+            ->where('name', $production_order)
+            ->update($values);
+    }
+
     public function get_user_permitted_operation(){
 		$q = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
@@ -315,39 +477,46 @@ trait GeneralTrait
     }
 
     public function material_status_stockentry($production_order, $stat, $manufacture, $feedback_qty, $produced){
-        
-        $is_transferred = DB::connection('mysql')->table('tabStock Entry')
-            ->where('purpose', 'Material Transfer for Manufacture')
-            ->where('production_order', $production_order)
-            ->where('docstatus', 1)->first();
+        if (!in_array($stat, ['In Progress', 'Cancelled', 'Completed'])) {
+            $is_transferred = DB::connection('mysql')->table('tabStock Entry')
+                ->where('purpose', 'Material Transfer for Manufacture')
+                ->where('production_order', $production_order)
+                ->where('docstatus', 1)->first();
 
-        if ($is_transferred) {
-            $status = 'Material Issued';
-        }else{
-            $status = 'Material For Issue';
+            if ($is_transferred) {
+                $status = 'Material Issued';
+            }else{
+                $status = 'Material For Issue';
+            }
         }
-
+        
         if($stat == "In Progress"){
-            $current_process=DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->where('status', 'In Progress')->orderBy('last_modified_at', 'desc')->select('workstation')->first();
+            $current_process = DB::connection('mysql_mes')->table('job_ticket')
+                ->where('production_order', $production_order)->where('status', 'In Progress')
+                ->orderBy('last_modified_at', 'desc')->select('workstation')->first();
+
+            $status = $stat;
             if(!empty($current_process)){
                 if($current_process->workstation != null){
                     $status = $current_process->workstation;
                 }
             }
         }
+
         if ($stat == "Cancelled") {
             $status = 'Cancelled';
         }
+
         if ($stat == "Completed") {
             $status = 'Ready For Feedback';
         }
+
         if($feedback_qty > 0){
             $status = 'Partial Feedbacked';
-
         }
+
         if($manufacture <= $feedback_qty){
             $status = 'Feedbacked';
-
         }
 
         return $status;
@@ -390,32 +559,32 @@ trait GeneralTrait
         ];
     }
 
-    public function update_production_actual_start_end($production_order){
-		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
-			->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-			->where('jt.production_order', $production_order)
-			->where('jt.workstation', '!=', 'Spotwelding')
-			->select('workstation', 'tl.from_time', 'tl.to_time');
+    // public function update_production_actual_start_end($production_order){
+	// 	$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+	// 		->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+	// 		->where('jt.production_order', $production_order)
+	// 		->where('jt.workstation', '!=', 'Spotwelding')
+	// 		->select('workstation', 'tl.from_time', 'tl.to_time');
 
-		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
-			->join('spotwelding_qty as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-			->where('jt.production_order', $production_order)
-			->select('workstation', 'tl.from_time', 'tl.to_time')
-			->union($q)->get();
+	// 	$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+	// 		->join('spotwelding_qty as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+	// 		->where('jt.production_order', $production_order)
+	// 		->select('workstation', 'tl.from_time', 'tl.to_time')
+	// 		->union($q)->get();
 		
-		// get time logs min start time
-		$actual_start_date = collect($q)->min('from_time');
-		// get item logs max end time
-		$actual_end_date = collect($q)->max('to_time');
+	// 	// get time logs min start time
+	// 	$actual_start_date = collect($q)->min('from_time');
+	// 	// get item logs max end time
+	// 	$actual_end_date = collect($q)->max('to_time');
 
-		DB::connection('mysql_mes')->table('production_order')
-			->where('production_order', $production_order)->whereNotIn('status', ['Completed', 'Cancelled'])
-            ->update(['actual_start_date' => $actual_start_date]);
+	// 	DB::connection('mysql_mes')->table('production_order')
+	// 		->where('production_order', $production_order)->whereNotIn('status', ['Completed', 'Cancelled'])
+    //         ->update(['actual_start_date' => $actual_start_date]);
             
-        DB::connection('mysql_mes')->table('production_order')
-			->where('production_order', $production_order)->whereIn('status', ['Completed'])
-			->update(['actual_end_date' => $actual_end_date]);
-    }
+    //     DB::connection('mysql_mes')->table('production_order')
+	// 		->where('production_order', $production_order)->whereIn('status', ['Completed'])
+	// 		->update(['actual_end_date' => $actual_end_date]);
+    // }
     
     public function update_production_order_transferred_qty($production_order){
         DB::connection('mysql')->beginTransaction();
@@ -430,16 +599,11 @@ trait GeneralTrait
                 ->where('production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
                 ->where('docstatus', 1)->sum('fg_completed_qty');
 
+            $transferred_for_manufacturing = ($transferred_for_manufacturing > $production_req_qty) ? $production_req_qty : $transferred_for_manufacturing;
+            
             $values = [
                 'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
             ];
-            
-            if($transferred_for_manufacturing > $production_req_qty){
-                $transferred_for_manufacturing = $production_req_qty;
-                $values = [
-                    'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
-                ];
-            }
 
             if($production_details->status == 'Not Started'){
                 $values = [
@@ -471,6 +635,7 @@ trait GeneralTrait
             return ['status' => 0];
         }
     }
+
     public function erp_change_code_validation($erp_reference_id, $item_code){
         $delivery_date_tbl= DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id',$erp_reference_id)->first();
         $change_code[]=["match" => "" ];
@@ -489,42 +654,44 @@ trait GeneralTrait
         }
         return $change_code;
     }
-    public function update_jobticket_actual_start_end($job_ticket_id){
-		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
-			->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-			->where('jt.job_ticket_id', $job_ticket_id)
-			->where('jt.workstation', '!=', 'Spotwelding')
-			->select('workstation', 'tl.from_time', 'tl.to_time');
 
-		$q = DB::connection('mysql_mes')->table('job_ticket as jt')
-			->join('spotwelding_qty as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-            ->where('jt.job_ticket_id', $job_ticket_id)
-            ->where('jt.workstation', '=', 'Spotwelding')
-			->select('workstation', 'tl.from_time', 'tl.to_time')
-			->union($q)->get();
+    // public function update_jobticket_actual_start_end($job_ticket_id){
+	// 	$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+	// 		->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+	// 		->where('jt.job_ticket_id', $job_ticket_id)
+	// 		->where('jt.workstation', '!=', 'Spotwelding')
+	// 		->select('workstation', 'tl.from_time', 'tl.to_time');
+
+	// 	$q = DB::connection('mysql_mes')->table('job_ticket as jt')
+	// 		->join('spotwelding_qty as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+    //         ->where('jt.job_ticket_id', $job_ticket_id)
+    //         ->where('jt.workstation', '=', 'Spotwelding')
+	// 		->select('workstation', 'tl.from_time', 'tl.to_time')
+	// 		->union($q)->get();
 		
-		// get time logs min start time
-		$actual_start_date = collect($q)->min('from_time');
-		// get item logs max end time
-		$actual_end_date = collect($q)->max('to_time');
+	// 	// get time logs min start time
+	// 	$actual_start_date = collect($q)->min('from_time');
+	// 	// get item logs max end time
+	// 	$actual_end_date = collect($q)->max('to_time');
 
-		DB::connection('mysql_mes')->table('job_ticket')
-			->where('job_ticket_id', $job_ticket_id)->update(['actual_start_date' => $actual_start_date, 'actual_end_date' => $actual_end_date]);
-    }
-    public function update_job_ticket_good($job_ticket_id){
-		$total_good = DB::connection('mysql_mes')->table('time_logs as tl')
-			->where('tl.job_ticket_id', $job_ticket_id)
-            ->sum('tl.good');
-		DB::connection('mysql_mes')->table('job_ticket')
-			->where('job_ticket_id', $job_ticket_id)->update(['good' => $total_good]);
-    }
-    public function update_job_ticket_reject($job_ticket_id){
-		$total_reject = DB::connection('mysql_mes')->table('time_logs as tl')
-			->where('tl.job_ticket_id', $job_ticket_id)
-            ->sum('tl.reject');
-		DB::connection('mysql_mes')->table('job_ticket')
-			->where('job_ticket_id', $job_ticket_id)->update(['reject' => $total_reject]);
-    }
+	// 	DB::connection('mysql_mes')->table('job_ticket')
+	// 		->where('job_ticket_id', $job_ticket_id)->update(['actual_start_date' => $actual_start_date, 'actual_end_date' => $actual_end_date]);
+    // }
+
+    // public function update_job_ticket_good($job_ticket_id){
+	// 	$total_good = DB::connection('mysql_mes')->table('time_logs as tl')
+	// 		->where('tl.job_ticket_id', $job_ticket_id)
+    //         ->sum('tl.good');
+	// 	DB::connection('mysql_mes')->table('job_ticket')
+	// 		->where('job_ticket_id', $job_ticket_id)->update(['good' => $total_good]);
+    // }
+    // public function update_job_ticket_reject($job_ticket_id){
+	// 	$total_reject = DB::connection('mysql_mes')->table('time_logs as tl')
+	// 		->where('tl.job_ticket_id', $job_ticket_id)
+    //         ->sum('tl.reject');
+	// 	DB::connection('mysql_mes')->table('job_ticket')
+	// 		->where('job_ticket_id', $job_ticket_id)->update(['reject' => $total_reject]);
+    // }
     public function production_status_with_stockentry($production_order, $stat, $manufacture, $feedback_qty, $produced){
         
         $is_transferred = DB::connection('mysql')->table('tabStock Entry')

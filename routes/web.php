@@ -130,10 +130,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/update_production_task_schedules', 'MainController@update_production_task_schedules');
 	Route::post('/update_production_order_schedule', 'MainController@update_production_order_schedule');
 
-	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');
-	
-	//reports
-	Route::get('/reports_index', 'MainController@report_index');
+	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');	
 });
 
 //machine overview
@@ -277,6 +274,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/start_spotwelding', 'SpotweldingController@start_task');
 	Route::post('/end_spotwelding', 'SpotweldingController@end_task');
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');
+
+	Route::post('/continue_log_task/{timelog_id}', 'SpotweldingController@continue_log_task');
 
 	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
 	Route::get('/create_bundle_feedback/{production_order}/{fg_completed_qty}', 'ManufacturingController@create_production_feedback_for_item_bundle');
@@ -606,6 +605,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_return/{sted_id}', 'MainController@delete_pending_material_transfer_for_return');
+
+	Route::post('/update_production_order_item_required_qty', 'ManufacturingController@update_production_order_item_required_qty');
 	
 	Route::post('/submit_stock_entries/{production_order}', 'ManufacturingController@submit_stock_entries');
 
@@ -676,8 +677,6 @@ Route::get('/assembly_report', 'ReportsController@assembly_report_page');
 Route::get('/painting_report', 'ReportsController@painting_report_page');
 Route::get('/qa_report', 'ReportsController@qa_report');
 
-Route::get('/report_index', 'ReportsController@index');
-
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
 	
@@ -734,7 +733,6 @@ Route::get('/get_operators', 'MainController@get_operators');
 Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 
-
 //Daily Report
 Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page');
 Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
@@ -756,4 +754,7 @@ Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_d
 Route::get('/rejection_report', 'LinkReportController@rejection_report');
 Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
 
-
+Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
+Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
+Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
+Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');

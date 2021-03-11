@@ -1,6 +1,6 @@
-@extends('link_report.app', [
+@extends('layouts.user_app', [
   'namePage' => 'Fabrication',
-  'activePage' => 'production_schedule',
+  'activePage' => 'operation_report',
 ])
 
 @section('content')
@@ -46,60 +46,92 @@
        </ul>
        <div class="tab-content" style="min-height: 500px;">
          <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab0" role="tabpanel" aria-labelledby="tab0">
-           <div class="row">
-             <div class="col-md-12">
-               <div class="card" style="border-radius: 0 0 3px 3px;">
-                 <div class="card-body">
-                   <div class="row m-0">
-                     <div class="col-md-12">
-                        <div class="row text-black" style=" padding-top:50px auto;">
-                           <div class="col-md-5">
-                              <div class="form-group">
-                                 <h5><b>Daily Fabrication Output</b></h5>
+            <div class="row">
+               <div class="col-md-12">
+                  <div class="card" style="border-radius: 0 0 3px 3px;">
+                     <div class="card-body">
+                        <div class="row m-0">
+                           <div class="col-md-12">
+                              <div class="row text-black" style=" padding-top:50px auto;">
+                                 <div class="col-md-5">
+                                    <div class="form-group">
+                                       <h5><b>Daily Fabrication Output</b></h5>
+                                    </div>
+                                 </div>
+                                 <div class="col-md-3 text-center align-middle">
+                                    <div class="form-group row align-middle">
+                                       <label for="parts_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Item Classification:</b></label>
+											      <div class="col-sm-7 align-middle">
+                                          <select class="form-control form-control-lg text-center" style="display:inline;" name="parts_filter" id="parts_filter">
+                                             <option value="All">Select Item Classification</option>
+                                                @foreach($item_classification as $rows)
+                                                   <option value="{{$rows->item_classification}}">{{$rows->item_classification}}</option>
+                                                @endforeach
+                                          </select>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="col-md-4 pull-right">
+                                    <div class="row">
+                                       <div class="col-md-10">
+                                          <div class="form-group">
+                                             <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
+                                             <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                                          </div>
+                                       </div>
+                                       <div class="col-md-2">
+                                          <div style="float: right;" id="printthisasap"><img src="{{ asset('img/print.png') }}" width="35" class="printbtnprint" data-print=""  ></div>
+                                       </div>
+                                    </div>
+                                 </div>
                               </div>
                            </div>
-                           <div class="col-md-3 text-center align-middle">
-                              <div class="form-group row align-middle">
-                                 <label for="parts_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Parts Category:</b></label>
-											<div class="col-sm-7 align-middle">
-                                    <select class="form-control form-control-lg text-center" style="display:inline;" name="parts_filter" id="parts_filter">
-                                       <option value="All">Select Parts Category</option>
-                                       @foreach($parts_category as $rows)
-                                          <option value="{{$rows->parts_category}}">{{$rows->parts_category}}</option>
-                                       @endforeach
-                                    </select>
-                                  </div>
+                           <div class="col-md-12" >
+                              <div class="card">
+                                 <div class="card-body">
+                                    <div class="col-md-12" >
+                                       <canvas id="fabrication_daily_report_chart" height="50"></canvas>
+                                    </div>
+                                 </div>
                               </div>
                            </div>
-                           <div class="col-md-4 pull-right">
-                              <div class="form-group">
-                                 <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                 <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                           <div class="col-md-12"  >
+                              <div class="row m-0">
+                                 <div class="col-md-12" style="padding: 0;">
+                                    <ul class="nav nav-tabs nav-hide" id="mytab" role="tablist">
+                                    <li class="nav-item nav-hide">
+                                       <a class="nav-link active" id="tab01-tab" data-toggle="tab" href="#tabclass01" role="tab" aria-controls="tab01" aria-selected="true">Item Classification</a>
+                                    </li>
+                                    <li class="nav-item nav-hide">
+                                       <a class="nav-link" id="tab02-tab" data-toggle="tab" href="#tabcateg02" role="tab" aria-controls="tab02" aria-selected="false"> Parts Category</a>
+                                    </li>
+                                    
+                                    </ul>
+                                    <!-- Tab panes -->
+                                    <div class="tab-content" id="printtbl">
+                                       <div class="tab-pane active" id="tabclass01" role="tabpanel" aria-labelledby="tabclass01">
+                                          <div class="row" style="margin-top: 12px;">
+                                             <div class="col-md-12">
+                                                <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div class="tab-pane" id="tabcateg02" role="tabpanel" aria-labelledby="tabcateg02">
+                                          <div class="row" style="margin-top: 12px;">
+                                             <div class="col-md-12">
+                                                <div id="tbl_log_partscateg_report" style="width: 100%;overflow: auto;"></div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
                               </div>
                            </div>
                         </div>
                      </div>
-                     <div class="col-md-12">
-                       <div class="card">
-                          <div class="card-body">
-                             <div class="col-md-12">
-                                <canvas id="fabrication_daily_report_chart" height="50"></canvas>
-                             </div>
-                          </div>
-                       </div>
-                     </div>
-                     <div class="col-md-12">
-                       <div class="row">
-                          <div class="col-md-12" style="">
-                             <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
-                          </div>
-                       </div>
-                    </div>
-                   </div>
-                 </div>
+                  </div>
                </div>
-             </div>
-           </div>
+            </div>
          </div>
         
          <div class="tab-pane {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="tab1" role="tabpanel" aria-labelledby="tab1">
@@ -144,9 +176,9 @@
                                </select>
                             </td>
                             <td>
-                               <h6 style="display:inline;padding:5px;color:white;margin-left:0px;">Parts Category:</h6>
+                               <h6 style="display:inline;padding:5px;color:white;margin-left:0px;">Item Classification:</h6>
                                <select class="form-control" id="parts_line" name="production_line"  style="background-color: white;font-size: 9pt; width:85%;height:30px;display:inline-block;text-align:center;">
-                                  <option value="All">All</option>
+                                  <option value="All">Select Item Classification</option>
                                      @foreach($parts as $row)
                                         <option value="{{ $row->parts_category }}" style="font-size: 9pt;">{{ $row->parts_category }}</option>
                                      @endforeach
@@ -349,11 +381,10 @@ $(document).ready(function(){
   }, function(start, end, label) {
     console.log('New date range selected: ' + start.format('MMMM D, YYYY') + ' to ' + end.format('MMMM D, YYYY') + ' (predefined range: ' + label + ')');
     tbl_log_report();
-    tbl_chart();
-    
+    tbl_chart();    
   });
-  tbl_log_report();
-    tbl_chart();
+   tbl_log_report();
+   tbl_chart();
    $('#daterange_report').on('apply.daterangepicker', function(ev, picker) {
       $(this).val(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
   });
@@ -395,7 +426,7 @@ $(document).ready(function(){
 <script type="text/javascript">
     function tbl_log_report(){
       var date = $('#daterange_report').val();
-      var parts_category = $('#parts_filter').val();
+      var item_classification = $('#parts_filter').val();
       var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
       var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
       var operation = 1;
@@ -403,8 +434,7 @@ $(document).ready(function(){
             start_date: startDate,
             end_date:endDate,
             operation: operation,
-            parts_category : parts_category
-
+            item_classification : item_classification
           }
       $.ajax({
               url:"/link_daily_output_report",
@@ -412,12 +442,13 @@ $(document).ready(function(){
               data: data,
               success:function(data){
                 $('#tbl_log_report').html(data);
+                tbl_log_partcateg_report();
               }
             });
       };
       function tbl_chart(){
          var date = $('#daterange_report').val();
-         var parts_category = $('#parts_filter').val();
+         var item_classification = $('#parts_filter').val();
          var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
          var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
          var operation = 1;
@@ -425,8 +456,7 @@ $(document).ready(function(){
             start_date: startDate,
             end_date:endDate,
             operation:operation,
-            parts_category : parts_category
-
+            item_classification : item_classification
           }
       $.ajax({
          url: "/link_daily_output_chart",
@@ -499,6 +529,26 @@ $(document).ready(function(){
          }
       });
    }
+   function tbl_log_partcateg_report(){
+      var date = $('#daterange_report').val();
+      var item_classification = $('#parts_filter').val();
+      var startDate = $('#daterange_report').data('daterangepicker').startDate.format('YYYY-MM-DD');
+      var endDate = $('#daterange_report').data('daterangepicker').endDate.format('YYYY-MM-DD');
+      var operation = 1;
+      var data = {
+            start_date: startDate,
+            end_date:endDate,
+            operation: operation
+          }
+      $.ajax({
+              url:"/link_parts_category_daily_output",
+              type:"GET",
+              data: data,
+              success:function(data){
+                $('#tbl_log_partscateg_report').html(data);
+              }
+            });
+      };
 
 </script>
 <script>
@@ -670,5 +720,32 @@ $(document).ready(function(){
    $(function() {
   $('nav a[href^="/' + location.pathname.split("/")[1] + '"]').addClass('active');
 });
+$('#printthisasap').on("click", function () {
+    var dataUrl = document.getElementById('fabrication_daily_report_chart').toDataURL(); //attempt to save base64 string to server using this var  
+    var tbldata=   document.getElementById('printtbl').innerHTML;
+    var div2 = document.createElement('div');
+    var labelrange= $('#daterange_report').text();
+    var date = $('#daterange_report').val();
+     var windowContent = '<!DOCTYPE html>';
+     windowContent += '<html>'
+      windowContent += '<head><title>Print</title>';
+         windowContent += '<style> *{ -webkit-print-color-adjust: exact !important; /*Chrome, Safari */color-adjust: exact !important;  /*Firefox*/} @page { size: landscape; }</style>';
+
+      windowContent += '</head>';
+     windowContent += '<body style="font-size:12px;"><div class="row"><div class="col-md-12"><h2 style="float:left;">Daily Fabrication Output Report</h2><h3 style="float:right;">'+ date +'</h3></div></div>'
+     windowContent += '<img style="display: block; width: 100%; height: 100%;" src="' + dataUrl + '">';
+     windowContent += '<div style="width: 100%; height: 100%;font-size:30pt;">'+ tbldata +'</div>';
+     windowContent += '</body>';
+     windowContent += '<style> #tbl_id_report{min-height:200px !important;font-size:12px;}</style>';
+
+     windowContent += '</html>';
+     var printWin = window.open('','','width=340,height=260');
+     printWin.document.open();
+     printWin.document.write(windowContent);
+     printWin.document.close();
+     printWin.focus();
+     printWin.print();
+     printWin.close();
+ });
  </script>
 @endsection

@@ -3565,18 +3565,18 @@ class SecondaryController extends Controller
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
         if(empty($request->shifttype)){
-            $arr= null;
+            $arr= [];
+            return response()->json(['success' => 0, 'message' => 'No shift selected' ]);
+
         }else{
             $arr=$request->shifttype;
-            $ar=array_unique(array_diff_assoc($arr, array_unique( $arr ) ) );
         }
-        if(!empty($ar)){
-            foreach($ar as $i => $r){
-                $row= $i +1; 
-                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
-            }
+        $data= (array_count_values($arr));
+        if($data['Special Shift'] > 1){
+            return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE Special Shift' ]);
+                
         }else{
-            // dd($request->all());
+            // delete
             if ($request->old_shift_sched) {
                 if($request->oldshift_sched_id == null ){
                     DB::connection('mysql_mes')
@@ -3593,7 +3593,6 @@ class SecondaryController extends Controller
             // for insert
             if ($request->newshift) {
                 foreach($request->newshift as $i => $row){
-
                     $new_shift_sched[] = [
                         'shift_id'=> $row,
                         'date' =>  $request->date,
@@ -3602,8 +3601,8 @@ class SecondaryController extends Controller
                         'created_by' => Auth::user()->email,
                         'created_at' => $now->toDateTimeString()
                     ];
-                    DB::connection('mysql_mes')->table('shift_schedule')->insert($new_shift_sched);
                 }
+                DB::connection('mysql_mes')->table('shift_schedule')->insert($new_shift_sched);
             }
             //update
             if ($request->oldshift) {
@@ -5844,66 +5843,74 @@ class SecondaryController extends Controller
             return $format;
             
     }
-    public function get_water_discharged_modal_details(){
-        $now = Carbon::now();
-        $get_date_today = $now->format('Y-m-d');
-        $previous_date= date('Y-m-d',strtotime("-1 days"));
+    public function get_water_discharged_modal_details(Request $request){
+        $transaction_date = Carbon::now();
+        if($request->transaction_date){
+            $transaction_date = Carbon::parse($request->transaction_date);
+        }
+
+        $formatted_transaction_date = $transaction_date->format('Y-m-d');
+        $operating_hrs = DB::connection('mysql_mes')->table('painting_operation_logs')
+            ->whereDate('operation_date', $formatted_transaction_date)->get();
+
+        $previous = DB::connection('mysql_mes')->table('water_discharged_monitoring')
+            ->orderBy('created_by', 'desc')->first();
         
-        $operating_hrs= DB::connection('mysql_mes')
-            ->table('painting_operation_logs')
-            ->whereDate('operation_date', $get_date_today)
-            ->get();
-        $previous= DB::connection('mysql_mes')
-            ->table('water_discharged_monitoring')
-            ->orderBy('created_by', 'desc')
-            ->first();
-        
-        $min=collect($operating_hrs)->min('operation_date');
-        $max=collect($operating_hrs)->max('operation_date');
-        // dd($min);
+        $min = collect($operating_hrs)->min('operation_date');
+        $max = collect($operating_hrs)->max('operation_date');
+
         $start = Carbon::parse($min);
         $end = Carbon::parse($max);
+
         $totalDuration = $end->diffInSeconds($start);
         $op_hrs= $this->format_operating_hrs($totalDuration);
         $previous_wd = ($previous == null)? 0: $previous->previous;
-        $date_today=  $now->format('l,  F d Y');
+
+        $formatted_transaction_date = $transaction_date->format('M d, Y');
     
-        return view('painting_operator.tbl_water_discharge_tab', compact('date_today','op_hrs', 'previous_wd'));
-                            
+        return view('painting_operator.tbl_water_discharge_tab', compact('op_hrs', 'previous_wd', 'formatted_transaction_date'));               
     }
+    
     public function submit_water_discharge_monitoring(Request $request){
-        $now = Carbon::now();
-        $email= DB::connection('mysql_essex')
-            ->table('users')
-            ->where('users.user_id', $request->inspected_by)
-            ->select('users.email')
-            ->first();
-        if (DB::connection('mysql_mes')
-            ->table('water_discharged_monitoring')
-            ->whereDate('date', $now->format('Y-m-d'))
-            ->exists()){
-                return response()->json(['success' => 0, 'message' => 'Water discharge record for today already exist.']);
-        }else{
-            $data=[];
-            $wd_monitoring=[];
-                $wd_monitoring = [
-                'operating_hrs' => $request->operating_hrs,
-                'previous' => $request->previous_inputs,
-                'present' => $request->present_inputs,
-                'incoming_water_discharged' => $request->incoming_water_discharged,
-                'operator_id' => $request->inspected_by,
-                'date' =>  $now->toDateTimeString(),
-                'last_modified_by' =>$email->email,
-                'created_by' => $email->email,
-                'created_at' => $now->toDateTimeString()
-                ];
-    
-            DB::connection('mysql_mes')->table('water_discharged_monitoring')->insert($wd_monitoring);
-                                
-                return response()->json(['success' => 1,'message' => 'Water discharge today successfully inserted.']);
+        if(!$request->water_date){
+            return response()->json(['success' => 0, 'message' => 'Please enter date.']);
         }
-                         
+
+        if(!$request->inspected_by){
+            return response()->json(['success' => 0, 'message' => 'Please enter employee ID.']);
+        }
+
+        $email= DB::connection('mysql_essex')->table('users')
+            ->where('user_id', $request->inspected_by)->select('users.email')->first();
+
+        if (!$email) {
+            return response()->json(['success' => 0, 'message' => 'Employee ID not found.']);
+        }
+
+        $now = Carbon::now();
+        $existing_record = DB::connection('mysql_mes')->table('water_discharged_monitoring')
+            ->whereDate('date', $now->format('Y-m-d'))->exists();
+        
+        if ($existing_record){
+            return response()->json(['success' => 0, 'message' => 'Water discharge record for today already exists.']);
+        }
+        
+        $wd_monitoring = [
+            'operating_hrs' => $request->operating_hrs,
+            'previous' => $request->previous_inputs,
+            'present' => $request->present_inputs,
+            'incoming_water_discharged' => $request->incoming_water_discharged,
+            'operator_id' => $request->inspected_by,
+            'date' =>  Carbon::parse($request->water_date)->format('Y-m-d'),
+            'created_by' => $email->email,
+            'created_at' => $now->toDateTimeString()
+        ];
+
+        DB::connection('mysql_mes')->table('water_discharged_monitoring')->insert($wd_monitoring);
+        
+        return response()->json(['success' => 1,'message' => 'Water discharge today successfully inserted.']);
     }
+
     public function get_chemical_records_modal_details(){
         $now = Carbon::now();
         if (DB::connection('mysql_mes')
