@@ -750,6 +750,10 @@ Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+
+Route::get('/rejection_report', 'LinkReportController@rejection_report');
+Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
+
 Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
 Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
 Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');

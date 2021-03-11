@@ -112,7 +112,10 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 <tr>
-                                    <td><a href="/link_qa_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
+                                    <td><a href="/link_qa_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/link_qa_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Report </span></a></td>
                                 </tr>
                             </tbody>
                         </table>

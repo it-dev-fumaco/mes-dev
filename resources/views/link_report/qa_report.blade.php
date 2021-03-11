@@ -1,4 +1,4 @@
-@extends('link_report.app', [
+@extends('layouts.user_app', [
   'namePage' => 'Fabrication',
   'activePage' => 'production_schedule',
 ])
@@ -34,12 +34,15 @@
       <div class="col-md-12">
         <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
           <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Inspection Logsheet Report</a>
+            <a class="nav-link {{ (request()->segment(2) == '1') ? 'active' : '' }}" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Inspection Logsheet Report</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ (request()->segment(2) == '2') ? 'active' : '' }}" data-toggle="tab" href="#tab02" role="tab" aria-controls="tab02" aria-selected="false">Rejection Report</a>
           </li>
         </ul>
         <div class="tab-content" style="min-height: 500px;">
           
-          <div class="tab-pane active" id="tab1" role="tabpanel" aria-labelledby="tab1">
+          <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab1" role="tabpanel" aria-labelledby="tab1">
             <div class="row">
               <div class="col-md-12">
                 <div class="card" style="border-radius: 0 0 3px 3px;">
@@ -418,45 +421,256 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2">
+          <div class="tab-pane {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="tab02" role="tabpanel" aria-labelledby="tab2">
             <div class="row">
               <div class="col-md-12">
                 <div class="card" style="border-radius: 0 0 3px 3px;">
                   <div class="card-body">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="card">
-                          <div class="card-header" style="background-color: #0277BD;">
-                            <div class="row" style="margin-top: -15px;">
-                              <div class="col-md-12" style="padding: 10px;">
-                                  <h5 class="text-white font-weight-bold align-middle text-center" style="font-size:13pt; margin: 0;">Defect(s) reported by QA Inspector</h5>
+                    <div class="row m-0">
+                       <div class="col-md-12 m-0">
+                          <div class="row" >
+                                <div class="col-md-12 m-0" style="padding: 0;margin-top: -50px;" >
+                                  <ul class="nav nav-tabs" role="tablist" id="reject-dashboard-tabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="fab_tab_reject" data-toggle="tab" href="#fab0" role="tab" aria-controls="fab0" aria-selected="true">Fabrication</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link " id="pain_tab_reject" data-toggle="tab" href="#pan1" role="tab" aria-controls="pan1" aria-selected="false">Painting</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link " id="assem_tab_reject" data-toggle="tab" href="#assem2" role="tab" aria-controls="assem2" aria-selected="false" id="olu_click">Wiring and Assembly</a>
+                                    </li>
+                                  </ul>
+                                  <div class="tab-content" style="min-height: 500px;">
+                                    <div class="tab-pane active" id="fab0" role="tabpanel" aria-labelledby="fab0">
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <div class="card" style="border-radius: 0 0 3px 3px;">
+                                            <div class="card-body">
+                                              <div class="row" >
+                                                <div class="col-md-7"></div>
+                                                <div class="col-md-3 text-center align-middle">
+                                                  <div class="form-group row align-middle">
+                                                    <label for="fab_reject_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Reject Category:</b></label>
+                                                    <div class="col-sm-7 align-middle">
+                                                      <select class="form-control form-control-lg text-center  class-dynamic" style="display:inline;" name="fab_reject_filter" id="fab_reject_filter">
+                                                        @foreach($reject_category as $rows)
+                                                          <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                  <div class="form-group">
+                                                    <label for="fab_yearpicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Year:</b></label>
+                                                    {{-- <input type="text" class="form-control form-control-lg  class-dynamic" name="yearpicker" autocomplete="off" placeholder="Select Date From and To" id="yearpicker" value="" style="display: inline-block; width: 60%; font-weight: bolder;" readonly> --}}
+                                                    <select id="fab_yearpicker" style="display: inline-block; width: 60%; font-weight: bolder;" name="fab_yearpicker" class="form-control form-control-lg">
+                                                      <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                                      <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                                      <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                                      <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                                      <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                                      <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                                      <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                                      <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                                      <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                                      <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                                    </select>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="col-md-12 m-0">
+                                                <div class="row">
+                                                  <div class="col-md-6">
+                                                    <div class="card">
+                                                      <div class="card-body">
+                                                        <div class="col-md-12">
+                                                          <h5 id="label_fab_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                                            <canvas id="tbl_fab_reject_report_chart" height="120"></canvas>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-6">
+                                                    <div class="card">
+                                                      <div class="card-body">
+                                                          <div class="col-md-12">
+                                                            <h5 id="label_fab_rate_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                                              <canvas id="tbl_fab_rate_report_chart" height="120"></canvas>
+                                                          </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-12">
+                                                    <div class="row">
+                                                        <div class="col-md-12" style="">
+                                                          <div id="tbl_fab_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="tab-pane" id="pan1" role="tabpanel" aria-labelledby="pan1">
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <div class="card" style="border-radius: 0 0 3px 3px;">
+                                            <div class="card-body">
+                                              <div class="row m-0">
+                                                <div class="col-md-7"></div>
+                                                <div class="col-md-3 text-center align-middle">
+                                                  <div class="form-group row align-middle">
+                                                    <label for="pain_reject_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Reject Category:</b></label>
+                                                    <div class="col-sm-7 align-middle">
+                                                      <select class="form-control form-control-lg text-center  class-dynamic" style="display:inline;" name="pain_reject_filter" id="pain_reject_filter">
+                                                        @foreach($reject_category as $rows)
+                                                          <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                                <div class="col-md-2 pull-right">
+                                                  <div class="form-group">
+                                                    <label for="pain_yearpicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Year:</b></label>
+                                                    {{-- <input type="text" class="form-control form-control-lg  class-dynamic" name="pain_yearpicker" autocomplete="off" placeholder="Select Date From and To" id="pain_yearpicker" value="" style="display: inline-block; width: 60%; font-weight: bolder;" readonly> --}}
+                                                    <select id="pain_yearpicker" style="display: inline-block; width: 60%; font-weight: bolder;" name="pain_yearpicker" class="form-control form-control-lg">
+                                                      <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                                      <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                                      <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                                      <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                                      <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                                      <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                                      <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                                      <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                                      <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                                      <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                                    </select>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="col-md-12 m-0">
+                                                <div class="row">
+                                                  <div class="col-md-6">
+                                                    <div class="card">
+                                                      <div class="card-body">
+                                                        <div class="col-md-12">
+                                                          <h5 id="label_pain_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                                            <canvas id="tbl_pain_reject_report_chart" height="120"></canvas>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-6">
+                                                    <div class="card">
+                                                      <div class="card-body">
+                                                          <div class="col-md-12">
+                                                            <h5 id="label_pain_rate_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                                              <canvas id="tbl_pain_rate_report_chart" height="120"></canvas>
+                                                          </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-12">
+                                                    <div class="row">
+                                                        <div class="col-md-12" style="">
+                                                          <div id="tbl_pain_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="tab-pane" id="assem2" role="tabpanel" aria-labelledby="assem2">
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <div class="card" style="border-radius: 0 0 3px 3px;">
+                                            <div class="card-body">
+                                              <div class="row m-0">
+                                                <div class="col-md-7"></div>
+                                                <div class="col-md-3 text-center align-middle">
+                                                  <div class="form-group row align-middle">
+                                                    <label for="assem_reject_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Reject Category:</b></label>
+                                                    <div class="col-sm-7 align-middle">
+                                                      <select class="form-control form-control-lg text-center  class-dynamic" style="display:inline;" name="assem_reject_filter" id="assem_reject_filter">
+                                                        @foreach($reject_category as $rows)
+                                                          <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                                        @endforeach
+                                                      </select>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                                <div class="col-md-2 pull-right">
+                                                  <div class="form-group">
+                                                    <label for="assem_yearpicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Year:</b></label>
+                                                    {{-- <input type="text" class="form-control form-control-lg  class-dynamic" name="assem_yearpicker" autocomplete="off" placeholder="Select Date From and To" id="assem_yearpicker" value="" style="display: inline-block; width: 60%; font-weight: bolder;" readonly> --}}
+                                                    <select id="assem_yearpicker" style="display: inline-block; width: 60%; font-weight: bolder;" name="assem_yearpicker" class="form-control form-control-lg">
+                                                      <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                                      <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                                      <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                                      <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                                      <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                                      <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                                      <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                                      <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                                      <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                                      <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                                    </select>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="col-md-12 m-0">
+                                                <div class="row">
+                                                  <div class="col-md-6">
+                                                    <div class="card">
+                                                      <div class="card-body">
+                                                        <div class="col-md-12">
+                                                          <h5 id="label_assem_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                                            <canvas id="tbl_assem_reject_report_chart" height="120"></canvas>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-6">
+                                                    <div class="card">
+                                                      <div class="card-body">
+                                                          <div class="col-md-12">
+                                                            <h5 id="label_assem_rate_chart_reject" style="font-weight: bold;" class="text-center"></h5>
+                                                              <canvas id="tbl_assem_rate_report_chart" height="120"></canvas>
+                                                          </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-12">
+                                                    <div class="row">
+                                                        <div class="col-md-12" style="">
+                                                          <div id="tbl_assem_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          <div class="card-body" style="min-height: 350px; background-color: #263238;">
-                            <div class="chart-area pt-4" style="min-height: 350px;">
-                              <canvas id="bigDashboardChart"></canvas>
-                            </div>
+                            <div class="col-md-4"> 
                           </div>
                         </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="card">
-                          <div class="card-header" style="background-color: #0277BD;">
-                            <div class="row" style="margin-top: -15px;">
-                              <div class="col-md-12" style="padding: 10px;">
-                                  <h5 class="text-white font-weight-bold align-middle text-center" style="font-size:13pt; margin: 0;">Top 5 Defect(s)</h5>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="card-body" style="min-height: 350px;">
-                            <div class="chart-area pt-4" style="min-height: 350px;">
-                              <canvas id="myChart" width="50" height="18"></canvas>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                     </div>
                   </div>
                 </div>
               </div>
@@ -464,8 +678,7 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+     </div>
   <div class="modal fade" id="jt-workstations-modal" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document" style="min-width: 90%;">
         <div class="modal-content">
@@ -930,7 +1143,14 @@
   <script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
   <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
   <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
-  
+  <script type="text/javascript" src="{{ asset('css/datepicker/jquery.timepicker.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/jquery.timepicker.css') }}" />
+  <script type="text/javascript" src="{{ asset('css/datepicker/datepair.js') }}"></script>
+  <script type="text/javascript" src="{{ asset('css/datepicker/jquery.datepair.js') }}"></script>
+  <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
+
+  {{-- <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script> --}}
   <script>
     $(document).ready(function(){
 
@@ -1070,7 +1290,7 @@
     });
     tbl_log_painting();
   
-     $('#daterange_painting').on('apply.daterangepicker', function(ev, picker) {
+    $('#daterange_painting').on('apply.daterangepicker', function(ev, picker) {
         $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
         tbl_log_painting();
   
@@ -1542,4 +1762,781 @@
       
       });
     </script> 
+<script>
+  // $("#yearpicker").datepicker({
+  //   format: "yyyy",
+  //   viewMode: "years", 
+  //   minViewMode: "years",
+  //   autoclose: true,
+  //  });
+   var currentTime = new Date()
+   var year = currentTime.getFullYear();
+    $("#fab_yearpicker").val(year)
+
+function tbl_fab_log_reject_report(){
+      var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1;
+      var year = $('#fab_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+         }
+      $.ajax({
+              url:"/rejection_report",
+              type:"GET",
+              data: data,
+              success:function(data){
+                $('#tbl_fab_log_reject_report').html(data);
+              }
+            });
+      };
+  
+   function fab_optyStats(){
+    var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1;
+      var year = $('#fab_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_fab_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+            var reject = [];
+            var val = [];
+            var series=[];
+
+            for(var i in data.year) {
+              reject.push(data.year[i].reject);
+              series.push(data.year[i].series);
+              val.push(data.year[i].per_month);
+
+            }
+            var chartdata = {
+               labels: series,
+               data1:reject,
+               datasets : [{
+                     data: val,
+                     backgroundColor: '#2874a6',
+                     borderColor: "#2874a6",
+                     borderWidth: 3,
+                     label: "Total Reject/s",
+                  }]
+            };
+
+            var ctx = $("#tbl_fab_reject_report_chart");
+            if (window.assem_optyCtx != undefined) {
+               window.assem_optyCtx.destroy();
+            }
+
+            window.assem_optyCtx = new Chart(ctx, {
+               type: 'bar',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+               }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   $(document).on('change', '#fab_reject_filter', function(event){
+      tbl_fab_log_reject_report();
+      fab_optyStats();
+      tbl_fab_reject_rate_chart();
+   }); 
+   $(document).on('change', '#fab_yearpicker', function(event){
+      tbl_fab_log_reject_report();
+      fab_optyStats();
+      tbl_fab_reject_rate_chart();
+   }); 
+   $(document).on('change', '#fab_operation_filter', function(event){
+      tbl_fab_log_reject_report();
+      fab_optyStats();
+      tbl_fab_reject_rate_chart();
+   }); 
+   
+   function tbl_fab_reject_rate_chart(){
+    var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1
+      var year = $('#fab_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_fab_rate_chart_reject').text('Reject Rate ('+ year +')');
+
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+            var reject = [];
+            var target = [];
+            var planned =[];
+            var rate =[];
+            var series =[];
+            for(var i in data.year) {
+               rate.push(data.year[i].per_rate);
+               planned.push(data.year[i].target);
+               reject.push(data.year[i].reject);
+               series.push(data.year[i].series);
+
+            }
+            for(var i in data.year) {
+            }
+            var chartdata = {
+              data1:reject,
+               labels: series,
+               datasets : [{
+                     data: rate,
+                     backgroundColor: '#3cba9f',
+                     borderColor: "#3cba9f",
+                     label: "Reject Rate",
+                     fill: false
+                  },
+                  {
+                     data: planned,
+                     backgroundColor: '#3e95cd',
+                     borderColor: "#3e95cd",
+                     label: "Target",
+                     fill: false
+                  }]
+            };
+
+            var ctx = $("#tbl_fab_rate_report_chart");
+
+            if (window.tbl_chartCtx != undefined) {
+               window.tbl_chartCtx.destroy();
+            }
+
+            window.tbl_chartCtx = new Chart(ctx, {
+               type: 'line',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+                  elements: {
+                     line: {
+                         tension: 0 // disables bezier curves
+                     }
+                  },
+                  scales: {         
+                  xAxes: [
+                    { 
+                      ticks: {
+                        maxRotation: 90,
+                        callbacks: {
+                        title: function (tooltipItems, data) {
+                            return data.labels[tooltipItems[0].index]
+                        }
+                    },
+                      }, 
+                    }
+                  ]
+                }
+               }
+               
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   function tbl_pain_log_reject_report(){
+      var reject_category = $('#pain_reject_filter').val();  
+      var reject_cat_name = $('#pain_reject_filter option:selected').text();      
+      var operation = 2;
+      var year = $('#pain_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+         }
+      $.ajax({
+              url:"/rejection_report",
+              type:"GET",
+              data: data,
+              success:function(data){
+                $('#tbl_pain_log_reject_report').html(data);
+              }
+            });
+      };
+  
+   function pain_optyStats(){
+    var reject_category = $('#pain_reject_filter').val();  
+      var reject_cat_name = $('#pain_reject_filter option:selected').text();      
+      var operation = 2;
+      var year = $('#pain_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_pain_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+      // console.log('helllo');
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+            var reject = [];
+            var val = [];
+            var series=[];
+
+            for(var i in data.year) {
+              reject.push(data.year[i].reject);
+              series.push(data.year[i].series);
+              val.push(data.year[i].per_month);
+
+            }
+            var chartdata = {
+               labels: series,
+               data1:reject,
+               datasets : [{
+                     data: val,
+                     backgroundColor: '#2874a6',
+                     borderColor: "#2874a6",
+                     borderWidth: 3,
+                     label: "Total Reject/s",
+                  }]
+            };
+
+            var ctx = $("#tbl_pain_reject_report_chart");
+            if (window.pain_optyCtx != undefined) {
+               window.pain_optyCtx.destroy();
+            }
+
+            window.pain_optyCtx = new Chart(ctx, {
+               type: 'bar',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+               }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   $(document).on('change', '#pain_reject_filter', function(event){
+      tbl_pain_log_reject_report();
+      pain_optyStats();
+      tbl_pain_reject_rate_chart();
+   }); 
+   $(document).on('change', '#pain_yearpicker', function(event){
+      tbl_pain_log_reject_report();
+      pain_optyStats();
+      tbl_pain_reject_rate_chart();
+   }); 
+   $(document).on('change', '#pain_operation_filter', function(event){
+      tbl_pain_log_reject_report();
+      pain_optyStats();
+      tbl_pain_reject_rate_chart();
+   }); 
+   
+   function tbl_pain_reject_rate_chart(){
+    var reject_category = $('#pain_reject_filter').val();  
+      var reject_cat_name = $('#pain_reject_filter option:selected').text();      
+      var operation = 2;
+      var year = $('#pain_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_pain_rate_chart_reject').text('Reject Rate ('+ year +')');
+
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+            var reject = [];
+            var target = [];
+            var planned =[];
+            var rate =[];
+            var series =[];
+            for(var i in data.year) {
+               rate.push(data.year[i].per_rate);
+               planned.push(data.year[i].target);
+               reject.push(data.year[i].reject);
+               series.push(data.year[i].series);
+
+            }
+            for(var i in data.year) {
+            }
+            var chartdata = {
+              data1:reject,
+               labels: series,
+               datasets : [{
+                     data: rate,
+                     backgroundColor: '#3cba9f',
+                     borderColor: "#3cba9f",
+                     label: "Reject Rate",
+                     fill: false
+                  },
+                  {
+                     data: planned,
+                     backgroundColor: '#3e95cd',
+                     borderColor: "#3e95cd",
+                     label: "Target",
+                     fill: false
+                  }]
+            };
+
+            var ctx = $("#tbl_pain_rate_report_chart");
+
+            if (window.tbl_pain_chartCtx != undefined) {
+               window.tbl_pain_chartCtx.destroy();
+            }
+
+            window.tbl_pain_chartCtx = new Chart(ctx, {
+               type: 'line',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+                  elements: {
+                     line: {
+                         tension: 0 // disables bezier curves
+                     }
+                  },
+                  scales: {         
+                  xAxes: [
+                    { 
+                      ticks: {
+                        maxRotation: 90,
+                        callbacks: {
+                        title: function (tooltipItems, data) {
+                            return data.labels[tooltipItems[0].index]
+                        }
+                    },
+                      }, 
+                    }
+                  ]
+                }
+               }
+               
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   function tbl_assem_log_reject_report(){
+      var reject_category = $('#assem_reject_filter').val();  
+      var reject_cat_name = $('#assem_reject_filter option:selected').text();      
+      var operation = 3;
+      var year = $('#assem_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+         }
+      $.ajax({
+              url:"/rejection_report",
+              type:"GET",
+              data: data,
+              success:function(data){
+                $('#tbl_assem_log_reject_report').html(data);
+              }
+            });
+      };
+  
+   function assem_optyStats(){
+    var reject_category = $('#assem_reject_filter').val();  
+      var reject_cat_name = $('#assem_reject_filter option:selected').text();      
+      var operation = 3;
+      var year = $('#assem_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_assem_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+      // console.log('helllo');
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+            var reject = [];
+            var val = [];
+            var series=[];
+
+            for(var i in data.year) {
+              reject.push(data.year[i].reject);
+              series.push(data.year[i].series);
+              val.push(data.year[i].per_month);
+
+            }
+            var chartdata = {
+               labels: series,
+               data1:reject,
+               datasets : [{
+                     data: val,
+                     backgroundColor: '#2874a6',
+                     borderColor: "#2874a6",
+                     borderWidth: 3,
+                     label: "Total Reject/s",
+                  }]
+            };
+
+            var ctx = $("#tbl_assem_reject_report_chart");
+            if (window.assem_optyCtx != undefined) {
+               window.assem_optyCtx.destroy();
+            }
+
+            window.assem_optyCtx = new Chart(ctx, {
+               type: 'bar',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+               }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   $(document).on('change', '#assem_reject_filter', function(event){
+      tbl_assem_log_reject_report();
+      assem_optyStats();
+      tbl_assem_reject_rate_chart();
+   }); 
+   $(document).on('change', '#assem_yearpicker', function(event){
+      tbl_assem_log_reject_report();
+      assem_optyStats();
+      tbl_assem_reject_rate_chart();
+   }); 
+   $(document).on('change', '#assem_operation_filter', function(event){
+      tbl_assem_log_reject_report();
+      assem_optyStats();
+      tbl_assem_reject_rate_chart();
+   }); 
+   
+   function tbl_assem_reject_rate_chart(){
+    var reject_category = $('#assem_reject_filter').val();  
+      var reject_cat_name = $('#assem_reject_filter option:selected').text();      
+      var operation = 3;
+      var year = $('#assem_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      $('#label_assem_rate_chart_reject').text('Reject Rate ('+ year +')');
+
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+            var reject = [];
+            var target = [];
+            var planned =[];
+            var rate =[];
+            var series =[];
+            for(var i in data.year) {
+               rate.push(data.year[i].per_rate);
+               planned.push(data.year[i].target);
+               reject.push(data.year[i].reject);
+               series.push(data.year[i].series);
+
+            }
+            for(var i in data.year) {
+            }
+            var chartdata = {
+              data1:reject,
+               labels: series,
+               datasets : [{
+                     data: rate,
+                     backgroundColor: '#3cba9f',
+                     borderColor: "#3cba9f",
+                     label: "Reject Rate",
+                     fill: false
+                  },
+                  {
+                     data: planned,
+                     backgroundColor: '#3e95cd',
+                     borderColor: "#3e95cd",
+                     label: "Target",
+                     fill: false
+                  }]
+            };
+
+            var ctx = $("#tbl_assem_rate_report_chart");
+
+            if (window.tbl_assem_chartCtx != undefined) {
+               window.tbl_assem_chartCtx.destroy();
+            }
+
+            window.tbl_assem_chartCtx = new Chart(ctx, {
+               type: 'line',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+                  elements: {
+                     line: {
+                         tension: 0 // disables bezier curves
+                     }
+                  },
+                  scales: {         
+                  xAxes: [
+                    { 
+                      ticks: {
+                        maxRotation: 90,
+                        callbacks: {
+                        title: function (tooltipItems, data) {
+                            return data.labels[tooltipItems[0].index]
+                        }
+                    },
+                      }, 
+                    }
+                  ]
+                }
+               }
+               
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+   tbl_fab_permonth_reject_rate_chart();
+   function tbl_fab_permonth_reject_rate_chart(){
+    var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1;
+      var year = $('#fab_yearpicker').val();
+      var data = {
+            operation: operation,
+            reject_category : reject_category,
+            reject_name: reject_cat_name,
+            year: year
+      }
+      // $('#label_fab_rate_chart_reject').text('Reject Rate ('+ year +')');
+
+      $.ajax({
+         url: "/rejection_report_chart",
+         method: "GET",
+         data: data,
+         success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+            var reject = [];
+            var target = [];
+            var planned =[];
+            var rate =[];
+            var series =[];
+            for(var i in data.year) {
+               rate.push(data.year[i].per_rate);
+               planned.push(data.year[i].target);
+               reject.push(data.year[i].reject);
+               series.push(data.year[i].series);
+
+            }
+            for(var i in data.year) {
+            }
+            var chartdata = {
+              data1:reject,
+               labels: series,
+               datasets : [{
+                     data: rate,
+                     backgroundColor: '#3cba9f',
+                     borderColor: "#3cba9f",
+                     label: "Reject Rate",
+                     fill: false
+                  },
+                  {
+                     data: planned,
+                     backgroundColor: '#3e95cd',
+                     borderColor: "#3e95cd",
+                     label: "Target",
+                     fill: false
+                  }]
+            };
+
+            var ctx = $("#tbl_fab_permonth_rate_report_chart");
+
+            if (window.tbl_fab_chartCtx != undefined) {
+               window.tbl_fab_chartCtx.destroy();
+            }
+
+            window.tbl_fab_chartCtx = new Chart(ctx, {
+               type: 'line',
+               data: chartdata,
+               options: {
+                tooltips: {
+                  callbacks: {
+                        title: function (t, d) {
+                           return d['data1'][t[0]['index']];
+                            },
+                       },
+                },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+                  elements: {
+                     line: {
+                         tension: 0 // disables bezier curves
+                     }
+                  },
+                  scales: {         
+                  xAxes: [
+                    { 
+                      ticks: {
+                        maxRotation: 90,
+                        callbacks: {
+                        title: function (tooltipItems, data) {
+                            return data.labels[tooltipItems[0].index]
+                        }
+                    },
+                      }, 
+                    }
+                  ]
+                }
+               }
+               
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+
+   var active_tab= $('#reject-dashboard-tabs .active').text();
+   if(active_tab == "Fabrication"){
+    tbl_fab_log_reject_report();
+    fab_optyStats();
+    tbl_fab_reject_rate_chart();
+   }
+   $(document).on('click', '#pain_tab_reject', function(event){
+    tbl_pain_log_reject_report();
+    pain_optyStats();
+    tbl_pain_reject_rate_chart();
+   });
+   $(document).on('click', '#assem_tab_reject', function(event){
+    tbl_assem_log_reject_report();
+    assem_optyStats();
+    tbl_assem_reject_rate_chart();
+   });
+ </script>
   @endsection
