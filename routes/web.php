@@ -737,7 +737,7 @@ Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{pr
 Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page');
 Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
 Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
-Route::get('/link_qa_report', 'LinkReportController@qa_report');
+// Route::get('/link_qa_report', 'LinkReportController@qa_report');
 Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
 Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
 Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
@@ -758,3 +758,6 @@ Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_outp
 Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
 Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
 Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
+
+
+Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
