@@ -376,7 +376,7 @@
 
                sets.push({
                   data: per_month,
-                  label: data.item_codes[i]['item_code'],
+                  label: data.item_codes[i]['item_code'] + ' - ' + data.item_codes[i]['description'],
                   borderColor: data.item_codes[i]['color_code'],
                   backgroundColor: data.item_codes[i]['color_code']
                });
@@ -412,11 +412,6 @@
                         boxWidth: 11
                      }
                   },
-                  elements: {
-                     line: {
-                         tension: 0 // disables bezier curves
-                     }
-                  }
                }
             });
          },

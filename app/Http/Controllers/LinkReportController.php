@@ -25,7 +25,9 @@ class LinkReportController extends Controller
 {
     use GeneralTrait;
     public function index(){
-        return view('reports.report_index');
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('reports.report_index', compact('permissions'));
 
     }
     public function painting_report_page(){
@@ -371,9 +373,11 @@ class LinkReportController extends Controller
                     ->get();
 
         $parts_category= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 1)->whereNotNull('parts_category')->groupBy('parts_category')->select('parts_category')->get();       
-        $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();       
+        $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();  
+        
+        $item_classification= DB::connection('mysql_mes')->table('production_order')->where('operation_id', 1)->whereNotNull('item_classification')->groupBy('item_classification')->select('item_classification')->get();      
 
-        return view('link_report.fabrication_report',  compact('workstation', 'process', 'parts','sacode', 'parts_category', 'reject_category', 'permissions'));
+        return view('link_report.fabrication_report',  compact('workstation', 'process', 'parts','sacode', 'parts_category', 'reject_category', 'permissions', 'item_classification'));
     }
     public function daily_output_chart(Request $request){
         $now = Carbon::now();
@@ -468,6 +472,8 @@ class LinkReportController extends Controller
     }
     
     public function qa_report(){
+        $permissions = $this->get_user_permitted_operation();
+
         $item_code=  DB::connection('mysql_mes')->table('production_order as po')->select('item_code')->groupBy('item_code')->get();
         $customer=  DB::connection('mysql_mes')->table('production_order as po')->select('customer')->groupBy('customer')->get();
         $production_order=  DB::connection('mysql_mes')->table('production_order as po')->select('production_order')->get();
@@ -488,7 +494,6 @@ class LinkReportController extends Controller
         ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
         ->where('workstation.operation_id', 3)
         ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
-        // dd($fab_process);
 
         $qc_staff= DB::connection('mysql_mes')->table('quality_inspection as qa')
         ->groupBy('qa.qa_staff_id')->select('qa.qa_staff_id')->get();
@@ -513,7 +518,7 @@ class LinkReportController extends Controller
         $process_painting=  DB::connection('mysql_mes')->table('process')->whereIn('process_name',['Loading','Unloading'])->get();
         $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();       
         
-        return view('link_report.qa_report', compact('reject_category','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process"));
+        return view('link_report.qa_report', compact('permissions', 'reject_category','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process"));
     } 
     
     public function painting_output_report(Request $request){
@@ -1086,7 +1091,7 @@ class LinkReportController extends Controller
         $item_codes = array_unique(array_column($data->toArray(), 'item_code'));
 
         $item_code_inv = DB::connection('mysql_mes')->table('fabrication_inventory')
-            ->whereIn('item_code', $item_codes)->select('item_code', 'color_code')
+            ->whereIn('item_code', $item_codes)->select('item_code', 'color_code', 'description')
             ->distinct('item_code')->orderBy('item_code', 'desc')->get();
 
         $arr_list = [];
@@ -1146,5 +1151,121 @@ class LinkReportController extends Controller
         }
         
         return view('link_report.powder_coat_usage_report', compact('data', 'count', 'powder_data'));
+    }
+
+    public function print_qa_rejection_report(Request $request){
+        $requests = $request->all();
+        $months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];        
+        $current= date('n');
+        $year= $request->year;
+        $reject_category= $request->reject_category;
+        $data = [];
+        $operation= $request->operation;
+        $reject_category_name=$request->reject_name." Reject";
+        if($operation == 2){
+            $reject_list=DB::connection('mysql_mes')->table('reject_list as rl')
+                        ->LeftJoin('reject_reason as rr', 'rl.reject_list_id', 'rr.reject_list_id')
+                        ->Leftjoin('job_ticket as jt', 'jt.job_ticket_id', 'rr.job_ticket_id')
+                        ->Leftjoin('production_order as pro', 'pro.production_order', 'jt.production_order')
+                        ->Leftjoin('quality_inspection as qi', 'qi.qa_id', 'rr.qa_id')
+                        ->where('jt.workstation', 'Painting')
+                        ->where('pro.operation_id', 1)
+                        ->where('rl.reject_category_id', $reject_category)
+                        ->select('rl.reject_checklist', 'rl.reject_reason', 'rl.reject_list_id', DB::raw('MONTH(rr.created_at) as month'), DB::raw('YEAR(rr.created_at) as year'), 'jt.job_ticket_id', 'qi.rejected_qty', 'rr.reject_reason_id')
+                        ->get();
+        }else{
+            $reject_list=DB::connection('mysql_mes')->table('reject_list as rl')
+                        ->LeftJoin('reject_reason as rr', 'rl.reject_list_id', 'rr.reject_list_id')
+                        ->Leftjoin('job_ticket as jt', 'jt.job_ticket_id', 'rr.job_ticket_id')
+                        ->Leftjoin('production_order as pro', 'pro.production_order', 'jt.production_order')
+                        ->Leftjoin('quality_inspection as qi', 'qi.qa_id', 'rr.qa_id')
+                        ->whereNotIn('jt.workstation', ['Painting'])
+                        ->where('pro.operation_id', $operation)
+                        ->where('rl.reject_category_id', $reject_category)
+                        ->select('rl.reject_checklist', 'rl.reject_reason', 'rl.reject_list_id', DB::raw('MONTH(rr.created_at) as month'), DB::raw('YEAR(rr.created_at) as year'), 'jt.job_ticket_id', 'qi.rejected_qty', 'rr.reject_reason_id')
+                        ->get();
+        }   
+        $uniq_rej= collect($reject_list)->uniqueStrict('reject_list_id')->all();
+        if($operation == 3){
+            $total_output= DB::connection('mysql_mes')->table('production_order')->whereYear('actual_end_date', $year)->whereRaw('parent_item_code = item_code')->where('production_order.operation_id', $operation)->sum('produced_qty');
+        }elseif($operation == 2){
+            $total_output= DB::connection('mysql_mes')
+                ->table('production_order')
+                ->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')
+                ->where('jt.workstation', "Painting")
+                ->whereYear('jt.actual_end_date',$year)
+                ->where('production_order.operation_id', 1)
+                ->where('jt.process_id', 122)
+                ->sum('produced_qty');
+        }else{
+            $total_output= DB::connection('mysql_mes')->table('production_order')->whereYear('actual_end_date', $year)->where('production_order.operation_id', $operation)->sum('produced_qty');
+        }
+        $ir= 1;
+        foreach($uniq_rej as $row){
+            $node=[];
+            $days=[];
+            $total_output_rate_categ=[];
+            $var1= 0;
+            foreach ($months as $i => $month) {
+                $m= $i +1;
+                $var1 += collect($reject_list)->where('month', $m)->where('year', $year)->sum('rejected_qty');
+                $node[]=[ 
+                    'month' =>  $m,
+                    'mon' =>  $month,
+                    'sum' => collect($reject_list)->where('reject_reason', $row->reject_reason)->where('reject_checklist',$row->reject_checklist)->where('month', $m)->where('year', $year)->sum('rejected_qty'),
+                    'test' =>$var1
+                ];
+            }
+            $toupperspec= strtoupper('Out of Specification/Wrong Dimension');
+            $toupperval= strtoupper('Out of Specification');
+            $data[]=[
+                'reject'=> (strtoupper($row->reject_reason) == $toupperspec || strtoupper($row->reject_reason) == $toupperval) ? $row->reject_reason.'('.$row->reject_checklist.')': $row->reject_reason,
+                'id'=> $row->reject_list_id,
+                'per_month' => collect($node)->sum('sum'),
+                'per_rate' => ($total_output == 0)? 0 :round(collect($node)->sum('sum') /(($total_output) == 0? 1 : $total_output), 4),
+                'test'=> $var1,
+                'data'=> $node,
+                'series' => 'A'.$ir++
+            ];
+        }
+
+        $month_column=$months;
+        $colspan_month=12;
+        foreach ($months as $i => $month) {
+            $m= $i +1;
+            $total_reject_per_month[]=[ 
+                'month' =>  $m,
+                'sum' => collect($reject_list)->where('month', $m)->where('year', $year)->sum('rejected_qty'),
+            ];
+            if($operation == 3){
+               $total_q= DB::connection('mysql_mes')->table('production_order')->whereMonth('actual_end_date', $m)->whereYear('actual_end_date', $year)->whereRaw('parent_item_code = item_code')->where('production_order.operation_id', $operation)->select('production_order.produced_qty')->sum('produced_qty');
+            }elseif($operation == 2){
+                $total_q= DB::connection('mysql_mes')
+                    ->table('production_order')
+                    ->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')
+                    ->where('jt.workstation', "Painting")
+                    ->whereYear('jt.actual_end_date',$year)
+                    ->whereMonth('jt.actual_end_date', $m)
+                    ->where('production_order.operation_id', 1)
+                    ->where('jt.process_id', 122)
+                    ->select('production_order.produced_qty')->sum('produced_qty');
+            }else{
+                $total_q= DB::connection('mysql_mes')->table('production_order')->whereMonth('actual_end_date', $m)->whereYear('actual_end_date', $year)->where('production_order.operation_id', $operation)->select('production_order.produced_qty')->sum('produced_qty');
+
+            }
+            $total_output_per_month[]=[
+                'month' => $m,
+                'sum' => $total_q
+            ];
+            $reject_rate[]=[
+                'month' => $m,
+                'sum' => ($total_q == 0)? 0 : round(collect($reject_list)->where('month', $m)->where('year', $year)->sum('rejected_qty')/(($total_q == 0) ? 1 : $total_q), 4)
+            ];
+
+        }
+        $total_reject= ($total_output == 0)? 0 :collect($total_reject_per_month)->sum('sum');
+        $total_reject_rate= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
+        $reject_rate_for_total_reject= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
+        return view('link_report.print_qa_rejection_report', compact('data', "month_column", 'colspan_month', 'total_reject_per_month', 'reject_category_name', 'total_output_per_month', 'reject_rate', 'total_output', 'total_reject', 'total_reject_rate', 'reject_rate_for_total_reject', 'requests'));
     }
 }
