@@ -869,7 +869,7 @@
      windowContent += '<style> #tbl_id_report{min-height:200px !important;font-size:12px;}</style>';
 
      windowContent += '</html>';
-     var printWin = window.open('','','width=340,height=260');
+     var printWin = window.open('','','width=1100,height=800');
      printWin.document.open();
      printWin.document.write(windowContent);
      printWin.document.close();
