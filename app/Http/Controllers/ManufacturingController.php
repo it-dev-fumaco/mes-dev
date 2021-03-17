@@ -2104,6 +2104,15 @@ class ManufacturingController extends Controller
                             return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than ' . $remaining_required_qty . ' for <b>' . $item_code .'</b>.']);
                         }
 
+                        $st_entries = DB::connection('mysql')->table('tabStock Entry as ste')
+                            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                            ->where('ste.purpose', 'Material Transfer for Manufacture')->where('ste.docstatus', 0)
+                            ->where('ste.production_order', $request->production_order)->where('sted.item_code', $alternative_for->item_code)->pluck('ste.name');
+
+                        DB::connection('mysql')->table('tabStock Entry Detail')
+                            ->whereIn('parent', $st_entries)->where('item_code', $alternative_for->item_code)
+                            ->update(['qty' => ($remaining_required_qty - $qty), 'transfer_qty' => ($remaining_required_qty - $qty)]);
+                            
                         DB::connection('mysql')->table('tabProduction Order Item')
                             ->where('parent', $request->production_order)->where('item_code', $alternative_for->item_code)
                             ->update(['required_qty' => ($alternative_for->required_qty - $qty)]);
