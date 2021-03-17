@@ -724,4 +724,93 @@ trait GeneralTrait
 
         return $status;
     }
+
+    public function feedback_production_order_items($production_order, $qty_to_manufacture, $fg_completed_qty){
+        $production_order_items_qry = DB::connection('mysql')->table('tabProduction Order Item')
+            ->where('parent', $production_order)
+            ->where(function($q) {
+                $q->where('item_alternative_for', 'new_item')
+                ->orWhereNull('item_alternative_for');
+            })
+            ->orderBy('idx', 'asc')->get();
+
+        $production_order_items = [];
+        foreach ($production_order_items_qry as $index => $row) {
+            $required_qty = $row->required_qty;
+            $required_qty += DB::connection('mysql')->table('tabProduction Order Item')
+                ->where('parent', $production_order)
+                ->where('item_alternative_for', $row->item_code)
+                ->whereNotNull('item_alternative_for')
+                ->sum('required_qty');
+
+            $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
+                ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
+                ->where('ste.docstatus', 1)->sum('qty');
+
+            $remaining_required_qty = ($row->required_qty - $consumed_qty);
+            
+            $qty_per_item = $required_qty / $qty_to_manufacture;
+            $total_rm_qty = $qty_per_item * $fg_completed_qty;
+            $rm_qty = $total_rm_qty;
+            if($total_rm_qty > $remaining_required_qty){
+                $rm_qty = $remaining_required_qty;
+                $remaining_rm_qty = $total_rm_qty - $rm_qty; 
+                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_rm_qty);
+                $alternative_items = [];
+                foreach ($alternative_items_qry as $ai_row) {
+                    if ($ai_row['required_qty'] > 0) {
+                        $production_order_items[] = [
+                            'item_code' => $ai_row['item_code'],
+                            'item_name' => $ai_row['item_name'],
+                            'description' => $ai_row['description'],
+                            'stock_uom' => $ai_row['stock_uom'],
+                            'required_qty' => $ai_row['required_qty'],
+                            'transferred_qty' => $ai_row['transferred_qty'],
+                        ];
+                    }
+                }
+            }
+
+            if($rm_qty > 0){
+                $production_order_items[] = [
+                    'item_code' => $row->item_code,
+                    'item_name' => $row->item_name,
+                    'description' => $row->description,
+                    'stock_uom' => $row->stock_uom,
+                    'required_qty' => $rm_qty,
+                    'transferred_qty' => $row->transferred_qty,
+                ];
+            }
+        }
+
+        return $production_order_items;
+    }
+
+    public function get_alternative_items($production_order, $item_code, $rm_qty){
+        $q = DB::connection('mysql')->table('tabProduction Order Item')
+			->where('parent', $production_order)->where('item_alternative_for', $item_code)
+            ->orderBy('required_qty', 'asc')->get();
+
+        $arr = [];
+        $remaining_rm_qty = $rm_qty;
+        foreach ($q as $row) {
+            if($remaining_rm_qty > 0){
+                $required_qty = ($remaining_rm_qty > $row->required_qty) ? $row->required_qty : $remaining_rm_qty;
+                $arr[] = [
+                    'item_code' => $row->item_code,
+                    'required_qty' => $required_qty,
+                    'item_name' => $row->item_name,
+                    'description' => $row->description,
+                    'stock_uom' => $row->stock_uom,
+                    'transferred_qty' => $row->transferred_qty
+                ];
+            }
+
+            $remaining_rm_qty = $remaining_rm_qty - $row->required_qty;
+        }
+
+        return $arr;
+    }
 }

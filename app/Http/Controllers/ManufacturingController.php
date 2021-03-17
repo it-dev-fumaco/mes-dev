@@ -1600,6 +1600,8 @@ class ManufacturingController extends Controller
             // get transferred qty
             $transferred_qty = collect($references)->sum('qty');
 
+            $is_alternative = ($item->item_alternative_for && $item->item_alternative_for != 'new_item') ? 1 : 0;
+
             if($has_production_order){
                 $parts[] = [
                     'name' => $item->name,
@@ -1618,7 +1620,9 @@ class ManufacturingController extends Controller
                     'production_order' => $has_production_order->production_order,
                     'available_qty_at_wip' => $available_qty_at_wip,
                     'status' => $has_production_order->status,
-                    'references' => $references
+                    'references' => $references,
+                    'is_alternative' => $is_alternative,
+                    'item_alternative_for' => $item->item_alternative_for
                 ];
             }else{
                 $components[] = [
@@ -1638,7 +1642,9 @@ class ManufacturingController extends Controller
                     'production_order' => null,
                     'available_qty_at_wip' => $available_qty_at_wip,
                     'status' => null,
-                    'references' => $references
+                    'references' => $references,
+                    'is_alternative' => $is_alternative,
+                    'item_alternative_for' => $item->item_alternative_for
                 ];
             }
         }

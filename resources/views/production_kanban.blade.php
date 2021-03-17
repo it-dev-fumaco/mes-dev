@@ -1584,10 +1584,6 @@
        if (fltr3 !== 'all') {
          selector =  selector + '[data-parent-item="' + fltr3 + '"]';
        }
- 
-       console.log(selector);
-       console.log(fltr1, fltr2, fltr3);
-         
        // show all results
        $(selector).addClass('active-1');
    }
@@ -1858,7 +1854,6 @@
           type:"GET",
           data: data,
           success:function(data){
-            console.log(data);
             $.each(data, function(i, d){
               opt += '<option value="' + d + '">' + d + '</option>';
             });
@@ -1880,7 +1875,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
@@ -1975,13 +1969,6 @@
               data: {
                 positions: pos
               },
-              success:function(data){
-                if(data.success < 1){
-                  // console.log(data);
-                }else{
-                  // console.log(data);
-                }
-              },
               error: function(jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR);
                 console.log(textStatus);
@@ -2020,7 +2007,6 @@
                     $('#reschedule-delivery-modal').modal('show');
                     $('#reschedule-delivery-modal .close').hide();
                     $('#reschedule-delivery-modal .tbl_reload_deli_modal').val(dragndrop);
-                    // $('#reschedule-delivery-modal .btn-close').hide();
                   },
                   error: function(jqXHR, textStatus, errorThrown) {
                       console.log(jqXHR);
@@ -2076,9 +2062,6 @@
                         planned_start_date: ev.target.id,
                         current: ui.sender.attr('id')
                       },
-                      success:function(data){
-                        // console.log(data);
-                      },
                       error : function(data) {
                         console.log(data.responseText);
                       }
@@ -2093,9 +2076,6 @@
                         production_order: ui.item.data('name'),
                         planned_start_date: ev.target.id,
                         current: ui.sender.attr('id')
-                      },
-                      success:function(data){
-                        // console.log(data);
                       },
                       error : function(data) {
                         console.log(data.responseText);
@@ -2112,9 +2092,7 @@
                       production_order: ui.item.data('name'),
                       planned_start_date: ev.target.id,
                     },
-                    success:function(data){
-                      // console.log(data);
-                    },
+                   
                     error : function(data) {
                       console.log(data.responseText);
                     }
@@ -2145,7 +2123,6 @@
               var position = $(this).attr('data-position');
               var prod = $(this).attr('data-name');
               pos.push([name, position, card_id, prod]);
-              console.log(pos);
               $(this).removeClass('updated');
             });
           });   

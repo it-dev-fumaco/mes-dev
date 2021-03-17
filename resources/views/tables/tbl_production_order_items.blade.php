@@ -154,9 +154,15 @@
 							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
-					<td class="text-justify for-add-item" {!! $rowspan !!}>
+					<td class="text-justify {{ (!$component['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
-						<span class="d-block font-weight-bold item-code">{{ $component['item_code'] }}</span>
+						<div class="d-block">
+							<span class="font-weight-bold item-code">{{ $component['item_code'] }}</span> 
+							@if($component['is_alternative'])
+							<small class="font-italic">Alternative for {{ $component['item_alternative_for'] }}</small> 
+							@endif
+						</div>
+						
 						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
@@ -353,9 +359,11 @@
 						@endif
 						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
-					<td class="text-justify for-add-item" {!! $rowspan !!}>
+					<td class="text-justify {{ (!$part['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
-						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
+						@if($part['is_alternative'])
+						<small class="font-italic">Alternative for {{ $part['item_alternative_for'] }}</small> 
+						@endif
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
 						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
