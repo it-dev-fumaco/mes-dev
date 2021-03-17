@@ -6121,4 +6121,173 @@ class MainController extends Controller
 		$shift_sched = $this->get_prod_shift_sched($request->date, $request->operation);
 		return view('tables.tbl_default_shift_sched', compact('shift_sched'));
 	}
+	// update production order rescheduled date (erp) and MES
+	public function calendar_update_rescheduled_delivery_date(Request $request){
+		$now = Carbon::now();
+		$production_order = explode(',', $request->production_order);
+		// $delivery_date =  Carbon::parse($request->delivery_date);
+		$reschedule_date = Carbon::parse($request->reschedule_date);
+		$planned_start_date = Carbon::parse($request->planned_start_date);
+		if($planned_start_date->toDateTimeString() > $reschedule_date->toDateTimeString()){
+			return response()->json(['success' => 0, 'message' => 'Rescheduled date must be greater than the current delivery date', 'reload_tbl' => $request->reload_tbl]);
+		}
+		foreach($production_order as $n => $pro){
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $pro)->first();
+			// update production order & sales order rescheduled delivery date & late delivery reason
+			if($planned_start_date->toDateTimeString() <= $reschedule_date->toDateTimeString()){
+				$production_order_data = [
+					'reschedule_delivery' => 1,
+					'reschedule_delivery_date' => $reschedule_date->toDateTimeString()
+				];
+				$mes_data=[
+					'rescheduled_delivery_date' =>  $reschedule_date->toDateTimeString(),
+					'last_modified_by' => Auth::user()->employee_name,
+					'last_modified_at' => $now->toDateTimeString(),
+				];
+				//for sales order
+				
+				if ($production_order_details->sales_order) {
+					$delivery_id=DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->first();// get the id from the delivery date table FOR SO refrerence
+					if(empty($delivery_id)){
+						return response()->json(['success' => 3, 'message' => 'Unable to reschedule delivery date for '.$production_order_details->item_code.'. Item code doesnt exist in '.$production_order_details->sales_order.' and has been changed by Sales Personnel.', 'reload_tbl' => $request->reload_tbl]);			
+					}
+					$data=explode(',',$request->reason_id);
+					$datas= ">>".Carbon::parse($reschedule_date)->format('Y-m-d').'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$data[1]."-".$request->remarks."<br>".$request->historylogs[$n];//Timeline_log for remarks(delivery Reason) in ERP
+					$sales_order_data = [
+						'reschedule_delivery' => 1,
+						'rescheduled_delivery_date' => $reschedule_date->toDateTimeString(),
+						'remarks' => $datas
+					];
+					$resched_logs=[
+						'delivery_date_id' => $delivery_id->delivery_date_id,
+						'previous_delivery_date' => ($delivery_id->rescheduled_delivery_date == null)?$delivery_id->delivery_date:$delivery_id->rescheduled_delivery_date,
+						'reschedule_reason_id' => $data[0],
+						'rescheduled_by' => Auth::user()->employee_name,
+						'remarks' => $request->remarks,
+						'created_by' => Auth::user()->employee_name,
+						'created_at' => $now->toDateTimeString(),
+					];
+					//email alert
+					$get_sales_order_owner=db::connection('mysql')->table('tabSales Order Item')
+					->where('parent', $production_order_details->sales_order)
+					->where('item_code', $production_order_details->item_code)->select('owner')->first();//get so owner from erp
+					if(empty($get_sales_order_owner)){
+						return response()->json(['success' => 3, 'message' => 'Unable to reschedule delivery date for '.$production_order_details->item_code.'. Item code doesnt exist in '.$production_order_details->sales_order.' and has been changed by Sales Personnel.', 'reload_tbl' => $request->reload_tbl]);
+					}
+					$email_data = array( 
+						'orig_delivery_date'  => ($delivery_id->rescheduled_delivery_date == null)? Carbon::parse($delivery_id->delivery_date)->format('Y-m-d'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('Y-m-d'),
+						'resched_date'  	  => Carbon::parse($reschedule_date)->format('Y-m-d'),
+						'item_code'           => $production_order_details->item_code,
+						'description'		  => $production_order_details->description,
+						'reference'			  => $production_order_details->sales_order,
+						'resched_by'     	  => Auth::user()->employee_name,
+						'resched_reason'      => $data[1]."-".$request->remarks,
+						'customer'			  => $production_order_details->customer,
+						'qty'			 	  => $production_order_details->qty_to_manufacture,
+						'uom'			      => $production_order_details->stock_uom,
+					); 
+					if($get_sales_order_owner->owner != "Administrator"){
+						Mail::to($get_sales_order_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+						Mail::to("john.delacruz@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+						Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					}				
+					DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
+					DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->sales_order)->update($mes_data);//update the reschedule delivery date in delivery date table
+				}
+				//for MREQ
+				if($production_order_details->material_request){
+					$delivery_id=DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->first();// get the id from the delivery date table FOR MREQ refrerence
+					if(empty($delivery_id)){
+						return response()->json(['success' => 3, 'message' => 'Unable to reschedule delivery date for '.$production_order_details->item_code.'. Item code doesnt exist in '.$production_order_details->material_request.' and has been changed by Sales Personnel.', 'reload_tbl' => $request->reload_tbl]);
+					}
+					$data=explode(',',$request->reason_id);
+					$datas= ">>".Carbon::parse($reschedule_date)->format('Y-m-d').'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$data[1]."-".$request->remarks."<br>".$request->historylogs[$n];//Timeline_log for remarks(delivery Reason) in ERP
+					
+					$material_request_data = [
+						'reschedule_delivery' => 1,
+						'rescheduled_delivery_date' => $reschedule_date->toDateTimeString(),
+						'late_delivery_reason' => $datas
+					];
+					$resched_logs=[
+						'delivery_date_id' => $delivery_id->delivery_date_id,
+						'previous_delivery_date' => ($delivery_id->rescheduled_delivery_date == null)?$delivery_id->delivery_date:$delivery_id->rescheduled_delivery_date,
+						'reschedule_reason_id' => $data[0],
+						'rescheduled_by' => Auth::user()->employee_name,
+						'remarks' => $request->remarks,
+						'created_by' => Auth::user()->employee_name,
+						'created_at' => $now->toDateTimeString(),
+					];
+					//email alert
+					$get_mreq_owner=db::connection('mysql')->table('tabMaterial Request Item')
+					->where('parent', $production_order_details->material_request)
+					->where('item_code', $production_order_details->item_code)->select('owner')->first();//get mreq owner from erp
+					if(empty($get_mreq_owner)){
+						return response()->json(['success' => 3, 'message' => 'Unable to reschedule delivery date for '.$production_order_details->item_code.'. Because item code doesnt exist in '.$production_order_details->material_request.' and has been changed by Sales Personnel.', 'reload_tbl' => $request->reload_tbl]);
+					}
+					$email_data = array( 
+						'orig_delivery_date'  => ($delivery_id->rescheduled_delivery_date == null)? Carbon::parse($delivery_id->delivery_date)->format('M-d-Y'): Carbon::parse($delivery_id->rescheduled_delivery_date)->format('M-d-Y'),
+						'resched_date'  	  => Carbon::parse($reschedule_date)->format('M-d-Y'),
+						'item_code'           => $production_order_details->item_code,
+						'description'		  => $production_order_details->description,
+						'reference'			  => $production_order_details->material_request,
+						'resched_by'     	  => Auth::user()->employee_name,
+						'resched_reason'      => $data[1]."-".$request->remarks,
+						'customer'			  => $production_order_details->customer,
+						'qty'			 	  => $production_order_details->qty_to_manufacture,
+						'uom'			      => $production_order_details->stock_uom,
+					); 
+					if($get_mreq_owner->owner != "Administrator"){
+						Mail::to($get_mreq_owner->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+						Mail::to("john.delacruz@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+						Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					}
+					DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert($resched_logs);// insert log in delivery schedule logs
+					DB::connection('mysql_mes')->table('delivery_date')->where('parent_item_code', $production_order_details->item_code)->where('reference_no',$production_order_details->material_request)->update($mes_data);
+				}
+			}
+			// if schedued in less than the current delivery date (for validation)
+			if($planned_start_date->toDateTimeString() > $reschedule_date->toDateTimeString()){
+				$production_order_data = [
+					'reschedule_delivery' => 0,
+					'reschedule_delivery_date' => null
+				];
+				if ($production_order_details->sales_order) {
+					$sales_order_data = [
+						'reschedule_delivery' => 0,
+						'rescheduled_delivery_date' => null,
+						'remarks' => null
+					];
+				}
+				if($production_order_details->material_request){
+					$material_request_data = [
+						'reschedule_delivery' => 0,
+						'rescheduled_delivery_date' => null,
+						'late_delivery_reason' => null
+					];
+				}
+			}
+			//QUERY TO UPDATE DATA IN ERP
+			if($production_order_details->sales_order){
+				DB::connection('mysql')->table('tabSales Order Item')
+					->where('parent', $production_order_details->sales_order)
+					->where('item_code', $production_order_details->item_code)
+					->update($sales_order_data);
+				DB::connection('mysql')->table('tabProduction Order')
+					->where('parent_item_code', $production_order_details->item_code)
+					->where('sales_order_no',$production_order_details->sales_order)
+					->update($production_order_data);	
+			}
+			if($production_order_details->material_request){
+				DB::connection('mysql')->table('tabMaterial Request Item')
+					->where('parent', $production_order_details->material_request)
+					->where('item_code', $production_order_details->item_code)
+					->update($material_request_data);
+				DB::connection('mysql')->table('tabProduction Order')
+					->where('parent_item_code', $production_order_details->item_code)
+					->where('material_request',$production_order_details->material_request)
+					->update($production_order_data);
+			}
+		}
+		return response()->json(['success' => 1, 'message' => 'Production Order updated.', 'reload_tbl' => $request->reload_tbl]);	
+	}
 }
