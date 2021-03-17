@@ -115,7 +115,7 @@
                       </div>
                       <div class="card-body">
                         <div class="form-group" style="margin-top:-10px;">
-                          <label> <i><b>Note:</b> Please select production order from the list to reschedule planned start date. </i></label>
+                          <label> <i><b>Note:</b> Select production order from the list to reschedule. </i></label>
                         </div>
                         <div class="form-group">
                           <label for="planned_start_datepicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date:</b></label>
