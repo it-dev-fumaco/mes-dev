@@ -114,9 +114,6 @@
                        <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Moved Planned Start Date</b></h5>
                       </div>
                       <div class="card-body">
-                        <div class="form-group" style="margin-top:-10px;">
-                          <label> <i><b>Note:</b> Please Check the box of the production order to moved</i></label>
-                        </div>
                         <div class="form-group">
                           <label for="planned_start_datepicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date:</b></label>
                           <input type="date" class="form-control" name="planned_start_datepicker" id="planned_start_datepicker" style="display: inline-block; width: 80%; font-weight: bolder;">
