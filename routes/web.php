@@ -355,11 +355,12 @@ Route::get('/production_scheduling_tbl', 'SecondaryController@tbl_production_sch
 //fabrication_calendar
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
-	
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
-    Route::post('/calendar/update_planned_start_date_by_click', 
-        ['uses' => 'SecondaryController@update_planned_start_date_by_click', 'as' => 'fabrication.ajax_update']);
+    Route::post('/add_shift_schedule', 
+        ['uses' => 'SecondaryController@add_shift_schedule', 'as' => 'fabrication.ajax_update']);
 });
+Route::post('/add_shift_schedule_prod', 'SecondaryController@add_shift_schedule');
+
 
 
 ///revise MainDashboard Patrick 
@@ -372,7 +373,6 @@ Route::get('/get_tbl_shift_list', 'SecondaryController@tbl_shift_list');
 Route::post('/add_operation', 'SecondaryController@add_operation');
 Route::post('/edit_operation', 'SecondaryController@edit_operation');
 Route::get('/get_tbl_operation_list', 'SecondaryController@tbl_operation_list');
-Route::post('/add_shift_schedule', 'SecondaryController@add_shift_schedule');
 Route::post('/edit_shift_schedule', 'SecondaryController@edit_shift_schedule');
 Route::post('/delete_shift_schedule', 'SecondaryController@delete_shift_sched');
 Route::get('/get_tbl_shiftsched_list', 'SecondaryController@get_tbl_shiftsched_list');
@@ -651,6 +651,12 @@ Route::get('/get_material_type', 'SecondaryController@get_material_type');
 Route::post('/edit_material_type', 'SecondaryController@update_material_type');
 Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
 Route::post('/save_material_type', 'SecondaryController@save_material_type');
+
+//calendar
+
+Route::get('/schedule_prod_calendar_details', 'SecondaryController@schedule_prod_calendar_details');
+Route::get('/get_assembly_prod_calendar', 'SecondaryController@get_assembly_prod_calendar');
+Route::post('/calendar_update_rescheduled_delivery_date', 'MainController@calendar_update_rescheduled_delivery_date');
 
 
 //reason for cancellation(PO)
