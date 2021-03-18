@@ -9,11 +9,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 use App\Exports\ExportDataQaInspectionLog; 
 use Maatwebsite\Excel\Facades\Excel;
+use App\Traits\GeneralTrait;
 
 use DB;
 
 class QualityInspectionController extends Controller
 {
+    use GeneralTrait;
 	public function get_checklist(Request $request, $workstation_name, $production_order, $process_id){
         $workstation_details = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation_name)->first();
         if(!$workstation_details){
