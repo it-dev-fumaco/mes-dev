@@ -5507,6 +5507,18 @@ class MainController extends Controller
 
 						if($item_code_with_alternative){
 							$required_qty = $item_code_with_alternative->required_qty + $production_order_item->required_qty;
+							$remaining_qty = $item_code_with_alternative->required_qty - $item_code_with_alternative->transferred_qty;
+							$remaining_qty = $production_order_item->required_qty + $remaining_qty;
+
+							$st_entries = DB::connection('mysql')->table('tabStock Entry as ste')
+								->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+								->where('ste.purpose', 'Material Transfer for Manufacture')->where('ste.docstatus', 0)
+								->where('ste.production_order', $production_order)->where('sted.item_code', $production_order_item->item_alternative_for)
+								->pluck('ste.name');
+
+							DB::connection('mysql')->table('tabStock Entry Detail')
+								->whereIn('parent', $st_entries)->where('item_code', $production_order_item->item_alternative_for)
+								->update(['qty' => ($remaining_qty), 'transfer_qty' => ($remaining_qty)]);
 
 							DB::connection('mysql')->table('tabProduction Order Item')
 								->where('parent', $production_order)->where('item_code', $production_order_item->item_alternative_for)
