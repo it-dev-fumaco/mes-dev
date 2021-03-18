@@ -3614,7 +3614,12 @@ class SecondaryController extends Controller
         //add_shift_schedule
         if(empty($request->shifttype)){
             $arr= [];
-            return response()->json(['success' => 0, 'message' => 'No shift selected' ]);
+            if($request->pagename == "calendar"){
+                $get_data=$this->get_production_schedule_calendar($request->operation_id);
+                 return $get_data;
+            }else{
+                return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
+            }
 
         }else{
             $arr=$request->shifttype;
