@@ -156,9 +156,7 @@ class SpotweldingController extends Controller
 				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
 
-			$this->update_completed_qty_per_workstation($request->job_ticket_id);
-			$this->update_production_actual_start_end($request->production_order);
-			$this->update_jobticket_actual_start_end($request->job_ticket_id);
+			$this->update_job_ticket($request->job_ticket_id);
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
@@ -199,11 +197,7 @@ class SpotweldingController extends Controller
 
 			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->first()->process_id;
 			
-			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
-			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
-			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
-			$this->update_production_actual_start_end($request->production_order);
+			$this->update_job_ticket($current_task->job_ticket_id);
 			$ho_bom = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first()->bom_no;
 
 			$parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->get();
@@ -310,7 +304,7 @@ class SpotweldingController extends Controller
 
 				DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->update($update);
 				
-				$this->update_completed_qty_per_workstation($time_log->job_ticket_id); 
+				$this->update_job_ticket($time_log->job_ticket_id); 
 			}else{
 				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->first();
 				$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
@@ -351,13 +345,8 @@ class SpotweldingController extends Controller
                 }
 
 				
-				$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
+				$this->update_job_ticket($time_log->job_ticket_id);
 			}
-
-			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $time_log->job_ticket_id)->first()->process_id;
-
-			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
-			$this->update_produced_qty($request->production_order);
 
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
@@ -841,10 +830,7 @@ class SpotweldingController extends Controller
 					DB::connection('mysql_mes')->table('production_order')->where('production_order', $time_log_detail->production_order)->update(['status' => 'In Progress']);
 				}
 	
-				$this->update_completed_qty_per_workstation($time_log_detail->job_ticket_id);
-				$this->update_production_actual_start_end($time_log_detail->production_order);
-				$this->update_jobticket_actual_start_end($time_log_detail->job_ticket_id);
-
+				$this->update_job_ticket($time_log_detail->job_ticket_id);
 			}
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.']);

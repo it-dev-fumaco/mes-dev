@@ -42,9 +42,59 @@
             <li class="nav-item">
                <a class="nav-link {{ (request()->segment(2) == '3') ? 'active' : '' }}" id="water-discharge-tab" data-toggle="tab" href="#water-discharge" role="tab" aria-controls="water-discharge" aria-selected="false">Water Discharged Monitoring</a>
             </li>
+            <li class="nav-item">
+               <a class="nav-link {{ (request()->segment(2) == '4') ? 'active' : '' }}" data-toggle="tab" href="#powder-consumption-report" role="tab">Powder Coat Consumption Report</a>
+            </li>
 		   </ul>
 			<!-- Tab panes -->
 			<div class="tab-content">
+            <div class="tab-pane {{ (request()->segment(2) == '4') ? 'active' : '' }}" id="powder-consumption-report" role="tabpanel" aria-labelledby="tab0">
+               <div class="row">
+                  <div class="col-md-12">
+                     <div class="card" style="border-radius: 0 0 3px 3px;">
+                        <div class="card-body">
+                           <div class="row m-0">
+                              <div class="col-md-12">
+                                 <div class="row text-black" style=" padding-top:50px auto;">
+                                    <div class="col-md-6">
+                                       <div class="form-group">
+                                          <h5 class="font-weight-bold">Powder Coat Consumption Report</h5>
+                                       </div>
+                                    </div>
+                                    <div class="col-md-6 text-center mb-2">
+                                       <div class="form-group row m-0">
+                                          <div class="col-md-8 p-0 text-right">
+                                             <label for="select-year" class="text-dark m-2" style="font-size: 12pt;"><b>Select Year:</b></label>
+                                          </div>
+                                          <div class="col-md-4 p-0">
+                                             <select class="form-control form-control-lg m-0" id="select-year">
+                                                @for ($i = 2019; $i < now()->year + 1; $i++)
+                                                <option value="{{ $i }}" {{ ($i == (now()->year)) ? 'selected' : ''  }}>{{ $i }}</option>
+                                                @endfor
+                                             </select>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-12">
+                                 <div class="card">
+                                    <div class="card-body">
+                                       <div class="col-md-12">
+                                          <canvas id="powder-consumption-ctx" height="50"></canvas>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-12">
+                                 <div id="powder-consumption-history-div"></div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
             <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab0" role="tabpanel" aria-labelledby="tab0">
                <div class="row">
                   <div class="col-md-12">
@@ -72,9 +122,16 @@
                                        </div>
                                     </div>
                                     <div class="col-md-4 pull-right">
-                                       <div class="form-group">
-                                          <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                          <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                                       <div class="row">
+                                          <div class="col-md-10">
+                                             <div class="form-group">
+                                                <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
+                                                <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
+                                             </div>
+                                          </div>
+                                          <div class="col-md-2">
+                                             <div style="float: right;" id="printthisasap"><img src="{{ asset('img/print.png') }}" width="35" class="printbtnprint" data-print=""  ></div>
+                                          </div>
                                        </div>
                                     </div>
                                  </div>
@@ -83,7 +140,7 @@
                                  <div class="card">
                                     <div class="card-body">
                                        <div class="col-md-12">
-                                          <canvas id="assembly_daily_report_chart" height="50"></canvas>
+                                          <canvas id="painting_daily_report_chart" height="50"></canvas>
                                        </div>
                                     </div>
                                  </div>
@@ -101,7 +158,7 @@
                                        
                                        </ul>
                                        <!-- Tab panes -->
-                                       <div class="tab-content">
+                                       <div class="tab-content" id="printtbl">
                                           <div class="tab-pane active" id="tabclass01" role="tabpanel" aria-labelledby="tabclass01">
                                              <div class="row" style="margin-top: 12px;">
                                                 <div class="col-md-12">
@@ -295,6 +352,94 @@
 
 <script>
     $(document).ready(function(){
+      powder_consumption_chart();
+      $('#select-year').change(function(){
+         powder_consumption_chart();
+         tbl_powder_consumed_list();
+      });
+      function powder_consumption_chart(){
+         var year = $('#select-year').val();
+
+      $.ajax({
+         url: "/powder_coating_usage_report",
+         method: "GET",
+         data: {year: year},
+         success: function(data) {
+
+            var sets = [];
+            for(var i in data.item_codes) {
+               var per_month = [];
+
+               for(s in data.data){
+                  per_month.push(data.data[s]['item_' + i]);
+               }
+
+               sets.push({
+                  data: per_month,
+                  label: data.item_codes[i]['item_code'] + ' - ' + data.item_codes[i]['description'],
+                  borderColor: data.item_codes[i]['color_code'],
+                  backgroundColor: data.item_codes[i]['color_code']
+               });
+            }
+            
+            var labels = [];
+            for(var i in data.data) {
+               labels.push(data.data[i].month); 
+            }
+
+            var chartdata = {
+               labels: labels,
+               datasets: sets
+            };
+ 
+            var ctx_pwder = $("#powder-consumption-ctx");
+ 
+            if (window.pwder != undefined) {
+               window.pwder.destroy();
+            }
+ 
+            window.pwder = new Chart(ctx_pwder, {
+               type: 'bar',
+               data: chartdata,
+               options: {
+                  tooltips: {
+                     mode: 'index'
+                  },
+                  responsive: true,
+                  legend: {
+                     position: 'top',
+                     labels:{
+                        boxWidth: 11
+                     }
+                  },
+               }
+            });
+         },
+         error: function(data) {
+            alert('Error fetching data!');
+         }
+      });
+   }
+
+      tbl_powder_consumed_list();
+      function tbl_powder_consumed_list(page){
+         var year = $('#select-year').val();
+         $.ajax({
+            url:"/powder_coat_usage_history?page="+page,
+            type:"GET",
+            data: {year: year},
+            success:function(data){
+            $('#powder-consumption-history-div').html(data);
+            }
+         });
+      }
+
+      $(document).on('click', '#tbl_painting_consumed_pagination a', function(event){
+         event.preventDefault();
+         var page = $(this).attr('href').split('page=')[1];
+         tbl_powder_consumed_list(page);
+      });
+
          tbl_chem_records();
    water_discharge_tbl();
    $('#daterange').val('');
@@ -648,7 +793,7 @@
                  }]
            };
 
-           var ctx = $("#assembly_daily_report_chart");
+           var ctx = $("#painting_daily_report_chart");
 
            if (window.tbl_chartCtx != undefined) {
               window.tbl_chartCtx.destroy();
@@ -705,5 +850,32 @@
               }
             });
       };
+      $('#printthisasap').on("click", function () {
+    var dataUrl = document.getElementById('painting_daily_report_chart').toDataURL(); //attempt to save base64 string to server using this var  
+    var tbldata=   document.getElementById('printtbl').innerHTML;
+    var div2 = document.createElement('div');
+    var labelrange= $('#daterange_report').text();
+    var date = $('#daterange_report').val();
+     var windowContent = '<!DOCTYPE html>';
+     windowContent += '<html>'
+      windowContent += '<head><title>Print</title>';
+         windowContent += '<style> *{ -webkit-print-color-adjust: exact !important; /*Chrome, Safari */color-adjust: exact !important;  /*Firefox*/} @page { size: landscape; }</style>';
+
+      windowContent += '</head>';
+     windowContent += '<body style="font-size:12px;"><div class="row"><div class="col-md-12"><h2 style="float:left;">Daily Painting Output Report</h2><h3 style="float:right;">'+ date +'</h3></div></div>'
+     windowContent += '<img style="display: block; width: 100%; height: 100%;" src="' + dataUrl + '">';
+     windowContent += '<div style="width: 100%; height: 100%;font-size:30pt;">'+ tbldata +'</div>';
+     windowContent += '</body>';
+     windowContent += '<style> #tbl_id_report{min-height:200px !important;font-size:12px;}</style>';
+
+     windowContent += '</html>';
+     var printWin = window.open('','','width=1100,height=800');
+     printWin.document.open();
+     printWin.document.write(windowContent);
+     printWin.document.close();
+     printWin.focus();
+     printWin.print();
+     printWin.close();
+ });
 </script>
 @endsection

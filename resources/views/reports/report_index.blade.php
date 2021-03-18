@@ -77,6 +77,10 @@
                                     <td><a href="/link_painting_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
 
                                 </tr>
+                                <tr>
+                                    <td><a href="/link_painting_report/4" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Powder Coat Consumption Report </span></a></td>
+
+                                </tr>
                                 
                             </tbody>
                         </table>
@@ -108,7 +112,10 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 <tr>
-                                    <td><a href="/link_qa_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
+                                    <td><a href="/link_qa_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/link_qa_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Report </span></a></td>
                                 </tr>
                             </tbody>
                         </table>

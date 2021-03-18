@@ -1,6 +1,6 @@
 
 
-<table cellspacing="0" cellpadding="0" class="text-center table table-bordered" id="ceo" >
+<table cellspacing="0" cellpadding="0" class="text-center table table-bordered" id="tbl_id_report">
     <thead class="tableclass">
       <tr class="tableclass" style="font-size:10px;border:1px solid white;background-color:  #2874a6;color:white;font-weight:bold;padding:0; ">
         <th  class="tableclass" data-sort="name" rowspan="2" style="border:1px solid white;background-color:  #2874a6;color:white;font-weight:bold;padding:0;  ">Indeces</th>
