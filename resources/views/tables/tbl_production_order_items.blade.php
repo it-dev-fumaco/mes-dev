@@ -159,7 +159,7 @@
 						<div class="d-block">
 							<span class="font-weight-bold item-code">{{ $component['item_code'] }}</span> 
 							@if($component['is_alternative'])
-							<small class="font-italic">Alternative for {{ $component['item_alternative_for'] }}</small> 
+							<small class="font-italic badge badge-info">Alternative for {{ $component['item_alternative_for'] }}</small> 
 							@endif
 						</div>
 						
@@ -362,7 +362,7 @@
 					<td class="text-justify {{ (!$part['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						@if($part['is_alternative'])
-						<small class="font-italic">Alternative for {{ $part['item_alternative_for'] }}</small> 
+						<small class="font-italic badge badge-info">Alternative for {{ $part['item_alternative_for'] }}</small> 
 						@endif
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
