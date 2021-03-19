@@ -189,7 +189,19 @@
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $from_time }}</td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $to_time }}</td>
-															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $operator_name }}</td>
+															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
+																<span class="hvrlink-plan">{{ $operator_name }}</span>
+																<div class="hover-box text-center">
+																	@if (count($c['helpers']) > 0)
+																	<label class="font-weight-bold mb-1">HELPER(S)</label>
+																	@foreach ($c['helpers'] as $helper)
+																	<span class="d-block">{{ $helper }}</span>
+																	@endforeach
+																	@else
+																	<label class="font-weight-bold m-0">NO HELPER(S)</label>
+																	@endif
+																</div>
+															</td>
 														</tr>
 														@endforeach
 													@else
@@ -353,6 +365,37 @@
 
   .details-panes:hover {
     display: block;
+  }
+
+  .hover-box {
+	display: none;
+	color: #414141;
+	background: #f1f1f1;
+	border: 1px solid #a9a9a9;
+	position: absolute;
+	right: 5px;
+	z-index: 9999999;
+	width: 220px;
+	padding: 5px;
+	-webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+	-moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+	box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+	white-space: normal;
+  }
+
+	.hover-box span{
+		padding: 0.2%;
+	}
+
+  /** hover styles **/
+  span.hvrlink-plan:hover + .hover-box {
+	display: block;
+	
+  }
+
+  .hover-box:hover {
+	display: block;
+	
   }
 
 </style>
