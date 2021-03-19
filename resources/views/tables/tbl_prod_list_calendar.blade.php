@@ -28,13 +28,22 @@
                                     }
                                 }             
                             @endphp
+                           
                             <li class="">
                                 <div class="custom-control custom-checkbox mr-sm-2" style="font-size:12pt;">
                                     <input id="option{{ $r0->production_order }}" class="custom-control-input prodname" name="prodname[]"  data-dateslct="{{ $r0->production_order }}" type="checkbox" value="{{ $r0->production_order }}">
                                     <label for="option{{ $r0->production_order }}" class="custom-control-label" style="line-height: 1.8;">
-                                        <span class="badge badge-{{$stat_badge}}" style="text-align: center;font-size:13px;color:white; ">
+                                        <span class="badge badge-{{$stat_badge}} hvrlink-plan" style="text-align: center;font-size:13px;color:white; ">
                                             <b>{{ $r0->production_order }} ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</b>
                                         </span>
+                                        <div class="details-pane-plan" style="font-size:8pt;">
+                                            <h5 class="title">{{ $r0->production_order }}</b> ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</h5>
+                                            <p class="desc">
+                                              <b>Item Description:</b><br>
+                                              <b>{{ $r0->item_code }}</b>-{{ $r0->description }}<br>
+                                              <i>CTD Qty: <b>{{ $r0->produced_qty }} {{ $r0->stock_uom }}</b></i>
+                                            </p>
+                                        </div>
                                     </label>
                                 </div>
                             </li>
@@ -72,9 +81,17 @@
                             <div class="custom-control custom-checkbox mr-sm-2" style="font-size:12pt;">
                                 <input id="option{{ $r1->production_order }}" class="custom-control-input" name="prodname[]" type="checkbox" data-dateslct="{{ $r1->production_order }}" value="{{ $r1->production_order }}">
                                 <label for="option{{ $r1->production_order }}" class="custom-control-label" style="line-height: 1.8;">
-                                    <span class="badge badge-{{$stat_badge}}" style="text-align: center;font-size:13px;color:white; ">
+                                    <span class="badge badge-{{$stat_badge}} hvrlink-plan" style="text-align: center;font-size:13px;color:white; ">
                                         <b>{{ $r1->production_order }} ({{ ($r1->sales_order == null)? $r1->material_request:$r1->sales_order }})</b>
                                     </span>
+                                    <div class="details-pane-plan" style="font-size:8pt;">
+                                        <h5 class="title">{{ $r1->production_order }}</b> ({{ ($r1->sales_order == null)? $r1->material_request:$r1->sales_order }})</h5>
+                                        <p class="desc">
+                                          <b>Item Description:</b><br>
+                                          <b>{{ $r1->item_code }}</b>-{{ $r1->description }}<br>
+                                          <i>CTD Qty: <b>{{ $r1->produced_qty }} {{ $r1->stock_uom }}</b></i>
+                                        </p>
+                                    </div>
                                 </label>
                             </div>
                         </li>
