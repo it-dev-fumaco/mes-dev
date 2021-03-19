@@ -447,7 +447,7 @@ class QualityInspectionController extends Controller
             ->where('user_id', Auth::user()->user_id)->first();
 
         $production_order_query = DB::connection('mysql_mes')->table('production_order')->get();
-
+      
         $item_code = array_unique(array_column($production_order_query->toArray(), 'item_code'));
         $customer = array_unique(array_column($production_order_query->toArray(), 'customer'));
         $production_order = array_unique(array_column($production_order_query->toArray(), 'production_order'));
