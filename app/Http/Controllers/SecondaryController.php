@@ -2959,6 +2959,7 @@ class SecondaryController extends Controller
                 ->where('spotwelding_qty.status', 'In Progress')
                 ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id')
                 ->union($orders_1)->get();
+
             $data = [];
             foreach($orders as $row){
                 $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
@@ -2972,6 +2973,8 @@ class SecondaryController extends Controller
                     ->select('employee_name')
                     ->first();
                 }
+
+                $helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $row->time_log_id)->distinct()->pluck('operator_name');
                 
                 $data[]=[
                     'workstation_plot'=> $row->workstation_plot,
@@ -2991,7 +2994,8 @@ class SecondaryController extends Controller
                     'job_ticket_id' => $row->job_ticket_id,
                     'timelogs_id' => $row->time_log_id,
                     'qty_accepted' => $row->qty_to_manufacture,
-                    'workstation_id' =>  $row->workstation_id
+                    'workstation_id' =>  $row->workstation_id,
+                    'helpers' => $helpers
                 ];
             }
             $result[] = [

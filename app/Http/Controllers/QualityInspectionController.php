@@ -16,6 +16,7 @@ use DB;
 class QualityInspectionController extends Controller
 {
     use GeneralTrait;
+
 	public function get_checklist(Request $request, $workstation_name, $production_order, $process_id){
         $workstation_details = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation_name)->first();
         if(!$workstation_details){
@@ -26,6 +27,7 @@ class QualityInspectionController extends Controller
         if(!$process_details){
             return response()->json(['success' => 0, 'message' => 'Process not found.']);
         }
+
         if($workstation_name == "Painting"){
             $q = DB::connection('mysql_mes')->table('qa_checklist')
             ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
@@ -36,21 +38,15 @@ class QualityInspectionController extends Controller
                     ->orWhere('qa_checklist.process_id', null);
             })
             ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
-            // ->orderBy('reject_list.reject_category_id', 'desc')
-            // ->orderBy('reject_category.reject_category_name', 'asc')
             ->get();
-            
         }else{
             $q = DB::connection('mysql_mes')->table('qa_checklist')
-            ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
-            ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
-            ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
-            // ->orderBy('reject_list.reject_category_id', 'desc')
-            // ->orderBy('reject_category.reject_category_name', 'asc')
-            ->get();
+                ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
+                ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+                ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
+                ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
+                ->get();
         }
-        
 
         $checklist = collect($q)->groupBy(['type', 'reject_category_name']);
 
@@ -115,7 +111,6 @@ class QualityInspectionController extends Controller
     	$qa_staff_name = $qa_user->employee_name;
     	if ($request->time_log_id) {
     		if ($request->inspection_type == 'Random Inspection') {
-    			
                 if ($request->workstation == 'Spotwelding') {
                     $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
                         ->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
@@ -143,7 +138,6 @@ class QualityInspectionController extends Controller
                         'for_rework_qty' => 0,
                         'status' => ($request->total_rejects > 0) ? 'QC Failed' : 'QC Passed',
                         'qc_remarks' => $request->qc_remarks,
-                        // 'rejection_id' => $request->rejection_types,
                         'created_by' => $qa_staff_name,
                         'created_at' => $now->toDateTimeString()
                     ];
@@ -161,7 +155,6 @@ class QualityInspectionController extends Controller
                         'for_rework_qty' => 0,
                         'status' => ($request->total_rejects > 0) ? 'QC Failed' : 'QC Passed',
                         'qc_remarks' => $request->qc_remarks,
-                        // 'rejection_id' => $request->rejection_types,
                         'created_by' => $qa_staff_name,
                         'created_at' => $now->toDateTimeString()
                     ];
@@ -442,56 +435,79 @@ class QualityInspectionController extends Controller
     }
     
     public function qa_dashboard(){
+        $permissions = $this->get_user_permitted_operation();
+
+        if(!in_array('Quality Assurance', $permissions['permitted_modules'])){
+            return redirect('/main_dashboard');
+        }
+        
         $user_details = DB::connection('mysql_essex')->table('users')
             ->join('designation', 'users.designation_id', '=', 'designation.des_id')
             ->join('departments', 'users.department_id', '=', 'departments.department_id')
             ->where('user_id', Auth::user()->user_id)->first();
 
-        $item_code=  DB::connection('mysql_mes')->table('production_order as po')->select('item_code')->groupBy('item_code')->get();
-        $customer=  DB::connection('mysql_mes')->table('production_order as po')->select('customer')->groupBy('customer')->get();
-        $production_order=  DB::connection('mysql_mes')->table('production_order as po')->select('production_order')->get();
-        $fab_workstation=  DB::connection('mysql_mes')->table('workstation')->where('operation_id', 1)->where('workstation_name', '!=', "Painting")->select('workstation_name','workstation_id')->get();
-        $pain_workstation=  DB::connection('mysql_mes')->table('workstation')->where('operation_id', 1)->where('workstation_name', "Painting")->select('workstation_name','workstation_id')->get();
-        $assem_workstation=  DB::connection('mysql_mes')->table('workstation')->where('operation_id', 3)->select('workstation_name','workstation_id')->get();
+        $production_order_query = DB::connection('mysql_mes')->table('production_order')->get();
+      
+        $item_code = array_unique(array_column($production_order_query->toArray(), 'item_code'));
+        $customer = array_unique(array_column($production_order_query->toArray(), 'customer'));
+        $production_order = array_unique(array_column($production_order_query->toArray(), 'production_order'));
 
-        $fab_process=  DB::connection('mysql_mes')
-        ->table('process_assignment')
-        ->join('process', 'process.process_id', 'process_assignment.process_id')
-        ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-        ->whereNotIn('process.process_name',['Loading','Unloading'])
-        ->where('workstation.operation_id', 1)
-        ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
-        $assem_process=  DB::connection('mysql_mes')
-        ->table('process_assignment')
-        ->join('process', 'process.process_id', 'process_assignment.process_id')
-        ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-        ->where('workstation.operation_id', 3)
-        ->groupBy('process_assignment.process_id', 'process.process_name')->select('process_assignment.process_id', 'process.process_name')->get();
-        // dd($fab_process);
+        $workstations = DB::connection('mysql_mes')->table('workstation')
+            ->select('operation_id', 'workstation_name','workstation_id')->get();
 
-        $qc_staff= DB::connection('mysql_mes')->table('quality_inspection as qa')
-        ->groupBy('qa.qa_staff_id')->select('qa.qa_staff_id')->get();
-        foreach ($qc_staff as $row) {
-           $emp_name= DB::connection('mysql_essex')
-                        ->table('users')
-                        ->where('users.user_id', $row->qa_staff_id)
-                        ->select('users.employee_name')
-                        ->first();
-            if($row->qa_staff_id != null){
-                 $qc_name[]=[
-                "name" => $emp_name->employee_name,
-                "user_id" =>  $row->qa_staff_id
+        $fab_workstation = collect($workstations)->filter(function ($value, $key) {
+            return ($value->operation_id == 1 && $value->workstation_name != 'Painting');
+        });
+
+        $pain_workstation = collect($workstations)->filter(function ($value, $key) {
+            return ($value->operation_id == 1 && $value->workstation_name == 'Painting');
+        });
+
+        $assem_workstation = collect($workstations)->filter(function ($value, $key) {
+            return ($value->operation_id == 3);
+        });
+
+        $processes = DB::connection('mysql_mes')->table('process_assignment')
+            ->join('process', 'process.process_id', 'process_assignment.process_id')
+            ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
+            ->groupBy('process_assignment.process_id', 'process.process_name', 'workstation.operation_id')
+            ->select('process_assignment.process_id', 'process.process_name', 'workstation.operation_id')
+            ->get();
+    
+        $fab_process = collect($processes)->filter(function ($value, $key) {
+            return ($value->operation_id == 1 && !in_array($value->process_name, ['Loading','Unloading']));
+        });
+
+        $process_painting = collect($processes)->filter(function ($value, $key) {
+            return ($value->operation_id == 1 && in_array($value->process_name, ['Loading','Unloading']));
+        });
+
+        $assem_process = collect($processes)->filter(function ($value, $key) {
+            return ($value->operation_id == 3);
+        });
+
+        $qc_staff= DB::connection('mysql_mes')->table('quality_inspection')->whereNotNull('qa_staff_id')->distinct('qa_staff_id')->pluck('qa_staff_id');
+        $qc_name = [];
+        foreach ($qc_staff as $id) {
+            $emp_name= DB::connection('mysql_essex')->table('users')
+                ->where('user_id', $id)->select('employee_name')->first();
+
+            if($emp_name){
+                $qc_name[]=[
+                    "name" => $emp_name->employee_name,
+                    "user_id" =>  $id
                 ];
             }
         }
+
+        $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();
+
         $operators = DB::connection('mysql_essex')->table('users')
             ->where('status', 'Active')->where('user_type', 'Employee')
             ->whereIn('designation_id', [46, 47, 53])->orderBy('employee_name', 'asc')
-            ->select('user_id', 'employee_name')
-            ->get();
-        $process_painting=  DB::connection('mysql_mes')->table('process')->whereIn('process_name',['Loading','Unloading'])->get();
+            ->select('user_id', 'employee_name')->get();
 
-        return view('quality_inspection.qa_dashboard', compact('user_details','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process"));
+        return view('quality_inspection.qa_dashboard', compact('user_details','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process", 'permissions', 'reject_category'));
     }
 
     public function get_quick_view_data(){
