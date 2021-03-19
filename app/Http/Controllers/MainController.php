@@ -461,9 +461,14 @@ class MainController extends Controller
 						$cycle_time_per_log = '-';
 					}
 
+					$helpers = DB::connection('mysql_mes')->table('helper')
+						->where('time_log_id', $d->time_log_id)->orderBy('operator_name', 'asc')
+						->distinct()->pluck('operator_name');
+
 					$operations_arr[] = [
 						'machine_code' => $d->machine_code,
 						'operator_name' => $d->operator_name,
+						'helpers' => $helpers,
 						'from_time' => ($d->from_time) ? Carbon::parse($d->from_time)->format('M-d-Y h:i A') : '',
 						'to_time' => ($d->to_time) ? Carbon::parse($d->to_time)->format('M-d-Y h:i A') : '',
 						'status' => $d->status,
