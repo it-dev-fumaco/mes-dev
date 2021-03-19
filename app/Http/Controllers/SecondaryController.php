@@ -2974,7 +2974,7 @@ class SecondaryController extends Controller
                     ->first();
                 }
 
-                $helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', 7877)->distinct()->pluck('operator_name');
+                $helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $row->time_log_id)->distinct()->pluck('operator_name');
                 
                 $data[]=[
                     'workstation_plot'=> $row->workstation_plot,
