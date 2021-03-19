@@ -1,82 +1,77 @@
-{{--  {{ (count($result) < 0) ? 'padding-top: 50px;' : '' }}   --}}
 <div class="row m-0">
   <div class="col-md-12 m-0 p-0">
-     <!-- Nav tabs -->
-     <ul class="nav nav-tabs" role="tablist" {{ (count($result) < 2) ? 'hidde5n' : '' }}>
-       @foreach($result as $i => $operation)
-       <li class="nav-item" style="color: black !important;">
-          <a class="nav-link {{ ($loop->first) ? 'active' : '' }}" data-toggle="tab" href="#tab{{ $i }}" role="tab" aria-controls="tab{{ $i }}" aria-selected="true" style="color: black !important; font-weight: bold;">{{ $operation['operation_name'] }}</a>
-       </li>
-       @endforeach
-      </ul>
-      <!-- Tab panes -->
-      <div class="tab-content" style="overflow-y: auto; height: 500px;">
-        @foreach($result as $i => $operation)
-        <div class="tab-pane {{ ($loop->first) ? 'active' : '' }}" id="tab{{ $i }}" role="tabpanel" aria-labelledby="tab1">
-          <table class="table table-striped text-center">
-            <col style="width:15%">
-            <col style="width:15%">
-            <col style="width:16%">
-            <col style="width:16%">
-            <col style="width:10%">
-            <col style="width:15%">
-            <col style="width:13%">
-
-            <thead class="text-primary" style="font-size: 8pt;">
-              <th class="text-center"><b>Workstation</b></th>
-              {{--  <th class="text-center"><b>Process</b></th>  --}}
-              <th class="text-center"><b>Prod. Order</b></th>
-              <th class="text-center"><b>Start Time</b></th>
-              <th class="text-center"><b>Operator</b></th>
-              <th class="text-center"><b>Machine</b></th>
-              <th class="text-center"><b>QC Status</b></th>
-              <th class="text-center"><b>Action/s</b></th>
-            </thead>
-            <tbody style="font-size: 9pt;">
-              @forelse($operation['data'] as $row)
-              <tr style="background-color: {{ ($current_date != (date('Y-m-d', strtotime( $row['from_time']))) ) ? '#f5b7b1':'' }}">
-                <td class="text-center">
-                  <span class="font-weight-bold d-block">{{ $row['workstation_plot'] }}</span>
-                  <span class="font-italic d-block">({{ $row['process_name'] }})</span>
-                </td>
-                {{--  <td class="text-center"><b><i>{{ $row['process_name'] }}</i></b></td>  --}}
-                <td class="text-center"><a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn" style="color: black;">{{ $row['production_order'] }}</a></td>
-                <td class="text-center">{{ $row['from_time']  }}</td>
-                <td class="text-center">{{ $row['operator_name'] }}</td>
-                  @php
-                    if($row['qa_inspection_status'] == "Pending"){
-                      $status="info";
-                    }else if($row['qa_inspection_status'] == "QC Failed"){
-                      $status="danger";
-                    }else{
-                      $status="success";
-                    }
-                  @endphp
-                <td class="text-center">{{ $row['machine'] }}</td>
-                <td class="text-center">
-                  <span class="badge badge-{{ $status }}" style="font-size: 9pt;">{{ $row['qa_inspection_status'] }}</span>
-                  <span style="display: block;">{{ $row['qa_inspected_by'] }}</span>
-                </td>
-                <td>
-                  <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" style="padding: 10px;">Mark as Done</button>
-                </td>
-              </tr>
-              @empty
-              <tr>
-                <td colspan="8" class="text-center">No In Progress task(s) found</td>
-              </tr>
-              @endforelse
-            </tbody>
-          </table>
-      
-      
-        </div>
-     
-        @endforeach
-        
-        
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      @foreach($result as $i => $operation)
+      <li class="nav-item font-weight-bold text-dark">
+        <a class="nav-link {{ ($loop->first) ? 'active' : '' }}" data-toggle="tab" href="#tab{{ $i }}" role="tab">{{ $operation['operation_name'] }}</a>
+      </li>
+      @endforeach
+    </ul>
+    <!-- Tab panes -->
+    <div class="tab-content" style="overflow-y: auto; height: 500px;">
+      @foreach($result as $i => $operation)
+      <div class="tab-pane {{ ($loop->first) ? 'active' : '' }}" id="tab{{ $i }}" role="tabpanel" aria-labelledby="tab1">
+        <table class="table table-striped text-center">
+          <col style="width:15%">
+          <col style="width:15%">
+          <col style="width:16%">
+          <col style="width:16%">
+          <col style="width:10%">
+          <col style="width:15%">
+          <col style="width:13%">
+          <thead class="text-primary" style="font-size: 8pt;">
+            <th class="text-center"><b>Workstation</b></th>
+            <th class="text-center"><b>Prod. Order</b></th>
+            <th class="text-center"><b>Start Time</b></th>
+            <th class="text-center"><b>Operator</b></th>
+            <th class="text-center"><b>Machine</b></th>
+            <th class="text-center"><b>QC Status</b></th>
+            <th class="text-center"><b>Action/s</b></th>
+          </thead>
+          <tbody style="font-size: 9pt;">
+            @forelse($operation['data'] as $row)
+            <tr style="background-color: {{ ($current_date != (date('Y-m-d', strtotime( $row['from_time']))) ) ? '#f5b7b1':'' }}">
+              <td class="text-center">
+                <span class="font-weight-bold d-block">{{ $row['workstation_plot'] }}</span>
+                <span class="font-italic d-block">({{ $row['process_name'] }})</span>
+              </td>
+              <td class="text-center"><a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn text-dark">{{ $row['production_order'] }}</a></td>
+              <td class="text-center">{{ $row['from_time']  }}</td>
+              <td class="text-center">
+                <span class="d-block">{{ $row['operator_name'] }}</span>
+                @foreach($row['helpers'] as $helper_name)
+                  <span class="d-block">{{ $helper_name }}</span>
+                @endforeach
+              </td>
+                @php
+                  if($row['qa_inspection_status'] == "Pending"){
+                    $status="info";
+                  }else if($row['qa_inspection_status'] == "QC Failed"){
+                    $status="danger";
+                  }else{
+                    $status="success";
+                  }
+                @endphp
+              <td class="text-center">{{ $row['machine'] }}</td>
+              <td class="text-center">
+                <span class="badge badge-{{ $status }}" style="font-size: 9pt;">{{ $row['qa_inspection_status'] }}</span>
+                <span style="display: block;">{{ $row['qa_inspected_by'] }}</span>
+              </td>
+              <td>
+                <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" style="padding: 10px;">Mark as Done</button>
+              </td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="8" class="text-center">No In Progress task(s) found</td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
       </div>
-
+      @endforeach
+    </div>
    </div>
 </div>
 
