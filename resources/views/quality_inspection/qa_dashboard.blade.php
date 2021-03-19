@@ -1,37 +1,37 @@
-@extends('quality_inspection.app', [
-    'namePage' => 'QA',
+@extends('layouts.user_app', [
+    'namePage' => 'MES',
     'activePage' => 'qa_dashboard',
 ])
 
 @section('content')
 <div class="panel-header">
-  <div class="header text-center"> 
-    <div class="row">
-      <div class="col-md-8 offset-md-1" style="margin-top: -71px;">
-        <table style="text-align: center; width: 100%;font-size: 11px;">
-          <tr>
-            <td style="width: 30%; border-right: 5px solid white;">
-              <h5 class="title" >
-                <div class="pull-right" style="margin-right: 20px;">
-                  <span style="display: block; font-size: 14pt;">{{ date('M-d-Y') }}</span>
-                  <span style="display: block; font-size: 8pt;">{{ date('l') }}</span>
-                </div>
-              </h5>
-            </td>
-            <td style="width: 20%; border-right: 5px solid white;">
-              <h5 class="title" style="margin: auto; font-size: 15pt;"><span id="current-time">--:--:-- --</span></h5>
-            </td>
-            <td style="width: 50%">
-              <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Quality Assurance</h4>
-              <span class="title text-left" style="margin-left: 20px; margin: auto 20pt;float:left;">
-                <i>{{ Auth::user()->employee_name }} - {{ $user_details->designation_name }}</i>
-              </span>
-            </td>
-          </tr>
-        </table>
+   <div class="header text-center"> 
+      <div class="row">
+        <div class="col-md-12" style="margin-top:-71px;">
+            <table style="text-align: center; width: 100%;">
+              <tr>
+                <td style="width: 25%; border-right: 5px solid white;">
+                  <h5 class="title">
+                    <div class="pull-right" style="margin-right: 20px;">
+                      <span style="display: block; font-size: 18pt;">{{ date('M-d-Y') }}</span>
+                      <span style="display: block; font-size: 11pt;">{{ date('l') }}</span>
+                    </div>
+                  </h5>
+                </td>
+                <td style="width: 14%; border-right: 5px solid white;">
+                  <h5 class="title" style="margin: auto; font-size: 25pt;"><span id="current-time">--:--:-- --</span></h5>
+                </td>
+                <td style="width: 50%">
+                  <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Quality Assurance Dashboard</h4>
+                  <span class="title text-left" style="margin-left: 20px; margin: auto 20pt;float:left;">
+                    <i>{{ Auth::user()->employee_name }} - {{ $user_details->designation_name }}</i>
+                  </span>
+                </td>
+              </tr>
+            </table>
+        </div>
       </div>
-    </div>
-  </div>
+   </div>
 </div>
 
 <div class="content">
@@ -45,7 +45,7 @@
           <a class="nav-link" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Inspection Logsheet</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">QA Analysis / Reports</a>
+          <a class="nav-link" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Rejection Report</a>
         </li>
       </ul>
       <div class="tab-content" style="min-height: 500px;">
@@ -309,8 +309,8 @@
                                                       <label style="color: black;">Item Code</label>
                                                       <select class="form-control text-center sel6 " name="item_code" id="item_code">
                                                           <option value=""> Select Item Code</option>
-                                                          @foreach($item_code as $row)
-                                                          <option value="{{$row->item_code}}">{{$row->item_code}}</option>
+                                                          @foreach($item_code as $item)
+                                                          <option value="{{$item }}">{{$item }}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -319,8 +319,8 @@
                                                       <label style="color: black;">Production Order</label>
                                                        <select class="form-control text-center sel6 " name="prod" id="prod">
                                                           <option value=""> Select Production Order</option>
-                                                          @foreach($production_order as $row)
-                                                          <option value="{{$row->production_order}}">{{$row->production_order}}</option>
+                                                          @foreach($production_order as $production)
+                                                          <option value="{{$production}}">{{$production}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -328,8 +328,8 @@
                                                       <label style="color: black;">Customer</label>
                                                       <select class="form-control text-center sel6 " name="customer" id="customer">
                                                           <option value=""> Select Customer</option>
-                                                          @foreach($customer as $row)
-                                                          <option value="{{$row->customer}}">{{$row->customer}}</option>
+                                                          @foreach($customer as $cust)
+                                                          <option value="{{$cust}}">{{$cust}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -423,8 +423,8 @@
                                                       <label style="color: black;">Item Code</label>
                                                       <select class="form-control text-center sel3 " name="item_code_painting" id="item_code_painting">
                                                           <option value=""> Select Item Code</option>
-                                                          @foreach($item_code as $row)
-                                                          <option value="{{$row->item_code}}">{{$row->item_code}}</option>
+                                                          @foreach($item_code as $item)
+                                                          <option value="{{$item}}">{{$item}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -433,8 +433,8 @@
                                                       <label style="color: black;">Production Order</label>
                                                        <select class="form-control text-center sel3 " name="prod_painting" id="prod_painting">
                                                           <option value=""> Select Production Order</option>
-                                                          @foreach($production_order as $row)
-                                                          <option value="{{$row->production_order}}">{{$row->production_order}}</option>
+                                                          @foreach($production_order as $production)
+                                                          <option value="{{$production}}">{{$production}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -442,8 +442,8 @@
                                                       <label style="color: black;">Customer</label>
                                                       <select class="form-control text-center sel3 " name="customer_painting" id="customer_painting">
                                                           <option value=""> Select Customer</option>
-                                                          @foreach($customer as $row)
-                                                          <option value="{{$row->customer}}">{{$row->customer}}</option>
+                                                          @foreach($customer as $cust)
+                                                          <option value="{{$cust}}">{{$cust}}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -537,8 +537,8 @@
                                                     <label style="color: black;">Item Code</label>
                                                     <select class="form-control text-center sel4 " name="item_code_assem" id="item_code_assem">
                                                         <option value=""> Select Item Code</option>
-                                                        @foreach($item_code as $row)
-                                                        <option value="{{$row->item_code}}">{{$row->item_code}}</option>
+                                                        @foreach($item_code as $item)
+                                                        <option value="{{$item}}">{{$item}}</option>
                                                         @endforeach
                                                       </select>
                                                  </div>
@@ -547,8 +547,8 @@
                                                     <label style="color: black;">Production Order</label>
                                                      <select class="form-control text-center sel4 " name="prod_assem" id="prod_assem">
                                                         <option value=""> Select Production Order</option>
-                                                        @foreach($production_order as $row)
-                                                        <option value="{{$row->production_order}}">{{$row->production_order}}</option>
+                                                        @foreach($production_order as $production)
+                                                        <option value="{{$production}}">{{$production}}</option>
                                                         @endforeach
                                                       </select>
                                                  </div>
@@ -556,8 +556,8 @@
                                                     <label style="color: black;">Customer</label>
                                                     <select class="form-control text-center sel4 " name="customer_assem" id="customer_assem">
                                                         <option value=""> Select Customer</option>
-                                                        @foreach($customer as $row)
-                                                        <option value="{{$row->customer}}">{{$row->customer}}</option>
+                                                        @foreach($customer as $cust)
+                                                        <option value="{{$cust}}">{{$cust}}</option>
                                                         @endforeach
                                                       </select>
                                                  </div>
@@ -634,36 +634,281 @@
           <div class="row">
             <div class="col-md-12">
               <div class="card" style="border-radius: 0 0 3px 3px;">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="card">
-                        <div class="card-header" style="background-color: #0277BD;">
-                          <div class="row" style="margin-top: -15px;">
-                            <div class="col-md-12" style="padding: 10px;">
-                                <h5 class="text-white font-weight-bold align-middle text-center" style="font-size:13pt; margin: 0;">Defect(s) reported by QA Inspector</h5>
+                <div class="card-body p-1">
+                  <div class="row m-0">
+                    <div class="col-md-12 m-0">
+                      <div class="row">
+                        <div class="col-md-12 m-0 p-0" style="margin-top: -50px;">
+                          <ul class="nav nav-tabs" role="tablist" id="reject-dashboard-tabs">
+                            <li class="nav-item">
+                              <a class="nav-link active" id="fab_tab_reject" data-toggle="tab" href="#fab0" role="tab" aria-controls="fab0" aria-selected="true">Fabrication</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link " id="pain_tab_reject" data-toggle="tab" href="#pan1" role="tab" aria-controls="pan1" aria-selected="false">Painting</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link " id="assem_tab_reject" data-toggle="tab" href="#assem2" role="tab" aria-controls="assem2" aria-selected="false" id="olu_click">Wiring and Assembly</a>
+                            </li>
+                          </ul>
+                          <div class="tab-content" style="min-height: 500px;">
+                            {{-- Fabrication Rejection Report --}}
+                            <div class="tab-pane active" id="fab0" role="tabpanel" aria-labelledby="fab0">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card mb-0" style="border-radius: 0 0 3px 3px;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-6 offset-md-6">
+                                          <div class="row">
+                                            <div class="col-md-4 p-0">
+                                              <div class="form-group text-right">
+                                                <label for="fab_reject_filter" class="text-dark font-weight-bold m-2 p-0" style="font-size: 11pt;">Reject Category:</label>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-4 p-0">
+                                              <div class="form-group">
+                                                <select class="form-control form-control-lg text-center class-dynamic m-0" name="fab_reject_filter" id="fab_reject_filter">
+                                                  @foreach($reject_category as $rows)
+                                                    <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                                  @endforeach
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-1 p-0">
+                                              <div class="form-group text-right">
+                                                <label for="fab_yearpicker" class="text-dark font-weight-bold m-2 p-0" style="font-size: 11pt;">Year:</label>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-2 p-0">
+                                              <div class="form-group">
+                                                <select id="fab_yearpicker" style="font-weight: bolder;" name="fab_yearpicker" class="form-control form-control-lg">
+                                                  <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                                  <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                                  <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                                  <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                                  <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                                  <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                                  <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                                  <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                                  <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                                  <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-1 p-0">
+                                              <img src="{{ asset('img/print.png') }}" width="35" class="ml-3 mt-1 print-rejection-report-btn" data-operation-id="1">
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-md-12 m-0">
+                                        <div class="row">
+                                          <div class="col-md-6">
+                                            <div class="card">
+                                              <div class="card-body">
+                                                <div class="col-md-12">
+                                                  <h5 id="label_fab_chart_reject" class="text-center font-weight-bold"></h5>
+                                                    <canvas id="tbl_fab_reject_report_chart" height="120"></canvas>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-6">
+                                            <div class="card">
+                                              <div class="card-body">
+                                                <div class="col-md-12">
+                                                  <h5 id="label_fab_rate_chart_reject" class="text-center font-weight-bold"></h5>
+                                                  <canvas id="tbl_fab_rate_report_chart" height="120"></canvas>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-12">
+                                            <div class="row">
+                                              <div class="col-md-12" style="">
+                                                <div id="tbl_fab_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                        <div class="card-body" style="min-height: 350px; background-color: #263238;">
-                          <div class="chart-area pt-4" style="min-height: 350px;">
-                            <canvas id="bigDashboardChart"></canvas>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="card">
-                        <div class="card-header" style="background-color: #0277BD;">
-                          <div class="row" style="margin-top: -15px;">
-                            <div class="col-md-12" style="padding: 10px;">
-                                <h5 class="text-white font-weight-bold align-middle text-center" style="font-size:13pt; margin: 0;">Top 5 Defect(s)</h5>
+                            {{-- Painting Rejection Report --}}
+                            <div class="tab-pane" id="pan1" role="tabpanel" aria-labelledby="pan1">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card mb-0" style="border-radius: 0 0 3px 3px;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-6 offset-md-6">
+                                          <div class="row">
+                                            <div class="col-md-4 p-0">
+                                              <div class="form-group text-right">
+                                                <label for="pain_reject_filter" class="text-dark font-weight-bold m-2 p-0" style="font-size: 11pt;">Reject Category:</label>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-4 p-0">
+                                              <div class="form-group">
+                                                <select class="form-control form-control-lg text-center class-dynamic m-0" name="pain_reject_filter" id="pain_reject_filter">
+                                                  @foreach($reject_category as $rows)
+                                                    <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                                  @endforeach
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-1 p-0">
+                                              <div class="form-group text-right">
+                                                <label for="pain_yearpicker" class="text-dark font-weight-bold m-2 p-0" style="font-size: 11pt;">Year:</label>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-2 p-0">
+                                              <div class="form-group">
+                                                <select id="pain_yearpicker" style="font-weight: bolder;" name="pain_yearpicker" class="form-control form-control-lg">
+                                                  <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                                  <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                                  <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                                  <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                                  <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                                  <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                                  <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                                  <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                                  <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                                  <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-1 p-0">
+                                              <img src="{{ asset('img/print.png') }}" width="35" class="ml-3 mt-1 print-rejection-report-btn" data-operation-id="2">
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-md-12 m-0">
+                                        <div class="row">
+                                          <div class="col-md-6">
+                                            <div class="card">
+                                              <div class="card-body">
+                                                <div class="col-md-12">
+                                                  <h5 id="label_pain_chart_reject" class="text-center font-weight-bold"></h5>
+                                                    <canvas id="tbl_pain_reject_report_chart" height="120"></canvas>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-6">
+                                            <div class="card">
+                                              <div class="card-body">
+                                                <div class="col-md-12">
+                                                  <h5 id="label_pain_rate_chart_reject" class="text-center font-weight-bold"></h5>
+                                                  <canvas id="tbl_pain_rate_report_chart" height="120"></canvas>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-12">
+                                            <div class="row">
+                                              <div class="col-md-12" style="">
+                                                <div id="tbl_pain_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                        <div class="card-body" style="min-height: 350px;">
-                          <div class="chart-area pt-4" style="min-height: 350px;">
-                            <canvas id="myChart" width="50" height="18"></canvas>
+                            {{-- Assembly Rejection Report --}}
+                            <div class="tab-pane" id="assem2" role="tabpanel" aria-labelledby="assem2">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card mb-0" style="border-radius: 0 0 3px 3px;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-6 offset-md-6">
+                                          <div class="row">
+                                            <div class="col-md-4 p-0">
+                                              <div class="form-group text-right">
+                                                <label for="assem_reject_filter" class="text-dark font-weight-bold m-2 p-0" style="font-size: 11pt;">Reject Category:</label>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-4 p-0">
+                                              <div class="form-group">
+                                                <select class="form-control form-control-lg text-center class-dynamic m-0" name="assem_reject_filter" id="assem_reject_filter">
+                                                  @foreach($reject_category as $rows)
+                                                    <option value="{{$rows->reject_category_id}}">{{$rows->reject_category_name}}</option>
+                                                  @endforeach
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-1 p-0">
+                                              <div class="form-group text-right">
+                                                <label for="assem_yearpicker" class="text-dark font-weight-bold m-2 p-0" style="font-size: 11pt;">Year:</label>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-2 p-0">
+                                              <div class="form-group">
+                                                <select id="assem_yearpicker" style="font-weight: bolder;" name="assem_yearpicker" class="form-control form-control-lg">
+                                                  <option value="2017" {{ date('Y') == 2017 ? 'selected' : '' }}>2017</option>
+                                                  <option value="2018" {{ date('Y') == 2018 ? 'selected' : '' }}>2018</option>
+                                                  <option value="2019" {{ date('Y') == 2019 ? 'selected' : '' }}>2019</option>
+                                                  <option value="2020" {{ date('Y') == 2020 ? 'selected' : '' }}>2020</option>
+                                                  <option value="2021" {{ date('Y') == 2021 ? 'selected' : '' }}>2021</option>
+                                                  <option value="2022" {{ date('Y') == 2022 ? 'selected' : '' }}>2022</option>
+                                                  <option value="2023" {{ date('Y') == 2023 ? 'selected' : '' }}>2023</option>
+                                                  <option value="2024" {{ date('Y') == 2024 ? 'selected' : '' }}>2024</option>
+                                                  <option value="2025" {{ date('Y') == 2025 ? 'selected' : '' }}>2025</option>
+                                                  <option value="2026" {{ date('Y') == 2026 ? 'selected' : '' }}>2026</option>
+                                                </select>
+                                              </div>
+                                            </div>
+                                            <div class="col-md-1 p-0">
+                                              <img src="{{ asset('img/print.png') }}" width="35" class="ml-3 mt-1 print-rejection-report-btn" data-operation-id="3">
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-md-12 m-0">
+                                        <div class="row">
+                                          <div class="col-md-6">
+                                            <div class="card">
+                                              <div class="card-body">
+                                                <div class="col-md-12">
+                                                  <h5 id="label_assem_chart_reject" class="text-center font-weight-bold"></h5>
+                                                    <canvas id="tbl_assem_reject_report_chart" height="120"></canvas>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-6">
+                                            <div class="card">
+                                              <div class="card-body">
+                                                <div class="col-md-12">
+                                                  <h5 id="label_assem_rate_chart_reject" class="text-center font-weight-bold"></h5>
+                                                  <canvas id="tbl_assem_rate_report_chart" height="120"></canvas>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-12">
+                                            <div class="row">
+                                              <div class="col-md-12">
+                                                <div id="tbl_assem_log_reject_report" style="width: 100%;overflow: auto;"></div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -673,145 +918,15 @@
               </div>
             </div>
           </div>
+
+
         </div>
       </div>
     </div>
   </div>
 </div>
-<div class="modal fade" id="jt-workstations-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="min-height: 600px;">
-          <div class="row" id="jt-details-col">
-            <div class="col-md-12">
-              <div class="container">
-                <div class="row">
-                  <ul class="breadcrumb-c" id="process-bc"></ul>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-12">
-              <div style="margin: 5px;">
-                <span style="font-size: 12pt; margin: auto;">Scheduled Date: </span>
-                <span class="sched-date font-weight-bold" style="font-size: 12pt; margin: auto;"></span>
-                <span class="badge badge-info task-status">--</span>
-              </div>
-              <table style="width: 100%; border-color: #D5D8DC;">
-                <col style="width: 18%;">
-                <col style="width: 24%;">
-                <col style="width: 23%;">
-                <col style="width: 20%;">
-                <col style="width: 15%;">
-                <tr style="font-size: 9pt;">
-                  <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REFERENCE NO.</b></td>
-                  <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>CUSTOMER</b></td>
-                  <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROJECT</b></td>
-                  <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DELIVERY DATE</b></td>
-                  <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>QTY</b></td>
-                </tr>
-                <tr style="font-size: 10pt;">
-                  <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no"></span></td>
-                  <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust"></span></td>
-                  <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"></span></td>
-                  <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="del-date"></span></td>
-                  <td class="text-center" style="border: 1px solid #ABB2B9; font-size: 15pt;"><span class="qty"></span></td>
-                </tr>
-                <tr style="font-size: 10pt;">
-                  <td style="border: 1px solid #ABB2B9; font-size: 9pt;" class="text-center"><b>ITEM DETAIL(S):</b></td>
-                  <td style="border: 1px solid #ABB2B9;" colspan="4"><span class="item-code font-weight-bold"></span> - <span class="desc">--</span></td>
-                </tr>
-              </table>
-            </div>
 
-            <div class="col-md-12" style="padding-top: 20px;">
-              <br>
-              <table style="width: 100%; border-color: #D5D8DC;" id="totals-tbl">
-                  <col style="width: 25%;">
-                  <col style="width: 25%;">
-                  <col style="width: 25%;">
-                  <col style="width: 25%;">
-                  <thead style="font-size: 10pt;">
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PRODUCED QTY</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>TOTAL GOOD</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>TOTAL REJECT</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>BALANCE QTY</b></td>
-                  </thead>
-                  <tbody style="font-size: 9pt;">
-                    <tr>
-                      <td class="text-center" style="border: 1px solid #ABB2B9;">
-                        <span class="produced-qty" style="font-size: 15pt;"></span>
-                      </td>
-                      <td class="text-center" style="border: 1px solid #ABB2B9;">
-                        <span class="total-good" style="font-size: 15pt;"></span>
-                      </td>
-                      <td class="text-center" style="border: 1px solid #ABB2B9;">
-                        <span class="total-reject" style="font-size: 15pt;"></span>
-                      </td>
-                      <td class="text-center" style="border: 1px solid #ABB2B9;">
-                        <span class="balance-qty" style="font-size: 15pt;"></span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-            </div>
   
-           
-            <div class="col-md-12">
-              <br>
-              <div class="table-respons1ive">
-                <table style="width: 100%; border-color: #D5D8DC;" id="jt-details-tbl">
-                  <col style="width: 15%;">
-                  <col style="width: 15%;">
-                  <col style="width: 12%;">
-                  <col style="width: 12%;">
-                  <col style="width: 10%;">
-                  <col style="width: 12%;">
-                  <col style="width: 12%;">
-                  <col style="width: 12%;">
-                  <thead style="font-size: 10pt;">
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>WORKSTATION</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROCESS</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>GOOD</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REJECT</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>MACHINE</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>START</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>END</b></td>
-                      <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>OPERATOR</b></td>
-                  </thead>
-                  <tbody style="font-size: 9pt;"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal fade" id="spotwelding-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-          <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold prod-title">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="min-height: 500px;">
-          <div class="row">
-            <div class="col-md-12">
-              <div id="spotwelding-div"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 <style>
   .classheader{
     position: sticky; top: 0; 
@@ -867,270 +982,31 @@
 #manual-production-modal .form-control:focus {
   border: 1px solid #34495e;
 }
-
-.select2.select2-container {
-  width: 100% !important;
-}
-
-.select2.select2-container .select2-selection {
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  height: 34px;
-  margin-bottom: 15px;
-  outline: none;
-  transition: all 0.15s ease-in-out;
-}
-
-.select2.select2-container .select2-selection .select2-selection__rendered {
-  color: #333;
-  line-height: 32px;
-  padding-right: 33px;
-}
-
-.select2.select2-container .select2-selection .select2-selection__arrow {
-  background: #f8f8f8;
-  border-left: 1px solid #ccc;
-  -webkit-border-radius: 0 3px 3px 0;
-  -moz-border-radius: 0 3px 3px 0;
-  border-radius: 0 3px 3px 0;
-  height: 32px;
-  width: 33px;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
-  background: #f8f8f8;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
-  -webkit-border-radius: 0 3px 0 0;
-  -moz-border-radius: 0 3px 0 0;
-  border-radius: 0 3px 0 0;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container.select2-container--focus .select2-selection {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container .select2-selection--multiple {
-  height: auto;
-  min-height: 34px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
-  margin-top: 0;
-  height: 32px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
-  display: block;
-  padding: 0 4px;
-  line-height: 29px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice {
-  background-color: #f8f8f8;
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  margin: 4px 4px 0 0;
-  padding: 0 6px 0 22px;
-  height: 24px;
-  line-height: 24px;
-  font-size: 12px;
-  position: relative;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 22px;
-  width: 22px;
-  margin: 0;
-  text-align: center;
-  color: #e74c3c;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.select2-container .select2-dropdown {
-  background: transparent;
-  border: none;
-  margin-top: -5px;
-}
-
-.select2-container .select2-dropdown .select2-search {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-search input {
-  outline: none;
-  border: 1px solid #34495e;
-  border-bottom: none;
-  padding: 4px 6px;
-}
-
-.select2-container .select2-dropdown .select2-results {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-results ul {
-  background: #fff;
-  border: 1px solid #34495e;
-}
-
-.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
-  background-color: #3498db;
-}
- .breadcrumb-c {
-    font-size: 8pt;
-    font-weight: bold;
-    padding: 0;
-    background: transparent;
-    list-style: none;
-    overflow: hidden;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    width: 100%;
-    border-radius: 4px;
-  }
-
-  .breadcrumb-c>li {
-    display: table-cell;
-    vertical-align: top;
-    width: 0.8%;
-  }
-
-  .breadcrumb-c>li+li:before {
-    padding: 0;
-  }
-
-  .breadcrumb-c li a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 0 10px 5px;
-    position: relative;
-    display: inline-block;
-    width: calc( 100% - 10px );
-    background-color: hsla(0, 0%, 83%, 1);
-    text-align: center;
-    text-transform: capitalize;
-  }
-
-  .breadcrumb-c li.completed a {
-    background: brown;
-    background: hsla(153, 57%, 51%, 1);
-  }
-
-  .breadcrumb-c li.completed a:after {
-    border-left: 30px solid hsla(153, 57%, 51%, 1);
-  }
-
-  .breadcrumb-c li.active a {
-    background: #ffc107;
-  }
-
-  .breadcrumb-c li.active a:after {
-    border-left: 30px solid #ffc107;
-  }
-
-  .breadcrumb-c li:first-child a {
-    padding-left: 1px;
-  }
-
-  .breadcrumb-c li:last-of-type a {
-    width: calc( 100% - 38px );
-  }
-
-  .breadcrumb-c li a:before {
-    content: " ";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 50px solid transparent;
-    border-bottom: 50px solid transparent;
-    border-left: 30px solid white;
-    position: absolute;
-    top: 50%;
-    margin-top: -50px;
-    margin-left: 1px;
-    left: 100%;
-    z-index: 1;
-  }
-
-  .breadcrumb-c li a:after {
-    content: " ";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 50px solid transparent;
-    border-bottom: 50px solid transparent;
-    border-left: 30px solid hsla(0, 0%, 83%, 1);
-    position: absolute;
-    top: 50%;
-    margin-top: -50px;
-    left: 100%;
-    z-index: 2;
-  }
-
-  .truncate {
-    white-space: nowrap;
-    /*overflow: hidden;*/
-    text-overflow: ellipsis;
-  }
-
-  .scrolltbody tbody {
-    display:block;
-    height:300px;
-    overflow:auto;
-  }
-  .scrolltbody thead, .scrolltbody tbody tr {
-      display:table;
-      width:100%;
-      table-layout:fixed;
-  }
-  .scrolltbody thead {
-      width: calc(100%)
-  }
-    .numpad-div .row1{
-    -webkit-user-select: none; /* Chrome/Safari */        
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE10+ */
-    /* Not implemented yet */
-    -o-user-select: none;
-    user-select: none;   
-  }
-
-  .numpad{
-    display: inline-block;
-    border: 1px solid #333;
-    border-radius: 5px;
-    text-align: center;
-    width: 27%;
-    height: 27%;
-    line-height: 60px;
-    margin: 3px;
-    font-size: 15pt;
-    color: inherit;
-    background: rgba(255, 255, 255, 0.7);
-    transition: all 0.3s ease-in-out;
-  }
-
-  .numpad:active,
-  .numpad:hover {
-    cursor: pointer ;
-    box-shadow: inset 0 0 2px #000000;
-  }
-
 </style>
 @include('quality_inspection.modal_inspection')
+<div class="modal fade" id="print-report-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width: 78%;">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title font-weight-bold">Print Report</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="min-height: 500px;">
+        <div class="row">
+          <div class="col-md-12" style="overflow: hidden;">
+            <iframe src="#" id="print-report-iframe" class="d-no1ne zoom-frame" height="100%" width="100%" style="min-height: 800px;"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="print-report-btn">Print</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('script')
@@ -1145,170 +1021,703 @@
 
 <script>
   $(document).ready(function(){
-    load_chart();
-    get_quick_view_data();
-    get_reject_for_confirmation();
-    setInterval(load_chart, 5000);
-    setInterval(get_quick_view_data, 5000);
-    load_chart_2();
 
-    function load_chart(){
-      chartColor = "#FFFFFF";
-      var ctx = document.getElementById('bigDashboardChart').getContext("2d");
+    $(document).on('click', '.print-rejection-report-btn', function(e){
+      var a = $(this).parent().parent();
+      var reject_category = a.find('select').eq(0).val();
+      var reject_cat_name = a.find('select option:selected').eq(0).text();      
+      var operation = $(this).data('operation-id');
+      var year = a.find('select').eq(1).val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
 
-      var gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
-      gradientStroke.addColorStop(0, '#80b6f4');
-      gradientStroke.addColorStop(1, chartColor);
+      $('#print-report-iframe').attr('src', "/print_qa_rejection_report?" + $.param( data ));
 
-      var gradientFill = ctx.createLinearGradient(0, 200, 0, 50);
-      gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
-      gradientFill.addColorStop(1, "rgba(255, 255, 255, 0.24)");
+      $('#print-report-modal').modal('show');
+    });
+
+    $('#print-report-modal').on('hidden.bs.modal', function (e) {
+      $('#print-report-iframe').attr('src', "");
+    });
+
+    $('#print-report-btn').click(function(e){
+      $("#print-report-iframe").get(0).contentWindow.print();
+    });
+
+    $(document).on('change', '#fab_reject_filter', function(event){
+      tbl_fab_log_reject_report('#tbl_fab_log_reject_report');
+      fab_optyStats();
+      tbl_fab_reject_rate_chart();
+    });
+  
+    $(document).on('change', '#fab_yearpicker', function(event){
+      tbl_fab_log_reject_report('#tbl_fab_log_reject_report');
+      fab_optyStats();
+      tbl_fab_reject_rate_chart();
+    });
+
+    $(document).on('change', '#assem_reject_filter', function(event){
+      tbl_assem_log_reject_report();
+      assem_optyStats();
+      tbl_assem_reject_rate_chart();
+    }); 
+  
+    $(document).on('change', '#assem_yearpicker', function(event){
+      tbl_assem_log_reject_report();
+      assem_optyStats();
+      tbl_assem_reject_rate_chart();
+    });
+
+    $(document).on('change', '#pain_reject_filter', function(event){
+      tbl_pain_log_reject_report();
+      pain_optyStats();
+      tbl_pain_reject_rate_chart();
+    });
+
+    $(document).on('change', '#pain_yearpicker', function(event){
+      tbl_pain_log_reject_report();
+      pain_optyStats();
+      tbl_pain_reject_rate_chart();
+    });
+
+    
+
+    function tbl_fab_log_reject_report(div_id){
+      var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1;
+      var year = $('#fab_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
 
       $.ajax({
-        url:"/qa_staff_workload",
+        url:"/rejection_report",
         type:"GET",
+        data: data,
         success:function(data){
-          var labels = [];
-          var outputs = [];
-          for(var i in data) {
-            labels.push(data[i].qa_staff);
-            outputs.push(data[i].qty_checked);
+          $(div_id).html(data);
+        }
+      });
+    }
+
+    function tbl_pain_log_reject_report(){
+      var reject_category = $('#pain_reject_filter').val();  
+      var reject_cat_name = $('#pain_reject_filter option:selected').text();      
+      var operation = 2;
+      var year = $('#pain_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+
+      $.ajax({
+        url:"/rejection_report",
+        type:"GET",
+        data: data,
+        success:function(data){
+          $('#tbl_pain_log_reject_report').html(data);
+        }
+      });
+    }
+
+    function tbl_assem_log_reject_report(){
+      var reject_category = $('#assem_reject_filter').val();  
+      var reject_cat_name = $('#assem_reject_filter option:selected').text();      
+      var operation = 3;
+      var year = $('#assem_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+      $.ajax({
+        url:"/rejection_report",
+        type:"GET",
+        data: data,
+        success:function(data){
+          $('#tbl_assem_log_reject_report').html(data);
+        }
+      });
+    }
+
+    function fab_optyStats(){
+      var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1;
+      var year = $('#fab_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+
+      $('#label_fab_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+
+      $.ajax({
+        url: "/rejection_report_chart",
+        method: "GET",
+        data: data,
+        success: function(data) {
+          var reject = [];
+          var val = [];
+          var series=[];
+
+          for(var i in data.year) {
+            reject.push(data.year[i].reject);
+            series.push(data.year[i].series);
+            val.push(data.year[i].per_month);
           }
 
-          var myChart = new Chart(ctx, {
-            type: 'horizontalBar',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: "Data",
-                borderColor: chartColor,
-                pointBorderColor: chartColor,
-                pointBackgroundColor: "#1e3d60",
-                pointHoverBackgroundColor: "#1e3d60",
-                pointHoverBorderColor: chartColor,
-                pointBorderWidth: 1,
-                pointHoverRadius: 7,
-                pointHoverBorderWidth: 2,
-                pointRadius: 5,
-                fill: true,
-                backgroundColor: gradientFill,
-                borderWidth: 2,
-                data: outputs,
-                lineTension: 0
-              }]
-            },
+          var chartdata = {
+            labels: series,
+            data1:reject,
+            datasets : [{
+              data: val,
+              backgroundColor: '#2874a6',
+              borderColor: "#2874a6",
+              borderWidth: 3,
+              label: "Total Reject/s",
+            }]
+          };
+
+          var ctx = $("#tbl_fab_reject_report_chart");
+          if (window.fab_optyCtx != undefined) {
+              window.fab_optyCtx.destroy();
+          }
+
+          window.fab_optyCtx = new Chart(ctx, {
+            type: 'bar',
+            data: chartdata,
             options: {
-              layout: {
-                padding: {
-                  left: 20,
-                  right: 20,
-                  top: 0,
-                  bottom: 0
+            tooltips: {
+              callbacks: {
+                title: function (t, d) {
+                  return d['data1'][t[0]['index']];
+                },
+              },
+            },
+              responsive: true,
+              legend: {
+                position: 'top',
+                labels:{
+                  boxWidth: 11
                 }
               },
-              maintainAspectRatio: false,
+            }
+          });
+        },
+        error: function(data) {
+          alert('Error fetching data!');
+        }
+      });
+    }
+
+    function pain_optyStats(){
+      var reject_category = $('#pain_reject_filter').val();
+      var reject_cat_name = $('#pain_reject_filter option:selected').text();      
+      var operation = 2;
+      var year = $('#pain_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+      $('#label_pain_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+      $.ajax({
+        url: "/rejection_report_chart",
+        method: "GET",
+        data: data,
+        success: function(data) {
+          var reject = [];
+          var val = [];
+          var series=[];
+          
+          for(var i in data.year) {
+            reject.push(data.year[i].reject);
+            series.push(data.year[i].series);
+            val.push(data.year[i].per_month);
+          }
+          
+          var chartdata = {
+            labels: series,
+            data1:reject,
+            datasets : [{
+              data: val,
+              backgroundColor: '#2874a6',
+              borderColor: "#2874a6",
+              borderWidth: 3,
+              label: "Total Reject/s",
+            }]
+          };
+          
+          var ctx = $("#tbl_pain_reject_report_chart");
+          if (window.pain_optyCtx != undefined) {
+            window.pain_optyCtx.destroy();
+          }
+          
+          window.pain_optyCtx = new Chart(ctx, {
+            type: 'bar',
+            data: chartdata,
+            options: {
               tooltips: {
-                backgroundColor: '#fff',
-                titleFontColor: '#333',
-                bodyFontColor: '#666',
-                bodySpacing: 4,
-                xPadding: 12,
-                mode: "nearest",
-                intersect: 0,
-                position: "nearest"
+                callbacks: {
+                  title: function (t, d) {
+                    return d['data1'][t[0]['index']];
+                  },
+                },
               },
+              responsive: true,
               legend: {
-                position: "bottom",
-                fillStyle: "#FFF",
-                display: false,
+                position: 'top',
+                labels:{
+                  boxWidth: 11
+                }
               },
-              scales: {
-                yAxes: [{
-                  ticks: {
-                    fontColor: "rgba(255,255,255,0.4)",
-                    fontStyle: "bold",
-                    beginAtZero: true,
-                    maxTicksLimit: 5,
-                    padding: 10,
+            }
+          });
+        },
+        error: function(data) {
+          alert('Error fetching data!');
+        }
+      });
+    }
+
+    function assem_optyStats(){
+      var reject_category = $('#assem_reject_filter').val();  
+      var reject_cat_name = $('#assem_reject_filter option:selected').text();      
+      var operation = 3;
+      var year = $('#assem_yearpicker').val();
+
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+
+      $('#label_assem_chart_reject').text(reject_cat_name + ' Reject ('+ year +')');
+
+      $.ajax({
+        url: "/rejection_report_chart",
+        method: "GET",
+        data: data,
+        success: function(data) {
+          var reject = [];
+          var val = [];
+          var series=[];
+          
+          for(var i in data.year) {
+            reject.push(data.year[i].reject);
+            series.push(data.year[i].series);
+            val.push(data.year[i].per_month);
+          }
+          
+          var chartdata = {
+            labels: series,
+            data1:reject,
+            datasets : [{
+              data: val,
+              backgroundColor: '#2874a6',
+              borderColor: "#2874a6",
+              borderWidth: 3,
+              label: "Total Reject/s",
+            }]
+          };
+          
+          var ctx = $("#tbl_assem_reject_report_chart");
+          if (window.assem_optyCtx != undefined) {
+            window.assem_optyCtx.destroy();
+          }
+          
+          window.assem_optyCtx = new Chart(ctx, {
+            type: 'bar',
+            data: chartdata,
+            options: {
+              tooltips: {
+                callbacks: {
+                  title: function (t, d) {
+                    return d['data1'][t[0]['index']];
                   },
-                  gridLines: {
-                    drawTicks: true,
-                    drawBorder: false,
-                    display: true,
-                    color: "rgba(255,255,255,0.1)",
-                    zeroLineColor: "transparent"
-                  }
-                }],
-                xAxes: [{
-                  gridLines: {
-                    zeroLineColor: "transparent",
-                    display: false,
+                },
+              },
+              responsive: true,
+              legend: {
+                position: 'top',
+                labels:{
+                  boxWidth: 11
+                }
+              },
+            }
+          });
+        },
+        error: function(data) {
+          alert('Error fetching data!');
+        }
+      });
+      
+    }
+
+    function tbl_fab_reject_rate_chart(){
+      var reject_category = $('#fab_reject_filter').val();  
+      var reject_cat_name = $('#fab_reject_filter option:selected').text();      
+      var operation = 1
+      var year = $('#fab_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+
+      $('#label_fab_rate_chart_reject').text('Reject Rate ('+ year +')');
+
+      $.ajax({
+        url: "/rejection_report_chart",
+        method: "GET",
+        data: data,
+        success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+
+          var reject = [];
+          var target = [];
+          var planned =[];
+          var rate =[];
+          var series =[];
+
+          for(var i in data.year) {
+            rate.push(data.year[i].per_rate);
+            planned.push(data.year[i].target);
+            reject.push(data.year[i].reject);
+            series.push(data.year[i].series);
+          }
+          
+          var chartdata = {
+            data1:reject,
+            labels: series,
+            datasets : [{
+              data: rate,
+              backgroundColor: '#3cba9f',
+              borderColor: "#3cba9f",
+              label: "Reject Rate",
+              fill: false
+            },
+            {
+              data: planned,
+              backgroundColor: '#3e95cd',
+              borderColor: "#3e95cd",
+              label: "Target",
+              fill: false
+            }]
+          };
+          
+          var ctx = $("#tbl_fab_rate_report_chart");
+
+          if (window.tbl_chartCtx != undefined) {
+              window.tbl_chartCtx.destroy();
+          }
+
+          window.tbl_chartCtx = new Chart(ctx, {
+            type: 'line',
+            data: chartdata,
+            options: {
+              tooltips: {
+                callbacks: {
+                  title: function (t, d) {
+                    return d['data1'][t[0]['index']];
                   },
-                  ticks: {
-                    padding: 10,
-                    fontColor: "rgba(255,255,255,0.4)",
-                    fontStyle: "bold",
+                },
+              },
+              responsive: true,
+              legend: {
+                position: 'top',
+                labels:{
+                  boxWidth: 11
+                }
+              },
+              elements: {
+                line: {
+                  tension: 0 // disables bezier curves
+                }
+              },
+              scales: {         
+                xAxes: [
+                  { 
+                    ticks: {
+                      maxRotation: 90,
+                      callbacks: {
+                        title: function (tooltipItems, data) {
+                          return data.labels[tooltipItems[0].index]
+                        }
+                      },
+                    }, 
                   }
-                }]
+                ]
               }
             }
           });
+        },
+        error: function(data) {
+          alert('Error fetching data!');
         }
-      });  
+      });
     }
 
-    function load_chart_2(){
-      var ctx = document.getElementById('myChart').getContext("2d");
+    function tbl_pain_reject_rate_chart(){
+      var reject_category = $('#pain_reject_filter').val();  
+      var reject_cat_name = $('#pain_reject_filter option:selected').text();      
+      var operation = 2;
+      var year = $('#pain_yearpicker').val();
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+
+      $('#label_pain_rate_chart_reject').text('Reject Rate ('+ year +')');
+      
       $.ajax({
-        url:"/get_top_defect_count",
-        type:"GET",
-        success:function(data){
-          var labels = [];
-          var outputs = [];
-          for(var i in data) {
-            labels.push(data[i].reject_checklist);
-            outputs.push(data[i].reject_count);
+        url: "/rejection_report_chart",
+        method: "GET",
+        data: data,
+        success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+
+          var reject = [];
+          var target = [];
+          var planned =[];
+          var rate =[];
+          var series =[];
+
+          for(var i in data.year) {
+            rate.push(data.year[i].per_rate);
+            planned.push(data.year[i].target);
+            reject.push(data.year[i].reject);
+            series.push(data.year[i].series);
           }
 
-          var myChart = new Chart(ctx, {
-            type: 'radar',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: "Total Count",
-                backgroundColor: "rgba(41, 128, 185, 0.2)",
-                borderColor: "rgba(41, 128, 185, 1)",
-                pointBackgroundColor: "rgba(41, 128, 185, 1)",
-                pointBorderColor: "#fff",
-                pointHoverBackgroundColor: "#fff",
-                pointHoverBorderColor: "rgba(41, 128, 185, 1)",
-                data: outputs,
-              }]
+          var chartdata = {
+            data1:reject,
+            labels: series,
+            datasets : [{
+              data: rate,
+              backgroundColor: '#3cba9f',
+              borderColor: "#3cba9f",
+              label: "Reject Rate",
+              fill: false
             },
+            {
+              data: planned,
+              backgroundColor: '#3e95cd',
+              borderColor: "#3e95cd",
+              label: "Target",
+              fill: false
+            }]
+          };
+          
+          var ctx = $("#tbl_pain_rate_report_chart");
+          
+          if (window.tbl_pain_chartCtx != undefined) {
+            window.tbl_pain_chartCtx.destroy();
+          }
+          
+          window.tbl_pain_chartCtx = new Chart(ctx, {
+            type: 'line',
+            data: chartdata,
             options: {
+              tooltips: {
+                callbacks: {
+                  title: function (t, d) {
+                    return d['data1'][t[0]['index']];
+                  },
+                },
+              },
               responsive: true,
-              scale: {
-                pointLabels: {
-                  fontSize: 15
-                },
-                ticks: {
-                    stepSize: 1
-                },
-                yAxes: [{
-                  ticks: {
-                      beginAtZero:true,
-                  }
-                }]
-              },
               legend: {
-                display: false,
-                
+                position: 'top',
+                labels:{
+                  boxWidth: 11
+                }
               },
+              elements: {
+                line: {
+                  tension: 0 // disables bezier curves
+                }
+              },
+              scales: {         
+                xAxes: [
+                  { 
+                    ticks: {
+                      maxRotation: 90,
+                      callbacks: {
+                        title: function (tooltipItems, data) {
+                          return data.labels[tooltipItems[0].index]
+                        }
+                      },
+                    }, 
+                  }
+                ]
+              }
             }
           });
+        },
+        error: function(data) {
+          alert('Error fetching data!');
         }
-      });  
+      });
     }
+
+    function tbl_assem_reject_rate_chart(){
+      var reject_category = $('#assem_reject_filter').val();  
+      var reject_cat_name = $('#assem_reject_filter option:selected').text();      
+      var operation = 3;
+      var year = $('#assem_yearpicker').val();
+
+      var data = {
+        operation: operation,
+        reject_category : reject_category,
+        reject_name: reject_cat_name,
+        year: year
+      }
+
+      $('#label_assem_rate_chart_reject').text('Reject Rate ('+ year +')');
+      
+      $.ajax({
+        url: "/rejection_report_chart",
+        method: "GET",
+        data: data,
+        success: function(data) {
+          var numberWithCommas = function(x) {
+            return x.substring(0,10) + '...';
+          };
+
+          var reject = [];
+          var target = [];
+          var planned =[];
+          var rate =[];
+          var series =[];
+
+          for(var i in data.year) {
+            rate.push(data.year[i].per_rate);
+            planned.push(data.year[i].target);
+            reject.push(data.year[i].reject);
+            series.push(data.year[i].series);
+          }
+      
+          var chartdata = {
+            data1:reject,
+            labels: series,
+            datasets : [{
+              data: rate,
+              backgroundColor: '#3cba9f',
+              borderColor: "#3cba9f",
+              label: "Reject Rate",
+              fill: false
+            },
+            {
+              data: planned,
+              backgroundColor: '#3e95cd',
+              borderColor: "#3e95cd",
+              label: "Target",
+              fill: false
+            }]
+          };
+          
+          var ctx = $("#tbl_assem_rate_report_chart");
+          
+          if (window.tbl_assem_chartCtx != undefined) {
+            window.tbl_assem_chartCtx.destroy();
+          }
+          
+          window.tbl_assem_chartCtx = new Chart(ctx, {
+            type: 'line',
+            data: chartdata,
+            options: {
+              tooltips: {
+                callbacks: {
+                  title: function (t, d) {
+                    return d['data1'][t[0]['index']];
+                  },
+                },
+              },
+              responsive: true,
+              legend: {
+                position: 'top',
+                labels:{
+                  boxWidth: 11
+                }
+              },
+              elements: {
+                line: {
+                  tension: 0 // disables bezier curves
+                }
+              },
+              scales: {         
+                xAxes: [
+                  { 
+                    ticks: {
+                      maxRotation: 90,
+                      callbacks: {
+                        title: function (tooltipItems, data) {
+                          return data.labels[tooltipItems[0].index]
+                        }
+                      },
+                    }, 
+                  }
+                ]
+              }
+            }
+            
+          });
+        },
+        error: function(data) {
+          alert('Error fetching data!');
+        }
+      });
+    }
+
+    $(document).on('click', '#pain_tab_reject', function(event){
+      tbl_pain_log_reject_report();
+      pain_optyStats();
+      tbl_pain_reject_rate_chart();
+    });
+    $(document).on('click', '#assem_tab_reject', function(event){
+      tbl_assem_log_reject_report();
+      assem_optyStats();
+      tbl_assem_reject_rate_chart();
+    });
+
+    $(document).on('click', '#fab_tab_reject', function(event){
+      tbl_fab_log_reject_report('#tbl_fab_log_reject_report');
+      fab_optyStats();
+      tbl_fab_reject_rate_chart();
+    });
+
+    var active_tab= $('#reject-dashboard-tabs .active').text();
+    if(active_tab == "Fabrication"){
+      $('#fab_tab_reject').trigger('click');
+    }
+
+
+    get_quick_view_data();
+    get_reject_for_confirmation();
   
     function get_reject_for_confirmation(page, query){
       $.ajax({

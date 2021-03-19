@@ -36,34 +36,16 @@
       </div>
       <div class="sidebar-wrapper" id="sidebar-wrapper">
         <ul class="nav">
-          <li class="{{ $activePage == 'painting_dashboard' ? 'active' : '' }}">
-            <a href="/painting_dashboard">
+          <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
+            <a href="/qa_dashboard">
               <i class="now-ui-icons design_app"></i>
-              <p>Dashboard</p>
+              <p>QA Dashboard</p>
             </a>
           </li>
-          <li class="{{ $activePage == 'painting_production_orders' ? 'active' : '' }}">
-            <a href="/painting_production_orders">
-              <i class="now-ui-icons education_atom"></i>
-              <p>Production Order(s)</p>
-            </a>
-          </li>
-          <li class="{{ $activePage == 'production_schedule_painting' ? 'active' : '' }}">
-            <a href="/production_schedule_painting">
-              <i class="now-ui-icons text_caps-small"></i>
-              <p>Production Schedule</p>
-            </a>
-          </li>
-          <li class="{{ $activePage == 'operators' ? 'active' : '' }}">
-            <a href="/operators">
-              <i class="now-ui-icons location_map-big"></i>
-              <p>Operators</p>
-            </a>
-          </li>
-          <li class="{{ $activePage == 'bom_list' ? 'active' : '' }}">
-            <a href="/bom">
-              <i class="now-ui-icons design_bullet-list-67"></i>
-              <p>BOM List</p>
+          <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
+            <a href="/report_index">
+              <i class="now-ui-icons files_single-copy-04"></i>
+              <p>Reports</p>
             </a>
           </li>
           <li class="{{ $activePage == 'settings_module' ? 'active' : '' }}">
