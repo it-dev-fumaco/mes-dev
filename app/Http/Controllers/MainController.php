@@ -4152,11 +4152,18 @@ class MainController extends Controller
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
 
+		$query = DB::connection('mysql_mes')->table('time_logs')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->whereNotNull('time_logs.operator_id')->where('production_order.operation_id', $request->operation)
+			// ->whereBetween('time_logs.from_time', [$d1, $d2])
+			->get();
+
 		return DB::connection('mysql_mes')->table('time_logs')
 		->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 		->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
 		->whereNotNull('time_logs.operator_id')->where('production_order.operation_id', $request->operation)
-			->whereBetween('time_logs.from_time', [$d1, $d2])
+			// ->whereBetween('time_logs.from_time', [$d1, $d2])
 			// ->where(function($q) {
 			// 	$q->whereNull('remarks')
 			// 		->orWhere('remarks', '!=', 'Override');
