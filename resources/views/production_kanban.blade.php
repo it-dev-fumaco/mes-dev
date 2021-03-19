@@ -839,10 +839,10 @@
           </div>
            <div class="modal-body">
              <div class="row">
-               <div class="col-md-8" style="padding: 1px 2px 1px 5px;">
-                 <div class="row">
-                   <div class="col-md-12">
-                    <div class="card">
+               <div class="col-md-7" style="padding: 1px 2px 1px 5px;z-index:0;">
+                 <div class="row" style="z-index:0;">
+                   <div class="col-md-12"  style="z-index:0;">
+                    <div class="card" style="z-index:0;">
                       <div class="card-header"  style="padding: 1px 1px 1px 1px;">
                        <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Shift Schedule</b></h5>
                       </div>
@@ -876,7 +876,7 @@
                       </div>
                     </div>
                    </div>
-                   <div class="col-md-12">
+                   <div class="col-md-12" style="z-index:0;">
                     <div class="card" style="min-height: 150px;">
                       <div class="card-header"  style="padding: 1px 1px 1px 1px;">
                        <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Moved Planned Start Date</b></h5>
@@ -894,14 +894,14 @@
                   </div>
                  </div>
                </div>
-               <div class="col-md-4"  style="padding: 1px 2px 1px 5px;">
-                <div class="card">
+               <div class="col-md-5"  style="padding: 1px 2px 1px 5px; z-index:0;">
+                <div class="card" style="z-index:0;">
                   <div class="card-header" style="padding: 1px 1px 1px 1px;">
-                   <h5 class="card-title" style="font-size:13pt; margin-left:3px;">&nbsp;<b>Scheduled Production Order</b></h5>
+                   <h5 class="card-title" style="font-size:13pt; margin-left:2px;">&nbsp;<b>Scheduled Production Order</b></h5>
                   </div>
-                  <div class="card-body" style="height:400px;overflow:auto;">
-                    <div>
-                      <div id="prod_list_calendar" style="margin-top:-5px;font-size:10px;" ></div>
+                  <div class="card-body" style="height:400px;overflow:auto;z-index:0;">
+                    <div >
+                      <div id="prod_list_calendar" style="font-size:10px;z-index:0;position:relative;" ></div>
                     </div>
                   </div>
                 </div>
@@ -1125,6 +1125,57 @@
 
   .details-pane:hover {
     display: block;
+  }
+  .details-pane-plan {
+    display: none;
+    color: #414141;
+    background: #f1f1f1;
+    border: 1px solid #a9a9a9;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0;
+    margin: 0 auto;
+    left: 0;
+    z-index: 10;
+    width: 230px;
+    padding: 6px 8px;
+    text-align: left;
+    -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    -moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    white-space: normal;
+  }
+
+  .details-pane-plan h5 {
+    font-size: 1.5em;
+    line-height: 1.1em;
+    margin-bottom: 4px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan h5 span {
+    font-size: 0.75em;
+    font-style: italic;
+    color: #555;
+    padding-left: 15px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan .desc {
+    font-size: 1.0em;
+    margin-bottom: 6px;
+    line-height: 16px;
+  }
+  /** hover styles **/
+  span.hvrlink-plan:hover + .details-pane-plan {
+    display: block;
+
+  }
+
+  .details-pane-plan:hover {
+    display: block;
+
   }
 
   /**end **/
