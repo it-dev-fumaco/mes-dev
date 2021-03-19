@@ -153,6 +153,9 @@ class LinkReportController extends Controller
                 'stat_sunday' => $this->overallStatus($date),
                 'count'=>$per_day_count
             ];
+
+            $target_output = ceil((($per_man_hr * $per_reg_shift) / 0.44) + ($overtime_hour * count($this->get_operator_with_ot($date, $pluck_pro, $operation)) / 0.44));
+            $per_day_planned = ($operation == 3) ? $target_output : $per_day_planned;
             $planned_qty[]=[
                 'value'=>  $per_day_planned,
                 'value_display'=> $per_day_planned,
