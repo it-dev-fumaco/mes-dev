@@ -196,6 +196,7 @@
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $to_time }}</td>
 															<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 																<span class="hvrlink-plan">{{ $operator_name }}</span>
+																@if($b['workstation'] != "Spotwelding")
 																<div class="hover-box text-center">
 																	@if (count($c['helpers']) > 0)
 																	<label class="font-weight-bold mb-1">HELPER(S)</label>
@@ -206,6 +207,7 @@
 																	<label class="font-weight-bold m-0">NO HELPER(S)</label>
 																	@endif
 																</div>
+																@endif
 															</td>
 														</tr>
 														@endforeach
