@@ -361,9 +361,12 @@
 					</td>
 					<td class="text-justify {{ (!$part['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
-						@if($part['is_alternative'])
-						<small class="font-italic badge badge-info">Alternative for {{ $part['item_alternative_for'] }}</small> 
-						@endif
+						<div class="d-block">
+							<span class="font-weight-bold item-code">{{ $part['item_code'] }}</span> 
+							@if($part['is_alternative'])
+							<small class="font-italic badge badge-info">Alternative for {{ $part['item_alternative_for'] }}</small> 
+							@endif
+						</div>
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
 						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
