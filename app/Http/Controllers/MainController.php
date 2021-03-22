@@ -4152,13 +4152,21 @@ class MainController extends Controller
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
 
+		// operator spotwelding
+		$query_0 = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->whereNotNull('spotwelding_qty.operator_id')->where('production_order.operation_id', $request->operation)
+			->whereBetween('spotwelding_qty.from_time', [$d1, $d2])
+			->select('spotwelding_qty.operator_id', 'spotwelding_qty.operator_name', 'spotwelding_qty.time_log_id');
+
 		$query = DB::connection('mysql_mes')->table('time_logs')
 			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
 			->whereNotNull('time_logs.operator_id')->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
 			->select('time_logs.operator_id', 'time_logs.operator_name', 'time_logs.time_log_id')
-			->get();
+			->union($query_0)->get();
 
 		$operators = [];
 		foreach($query as $row){

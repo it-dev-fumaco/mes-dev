@@ -487,8 +487,7 @@ $(document).ready(function(){
  
        return tmp;
      }();
- 
-     console.log(timelogs);
+
  
      // -------------------------- Helpers ------------------------------
      function today(hours, minutes) {
