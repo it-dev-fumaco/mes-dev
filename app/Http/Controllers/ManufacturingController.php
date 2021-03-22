@@ -1318,7 +1318,7 @@ class ManufacturingController extends Controller
                             'idx' => $operation->idx,
                             'workstation' => $operation->workstation,
                             'process_id' => $painting_process,
-                            'planned_start_date' => $planned_start_date,
+                            'planned_start_date' => null,
                             'created_by' => Auth::user()->employee_name,
                             'created_at' => $now->toDateTimeString(),
                             'last_modified_by' => Auth::user()->employee_name,
