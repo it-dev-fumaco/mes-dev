@@ -4151,6 +4151,10 @@ class MainController extends Controller
 	public function get_operators(Request $request){
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
+		if($request->start_date && $request->end_date){
+			$d1 = Carbon::parse($request->start_date)->startOfDay();
+			$d2 = Carbon::parse($request->end_date)->startOfDay();
+		}
 
 		// operator spotwelding
 		$query_0 = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -4189,7 +4193,11 @@ class MainController extends Controller
 	public function get_operator_timelogs(Request $request){
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
-
+		if($request->start_date && $request->end_date){
+			$d1 = Carbon::parse($request->start_date)->startOfDay();
+			$d2 = Carbon::parse($request->end_date)->startOfDay();
+		}
+	
 		// helper time logs (spotwelding workstation only)
 		$query_1 = DB::connection('mysql_mes')->table('spotwelding_qty')
 			->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
@@ -4199,7 +4207,7 @@ class MainController extends Controller
 			->whereNotNull('spotwelding_qty.from_time')->whereNotNull('spotwelding_qty.to_time')
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('spotwelding_qty.from_time', [$d1, $d2])
-			->select('job_ticket.workstation', DB::raw('(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'helper.operator_id');
+			->select('job_ticket.workstation', DB::raw('(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'helper.operator_id', 'production_order.production_order');
 		
 		// helper time logs (other workstations)
 		$query_2 = DB::connection('mysql_mes')->table('time_logs')
@@ -4210,7 +4218,7 @@ class MainController extends Controller
 			->whereNotNull('time_logs.from_time')->whereNotNull('time_logs.to_time')
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
-			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'helper.operator_id');
+			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'helper.operator_id', 'production_order.production_order');
 
 		// operator time logs (spotwelding workstation only)
 		$query_3 = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -4220,7 +4228,7 @@ class MainController extends Controller
 			->whereNotNull('spotwelding_qty.from_time')->whereNotNull('spotwelding_qty.to_time')
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('spotwelding_qty.from_time', [$d1, $d2])
-			->select('job_ticket.workstation', DB::raw('(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.operator_id');
+			->select('job_ticket.workstation', DB::raw('(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.operator_id', 'production_order.production_order');
 		
 		// operator time logs (other workstations)
 		return DB::connection('mysql_mes')->table('time_logs')
@@ -4230,8 +4238,8 @@ class MainController extends Controller
 			->whereNotNull('time_logs.from_time')->whereNotNull('time_logs.to_time')
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
-			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'time_logs.operator_id')
-			->union($query_1)->union($query_2)->union($query_3)
+			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'time_logs.operator_id', 'production_order.production_order')
+			->union($query_1)->union($query_2)->union($query_3
 			->get();
 	}
 
