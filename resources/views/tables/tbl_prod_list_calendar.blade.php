@@ -37,7 +37,7 @@
                                             <b>{{ $r0->production_order }} ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</b>
                                         </span>
                                         <div class="details-pane-plan row  align-items-center justify-content-center" style="font-size:8pt;">
-                                            <h5 class="title">{{ $r0->production_order }}</b> ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</h5>
+                                            <h5 class="title" style="font-size:13.2px;">{{ $r0->production_order }}</b> ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</h5>
                                             <p class="desc">
                                               <b>Item Description:</b><br>
                                               <b>{{ $r0->item_code }}</b>-{{ $r0->description }}<br>
