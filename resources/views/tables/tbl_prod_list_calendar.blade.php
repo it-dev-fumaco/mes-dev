@@ -36,11 +36,13 @@
                                         <span class="badge badge-{{$stat_badge}} hvrlink-plan" style="text-align: center;font-size:13px;color:white; ">
                                             <b>{{ $r0->production_order }} ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</b>
                                         </span>
-                                        <div class="details-pane-plan" style="font-size:8pt;">
+                                        <div class="details-pane-plan row  align-items-center justify-content-center" style="font-size:8pt;">
                                             <h5 class="title">{{ $r0->production_order }}</b> ({{ ($r0->sales_order == null)? $r0->material_request:$r0->sales_order }})</h5>
                                             <p class="desc">
                                               <b>Item Description:</b><br>
                                               <b>{{ $r0->item_code }}</b>-{{ $r0->description }}<br>
+                                              <b>Customer</b>-{{ $r0->customer }}<br>
+                                              <b>Project</b>-{{ $r0->project }}<br>
                                               <i>CTD Qty: <b>{{ $r0->produced_qty }} {{ $r0->stock_uom }}</b></i>
                                             </p>
                                         </div>

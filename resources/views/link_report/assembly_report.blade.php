@@ -476,7 +476,6 @@ $(document).ready(function(){
 </script>
 <script>
 
- 
    $(document).on('change', '#parts_filter', function(event){
       tbl_log_report();
       tbl_chart(); 

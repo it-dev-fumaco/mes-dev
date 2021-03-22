@@ -839,7 +839,7 @@
           </div>
            <div class="modal-body">
              <div class="row">
-               <div class="col-md-8" style="padding: 1px 2px 1px 5px;z-index:0;">
+               <div class="col-md-7" style="padding: 1px 2px 1px 5px;z-index:0;">
                  <div class="row" style="z-index:0;">
                    <div class="col-md-12"  style="z-index:0;">
                     <div class="card" style="z-index:0;">
@@ -894,14 +894,14 @@
                   </div>
                  </div>
                </div>
-               <div class="col-md-4"  style="padding: 1px 2px 1px 5px; z-index:0;">
+               <div class="col-md-5"  style="padding: 1px 2px 1px 5px; z-index:0;">
                 <div class="card" style="z-index:0;">
                   <div class="card-header" style="padding: 1px 1px 1px 1px;">
                    <h5 class="card-title" style="font-size:13pt; margin-left:2px;">&nbsp;<b>Scheduled Production Order</b></h5>
                   </div>
                   <div class="card-body" style="height:400px;overflow:auto;z-index:0;">
-                    <div style="z-index:1;position:absolute;">
-                      <div id="prod_list_calendar" style="margin-top:-5px;font-size:10px;z-index:1;" ></div>
+                    <div >
+                      <div id="prod_list_calendar" style="font-size:10px;z-index:0;position:relative;" ></div>
                     </div>
                   </div>
                 </div>
@@ -1132,12 +1132,13 @@
     background: #f1f1f1;
     border: 1px solid #a9a9a9;
     position: absolute;
-    left: 0;
+    top: 0px;
+    left: 0px;
     right: 0;
-    margin: 0 auto 20px;
+    margin: 0 auto;
     left: 0;
-    z-index: 5;
-    width: 330px;
+    z-index: 10;
+    width: 230px;
     padding: 6px 8px;
     text-align: left;
     -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
@@ -1169,14 +1170,12 @@
   /** hover styles **/
   span.hvrlink-plan:hover + .details-pane-plan {
     display: block;
-    left: 50%;
-    transform: translateX(-80%);
+
   }
 
   .details-pane-plan:hover {
     display: block;
-    left: 50%;
-    transform: translateX(-80%);
+
   }
 
   /**end **/

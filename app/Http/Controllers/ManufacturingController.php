@@ -1318,7 +1318,7 @@ class ManufacturingController extends Controller
                             'idx' => $operation->idx,
                             'workstation' => $operation->workstation,
                             'process_id' => $painting_process,
-                            'planned_start_date' => $planned_start_date,
+                            'planned_start_date' => null,
                             'created_by' => Auth::user()->employee_name,
                             'created_at' => $now->toDateTimeString(),
                             'last_modified_by' => Auth::user()->employee_name,
@@ -2047,13 +2047,13 @@ class ManufacturingController extends Controller
     public function update_production_order_item_required_qty(Request $request){
         $production_order_item = DB::connection('mysql')->table('tabProduction Order Item as poi')
             ->join('tabProduction Order as po', 'poi.parent', 'po.name')->where('poi.name', $request->production_order_item_id)
-            ->select('poi.item_code', 'po.status', 'po.name as production_order')->first();
+            ->select('poi.item_code', 'po.status', 'po.name as production_order', 'po.produced_qty', 'po.qty')->first();
 
         if (!$production_order_item) {
             return response()->json(['status' => 0, 'message' => 'Record not found.']);
         }
 
-        if ($production_order_item->status == 'Completed') {
+        if ($production_order_item->produced_qty == $production_order_item->qty) {
             return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $production_order_item->production_order .'</b> is already Completed.']);
         }
         // get transferred qty
