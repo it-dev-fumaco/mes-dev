@@ -4239,7 +4239,7 @@ class MainController extends Controller
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
 			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'time_logs.operator_id', 'production_order.production_order')
-			->union($query_1)->union($query_2)->union($query_3
+			->union($query_1)->union($query_2)->union($query_3)
 			->get();
 	}
 
