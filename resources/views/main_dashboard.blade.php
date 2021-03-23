@@ -8,7 +8,7 @@
 <div class="panel-header">
    <div class="header text-center"> 
       <div class="row">
-        <div class="col-md-12" style="margin-top:-48px;">
+        <div class="col-md-12" style="margin-top:-70px;">
             <table style="text-align: center; width: 100%;">
               <tr>
                 <td style="width: 25%; border-right: 5px solid white;">
@@ -36,7 +36,7 @@
    </div>
 </div>
 
-<div class="content" style="margin-top: -134px;">
+<div class="content" style="margin-top: -180px;">
   <div class="row">
     <div class="col-md-8">
       <div class="row">
@@ -48,9 +48,9 @@
               @endphp
               @if (count($a) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
+                <div class="menu-box m-1">
                   <a href="/item_feedback" class="text-center">
-                    <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 45%; height: 60%; margin-left: auto;
+                    <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 25%; height: 40%; margin-left: auto;
                       margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Production Orders</footer>
                 </div>
@@ -61,8 +61,8 @@
               @endphp
               @if (count($b) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/wizard" class="text-center"><img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="/wizard" class="text-center"><img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Planning</footer>
                 </div>
@@ -73,8 +73,8 @@
               @endphp
               @if (count($b1) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/assembly/wizard" class="text-center"><img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="/assembly/wizard" class="text-center"><img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Planning</footer>
                 </div>
@@ -92,8 +92,8 @@
               @endphp
               @if (count($c) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="{{ $link }}" class="text-center"><img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="{{ $link }}" class="text-center"><img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Scheduling</footer>
                 </div>
@@ -104,8 +104,8 @@
               @endphp
               @if (count($d) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/stock_entry" class="text-center"><img src="{{ asset('storage/Main Icon/material_requests.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="/stock_entry" class="text-center"><img src="{{ asset('storage/Main Icon/material_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Widthrawal Slips</footer>
                 </div>
@@ -116,8 +116,8 @@
               @endphp
               @if (count($e) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/bom" class="text-center"><img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="/bom" class="text-center"><img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">BOM List </footer>
                 </div>
@@ -128,8 +128,8 @@
               @endphp
               @if (count($f) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/maintenance_request" class="text-center"><img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="/maintenance_request" class="text-center"><img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Maintenance Request</footer>
                 </div>
@@ -140,8 +140,8 @@
               @endphp
               @if (count($h) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/inventory" class="text-center"><img src="{{ asset('storage/Main Icon/inventory.png') }}"  style="width:45%; height:60%;margin-left: auto;
+                <div class="menu-box m-1">
+                  <a href="/inventory" class="text-center"><img src="{{ asset('storage/Main Icon/inventory.png') }}"  style="width:25%; height:40%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Inventory</footer>
                 </div>
@@ -163,16 +163,37 @@
           </table>
         </div>
         <div class="col-md-12 p-0 mt-2">
-          <div class="card" style="background-color: #f39c12;">
-            <div class="card-body pb-0 pt-0">
-              <div class="row">
-                <div class="col-md-12 p-2">
-                  <h5 class="text-white font-weight-bold text-center m-0">On-Going Production Order(s)</h5>
+          <div class="card m-0">
+            <div class="card-body p-1">
+              <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item font-weight-bold">
+                  <a class="nav-link active" data-toggle="tab" href="#fab" role="tab">Fabrication</a>
+                </li>
+                <li class="nav-item font-weight-bold">
+                  <a class="nav-link" data-toggle="tab" href="#pa" role="tab">Painting</a>
+                </li>
+                <li class="nav-item font-weight-bold">
+                  <a class="nav-link" data-toggle="tab" href="#wa" role="tab">Wiring and Assembly</a>
+                </li>
+              </ul>
+              <div class="tab-content" id="on-going-production-orders-content">
+                <div class="tab-pane fade show active" id="fab" role="tabpanel" data-operation="1">
+                  <div class="row m-0 p-0">
+                    <div class="col-md-8 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="row" style="background-color: #ffffff;height: auto; min-height: 578px;">
-                <div class="col-md-12 p-0">
-                  <div id="table_orders"></div>
+                <div class="tab-pane fade" id="pa" role="tabpanel" data-operation="2">
+                  <div class="row">
+                    <div class="col-md-8 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="wa" role="tabpanel" data-operation="3">
+                  <div class="row">
+                    <div class="col-md-8 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -180,74 +201,142 @@
         </div>
       </div>
     </div>
+
+    <style>
+      #production-order-totals .custom-text-1{
+        font-size: 20pt;
+        font-weight: bold;
+        margin: 0;
+        padding: 0;
+      }
+
+      #production-order-totals .custom-text-2{
+        font-size: 7pt;
+      }
+
+      #production-order-totals .custom-text-3{
+        font-size: 10pt;
+      }
+    </style>
+
     <div class="col-md-4">
       <div class="row">
         <div class="col-md-12">
-          <table style="width: 100%;">
+          <table class="w-100 text-center text-white mt-1" id="production-order-totals" style="background-color: #263238;">
             <tr>
-              <td style="width: 64%; padding-right: 1%" class="align-top">
-                <div class="card">
-                  <div class="card-header text-center p-1">
-                    <h5 class="title m-0" style="font-size: 15pt;">Current Production Orders</h5>
-                  </div>
-                  <div class="card-body p-0 pb-3 text-center text-white" style="min-height: 150px; background-color: #263238;">
-                    <div class="row">
-                      <div class="col-md-12 pt-1">
-                        <table style="width: 100%;" id="totals-table">
-                          <col style="width: 33%;">
-                          <col style="width: 33%;">
-                          <col style="width: 33%;">
-                          <tr>
-                             <td class="align-top">
-                                <span class="span-value text-center" id="pending_count" style="display:block;font-size:35pt;font-weight:bold;">0</span>
-                                <span class="span-title text-center" style="display:block;font-size:10pt;">Pending</span>
-                                <span class="span-value text-center" id="pending_count_qty" style="display:block;font-size:15pt;font-weight:bold;">0</span>
-                                <span class="span-title text-center" style="display:block;font-size: 8pt;">Piece(s)</span>
-                             </td>
-                             <td class="align-top">
-                                <span class="span-value text-center" id="inprogress_count" style="display:block;font-size:35pt;font-weight:bold;">0</span>
-                                <span class="span-title text-center" style="display:block;font-size:10pt;">In Progress</span>
-                                <span class="span-value text-center" id="inprogress_count_qty" style="display:block;font-size:15pt;font-weight:bold;">0</span>
-                                <span class="span-title text-center" style="display:block;font-size:8pt;">Piece(s)</span>
-                             </td>
-                             <td class="align-top">
-                                <span class="span-value text-center" id="reject_count" style="display:block;font-size:35pt;font-weight:bold;">0</span>
-                                <span class="span-title text-center" style="display:block;font-size:10pt;">Rejects</span>
-                             </td>
-                          </tr>
-                       </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <td colspan="4" class="text-dark bg-white">
+                <span class="font-weight-bold text-uppercase">Production Order(s)</span>
               </td>
-              <td style="width: 34%; padding: 0 0.5%" class="align-top">
-                <div class="card">
-                  <div class="card-header text-center text-white p-2" style="height: 37px; background-color: #28b463">
-                    <h5 class="title m-0" style="font-size: 12pt;">Ready for Feedback</h5>
-                  </div>
-                  <div class="card-body p-0 pb-3 text-center" style="min-height: 150px; background-color: #263238;">
-                    <div class="row">
-                      <div class="col-md-12 pt-1 text-white">
-                        <span class="span-value text-center" id="completed_count" style="display:block;font-size:37pt;font-weight:bold;">0</span>
-                        <span class="span-title text-center" style="display:block;font-size:10pt;">Production Order(s)</span>
-                        <span class="span-value text-center" id="completed_count_qty" style="display:block;font-size:15pt;font-weight:bold;">0</span>
-                        <span class="span-title text-center" style="display:block;font-size:8pt;">Piece(s)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <td rowspan="2" style="background-color: #28b463";>
+                <span class="font-weight-bold">For Feedback</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="bg-white text-dark"><span class="font-weight-bold">Operation</span></td>
+              <td class="bg-white text-dark"><span class="font-weight-bold">Planned</span></td>
+              <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
+              <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
+            </tr>
+            <tr>
+              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">FAB</td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ABB2B9;">
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+            </tr>
+            <tr>
+              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">W&A</td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ABB2B9;">
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+            </tr>
+            <tr>
+              <td rowspan="2" class="font-weight-bold">PA</td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1">0</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+            </tr>
+            <tr>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3">0 <small>Piece(s)</small></span>
               </td>
             </tr>
           </table>
-        </div>
-         <div class="col-md-12">
-          <div class="card" style="height:540px;" style="overflow-y: auto;">
-            <div class="card-header text-center text-white p-2" style="background-color: #3498db">
-              <h5 class="title m-0">Notifications</h5>
-            </div>
-            <div class="table-full-width table-responsive" style="height: 450px;position: relative;" id="tbl_notif_dash"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -282,10 +371,9 @@
     .menu-box{
       display: inline-block;
       background-color: #ffffff; 
-      border-radius: 10px;
       border: 1px solid #dddddd;
       width: 96%;
-      margin: 2%;
+      margin: 8%;
     }
 
     @-webkit-keyframes blinker {
@@ -385,6 +473,40 @@
     </div>
   </div>
 
+  
+<div class="modal fade" id="mark-done-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/mark_as_done_task" method="POST" id="mark-done-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white p-2" style="background-color: #0277BD;">
+              <h5 class="modal-title">
+               <span>Mark as Done</span>
+               <span class="workstation-text font-weight-bold"></span>
+              </h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">&times;</span>
+               </button>
+           </div>
+           <div class="modal-body">
+              <div class="row m-0">
+                 <div class="col-md-12">
+                   <h5 class="text-center m-0">Do you want to override task?</h5>
+                   <input type="hidden" name="id" required id="jt-index">
+                   <input type="hidden" name="qty_accepted" required id="qty-accepted-override">
+                   <input type="hidden" name="workstation" required id="workstation-override">
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer pt-1 pb-1 pr-2">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+
   <!-- Modal Create STE Production Order -->
 <div class="modal fade" id="create-ste-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -426,11 +548,45 @@
 @endsection
 
 @section('script')
-
 <script>
   $(document).ready(function(){
-  
+    load_dashboard();
+    function load_dashboard(){
+      $( "#on-going-production-orders-content .tab-pane" ).each(function( index ) {
+        const operation = $(this).data('operation');
+        const el = $(this);
+        
+        get_ongoing_production_orders(operation, el);
+        get_qa(operation, el);
+      });
+    }
 
+    //setInterval(load_dashboard, 10000);
+
+    function get_qa(operation, el){
+      var date_today = $("#date_today").val();
+      $.ajax({
+        url:"/qa_monitoring_summary/" + date_today,
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          $(el).find('.table-div').eq(1).html(data);
+        }
+      }); 
+    }
+
+    function get_ongoing_production_orders(operation, el){
+      var date_today = $("#date_today").val();
+      $.ajax({
+        url:"/get_production_order_list/" + date_today,
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          $(el).find('.table-div').eq(0).html(data);
+        }
+      }); 
+    }
+  
     $('#completed_count').click(function(e){
       e.preventDefault();
       get_for_feedback_production(1);
@@ -652,19 +808,12 @@
 
     $('#get-notifications-btn').click(function(e){
       e.preventDefault();
-      $.ajax({
-        url:"/get_tbl_notif_dashboard",
-        type:"GET",
-        success:function(data){
-          $('#tbl-notifications').html(data);
-          $('#view-notifications-modal').modal('show');
-        }
-      }); 
+
+      notif_dashboard();
+      $('#view-notifications-modal').modal('show');
     });
   
-    table_po_orders();
     count_current_production();
-    setInterval(notif_dashboard, 7000);
 
     setInterval(updateClock, 1000);
     function updateClock(){
@@ -691,16 +840,7 @@
 </script>
 
 <script type="text/javascript">
-  function table_po_orders(){
-    var date_today = $("#date_today").val();
-    $.ajax({
-        url:"/get_production_order_list/" + date_today,
-        type:"GET",
-        success:function(data){
-          $('#table_orders').html(data);
-        }
-      }); 
-  }
+  
 
   function count_current_production(){
     var date_today = $("#date_today").val();
@@ -724,7 +864,7 @@
       url:"/get_tbl_notif_dashboard",
       type:"GET",
       success:function(data){
-        $('#tbl_notif_dash').html(data);
+        $('#tbl-notifications').html(data);
       }
     }); 
   }
