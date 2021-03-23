@@ -354,6 +354,7 @@ Route::get('/production_scheduling_tbl', 'SecondaryController@tbl_production_sch
 
 //fabrication_calendar
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/qa_monitoring_summary/{schedule_date}', 'SecondaryController@qa_monitoring_summary');
 	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
 	
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
