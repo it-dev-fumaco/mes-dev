@@ -12,9 +12,11 @@
                 <div class="modal-body">
                     <div class="row p-0">
                     <div class="col-md-12 p-1">
+                        <input type="hidden" name="ste_names">
                         <input type="hidden" name="production_order">
                         <input type="hidden" name="item_code">
                         <input type="hidden" name="source_warehouse">
+                        <input type="hidden" name="production_order_item_id">
                         <p class="text-center m-0">Cancel withdrawal request(s) for <span class="font-weight-bold"></span></p>
                     </div>
                     </div>

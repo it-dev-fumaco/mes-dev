@@ -43,7 +43,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/add_ste_items', 'ManufacturingController@add_ste_items');
 
 	Route::get('/operator/Painting/{process_name}/{machine_code}/{production_order}', 'PaintingOperatorController@operator_task');
-	Route::get('/get_task/{production_order}/{process_id}', 'PaintingOperatorController@get_task');
+	Route::get('/get_task/{production_order}/{process_id}/{operator_id}', 'PaintingOperatorController@get_task');
 	Route::post('/start_painting', 'PaintingOperatorController@start_task');
 	Route::post('/end_painting', 'PaintingOperatorController@end_task');
 	Route::post('/restart_painting', 'PaintingOperatorController@restart_task');
@@ -121,8 +121,6 @@ Route::group(['middleware' => 'auth'], function(){
 
 	Route::get('/production_schedule_per_workstation', 'MainController@production_schedule_per_workstation');
 	Route::get('/operators_load_utilization', 'MainController@operators_load_utilization');
-	Route::get('/get_operators', 'MainController@get_operators');
-	Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 	Route::get('/get_reference_production_items/{reference}', 'MainController@get_reference_production_items');
 	Route::get('/get_customer_reference_no/{customer}', 'MainController@get_customer_reference_no');
 	Route::get('/get_customers', 'MainController@get_customers');
@@ -132,10 +130,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/update_production_task_schedules', 'MainController@update_production_task_schedules');
 	Route::post('/update_production_order_schedule', 'MainController@update_production_order_schedule');
 
-	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');
-
-	//reports
-	Route::get('/reports_index', 'MainController@report_index');
+	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');	
 });
 
 //machine overview
@@ -280,6 +275,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/end_spotwelding', 'SpotweldingController@end_task');
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');
 
+	Route::post('/continue_log_task/{timelog_id}', 'SpotweldingController@continue_log_task');
+
 	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
 	Route::get('/create_bundle_feedback/{production_order}/{fg_completed_qty}', 'ManufacturingController@create_production_feedback_for_item_bundle');
 	Route::get('/create_gl_entry/{stock_entry}', 'MainController@create_gl_entry');
@@ -310,8 +307,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/hide_reject', 'SecondaryController@hidereject_notif_dash');
 
 	Route::get('/operator_item_produced_report', 'SecondaryController@operator_item_produced_report');
-	Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
-	Route::get('/getprocess_query/{workstation}', 'SecondaryController@getprocess_query');
 	Route::get('/export/view/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@export_view');
 
 
@@ -356,11 +351,12 @@ Route::get('/production_scheduling_tbl', 'SecondaryController@tbl_production_sch
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/qa_monitoring_summary/{schedule_date}', 'SecondaryController@qa_monitoring_summary');
 	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
-	
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
-    Route::post('/calendar/update_planned_start_date_by_click', 
-        ['uses' => 'SecondaryController@update_planned_start_date_by_click', 'as' => 'fabrication.ajax_update']);
+    Route::post('/add_shift_schedule', 
+        ['uses' => 'SecondaryController@add_shift_schedule', 'as' => 'fabrication.ajax_update']);
 });
+Route::post('/add_shift_schedule_prod', 'SecondaryController@add_shift_schedule');
+
 
 
 ///revise MainDashboard Patrick 
@@ -373,7 +369,6 @@ Route::get('/get_tbl_shift_list', 'SecondaryController@tbl_shift_list');
 Route::post('/add_operation', 'SecondaryController@add_operation');
 Route::post('/edit_operation', 'SecondaryController@edit_operation');
 Route::get('/get_tbl_operation_list', 'SecondaryController@tbl_operation_list');
-Route::post('/add_shift_schedule', 'SecondaryController@add_shift_schedule');
 Route::post('/edit_shift_schedule', 'SecondaryController@edit_shift_schedule');
 Route::post('/delete_shift_schedule', 'SecondaryController@delete_shift_sched');
 Route::get('/get_tbl_shiftsched_list', 'SecondaryController@get_tbl_shiftsched_list');
@@ -453,7 +448,7 @@ Route::post('/submit_painting_chemical_records', 'SecondaryController@submit_pai
 
 // qa_checklist
 Route::get('/get_reject_type_desc', 'SecondaryController@get_reject_type_desc');
-Route::get('/get_reject_desc/{reject_type}/{id}', 'SecondaryController@get_reject_desc');
+Route::get('/get_reject_desc/{reject_type}/{id}/{operation}', 'SecondaryController@get_reject_desc');
 Route::post('/save_checklist', 'SecondaryController@save_checklist');
 Route::get('/get_tbl_checklist_list_fabrication', 'SecondaryController@get_tbl_checklist_list_fabrication');
 Route::get('/get_tbl_checklist_list_painting', 'SecondaryController@get_tbl_checklist_list_painting');
@@ -495,10 +490,8 @@ Route::post('/delete_user_group', 'SecondaryController@delete_user_group');
 
 //QA_inspection_log_report
 
-Route::get('/tbl_qa_inspection_log_report_fabrication/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_fabrication');
+Route::get('/tbl_qa_inspection_log_report/{start}/{end}/{operation}', 'QualityInspectionController@tbl_qa_inspection_log_report');
 Route::get('/get_tbl_qa_inspection_log_export/{start}/{end}/{workstation}/{customer}/{prod}/{item_code}/{status}/{processs}/{qa_inspector}/{operator}', 'QualityInspectionController@get_tbl_qa_inspection_log_export');
-Route::get('/tbl_qa_inspection_log_report_painting/{start}/{end}/{workstation}', 'QualityInspectionController@tbl_qa_inspection_log_report_painting');
-Route::get('/get_tbl_qa_inspection_log_export_painting/{start}/{end}/{workstation}/{customer?}/{prod?}/{item_code?}/{status?}/{processs?}/{qa_inspector?}/{operator?}', 'QualityInspectionController@get_tbl_qa_inspection_log_export_painting');
 
 //item_classification_warehouse_setup
 Route::post('/save_item_classification_warehouse', 'SecondaryController@insert_item_classification_warehouse');
@@ -613,6 +606,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_return/{sted_id}', 'MainController@delete_pending_material_transfer_for_return');
+
+	Route::post('/update_production_order_item_required_qty', 'ManufacturingController@update_production_order_item_required_qty');
 	
 	Route::post('/submit_stock_entries/{production_order}', 'ManufacturingController@submit_stock_entries');
 
@@ -653,6 +648,12 @@ Route::post('/edit_material_type', 'SecondaryController@update_material_type');
 Route::get('/get_material_type_tbl', 'SecondaryController@get_material_type_tbl');
 Route::post('/save_material_type', 'SecondaryController@save_material_type');
 
+//calendar
+
+Route::get('/schedule_prod_calendar_details', 'SecondaryController@schedule_prod_calendar_details');
+Route::get('/get_assembly_prod_calendar', 'SecondaryController@get_assembly_prod_calendar');
+Route::post('/calendar_update_rescheduled_delivery_date', 'MainController@calendar_update_rescheduled_delivery_date');
+
 
 //reason for cancellation(PO)
 Route::post('/save_cancelled_reason', 'SecondaryController@save_reason_for_cancellation');
@@ -664,6 +665,24 @@ Route::post('/reset_workstation_data', 'SecondaryController@reverse_mark_as_done
 
 Route::get('/get_reject_categ_and_process', 'SecondaryController@get_reject_categ_and_process');
 
+//warning notif for custom shift sched
+Route::get('/get_warning_notif_for_custom_shift/{id}', 'SecondaryController@get_warning_notif_for_custom_shift');
+
+//Additional shift sched
+Route::get('/shift_sched_details', 'SecondaryController@shift_sched_details');
+Route::get('/get_tbl_default_shift_sched', 'MainController@get_tbl_default_shift_sched');
+
+
+//Daily Report
+Route::get('/daily_output_report', 'ReportsController@daily_output_report');
+Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
+Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
+
+Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
+Route::get('/assembly_report', 'ReportsController@assembly_report_page');
+
+Route::get('/painting_report', 'ReportsController@painting_report_page');
+Route::get('/qa_report', 'ReportsController@qa_report');
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
@@ -700,6 +719,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/assembly/print_machine_schedule/{scheduled_date}/{machine_code}', 'AssemblyController@print_assembly_machine_schedule');
 	
 	Route::post('/update_conveyor_assignment', 'AssemblyController@update_conveyor_assignment');
+
+	Route::post('/cancel_production_order_feedback/{stock_entry}', 'ManufacturingController@cancel_production_order_feedback');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');
@@ -713,4 +734,37 @@ Route::get('/operations', 'MainController@operation_query');
 Route::get('/workstations/{operation_id}', 'MainController@workstation_query');
 Route::get('/processes/{workstation_id}', 'MainController@process_query');
 
+//exclude from authentication
+Route::get('/getprocess_query/{workstation}', 'SecondaryController@getprocess_query');
+Route::get('/get_operators', 'MainController@get_operators');
+Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
+Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 
+//Daily Report
+Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page');
+Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
+Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
+// Route::get('/link_qa_report', 'LinkReportController@qa_report');
+Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
+Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
+Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
+
+Route::get('/report_index', 'LinkReportController@index');
+Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
+Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
+Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
+Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+
+Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
+Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+
+Route::get('/rejection_report', 'LinkReportController@rejection_report');
+Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
+
+Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
+Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
+Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
+Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
+
+
+Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');

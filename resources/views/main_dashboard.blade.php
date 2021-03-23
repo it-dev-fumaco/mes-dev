@@ -152,8 +152,8 @@
               @endphp
               @if (count($i) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/report_index" class="text-center"><img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                <div class="menu-box">
+                  <a href="/report_index" class="text-center"><img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:45%; height:60%;margin-left: auto;
                     margin-right: auto; display: block; padding-top: 10px;"></a>
                   <footer class="hmt small text-center" style="padding: 10px 0;">Reports & Analysis</footer>
                 </div>

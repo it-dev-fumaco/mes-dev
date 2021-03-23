@@ -94,14 +94,14 @@
                         <div class="card-body pb-0">
                           <div class="row" style="margin-top: -15px;">
                             <div class="col-md-8" style="padding: 5px 5px 5px 12px;">
-                              <h5 class="text-white font-weight-bold text-left m-1">{{ $header }}</h5>
+                              <h5 class="text-white font-weight-bold text-left m-2 pl-3" style="font-size: 13pt;">Filter Data</h5>
                             </div>
                             <div class="col-md-4 m-0" style="padding: 5px;">
                               <table style="width: 100%;">
                                 <tr>
                                   <td style="width: 50%;">
                                     <div class="form-group m-0">
-                                      <input type="text" class="form-control bg-white" placeholder="Search" id="search_production_schedule">
+                                      <input type="text" class="form-control bg-white rounded-0" placeholder="Search" id="search_production_schedule">
                                     </div>
                                   </td>
                                   <td style="width: 7%;">
@@ -674,11 +674,51 @@
 @endsection
 
 @section('script')
+<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <script>
   $(document).ready(function () {
     var scheduled_date = $('#schedule-date-val').val();
     var operation_name = $('#operation-name').val();
     var operation_id = $('#operation-id').val();
+
+    $(document).on('change', '#filter-form select', function() {
+      filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+    });
+
+    $(document).on('click', '#clear-kanban-filters', function(e){
+      e.preventDefault();
+    
+      $('#customer-filter').val('all').trigger('change');
+      $('#reference-filter').val('all').trigger('change');
+      $('#parent-item-filter').val('all').trigger('change');
+    
+      filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+    });
+
+    // start by showing all items
+    $('#monitoring-table .tbl-row').removeClass('d-none');
+    function filter_monitoring_table(fltr1, fltr2, fltr3) {
+      // reset results list
+      $('#monitoring-table .tbl-row').addClass('d-none');
+      
+      // the filtering in action for all criteria
+      var selector = "#monitoring-table .tbl-row";
+      if (fltr1 !== 'all') {
+           selector = selector + '[data-customer="' + fltr1 + '"]';
+      }
+
+      if (fltr2 !== 'all') {
+        selector =  selector + '[data-reference-no="' + fltr2 + '"]';
+      }
+
+      if (fltr3 !== 'all') {
+        selector =  selector + '[data-parent-item="' + fltr3 + '"]';
+      }
+
+      // show all results
+      $(selector).removeClass('d-none');
+    }
 
     $.ajaxSetup({
       headers: {
@@ -758,6 +798,13 @@
         type:"GET",
         success:function(response){
           $('#scheduled-production-div').html(response);
+
+          $('.select-custom').select2({
+            dropdownParent: $("#filter-form"),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(jqXHR);
@@ -774,6 +821,13 @@
         data: {search_string: query},
         success:function(data){
           $('#scheduled-production-div').html(data);
+
+          $('.select-custom').select2({
+            dropdownParent: $("#filter-form"),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
         }
       }); 
     }
@@ -1257,6 +1311,28 @@
         }
       });
     }
+
+    $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr("action"),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            if(operation_name == 'Painting'){
+              load_scheduled_painting();
+            }else{
+              load_scheduled_production_order();
+            }
+          }
+        }
+      });
+    });
   });
 </script>
 @endsection

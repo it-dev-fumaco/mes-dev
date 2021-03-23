@@ -85,7 +85,7 @@
                 <ul class="tree ulclass text-center">
                 
                   <li class="liclass text-center">
-                    <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:auto;">
+                    <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:100%;">
                       <div class="row text-center bread justify-content-center" style="padding-top:5px;width:100%;">
                         <div class="col-md-12 bread">
                         <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>  @endif</b> </span>
@@ -94,13 +94,13 @@
 
                         </div>
                       </div>
-                      <div class="row bread breads" style="margin-top:5px;display:{{$displayasssembly}}; width:100%;">
-                        <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; width:100%;">
-                          <ul class="breadcrumb-css bread breads" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};   width:100%;">
+                      <div class="row bread breads row" style="margin-top:5px;display:{{$displayasssembly}}; text-align:initial !important;">
+                        <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; text-align:initial !important;width:100%;">
+                          <ul class="breadcrumb-css bread breads row align-items-center justify-content-center" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};  text-align:initial !important;">
                             @forelse($materials['process'] as $uli)
-                              <li class="{{$uli['status']}} bread breads" style="font-size:0.5vw;"><a class="bread breads" style=" padding-left:25px; min-height:90px;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
+                              <li class="{{$uli['status']}} bread breads" style=" text-align:initial !important;width:auto;"><a class="bread breads" style=" text-align:initial !important;padding-left:25px;margin-right:10px;width:auto;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block; padding-right:20px;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
                             @empty
-                            <li class="bread" style=""></li>
+                            <li class="bread" style="text-align:initial !important;"></li>
                             @endforelse
                           </ul>
                         </div>
@@ -907,7 +907,7 @@ a.hvrlink:hover + .details-pane {
             padding: .2em .5em;
             position: relative;
             color: black;
-            width: 170px;
+            min-width: 200px;;
         }
             /* | */
             .tree a:not(.bread):before{
