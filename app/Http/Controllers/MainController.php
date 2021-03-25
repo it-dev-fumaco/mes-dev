@@ -1746,6 +1746,9 @@ class MainController extends Controller
 				->join('operation', 'operation.operation_id', 'user.operation_id')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
 				->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
+				->when($request->operation, function ($query) use ($request) {
+					return $query->where('user.operation_id', $request->operation);
+				})
 				->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
 				->distinct()->get();
 
@@ -1784,6 +1787,8 @@ class MainController extends Controller
 				->whereRaw('po.produced_qty > feedback_qty')
 				->select('po.*', 'delivery_date.rescheduled_delivery_date')
 				->paginate(10);
+
+			$q->appends($request->all());
 
 			if($request->get_total){
 				return ['div' => '#awaiting-feedback-total', 'total' => number_format($q->total())];
