@@ -41,7 +41,17 @@
             @php
             $a = array_intersect($permissions['permitted_modules'], ['Production']);
             $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
+            $c = array_intersect($permissions['permitted_modules'], ['Maintenance']);
+
             @endphp
+            @if (count($c) > 0)
+            <li class="{{ $activePage == 'maintenance_dashboard' ? 'active' : '' }}">
+              <a href="/maintenance_dashboard">
+                <i class="now-ui-icons business_chart-bar-32"></i>
+                <p>Maintenance Dashboard</p>
+              </a>
+            </li>
+            @endif
             @if (count($b) > 0)
             <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
               <a href="/main_dashboard">

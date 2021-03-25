@@ -767,3 +767,20 @@ Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage
 
 
 Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+
+//Maintenance Module
+Route::get('/maintenance_dashboard', 'MaintenanceController@index');
+Route::get('/get_pending_maintenance_request', 'MaintenanceController@get_pending_maintenance_request');
+Route::get('/get_completed_maintenance_request', 'MaintenanceController@get_completed_maintenance_request');
+Route::post('/set_assigned_maintenance_staff', 'MaintenanceController@set_assigned_maintenance_staff');
+Route::get('/get_maintenance_request_details', 'MaintenanceController@get_maintenance_request_details');
+Route::post('/save_maintenance_request', 'MaintenanceController@save_maintenance_request');
+Route::get('/get_maintenance_staff', 'MaintenanceController@get_maintenance_staff');
+Route::get('/get_current_assigned_maintenance', 'MaintenanceController@get_current_assigned_maintenance');
+Route::get('/print_maintenance_form', 'MaintenanceController@print_maintenance_form');
+
+
+
+
+
+
