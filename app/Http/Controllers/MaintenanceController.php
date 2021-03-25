@@ -35,9 +35,9 @@ class MaintenanceController extends Controller
     public function get_pending_maintenance_request(Request $request){
         $main= Db::connection('mysql_mes')
             ->table('machine_breakdown')
-            ->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
-            ->j('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
-            ->j('operation as op', 'op.operation_id', 'w.operation_id')
+            ->leftJoin('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
+            ->leftJoin('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
+            ->leftJoin('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('machine_breakdown.status', 'Pending')
             ->where(function($q) use ($request) {
                 $q->where('machine_breakdown.machine_id', 'LIKE', '%'.$request->search_string.'%')
@@ -97,9 +97,9 @@ class MaintenanceController extends Controller
     public function get_completed_maintenance_request(Request $request){
         $main= Db::connection('mysql_mes')
             ->table('machine_breakdown')
-            ->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
-            ->j('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
-            ->j('operation as op', 'op.operation_id', 'w.operation_id')
+            ->leftJoin('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
+            ->leftJoin('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
+            ->leftJoin('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('machine_breakdown.status', 'Completed')
             ->where(function($q) use ($request) {
                 $q->where('machine_breakdown.machine_id', 'LIKE', '%'.$request->search_string.'%')
@@ -228,12 +228,11 @@ class MaintenanceController extends Controller
     public function get_maintenance_request_details(Request $request){
         $main= Db::connection('mysql_mes')
             ->table('machine_breakdown')
-            ->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
-            ->j('user', 'user.user_access_id', 'machine_breakdown.assigned_maintenance_staff')
+            ->leftJoin('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
+            ->leftJoin('user', 'user.user_access_id', 'machine_breakdown.assigned_maintenance_staff')
             ->where('machine_breakdown.machine_breakdown_id', $request->id)
             ->select('machine.machine_name', 'machine_breakdown.*', 'user.employee_name', 'machine.image')
             ->first();
-
         $assigned_main_staff= Db::connection('mysql_mes')
         ->table('assigned_maintenance_staff')
         ->where('assigned_maintenance_staff.machine_breakdown_id', $request->id)
@@ -282,11 +281,11 @@ class MaintenanceController extends Controller
     public function print_maintenance_form(Request $request){
         $data= Db::connection('mysql_mes')
             ->table('machine_breakdown')
-            ->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
-            ->where('machine_breakdown.machine_breakdown_id', $request->id)
-            ->j('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
-            ->j('operation as op', 'op.operation_id', 'w.operation_id')
+            ->leftJoin('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
+            ->leftJoin('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
+            ->leftJoin('operation as op', 'op.operation_id', 'w.operation_id')
             ->select('machine.machine_name', 'machine_breakdown.*', 'op.operation_name')
+            ->where('machine_breakdown.machine_breakdown_id', $request->id)
             ->distinct('machine_breakdown_id')
             ->first();
 

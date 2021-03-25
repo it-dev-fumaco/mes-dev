@@ -130,32 +130,3 @@
     //   $("#date_resolve_picker").val('');
     </script>
     
-<script type="text/javascript">
-    $(document).on('click', '.complete-task-view', function(event){
-      event.preventDefault();
-      var id = $(this).data('id');
-      $.ajax({
-          url:"/get_maintenance_request_details",
-          type:"GET",
-          data: {id: id},
-          success:function(data){
-              $('#tbl_maintenance_dtls').html(data);
-          }
-      });
-      $("#maintenance_status" ).attr("disabled", true);
-      $("#date_resolve_picker" ).attr("disabled", true);
-      $("#maintennace_type" ).attr("disabled", true);
-      $("#findings" ).attr("disabled", true);
-      $("#work_done" ).attr("disabled", true);
-      $("#t_duration" ).attr("disabled", true);
-      $("#submit_id_form" ).hide();
-
-      
-      $('#confirm-task-for-breakdown-modal').modal('show');
-      // $('#set_assign_maintenance_staff').val(staff);
-
-      
-      // var page = $(this).attr('href').split('page=')[1];
-      
-  });
-</script>
