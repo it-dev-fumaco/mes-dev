@@ -48,12 +48,13 @@
               @endphp
               @if (count($a) > 0)
               <td style="width: 10%;">
+                <a href="/item_feedback" class="text-center">
                 <div class="menu-box m-1">
-                  <a href="/item_feedback" class="text-center">
-                    <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 25%; height: 40%; margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Production Orders</footer>
+                   <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 25%; height: 40%; margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                  <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Production Orders</footer>
                 </div>
+              </a>
               </td>
               @endif
               @php
@@ -61,11 +62,13 @@
               @endphp
               @if (count($b) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/wizard" class="text-center"><img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Planning</footer>
-                </div>
+                <a href="/wizard" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Planning</footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -73,11 +76,13 @@
               @endphp
               @if (count($b1) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/assembly/wizard" class="text-center"><img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Planning</footer>
-                </div>
+                <a href="/assembly/wizard" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Planning</footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -92,11 +97,13 @@
               @endphp
               @if (count($c) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="{{ $link }}" class="text-center"><img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Scheduling</footer>
-                </div>
+                <a href="{{ $link }}" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Scheduling</footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -104,11 +111,13 @@
               @endphp
               @if (count($d) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/stock_entry" class="text-center"><img src="{{ asset('storage/Main Icon/material_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Widthrawal Slips</footer>
-                </div>
+                <a href="/stock_entry" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/material_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Widthrawal Slips</footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -116,11 +125,13 @@
               @endphp
               @if (count($e) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/bom" class="text-center"><img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">BOM List </footer>
-                </div>
+                <a href="/bom" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">BOM List </footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -128,11 +139,13 @@
               @endphp
               @if (count($f) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/maintenance_request" class="text-center"><img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Maintenance Request</footer>
-                </div>
+                <a href="/maintenance_request" class="text-center">
+                  <div class="menu-box m-1">
+                      <img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Maintenance Request</footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -140,11 +153,13 @@
               @endphp
               @if (count($h) > 0)
               <td style="width: 10%;">
-                <div class="menu-box m-1">
-                  <a href="/inventory" class="text-center"><img src="{{ asset('storage/Main Icon/inventory.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Inventory</footer>
-                </div>
+                <a href="/inventory" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/inventory.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Inventory</footer>
+                  </div>
+                </a>
               </td>
               @endif
               @php
@@ -152,11 +167,13 @@
               @endphp
               @if (count($i) > 0)
               <td style="width: 10%;">
-                <div class="menu-box">
-                  <a href="/report_index" class="text-center"><img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:45%; height:60%;margin-left: auto;
-                    margin-right: auto; display: block; padding-top: 10px;"></a>
-                  <footer class="hmt small text-center" style="padding: 10px 0;">Reports & Analysis</footer>
-                </div>
+                <a href="/report_index" class="text-center">
+                  <div class="menu-box m-1">
+                    <img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:25%; height:40%;margin-left: auto;
+                      margin-right: auto; display: block; padding-top: 10px;">
+                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Reports & Analysis</footer>
+                  </div>
+                </a>
               </td>
               @endif
             </tr>
@@ -223,6 +240,11 @@
       <div class="row">
         <div class="col-md-12">
           <table class="w-100 text-center text-white mt-1" id="production-order-totals" style="background-color: #263238;">
+            <col style="width: 20%;">
+            <col style="width: 20%;">
+            <col style="width: 20%;">
+            <col style="width: 20%;">
+            <col style="width: 20%;">
             <tr>
               <td colspan="4" class="text-dark bg-white">
                 <span class="font-weight-bold text-uppercase">Production Order(s)</span>
@@ -238,102 +260,102 @@
               <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
             </tr>
             <tr>
-              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">FAB</td>
+              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Fabrication</td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1" id="fab-planned">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1" id="fab-wip">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1" id="fab-done">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
               <td>
-                <span class="d-block custom-text-1">0</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-            </tr>
-            <tr style="border-bottom: 1px solid #ABB2B9;">
-              <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
-              </td>
-            </tr>
-            <tr>
-              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">W&A</td>
-              <td>
-                <span class="d-block custom-text-1">0</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1">0</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1">0</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1 for-feedback-count" id="fab-for-feedback" data-operation-id="1">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
             </tr>
             <tr style="border-bottom: 1px solid #ABB2B9;">
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="fab-planned-qty">-</span> <small>Piece(s)</small>
               </td>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="fab-wip-qty">-</span> <small>Piece(s)</small>
               </td>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="fab-done-qty">-</span> <small>Piece(s)</small>
               </td>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="fab-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
             <tr>
-              <td rowspan="2" class="font-weight-bold">PA</td>
+              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Wiring & Assembly</td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1" id="wa-planned">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1" id="wa-wip">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1" id="wa-done">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
               <td>
-                <span class="d-block custom-text-1">0</span>
+                <span class="d-block custom-text-1 for-feedback-count" id="wa-for-feedback" data-operation-id="3">-</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ABB2B9;">
+              <td class="pb-2">
+                <span class="custom-text-3 font-weight-bold" id="wa-planned-qty">-</span> <small>Piece(s)</small>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3 font-weight-bold" id="wa-wip-qty">-</span> <small>Piece(s)</small>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3 font-weight-bold" id="wa-done-qty">-</span> <small>Piece(s)</small>
+              </td>
+              <td class="pb-2">
+                <span class="custom-text-3 font-weight-bold" id="wa-for-feedback-qty">-</span> <small>Piece(s)</small>
+              </td>
+            </tr>
+            <tr>
+              <td rowspan="2" class="font-weight-bold">Painting</td>
+              <td>
+                <span class="d-block custom-text-1" id="pa-planned">-</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1" id="pa-wip">-</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1" id="pa-done">-</span>
+                <small class="custom-text-2">Production Order(s)</small>
+              </td>
+              <td>
+                <span class="d-block custom-text-1 for-feedback-count" id="pa-for-feedback" data-operation-id="2">-</span>
                 <small class="custom-text-2">Production Order(s)</small>
               </td>
             </tr>
             <tr>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="pa-planned-qty">-</span> <small>Piece(s)</small>
               </td>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="pa-wip-qty">-</span> <small>Piece(s)</small>
               </td>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="pa-done-qty">-</span> <small>Piece(s)</small>
               </td>
               <td class="pb-2">
-                <span class="custom-text-3">0 <small>Piece(s)</small></span>
+                <span class="custom-text-3 font-weight-bold" id="pa-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
           </table>
@@ -551,6 +573,7 @@
 <script>
   $(document).ready(function(){
     load_dashboard();
+    count_current_production();
     function load_dashboard(){
       $( "#on-going-production-orders-content .tab-pane" ).each(function( index ) {
         const operation = $(this).data('operation');
@@ -562,6 +585,7 @@
     }
 
     //setInterval(load_dashboard, 10000);
+    //setInterval(count_current_production, 8000);
 
     function get_qa(operation, el){
       var date_today = $("#date_today").val();
@@ -587,17 +611,21 @@
       }); 
     }
   
-    $('#completed_count').click(function(e){
+    $(document).on('click', '.for-feedback-count', function(e){
       e.preventDefault();
+      var operation_id = $(this).data('operation-id');
+      $('#view-for-feedback-list-operation-id').text(operation_id);
       get_for_feedback_production(1);
       $('#view-for-feedback-list-modal').modal('show');
     });
     
-    function get_for_feedback_production(page, query){
+    function get_for_feedback_production(page){
+      var operation_id = $('#view-for-feedback-list-operation-id').text();
+      var query = $('#view-for-feedback-list-search-box').val();
       $.ajax({
         url: "/production_order_list/Awaiting Feedback?page=" + page,
         type:"GET",
-        data: {search_string: query},
+        data: {search_string: query, operation: operation_id},
         success:function(data){
           $('#view-for-feedback-list-table').html(data);
         }
@@ -627,9 +655,8 @@
       get_for_feedback_production(page);
     });
 
-    $(document).on('keyup', '.search-feedback-prod', function(){
-      var query = $(this).val();
-      get_for_feedback_production(1, query);
+    $(document).on('keyup', '#view-for-feedback-list-search-box', function(){
+      get_for_feedback_production(1);
     });
 
     $(document).on('click', '.view-bom-details-btn', function(e){
@@ -813,7 +840,6 @@
       $('#view-notifications-modal').modal('show');
     });
   
-    count_current_production();
 
     setInterval(updateClock, 1000);
     function updateClock(){
@@ -848,13 +874,30 @@
       url:"/count_current_production_order/" + date_today,
       type:"GET",
       success:function(data){
-        $('#pending_count').text(data.pending);
-        $('#inprogress_count').text(data.inProgress);
-        $('#completed_count').text(data.completed);
-        $('#pending_count_qty').text(data.pending_qty);
-        $('#inprogress_count_qty').text(data.inProgress_qty);
-        $('#completed_count_qty').text(data.completed_qty);
-        $('#reject_count').text(data.reject);
+        $('#fab-planned').text(data.fab_planned);
+        $('#fab-planned-qty').text(data.fab_planned_qty);
+        $('#fab-wip').text(data.fab_wip);
+        $('#fab-wip-qty').text(data.fab_wip_qty);
+        $('#fab-done').text(data.fab_done);
+        $('#fab-done-qty').text(data.fab_done_qty);
+        $('#fab-for-feedback').text(data.fab_for_feedback);
+        $('#fab-for-feedback-qty').text(data.fab_for_feedback_qty);
+        $('#wa-planned').text(data.wa_planned);
+        $('#wa-planned-qty').text(data.wa_planned_qty);
+        $('#wa-wip').text(data.wa_wip);
+        $('#wa-wip-qty').text(data.wa_wip_qty);
+        $('#wa-done').text(data.wa_done);
+        $('#wa-done-qty').text(data.wa_done_qty);
+        $('#wa-for-feedback').text(data.wa_for_feedback);
+        $('#wa-for-feedback-qty').text(data.wa_for_feedback_qty);
+        $('#pa-planned').text(data.pa_planned);
+        $('#pa-planned-qty').text(data.pa_planned_qty);
+        $('#pa-wip').text(data.pa_wip);
+        $('#pa-wip-qty').text(data.pa_wip_qty);
+        $('#pa-done').text(data.pa_done);
+        $('#pa-done-qty').text(data.pa_done_qty);
+        $('#pa-for-feedback').text(data.pa_for_feedback);
+        $('#pa-for-feedback-qty').text(data.pa_for_feedback_qty);
       }
     }); 
   }
