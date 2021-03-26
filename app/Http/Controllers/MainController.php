@@ -4239,8 +4239,7 @@ class MainController extends Controller
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
 			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'time_logs.operator_id', 'production_order.production_order')
-			->union($query_1)->union($query_2)->union($query_3
-			->get();
+			->union($query_1)->union($query_2)->union($query_3)->get();
 	}
 
 	public function get_tbl_notif_dashboard(){
@@ -6365,5 +6364,76 @@ class MainController extends Controller
 			}
 		}
 		return response()->json(['success' => 1, 'message' => 'Production Order updated.', 'reload_tbl' => $request->reload_tbl]);	
+	}
+
+	public function get_machine_status_per_operation(Request $request, $operation_id){
+		$machine_list = DB::connection('mysql_mes')->table('machine')
+			->where('operation_id', $operation_id)->pluck('machine_name', 'machine_code')->toArray();
+
+		if($operation_id == 3){
+			$on_queue_query = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+				->join('assembly_conveyor_assignment as aca', 'aca.production_order', 'po.production_order')
+				->when($request->scheduled_date, function ($query) use ($request) {
+					return $query->where('aca.scheduled_date', $request->scheduled_date);
+				})
+				->whereIn('aca.machine_code', array_keys($machine_list))
+				->whereNotIn('po.status', ['Completed', 'Cancelled'])
+				->where('jt.status', 'Pending')
+				->select('aca.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as pending_qty'))
+				->get();
+		}else{
+			$on_queue_query = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+				->join('process_assignment as pa', 'pa.process_id', 'jt.process_id')
+				->join('machine as m', 'm.machine_id', 'pa.machine_id')
+				->when($request->scheduled_date, function ($query) use ($request) {
+					return $query->where('jt.planned_start_date', $request->scheduled_date);
+				})
+				->whereIn('m.machine_code', array_keys($machine_list))
+				->whereNotIn('po.status', ['Completed', 'Cancelled'])
+				->where('jt.status', 'Pending')
+				->select('m.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as pending_qty'))
+				->get();
+		}
+
+		$logs = DB::connection('mysql_mes')->table('production_order as po')
+			->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+			->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+			->whereIn('tl.machine_code', array_keys($machine_list))
+			->where('jt.status', '!=', 'Completed')->where('tl.status', 'In Progress')
+			->select('tl.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as wip_qty'));
+
+		$logs = DB::connection('mysql_mes')->table('production_order as po')
+			->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+			->join('spotwelding_qty as sq', 'jt.job_ticket_id', 'sq.job_ticket_id')
+			->whereIn('sq.machine_code', array_keys($machine_list))
+			->where('jt.status', '!=', 'Completed')->where('sq.status', 'In Progress')
+			->select('sq.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as wip_qty'))
+			->union($logs)->get();
+
+		$result = [];
+		foreach($machine_list as $machine_code => $machine_name){
+			$time_logs = collect($logs)->filter(function ($value, $key) use ($machine_code) {
+				return $value->machine_code == $machine_code;
+			});
+
+			$on_queue_arr = collect($on_queue_query)->filter(function ($value, $key) use ($machine_code) {
+				return $value->machine_code == $machine_code;
+			});
+
+			$on_queue = collect($on_queue_arr)->sum('pending_qty');
+			$on_going = collect($time_logs)->sum('wip_qty');
+			
+			$result[] = [
+				'machine_code' => $machine_code,
+				'machine_name' => $machine_name,
+				'on_queue' => number_format($on_queue),
+				'on_going' => number_format($on_going),
+				'status' => ($on_going > 0) ? 'Active' : 'Idle'
+			];
+		}
+
+		return view('tables.tbl_machine_status_per_operation', compact('result'));
 	}
 }
