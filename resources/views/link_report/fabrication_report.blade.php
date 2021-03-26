@@ -247,7 +247,6 @@
      </div>
    </div>
  </div>
-
  <style type="text/css">
    .sked-tape__event {
       background-color: #5ba044 !important;
@@ -397,7 +396,6 @@ $(document).ready(function(){
    $(document).on('click', '#olu_click', function(){
       operator_load_utilization(1);
    });
-
    getprocess();
     $('#daterange_report').daterangepicker({
     "showDropdowns": true,
@@ -416,6 +414,7 @@ $(document).ready(function(){
     "autoUpdateInput": true,
     "alwaysShowCalendars": true,
   }, function(start, end, label) {
+
     tbl_log_report();
     tbl_chart();    
   });

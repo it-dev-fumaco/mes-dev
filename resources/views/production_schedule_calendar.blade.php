@@ -69,6 +69,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
+
           <div class="modal-body">
             <div class="row">
               <div class="col-md-7" style="padding: 1px 2px 1px 5px;z-index:0;">
@@ -202,6 +203,7 @@
   text-overflow: ellipsis;
   font-size: 8px;
 }
+
 .details-pane-plan {
     display: none;
     color: #414141;
@@ -253,7 +255,6 @@
     display: block;
 
   }
-
 
 </style>
 @endsection

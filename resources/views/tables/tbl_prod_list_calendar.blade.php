@@ -28,7 +28,6 @@
                                     }
                                 }             
                             @endphp
-                           
                             <li class="">
                                 <div class="custom-control custom-checkbox mr-sm-2" style="font-size:12pt;">
                                     <input id="option{{ $r0->production_order }}" class="custom-control-input prodname" name="prodname[]"  data-dateslct="{{ $r0->production_order }}" type="checkbox" value="{{ $r0->production_order }}">
