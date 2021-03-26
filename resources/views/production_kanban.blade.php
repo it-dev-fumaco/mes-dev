@@ -1126,6 +1126,57 @@
   .details-pane:hover {
     display: block;
   }
+  .details-pane-plan {
+    display: none;
+    color: #414141;
+    background: #f1f1f1;
+    border: 1px solid #a9a9a9;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0;
+    margin: 0 auto;
+    left: 0;
+    z-index: 10;
+    width: 230px;
+    padding: 6px 8px;
+    text-align: left;
+    -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    -moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    white-space: normal;
+  }
+
+  .details-pane-plan h5 {
+    font-size: 1.5em;
+    line-height: 1.1em;
+    margin-bottom: 4px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan h5 span {
+    font-size: 0.75em;
+    font-style: italic;
+    color: #555;
+    padding-left: 15px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan .desc {
+    font-size: 1.0em;
+    margin-bottom: 6px;
+    line-height: 16px;
+  }
+  /** hover styles **/
+  span.hvrlink-plan:hover + .details-pane-plan {
+    display: block;
+
+  }
+
+  .details-pane-plan:hover {
+    display: block;
+
+  }
 
   /**end **/
   .scrolling table {

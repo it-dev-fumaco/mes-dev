@@ -45,6 +45,7 @@
             @empty
             <tr>
               <td colspan="8" class="text-center font-weight-bold">No In Progress Task(s)</td>
+
             </tr>
             @endforelse
           </tbody>

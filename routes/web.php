@@ -247,6 +247,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_item_bom/{id}', 'MainController@get_item_bom');
 	Route::get('/get_reference_details/{reference_type}/{reference_no}', 'MainController@get_reference_details');
 
+	Route::get('/get_machine_status_per_operation/{operation_id}', 'MainController@get_machine_status_per_operation');
+
 	// New Routes
 	// BOM CRUD
 	Route::get('/bom', 'ManufacturingController@view_bom_list');

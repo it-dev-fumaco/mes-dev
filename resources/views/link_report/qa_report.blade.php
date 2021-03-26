@@ -1473,8 +1473,20 @@
         tbl_assem_log_reject_report();
         assem_optyStats();
         tbl_assem_reject_rate_chart();
-      }); 
-    
+      });
+
+      $(document).on('change', '#pain_reject_filter', function(event){
+        tbl_pain_log_reject_report();
+        pain_optyStats();
+        tbl_pain_reject_rate_chart();
+      });
+
+      $(document).on('change', '#pain_yearpicker', function(event){
+        tbl_pain_log_reject_report();
+        pain_optyStats();
+        tbl_pain_reject_rate_chart();
+      });
+
       $(document).on('change', '#assem_yearpicker', function(event){
         tbl_assem_log_reject_report();
         assem_optyStats();
