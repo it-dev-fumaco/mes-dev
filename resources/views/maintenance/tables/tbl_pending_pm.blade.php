@@ -1,10 +1,11 @@
 
         <table class="table table-striped text-center" style="margin-top:-30px;">
             <col style="width:10%">
-            <col style="width:20%">
-            <col style="width:20%">
-            <col style="width:20%">
-            <col style="width:20%">
+            <col style="width:11.43%">
+            <col style="width:11.43%">
+            <col style="width:11.43%">
+            <col style="width:11.43%">
+            <col style="width:11.41%">
             <col style="width:10%">
 
             <thead class="text-primary" style="font-size: 8pt;">
@@ -67,13 +68,13 @@
               </tr>
               @empty
               <tr>
-                <td colspan="8" class="text-center">No pending request found</td>
+                <td colspan="7" class="text-center">No pending request found</td>
               </tr>
               @endforelse
             </tbody>
       </table>
       <center>
-          <div id="paginate-maintenance-request-pending" class="col-md-12 text-center" style="text-align: center;">
+          <div id="paginate-pm-pending" class="col-md-12 text-center" style="text-align: center;">
            {{ $maintenance->links() }}
           </div>
         </center>

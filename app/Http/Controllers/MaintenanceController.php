@@ -577,6 +577,7 @@ class MaintenanceController extends Controller
         })
         ->distinct('pm.preventive_maintenance_id')
         ->select('pm.*','mst.*', 'op.operation_name')
+        ->orderBy('pm.preventive_maintenance_id', 'desc')
         ->get();
         $data=[];
         foreach($list as $r){
