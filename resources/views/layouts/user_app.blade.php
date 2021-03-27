@@ -44,7 +44,7 @@
             @endphp
             @if (count($b) > 0)
             <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
-              <a href="/main_dashboard">
+              <a href="/qa_dashboard">
                 <i class="now-ui-icons business_chart-bar-32"></i>
                 <p>QA Dashboard</p>
               </a>

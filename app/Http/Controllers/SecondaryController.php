@@ -3685,7 +3685,6 @@ class SecondaryController extends Controller
             DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation_id)->update($values1);
             DB::connection('mysql')->table('tabOperation')->where('name', $request->old_operation)->update($values2);
         return response()->json(['success' => 1, 'message' => 'Operation successfully updated']);
-
     }
  
     public function tbl_operation_list(Request $request){
@@ -3828,6 +3827,7 @@ class SecondaryController extends Controller
             return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
         }
     }
+
     public function get_tbl_shiftsched_list(Request $request){
         $operation= ($request->operation == 0) ? 2 : $request->operation;
         $shift_sched_list= DB::connection('mysql_mes')
@@ -5864,13 +5864,11 @@ class SecondaryController extends Controller
         }
 
         $current_date = $schedule_date;
-
         $filters = [
             'customers' => array_unique(array_column($data, 'customer')),
             'reference_nos' => array_unique(array_column($data, 'reference_no')),
             'parent_item_codes' => array_unique(array_column($data, 'parent_item_code'))
         ];
-
         return view('painting.tbl_production_schedule_monitoring', compact('data', 'current_date', 'filters'));
     }
     public function duration_for_completed_painting($prod){

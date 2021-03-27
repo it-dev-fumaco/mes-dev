@@ -4156,37 +4156,95 @@ class MainController extends Controller
 	public function get_operators(Request $request){
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
+		if($request->start_date && $request->end_date){
+			$d1 = Carbon::parse($request->start_date)->startOfDay();
+			$d2 = Carbon::parse($request->end_date)->startOfDay();
+		}
 
-		return DB::connection('mysql_mes')->table('time_logs')
-		->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-		->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-		->whereNotNull('time_logs.operator_id')->where('production_order.operation_id', $request->operation)
+		// operator spotwelding
+		$query_0 = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->whereNotNull('spotwelding_qty.operator_id')->where('production_order.operation_id', $request->operation)
+			->whereBetween('spotwelding_qty.from_time', [$d1, $d2])
+			->select('spotwelding_qty.operator_id', 'spotwelding_qty.operator_name', 'spotwelding_qty.time_log_id');
+
+		$query = DB::connection('mysql_mes')->table('time_logs')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->whereNotNull('time_logs.operator_id')->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
-			// ->where(function($q) {
-			// 	$q->whereNull('remarks')
-			// 		->orWhere('remarks', '!=', 'Override');
-			// })
-			->distinct()->pluck('time_logs.operator_name', 'time_logs.operator_id');
+			->select('time_logs.operator_id', 'time_logs.operator_name', 'time_logs.time_log_id')
+			->union($query_0)->get();
+
+		$operators = [];
+		foreach($query as $row){
+			$operators[$row->operator_id] = $row->operator_name;
+		}
+
+		$time_log_ids = array_unique(array_column($query->toArray(), 'time_log_id'));
+
+		$helpers = DB::connection('mysql_mes')->table('helper')
+			->whereIn('time_log_id', $time_log_ids)->whereNotNull('operator_id')
+			->distinct()->pluck('operator_name', 'operator_id');
+		
+		foreach($helpers as $operator_id => $operator_name){
+			$operators[$operator_id] = $operator_name;
+		}
+
+		return $operators;
 	}
 
 	public function get_operator_timelogs(Request $request){
 		$d1 = Carbon::now()->subDays(7)->startOfDay();
 		$d2 = Carbon::now()->addDays(1)->startOfDay();
+		if($request->start_date && $request->end_date){
+			$d1 = Carbon::parse($request->start_date)->startOfDay();
+			$d2 = Carbon::parse($request->end_date)->startOfDay();
+		}
+	
+		// helper time logs (spotwelding workstation only)
+		$query_1 = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->join('helper', 'spotwelding_qty.time_log_id', 'helper.time_log_id')
+			->whereNotNull('spotwelding_qty.operator_id')->where('spotwelding_qty.status', 'Completed')
+			->whereNotNull('spotwelding_qty.from_time')->whereNotNull('spotwelding_qty.to_time')
+			->where('production_order.operation_id', $request->operation)
+			->whereBetween('spotwelding_qty.from_time', [$d1, $d2])
+			->select('job_ticket.workstation', DB::raw('(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'helper.operator_id', 'production_order.production_order');
 		
+		// helper time logs (other workstations)
+		$query_2 = DB::connection('mysql_mes')->table('time_logs')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->join('helper', 'time_logs.time_log_id', 'helper.time_log_id')
+			->whereNotNull('time_logs.operator_id')->where('time_logs.status', 'Completed')
+			->whereNotNull('time_logs.from_time')->whereNotNull('time_logs.to_time')
+			->where('production_order.operation_id', $request->operation)
+			->whereBetween('time_logs.from_time', [$d1, $d2])
+			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'helper.operator_id', 'production_order.production_order');
+
+		// operator time logs (spotwelding workstation only)
+		$query_3 = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
+			->whereNotNull('spotwelding_qty.operator_id')->where('spotwelding_qty.status', 'Completed')
+			->whereNotNull('spotwelding_qty.from_time')->whereNotNull('spotwelding_qty.to_time')
+			->where('production_order.operation_id', $request->operation)
+			->whereBetween('spotwelding_qty.from_time', [$d1, $d2])
+			->select('job_ticket.workstation', DB::raw('(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.operator_id', 'production_order.production_order');
+		
+		// operator time logs (other workstations)
 		return DB::connection('mysql_mes')->table('time_logs')
 			->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 			->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
 			->whereNotNull('time_logs.operator_id')->where('time_logs.status', 'Completed')
-			->whereNotNull('time_logs.from_time')
-			->whereNotNull('time_logs.to_time')
+			->whereNotNull('time_logs.from_time')->whereNotNull('time_logs.to_time')
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
-			->select('time_logs.*', 'job_ticket.workstation', 'job_ticket.production_order', 'job_ticket.planned_start_date', 'job_ticket.planned_end_date', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'))
-			// ->where(function($q) {
-			// 	$q->whereNull('remarks')
-			// 		->orWhere('remarks', '!=', 'Override');
-			// })
-			->get();
+			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'time_logs.operator_id', 'production_order.production_order')
+			->union($query_1)->union($query_2)->union($query_3)->get();
 	}
 
 	public function get_tbl_notif_dashboard(){
@@ -6380,7 +6438,7 @@ class MainController extends Controller
 				'status' => ($on_going > 0) ? 'Active' : 'Idle'
 			];
 		}
-
+    
 		$result = collect($result)->sortBy('status')->toArray();
 
 		return view('tables.tbl_machine_status_per_operation', compact('result'));

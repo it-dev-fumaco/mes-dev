@@ -227,6 +227,16 @@
                <div class="col-md-12">
                   <div class="card">
                       <div class="card-body" style="min-height: 450px;">
+                        <div class="row">
+                           <div class="col-md-4 offset-md-8">
+                             <div class="form-group row m-0 text-right">
+                                <label for="fltr-date-oploadutil" class="col-sm-4 col-form-label text-dark mt-1 mb-1" style="font-size: 11pt;">Date Range:</label>
+                                <div class="col-sm-8 p-0">
+                                   <input type="text" class="date form-control form-control-lg" name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="fltr-date-oploadutil" style="font-weight: bolder; text-align: center;">
+                                </div>
+                              </div>
+                           </div>
+                        </div>
                           <div id="sked2"></div>
                       </div>
                   </div>
@@ -237,6 +247,17 @@
      </div>
    </div>
  </div>
+ <style type="text/css">
+   .sked-tape__event {
+      background-color: #5ba044 !important;
+      border: 1px solid #5ba044 !important;
+   }
+   
+   .sked-tape__event--low-gap {
+      background-color: #EC6A5E !important;
+      border-color: #e32c1b !important;
+   }
+</style>
 @endsection
 
 @section('script')
@@ -262,92 +283,102 @@
 <script src="{{ asset('js/jquery.skedTape.js') }}"></script>
 <script>
 $(document).ready(function(){
-   if ( $( "#olu_click" ).is( ".active" ) ) {
+   $('#fltr-date-oploadutil').daterangepicker({
+      "showDropdowns": true,
+      "startDate": moment().startOf('month'),
+      "endDate": moment().endOf('month'),
+      "locale": {format: 'MMMM D, YYYY'},
+      ranges: {
+        'Today': [moment(), moment()],
+        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+      },
+      "linkedCalendars": false,
+      "autoUpdateInput": true,
+      "alwaysShowCalendars": true,
+   }, function(start, end, label) {
+      operator_load_utilization(1);
+   });
+
+   operator_load_utilization(1);
+   function operator_load_utilization(operation){
+      var start = $('#fltr-date-oploadutil').data('daterangepicker').startDate.format('YYYY-MM-DD');
+      var end = $('#fltr-date-oploadutil').data('daterangepicker').endDate.format('YYYY-MM-DD');
+
+      var data = {
+         operation:operation,
+         start: start,
+         end: end
+      }
+
       $("#sked2").empty();
       var operator_list = function () {
-       var tmp = null;
-       var operation = 1;
+         var tmp = null;
 
-       $.ajax({
-           async: false,
-           url:"/get_operators",
-           data:{operation:operation},
-           type:"GET",
-           success:function(data){
+         $.ajax({
+            async: false,
+            url:"/get_operators",
+            data: data,
+            type:"GET",
+            success:function(data){
                var operator_arr = [];
                $.each(data, function (i, value) {
-                   operator_arr.push({id: i, name: value});
+                  operator_arr.push({id: i, name: value});
                }); 
- 
+
                tmp = operator_arr;
-           }
-       }); 
- 
-       return tmp;
-     }();
- 
-     var timelogs = function () {
-       var tmp = null;
-       var operation = 1;
-       $.ajax({
-           async: false,
-           url:"/get_operator_timelogs",
-           data:{operation:operation},
-           type:"GET",
-           success:function(data){
+            }
+         }); 
+
+         return tmp;
+      }();
+
+      var timelogs = function () {
+         var tmp = null;
+
+         $.ajax({
+            async: false,
+            url:"/get_operator_timelogs",
+            data: data,
+            type:"GET",
+            success:function(data){
                var operator_logs = [];
                $.each(data, function (i, value) {
-                   operator_logs.push({
-                       name: value.workstation + ' - ' + value.completed_qty + ' pcs',
-                       location: value.operator_id,
-                       start: new Date(value.from_time),
-                       end: new Date(value.to_time),
-                   });
+                  operator_logs.push({
+                     name: value.production_order + ' - ' + value.workstation + ' - ' + value.completed_qty + ' pcs',
+                     location: value.operator_id,
+                     start: new Date(value.from_time),
+                     end: new Date(value.to_time),
+                  });
                }); 
- 
+
                tmp = operator_logs;
-           }
-       }); 
- 
-       return tmp;
-     }();
- 
-     console.log(timelogs);
- 
-     // -------------------------- Helpers ------------------------------
-     function today(hours, minutes) {
-         var date = new Date();
-         date.setHours(hours, minutes, 0, 0);
-         return date;
-     }
-     function yesterday(hours, minutes) {
-         var date = today(hours, minutes);
-         date.setTime(date.getTime() - 24 * 60 * 60 * 1000);
-         return date;
-     }
-     function tomorrow(hours, minutes) {
-         var date = today(hours, minutes);
-         date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
-         return date;
-     }
-     var start_date = new Date();
-     start_date.setDate(start_date.getDate() - 7);
-     start_date.setHours(6,0,0,0);
-     var sked2Config = {
+            }
+         }); 
+   
+         return tmp;
+      }();
+
+      var start_date = new Date(start);
+      start_date.setDate(start_date.getDate());
+      start_date.setHours(6,0,0,0);
+
+      var end_date = new Date(end);
+      end_date.setDate(end_date.getDate());
+      end_date.setHours(6,0,0,0);
+      var sked2Config = {
          caption: 'Operator Name',
          start: start_date,
-         end: tomorrow(0, 0),
+         end: end_date,
          showEventTime: true,
          showEventDuration: true,
-         //locations: locations.map(function(location) {
-           // var newLocation = $.extend({}, location);
-             //delete newLocation.tzOffset;
-           // return newLocation;
-         //}),
          formatters: {
-             date: function (date) {
-                 return $.fn.skedTape.format.date(date, 'm', '/');
-             },
+            date: function (date) {
+               return $.fn.skedTape.format.date(date, 'm', '/');
+            },
          },
          locations: operator_list.slice(),
          events: timelogs.slice(),
@@ -355,12 +386,16 @@ $(document).ready(function(){
          sorting: true,
          orderBy: 'name',
          showIntermission: true
-     };
-     var $sked2 = $.skedTape(sked2Config);
-     $sked2.appendTo('#sked2').skedTape('render');
-     //$sked2.skedTape('destroy');
-     $sked2.skedTape(sked2Config);
-      }
+      };
+      var $sked2 = $.skedTape(sked2Config);
+      $sked2.appendTo('#sked2').skedTape('render');
+      //$sked2.skedTape('destroy');
+      $sked2.skedTape(sked2Config);
+   }
+
+   $(document).on('click', '#olu_click', function(){
+      operator_load_utilization(1);
+   });
    getprocess();
     $('#daterange_report').daterangepicker({
     "showDropdowns": true,
@@ -379,7 +414,7 @@ $(document).ready(function(){
     "autoUpdateInput": true,
     "alwaysShowCalendars": true,
   }, function(start, end, label) {
-    console.log('New date range selected: ' + start.format('MMMM D, YYYY') + ' to ' + end.format('MMMM D, YYYY') + ' (predefined range: ' + label + ')');
+
     tbl_log_report();
     tbl_chart();    
   });
@@ -613,106 +648,6 @@ $(document).ready(function(){
 </script>
 <script>
 
-   $(document).on('click', '#olu_click', function(){
-      $("#sked2").empty();
-      var operator_list = function () {
-       var tmp = null;
-       var operation = 1;
-
-       $.ajax({
-           async: false,
-           url:"/get_operators",
-           data:{operation:operation},
-           type:"GET",
-           success:function(data){
-               var operator_arr = [];
-               $.each(data, function (i, value) {
-                   operator_arr.push({id: i, name: value});
-               }); 
- 
-               tmp = operator_arr;
-           }
-       }); 
- 
-       return tmp;
-     }();
- 
-     var timelogs = function () {
-       var tmp = null;
-       var operation = 1;
-       $.ajax({
-           async: false,
-           url:"/get_operator_timelogs",
-           data:{operation:operation},
-           type:"GET",
-           success:function(data){
-               var operator_logs = [];
-               $.each(data, function (i, value) {
-                   operator_logs.push({
-                       name: value.workstation + ' - ' + value.completed_qty + ' pcs',
-                       location: value.operator_id,
-                       start: new Date(value.from_time),
-                       end: new Date(value.to_time),
-                   });
-               }); 
- 
-               tmp = operator_logs;
-           }
-       }); 
- 
-       return tmp;
-     }();
- 
-     console.log(timelogs);
- 
-     // -------------------------- Helpers ------------------------------
-     function today(hours, minutes) {
-         var date = new Date();
-         date.setHours(hours, minutes, 0, 0);
-         return date;
-     }
-     function yesterday(hours, minutes) {
-         var date = today(hours, minutes);
-         date.setTime(date.getTime() - 24 * 60 * 60 * 1000);
-         return date;
-     }
-     function tomorrow(hours, minutes) {
-         var date = today(hours, minutes);
-         date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
-         return date;
-     }
-     var start_date = new Date();
-     start_date.setDate(start_date.getDate() - 7);
-     start_date.setHours(6,0,0,0);
-     var sked2Config = {
-         caption: 'Operator Name',
-         start: start_date,
-         end: tomorrow(0, 0),
-         showEventTime: true,
-         showEventDuration: true,
-         //locations: locations.map(function(location) {
-           // var newLocation = $.extend({}, location);
-             //delete newLocation.tzOffset;
-           // return newLocation;
-         //}),
-         formatters: {
-             date: function (date) {
-                 return $.fn.skedTape.format.date(date, 'm', '/');
-             },
-         },
-         locations: operator_list.slice(),
-         events: timelogs.slice(),
-         tzOffset: 0,
-         sorting: true,
-         orderBy: 'name',
-         showIntermission: true
-     };
-     var $sked2 = $.skedTape(sked2Config);
-     $sked2.appendTo('#sked2').skedTape('render');
-     //$sked2.skedTape('destroy');
-     $sked2.skedTape(sked2Config);
-   
-   });
    $(document).on('change', '#parts_filter', function(event){
       tbl_log_report();
       tbl_chart(); 

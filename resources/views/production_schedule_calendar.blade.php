@@ -69,77 +69,78 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-           <div class="modal-body">
-             <div class="row">
-               <div class="col-md-8" style="padding: 1px 2px 1px 5px;">
-                 <div class="row">
-                   <div class="col-md-12">
-                    <div class="card">
-                      <div class="card-header"  style="padding: 1px 1px 1px 1px;">
-                       <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Shift Schedule</b></h5>
+
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-7" style="padding: 1px 2px 1px 5px;z-index:0;">
+                <div class="row" style="z-index:0;">
+                  <div class="col-md-12"  style="z-index:0;">
+                   <div class="card" style="z-index:0;">
+                     <div class="card-header"  style="padding: 1px 1px 1px 1px;">
+                      <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Shift Schedule</b></h5>
+                     </div>
+                     <input type="hidden" class="selected_prod_order" id="selected_prod_order">
+                     <div class="card-body">
+                       <input type="hidden" id='tbl_opration_id' name="operation_id">
+                      <input type="hidden" id="date_tobe_sched_shift" name="date">
+                      <input type="hidden" id="date_reload_tbl" name="date_reload_tbl">
+                      <input type="hidden" name="pagename" value="prod_sched" id="pagename">
+                      <div id="default_shift_sched" style="margin-top: -10px;"></div>
+                      <div id="old_ids"></div>
+                        <table class="table table-bordered" style="margin-top: 5px;">
+                          <col style="width: 50%;">
+                          <col style="width: 20%;">
+                          <col style="width: 20%;">
+                          <col style="width: 10%;">
+                          <tr>
+                            <th class="text-center">Shift</th>
+                            <th class="text-center">Time-in</th>
+                            <th class="text-center">Time-out</th>
+                            <th></th>
+                          </tr>
+                          <tbody id="shiftsched-table">
+                          </tbody>
+                        </table>
+                      <div class="pull-left">
+                        <button type="button" class="btn btn-info btn-sm" id="add-row-shift-btn">
+                          <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                        </button>
                       </div>
-                      <input type="hidden" class="selected_prod_order" id="selected_prod_order">
-                      <div class="card-body">
-                        <input type="hidden" id='tbl_opration_id' name="operation_id">
-                       <input type="hidden" id="date_tobe_sched_shift" name="date">
-                       <input type="hidden" id="date_reload_tbl" name="date_reload_tbl">
-                       <input type="hidden" name="pagename" value="calendar" id="pagename">
-                       <div id="default_shift_sched" style="margin-top: -10px;"></div>
-                       <div id="old_ids"></div>
-                         <table class="table table-bordered" style="margin-top: 5px;">
-                           <col style="width: 50%;">
-                           <col style="width: 20%;">
-                           <col style="width: 20%;">
-                           <col style="width: 10%;">
-                           <tr>
-                             <th class="text-center">Shift</th>
-                             <th class="text-center">Time-in</th>
-                             <th class="text-center">Time-out</th>
-                             <th></th>
-                           </tr>
-                           <tbody id="shiftsched-table">
-                           </tbody>
-                         </table>
-                       <div class="pull-left">
-                         <button type="button" class="btn btn-info btn-sm" id="add-row-shift-btn">
-                           <i class="now-ui-icons ui-1_simple-add"></i> Add Row
-                         </button>
-                       </div>
-                      </div>
-                    </div>
+                     </div>
                    </div>
-                   <div class="col-md-12">
-                    <div class="card" style="min-height: 150px;">
-                      <div class="card-header"  style="padding: 1px 1px 1px 1px;">
-                       <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Moved Planned Start Date</b></h5>
-                      </div>
-                      <div class="card-body">
-                        <div class="form-group" style="margin-top:-10px;">
-                          <label> <i><b>Note:</b> Select production order from the list to reschedule. </i></label>
-                        </div>
-                        <div class="form-group">
-                          <label for="planned_start_datepicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date:</b></label>
-                          <input type="date" class="form-control" name="planned_start_datepicker" id="planned_start_datepicker" style="display: inline-block; width: 80%; font-weight: bolder;">
-                       </div>
-                      </div>
-                    </div>
                   </div>
+                  <div class="col-md-12" style="z-index:0;">
+                   <div class="card" style="min-height: 150px;">
+                     <div class="card-header"  style="padding: 1px 1px 1px 1px;">
+                      <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Moved Planned Start Date</b></h5>
+                     </div>
+                     <div class="card-body">
+                       <div class="form-group" style="margin-top:-10px;">
+                         <label> <i><b>Note:</b> Select production order from the list to reschedule. </i></label>
+                       </div>
+                       <div class="form-group">
+                         <label for="planned_start_datepicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date:</b></label>
+                         <input type="date" class="form-control" name="planned_start_datepicker" id="planned_start_datepicker" style="display: inline-block; width: 80%; font-weight: bolder;">
+                      </div>
+                     </div>
+                   </div>
+                 </div>
+                </div>
+              </div>
+              <div class="col-md-5"  style="padding: 1px 2px 1px 5px;">
+               <div class="card" style="z-index:0;">
+                 <div class="card-header" style="padding: 1px 1px 1px 1px;">
+                  <h5 class="card-title" style="font-size:13pt; margin-left:2px;">&nbsp;<b>Scheduled Production Order</b></h5>
+                 </div>
+                 <div class="card-body" style="height:400px;overflow:auto;">
+                   <div style="">
+                     <div id="prod_list_calendar" style="margin-top:-5px;font-size:10px;" ></div>
+                   </div>
                  </div>
                </div>
-               <div class="col-md-4"  style="padding: 1px 2px 1px 5px;">
-                <div class="card">
-                  <div class="card-header" style="padding: 1px 1px 1px 1px;">
-                   <h5 class="card-title" style="font-size:13pt; margin-left:3px;">&nbsp;<b>Scheduled Production Order</b></h5>
-                  </div>
-                  <div class="card-body" style="height:400px;overflow:auto;">
-                    <div>
-                      <div id="prod_list_calendar" style="margin-top:-5px;" ></div>
-                    </div>
-                  </div>
-                </div>
-               </div>
-             </div>
-           </div>
+              </div>
+            </div>
+            </div>
            <div class="modal-footer">
                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                <input type="button" class="btn btn-primary" id="fabrication_update" value="Save">
@@ -202,6 +203,58 @@
   text-overflow: ellipsis;
   font-size: 8px;
 }
+
+.details-pane-plan {
+    display: none;
+    color: #414141;
+    background: #f1f1f1;
+    border: 1px solid #a9a9a9;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0;
+    margin: 0 auto;
+    left: 0;
+    z-index: 10;
+    width: 230px;
+    padding: 6px 8px;
+    text-align: left;
+    -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    -moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    white-space: normal;
+  }
+
+  .details-pane-plan h5 {
+    font-size: 1.5em;
+    line-height: 1.1em;
+    margin-bottom: 4px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan h5 span {
+    font-size: 0.75em;
+    font-style: italic;
+    color: #555;
+    padding-left: 15px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan .desc {
+    font-size: 1.0em;
+    margin-bottom: 6px;
+    line-height: 16px;
+  }
+  /** hover styles **/
+  span.hvrlink-plan:hover + .details-pane-plan {
+    display: block;
+
+  }
+
+  .details-pane-plan:hover {
+    display: block;
+
+  }
 
 </style>
 @endsection
