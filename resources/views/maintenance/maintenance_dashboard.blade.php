@@ -34,28 +34,51 @@
   </div>
 </div>
 
-<div class="content" id="form-style-box">
+<div class="content">
   <div class="row" style="margin-top: -185px;">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <div class="row" style="margin-top: -15px;">
+    
+    <div class="col-md-12" id="for_adjustment_tab" >
+      <div class="row m-0">
+        <div class="col-md-4 offset-md-8 p-0 text-center">
+          <div id="to_be_hidden_btn" style="display: none;">
+            <button type="button" class="btn btn-primary pull-right" id="create-pm-btn" style="margin-top:85px;">
+              <i class="now-ui-icons ui-1_simple-add"></i> Create Preventive Maintenance Task
+            </button>
+          </div>
+        </div>
+      </div>
+      <ul class="nav nav-tabs main-dash-tabs" role="tablist" id="main-dash-tabs" style="margin-top:-7.5px;">
+        <li class="nav-item">
+           <a class="nav-link active main-req-type-tab" data-rtype="mr_request" data-toggle="tab" href="#tab0" role="tab" aria-controls="tab0" aria-selected="true">Maintenance Request</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link main-req-type-tab" data-rtype="pm_request" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Preventive Maintenance</a>
+        </li>
+      </ul>
+      
+      <div class="tab-content" style="min-height: 500px;">
+        <div class="tab-pane active" id="tab0" role="tabpanel" aria-labelledby="tab0">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card" style="border-radius: 0 0 3px 3px;">
+                <div class="card-header">
+                  <div class="row" style="margin-top: -15px;">
                     <div class="col-md-12" style="padding: 10px;">
-                        <ul class="nav nav-tabs" role="tablist" id="maintenance-dashboard-tabs">
-                            <li class="nav-item">
-                              <a class="nav-link active" data-toggle="tab" data-qatab="main_pending" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false"><b>Pending Request</b></a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" data-toggle="tab" data-qatab="main_done" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false"><b>Done</b></a>
-                            </li>
-                          </ul>
-                          <input type="text" id="search-maintenance-request" class="form-control pull-right" placeholder="Search" style="background-color: white; padding: 6px 8px; width:400px; margin-top:-40px;" autocomplete="off">
+                      <ul class="nav nav-tabs" role="tablist" id="maintenance-dashboard-tabs">
+                        <li class="nav-item">
+                          <a class="nav-link active" data-toggle="tab" data-qatab="main_pending" href="#mr_pending_tab" role="tab" aria-controls="mr_pending_tab" aria-selected="false"><b>Pending Request</b></a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" data-toggle="tab" data-qatab="main_done" href="#mr_done_tab" role="tab" aria-controls="mr_done_tab" aria-selected="false"><b>Done</b></a>
+                        </li>
+                      </ul>
+                      <input type="text" id="search-maintenance-request" class="form-control pull-right" placeholder="Search" style="background-color: white; padding: 6px 8px; width:400px; margin-top:-40px;" autocomplete="off">
                     </div>
+                  </div>
                 </div>
-            </div>
-            <div class="card-body">
+                <div class="card-body">
                   <div class="tab-content" style="min-height: 500px;">
-                    <div class="tab-pane active" id="tab1" role="tabpanel" aria-labelledby="tab1">
+                    <div class="tab-pane active" id="mr_pending_tab" role="tabpanel" aria-labelledby="mr_pending_tab">
                       <div class="row">
                         <div class="col-md-12">
                           <div class="card" style="border-radius: 0 0 3px 3px;margin-top: -25px;">
@@ -78,19 +101,18 @@
                         </div>
                       </div>
                     </div>
-                    <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2">
-                        <div class="row">
-                          <div class="col-md-12">
-                            <div class="card" style="border-radius: 0 0 3px 3px;margin-top: -25px;">
-                              <div class="card-body">
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <div class="card" style="background-color: whitesmoke;">
-                                      <div class="card-body">
-                                        <div class="row">
-                                          <div class="col-md-12" style="padding: 0;">
-                                            <div id="tbl_done_request"></div>
-                                          </div>
+                    <div class="tab-pane" id="mr_done_tab" role="tabpanel" aria-labelledby="mr_done_tab">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="card" style="border-radius: 0 0 3px 3px;margin-top: -25px;">
+                            <div class="card-body">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card" style="background-color: whitesmoke;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-12" style="padding: 0;">
+                                          <div id="tbl_done_request"></div>
                                         </div>
                                       </div>
                                     </div>
@@ -101,9 +123,87 @@
                           </div>
                         </div>
                       </div>
+                    </div>
                   </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+        <div class="tab-pane" id="tab1" role="tabpanel" aria-labelledby="tab1">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card" style="border-radius: 0 0 3px 3px;">
+                <div class="card-header">
+                  <div class="row" style="margin-top: -15px;">
+                    <div class="col-md-12" style="padding: 10px;">
+                      <ul class="nav nav-tabs" role="tablist" id="pm-dashboard-tabs">
+                        <li class="nav-item">
+                          <a class="nav-link active" data-toggle="tab" data-qatab="pm_pending" href="#pm_pending_tab" role="tab" aria-controls="pm_pending_tab" aria-selected="false"><b>Pending Request</b></a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" data-toggle="tab" data-qatab="pm_done" href="#pm_done_tab" role="tab" aria-controls="pm_done_tab" aria-selected="false"><b>Done</b></a>
+                        </li>
+                      </ul>
+                      <input type="text" id="search-pm" class="form-control pull-right" placeholder="Search" style="background-color: white; padding: 6px 8px; width:400px; margin-top:-40px;" autocomplete="off">
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content" style="min-height: 500px;">
+                    <div class="tab-pane active" id="pm_pending_tab" role="tabpanel" aria-labelledby="pm_pending_tab">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="card" style="border-radius: 0 0 3px 3px;margin-top: -25px;">
+                            <div class="card-body">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card" style="background-color: whitesmoke;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-12" style="padding: 0;">
+                                          <div id="tbl_pm_pending_request"></div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane" id="pm_done_tab" role="tabpanel" aria-labelledby="pm_done_tab">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="card" style="border-radius: 0 0 3px 3px;margin-top: -25px;">
+                            <div class="card-body">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card" style="background-color: whitesmoke;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-12" style="padding: 0;">
+                                          <div id="tbl_pm_done_request"></div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -277,7 +377,7 @@
                            </tbody>
                          </table>
                        <div class="pull-left">
-                         <button type="button" class="btn btn-info btn-sm" id="add-row-shift-btn">
+                         <button type="button" class="btn btn-info btn-sm" id="add-row-main-btn">
                            <i class="now-ui-icons ui-1_simple-add"></i> Add Row
                          </button>
                        </div>
@@ -350,7 +450,132 @@
         </div>
     </div>
   </div>
+  <div class="modal fade" id="add-pm-task-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document" style="min-width:45%;">
+       <form action="/save_preventive_maintenance_request" method="POST" id="add-pm-task-frm">
+          @csrf
+          <div class="modal-content">
+             <div class="modal-header text-white" style="background-color: #0277BD;">
+                <h5 class="modal-title" id="modal-title ">Preventive Maintenance<br>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                   <span aria-hidden="true">×</span>
+                </button>
+             </div>
+             <div class="modal-body">
+                 <div class="row" id="tbl_maintenance_dtls">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="pm_op">Operation</label>
+                      <select name="pm_op" id="pm_op" class="form-control select2" required>
+                        <option value="" selected="selected">Select Operation</option>
+                        @foreach($operation as $r)
+                           <option value="{{$r->operation_id}}">{{$r->operation_name}} </option>
+                        @endforeach
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="pm_machine">Machine</label>
+                      <select name="pm_machine" id="pm_machine" class="form-control select2" required>
+                        <option value="" selected="selected">Select Machine</option>
+                        @foreach($machine as $r)
+                           <option value="{{$r->machine_id}}">{{$r->machine_code}} - {{$r->machine_name}} </option>
+                        @endforeach
+                      </select>
+                    </div>
+                    {{-- <div class="form-group" style="margin-top:-8px;">
+                      <label for="pm_task_name">Task:</label>
+                      <textarea class="form-control" name="pm_task_name" rows="3" style="border:1px solid  #cccccc;" id="pm_task_name" required></textarea>
+                    </div> --}}
+                    
+                    
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="pm_mst">Maintenance Schedule Type</label>
+                      <select name="pm_mst" id="pm_mst" class="form-control" required></select>
+                    </div>
+                    {{-- <div class="form-group">
+                      <label for="pm_task_desc">Task Description</label>
+                      <textarea class="form-control" name="pm_task_desc" rows="3" style="border:1px solid  #cccccc;" id="pm_task_desc" required></textarea>
+                    </div> --}}
+                  </div>
+                  {{-- <div class="col-md-12">
+                    <hr>
+                    <h6 class="pull-left">Machine</h6>
+                    <table class="table table-bordered" style="margin-top: 5px;">
+                      <col style="width: 30%;">
+                      <col style="width: 60%;">
+                      <col style="width: 10%;">
+                      
+                      <tr>
+                        <th class="text-center">Machine Code</th>
+                        <th class="text-center">Machine Name</th>
+                        <th></th>
+                      </tr>
+                      <tbody id="pm-machine-table">
+                      </tbody>
+                    </table>
+                    <div class="pull-left">
+                      <button type="button" class="btn btn-info btn-sm" id="add-row-machine-btn">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                      </button>
+                    </div>
+                  </div> --}}
+                  <div class="col-md-12">
+                    <hr>
+                    <h6 class="pull-left">Task </h6>
+                    <table class="table table-bordered" style="margin-top: 5px;">
+                      <col style="width: 30%;">
+                      <col style="width: 60%;">
+                      <col style="width: 10%;">
+                      
+                      <tr>
+                        <th class="text-center">Task</th>
+                        <th class="text-center">Task Description</th>
+                        <th></th>
+                      </tr>
+                      <tbody id="pm-task-table">
+                      </tbody>
+                    </table>
+                    <div class="pull-left">
+                      <button type="button" class="btn btn-info btn-sm" id="add-row-task-btn">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <hr>
+                    <h6 class="pull-left">Assign Maintenance Staff</h6>
+                    <table class="table table-bordered" style="margin-top: 5px;">
+                      <col style="width: 90%;">
+                      <col style="width: 10%;">
+                      
+                      <tr>
+                        <th class="text-center">Employee Name</th>
+                        <th></th>
+                      </tr>
+                      <tbody id="pm-assign-table">
+                      </tbody>
+                    </table>
+                    <div class="pull-left">
+                      <button type="button" class="btn btn-info btn-sm" id="add-row-main-btn">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                      </button>
+                    </div>
+                  </div>
+                 </div>
+             </div>
+             <div class="modal-footer" id="submit_id_form">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" >Submit</button>
+             </div>
+          </div>
+       </form>
+    </div>
+  </div>
 <style>
+  
     
   .classheader{
     position: sticky; top: 0; 
@@ -400,6 +625,13 @@
   box-shadow: none;
   margin-bottom: 15px;
 }
+#add-pm-task-modal .form-control{
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+}
+
 #manual-production-modal .form-control:hover, #manual-production-modal .form-control:focus, #manual-production-modal .form-control:active {
   box-shadow: none;
 }
@@ -702,8 +934,14 @@
     dropdownParent: $("#create-task-for-breakdown-modal"),
     dropdownAutoWidth: false,
     width: '100%',
-    cache: false
-  });
+    cache: false 
+    });
+    $('.select2').select2({
+    dropdownParent: $("#add-pm-task-modal"),
+    dropdownAutoWidth: false,
+    width: '100%',
+    cache: false 
+    });
     setInterval(updateClock, 1000);
     function updateClock(){
       var currentTime = new Date();
@@ -725,6 +963,31 @@
 
       $("#current-time").html(currentTimeString);
     }
+    $('#add-pm-task-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#add-pm-task-frm').trigger('reset');
+                $('#add-pm-task-modal').modal('hide');
+                load_pending_pm();
+                // var query = $("#search-maintenance-request").val();
+                // load_pending_request(1, query);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
     function load_pending_request(page, query){
         $.ajax({
             url:"/get_pending_maintenance_request?page=" + page,
@@ -895,7 +1158,7 @@ function add_row(){
     } 
   });
 }
-$('#add-row-shift-btn').click(function(e){
+$('#add-row-main-btn').click(function(e){
       add_row();
 });
 function tbl_assigned_maintenance_staff(id){
@@ -1041,11 +1304,163 @@ function timeDiffCalc(dateFuture, dateNow) {
         }
     });
     
-    // $('#set_assign_maintenance_staff').val(staff);
+  });
+  
+  $('#to_be_hidden_btn').hide();
+  $(document).on('click', '.main-req-type-tab', function(event){
+		var is_active = $(this).attr('data-rtype');
+      if(is_active == "pm_request"){
+        $('#to_be_hidden_btn').show();
+        $("#for_adjustment_tab" ).css("margin-top", '-150px');
+        $("#to_be_hidden_btn" ).css("margin-top", '59px');
+        $("#main-dash-tabs" ).css("margin-top", '-43px');
 
-    
-    // var page = $(this).attr('href').split('page=')[1];
-    
-});
+      }else{
+        $('#to_be_hidden_btn').hide();
+        $("#for_adjustment_tab" ).css("margin-top", '-4.5px');
+        $("#main-dash-tabs" ).css("margin-top", '4.5px');
+        
+      }
+	});
+    $(document).on('click', '#create-pm-btn', function(event){
+        event.preventDefault();
+        $('#add-pm-task-modal').modal('show');
+        add_row_assign();
+        add_row_task();
+        $("#pm-assign-table").empty();
+        $("#pm-task-table").empty();
+        $('').trigger('chnage')
+    });
+    $(document).on('change', '#pm_op', function(event){
+        event.preventDefault();
+        var id=$(this).val();
+        $.ajax({
+        url:"/get_maintenance_type_by_operation",
+        type:"GET",
+        data: {id: id},
+        success:function(data){
+            $('#pm_mst').html(data);
+            $('#add-pm-task-modal').modal('show');
+        }
+      });
+    });      
+    function add_row_assign(){
+      $.ajax({
+        url:"/get_maintenance_staff",
+        type:"GET",
+        success: function(data){
+          var row1 = '<option value=""></option>';
+          $.each(data.maintenance, function(i, d){
+            row1 += '<option value="' + d.user_access_id + '">' + d.employee_name + '</option>';
+          });
+          var thizz = document.getElementById('pm-assign-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          }else{
+            var new_id = parseInt(id) + 1;
+          }
+          var len2 = new_id;
+          var tblrow = '<tr>' +
+            '<td style="display:none;">'+len2+'</td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newstaff[]" class="form-control m-0 count-row" required>'+row1+'</select></div></td>' +
+            '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+            '</tr>';
+          
+          $("#add-pm-task-modal #pm-assign-table").append(tblrow);
+        } 
+      });
+    }
+    $(document).on('click', '#add-row-main-btn', function(event){
+        event.preventDefault();
+        add_row_assign();
+        
+
+
+    });
+    function add_row_task(){
+      $.ajax({
+        url:"/get_task_list_for_add_pm",
+        type:"GET",
+        success: function(data){
+          var row1 = '<option value=""></option>';
+          $.each(data.pmt, function(i, d){
+            row1 += '<option value="' + d.preventive_maintenance_task_id + '">' + d.preventive_maintenance_task +'</option>';
+          });
+          var thizz = document.getElementById('pm-task-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          }else{
+            var new_id = parseInt(id) + 1;
+          }
+          var len2 = new_id;
+          var id_unique1="task"+len2;
+          var tblrow = '<tr>' +
+            '<td style="display:none;">'+len2+'</td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newtaskassign[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><input type="text" class="form-control m-0" id='+id_unique1+' style="background-color:white; color:black;" readonly></div></td>' +
+            '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+            '</tr>';
+          
+          $("#add-pm-task-modal #pm-task-table").append(tblrow);
+        } 
+      });
+    }
+    $(document).on('click', '#add-row-task-btn', function(event){
+        event.preventDefault();
+        add_row_task();
+    });
+    $(document).on('change', '.onchange-task-select', function(){
+           var id = $(this).val();
+           var descdisplay = $(this).attr('data-descid');
+           var show_data = "#"+descdisplay;
+            $.ajax({
+            url:"/get_task_desc_for_add_pm",
+            data:{id:id},
+            type:"GET",
+            success:function(data){
+              if(data == null){
+                $(show_data).val("");
+              }else{
+                $(show_data).val(data.pmt);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+          });
+    });
+    load_pending_pm();
+    function load_pending_pm(page, query){
+      $.ajax({
+          url:"/get_pm_pending_list?page=" + page,
+          type:"GET",
+          data: {search_string: query},
+          success:function(data){
+                $('#tbl_pm_pending_request').html(data);
+          }
+        });
+    }
+    $(document).on('click', '#paginate-pm-pending a', function(event){
+        event.preventDefault();
+        var page = $(this).attr('href').split('page=')[1];
+        var query = $("#search-maintenance-request").val();
+        load_pending_pm(page, query);
+    });
+    $(document).on('keyup', '#search-pm', function(){
+        var query = $(this).val();
+            var parent_tab = $("#pm-dashboard-tabs li a.active").attr('data-qatab');
+        if(parent_tab == "pm_pending"){
+            load_pending_pm(1, query);
+        }else if(parent_tab == "pm_done"){
+            // load_completed_request(1, query);
+        }else{
+        }
+    });
 </script>
 @endsection

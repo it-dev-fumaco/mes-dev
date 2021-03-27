@@ -780,7 +780,22 @@ Route::get('/get_current_assigned_maintenance', 'MaintenanceController@get_curre
 Route::get('/print_maintenance_form', 'MaintenanceController@print_maintenance_form');
 
 
+Route::post('/add_maintenance_sched_type', 'MaintenanceController@add_maintenance_sched_type');
+Route::post('/edit_maintenance_sched_type', 'MaintenanceController@edit_maintenance_sched_type');
+Route::post('/delete_maintenance_sched_type', 'MaintenanceController@delete_maintenance_sched_type');
 
+
+Route::get('/get_list_maintenance_sched_type', 'MaintenanceController@get_list_maintenance_sched_type');
+Route::get('/get_maintenance_type_by_operation', 'MaintenanceController@get_maintenance_type_by_operation');
+Route::get('/get_task_list_for_add_pm ', 'MaintenanceController@get_task_list_for_add_pm');
+Route::get('/get_task_desc_for_add_pm ', 'MaintenanceController@get_task_desc_for_add_pm');
+
+
+Route::post('/save_preventive_maintenance_request ', 'MaintenanceController@save_preventive_maintenance_request');
+Route::post('/add_preventive_maintenance_task ', 'MaintenanceController@add_preventive_maintenance_task');
+
+Route::get('/get_preventive_maintenance_task', 'MaintenanceController@get_preventive_maintenance_task');
+Route::get('/get_pm_pending_list', 'MaintenanceController@get_pm_pending_list');
 
 
 

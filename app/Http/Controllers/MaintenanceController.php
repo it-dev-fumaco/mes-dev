@@ -29,7 +29,8 @@ class MaintenanceController extends Controller
         ->select("user.user_access_id", 'user.employee_name')
         ->get();
         $machine=DB::connection('mysql_mes')->table('machine')->get();
-        return view('maintenance.maintenance_dashboard', compact('user_details', 'maintence_staff', 'machine'));
+        $operation=DB::connection('mysql_mes')->table('operation')->get();
+        return view('maintenance.maintenance_dashboard', compact('user_details', 'maintence_staff', 'machine', 'operation'));
 
     }
     public function get_pending_maintenance_request(Request $request){
@@ -57,7 +58,7 @@ class MaintenanceController extends Controller
             foreach($main as $rw){
                 $assigned_main_staff= Db::connection('mysql_mes')
                     ->table('assigned_maintenance_staff')
-                    ->where('assigned_maintenance_staff.machine_breakdown_id', $rw->machine_breakdown_id)
+                    ->where('assigned_maintenance_staff.reference_id', $rw->machine_breakdown_id)
                     ->select('assigned_maintenance_staff.employee_name')
                     ->get();
                 $data[]=[
@@ -119,7 +120,7 @@ class MaintenanceController extends Controller
             foreach($main as $rw){
                 $assigned_main_staff= Db::connection('mysql_mes')
                     ->table('assigned_maintenance_staff')
-                    ->where('assigned_maintenance_staff.machine_breakdown_id', $rw->machine_breakdown_id)
+                    ->where('assigned_maintenance_staff.reference_id', $rw->machine_breakdown_id)
                     ->select('assigned_maintenance_staff.employee_name')
                     ->get();
                 $data[]=[
@@ -182,7 +183,7 @@ class MaintenanceController extends Controller
                 if($request->oldstaff_main_id == null){
                     DB::connection('mysql_mes')
                     ->table('assigned_maintenance_staff')
-                    ->where('machine_breakdown_id',$request->maintenance_request_id)->delete();
+                    ->where('reference_id',$request->maintenance_request_id)->delete();
                 }else{
                     $delete_shift=DB::connection('mysql_mes')
                     ->table('assigned_maintenance_staff')
@@ -198,7 +199,7 @@ class MaintenanceController extends Controller
                         ->where('user_access_id', $row)
                         ->first();
                     $new_staff_main[] = [
-                        'machine_breakdown_id'=> $request->maintenance_request_id,
+                        'reference_id'=> $request->maintenance_request_id,
                         'user_access_id' => $row,
                         'employee_name' => $user->employee_name,
                         'created_by' => Auth::user()->email,
@@ -235,7 +236,7 @@ class MaintenanceController extends Controller
             ->first();
         $assigned_main_staff= Db::connection('mysql_mes')
         ->table('assigned_maintenance_staff')
-        ->where('assigned_maintenance_staff.machine_breakdown_id', $request->id)
+        ->where('assigned_maintenance_staff.reference_id', $request->id)
         ->select('assigned_maintenance_staff.employee_name')
         ->get();
         return view('maintenance.tables.tbl_maintenance_request_details', compact('main', 'assigned_main_staff'));
@@ -268,7 +269,7 @@ class MaintenanceController extends Controller
 
     }
     public function get_current_assigned_maintenance(Request $request){
-        $assigned= DB::connection('mysql_mes')->table('assigned_maintenance_staff')->where('machine_breakdown_id', $request->id)->get();
+        $assigned= DB::connection('mysql_mes')->table('assigned_maintenance_staff')->where('reference_id', $request->id)->get();
         $maintence_staff=DB::connection('mysql_mes')
         ->table('user')
         ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
@@ -292,7 +293,7 @@ class MaintenanceController extends Controller
             $main=[];
             $assigned_main_staff= Db::connection('mysql_mes')
                 ->table('assigned_maintenance_staff')
-                ->where('assigned_maintenance_staff.machine_breakdown_id', $request->id)
+                ->where('assigned_maintenance_staff.reference_id', $request->id)
                 ->select('assigned_maintenance_staff.employee_name')
                 ->get();
 
@@ -397,5 +398,236 @@ class MaintenanceController extends Controller
                 return response()->json(['success' => 1, 'message' => 'Maintenance Schedule Type Successfully Deleted!']);
             // }
     }
-    
+    public function get_maintenance_type_by_operation(Request $request){
+        $output = '<option value="">Select Maintenance Sched Type</option>';
+        $list= DB::connection('mysql_mes')
+        ->table('maintenance_schedule_type as mst')
+        ->leftJoin('operation as op', 'op.operation_id','mst.operation_id')
+        ->where('op.operation_id', $request->id)
+        ->select('mst.*', 'op.operation_name')->get();
+
+        foreach($list as $row)
+                 {
+                $output .= '<option value="'.$row->maintenance_schedule_type_id.'">'.$row->maintenance_schedule_type.'</option>';
+                 }
+        return $output;
+    }
+    public function get_task_list_for_add_pm(){
+        $pmt= DB::connection('mysql_mes')->table('preventive_maintenance_task')->get();
+       
+        return response()->json(['pmt' => $pmt]);
+    }
+    public function get_task_desc_for_add_pm(Request $request){
+        $pmt= DB::connection('mysql_mes')->table('preventive_maintenance_task')->where('preventive_maintenance_task_id', $request->id)->first();
+        
+        return response()->json(['pmt' => $pmt->preventive_maintenance_desc]);
+    } 
+    public function get_order_preventive_maintenance(){
+            // Get the last created order
+            $lastOrder = DB::connection('mysql_mes')->table('preventive_maintenance')->orderBy('preventive_maintenance_id', 'desc')->select('preventive_maintenance_id')->first();
+
+            if (empty($lastOrder->preventive_maintenance_id)){
+                // We get here if there is no order at all
+                // If there is no number set it to 0, which will be 1 at the end.
+
+                $number = 0;
+            }else{
+                $number1 = $lastOrder->preventive_maintenance_id;
+                $number = preg_replace("/[^0-9]{1,4}/", '', $number1); // return 1234
+            }
+
+            // If we have ORD000001 in the database then we only want the number
+            // So the substr returns this 000001
+
+            // Add the string in front and higher up the number.
+            // the %05d part makes sure that there are always 6 numbers in the string.
+            // so it adds the missing zero's when needed.
+         
+            return 'PM-' . sprintf('%05d', intval($number) + 1);
+    } 
+    public function save_preventive_maintenance_request(Request $request){
+        // return $request->all();
+        $now = Carbon::now();
+        $newtaskassign= (empty($request->newtaskassign))? []: $request->newtaskassign;
+        $new_staff= (empty($request->newstaff))? []: $request->newstaff;
+        $ar=array_unique(array_diff_assoc($newtaskassign, array_unique( $newtaskassign ) ) );
+        $arr=array_unique(array_diff_assoc($new_staff, array_unique( $new_staff ) ) );
+
+        if(!empty($ar)){
+            foreach($ar as $i => $r){
+                $row= $i +1;
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+            }
+        }
+        if(!empty($arr)){
+            foreach($arr as $i => $rr){
+                $user =DB::connection('mysql_mes')->table('user')
+                ->where('user_access_id', $rr)
+                ->first();
+                $row= $i +1;
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$user->employee_name.' at ROW '.$row ]);
+            }
+        }
+        
+            $id=$this->get_order_preventive_maintenance();
+            $machine= DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->pm_machine)->first();
+            $new= [
+                'preventive_maintenance_id'=>  $id,
+                'operation_id'=> $request->pm_op,
+                'maintenance_schedule_type_id' => $request->pm_mst,
+                'machine_id' => $request->pm_machine,
+                'machine_code'=> $machine->machine_code,
+                'machine_name' => $machine->machine_name,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString()
+            ];
+            $new_machine=[];
+            if ($request->newtaskassign) {
+                foreach($request->newtaskassign as $i => $row){
+                    $new_machine[] = [
+                        'reference_no'=> $id,
+                        'preventive_maintenance_task_id' => $row,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                }
+                DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')->insert($new_machine);
+            }
+            if ($request->newstaff) {
+                foreach($request->newstaff as $i => $row){
+                    $user =DB::connection('mysql_mes')->table('user')
+                        ->where('user_access_id', $row)
+                        ->first();
+                    $new_staff_main[] = [
+                        'reference_id'=> $id,
+                        'user_access_id' => $row,
+                        'employee_name' => $user->employee_name,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                }
+                DB::connection('mysql_mes')->table('assigned_maintenance_staff')->insert($new_staff_main);
+            }
+
+            DB::connection('mysql_mes')->table('preventive_maintenance')->insert($new);
+            return response()->json(['success' => 1, 'message' => $id.' successfully created.']);	
+
+    } 
+    public function add_preventive_maintenance_task(Request $request){
+        // dd($request->all());
+        $now = Carbon::now();
+        $netask= (empty($request->pm_task))? []: $request->pm_task;
+        $ar=array_unique(array_diff_assoc($netask, array_unique( $netask )) );
+        if(!empty($ar)){
+            foreach($ar as $i => $r){
+                $row= $i +1;
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+            }
+        }
+        if ($request->pm_task) {
+            foreach($request->pm_task as $i => $row){
+                if (DB::connection('mysql_mes')
+                ->table('preventive_maintenance_task')
+                ->where('preventive_maintenance_task','like', '%'.$row.'%')
+                ->where('preventive_maintenance_desc','like', '%'.$request->pm_task_desc[$i].'%')
+                ->exists()){
+                    return response()->json(['success' => 0, 'message' => $row.' - '.$request->pm_task_desc[$i].' already exist.']);
+                }else{
+                        $new= [
+                            'preventive_maintenance_task' => $row,
+                            'preventive_maintenance_desc' => $request->pm_task_desc[$i],
+                            'created_by' => Auth::user()->email,
+                            'created_at' => $now->toDateTimeString()
+                        ];
+                        DB::connection('mysql_mes')->table('preventive_maintenance_task')->insert($new);
+                }
+            }
+            return response()->json(['success' => 1, 'message' => 'Preventive Maintenance task successfully created.']);	
+        }
+        
+    }
+    public function get_preventive_maintenance_task(Request $request){
+        $list= DB::connection('mysql_mes')
+        ->table('preventive_maintenance_task as pmt')
+        ->where(function($q) use ($request) {
+            $q->where('pmt.preventive_maintenance_task', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('pmt.preventive_maintenance_desc', 'LIKE', '%'.$request->search_string.'%');
+        })
+        ->select('pmt.*')->orderBy('preventive_maintenance_task_id', 'desc')->paginate(10);
+
+        return view('maintenance.tables.tbl_preventive_maintenance_task', compact('list'));
+
+    }
+    public function get_pm_pending_list(Request $request){
+        $list= DB::connection('mysql_mes')
+        ->table('preventive_maintenance as pm')
+        ->join('assigned_preventive_maintenance_task as apmt', 'apmt.reference_no', 'pm.preventive_maintenance_id')
+        ->join('preventive_maintenance_task as pmt', 'pmt.preventive_maintenance_task_id', 'apmt.preventive_maintenance_task_id')
+        ->join('maintenance_schedule_type as mst', 'mst.maintenance_schedule_type_id', 'pm.maintenance_schedule_type_id')
+        ->join('operation as op', 'op.operation_id', 'pm.operation_id')
+        ->where(function($q) use ($request) {
+            $q->where('pm.preventive_maintenance_id', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('pm.machine_id', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('pm.machine_code', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('pm.machine_name', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('mst.maintenance_schedule_type', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('pmt.preventive_maintenance_task', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('pmt.preventive_maintenance_desc', 'LIKE', '%'.$request->search_string.'%');
+        })
+        ->distinct('pm.preventive_maintenance_id')
+        ->select('pm.*','mst.*', 'op.operation_name')
+        ->get();
+        $data=[];
+        foreach($list as $r){
+            $task= DB::connection('mysql_mes')->table('preventive_maintenance as pm')
+            ->join('assigned_preventive_maintenance_task as apmt', 'apmt.reference_no', 'pm.preventive_maintenance_id')
+            ->join('preventive_maintenance_task as pmt', 'pmt.preventive_maintenance_task_id', 'apmt.preventive_maintenance_task_id')
+            ->where('apmt.reference_no', $r->preventive_maintenance_id)
+            ->get();
+            $assigned_main_staff= Db::connection('mysql_mes')
+            ->table('assigned_maintenance_staff')
+            ->where('assigned_maintenance_staff.reference_id', $r->preventive_maintenance_id)
+            ->select('assigned_maintenance_staff.employee_name')
+            ->get();
+            $data[]=[
+                'preventive_maintenance_id'=>$r->preventive_maintenance_id,
+                'operation_id'=>$r->operation_id,
+                'maintenance_schedule_type_id'=>$r->maintenance_schedule_type_id,
+                'machine_id'=>$r->machine_id,
+                'machine_code'=>$r->machine_code,
+                'machine_name'=>$r->machine_name,
+                'maintenance_schedule_type'=>$r->maintenance_schedule_type,
+                'start_date'=>$r->start_date,
+                'operation_name'=>$r->operation_name,
+                'task'=>$task,
+                'staff'=>$assigned_main_staff
+
+            ];
+        }
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        // Create a new Laravel collection from the array data
+        $itemCollection = collect($data);
+        // Define how many items we want to be visible in each page
+        $perPage = 10;
+        // Slice the collection to get the items to display in current page
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
+        // Create our paginator and pass it to the view
+        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        // set url path for generted links
+        $paginatedItems->setPath($request->url());
+
+        $maintenance = $paginatedItems;
+        // return $data;
+        // ->where(function($q) use ($request) {
+        //     $q->where('pmt.preventive_maintenance_task', 'LIKE', '%'.$request->search_string.'%')
+        //         ->orwhere('pmt.preventive_maintenance_desc', 'LIKE', '%'.$request->search_string.'%');
+        // })
+        // ->select('pmt.*')->orderBy('preventive_maintenance_task_id', 'desc')->paginate(10);
+
+        return view('maintenance.tables.tbl_pending_pm', compact('maintenance'));
+
+    }
+     
+       
 }
