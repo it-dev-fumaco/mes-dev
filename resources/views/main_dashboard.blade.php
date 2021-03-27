@@ -196,19 +196,37 @@
               <div class="tab-content" id="on-going-production-orders-content">
                 <div class="tab-pane fade show active" id="fab" role="tabpanel" data-operation="1">
                   <div class="row m-0 p-0">
-                    <div class="col-md-8 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-8 m-0 pr-1 pl-1 pt-0">
+                      <div class="row m-0 p-0">
+                        <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                      </div>
+                    </div>
                     <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
                 </div>
                 <div class="tab-pane fade" id="pa" role="tabpanel" data-operation="2">
-                  <div class="row">
-                    <div class="col-md-8 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  <div class="row m-0 p-0">
+                    <div class="col-md-8 m-0 pr-1 pl-1 pt-0">
+                      <div class="row m-0 p-0">
+                        <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                      </div>
+                    </div>
                     <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
                 </div>
                 <div class="tab-pane fade" id="wa" role="tabpanel" data-operation="3">
-                  <div class="row">
-                    <div class="col-md-8 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  <div class="row m-0 p-0">
+                    <div class="col-md-8 m-0 pr-1 pl-1 pt-0">
+                      <div class="row m-0 p-0">
+                        <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                      </div>
+                    </div>
                     <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
                 </div>
@@ -234,8 +252,24 @@
       #production-order-totals .custom-text-3{
         font-size: 10pt;
       }
-    </style>
 
+      .custom-table-fixed-1 {
+        display: block;
+        width: 100%;
+      }
+      .custom-table-fixed-1 thead tr {
+        display: block;
+      }
+      .custom-table-fixed-1 tbody {
+        display: block;
+        overflow-y: scroll;
+        width: 100%;
+        overflow-x: hidden;
+      }
+      .custom-table-fixed-1 tfoot tr {
+        display: block;
+      }
+  </style>
     <div class="col-md-4">
       <div class="row">
         <div class="col-md-12">
@@ -572,6 +606,8 @@
 @section('script')
 <script>
   $(document).ready(function(){
+    var date_today = $("#date_today").val();
+
     load_dashboard();
     count_current_production();
     function load_dashboard(){
@@ -581,26 +617,48 @@
         
         get_ongoing_production_orders(operation, el);
         get_qa(operation, el);
+        get_machine_status_per_operation(operation, el);
+        maintenance_schedules_per_operation(operation, el);
       });
     }
 
-    //setInterval(load_dashboard, 10000);
-    //setInterval(count_current_production, 8000);
-
-    function get_qa(operation, el){
-      var date_today = $("#date_today").val();
+    function maintenance_schedules_per_operation(operation, el){
       $.ajax({
-        url:"/qa_monitoring_summary/" + date_today,
+        url:"/maintenance_schedules_per_operation/" + operation,
         type:"GET",
-        data: {operation: operation},
+        data: {scheduled_date: date_today},
+        success:function(data){
+          $(el).find('.table-div').eq(2).html(data);
+        }
+      }); 
+    }
+
+    function get_machine_status_per_operation(operation, el){
+      $.ajax({
+        url:"/get_machine_status_per_operation/" + operation,
+        type:"GET",
+        data: {scheduled_date: date_today},
         success:function(data){
           $(el).find('.table-div').eq(1).html(data);
         }
       }); 
     }
 
+    //setInterval(load_dashboard, 10000);
+    //setInterval(count_current_production, 8000);
+
+    function get_qa(operation, el){
+      $.ajax({
+        url:"/qa_monitoring_summary/" + date_today,
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          $(el).find('.table-div').eq(3).html(data);
+        }
+      }); 
+    }
+
     function get_ongoing_production_orders(operation, el){
-      var date_today = $("#date_today").val();
       $.ajax({
         url:"/get_production_order_list/" + date_today,
         type:"GET",
@@ -862,46 +920,44 @@
 
       $("#current-time").html(currentTimeString);
     }
+
+    function count_current_production(){
+      $.ajax({
+        url:"/count_current_production_order/" + date_today,
+        type:"GET",
+        success:function(data){
+          $('#fab-planned').text(data.fab_planned);
+          $('#fab-planned-qty').text(data.fab_planned_qty);
+          $('#fab-wip').text(data.fab_wip);
+          $('#fab-wip-qty').text(data.fab_wip_qty);
+          $('#fab-done').text(data.fab_done);
+          $('#fab-done-qty').text(data.fab_done_qty);
+          $('#fab-for-feedback').text(data.fab_for_feedback);
+          $('#fab-for-feedback-qty').text(data.fab_for_feedback_qty);
+          $('#wa-planned').text(data.wa_planned);
+          $('#wa-planned-qty').text(data.wa_planned_qty);
+          $('#wa-wip').text(data.wa_wip);
+          $('#wa-wip-qty').text(data.wa_wip_qty);
+          $('#wa-done').text(data.wa_done);
+          $('#wa-done-qty').text(data.wa_done_qty);
+          $('#wa-for-feedback').text(data.wa_for_feedback);
+          $('#wa-for-feedback-qty').text(data.wa_for_feedback_qty);
+          $('#pa-planned').text(data.pa_planned);
+          $('#pa-planned-qty').text(data.pa_planned_qty);
+          $('#pa-wip').text(data.pa_wip);
+          $('#pa-wip-qty').text(data.pa_wip_qty);
+          $('#pa-done').text(data.pa_done);
+          $('#pa-done-qty').text(data.pa_done_qty);
+          $('#pa-for-feedback').text(data.pa_for_feedback);
+          $('#pa-for-feedback-qty').text(data.pa_for_feedback_qty);
+        }
+      }); 
+    }
   });
 </script>
 
 <script type="text/javascript">
   
-
-  function count_current_production(){
-    var date_today = $("#date_today").val();
-    $.ajax({
-      url:"/count_current_production_order/" + date_today,
-      type:"GET",
-      success:function(data){
-        $('#fab-planned').text(data.fab_planned);
-        $('#fab-planned-qty').text(data.fab_planned_qty);
-        $('#fab-wip').text(data.fab_wip);
-        $('#fab-wip-qty').text(data.fab_wip_qty);
-        $('#fab-done').text(data.fab_done);
-        $('#fab-done-qty').text(data.fab_done_qty);
-        $('#fab-for-feedback').text(data.fab_for_feedback);
-        $('#fab-for-feedback-qty').text(data.fab_for_feedback_qty);
-        $('#wa-planned').text(data.wa_planned);
-        $('#wa-planned-qty').text(data.wa_planned_qty);
-        $('#wa-wip').text(data.wa_wip);
-        $('#wa-wip-qty').text(data.wa_wip_qty);
-        $('#wa-done').text(data.wa_done);
-        $('#wa-done-qty').text(data.wa_done_qty);
-        $('#wa-for-feedback').text(data.wa_for_feedback);
-        $('#wa-for-feedback-qty').text(data.wa_for_feedback_qty);
-        $('#pa-planned').text(data.pa_planned);
-        $('#pa-planned-qty').text(data.pa_planned_qty);
-        $('#pa-wip').text(data.pa_wip);
-        $('#pa-wip-qty').text(data.pa_wip_qty);
-        $('#pa-done').text(data.pa_done);
-        $('#pa-done-qty').text(data.pa_done_qty);
-        $('#pa-for-feedback').text(data.pa_for_feedback);
-        $('#pa-for-feedback-qty').text(data.pa_for_feedback_qty);
-      }
-    }); 
-  }
-
   function notif_dashboard(){
     $.ajax({
       url:"/get_tbl_notif_dashboard",

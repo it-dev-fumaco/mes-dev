@@ -1,6 +1,6 @@
 <div class="card mt-2 mb-2">
   <div class="card-body pb-0 pt-0">
-    <div class="row bg-white" style="min-height: 600px;">
+    <div class="row bg-white" style="min-height: 650px;">
       <div class="col-md-12 p-0">
         <table class="table table-striped table-bordered text-center m-0">
           <col style="width: 20%">

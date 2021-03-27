@@ -37,8 +37,8 @@ class SecondaryController extends Controller
             $ste_item =DB::connection('mysql')->table('tabStock Entry Detail')
                 ->where('parent', $ste->name)->get();
         }
+        
         return view('tables.tbl_prod_stock_details', compact('ste','ste_item'));
-
     }
 
     public function get_stock_entry_exist($prod){
@@ -3026,6 +3026,18 @@ class SecondaryController extends Controller
             ];
         }
 
+        $inspectors = array_unique(array_column($data, 'inspected_by'));
+
+        $per_inspector = [];
+        foreach($inspectors as $inspector){
+            $logs = collect($data)->where('inspected_by', $inspector);
+            $per_inspector[] = [
+                'inspector' => $inspector,
+                'production_order' => $logs->count(),
+                'qty' => $logs->sum('quantity')
+            ];
+        }
+
         $quality_inspection = collect($data)->filter(function ($value, $key) {
             return (in_array($value['inspection_type'], ['Quality Check', 'Random Inspection']));
         });
@@ -3034,7 +3046,7 @@ class SecondaryController extends Controller
             return (in_array($value['inspection_type'], ['Reject Confirmation']));
         });
 
-        return view('tables.tbl_qa_monitoring', compact('quality_inspection', 'rejection'));
+        return view('tables.tbl_qa_monitoring', compact('quality_inspection', 'rejection', 'per_inspector'));
     }
 
     public function get_production_order_count_totals($collection, $operation_id){
@@ -3673,7 +3685,9 @@ class SecondaryController extends Controller
             DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation_id)->update($values1);
             DB::connection('mysql')->table('tabOperation')->where('name', $request->old_operation)->update($values2);
         return response()->json(['success' => 1, 'message' => 'Operation successfully updated']);
+
     }
+ 
     public function tbl_operation_list(Request $request){
         $shift_list = DB::connection('mysql_mes')->table('operation')
             ->where(function($q) use ($request) {
