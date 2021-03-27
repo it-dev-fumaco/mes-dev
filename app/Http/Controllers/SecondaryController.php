@@ -37,8 +37,8 @@ class SecondaryController extends Controller
             $ste_item =DB::connection('mysql')->table('tabStock Entry Detail')
                 ->where('parent', $ste->name)->get();
         }
+        
         return view('tables.tbl_prod_stock_details', compact('ste','ste_item'));
-
     }
 
     public function get_stock_entry_exist($prod){
@@ -3026,6 +3026,18 @@ class SecondaryController extends Controller
             ];
         }
 
+        $inspectors = array_unique(array_column($data, 'inspected_by'));
+
+        $per_inspector = [];
+        foreach($inspectors as $inspector){
+            $logs = collect($data)->where('inspected_by', $inspector);
+            $per_inspector[] = [
+                'inspector' => $inspector,
+                'production_order' => $logs->count(),
+                'qty' => $logs->sum('quantity')
+            ];
+        }
+
         $quality_inspection = collect($data)->filter(function ($value, $key) {
             return (in_array($value['inspection_type'], ['Quality Check', 'Random Inspection']));
         });
@@ -3034,7 +3046,7 @@ class SecondaryController extends Controller
             return (in_array($value['inspection_type'], ['Reject Confirmation']));
         });
 
-        return view('tables.tbl_qa_monitoring', compact('quality_inspection', 'rejection'));
+        return view('tables.tbl_qa_monitoring', compact('quality_inspection', 'rejection', 'per_inspector'));
     }
 
     public function get_production_order_count_totals($collection, $operation_id){
@@ -3673,154 +3685,8 @@ class SecondaryController extends Controller
             DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation_id)->update($values1);
             DB::connection('mysql')->table('tabOperation')->where('name', $request->old_operation)->update($values2);
         return response()->json(['success' => 1, 'message' => 'Operation successfully updated']);
-
     }
-    public function tbl_operation_list(Request $request){
-        $shift_list = DB::connection('mysql_mes')->table('operation')
-            ->where(function($q) use ($request) {
-                    $q->where('operation_name', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('description', 'LIKE', '%'.$request->search_string.'%');
-            })
-            ->orderBy('operation_id', 'desc')->get();
-
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($shift_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_operation_list', compact('data'));
-
-
-    }
-    public function add_shift_schedule(Request $request){
-        $now = Carbon::now();
-        //schedule_planned_start_date
-        if(!empty($request->prodname)){
-            if($request->planned_start_datepicker == null){
-                return response()->json(['success' => 0, 'message' => 'Please Select Planned Start Date ']);
-            }else{
-                if($request->operation_id == 2){
-                    $prod = [
-                        'planned_start_date' => $request->planned_start_datepicker,
-                    ];
-                    // DB::connection('mysql_mes')->table('job_ticket')->where('production_order',$request->prodname)->where('workstation','Painting')->update($val_sched);
-                    foreach($request->prodname as $i => $row){
-                        if(DB::connection('mysql_mes')->table('job_ticket as jt')
-							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
-							->where('jt.production_order', $row)
-							->where('tl.status', "In Progress")
-							->select('tl.status as stat')
-							->exists()){
-						}else{
-							DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $row)->where('workstation','Painting')->update($prod);   
-						}
-                    }
-                }else{
-                    $prods = [
-                        'is_scheduled' =>  1,
-                        'planned_start_date' => $request->planned_start_datepicker,
-                        'last_modified_by' => Auth::user()->email
-                    ];
-                    foreach($request->prodname as $i => $row){
-                        if(DB::connection('mysql_mes')->table('job_ticket as jt')
-							->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
-							->where('jt.production_order', $row)
-							->where('spotpart.status', "In Progress")
-							->exists()){
-						}else{
-							if(DB::connection('mysql_mes')->table('job_ticket as jt')
-							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
-							->where('jt.production_order', $row)
-							->where('tl.status', "In Progress")
-							->exists()){
-							}else{
-								DB::connection('mysql_mes')->table('production_order')->where('production_order', $row)->update($prods);
-							}
-						}
-                    }
-                }
-            }
-        }
-        //add_shift_schedule
-        if(empty($request->shifttype)){
-            $arr= [];
-            if($request->pagename == "calendar"){
-                $get_data=$this->get_production_schedule_calendar($request->operation_id);
-                 return $get_data;
-            }else{
-                return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
-            }
-
-        }else{
-            $arr=$request->shifttype;
-        }
-        $data= (array_count_values($arr));
-        if($data['Special Shift'] > 1){
-            return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE Special Shift' ]);
-                
-        }else{
-            if ($request->old_shift_sched) {
-                if($request->oldshift_sched_id == null ){
-                    DB::connection('mysql_mes')
-                    ->table('shift_schedule')
-                    ->whereDate('date',$request->date)->delete();
-                }else{
-                    $delete_shift=DB::connection('mysql_mes')
-                    ->table('shift_schedule')
-                    ->whereIn('shift_schedule_id', $request->old_shift_sched)
-                    ->whereNotIn('shift_schedule_id', $request->oldshift_sched_id)
-                    ->delete();
-                }
-            }
-            // for insert
-            if ($request->newshift) {
-                foreach($request->newshift as $i => $row){
-                    $new_shift_sched[] = [
-                        'shift_id'=> $row,
-                        'date' =>  $request->date,
-                        'scheduled_by' => Auth::user()->employee_name,
-                        'last_modified_by' => Auth::user()->email,
-                        'created_by' => Auth::user()->email,
-                        'created_at' => $now->toDateTimeString()
-                    ];
-                }
-                DB::connection('mysql_mes')->table('shift_schedule')->insert($new_shift_sched);
-            }
-            //update
-            if ($request->oldshift) {
-                foreach($request->oldshift as $i => $row){
-                    $update_shift= [
-                        'shift_id'=> $row,
-                        'date' =>  $request->date,
-                        'last_modified_by' => Auth::user()->email,
-                    ];
-                    $shift_id_forupdate= $request->oldshift_sched_id[$i];
-                    DB::connection('mysql_mes')->table('shift_schedule')->where('shift_schedule_id',$shift_id_forupdate)->update($update_shift);
-                }
-            }   
-        }
-        if($request->pagename == "calendar"){
-            $get_data=$this->get_production_schedule_calendar($request->operation_id);
-             return $get_data;
-        }else{
-            return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
-        }
-    }
-    }
+ 
     public function tbl_operation_list(Request $request){
         $shift_list = DB::connection('mysql_mes')->table('operation')
             ->where(function($q) use ($request) {

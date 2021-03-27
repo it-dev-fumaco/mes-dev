@@ -6438,7 +6438,30 @@ class MainController extends Controller
 				'status' => ($on_going > 0) ? 'Active' : 'Idle'
 			];
 		}
+    
+		$result = collect($result)->sortBy('status')->toArray();
 
 		return view('tables.tbl_machine_status_per_operation', compact('result'));
+	}
+
+	public function maintenance_schedules_per_operation($operation_id){
+		$unplanned = DB::connection('mysql_mes')->table('machine_breakdown as mb')
+			->join('machine as m', 'm.machine_code', 'mb.machine_id')
+			->where('m.operation_id', $operation_id)
+			->where('mb.status', '!=', 'Completed')->select('m.machine_code', 'mb.date_reported', 'mb.type', 'm.machine_name')->get();
+
+		$breakdown_count = collect($unplanned)->where('type', 'Breakdown')->count();
+		$corrective_count = collect($unplanned)->where('type', 'Corrective')->count();
+		$preventive_count = 0;
+
+		$maintenance_count = [
+			'breakdown' => $breakdown_count,
+			'corrective' => $corrective_count,
+			'preventive' => $preventive_count,
+		];
+
+		// return $unplanned;
+
+		return view('tables.tbl_maintenance_schedule_per_operation', compact('maintenance_count', 'unplanned'));
 	}
 }

@@ -360,6 +360,8 @@ Route::group(['middleware' => 'auth'], function(){
 Route::post('/add_shift_schedule_prod', 'SecondaryController@add_shift_schedule');
 
 
+Route::get('/maintenance_schedules_per_operation/{operation_id}', 'MainController@maintenance_schedules_per_operation');
+
 
 ///revise MainDashboard Patrick 
 Route::get('/get_production_order_list/{date}', 'SecondaryController@get_production_order_list');
