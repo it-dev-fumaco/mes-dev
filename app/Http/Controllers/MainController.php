@@ -898,7 +898,8 @@ class MainController extends Controller
 			'operator_name' => $row->operator_name,
 		];
 
-		$type = ($type == 'Quality Check') ? $type : ($type == 'Reject Confirmation') ? $type : 'Random Inspection';
+		$type = ($type == 'Reject Confirmation') ? $type : 'Random Inspection';
+		$type = ($type == 'Quality Check') ? 'Quality Check' : $type;
 
 		return view('tables.tbl_quality_check', compact('data', 'type'));
 	}
