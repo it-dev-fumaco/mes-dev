@@ -59,9 +59,10 @@
                         Action
                       </button>
                       <div class="dropdown-menu">
-                        <a class="dropdown-item complete-task"   data- href="#">Maintenance Request</a>
-                        <a class="dropdown-item assign-main-staff"  href="#">Assigned Maintenance Staff</a>
-                        <a class="dropdown-item printbtnprint"   data- href="#">Print</a>
+                        <a class="dropdown-item pm-edit" data-id="{{ $row['preventive_maintenance_id'] }}" data-op="{{ $row['operation_id'] }}" data-schedtype="{{ $row['maintenance_schedule_type_id'] }}"  data-machineid="{{ $row['machine_id'] }}"  data- href="#">Update Preventive Maintenance Request</a>
+                        <a class="dropdown-item assign-main-staff" data-id="{{ $row['preventive_maintenance_id'] }}"  href="#">Assigned Maintenance Staff</a>
+                        <a class="dropdown-item delete-pm" data-id="{{ $row['preventive_maintenance_id'] }}" data-dtype="pm" data- href="#">Delete</a>
+                        <a class="dropdown-item printbtnprintpm" data-id="{{ $row['preventive_maintenance_id'] }}" data-dtype="pm" data- href="#">Print</a>
                       </div>
                   </div>
                 </td>

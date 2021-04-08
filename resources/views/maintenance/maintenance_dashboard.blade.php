@@ -467,7 +467,7 @@
                   <div class="col-md-6">
                     <div class="form-group">
                       <label for="pm_op">Operation</label>
-                      <select name="pm_op" id="pm_op" class="form-control select2" required>
+                      <select name="pm_op" id="pm_op" class="form-control select1a" required>
                         <option value="" selected="selected">Select Operation</option>
                         @foreach($operation as $r)
                            <option value="{{$r->operation_id}}">{{$r->operation_name}} </option>
@@ -476,7 +476,7 @@
                     </div>
                     <div class="form-group">
                       <label for="pm_machine">Machine</label>
-                      <select name="pm_machine" id="pm_machine" class="form-control select2" required>
+                      <select name="pm_machine" id="pm_machine" class="form-control select1a" required>
                         <option value="" selected="selected">Select Machine</option>
                         @foreach($machine as $r)
                            <option value="{{$r->machine_id}}">{{$r->machine_code}} - {{$r->machine_name}} </option>
@@ -560,6 +560,135 @@
                     </table>
                     <div class="pull-left">
                       <button type="button" class="btn btn-info btn-sm" id="add-row-main-btn">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                      </button>
+                    </div>
+                  </div>
+                 </div>
+             </div>
+             <div class="modal-footer" id="submit_id_form">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" >Submit</button>
+             </div>
+          </div>
+       </form>
+    </div>
+  </div>
+<div class="modal fade" id="delete-pm-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/delete_preventive_maintenance" method="POST" id="delete-pm-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" class="modal-title"> Delete Preventive Maintenance<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+               <div class="row">
+                   <div class="col-md-12">
+                      <input type="hidden" name="delete_preventive_maintenance_id" id="delete_preventive_maintenance_id">
+                      <div class="row">
+                        <div class="col-sm-12"style="font-size: 12pt;">
+                            <label> Are you sure you want to delete -  <span id="delete_preventive_maintenance_label" style="font-weight: bold;"></span></label>?
+                        </div>               
+                      </div>
+                   </div>
+               </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="edit-pm-task-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document" style="min-width:45%;">
+       <form action="/edit_preventive_maintenance_request" method="POST" id="edit-pm-task-frm">
+          @csrf
+          <div class="modal-content">
+             <div class="modal-header text-white" style="background-color: #0277BD;">
+                <h5 class="modal-title" id="modal-title ">Update Preventive Maintenance<br>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                   <span aria-hidden="true">×</span>
+                </button>
+             </div>
+             <div class="modal-body">
+                 <div class="row" id="tbl_maintenance_dtls">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="edit_pm_op">Operation</label>
+                      <select name="edit_pm_op" id="edit_pm_op" class="form-control select3" required>
+                        <option value="" selected="selected">Select Operation</option>
+                        @foreach($operation as $r)
+                           <option value="{{$r->operation_id}}">{{$r->operation_name}} </option>
+                        @endforeach
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit_pm_machine">Machine</label>
+                      <select name="edit_pm_machine" id="edit_pm_machine" class="form-control select2" required>
+                        <option value="" selected="selected">Select Machine</option>
+                        @foreach($machine as $r)
+                           <option value="{{$r->machine_id}}">{{$r->machine_code}} - {{$r->machine_name}} </option>
+                        @endforeach
+                      </select>
+                    </div>
+                    
+                    
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="edit_pm_mst">Maintenance Schedule Type</label>
+                      <select name="edit_pm_mst" id="edit_pm_mst" class="form-control" required></select>
+                    </div>
+                    
+                  </div>
+                  <div id="edit_task_old_ids"></div>
+                  <div class="col-md-12">
+                    <hr>
+                    <h6 class="pull-left">Task </h6>
+                    <table class="table table-bordered" style="margin-top: 5px;">
+                      <col style="width: 30%;">
+                      <col style="width: 60%;">
+                      <col style="width: 10%;">
+                      
+                      <tr>
+                        <th class="text-center">Task</th>
+                        <th class="text-center">Task Description</th>
+                        <th></th>
+                      </tr>
+                      <tbody id="edit-pm-task-table">
+                      </tbody>
+                    </table>
+                    <div class="pull-left">
+                      <button type="button" class="btn btn-info btn-sm" id="edit-add-row-task-btn">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                      </button>
+                    </div>
+                  </div>
+                  <div id="edit_assigned_old_ids"></div>
+                  <div class="col-md-12">
+                    <hr>
+                    <h6 class="pull-left">Assign Maintenance Staff</h6>
+                    <table class="table table-bordered" style="margin-top: 5px;">
+                      <col style="width: 90%;">
+                      <col style="width: 10%;">
+                      
+                      <tr>
+                        <th class="text-center">Employee Name</th>
+                        <th></th>
+                      </tr>
+                      <tbody id="edit-pm-assign-table">
+                      </tbody>
+                    </table>
+                    <div class="pull-left">
+                      <button type="button" class="btn btn-info btn-sm" id="edit-add-row-main-btn">
                         <i class="now-ui-icons ui-1_simple-add"></i> Add Row
                       </button>
                     </div>
@@ -936,12 +1065,19 @@
     width: '100%',
     cache: false 
     });
-    $('.select2').select2({
+    $('.select1a').select2({
     dropdownParent: $("#add-pm-task-modal"),
     dropdownAutoWidth: false,
     width: '100%',
     cache: false 
     });
+    $('.select3').select2({
+    dropdownParent: $("#edit-pm-task-modal"),
+    dropdownAutoWidth: false,
+    width: '100%',
+    cache: false 
+    });
+    
     setInterval(updateClock, 1000);
     function updateClock(){
       var currentTime = new Date();
@@ -1054,6 +1190,29 @@
                 $('#assign-maintenance-staff-modal').modal('hide');
                 var query = $("#search-maintenance-request").val();
                 load_pending_request(1, query);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $('#delete-pm-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#delete-pm-modal').modal('hide');
+                var query = $("#search-pm").val();
+                load_pending_pm(1, query);
               }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -1462,5 +1621,237 @@ function timeDiffCalc(dateFuture, dateNow) {
         }else{
         }
     });
+    
+  $(document).on('click', '.printbtnprintpm', function(){
+  var divname = $(this).data('id');
+    $.ajax({
+    url: "/print_pm_maintenance_form/",
+    data: {id:divname},
+    type:"GET",
+    success:function(data){
+      if (data.success < 1) {
+      showNotification("danger", data.message, "now-ui-icons travel_info");
+      }else{
+      $('#printmodalbody').html(data);
+      $('#print_modal_js_ws').modal('show');
+      }
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+    console.log(jqXHR);
+    console.log(textStatus);
+    console.log(errorThrown);
+    }
+    });
+  });
+  $(document).on('click', '.delete-pm', function(){
+    var divname = $(this).data('id');
+    $('#delete-pm-modal').modal('show');
+    $('#delete_preventive_maintenance_id').val(divname);
+    $('#delete_preventive_maintenance_label').text(divname);
+  });
+  $(document).on('click', '.pm-details', function(event){
+        event.preventDefault();
+        var id = $(this).data('id');
+        $.ajax({
+            url:"/get_maintenance_request_details",
+            type:"GET",
+            data: {id: id},
+            success:function(data){
+                $('#confirm-task-for-breakdown-modal .modal-title').text('Maintenance Request');
+                $('#tbl_maintenance_dtls').html(data);
+                $('#tbl_maintenance_dtls').html(data);
+                $("#maintenance_status" ).prop("disabled", false);
+                $("#date_resolve_picker" ).prop("disabled", false);
+                $("#maintennace_type" ).prop("disabled", false);
+                $("#findings" ).prop("disabled", false);
+                $("#work_done" ).prop("disabled", false);
+                $("#t_duration" ).prop("disabled", false);
+                $("#submit_id_form" ).show();
+            }
+        });
+        $('#confirm-task-for-breakdown-modal').modal('show');
+        // $('#set_assign_maintenance_staff').val(staff);
+
+        
+        // var page = $(this).attr('href').split('page=')[1];
+        
+  });
+  $(document).on('click', '.pm-edit', function(event){
+        event.preventDefault();
+        var id = $(this).data('id');
+        var op = $(this).data('op');
+        var schedtype = $(this).data('schedtype');
+        var machineid = $(this).data('machineid');
+        $('#edit_pm_op').val(op);
+        $('#edit_pm_op').trigger('change');
+        $('#edit_pm_machine').val(machineid);
+
+        $.ajax({
+        url:"/get_maintenance_type_by_operation",
+        type:"GET",
+        data: {id: op},
+        success:function(data){
+            $('#edit_pm_mst').html(data);
+            $('#edit_pm_mst').val(schedtype);
+        }
+        });
+        tbl_assigned_p_maintenance_staff(id);
+        tbl_assigned_task(id);
+        $('#edit-pm-task-modal').modal('show');
+        // $('#set_assign_maintenance_staff').val(staff);
+
+        
+        // var page = $(this).attr('href').split('page=')[1];
+        
+  });
+  function tbl_assigned_p_maintenance_staff(id){
+  $("#edit-pm-assign-table").empty();
+  $.ajax({
+    url:"/get_current_assigned_maintenance",
+    type:"GET",
+    data: {id: id},
+    success: function(data){
+      var old_staff = '';
+      $.each(data.old_staff, function(i, d){
+	      var sel_id = d.user_access_id;
+	      var break_id = d.assigned_maintenance_staff_id;
+	      old_staff += '<input type="hidden" name="old_staff_main[]" value="'+d.assigned_maintenance_staff_id+'">';
+	      console.log(d.assigned_maintenance_staff_id);
+        // var s_type= d.shift_type;
+	      var row1 = '';
+	      $.each(data.maintenance_staff, function(i, d){
+	        selected = (d.user_access_id == sel_id) ? 'selected' : null;
+	        row1 += '<option value="' + d.user_access_id  + '" '+selected+'>' + d.employee_name + '</option>';
+	      });
+	      var thizz = document.getElementById('edit-pm-assign-table');
+	      var id = $(thizz).closest('table').find('tr:last td:first').text();
+	      var validation = isNaN(parseFloat(id));
+	      if(validation){
+	        var new_id = 1;
+	      }else{
+	        var new_id = parseInt(id) + 1;
+	      }
+	      var len2 = new_id;
+        // var id_stype= "#" + id_unique2;
+	      var tblrow = '<tr>' +
+          '<td style="display:none;">'+len2+'</td>' +
+	        '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="oldstaff_main_id[]"  value="'+break_id+'"><select name="oldstaff[]"  class="form-control m-0 count-row onchange-shift-select" required>'+row1+'</select></div></td>' +
+	        '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+	      '</tr>';
+	      $("#edit-pm-task-modal #edit-pm-assign-table").append(tblrow);
+	      $("#edit-pm-task-modal #edit_assigned_old_ids").html(old_staff);
+        // $(id_stype).val(s_type);
+	    });
+    }
+ }); 
+}
+function tbl_assigned_task(id){
+  $("#edit-pm-task-table").empty();
+  $.ajax({
+    url:"/get_current_task_maintenance",
+    type:"GET",
+    data: {id: id},
+    success: function(data){
+      var old_task = '';
+      $.each(data.assigned_task, function(i, d){
+	      var sel_id = d.preventive_maintenance_task_id;
+	      old_task += '<input type="hidden" name="old_staff_main[]" value="'+d.preventive_maintenance_task_id+'">';
+	      console.log(d.assigned_maintenance_staff_id);
+        // var s_type= d.shift_type;
+	      var row1 = '';
+	      $.each(data.task, function(i, d){
+	        selected = (d.preventive_maintenance_task_id == sel_id) ? 'selected' : null;
+	        row1 += '<option value="' + d.preventive_maintenance_task_id  + '" '+selected+'>' + d.preventive_maintenance_task + '</option>';
+	      });
+	      var thizz = document.getElementById('edit-pm-task-table');
+	      var id = $(thizz).closest('table').find('tr:last td:first').text();
+	      var validation = isNaN(parseFloat(id));
+	      if(validation){
+	        var new_id = 1;
+	      }else{
+	        var new_id = parseInt(id) + 1;
+	      }
+	      var len2 = new_id;
+        var id_unique1="edittask"+len2;
+        var tblrow = '<tr>' +
+            '<td style="display:none;">'+len2+'</td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newtaskassign[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><input type="text" class="form-control m-0" id='+id_unique1+' value='+ d.preventive_maintenance_desc+' style="background-color:white; color:black;" readonly></div></td>' +
+            '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+            '</tr>';
+
+
+	      $("#edit-pm-task-modal #edit-pm-task-table").append(tblrow);
+	      $("#edit-pm-task-modal #edit_task_old_ids").html(old_task);
+        // $(id_stype).val(s_type);
+	    });
+    }
+ }); 
+}
+function edt_add_row_task(){
+      $.ajax({
+        url:"/get_task_list_for_add_pm",
+        type:"GET",
+        success: function(data){
+          var row1 = '<option value=""></option>';
+          $.each(data.pmt, function(i, d){
+            row1 += '<option value="' + d.preventive_maintenance_task_id + '">' + d.preventive_maintenance_task +'</option>';
+          });
+          var thizz = document.getElementById('edit-pm-task-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          }else{
+            var new_id = parseInt(id) + 1;
+          }
+          var len2 = new_id;
+          var id_unique1="edittask"+len2;
+          var tblrow = '<tr>' +
+            '<td style="display:none;">'+len2+'</td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newtaskassign[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><input type="text" class="form-control m-0" id='+id_unique1+' style="background-color:white; color:black;" readonly></div></td>' +
+            '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+            '</tr>';
+          
+            $("#edit-pm-task-modal #edit-pm-task-table").append(tblrow);
+        } 
+      });
+    }
+    $(document).on('click', '#edit-add-row-task-btn', function(){
+      edt_add_row_task();
+    });
+    function edit_add_row(){
+      $.ajax({
+        url:"/get_maintenance_staff",
+        type:"GET",
+        success: function(data){
+          var row1 = '<option value=""></option>';
+          $.each(data.maintenance, function(i, d){
+            row1 += '<option value="' + d.user_access_id + '">' + d.employee_name + '</option>';
+          });
+          var thizz = document.getElementById('addassignstaff-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          }else{
+            var new_id = parseInt(id) + 1;
+          }
+          var len2 = new_id;
+          var tblrow = '<tr>' +
+            '<td style="display:none;">'+len2+'</td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newstaff[]" class="form-control m-0 count-row" required>'+row1+'</select></div></td>' +
+            '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+            '</tr>';
+          
+            $("#edit-pm-task-modal #edit-pm-assign-table").append(tblrow);
+        } 
+      });
+    }
+    $(document).on('click', '#edit-add-row-main-btn', function(){
+      edit_add_row();
+    });
+    
 </script>
 @endsection

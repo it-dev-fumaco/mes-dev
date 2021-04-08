@@ -57,7 +57,7 @@
                         <div class="dropdown-menu">
                           <a class="dropdown-item complete-task" data-id="{{ $row['machine_breakdown_id'] }}"  data- href="#">Maintenance Request</a>
                           <a class="dropdown-item assign-main-staff" data-id="{{ $row['machine_breakdown_id'] }}" href="#">Assigned Maintenance Staff</a>
-                          <a class="dropdown-item printbtnprint" data-id="{{ $row['machine_breakdown_id'] }}"  data- href="#">Print</a>
+                          <a class="dropdown-item printbtnprintpm" data-id="{{ $row['machine_breakdown_id'] }}" data-dtype="pm"  data- href="#">Print</a>
                         </div>
                     </div>
                   </td>

@@ -797,5 +797,10 @@ Route::post('/add_preventive_maintenance_task ', 'MaintenanceController@add_prev
 Route::get('/get_preventive_maintenance_task', 'MaintenanceController@get_preventive_maintenance_task');
 Route::get('/get_pm_pending_list', 'MaintenanceController@get_pm_pending_list');
 
+Route::get('/print_pm_maintenance_form', 'MaintenanceController@preventive_print_maintenance_form');
+
+Route::post('/delete_preventive_maintenance ', 'MaintenanceController@delete_preventive_maintenance');
+Route::get('/get_current_task_maintenance', 'MaintenanceController@get_current_task_maintenance');
+
 
 

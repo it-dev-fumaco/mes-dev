@@ -629,6 +629,168 @@ class MaintenanceController extends Controller
         return view('maintenance.tables.tbl_pending_pm', compact('maintenance'));
 
     }
-     
+    public function preventive_print_maintenance_form(Request $request){
+        $data= Db::connection('mysql_mes')
+            ->table('preventive_maintenance')
+            ->leftJoin('maintenance_schedule_type', 'maintenance_schedule_type.maintenance_schedule_type_id', 'preventive_maintenance.maintenance_schedule_type_id')
+            ->leftJoin('machine', 'machine.machine_id', 'preventive_maintenance.machine_id')
+            ->leftJoin('operation as op', 'op.operation_id', 'preventive_maintenance.operation_id')
+            ->select('machine.machine_name', 'preventive_maintenance.*', 'op.operation_name', 'maintenance_schedule_type.maintenance_schedule_type', 'maintenance_schedule_type.start_date')
+            ->where('preventive_maintenance.preventive_maintenance_id', $request->id)
+            ->distinct('preventive_maintenance.perventive_maintenance_id')
+            ->first();
+
+            $main=[];
+            $assigned_main_staff= Db::connection('mysql_mes')
+                ->table('assigned_maintenance_staff')
+                ->where('assigned_maintenance_staff.reference_id', $request->id)
+                ->select('assigned_maintenance_staff.employee_name')
+                ->get();
+            $task= Db::connection('mysql_mes')
+                ->table('assigned_preventive_maintenance_task')
+                ->join('preventive_maintenance_task as pmt', 'pmt.preventive_maintenance_task_id', 'assigned_preventive_maintenance_task.preventive_maintenance_task_id')
+                ->where('assigned_preventive_maintenance_task.reference_no', $request->id)
+                ->get();
+
+                $main=[
+                    'preventive_maintenance_id' => $data->preventive_maintenance_id,
+                    'machine_id'=> $data->machine_id,
+                    'machine_code' =>$data->machine_code,
+                    'machine_name' => $data->machine_name,
+                    'created_by' =>$data->created_by,
+                    'created_at' => $data->created_at,
+                    'asigned_main'=> $assigned_main_staff,
+                    'operation'=> $data->operation_name,
+                    'schedule' => $data->maintenance_schedule_type,
+                    'task' => $task
+                ];
+            // return $main;
+            return view('maintenance.tbl_print_preventive_maintenance_form', compact('main'));
+    }
+    public function delete_preventive_maintenance(Request $request){
+        $delete_pm=DB::connection('mysql_mes')
+            ->table('preventive_maintenance')
+            ->where('preventive_maintenance_id', $request->delete_preventive_maintenance_id)
+            ->delete();
+        $delete_assign_staff=DB::connection('mysql_mes')
+            ->table('assigned_maintenance_staff')
+            ->where('assigned_maintenance_staff_id', $request->delete_preventive_maintenance_id)
+            ->delete();
+        $delete_assign_staff=DB::connection('mysql_mes')
+            ->table('assigned_preventive_maintenance_task')
+            ->where('assigned_preventive_maintenance_task_id', $request->delete_preventive_maintenance_id)
+            ->delete();
+        
+            return response()->json(['success' => 1, 'message' => 'Preventive Maintenance successfully deleted.']);	
+
+    }
+    public function get_current_task_maintenance(Request $request){
+        $assigned_task= DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')
+        ->join('preventive_maintenance_task', 'assigned_preventive_maintenance_task.preventive_maintenance_task_id', 'preventive_maintenance_task.preventive_maintenance_task_id')
+        ->where('reference_no', $request->id)
+        ->select('preventive_maintenance_task.*')
+        ->get();
+        $task=DB::connection('mysql_mes')
+        ->table('preventive_maintenance_task')
+        ->get();
+        return response()->json(['assigned_task' => $assigned_task, 'task' => $task]);
+    }
+    public function update_preventive_maintenance(){
+        $now = Carbon::now();
+        $newtaskassign= (empty($request->newtaskassign))? []: $request->newtaskassign;
+        $new_staff= (empty($request->newstaff))? []: $request->newstaff;
+        $ar=array_unique(array_diff_assoc($newtaskassign, array_unique( $newtaskassign ) ) );
+        $arr=array_unique(array_diff_assoc($new_staff, array_unique( $new_staff ) ) );
+
+        if(!empty($ar)){
+            foreach($ar as $i => $r){
+                $row= $i +1;
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+            }
+        }
+        if(!empty($arr)){
+            foreach($arr as $i => $rr){
+                $user =DB::connection('mysql_mes')->table('user')
+                ->where('user_access_id', $rr)
+                ->first();
+                $row= $i +1;
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$user->employee_name.' at ROW '.$row ]);
+            }
+        }
+        
+            $id=$this->get_order_preventive_maintenance();
+            $machine= DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->pm_machine)->first();
+            $new= [
+                'preventive_maintenance_id'=>  $id,
+                'operation_id'=> $request->pm_op,
+                'maintenance_schedule_type_id' => $request->pm_mst,
+                'machine_id' => $request->pm_machine,
+                'machine_code'=> $machine->machine_code,
+                'machine_name' => $machine->machine_name,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString()
+            ];
+            $new_machine=[];
+            if ($request->newtaskassign) {
+                foreach($request->newtaskassign as $i => $row){
+                    $new_machine[] = [
+                        'reference_no'=> $id,
+                        'preventive_maintenance_task_id' => $row,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                }
+                DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')->insert($new_machine);
+            }
+            
+    //////////////////////////////////// Function to update assigned maintenance staff
+            if ($request->old_staff_main) {
+                if($request->oldstaff_main_id == null){
+                    DB::connection('mysql_mes')
+                    ->table('assigned_maintenance_staff')
+                    ->where('reference_id',$request->maintenance_request_id)->delete();
+                }else{
+                    $delete_shift=DB::connection('mysql_mes')
+                    ->table('assigned_maintenance_staff')
+                    ->whereIn('assigned_maintenance_staff_id', $request->old_staff_main)
+                    ->whereNotIn('assigned_maintenance_staff_id', $request->oldstaff_main_id)
+                    ->delete();
+                }
+            }
+            // for insert
+            if ($request->newstaff) {
+                foreach($request->newstaff as $i => $row){
+                    $user =DB::connection('mysql_mes')->table('user')
+                        ->where('user_access_id', $row)
+                        ->first();
+                    $new_staff_main[] = [
+                        'reference_id'=> $request->maintenance_request_id,
+                        'user_access_id' => $row,
+                        'employee_name' => $user->employee_name,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                }
+                DB::connection('mysql_mes')->table('assigned_maintenance_staff')->insert($new_staff_main);
+            }
+            // update
+            if ($request->oldstaff) {
+                foreach($request->oldstaff as $i => $row){
+                    $user =DB::connection('mysql_mes')->table('user')
+                        ->where('user_access_id', $row)
+                        ->first();
+                    $update= [
+                        'user_access_id' => $row,
+                        'employee_name' =>$user->employee_name,
+                    ];
+                    $id_forupdate= $request->oldstaff_main_id[$i];
+                    DB::connection('mysql_mes')->table('assigned_maintenance_staff')->where('assigned_maintenance_staff_id',$id_forupdate)->update($update);
+                }
+            }
+    ////////////////////////////////////////////////////////////////////////
+            DB::connection('mysql_mes')->table('preventive_maintenance')->insert($new);
+            return response()->json(['success' => 1, 'message' => $id.' successfully created.']);	
+
+    }
        
 }
