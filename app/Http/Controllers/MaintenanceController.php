@@ -165,6 +165,7 @@ class MaintenanceController extends Controller
     }
     public function set_assigned_maintenance_staff(Request $request){
         $now = Carbon::now();
+        return $request->all();
         $old_staff= (empty($request->oldstaff))? []: $request->oldstaff;
         $new_staff= (empty($request->newstaff))? []: $request->newstaff;
         $mergedArray = array_merge($old_staff, $new_staff);
@@ -688,24 +689,30 @@ class MaintenanceController extends Controller
         $assigned_task= DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')
         ->join('preventive_maintenance_task', 'assigned_preventive_maintenance_task.preventive_maintenance_task_id', 'preventive_maintenance_task.preventive_maintenance_task_id')
         ->where('reference_no', $request->id)
-        ->select('preventive_maintenance_task.*')
+        ->select('preventive_maintenance_task.*', 'assigned_preventive_maintenance_task.assigned_preventive_maintenance_task_id')
         ->get();
         $task=DB::connection('mysql_mes')
         ->table('preventive_maintenance_task')
         ->get();
         return response()->json(['assigned_task' => $assigned_task, 'task' => $task]);
     }
-    public function update_preventive_maintenance(){
+    public function edit_preventive_maintenance_request(Request $request){
         $now = Carbon::now();
-        $newtaskassign= (empty($request->newtaskassign))? []: $request->newtaskassign;
+        // return $request->all();
+        $old_staff= (empty($request->oldstaff))? []: $request->oldstaff;
         $new_staff= (empty($request->newstaff))? []: $request->newstaff;
-        $ar=array_unique(array_diff_assoc($newtaskassign, array_unique( $newtaskassign ) ) );
-        $arr=array_unique(array_diff_assoc($new_staff, array_unique( $new_staff ) ) );
+        $mergedArray = array_merge($old_staff, $new_staff);
+        $arr=array_unique(array_diff_assoc($mergedArray, array_unique( $mergedArray ) ) );
 
-        if(!empty($ar)){
-            foreach($ar as $i => $r){
+        $old_task= (empty($request->oldtask))? []: $request->oldtask;
+        $new_task= (empty($request->newtask))? []: $request->newtask;
+        $mergedtask = array_merge($old_task, $new_task);
+        $artask=array_unique(array_diff_assoc($mergedtask, array_unique( $mergedtask ) ) );
+
+        if(!empty($artask)){
+            foreach($artask as $i => $r){
                 $row= $i +1;
-                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+                return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE at ROW '.$row ]);
             }
         }
         if(!empty($arr)){
@@ -718,31 +725,55 @@ class MaintenanceController extends Controller
             }
         }
         
-            $id=$this->get_order_preventive_maintenance();
-            $machine= DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->pm_machine)->first();
-            $new= [
-                'preventive_maintenance_id'=>  $id,
-                'operation_id'=> $request->pm_op,
-                'maintenance_schedule_type_id' => $request->pm_mst,
-                'machine_id' => $request->pm_machine,
+            $machine= DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->edit_pm_machine)->first();
+            $update_data= [
+                'operation_id'=> $request->edit_pm_op,
+                'maintenance_schedule_type_id' => $request->edit_pm_mst,
+                'machine_id' => $request->edit_pm_machine,
                 'machine_code'=> $machine->machine_code,
                 'machine_name' => $machine->machine_name,
-                'created_by' => Auth::user()->email,
-                'created_at' => $now->toDateTimeString()
+                'last_modified_by' => Auth::user()->email
             ];
-            $new_machine=[];
-            if ($request->newtaskassign) {
-                foreach($request->newtaskassign as $i => $row){
-                    $new_machine[] = [
-                        'reference_no'=> $id,
-                        'preventive_maintenance_task_id' => $row,
-                        'created_by' => Auth::user()->email,
-                        'created_at' => $now->toDateTimeString()
-                    ];
-                }
-                DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')->insert($new_machine);
+            DB::connection('mysql_mes')->table('preventive_maintenance')->where('preventive_maintenance_id', $request->edit_id)->update($update_data);
+            $new_tasks=[];
+
+        //////////////////////////////////// Function to update assigned task
+        if ($request->old_task_main) {
+            if($request->oldtask_main_id == null){
+                DB::connection('mysql_mes')
+                ->table('assigned_preventive_maintenance_task')
+                ->where('reference_no',$request->edit_id)->delete();
+            }else{
+                $delete_shift=DB::connection('mysql_mes')
+                ->table('assigned_preventive_maintenance_task')
+                ->whereIn('assigned_preventive_maintenance_task_id', $request->old_task_main)
+                ->whereNotIn('assigned_preventive_maintenance_task_id', $request->oldtask_main_id)
+                ->delete();
             }
-            
+        }
+        // for insert
+        if ($request->newtask) {
+            foreach($request->newtask as $i => $row){
+                $new_tasks[] = [
+                    'reference_no'=> $request->edit_id,
+                    'preventive_maintenance_task_id' => $row,
+                    'created_by' => Auth::user()->email,
+                    'created_at' => $now->toDateTimeString()
+                ];
+            }
+            DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')->insert($new_tasks);
+        }
+        // update
+        if ($request->oldtask) {
+            foreach($request->oldtask as $i => $row){
+                $update= [
+                    'preventive_maintenance_task_id' => $row,
+                ];
+                $id_forupdate= $request->oldtask_main_id[$i];
+                DB::connection('mysql_mes')->table('assigned_preventive_maintenance_task')->where('assigned_preventive_maintenance_task_id',$id_forupdate)->update($update);
+            }
+        }
+        //end
     //////////////////////////////////// Function to update assigned maintenance staff
             if ($request->old_staff_main) {
                 if($request->oldstaff_main_id == null){
@@ -764,7 +795,7 @@ class MaintenanceController extends Controller
                         ->where('user_access_id', $row)
                         ->first();
                     $new_staff_main[] = [
-                        'reference_id'=> $request->maintenance_request_id,
+                        'reference_id'=> $request->edit_id,
                         'user_access_id' => $row,
                         'employee_name' => $user->employee_name,
                         'created_by' => Auth::user()->email,
@@ -788,9 +819,164 @@ class MaintenanceController extends Controller
                 }
             }
     ////////////////////////////////////////////////////////////////////////
-            DB::connection('mysql_mes')->table('preventive_maintenance')->insert($new);
-            return response()->json(['success' => 1, 'message' => $id.' successfully created.']);	
+            return response()->json(['success' => 1, 'message' => $request->edit_id.' successfully updated.']);	
 
+    }
+    public function preventive_maintenance_calendar($id){
+        $pm= Db::connection('mysql_mes')->table('preventive_maintenance as pm')
+        ->join('maintenance_schedule_type as mst', 'mst.maintenance_schedule_type_id', 'pm.maintenance_schedule_type_id')
+        ->where('pm.operation_id', $id)
+        ->select('pm.*', 'mst.start_date','mst.maintenance_schedule_type')
+        ->get();
+        $yearEnd = date('Y-m-d', strtotime('12/31'));
+        $data=[];
+
+        foreach($pm as $row){
+            if($row->maintenance_schedule_type =="Weekly"){
+                // $from=Carbon::now()->subDays(30);
+                // $period = CarbonPeriod::create($from, $to);
+                // $data=[];
+                $dateStart = $row->start_date;
+                $dateEnd = $yearEnd;
+                $current_date = $dateStart;
+
+                while(strtotime($current_date) < strtotime($dateEnd))
+                {
+                $data[]=
+                    [ 
+                      'date' => $current_date,
+                      'id' =>  $row->preventive_maintenance_id,
+                      'title' => $row->preventive_maintenance_id,
+                      'start' => $current_date,
+                      'end'=>  $current_date,
+                      'color'=> '#45b39d', 
+                      'description'=> "Preventive Maintenance",
+                      'frequency'=> $row->maintenance_schedule_type,
+                      'machine'=> $row->machine_code."-".$row->machine_name
+
+                    ];
+                    $current_date= Carbon::parse($current_date)->addDay(7)->format('Y-m-d');
+
+                }
+            }
+            if($row->maintenance_schedule_type =="Monthly"){
+                // $from=Carbon::now()->subDays(30);
+                // $period = CarbonPeriod::create($from, $to);
+                // $data=[];
+                $dateStart = $row->start_date;
+                $dateEnd = $yearEnd;
+                $current_date = $dateStart;
+
+                while(strtotime($current_date) < strtotime($dateEnd))
+                {
+                $data[]=
+                    [ 'date' => $current_date,
+                      'id' =>  $row->preventive_maintenance_id,
+                      'title' => $row->preventive_maintenance_id,
+                      'start' => $current_date,
+                      'end'=>  $current_date,
+                      'color'=> '#45b39d', 
+                      'description'=> "Preventive Maintenance",
+                      'frequency'=> $row->maintenance_schedule_type,
+                      'machine'=> $row->machine_code."-".$row->machine_name
+                    ];
+                    $current_date= Carbon::parse($current_date)->addMonth(1)->format('Y-m-d');
+                }
+            }
+            if($row->maintenance_schedule_type =="Quarterly"){
+                // $from=Carbon::now()->subDays(30);
+                // $period = CarbonPeriod::create($from, $to);
+                // $data=[];
+                $dateStart = $row->start_date;
+                $dateEnd = $yearEnd;
+                $current_date = $dateStart;
+
+                while(strtotime($current_date) < strtotime($dateEnd))
+                {
+                $data[]=
+                    [ 'date' => $current_date,
+                      'id' =>  $row->preventive_maintenance_id,
+                      'title' => $row->preventive_maintenance_id,
+                      'start' => $current_date,
+                      'end'=>  $current_date,
+                      'color'=> '#45b39d', 
+                      'description'=> "Preventive Maintenance",
+                      'frequency'=> $row->maintenance_schedule_type,
+                      'machine'=> $row->machine_code."-".$row->machine_name
+                    ];
+                    $current_date= Carbon::parse($current_date)->addMonth(3)->format('Y-m-d');
+                }
+            }
+            if($row->maintenance_schedule_type =="Annually"){
+                // $from=Carbon::now()->subDays(30);
+                // $period = CarbonPeriod::create($from, $to);
+                // $data=[];
+                $dateStart = $row->start_date;
+                $dateEnd = Carbon::parse($yearEnd)->addYear(5)->format('Y-m-d');
+                $current_date = $dateStart;
+
+                while(strtotime($current_date) < strtotime($dateEnd))
+                {
+                $data[]=
+                    [ 'date' => $current_date,
+                      'id' =>  $row->preventive_maintenance_id,
+                      'title' => $row->preventive_maintenance_id,
+                      'start' => $current_date,
+                      'end'=>  $current_date,
+                      'color'=> '#45b39d', 
+                      'description'=> "Preventive Maintenance",
+                      'frequency'=> $row->maintenance_schedule_type,
+                      'machine'=> $row->machine_code."-".$row->machine_name
+                    ];
+                    $current_date= Carbon::parse($current_date)->addYear(1)->format('Y-m-d');
+                }
+            }
+        }
+        ////////////End of Preventive Maintenance
+
+        ///////////Maintenance Breakdown Request
+        $main= Db::connection('mysql_mes')
+            ->table('machine_breakdown')
+            ->leftJoin('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
+            ->leftJoin('workstation as w', 'w.workstation_id', 'machine_breakdown.workstation_id')
+            ->leftJoin('operation as op', 'op.operation_id', 'w.operation_id')
+            ->where('op.operation_id', $id)            
+            ->select('machine.machine_name', 'machine_breakdown.*', 'op.operation_name')
+            ->distinct('machine_breakdown_id')
+            ->orderBy('machine_breakdown.machine_breakdown_id', 'desc')
+            ->get();
+        
+        foreach($main as $r){
+            $data[]=
+                    [ 'date' => Carbon::parse($r->date_reported)->format('Y-m-d'),
+                      'id' =>  $r->machine_breakdown_id,
+                      'title' => $r->machine_breakdown_id,
+                      'start' =>  Carbon::parse($r->date_reported)->format('Y-m-d'),
+                      'end'=>   Carbon::parse($r->date_reported)->format('Y-m-d'),
+                      'color'=> '#bb8fce', 
+                      'description'=> ($r->corrective_reason == null)? $r->breakdown_reason: $r->corrective_reason,
+                      'frequency'=> $r->type,
+                      'machine'=> $r->machine_id."-".$r->machine_name
+                    ];
+
+        }
+        
+        
+                // return collect($pm);
+
+        return collect($data);
+    }
+    public function maintenance_calendar($id){
+        $operation_id=$id;
+        if($id==1){
+            $operation_name="Fabrication";
+        }else{
+            $operation_name="Wiring and Assembly";
+        }
+        if($id==2){
+            $operation_name="Painting";
+        }
+        return view('maintenance.maintenance_calendar', compact('operation_id','operation_name'));
     }
        
 }

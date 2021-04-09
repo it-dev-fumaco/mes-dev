@@ -139,11 +139,11 @@
                     <div class="col-md-12" style="padding: 10px;">
                       <ul class="nav nav-tabs" role="tablist" id="pm-dashboard-tabs">
                         <li class="nav-item">
-                          <a class="nav-link active" data-toggle="tab" data-qatab="pm_pending" href="#pm_pending_tab" role="tab" aria-controls="pm_pending_tab" aria-selected="false"><b>Pending Request</b></a>
+                          <a class="nav-link active" data-toggle="tab" data-qatab="pm_pending" href="#pm_pending_tab" role="tab" aria-controls="pm_pending_tab" aria-selected="false"><b>Preventive Maintenance List</b></a>
                         </li>
-                        <li class="nav-item">
+                        {{--<li class="nav-item">
                           <a class="nav-link" data-toggle="tab" data-qatab="pm_done" href="#pm_done_tab" role="tab" aria-controls="pm_done_tab" aria-selected="false"><b>Done</b></a>
-                        </li>
+                        </li>--}}
                       </ul>
                       <input type="text" id="search-pm" class="form-control pull-right" placeholder="Search" style="background-color: white; padding: 6px 8px; width:400px; margin-top:-40px;" autocomplete="off">
                     </div>
@@ -618,6 +618,7 @@
                    <span aria-hidden="true">×</span>
                 </button>
              </div>
+             <input type="hidden" id="edit_id" name="edit_id">
              <div class="modal-body">
                  <div class="row" id="tbl_maintenance_dtls">
                   <div class="col-md-6">
@@ -1222,6 +1223,29 @@
             }
         });
     });
+    $('#edit-pm-task-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#edit-pm-task-modal').modal('hide');
+                var query = $("#search-pm").val();
+                load_pending_pm(1, query);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
     $(document).on('click', '.complete-task', function(event){
         event.preventDefault();
         var id = $(this).data('id');
@@ -1697,6 +1721,7 @@ function timeDiffCalc(dateFuture, dateNow) {
         });
         tbl_assigned_p_maintenance_staff(id);
         tbl_assigned_task(id);
+        $('#edit_id').val(id);
         $('#edit-pm-task-modal').modal('show');
         // $('#set_assign_maintenance_staff').val(staff);
 
@@ -1755,7 +1780,8 @@ function tbl_assigned_task(id){
       var old_task = '';
       $.each(data.assigned_task, function(i, d){
 	      var sel_id = d.preventive_maintenance_task_id;
-	      old_task += '<input type="hidden" name="old_staff_main[]" value="'+d.preventive_maintenance_task_id+'">';
+        var break_id = d.assigned_preventive_maintenance_task_id;
+	      old_task += '<input type="hidden" name="old_task_main[]" value="'+d.assigned_preventive_maintenance_task_id+'">';
 	      console.log(d.assigned_maintenance_staff_id);
         // var s_type= d.shift_type;
 	      var row1 = '';
@@ -1775,7 +1801,7 @@ function tbl_assigned_task(id){
         var id_unique1="edittask"+len2;
         var tblrow = '<tr>' +
             '<td style="display:none;">'+len2+'</td>' +
-            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newtaskassign[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="oldtask_main_id[]"  value="'+break_id+'"><select name="oldtask[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
             '<td class="p-1"><div class="form-group m-0"><input type="hidden"><input type="text" class="form-control m-0" id='+id_unique1+' value='+ d.preventive_maintenance_desc+' style="background-color:white; color:black;" readonly></div></td>' +
             '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
             '</tr>';
@@ -1809,8 +1835,8 @@ function edt_add_row_task(){
           var id_unique1="edittask"+len2;
           var tblrow = '<tr>' +
             '<td style="display:none;">'+len2+'</td>' +
-            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><select name="newtaskassign[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
-            '<td class="p-1"><div class="form-group m-0"><input type="hidden"><input type="text" class="form-control m-0" id='+id_unique1+' style="background-color:white; color:black;" readonly></div></td>' +
+            '<td class="p-1"><div class="form-group m-0"><select name="newtask[]" class="form-control m-0 count-row onchange-task-select" data-descid='+id_unique1+' required>'+row1+'</select></div></td>' +
+            '<td class="p-1"><div class="form-group m-0"><input type="text" class="form-control m-0" id='+id_unique1+' style="background-color:white; color:black;" readonly></div></td>' +
             '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
             '</tr>';
           
@@ -1852,6 +1878,7 @@ function edt_add_row_task(){
     $(document).on('click', '#edit-add-row-main-btn', function(){
       edit_add_row();
     });
+    
     
 </script>
 @endsection
