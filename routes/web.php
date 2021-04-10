@@ -807,3 +807,7 @@ Route::post('/edit_preventive_maintenance_request ', 'MaintenanceController@edit
 Route::get('/preventive_maintenance_calendar/{id}', 'MaintenanceController@preventive_maintenance_calendar');
 Route::get('/maintenance_calendar/{id}', 'MaintenanceController@maintenance_calendar');
 
+Route::get('/machine_list_dashboard', 'MaintenanceController@machine_list_dashboard');
+Route::post('/update_machine_status_maintenance ', 'MaintenanceController@update_machine_status_maintenance');
+
+

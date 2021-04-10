@@ -54,6 +54,9 @@
         <li class="nav-item">
           <a class="nav-link main-req-type-tab" data-rtype="pm_request" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="false">Preventive Maintenance</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link main-req-type-tab" data-rtype="mr_request" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Machine List</a>
+        </li>
       </ul>
       
       <div class="tab-content" style="min-height: 500px;">
@@ -186,6 +189,53 @@
                                       <div class="row">
                                         <div class="col-md-12" style="padding: 0;">
                                           <div id="tbl_pm_done_request"></div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card" style="border-radius: 0 0 3px 3px;">
+                <div class="card-header">
+                  <div class="row" style="margin-top: -15px;">
+                    <div class="col-md-12" style="padding: 10px;">
+                      <ul class="nav nav-tabs" role="tablist" id="machine-list-tabs">
+                        <li class="nav-item">
+                          <a class="nav-link active" data-toggle="tab" data-qatab="m_list" href="#m_list_tab" role="tab" aria-controls="m_list_tab" aria-selected="false"><b>Machine List</b></a>
+                        </li>
+                      </ul>
+                      <input type="text" id="search-m-list" class="form-control pull-right" placeholder="Search" style="background-color: white; padding: 6px 8px; width:400px; margin-top:-40px;" autocomplete="off">
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content" style="min-height: 500px;">
+                    <div class="tab-pane active" id="m_list_tab" role="tabpanel" aria-labelledby="m_list_tab">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="card" style="border-radius: 0 0 3px 3px;margin-top: -25px;">
+                            <div class="card-body">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <div class="card" style="background-color: whitesmoke;">
+                                    <div class="card-body">
+                                      <div class="row">
+                                        <div class="col-md-12" style="padding: 0;">
+                                          <div id="tbl_machine_lists"></div>
                                         </div>
                                       </div>
                                     </div>
@@ -704,6 +754,42 @@
        </form>
     </div>
   </div>
+<div class="modal fade" id="update-status-machine-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/update_machine_status_maintenance" method="POST" id="update-status-machine-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" class="modal-title"> Update Machine Status<br>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body">
+               <div class="row">
+                   <div class="col-md-12">
+                      <input type="hidden" name="update_machine_id" id="update_machine_id">
+                      <div class="form-group">
+                        <label for="update_machine">Machine Status</label>
+                        <select name="update_machine" id="update_machine" class="form-control" required>
+                          <option value="" selected="selected">Select Status</option>
+                            <option value="Available">Available</option>
+                            <option value="On-going Maintenance">On-going Maintenance</option>
+                            <option value="Unavailable">Unavailable</option>
+                        </select>
+                      </div>
+                   </div>
+               </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
 <style>
   
     
@@ -728,6 +814,13 @@
   box-shadow: none;
   margin-bottom: 15px;
 }
+#update-status-machine-modal .form-control{
+    border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+}
+
   .span-title{
     display: block;
     font-weight: bold;
@@ -1123,6 +1216,29 @@
                 load_pending_pm();
                 // var query = $("#search-maintenance-request").val();
                 // load_pending_request(1, query);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $('#update-status-machine-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#update-status-machine-modal').modal('hide');
+                var query = $("#search-m-list").val();
+                load_machine_list(1,  query);
               }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -1885,7 +2001,36 @@ function edt_add_row_task(){
     $(document).on('click', '#edit-add-row-main-btn', function(){
       edit_add_row();
     });
-    
+    load_machine_list();
+    function load_machine_list(page, query){
+        $.ajax({
+            url:"/machine_list_dashboard?page=" + page,
+            type:"GET",
+            data: {search_string: query},
+            success:function(data){
+                $('#tbl_machine_lists').html(data);
+            }
+        });
+    }
+    $(document).on('click', '#paginate-machine-list a', function(event){
+        event.preventDefault();
+        var page = $(this).attr('href').split('page=')[1];
+        var query = $("#search-m-list").val();
+        load_machine_list(page, query);
+    });
+    $(document).on('keyup', '#search-m-list', function(){
+        var query = $(this).val();
+        load_machine_list(1, query);
+        
+    });
+    $(document).on('click', '.update-status-machine', function(){
+    var id = $(this).data('id');
+    var stat = $(this).data('stat');
+
+    $('#update-status-machine-modal').modal('show');
+    $('#update_machine_id').val(id);
+    $('#update_machine').val(stat);
+  });
     
 </script>
 @endsection

@@ -977,5 +977,22 @@ class MaintenanceController extends Controller
         }
         return view('maintenance.maintenance_calendar', compact('operation_id','operation_name'));
     }
-       
+    public function machine_list_dashboard(Request $request){
+        $m_list=DB::connection('mysql_mes')->table('machine')
+        ->where(function($q) use ($request) {
+            $q->where('machine_id', 'LIKE', '%'.$request->search_string.'%')
+                ->orwhere('machine_code', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('machine_name', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('status', 'LIKE', '%'.$request->search_string.'%');
+        })
+        ->orderBy('machine_id', 'desc')->paginate(10);
+        return view('maintenance.tables.tbl_machine_list', compact('m_list'));
+    }
+    public function update_machine_status_maintenance(Request $request){
+        $update= [
+            'status' => $request->update_machine,
+        ];
+        DB::connection('mysql_mes')->table('machine')->where('machine_id',$request->update_machine_id)->update($update);
+        return response()->json(['success' => 1, 'message' => 'Machine status successfully updated.']);	
+    }  
 }
