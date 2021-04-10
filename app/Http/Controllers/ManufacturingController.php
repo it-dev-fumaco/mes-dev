@@ -1570,8 +1570,6 @@ class ManufacturingController extends Controller
                 ->where('material_request', $details->material_request)
                 ->where('sub_parent_item_code', $details->item_code)->first();
 
-            $available_qty_at_wip = $this->get_actual_qty($item->item_code, $details->wip_warehouse);
-
             $references = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->where('ste.production_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
@@ -1599,6 +1597,15 @@ class ManufacturingController extends Controller
 
             // get transferred qty
             $transferred_qty = collect($references)->sum('qty');
+
+            $available_qty_at_wip = $this->get_actual_qty($item->item_code, $details->wip_warehouse);
+            $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
+                ->where('sted.item_code', $item->item_code)->where('purpose', 'Manufacture')
+                ->where('ste.docstatus', 1)->sum('qty');
+
+            $available_qty_at_wip = $transferred_qty - $consumed_qty;
 
             $is_alternative = ($item->item_alternative_for && $item->item_alternative_for != 'new_item') ? 1 : 0;
 
