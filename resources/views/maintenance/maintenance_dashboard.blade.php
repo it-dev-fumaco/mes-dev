@@ -633,7 +633,7 @@
                     </div>
                     <div class="form-group">
                       <label for="edit_pm_machine">Machine</label>
-                      <select name="edit_pm_machine" id="edit_pm_machine" class="form-control select2" required>
+                      <select name="edit_pm_machine" id="edit_pm_machine" class="form-control select3" required>
                         <option value="" selected="selected">Select Machine</option>
                         @foreach($machine as $r)
                            <option value="{{$r->machine_id}}">{{$r->machine_code}} - {{$r->machine_name}} </option>
@@ -761,6 +761,13 @@
   box-shadow: none;
   margin-bottom: 15px;
 }
+#edit-pm-task-modal .form-control{
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 15px;
+}
+
 
 #manual-production-modal .form-control:hover, #manual-production-modal .form-control:focus, #manual-production-modal .form-control:active {
   box-shadow: none;

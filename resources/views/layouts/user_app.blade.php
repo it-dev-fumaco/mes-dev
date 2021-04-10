@@ -291,6 +291,38 @@
               </a>
             </li>
             @endif
+            @if ($activePage == 'maintenance_dashboard')
+            
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons ui-1_calendar-60"></i> Maintenance Calendar
+                <p>
+                  <span class="d-lg-none d-md-block">Maintenance Calendar</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/maintenance_calendar/1">Fabrication</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '2') ? 'active' : '' }}" href="/maintenance_calendar/2">Painting</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/maintenance_calendar/3">Assembly</a>
+              </div>
+            </li>
+            @endif
+            @if ($activePage == 'calendar')
+            
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons ui-1_calendar-60"></i> Maintenance Calendar
+                <p>
+                  <span class="d-lg-none d-md-block">Maintenance Calendar</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/maintenance_calendar/1">Fabrication</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '2') ? 'active' : '' }}" href="/maintenance_calendar/2">Painting</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/maintenance_calendar/3">Assembly</a>
+              </div>
+            </li>
+            @endif
 
             @if ($activePage == 'main_dashboard')
             <li class="nav-item active">

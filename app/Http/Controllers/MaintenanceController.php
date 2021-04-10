@@ -165,7 +165,6 @@ class MaintenanceController extends Controller
     }
     public function set_assigned_maintenance_staff(Request $request){
         $now = Carbon::now();
-        return $request->all();
         $old_staff= (empty($request->oldstaff))? []: $request->oldstaff;
         $new_staff= (empty($request->newstaff))? []: $request->newstaff;
         $mergedArray = array_merge($old_staff, $new_staff);

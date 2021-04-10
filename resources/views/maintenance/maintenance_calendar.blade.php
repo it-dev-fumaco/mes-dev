@@ -348,7 +348,7 @@ $(document).ready(function(){
 $(document).on('click', '#back_id', function(event){
   event.preventDefault();
   var operation_id= $('#operation_id').val();
-    window.location.href = "/production_schedule/"+ operation_id;
+    window.location.href = "/maintenance_dashboard";
 
 });
 </script>
