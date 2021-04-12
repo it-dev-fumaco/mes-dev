@@ -41,7 +41,17 @@
             @php
             $a = array_intersect($permissions['permitted_modules'], ['Production']);
             $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
+            $c = array_intersect($permissions['permitted_modules'], ['Maintenance']);
+
             @endphp
+            @if (count($c) > 0)
+            <li class="{{ $activePage == 'maintenance_dashboard' ? 'active' : '' }}">
+              <a href="/maintenance_dashboard">
+                <i class="now-ui-icons business_chart-bar-32"></i>
+                <p>Maintenance Dashboard</p>
+              </a>
+            </li>
+            @endif
             @if (count($b) > 0)
             <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
               <a href="/qa_dashboard">
@@ -279,6 +289,38 @@
                   <span class="d-lg-none d-md-block"> Notifications</span>
                 </p>
               </a>
+            </li>
+            @endif
+            @if ($activePage == 'maintenance_dashboard')
+            
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons ui-1_calendar-60"></i> Maintenance Calendar
+                <p>
+                  <span class="d-lg-none d-md-block">Maintenance Calendar</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/maintenance_calendar/1">Fabrication</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '2') ? 'active' : '' }}" href="/maintenance_calendar/2">Painting</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/maintenance_calendar/3">Assembly</a>
+              </div>
+            </li>
+            @endif
+            @if ($activePage == 'calendar')
+            
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons ui-1_calendar-60"></i> Maintenance Calendar
+                <p>
+                  <span class="d-lg-none d-md-block">Maintenance Calendar</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/maintenance_calendar/1">Fabrication</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '2') ? 'active' : '' }}" href="/maintenance_calendar/2">Painting</a>
+                  <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/maintenance_calendar/3">Assembly</a>
+              </div>
             </li>
             @endif
 
