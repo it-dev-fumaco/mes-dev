@@ -798,6 +798,12 @@ class ManufacturingController extends Controller
             }
 
             if ($request->production_order) {
+                $production_order_details = DB::connection('mysql_mes')->table('production_order')
+                    ->where('production_order', $request->production_order)->first();
+                
+                if($production_order_details && $production_order_details->feedback_qty > 0) {
+                    return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. Production Order has been partially feedbacked.']);
+                }
                 DB::connection('mysql_mes')->table('job_ticket')
                     ->where('production_order', $request->production_order)
                     ->when($bom_value == 'nobom', function ($query) use ($request){
@@ -960,7 +966,7 @@ class ManufacturingController extends Controller
             }
             DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $request->user, 'last_date_reviewed' => $now->toDateTimeString()]);
             
-            return response()->json(['message' => 'BOM updated and reviewed.']);
+            return response()->json(['status' => 1, 'message' => 'BOM updated and reviewed.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }

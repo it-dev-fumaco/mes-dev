@@ -690,28 +690,6 @@
   </div>
 </div>
 
-<!-- Modal Review BOM -->
-<div class="modal fade" id="review-bom-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="min-width: 70%;">
-      <div class="modal-content">
-         <div class="modal-header">
-            <h5 class="modal-title" style="font-weight: bolder;">Modal Title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <input type="text" id="production-order-val" style="display: none;">
-            <input type="text" id="operation_id_update_bom" style="display: none;">
-
-            <div id="review-bom-details-div"></div>
-         </div>
-      </div>
-   </div>
-</div>
-
-
-
 <!-- Delete Pending Material Transfer for Manufacture Modal -->
 <div class="modal fade" id="delete-pending-mtfm-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -1715,24 +1693,6 @@ $(document).ready(function(){
     $('#review-bom-modal').modal('show');
   });
 
-  $(document).on('click', '#add-operation-btn', function(){
-    var workstation = $('#sel-workstation option:selected').text();
-    var wprocess = $('#sel-process').val();
-
-    if (!$('#sel-workstation').val()) {
-      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
-      return false;
-    }
-
-
-    var rowno = $('#bom-workstations-tbl tr').length;
-    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
-    if (workstation) {
-      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
-      $("#bom-workstations-tbl tbody").append(markup);
-    }
-  });
-
   $(document).on('change', '#sel-workstation', function(){
     var workstation = $(this).val();
     $('#sel-process').empty();
@@ -1752,60 +1712,6 @@ $(document).ready(function(){
         }
       });
     }
-  });
-
-  $(document).on('click', '#submit-bom-review-btn', function(){
-    var production_order = $('#production-order-val').val();
-    var operation_id = $('#operation_id_update_bom').val();
-
-    var id = [];
-    var workstation = [];
-    var wprocess = [];
-    var workstation_process = [];
-    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
-    var user = $('#bom-workstations-tbl input[name=username]').val();
-    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
-    $("#bom-workstations-tbl > tbody > tr").each(function () {
-      id.push($(this).find('span').eq(0).text());
-      workstation.push($(this).find('td').eq(1).text());
-      wprocess.push($(this).find('select').eq(0).val());
-      workstation_process.push($(this).find('select option:selected').eq(0).text());
-    });
-
-    var filtered_process = wprocess.filter(function (el) {
-      return el != null && el != "";
-    });
-
-    if (workstation.length != filtered_process.length) {
-      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
-      return false;
-    }
-
-    var processArr = workstation_process.sort();
-    var processDup = [];
-    for (var i = 0; i < processArr.length - 1; i++) {
-        if (processArr[i + 1] == processArr[i]) {
-            processDup.push(processArr[i]);
-            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
-            return false;
-        }
-    }
-
-    $.ajax({
-      url: '/submit_bom_review/' + bom,
-      type:"POST",
-      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
-      success:function(data){
-        console.log(data);
-        $('#review-bom-modal').modal('hide');
-        showNotification("success", data.message, "now-ui-icons ui-1_check");
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
   });
 
   $(document).on("click", ".delete-row", function(e){
@@ -1828,30 +1734,6 @@ $(document).ready(function(){
     setTimeout(function() {
       $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
     }, 0);
-  });
-
-  $(document).on('click', '.view-bom-details-btn', function(e){
-    e.preventDefault();
-    var guidebom =  $(this).data('bom');
-    if(guidebom){
-      var bom = guidebom;
-    }else{
-      var bom = "No BOM";
-    }
-    $('#production-order-val').val($(this).data('production-order'));
-    $('#operation_id_update_bom').val($(this).data('operationid'));
-
-    $.ajax({
-      url: "/view_bom_for_review/" + bom,
-      type:"GET",
-      data:{production: $(this).data('production-order') },
-      success:function(data){
-        $('#review-bom-details-div').html(data);
-      }
-    });
-
-    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
-    $('#review-bom-modal').modal('show');
   });
 });
 </script>
