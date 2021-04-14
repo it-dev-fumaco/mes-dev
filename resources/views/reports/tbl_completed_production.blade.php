@@ -24,7 +24,6 @@
         <th class="text-center"><b>Duration</b></th>
         <th class="text-center"><b>Delivery Date</b></th>
         <th class="text-center"><b>Target Warehouse</b></th>
-        {{-- <th class="text-center"><b>Feedback Date</b></th> --}}
         <th class="text-center"><b>Status</b></th>
         <th class="text-center"><b>Actions</b></th>
       </thead>
@@ -59,9 +58,17 @@
           <td class="text-center" style="padding: 3px;">{{ $r['duration'] }}</td>
           <td class="text-center" style="padding: 3px;">@if($r['delivery_date']){{date('M-d-Y', strtotime($r['delivery_date']))}}@endif</td>
           <td class="text-center" style="padding: 3px;">{{ $r['target_warehouse'] }}</td>
-          {{-- <td class="text-center" style="padding: 3px;">{{ $r['feedback_date'] }} {{ $r['feedback_time'] }}</td> --}}
           <td class="text-center" style="font-size: 10pt; padding: 3px;">
-            <span class="badge tab-heading--green">{{ $r['status'] }}</span>
+            @php
+            if($r['status'] == 'Material For Issue'){
+              $status_badge = 'reddish';
+            }elseif ($r['status'] == 'Unknown Status') {
+              $status_badge = 'gray';
+            }else{
+              $status_badge = 'green';
+            }
+        @endphp
+            <span class="badge tab-heading--{{ $status_badge }}">{{ $r['status'] }}</span>
             <br><br>
             @foreach($r['ste_entries'] as $entry)
             {{ $entry }}
@@ -78,7 +85,6 @@
                 @endif
                 @if($r['status'] == 'Feedbacked')
                 <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
-                {{--<a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['name'] }}" href="#">Print Transfer Slip</a>--}}
                 @else
                 <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedback</a>
                 @endif

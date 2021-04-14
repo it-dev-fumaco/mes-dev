@@ -29,7 +29,16 @@
           <td class="text-center">{{ $r['reference_no'] }}<br>{{ $r['customer'] }}</td>
           <td class="text-center">@if($r['delivery_date']){{ date('M-d-Y', strtotime($r['delivery_date'])) }}@endif</td>
           <td class="text-center" style="font-size: 12pt;">
-            <span class="badge tab-heading--reddish">{{ $r['status'] }}</span>
+            @php
+              if($r['status'] == 'Material For Issue'){
+                $status_badge = 'danger';
+              }elseif ($r['status'] == 'Unknown Status') {
+                $status_badge = 'secondary';
+              }else{
+                $status_badge = 'danger';
+              }
+          @endphp
+            <span class="badge badge-{{ $status_badge }}"">{{ $r['status'] }}</span>
           </td>
           {{-- <td class="text-center">
             <div class="btn-group">
