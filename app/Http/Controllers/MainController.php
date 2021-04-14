@@ -5483,6 +5483,12 @@ class MainController extends Controller
             ->where('production_order.production_order', $production_order)
             ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
             ->first();
+
+		if(!$production_order_details){
+			$message = 'Production Order <b>' . $production_order . '</b> parent item code mismatch. Please contact your system administrator.';
+
+			return view('tables.tbl_pending_material_transfer_for_manufacture', compact('message'));
+		}
 				
 		$q = DB::connection('mysql')->table('tabStock Entry as ste')
 			->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')

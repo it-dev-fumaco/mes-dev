@@ -1,3 +1,12 @@
+@if($message)
+<div class="row">
+	<div class="col-md-12">
+		<div class="alert alert-primary text-center" role="alert">
+			{!! $message !!}
+		  </div>
+	</div>
+</div>
+@else
 <div class="row">
 	<div class="col-md-12">
 		<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-2">
@@ -320,3 +329,5 @@
         border: 1px solid #ABB2B9;
     }
 </style>
+
+@endif
