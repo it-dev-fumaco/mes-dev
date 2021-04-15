@@ -671,8 +671,8 @@ trait GeneralTrait
                 ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
                 ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
                 ->where('ste.docstatus', 1)->sum('qty');
-
-            $remaining_required_qty = ($row->required_qty - $consumed_qty);
+            
+            $remaining_required_qty = ($row->transferred_qty - $consumed_qty);
             
             $qty_per_item = $required_qty / $qty_to_manufacture;
             $total_rm_qty = $qty_per_item * $fg_completed_qty;

@@ -800,7 +800,7 @@ class ManufacturingController extends Controller
             if ($request->production_order) {
                 $production_order_details = DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)->first();
-
+                
                 if($production_order_details && $production_order_details->feedback_qty > 0) {
                     return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. Production Order has been partially feedbacked.']);
                 }
