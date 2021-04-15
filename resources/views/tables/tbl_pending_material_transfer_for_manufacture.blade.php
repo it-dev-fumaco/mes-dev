@@ -1,4 +1,4 @@
-@if($message)
+@if(isset($message))
 <div class="row">
 	<div class="col-md-12">
 		<div class="alert alert-primary text-center" role="alert">
