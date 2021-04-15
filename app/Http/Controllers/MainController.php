@@ -181,10 +181,6 @@ class MainController extends Controller
 			if($request->login_as == 'Quality Assurance'){
 				$redirect_to = '/qa_dashboard';
 			}
-			if($request->login_as == 'Maintenance'){
-				$redirect_to = '/maintenance_dashboard';
-			}
-
 
 			// validate the info, create rules for the inputs
 			$rules = array(
@@ -926,7 +922,7 @@ class MainController extends Controller
                     ->where('user_id', Auth::user()->user_id)->first();
 
 		$timesheet = DB::connection('mysql_mes')->table('job_ticket')->select('job_ticket_id')->get();
-		
+
 		return view('main_dashboard', compact('timesheet', 'user_details', 'mes_user', 'mes_user_operations', 'permissions'));
 	}
 
