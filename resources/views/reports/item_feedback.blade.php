@@ -1094,6 +1094,20 @@
 
 <script>
 $(document).ready(function(){
+  $(document).on('click', '#add-operation-btn', function(){
+    var workstation = $('#sel-workstation option:selected').text();
+    var wprocess = $('#sel-process').val();
+    if (!$('#sel-workstation').val()) {
+      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
+      return false;
+    }
+    var rowno = $('#bom-workstations-tbl tr').length;
+    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
+    if (workstation) {
+      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
+      $("#bom-workstations-tbl tbody").append(markup);
+    }
+  });
   $(document).on('click', '#submit-bom-review-btn', function(){
     var production_order = $('#production-order-val-bom').val();
     var operation_id = $('#operation_id_update_bom').val();
