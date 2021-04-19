@@ -6441,4 +6441,72 @@ class MainController extends Controller
 
 		return view('tables.tbl_machine_status_per_operation', compact('result'));
 	}
+
+	public function maintenance_schedules_per_operation($operation_id){
+		$unplanned = DB::connection('mysql_mes')->table('machine_breakdown as mb')
+			->join('machine as m', 'm.machine_code', 'mb.machine_id')
+			->where('m.operation_id', $operation_id)
+			->where('mb.status', '!=', 'Completed')->select('m.machine_code', 'mb.date_reported', 'mb.type', 'm.machine_name')->get();
+
+		$breakdown_count = collect($unplanned)->where('type', 'Breakdown')->count();
+		$corrective_count = collect($unplanned)->where('type', 'Corrective')->count();
+		$preventive_count = 0;
+
+		$maintenance_count = [
+			'breakdown' => $breakdown_count,
+			'corrective' => $corrective_count,
+			'preventive' => $preventive_count,
+		];
+
+		return view('tables.tbl_maintenance_schedule_per_operation', compact('maintenance_count', 'unplanned'));
+	}
+
+	public function ready_for_delivery_list(){
+		$completed_production_orders = DB::connection('mysql_mes')->table('production_order AS po')
+			->leftJoin('delivery_date', function($join){
+				$join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
+				$join->on('po.parent_item_code','=','delivery_date.parent_item_code');
+			})
+			->where('po.status', 'Completed')
+			->where('po.feedback_qty', '>', 0)
+			->whereRaw('po.parent_item_code = po.item_code')
+			->select('po.sales_order', 'po.feedback_qty', 'po.parent_item_code', 'po.item_code', 'po.material_request', 'po.description', 'po.customer', 'po.stock_uom')->get();
+
+		$production_order_items = array_column($completed_production_orders->toArray(), 'item_code');
+		$production_order_items = array_unique($production_order_items);
+
+		$production_order_sales_order = array_column($completed_production_orders->toArray(), 'sales_order');
+		$production_order_sales_order = array_unique($production_order_sales_order);
+
+		$production_order_material_request = array_column($completed_production_orders->toArray(), 'material_request');
+		$production_order_material_request = array_unique($production_order_material_request);
+
+		$sales_order_not_delivered = DB::connection('mysql')->table('tabSales Order as so')
+			->join('tabSales Order Item as soi', 'so.name', 'soi.parent')
+			->where('so.docstatus', 1)->whereNotIn('so.status', ['Closed'])
+			->whereIn('so.name', $production_order_sales_order)
+			->whereIn('soi.item_code', $production_order_items)
+			->where('so.per_delivered', '<', 100)
+			->pluck('so.name')->toArray();
+
+		$material_request_not_completed = DB::connection('mysql')->table('tabMaterial Request as mr')
+			->join('tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
+			->where('mr.docstatus', 1)->whereNotIn('mr.status', ['Stopped'])
+			->whereIn('mr.name', $production_order_material_request)
+			->whereIn('mri.item_code', $production_order_items)
+			->where('mr.per_ordered', '<', 100)
+			->pluck('mr.name')->toArray();
+
+		$sales_order_items = collect($completed_production_orders)->filter(function ($value, $key) use ($sales_order_not_delivered) {
+			return in_array($value->sales_order, $sales_order_not_delivered);
+		})->toArray();
+
+		$material_request_items = collect($completed_production_orders)->filter(function ($value, $key) use ($material_request_not_completed) {
+			return in_array($value->material_request, $material_request_not_completed);
+		})->toArray();
+
+		$list = array_merge($sales_order_items, $material_request_items);
+
+		return view('tables.tbl_ready_for_delivery', compact('list'));
+	}
 }
