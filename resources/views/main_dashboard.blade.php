@@ -652,8 +652,8 @@
       }); 
     }
 
-    setInterval(load_dashboard, 10000);
-    setInterval(count_current_production, 8000);
+    // setInterval(load_dashboard, 10000);
+    // setInterval(count_current_production, 8000);
 
     setInterval(notif_dashboard('#tbl-notifications'), 7000);
 
@@ -671,6 +671,11 @@
       $("#bom-workstations-tbl tbody").append(markup);
     }
   });
+
+  $(document).on("click", ".delete-row", function(e){
+         e.preventDefault();
+         $(this).parents("tr").remove();
+      });
 
     function get_qa(operation, el){
       $.ajax({

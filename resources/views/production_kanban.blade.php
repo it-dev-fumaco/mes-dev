@@ -1661,6 +1661,10 @@
       $("#bom-workstations-tbl tbody").append(markup);
     }
   });
+  $(document).on("click", ".delete-row", function(e){
+         e.preventDefault();
+         $(this).parents("tr").remove();
+      });
     $(document).on('click', '#submit-bom-review-btn', function(){
     var production_order = $('#production-order-val-bom').val();
     var operation_id = $('#operation_id_update_bom').val();
