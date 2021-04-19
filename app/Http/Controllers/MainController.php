@@ -1488,11 +1488,14 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$is_transferred = DB::connection('mysql')->table('tabProduction Order')
-					->where('material_transferred_for_manufacturing', '>', 0)
-					->where('name', $row->production_order)->where('docstatus', 1)->first();
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
 
-				if ($is_transferred) {
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if ($prod_details->material_transferred_for_manufacturing > 0) {
 					$status = 'Material Issued';
 				}else{
 					$status = 'Material For Issue';
@@ -1571,6 +1574,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $row->status;
+				}
+
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1590,7 +1604,7 @@ class MainController extends Controller
 					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
-					'status' => $row->status,
+					'status' => $status,
 					'actual_start_date' => $row->actual_start_date,
 					'planned_start_date' => $row->planned_start_date,
 					'is_scheduled' => $row->is_scheduled,
@@ -1647,6 +1661,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = 'On Queue';
+				}
+
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1666,7 +1691,7 @@ class MainController extends Controller
 					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
-					'status' => 'On Queue',
+					'status' => $status,
 					'actual_start_date' => $row->actual_start_date,
 					'planned_start_date' => $row->planned_start_date,
 					'is_scheduled' => $row->is_scheduled,
@@ -1707,6 +1732,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $row->status;
+				}
+
 				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
@@ -1722,7 +1758,7 @@ class MainController extends Controller
 					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
-					'status' => $row->status,
+					'status' => $status,
 					'planned_start_date' => $row->planned_start_date,
 					'is_scheduled' => $row->is_scheduled,
 					'owner' => $owner,
@@ -1802,14 +1838,15 @@ class MainController extends Controller
 					}
 				}
 
-				$is_transferred = DB::connection('mysql')->table('tabProduction Order')
-					->where('material_transferred_for_manufacturing', '>', 0)
-					->where('name', $row->production_order)->where('docstatus', 1)->first();
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
 
-				if ($is_transferred) {
-					$status = 'Material Issued';
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
 				}else{
-					$status = 'Material For Issue';
+					$status = $status;
 				}
 
 				$from_time = $row->actual_start_date;
@@ -1919,6 +1956,17 @@ class MainController extends Controller
 					if ($manufacture_entry) {
 						$status = 'Partially Feedbacked';
 					}
+				}
+
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $status;
 				}
 
 				$from_time = $row->actual_start_date;
@@ -5427,6 +5475,12 @@ class MainController extends Controller
             ->where('production_order.production_order', $production_order)
             ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
             ->first();
+
+		if(!$production_order_details){
+			$message = 'Production Order <b>' . $production_order . '</b> parent item code mismatch. Please contact your system administrator.';
+
+			return view('tables.tbl_pending_material_transfer_for_manufacture', compact('message'));
+		}
 				
 		$q = DB::connection('mysql')->table('tabStock Entry as ste')
 			->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')

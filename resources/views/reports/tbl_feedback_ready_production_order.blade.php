@@ -61,7 +61,16 @@
         <td class="text-center" style="padding: 3px;">{{ $r['duration'] }}</td>
         <td class="text-center" style="padding: 3px;">@if($r['delivery_date']){{date('M-d-Y', strtotime($r['delivery_date']))}}@endif</td>
         <td class="text-center font-weight-bold" style="padding: 3px;">{{ $r['target_warehouse'] }}<br>
-          <span class="badge tab-heading--{{ ($r['status'] == 'Material For Issue') ? 'reddish' : 'teal' }} text-white" style="font-size: 9pt;">{{ $r['status'] }}</span>
+          @php
+              if($r['status'] == 'Material For Issue'){
+                $status_badge = 'reddish';
+              }elseif ($r['status'] == 'Unknown Status') {
+                $status_badge = 'gray';
+              }else{
+                $status_badge = 'teal';
+              }
+          @endphp
+          <span class="badge tab-heading--{{ $status_badge }} text-white" style="font-size: 9pt;">{{ $r['status'] }}</span>
         </td>
         <td class="text-center" style="padding: 3px;">
           <div class="btn-group">
@@ -87,8 +96,6 @@
               @endif
               <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['name'] }}">Update Process</a>
               <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}">View Materials</a>
-              {{--<a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>--}}
-
             </div>
           </div>
         </td>

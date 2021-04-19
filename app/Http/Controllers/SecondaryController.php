@@ -7646,26 +7646,38 @@ class SecondaryController extends Controller
           
   
           foreach($datas as $row){
-              $data[]=[
-                  'production_order' => $row->production_order,
-                  'sales_order' => $row->sales_order,
-                  'material_request' => $row->material_request,
-                  'planned_start_date' =>$row->planned_start_date,
-                  'customer' => $row->customer,
-                  'stock_uom' => $row->stock_uom,
-                  'qty_to_manufacture' => $row->qty_to_manufacture,
-                  // 'material_status' => $this->material_status_stockentry($row->production_order,$row->status),
-                  'status' => $row->status,
-                  'description' => $row->description,
-                  'parent_item_code' =>$row->parent_item_code,
-                  'item_code' =>$row->item_code
-              ];
+            $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                ->where('name', $row->production_order)->first();
+            
+            $status = $row->status;
+            if($prod_details){
+                if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else{
+                    $status = $row->status;
+                }
+            }
+            
+            $data[]=[
+                'production_order' => $row->production_order,
+                'sales_order' => $row->sales_order,
+                'material_request' => $row->material_request,
+                'planned_start_date' =>$row->planned_start_date,
+                'customer' => $row->customer,
+                'stock_uom' => $row->stock_uom,
+                'qty_to_manufacture' => $row->qty_to_manufacture,
+                // 'material_status' => $this->material_status_stockentry($row->production_order,$row->status),
+                'status' => $status,
+                'description' => $row->description,
+                'parent_item_code' =>$row->parent_item_code,
+                'item_code' =>$row->item_code
+            ];
   
           }
-          // dd($datas);
+
           return view('tables.tbl_get_prod_notif_under_fab', compact('data'));
-          
-          
       }
       public function reschedule_production_from_notif(Request $request){   
               $val = [];
@@ -7878,6 +7890,20 @@ class SecondaryController extends Controller
           
   
           foreach($datas as $row){
+            $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                ->where('name', $row->production_order)->first();
+            
+            $status = $row->status;
+            if($prod_details){
+                if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else{
+                    $status = $row->status;
+                }
+            }
+
               $data[]=[
                   'production_order' => $row->production_order,
                   'sales_order' => $row->sales_order,
@@ -7887,7 +7913,7 @@ class SecondaryController extends Controller
                   'stock_uom' => $row->stock_uom,
                   'qty_to_manufacture' => $row->qty_to_manufacture,
                   // 'material_status' => $this->material_status_stockentry($row->production_order,$row->status),
-                  'status' => $row->status,
+                  'status' => $status,
                   'description' => $row->description,
                   'parent_item_code' =>$row->parent_item_code,
                   'item_code' =>$row->item_code
@@ -8681,12 +8707,13 @@ class SecondaryController extends Controller
             $shift_sched= date('H:i:s', strtotime($shift_sched));
             $timelogs=DB::connection('mysql_mes')->table('time_logs')
                 ->join('job_ticket as jt','jt.job_ticket_id', 'time_logs.job_ticket_id')
+                ->join('production_order as p','p.production_order', 'jt.production_order')
                 ->join('process', 'process.process_id', 'jt.process_id')
                 ->where('jt.workstation', '!=', 'Painting')
                 ->whereIn('jt.production_order', $prod)
                 ->whereDate('time_logs.to_time',$date )
-                ->selectRaw('jt.workstation, time_logs.operator_name,process.process_name,jt.production_order, MAX(to_time) as to_time')
-                ->groupBy('jt.workstation', 'time_logs.operator_name', 'process.process_name', 'jt.production_order')
+                ->selectRaw('p.status, jt.workstation, time_logs.operator_name,process.process_name,jt.production_order, MAX(to_time) as to_time')
+                ->groupBy('jt.workstation', 'time_logs.operator_name', 'process.process_name', 'jt.production_order', 'p.status')
                 ->orderBy('to_time', 'desc')
                 ->first();
             // $max= collect($timelogs)->max('to_time');
@@ -8694,6 +8721,17 @@ class SecondaryController extends Controller
             if($timelogs){
                 $timelogss = date('H:i:s', strtotime($timelogs->to_time));
                 if($shift_sched < $timelogss) {
+                    $prod_details = DB::connection('mysql')->table('tabProduction Order')
+					    ->where('name', $timelogs->production_order)->first();
+
+                    if($prod_details->docstatus == 2 && $timelogs->status != 'Cancelled'){
+                        $status = 'Unknown Status';
+                    }else if($prod_details->docstatus == 1 && $timelogs->status == 'Cancelled'){
+                        $status = 'Unknown Status';
+                    }else{
+                        $status = null;
+                    }
+                    
                     $operator_out = date('h:i A', strtotime($timelogs->to_time));
                     $shift_out = date('h:i A', strtotime($shift_sched));
                     $data[]=[
@@ -8702,7 +8740,8 @@ class SecondaryController extends Controller
                         'shift' => $shift_sched,
                         'timelogs' => $timelogs->to_time,
                         'shift_out' =>$shift_out,
-                        'operator_out' =>$operator_out
+                        'operator_out' =>$operator_out,
+                        'status' => $status
                         // 'workstation' =>$max_works
                     ];
                 }

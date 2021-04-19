@@ -652,10 +652,25 @@
       }); 
     }
 
-    // setInterval(load_dashboard, 10000);
-    // setInterval(count_current_production, 8000);
+    setInterval(load_dashboard, 10000);
+    setInterval(count_current_production, 8000);
 
     setInterval(notif_dashboard('#tbl-notifications'), 7000);
+
+    $(document).on('click', '#add-operation-btn', function(){
+    var workstation = $('#sel-workstation option:selected').text();
+    var wprocess = $('#sel-process').val();
+    if (!$('#sel-workstation').val()) {
+      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
+      return false;
+    }
+    var rowno = $('#bom-workstations-tbl tr').length;
+    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
+    if (workstation) {
+      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
+      $("#bom-workstations-tbl tbody").append(markup);
+    }
+  });
 
     function get_qa(operation, el){
       $.ajax({
@@ -851,6 +866,58 @@
         }
       });
     }
+
+    $(document).on('click', '#submit-bom-review-btn', function(){
+    var production_order = $('#production-order-val-bom').val();
+    var operation_id = $('#operation_id_update_bom').val();
+    var id = [];
+    var workstation = [];
+    var wprocess = [];
+    var workstation_process = [];
+    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
+    var user = $('#bom-workstations-tbl input[name=username]').val();
+    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
+    $("#bom-workstations-tbl > tbody > tr").each(function () {
+      id.push($(this).find('span').eq(0).text());
+      workstation.push($(this).find('td').eq(1).text());
+      wprocess.push($(this).find('select').eq(0).val());
+      workstation_process.push($(this).find('select option:selected').eq(0).text());
+    });
+    var filtered_process = wprocess.filter(function (el) {
+      return el != null && el != "";
+    });
+    if (workstation.length != filtered_process.length) {
+      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
+      return false;
+    }
+    var processArr = workstation_process.sort();
+    var processDup = [];
+    for (var i = 0; i < processArr.length - 1; i++) {
+        if (processArr[i + 1] == processArr[i]) {
+            processDup.push(processArr[i]);
+            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
+            return false;
+        }
+    }
+    $.ajax({
+      url: '/submit_bom_review/' + bom,
+      type:"POST",
+      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
+      success:function(data){
+        if(data.status) {
+          $('#review-bom-modal').modal('hide');
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+        } else {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
 
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();

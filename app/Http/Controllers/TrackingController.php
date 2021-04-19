@@ -297,6 +297,17 @@ class TrackingController extends Controller
 
 
             if (!empty($parent_productions)) {
+                $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                    ->where('name', $production_order_no)->first();
+
+                if($prod_details->docstatus == 2 && $status != 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else if($prod_details->docstatus == 1 && $status == 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else{
+                    $status = $status;
+                }
+
                 $materials = [
                         'item_code' => $parent_productions->item_code,
                         'description' => $item_description,
@@ -582,9 +593,18 @@ class TrackingController extends Controller
                         
 
                     }
-                   
-                    
-                   
+     
+                    $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                        ->where('name', $production->production_order)->first();
+
+                    if($prod_details->docstatus == 2 && $status != 'Cancelled'){
+                        $status = 'Unknown Status';
+                    }else if($prod_details->docstatus == 1 && $status == 'Cancelled'){
+                        $status = 'Unknown Status';
+                    }else{
+                        $status = $status;
+                    }
+                        
                 }else{
                     $production_order_no= null;
                     $planned_start_date=null;

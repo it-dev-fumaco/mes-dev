@@ -15,7 +15,7 @@
             <td>
                 <span style="">Last transaction ->>{{$row['data']->workstation}}[{{$row['data']->process_name}}]</span><br>
                 <span style="">Operator : {{$row['data']->operator_name}} || Operator time out : {{ $row['operator_out'] }}</span><br>
-                <span><b>{{$row['data']->production_order}}</b></span>
+                <span><b>{{$row['data']->production_order}}</b></span> <span class="badge badge-danger">{{ $row['status'] }}</span>
             </td>
             <td>
             <div class="btn-group">

@@ -775,6 +775,15 @@ class ManufacturingController extends Controller
 
     // wizard / manual create production order / bom crud
     public function submit_bom_review(Request $request, $bom){
+        $process_arr = [];
+        foreach ($request->wprocess as $i => $process_id) {
+            if(!in_array($process_id, $process_arr)){
+                array_push($process_arr, $process_id);
+            }else{
+                return response()->json(['status' => 0, 'message' => 'Duplicate process was selected for workstation <b>' . $request->workstation[$i] . '</b>.']);
+            }
+        }
+
         $now = Carbon::now();
         if($bom == "no_bom"){
             $bom_value= "nobom";
