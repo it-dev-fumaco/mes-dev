@@ -28,8 +28,8 @@ class SecondaryController extends Controller
 
     public function get_stock_entry_details($prod){
         $ste = DB::connection('mysql')->table('tabStock Entry')
-                ->where('purpose', 'Material Transfer for Manufacture')
-                ->where('production_order', $prod)->first();
+            ->where('purpose', 'Material Transfer for Manufacture')
+            ->where('production_order', $prod)->first();
         
         if(empty($ste)){
             $ste_item = [];
@@ -37,13 +37,14 @@ class SecondaryController extends Controller
             $ste_item =DB::connection('mysql')->table('tabStock Entry Detail')
                 ->where('parent', $ste->name)->get();
         }
+        
         return view('tables.tbl_prod_stock_details', compact('ste','ste_item'));
-
     }
+
     public function get_stock_entry_exist($prod){
         $ste = DB::connection('mysql')->table('tabStock Entry')
-                ->where('purpose', 'Material Transfer for Manufacture')
-                ->where('production_order', $prod)->first();
+            ->where('purpose', 'Material Transfer for Manufacture')
+            ->where('production_order', $prod)->first();
         
         if(empty($ste)){
             return response()->json(['success' => 0, 'message' => 'No Existing Stock Entry']);
@@ -52,7 +53,6 @@ class SecondaryController extends Controller
             return response()->json(['success' => 1, 'message' => 'Stock Entry Exist']);
 
         }
-
     }
 
     public function acceptTask(Request $request){
@@ -86,8 +86,10 @@ class SecondaryController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-        public function operatorDashboard($machine){
-        $machine_details = DB::connection('mysql')->table('tabMachine AS m')->join('tabWorkstation Machine AS wm', 'm.name', 'wm.machine_code')->where('m.machine_id', $machine)->selectRaw('wm.parent as workstation, m.*')->first();
+    
+    public function operatorDashboard($machine){
+        $machine_details = DB::connection('mysql')->table('tabMachine AS m')->join('tabWorkstation Machine AS wm', 'm.name', 'wm.machine_code')
+            ->where('m.machine_id', $machine)->selectRaw('wm.parent as workstation, m.*')->first();
 
         $unassigned = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
             ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
@@ -97,8 +99,7 @@ class SecondaryController extends Controller
             ->whereDate('ts.creation', '>', '2019-10-11')
             ->select('tsd.name AS tsdname', 'ts.name', 'pro.production_item', 'pro.item_name', 'tsd.completed_qty', 'tsd.status', 'pro.priority')
             ->orderByRaw("FIELD(pro.priority, 'High', 'Normal', 'Low') ASC")
-            ->orderBy('ts.creation', 'asc')
-            ->get();
+            ->orderBy('ts.creation', 'asc')->get();
 
         $unassigned_tasks = [];
         foreach ($unassigned as $row) {
@@ -124,23 +125,17 @@ class SecondaryController extends Controller
             ->whereDate('ts.creation', '>', '2019-10-11')
             ->select('tsd.name AS tsdname', 'ts.name', 'pro.production_item', 'pro.item_name', 'tsd.completed_qty', 'tsd.status', 'tsd.good', 'tsd.reject', 'tsd.rework', 'pro.priority', 'tsd.qty_accepted','tsd.to_time','tsd.from_time','ts.production_order','tsd.hours')
             ->orderBy('ts.creation', 'asc')->get();
+
         $assigned_tasks = [];
         foreach ($assigned as $row) {
             $assigned_tasks[] = [
                 'duration' => $this->convertTime($row->hours),
             ];
         }  
-        // $start = Carbon::parse($this->date_begin);
-        // $end = Carbon::parse($this->date_end);
-        // $hours = $end->diffInHours($start);
-        // $seconds = $end->diffInSeconds($start);
-        // $minutes = $end->diffInMinutes($start);
-
-        // $duration= $hours . ':' . $seconds;
-
-
+   
         return view('operator_dashboard', compact('assigned', 'unassigned_tasks', 'machine_details','assigned_tasks'));
     }
+
     public function getTimehsheetProcess($jtno){
         $req = DB::connection('mysql')->table('tabTimesheet')->where('name', $jtno)->sum('no_of_units');
         $workstations = DB::connection('mysql')->table('tabTimesheet Detail')->where('parent', $jtno)
@@ -166,58 +161,58 @@ class SecondaryController extends Controller
 
         return $data;
     }
+
     public function machineOverview(){
-            $workstation= DB::connection('mysql_mes')->table('workstation AS w')
-                    ->join('operation as op', 'op.operation_id', 'w.operation_id')
-                    ->select("w.workstation_name", "w.workstation_id")
-                    ->where('op.operation_name','Fabrication')
-                    ->orderBy('w.order_no', 'asc')
-                    ->get();
+        $workstation= DB::connection('mysql_mes')->table('workstation AS w')
+            ->join('operation as op', 'op.operation_id', 'w.operation_id')
+            ->select("w.workstation_name", "w.workstation_id")
+            ->where('op.operation_name','Fabrication')
+            ->orderBy('w.order_no', 'asc')->get();
 
         return view('machine_overview.index', compact('workstation'));
     }
+
     public function machine_tasklist_table($workstation, $machine_code){
         $data=[];
-        
-                $data[]=[
-                    'wip' =>$wip,
-                    'ctd' =>$ctd,
-                    '$total' => $total
-                ];
-                return $data;
+        $data[]=[
+            'wip' =>$wip,
+            'ctd' =>$ctd,
+            '$total' => $total
+        ];
+        return $data;
     }
+
     public function Queingtime($a, $b){
         $tasks =  DB::connection('mysql_mes')->table('job_ticket AS tsd')
-                    ->join('production_order AS pro', 'pro.production_order', 'tsd.production_order')
-                    ->where('tsd.workstation', $a)
-                    ->where('tsd.machine_code', $b)
-                    ->whereIn('tsd.status', ['Completed','In Progress'])
-                    ->whereDate('tsd.created_at', '>', '2019-10-11')
-                    ->select('tsd.job_ticket_id AS tsdname', 'tsd.production_order', 'pro.item_code', 'tsd.completed_qty', 'tsd.status', 'pro.priority', 'tsd.operator_name','tsd.created_at', 'tsd.from_time')
-                    ->orderByRaw("FIELD(pro.priority, 'High', 'Normal', 'Low') ASC")
-                    ->orderBy('tsd.created_at', 'asc')
-                    ->get();
-                    $data=[];
-            foreach ($tasks as $rows) {
-                        $start = Carbon::parse($rows->created_at);
-                        $end = Carbon::parse($rows->from_time);
-                        $totalDuration = $end->diffInSeconds($start);
-                        $data[]=[
-                            "total" => $totalDuration
-                        ];
-                    }
+            ->join('production_order AS pro', 'pro.production_order', 'tsd.production_order')
+            ->where('tsd.workstation', $a)->where('tsd.machine_code', $b)
+            ->whereIn('tsd.status', ['Completed','In Progress'])
+            ->whereDate('tsd.created_at', '>', '2019-10-11')
+            ->select('tsd.job_ticket_id AS tsdname', 'tsd.production_order', 'pro.item_code', 'tsd.completed_qty', 'tsd.status', 'pro.priority', 'tsd.operator_name','tsd.created_at', 'tsd.from_time')
+            ->orderByRaw("FIELD(pro.priority, 'High', 'Normal', 'Low') ASC")
+            ->orderBy('tsd.created_at', 'asc')->get();
+        $data=[];
+        foreach ($tasks as $rows) {
+            $start = Carbon::parse($rows->created_at);
+            $end = Carbon::parse($rows->from_time);
+            $totalDuration = $end->diffInSeconds($start);
+            $data[]=[
+                "total" => $totalDuration
+            ];
+        }
+
         return $data;   
-                    // dd($data);
     }
+
     function seconds2human($ss) {
-    $s = $ss%60;
-    $m = floor(($ss%3600)/60);
-    $h = floor(($ss%86400)/3600);
-    $d = floor(($ss%2592000)/86400);
-    $ss = $s > 1 ? "secs":'sec';
-    $mm = $m > 1 ? "mins":'min';
-    $dd = $d > 1 ? "days":'day';
-    $hh = $h > 1 ? "hrs":'hr';
+        $s = $ss%60;
+        $m = floor(($ss%3600)/60);
+        $h = floor(($ss%86400)/3600);
+        $d = floor(($ss%2592000)/86400);
+        $ss = $s > 1 ? "secs":'sec';
+        $mm = $m > 1 ? "mins":'min';
+        $dd = $d > 1 ? "days":'day';
+        $hh = $h > 1 ? "hrs":'hr';
 
         if($d == 0 and $h == 0 and $m == 0 and $s == 0) {
            $format= "$s $ss";
@@ -230,161 +225,144 @@ class SecondaryController extends Controller
         }else{
             $format="$d $dd,$h $hh, $m $mm,$s $ss";
         }
+
         return $format;
-        
     }
+
     public function machine_details($machine_name){
         $machine_workstations = DB::connection('mysql_mes')->table('machine as m')
             ->join('workstation_machine AS wm', 'm.machine_code', 'wm.machine_code')
             ->join('workstation as w', 'wm.workstation_id', 'w.workstation_id')
-            ->where('wm.workstation_id', $machine_name)->orderBy('wm.machine_code', 'ASC')->select('m.*', 'w.workstation_name as workstationname')->get();
-            $data=[];
+            ->where('wm.workstation_id', $machine_name)->orderBy('wm.machine_code', 'ASC')
+            ->select('m.*', 'w.workstation_name as workstationname')->get();
+        
+        $data=[];
+        foreach ($machine_workstations as $row) {
+            $tasks = DB::connection('mysql_mes')->table('job_ticket AS tsd')
+                ->join('production_order AS pro', 'pro.production_order', 'tsd.production_order')
+                ->where('tsd.workstation', $row->workstationname)->where('tsd.machine_code', $row->machine_code)
+                ->whereDate('tsd.created_at', '>', '2019-10-11')
+                ->select('tsd.job_ticket_id AS tsdname', 'tsd.production_order', 'pro.item_code', 'tsd.completed_qty', 'tsd.status', 'pro.priority', 'tsd.operator_name', 'tsd.from_time')
+                ->get();
 
-         foreach ($machine_workstations as $row) {
-             $tasks = DB::connection('mysql_mes')->table('job_ticket AS tsd')
-                    ->join('production_order AS pro', 'pro.production_order', 'tsd.production_order')
-                    ->where('tsd.workstation', $row->workstationname)
-                    ->where('tsd.machine_code', $row->machine_code)
-                    ->whereDate('tsd.created_at', '>', '2019-10-11')
-                    ->select('tsd.job_ticket_id AS tsdname', 'tsd.production_order', 'pro.item_code', 'tsd.completed_qty', 'tsd.status', 'pro.priority', 'tsd.operator_name', 'tsd.from_time')
-                    ->get();
+            $totals = collect($tasks)->whereIn('status',['Completed','In Progress'])->count();
+            $completed = collect($tasks)->whereIn('status','Completed')->sum('completed_qty');
+            $accepted = collect($tasks)->whereIn('status',['Accepted','In Progress','Completed'])->sum('completed_qty');
+            $totalss = collect($tasks)->whereIn('status',['Completed','In Progress','Accepted'])->count();
+            $totalduration= $this->Queingtime($row->workstationname,$row->machine_code);
+            $counttotalSec = collect($totalduration)->sum('total');
 
-                    $totals = collect($tasks)->whereIn('status',['Completed','In Progress'])->count();
-                    $completed = collect($tasks)->whereIn('status','Completed')->sum('completed_qty');
-                    $accepted = collect($tasks)->whereIn('status',['Accepted','In Progress','Completed'])->sum('completed_qty');
-                    $totalss = collect($tasks)->whereIn('status',['Completed','In Progress','Accepted'])->count();
-                    $totalduration= $this->Queingtime($row->workstationname,$row->machine_code);
-                    $counttotalSec = collect($totalduration)->sum('total');
-                    if ($totals == 0) {
-                        $var1=1;
-                    }else{
-                        $var1=$totals;
-                    }
-                    if ($accepted == 0) {
-                        $var=1;
-                    }else{
-                        $var=$accepted;
-                    }
+            if ($totals == 0) {
+                $var1=1;
+            }else{
+                $var1=$totals;
+            }
+            if ($accepted == 0) {
+                $var=1;
+            }else{
+                $var=$accepted;
+            }
                     
 
-                    $percentage=($completed/ $var)*100;
-                    $avr_hrs_submission=($counttotalSec/ $var1);
-                    $converted = $this->seconds2human($avr_hrs_submission);
-                    // dd($counttotalSec);
+            $percentage=($completed/ $var)*100;
+            $avr_hrs_submission=($counttotalSec/ $var1);
+            $converted = $this->seconds2human($avr_hrs_submission);
 
-                    $data[]=[
-                        "image_file" => $row->image,
-                        "machine_code" => $row->machine_code,
-                        "machine_name" => $row->machine_name,
-                        "status" => $row->status,
-                        'timesheet'=> $totals,
-                        'tasks'=>$tasks,
-                        'duration' => $counttotalSec,
-                        'avg' => $converted,
-                        'completed_qty'=> $completed,
-                        'accepted_qty'=> $accepted,
-                        'percentage' => round($percentage, 2),
-                        'workstation' => $row->workstationname
-                        // 'totalsec' =>$counttotalSec
-                    ];
-
-         }
+            $data[]=[
+                "image_file" => $row->image,
+                "machine_code" => $row->machine_code,
+                "machine_name" => $row->machine_name,
+                "status" => $row->status,
+                'timesheet'=> $totals,
+                'tasks'=>$tasks,
+                'duration' => $counttotalSec,
+                'avg' => $converted,
+                'completed_qty'=> $completed,
+                'accepted_qty'=> $accepted,
+                'percentage' => round($percentage, 2),
+                'workstation' => $row->workstationname
+            ];
+        }
+    
         return $data;
     }
-    // public function workstation_to_machine($prod_line){
-    //     $data=[];
-    //     $workstatione=DB::connection('mysql')->table('tabWorkstation as tw')
-    //                 ->where('operation', "Fabrication")
-    //                 ->where('production_line', $prod_line)
-    //                 ->select("name")
-    //                 ->get();
-    //                 foreach ($workstatione as $row) {
-    //                  $data[]=[
-    //                     "machine" => $row->name,
-    //                     "machine_details" => $this->machine_details($row->name)
-    //                 ];
-    //                 }
-                   
-    //                 return $data;
-    // }
+  
     public function machineTaskList(Request $request){
         $datas=[];
         if ($request->prod_line == "All") {
-            $workstatione= DB::connection('mysql_mes')
-            ->table('workstation as w')
+            $workstatione= DB::connection('mysql_mes')->table('workstation as w')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
-            ->where('op.operation_name', "Fabrication")
-            ->orderBy('w.order_no', 'asc')
-            ->select("w.workstation_name", "w.workstation_id")
-            ->get();
+            ->where('op.operation_name', "Fabrication")->orderBy('w.order_no', 'asc')
+            ->select("w.workstation_name", "w.workstation_id")->get();
 
             foreach ($workstatione as $row) {
-                
                 $datas[]=[
                     "production_line" => $row->workstation_name,
                     "w_to_m" => $this->machine_details($row->workstation_id)
                 ];
             }
-        
         }else{
             $workstatione= DB::connection('mysql_mes')->table('workstation')
-            ->where('workstation_id', $request->prod_line)
-            ->select("workstation_name", "workstation_id")
-            ->first();
-                $datas[]=[
-                    "production_line" => $workstatione->workstation_name,
-                    "w_to_m" => $this->machine_details($workstatione->workstation_id)
-                ];
+                ->where('workstation_id', $request->prod_line)
+                ->select("workstation_name", "workstation_id")
+                ->first();
+            $datas[]=[
+                "production_line" => $workstatione->workstation_name,
+                "w_to_m" => $this->machine_details($workstatione->workstation_id)
+            ];
         }
 
         return view('machine_overview.content', compact('datas'));
     }
+
     public function machine_details_tbl(Request $request){
         $machine_workstations = DB::connection('mysql_mes')->table('machine')
             ->where('machine_code', $request->machine_code)->first();
-            // dd($machine_workstations);
+
         $workstation = $request->workstation;
         $quetime = $request->quetime;
         $percetage = $request->percetage;
         $completedqty = $request->completedqty;
         $acceptedqty = $request->acceptedqty;
+
         return view('tables.tbl_machine_details', compact('machine_workstations','workstation', 'quetime','percetage','completedqty','acceptedqty' ));
     }
+
     public function operators_workstation_TaskList($workstation,$W_name){
         try {
-            $datas=[];           
-                $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
-                    ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                    ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
-                    ->join('tabWorkstation AS wt', 'wt.workstation_name', 'tsd.workstation')
-                    ->where('wt.workstation', $workstation)
-                    ->where('tsd.operation', 'Fabrication')
-                    ->where('ts.docstatus', 0)
-                    ->where('tsd.status', $W_name)
-                    ->whereDate('ts.creation', '>', '2019-10-11')
-                    ->select('tsd.name AS tsdname', 'ts.production_order', 'pro.production_item', 'pro.item_name', 'tsd.completed_qty', 'tsd.status', 'pro.priority', 'tsd.operator_name')
-                    ->orderByRaw("FIELD(pro.priority, 'High', 'Normal', 'Low') ASC")
-                    ->orderBy('ts.creation', 'asc')
-                    ->get();
+            $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
+                ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
+                ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                ->join('tabWorkstation AS wt', 'wt.workstation_name', 'tsd.workstation')
+                ->where('wt.workstation', $workstation)
+                ->where('tsd.operation', 'Fabrication')
+                ->where('ts.docstatus', 0)
+                ->where('tsd.status', $W_name)
+                ->whereDate('ts.creation', '>', '2019-10-11')
+                ->select('tsd.name AS tsdname', 'ts.production_order', 'pro.production_item', 'pro.item_name', 'tsd.completed_qty', 'tsd.status', 'pro.priority', 'tsd.operator_name')
+                ->orderByRaw("FIELD(pro.priority, 'High', 'Normal', 'Low') ASC")
+                ->orderBy('ts.creation', 'asc')
+                ->get();
 
-                $wip = collect($tasks)->where('status', 'In Progress')->sum('completed_qty');
-                $ctd = collect($tasks)->where('status', 'Completed')->sum('completed_qty');
-                $total = collect($tasks)->sum('completed_qty');
+            $wip = collect($tasks)->where('status', 'In Progress')->sum('completed_qty');
+            $ctd = collect($tasks)->where('status', 'Completed')->sum('completed_qty');
+            $total = collect($tasks)->sum('completed_qty');
 
-                $dashboard[] = [
-                    'tasks' => $tasks
-                ];
+            $dashboard[] = [
+                'tasks' => $tasks
+            ];
 
             return view('tables.tbl_operator_workstation', compact('dashboard'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function decimalHours($time)
-    {
+
+    public function decimalHours($time) {
         $hms = explode(":", $time);
         return ($hms[0] + ($hms[1]/60) + ($hms[2]/3600));
     }
+
     public function testing(){
         $hms = "2:12:12";
         $decimalHours = $this->decimalHours($hms);
@@ -392,8 +370,7 @@ class SecondaryController extends Controller
         return $hrs;
     }
 
-    public function convertTime($dec)
-    {
+    public function convertTime($dec) {
         // start by converting to seconds
         $seconds = ($dec * 3600);
         // we're given hours, so let's get those the easy way
@@ -408,17 +385,16 @@ class SecondaryController extends Controller
         return $this->lz($hours).":".$this->lz($minutes).":".round($seconds, 2);
     }
 
-        // lz = leading zero
-        public function lz($num)
-        {
-            return (strlen($num) < 2) ? "0{$num}" : $num;
-        }
+    public function lz($num){
+        return (strlen($num) < 2) ? "0{$num}" : $num;
+    }
 
     public function workstation_name(){
         $machine_details = DB::connection('mysql')->table('tabMachine AS m')->select('m.workstation')->groupBy('m.workstation')->get();
         dd($machine_details);
         // return view('testing', compact('machine_details'));
     }
+
     public function operatorpage($id){
         $tabWorkstation= DB::connection('mysql')->table('tabWorkstation')
                         ->where('name', $id)
@@ -431,14 +407,17 @@ class SecondaryController extends Controller
         $day_name= $now->format('l');
         return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date'));
     }
+
     public function operatorDashboards($machine){
         return view('testing');
     }
+
     public function logout($id){
         Auth::guard('web')->logout();
         $route= '/operator/'.$id;
         return redirect($route);
     }
+    
     public function current_data_operator($workstation){
         $datas=[];
         $workstations = DB::connection('mysql')->table('tabTimesheet Detail as tsd')
@@ -476,6 +455,7 @@ class SecondaryController extends Controller
         // dd($machine_available);
         return view('tables.tbl_operator_machine_available', compact('machine_available','status'));
     }
+
     public function update_machine_path(Request $request){
         $image_path = $request->user_image;
         if($request->hasFile('empImage')){
@@ -537,6 +517,7 @@ class SecondaryController extends Controller
         return $data;
             
     }
+
     public function machine_corrective(Request $request, $machine_code){
             $machine=DB::connection('mysql_mes')->table('machine_breakdown as tmb')
                     ->where('tmb.machine_id', $machine_code)
@@ -567,30 +548,31 @@ class SecondaryController extends Controller
         return $data;
             
     }
-    public function getNextOrderNumber()
-        {
-            // Get the last created order
-            $lastOrder = DB::connection('mysql_mes')->table('machine_breakdown')->orderBy('machine_breakdown_id', 'desc')->select('machine_breakdown_id')->first();
 
-            if (empty($lastOrder->machine_breakdown_id)){
-                // We get here if there is no order at all
-                // If there is no number set it to 0, which will be 1 at the end.
+    public function getNextOrderNumber(){
+        // Get the last created order
+        $lastOrder = DB::connection('mysql_mes')->table('machine_breakdown')->orderBy('machine_breakdown_id', 'desc')->select('machine_breakdown_id')->first();
 
-                $number = 0;
-            }else{
-                $number1 = $lastOrder->machine_breakdown_id;
-                $number = preg_replace("/[^0-9]{1,4}/", '', $number1); // return 1234
-            }
+        if (empty($lastOrder->machine_breakdown_id)){
+            // We get here if there is no order at all
+            // If there is no number set it to 0, which will be 1 at the end.
 
-            // If we have ORD000001 in the database then we only want the number
-            // So the substr returns this 000001
-
-            // Add the string in front and higher up the number.
-            // the %05d part makes sure that there are always 6 numbers in the string.
-            // so it adds the missing zero's when needed.
-         
-            return 'MR-' . sprintf('%05d', intval($number) + 1);
+            $number = 0;
+        }else{
+            $number1 = $lastOrder->machine_breakdown_id;
+            $number = preg_replace("/[^0-9]{1,4}/", '', $number1); // return 1234
         }
+
+        // If we have ORD000001 in the database then we only want the number
+        // So the substr returns this 000001
+
+        // Add the string in front and higher up the number.
+        // the %05d part makes sure that there are always 6 numbers in the string.
+        // so it adds the missing zero's when needed.
+        
+        return 'MR-' . sprintf('%05d', intval($number) + 1);
+    }
+
     public function machineBreakdownSave(Request $request){
         try {
             $now = Carbon::now();
@@ -614,7 +596,6 @@ class SecondaryController extends Controller
             DB::connection('mysql_mes')
                 ->table('machine_breakdown')->insert($values);
 
-
             $gatepass_id= $request->id;
             if ($request->category == "Breakdown") {
                 $type="Breakdown";
@@ -632,24 +613,15 @@ class SecondaryController extends Controller
                 'type'               => $type,
                 'reason'             => $reason
             );
-            // $approver= DB::connection('mysql_essex')
-            //     ->table('users')
-            //     ->whereIn('users.designation_id', ['29','38','61','34','31'])
-            //     ->select('users.email')
-            //     ->get();
-            // foreach ($approver as $row) {
-            //     // Mail::to($row->email)->send(new SendMail_gatepass($data));
-            //     Mail::to($row->email)->send(new SendMail_machinebreakdown($data));
-
-            // }
+       
             Mail::to("maintenance@fumaco.local")->send(new SendMail_machinebreakdown($data));
              
-            
             return response()->json(['success' => 1, 'message' => 'Machine Breakdown successfully submitted.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
+
     public function timesheet_details_report($id){
         $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
@@ -683,6 +655,7 @@ class SecondaryController extends Controller
         }
         return $details;
     }
+
     public function tbl_productionSchedule_report(Request $request){
         try {
             $production_orders = DB::connection('mysql')->table('tabProduction Order as tpo')
@@ -732,9 +705,11 @@ class SecondaryController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
+
     public function productioncShedule_report(){
         return view('reports.production_schedule_report');
     }
+
     public function line_workstation($workstation, $schedule, $workstation_id){
         $line= DB::connection('mysql_mes')->table('job_ticket as p')->where('p.workstation', $workstation)->where('p.process_id',"!=", null)->groupBy('p.process_id')->select('p.process_id')->get();
         $work=[];
@@ -752,10 +727,12 @@ class SecondaryController extends Controller
         }
         return $work;
     }
+
     public function process_name_function($id){
         $process_name= DB::connection('mysql_mes')->table('process as p')->where('p.process_id', $id)->select('process_id')->first();
         return $process_name->process_id;
     }
+
     public function machineKanban($workstation, $schedule_date){
         $current_workstation_details = DB::connection('mysql_mes')->table('workstation')
             ->where('workstation_id', $workstation)->first();
@@ -767,10 +744,11 @@ class SecondaryController extends Controller
             ->select('workstation_name','order_no','workstation_id')
             ->orderBy('order_no','asc')->get();
 
-            $shift_sched = $this->get_prod_shift_sched($schedule_date);
-    
-            return view('machine_kanban', compact('schedule_date', 'current_workstation_details', 'workstation_list', 'shift_sched'));    
-        }
+        $shift_sched = $this->get_prod_shift_sched($schedule_date);
+
+        return view('machine_kanban', compact('schedule_date', 'current_workstation_details', 'workstation_list', 'shift_sched'));    
+    }
+
     public function get_prod_shift_sched($date){
             $scheduled = [];
             if (DB::connection('mysql_mes')
@@ -798,6 +776,7 @@ class SecondaryController extends Controller
             }
             return $scheduled1;
     }
+
     public function getScheduledProdOrders($workstation, $schedule_date, $process){
         $now = Carbon::now();
         $current_date = $now->toDateString();
@@ -867,6 +846,7 @@ class SecondaryController extends Controller
 
         return $scheduled;
     }
+
     public function process_load($workstation, $schedule_date, $id, $process, $workstation_id){
         $now = Carbon::now();
         $current_date = $now->toDateString();
@@ -938,6 +918,7 @@ class SecondaryController extends Controller
           ];
       return $process_load;
     }
+
     public function qa_details($timelog_id){
         $details = DB::connection('mysql_mes')->table('job_ticket')
             ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
@@ -977,6 +958,7 @@ class SecondaryController extends Controller
 
         return 'Not Started';
     }
+
     public function machine_kanban_workstation($workstation, $schedule){
 
         $unscheduled = DB::connection('mysql')->table('tabProduction Order as prod')
@@ -1009,14 +991,17 @@ class SecondaryController extends Controller
         return view('tables.tbl_machine_kanban_workstation', compact('unscheduled','production_line','work', 'machine','orders'));
         
     }
+
     public function workstation_line($workstation_name){
          $machine= DB::connection('mysql')->table('tabWorkstation Machine')->where('parent', $workstation_name)->orderBy('machine_code', 'asc')->get();
          return $machine;
     }
+
     public function machinename($schedule){
         $machine_namee=DB::connection('mysql')->table('tabMachine')->where("name",$schedule)->select('machine_name')->first();
         return $machine_namee;
     }
+
     public function reorderProdOrder(Request $request){
         try {
             $val = [];
@@ -1039,7 +1024,6 @@ class SecondaryController extends Controller
         }   
     }
 
-
     public function continue_process($prod_name, $date){
             $prod_qty=DB::connection('mysql')->table('tabProduction Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
             $workstations = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->get();
@@ -1051,8 +1035,6 @@ class SecondaryController extends Controller
             $operator = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->where('td.workstation',$row->workstation)->orderBy('td.idx','DESC')->first();
 
     }
-
-
 
     public function goto_machine_list(){
         $machine_list= DB::connection('mysql_mes')
@@ -2907,51 +2889,36 @@ class SecondaryController extends Controller
 
     }
 
-    public function get_production_order_list($schedule_date){
-        $user_permitted_operations = DB::connection('mysql_mes')->table('user')
-            ->join('operation', 'operation.operation_id', 'user.operation_id')
-            ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-            ->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
-            ->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
-            ->distinct()->get();
-
-        $result = [];
-        foreach($user_permitted_operations as $operation){
-            if($operation->operation_id == 1){
-                $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
-                ->where('operation_id', $operation->operation_id)
+    public function get_production_order_list(Request $request, $schedule_date){
+        if($request->operation == 1){
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('operation_id', $request->operation)
                 ->whereNotIn('workstation_name', ['Painting'])->distinct()
                 ->pluck('workstation_name')->toArray();
-            }elseif($operation->operation_id == 2){
-                $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+        }elseif($request->operation == 2){
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
                 ->where('workstation_name', 'Painting')->distinct()
                 ->pluck('workstation_name')->toArray();
-            }else{
-                $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
-                ->where('operation_id', $operation->operation_id)->distinct()
+        }else{
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('operation_id', $request->operation)->distinct()
                 ->pluck('workstation_name')->toArray();
-            }
+        }
 
-            // if($operation->operation_name == 'Painting'){
-            //     array_push($permitted_workstation, ['Painting']);
-            // }
+        $orders_1 = DB::connection('mysql_mes')->table('time_logs')
+            ->join('job_ticket as tsd', 'time_logs.job_ticket_id', 'tsd.job_ticket_id')
+            ->join('production_order as prod','tsd.production_order', 'prod.production_order')
+            ->join('process as p', 'p.process_id', 'tsd.process_id')
+            ->whereNotIn('prod.status', ['Cancelled'])
+            ->join('workstation as work','work.workstation_name','tsd.workstation')
+            ->whereIn('tsd.workstation', $permitted_workstation)
+            ->where('time_logs.status', 'In Progress')
+            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id');
 
-            $orders_1 = DB::connection('mysql_mes')->table('time_logs')
-                ->join('job_ticket as tsd', 'time_logs.job_ticket_id', 'tsd.job_ticket_id')
-                ->join('production_order as prod','tsd.production_order','=','prod.production_order')
-                // ->join('quality_inspection as qa', 'qa.time_log_id', 'time_logs.time_log_id')
-                ->join('process as p', 'p.process_id', 'tsd.process_id')
-                ->whereNotIn('prod.status', ['Cancelled'])
-                ->join('workstation as work','work.workstation_name','tsd.workstation')
-                ->whereIn('tsd.workstation', $permitted_workstation)
-                ->where('time_logs.status', 'In Progress')
-                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id');
-                // ->get();
-
+        if($request->operation != 2){
             $orders = DB::connection('mysql_mes')->table('spotwelding_qty')
                 ->join('job_ticket as tsd', 'spotwelding_qty.job_ticket_id', 'tsd.job_ticket_id')
                 ->join('production_order as prod','tsd.production_order','=','prod.production_order')
-                // ->join('quality_inspection as qa', 'qa.time_log_id', 'time_logs.time_log_id')
                 ->join('process as p', 'p.process_id', 'tsd.process_id')
                 ->whereNotIn('prod.status', ['Cancelled'])
                 ->join('workstation as work','work.workstation_name','tsd.workstation')
@@ -2959,58 +2926,242 @@ class SecondaryController extends Controller
                 ->where('spotwelding_qty.status', 'In Progress')
                 ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id')
                 ->union($orders_1)->get();
+        }else{
+            $orders = $orders_1->get();
+        }
 
-            $data = [];
-            foreach($orders as $row){
-                $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
-                $reference_id = ($row->workstation_plot == 'Spotwelding') ? $row->jtname : $row->time_log_id;
-                $qa_table = DB::connection('mysql_mes')->table('quality_inspection')
-                    ->where('reference_type', $reference_type)->where('reference_id', $reference_id)->first();
-                if(!empty($qa_table)){
-                    $qa_em= DB::connection('mysql_essex')
-                    ->table('users')
-                    ->where('user_id', $qa_table->qa_staff_id)
-                    ->select('employee_name')
-                    ->first();
-                }
+        $result = [];
+        foreach($orders as $row){
+            $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
+            $reference_id = ($row->workstation_plot == 'Spotwelding') ? $row->jtname : $row->time_log_id;
+            $qa_table = DB::connection('mysql_mes')->table('quality_inspection')
+                ->where('reference_type', $reference_type)->where('reference_id', $reference_id)->first();
 
-                $helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $row->time_log_id)->distinct()->pluck('operator_name');
-                
-                $data[]=[
-                    'workstation_plot'=> $row->workstation_plot,
-                    'machine' => $row->machine,
-                    'jtname' => $row->jtname,
-                    'process_name' => $row->process_name,
-                    'stat' => $row->stat,
-                    'item_feed' => $row->item_feed,
-                    'operator_name' => $row->operator_name,
-                    'from_time' => ($row->from_time == null)? '-' : Carbon::parse($row->from_time)->format('M-d-Y h:i A'),
-                    'to_time' => ($row->to_time == null)? '-' : Carbon::parse($row->to_time)->format('M-d-Y h:i A'),
-                    'time_log_id'=>$row->time_log_id,
-                    'qa_inspection_status' => ($qa_table == null) ? 'Pending': $qa_table->status,
-                    'qa_inspected_by' =>  ($qa_table == null) ? '': $qa_em->employee_name,
-                    'qa_inspection_date' => ($qa_table == null) ? 'Pending': Carbon::parse($qa_table->qa_inspection_date)->format('M-d-Y h:i A'),
-                    'production_order' => $row->production_order,
-                    'job_ticket_id' => $row->job_ticket_id,
-                    'timelogs_id' => $row->time_log_id,
-                    'qty_accepted' => $row->qty_to_manufacture,
-                    'workstation_id' =>  $row->workstation_id,
-                    'helpers' => $helpers
-                ];
+            if(!empty($qa_table)){
+                $qa_em= DB::connection('mysql_essex')->table('users')->where('user_id', $qa_table->qa_staff_id)
+                    ->select('employee_name')->first();
             }
-            $result[] = [
-                'operation_id' => $operation->operation_id,
-                'operation_name' => $operation->operation_name,
-                'data' => $data
+
+            $helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $row->time_log_id)->distinct()->pluck('operator_name');
+
+            $result[]=[
+                'workstation_plot'=> $row->workstation_plot,
+                'machine' => $row->machine,
+                'jtname' => $row->jtname,
+                'process_name' => $row->process_name,
+                'stat' => $row->stat,
+                'item_feed' => $row->item_feed,
+                'operator_name' => $row->operator_name,
+                'from_time' => ($row->from_time == null)? '-' : Carbon::parse($row->from_time)->format('M-d-Y h:i A'),
+                'to_time' => ($row->to_time == null)? '-' : Carbon::parse($row->to_time)->format('M-d-Y h:i A'),
+                'time_log_id'=>$row->time_log_id,
+                // 'qa_inspection_status' => ($qa_table == null) ? 'Pending': $qa_table->status,
+                // 'qa_inspected_by' =>  ($qa_table == null) ? '': $qa_em->employee_name,
+                // 'qa_inspection_date' => ($qa_table == null) ? 'Pending': Carbon::parse($qa_table->qa_inspection_date)->format('M-d-Y h:i A'),
+                'production_order' => $row->production_order,
+                'job_ticket_id' => $row->job_ticket_id,
+                'timelogs_id' => $row->time_log_id,
+                'qty_accepted' => $row->qty_to_manufacture,
+                'workstation_id' =>  $row->workstation_id,
+                'helpers' => $helpers
             ];
         }
 
         $current_date = $schedule_date;
 
-        return view('tables.tbl_production_order_list_maindashboard', compact('result','current_date'));
+        return view('tables.tbl_production_order_list_maindashboard', compact('result', 'current_date'));
+    }
+
+    public function qa_monitoring_summary(Request $request, $schedule_date){
+        $data = [];
+        if($request->operation == 1){
+            // spotwelding qa inspection
+            $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
+                ->join('job_ticket as jt', 'jt.job_ticket_id', 'qi.reference_id')
+                ->join('production_order as po', 'jt.production_order', 'po.production_order')
+                ->where('qi.qa_inspection_date', $schedule_date)
+                ->where('qi.reference_type', 'Spotwelding')->where('po.operation_id', $request->operation)
+                ->select('jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'qi.created_by')->paginate(10);
+
+            foreach($query as $row){
+                $qa_staff_details = DB::connection('mysql_essex')->table('users')->where('user_id', $row->qa_staff_id)->first();
+
+                $data[] = [
+                    'inspection_type' => $row->qa_inspection_type,
+                    'inspected_by' => $qa_staff_details->employee_name,
+                    'production_order' => $row->production_order,
+                    'quantity' => $row->actual_qty_checked,
+                    'rejected_qty' => $row->rejected_qty,
+                    'status' => $row->status,
+                    'operator_name' => $row->created_by
+                ];
+            }
+        }
+
+        $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
+            ->join('time_logs as tl', 'tl.time_log_id', 'qi.reference_id')
+            ->join('job_ticket as jt', 'jt.job_ticket_id', 'tl.job_ticket_id')
+            ->join('production_order as po', 'jt.production_order', 'po.production_order')
+            ->where('qi.qa_inspection_date', $schedule_date)
+            ->where('qi.reference_type', 'Time Logs')->where('po.operation_id', $request->operation)
+            ->when($request->operation == 2, function($q){
+				return $q->where('jt.workstation', 'Painting');
+			})
+            ->when($request->operation != 2, function($q){
+				return $q->where('jt.workstation', '!=', 'Painting');
+			})
+            ->select('jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'tl.operator_name')->paginate(10);
+
+        foreach($query as $row){
+            $qa_staff_details = DB::connection('mysql_essex')->table('users')->where('user_id', $row->qa_staff_id)->first();
+
+            $data[] = [
+                'inspection_type' => $row->qa_inspection_type,
+                'inspected_by' => $qa_staff_details->employee_name,
+                'production_order' => $row->production_order,
+                'quantity' => $row->actual_qty_checked,
+                'rejected_qty' => $row->rejected_qty,
+                'status' => $row->status,
+                'operator_name' => $row->operator_name
+            ];
+        }
+
+        $inspectors = array_unique(array_column($data, 'inspected_by'));
+
+        $per_inspector = [];
+        foreach($inspectors as $inspector){
+            $logs = collect($data)->where('inspected_by', $inspector);
+            $per_inspector[] = [
+                'inspector' => $inspector,
+                'production_order' => $logs->count(),
+                'qty' => $logs->sum('quantity')
+            ];
+        }
+
+        $quality_inspection = collect($data)->filter(function ($value, $key) {
+            return (in_array($value['inspection_type'], ['Quality Check', 'Random Inspection']));
+        });
+
+        $rejection = collect($data)->filter(function ($value, $key) {
+            return (in_array($value['inspection_type'], ['Reject Confirmation']));
+        });
+
+        return view('tables.tbl_qa_monitoring', compact('quality_inspection', 'rejection', 'per_inspector'));
+    }
+
+    public function get_production_order_count_totals($collection, $operation_id){
+        $operation_id = ($operation_id == 2) ? 1 : $operation_id;
+        $filtered_collection = collect($collection)->filter(function ($value, $key) use ($operation_id) {
+            return ($value->operation_id == $operation_id);
+        });
+
+        $filtered_collection = collect($filtered_collection);
+
+        $planned_collection = $filtered_collection->filter(function ($value, $key) {
+            return ($value->status == 'Not Started');
+        });
+
+        $wip_collection = $filtered_collection->filter(function ($value, $key) {
+            return ($value->status == 'In Progress');
+        });
+        
+        $done_collection = $filtered_collection->filter(function ($value, $key) {
+            return ($value->status == 'In Progress' && $value->produced_qty > 0);
+        });
+        
+        $for_feedback_collection = $filtered_collection->filter(function ($value, $key) {
+            return ($value->status != 'Not Started' && $value->for_feedback > 0);
+        });
+        
+        $planned_collection = collect($planned_collection);
+        $wip_collection = collect($wip_collection);
+        $done_collection = collect($done_collection);
+        $for_feedback_collection = collect($for_feedback_collection);
+
+        return [
+            'planned_count' => number_format($planned_collection->count()),
+            'planned_qty' => number_format($planned_collection->sum('qty_to_manufacture')),
+            'wip_count' => number_format($wip_collection->count()),
+            'wip_qty' => number_format($wip_collection->sum('wip_qty')),
+            'done_count' => number_format($done_collection->count()),
+            'done_qty' => number_format($done_collection->sum('produced_qty')),
+            'for_feedback_count' => number_format($for_feedback_collection->count()),
+            'for_feedback_qty' => number_format($for_feedback_collection->sum('for_feedback'))
+        ];
     }
     
     public function count_current_production_order($schedule_date){
+        $production_orders = DB::connection('mysql_mes')->table('production_order')
+            ->where('planned_start_date', $schedule_date)->where('status', '!=', 'Cancelled')
+            ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
+            ->get();
+
+        $fabrication = $this->get_production_order_count_totals($production_orders, 1);
+        $assembly = $this->get_production_order_count_totals($production_orders, 3);
+        
+        $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order')
+            ->whereRaw('(feedback_qty < produced_qty)')->where('status', '!=', 'Cancelled')
+            ->where('produced_qty', '>', 0)
+            ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
+            ->get();
+
+        $for_feedback_fabrication = $this->get_production_order_count_totals($for_feedback_production_orders, 1);
+        $for_feedback_assembly = $this->get_production_order_count_totals($for_feedback_production_orders, 3);
+
+        // get scheduled painting production orders from job ticket 
+        $scheduled_painting_production_orders = DB::connection('mysql_mes')->table('job_ticket')
+            ->where('workstation', 'Painting')->where('planned_start_date', $schedule_date)
+            ->distinct()->pluck('production_order');
+        // get painting production orders
+        $scheduled_painting_production_orders = DB::connection('mysql_mes')->table('production_order')
+            ->whereIn('production_order', $scheduled_painting_production_orders)->where('status', '!=', 'Cancelled')
+            ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
+            ->get();
+
+        $painting = $this->get_production_order_count_totals($scheduled_painting_production_orders, 2);
+
+        // get painting production orders ready for feedback
+        $for_feedback_painting_production_orders = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')->where('jt.workstation', 'Painting')
+            ->whereRaw('(po.feedback_qty < po.produced_qty)')->where('po.status', '!=', 'Cancelled')
+            ->where('po.produced_qty', '>', 0)->distinct()->pluck('po.production_order');
+        // get painting production orders
+        $for_feedback_painting_production_orders = DB::connection('mysql_mes')->table('production_order')
+            ->whereIn('production_order', $for_feedback_painting_production_orders)->where('produced_qty', '>', 0)
+            ->where('status', '!=', 'Cancelled')->whereRaw('(feedback_qty < produced_qty)')
+            ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
+            ->get();
+
+        $for_feedback_painting = $this->get_production_order_count_totals($for_feedback_painting_production_orders, 2);
+
+        return [
+            'fab_planned' => $fabrication['planned_count'],
+            'fab_planned_qty' => $fabrication['planned_qty'],
+            'fab_wip' => $fabrication['wip_count'],
+            'fab_wip_qty' => $fabrication['wip_qty'],
+            'fab_done' => $fabrication['done_count'],
+            'fab_done_qty' => $fabrication['done_qty'],
+            'fab_for_feedback' => $for_feedback_fabrication['for_feedback_count'],
+            'fab_for_feedback_qty' => $for_feedback_fabrication['for_feedback_qty'],
+
+            'wa_planned' => $assembly['planned_count'],
+            'wa_planned_qty' => $assembly['planned_qty'],
+            'wa_wip' => $assembly['wip_count'],
+            'wa_wip_qty' => $assembly['wip_qty'],
+            'wa_done' => $assembly['done_count'],
+            'wa_done_qty' => $assembly['done_qty'],
+            'wa_for_feedback' => $for_feedback_assembly['for_feedback_count'],
+            'wa_for_feedback_qty' => $for_feedback_assembly['for_feedback_qty'],
+
+            'pa_planned' => $painting['planned_count'],
+            'pa_planned_qty' => $painting['planned_qty'],
+            'pa_wip' => $painting['wip_count'],
+            'pa_wip_qty' => $painting['wip_qty'],
+            'pa_done' => $painting['done_count'],
+            'pa_done_qty' => $painting['done_qty'],
+            'pa_for_feedback' => $for_feedback_painting['for_feedback_count'],
+            'pa_for_feedback_qty' => $for_feedback_painting['for_feedback_qty'],
+        ];
 
         $user_permitted_operations = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
@@ -3535,6 +3686,7 @@ class SecondaryController extends Controller
             DB::connection('mysql')->table('tabOperation')->where('name', $request->old_operation)->update($values2);
         return response()->json(['success' => 1, 'message' => 'Operation successfully updated']);
     }
+ 
     public function tbl_operation_list(Request $request){
         $shift_list = DB::connection('mysql_mes')->table('operation')
             ->where(function($q) use ($request) {
@@ -3618,12 +3770,7 @@ class SecondaryController extends Controller
         //add_shift_schedule
         if(empty($request->shifttype)){
             $arr= [];
-            if($request->pagename == "calendar"){
-                $get_data=$this->get_production_schedule_calendar($request->operation_id);
-                 return $get_data;
-            }else{
-                return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
-            }
+            return response()->json(['success' => 0, 'message' => 'No shift selected' ]);
 
         }else{
             $arr=$request->shifttype;
@@ -3680,6 +3827,7 @@ class SecondaryController extends Controller
             return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
         }
     }
+
     public function get_tbl_shiftsched_list(Request $request){
         $operation= ($request->operation == 0) ? 2 : $request->operation;
         $shift_sched_list= DB::connection('mysql_mes')
@@ -5716,13 +5864,11 @@ class SecondaryController extends Controller
         }
 
         $current_date = $schedule_date;
-
         $filters = [
             'customers' => array_unique(array_column($data, 'customer')),
             'reference_nos' => array_unique(array_column($data, 'reference_no')),
             'parent_item_codes' => array_unique(array_column($data, 'parent_item_code'))
         ];
-
         return view('painting.tbl_production_schedule_monitoring', compact('data', 'current_date', 'filters'));
     }
     public function duration_for_completed_painting($prod){
