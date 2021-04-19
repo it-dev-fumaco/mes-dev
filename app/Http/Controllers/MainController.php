@@ -987,7 +987,7 @@ class MainController extends Controller
 			->get();
 
 		foreach ($machine_breakdown as $mb) {
-			$converted= Carbon::parse($mb->date_reported)->format('Y-m-d');
+			$converted= Carbon::parse($mb->date_reported)->format('M-d-Y');
 			
         	$from_carbon = Carbon::parse($now);
             $to_carbon = Carbon::parse($mb->date_reported);
@@ -997,7 +997,7 @@ class MainController extends Controller
 			
 			$notifs[] = [
 				'type' => 'Machine Breakdown',
-				'message' => $mb->machine_name.'<br>Machine Request: ' . $mb->type.'<br> Date Reported:'.$converted.'<br><b><i>'.$converted_duration.'</i> ago</b>',
+				'message' => '<b>' . $mb->machine_name.'</b><br><i>Machine Request: ' . $mb->type.'<br>Date Reported: '.$converted.'<br><b>'.$converted_duration.' ago</b></i>',
 				'created' => $mb->date_reported,
 				'timelog_id' =>	'',
 				'table' => 'machine'
@@ -1014,18 +1014,6 @@ class MainController extends Controller
 		->whereDate('production_order.created_at', '>', '2020-07-01')
 		->select( 'delivery_date.rescheduled_delivery_date','production_order.production_order','production_order.delivery_date', 'production_order.planned_start_date', 'production_order.stock_uom','production_order.qty_to_manufacture', 'production_order.created_at')
 		->where('production_order.operation_id', '3')->get();
-		// dd($prod_late_delivery);
-		// $unassigned = Carbon::now()->subHour(8)->toDateTimeString();
-		// $accepted = Carbon::now()->subHour(2)->toDateTimeString();
-		
-		// $os_unassigned = DB::connection('mysql_mes')->table('job_ticket as td')
-		// 	->join('production_order as t', 't.production_order', 'td.production_order')
-		// 	->where('td.status', 'Unassigned')->whereDate('t.created_at', '<', $unassigned);
-
-		// $os_accepted = DB::connection('mysql_mes')->table('job_ticket as td')
-		// 	->join('production_order as t', 't.production_order', 'td.production_order')
-		// 	->where('td.status', 'Accepted')->whereDate('t.created_at', '<', $accepted)
-		// 	->union($os_unassigned)->get();
 		
 		$dateMinusOneWeek = Carbon::now()->subWeek()->toDateTimeString();
 
@@ -1080,10 +1068,13 @@ class MainController extends Controller
 				}
 		}
 		foreach ($prod_late_delivery as $prodsched) {
-			$delivery_date=($prodsched->rescheduled_delivery_date == null)? $prodsched->delivery_date:$prodsched->rescheduled_delivery_date;
+			$delivery_date = ($prodsched->rescheduled_delivery_date == null)? $prodsched->delivery_date:$prodsched->rescheduled_delivery_date;
+			$converted_delivery_date = Carbon::parse($delivery_date)->format('M-d-Y');
+
+			$planned_start_date = Carbon::parse($prodsched->planned_start_date)->format('M-d-Y');
 			$notifs[] = [	
 				'type' => 'Production Schedule',
-				'message' => '<b>'.$prodsched->production_order.'</b><br> Delivery Date:'.$delivery_date.'<br> Planned Start Date:'.$prodsched->planned_start_date.'<br> QTY: <b>' . $prodsched->qty_to_manufacture.'&nbsp;'.$prodsched->stock_uom.'</b>',
+				'message' => '<b>'.$prodsched->production_order.'</b><br><i>Delivery Date: '.$converted_delivery_date.'<br> Planned Start Date: '.$planned_start_date.'<br> Quantity: <b>' . $prodsched->qty_to_manufacture.'&nbsp;'.$prodsched->stock_uom.'</b></i>',
 				'created' => $prodsched->created_at,
 				'timelog_id' =>	"",
 				'table' => 'production_scheduling'

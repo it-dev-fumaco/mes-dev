@@ -394,6 +394,14 @@
             </tr>
           </table>
         </div>
+        <div class="col-md-12 mt-2">
+          <div class="card" style="height: 490px;">
+            <div class="card-header text-center text-white p-2" style="background-color: #3498db">
+              <h5 class="title m-0 text-uppercase">Notifications</h5>
+            </div>
+            <div class="table-full-width table-responsive" style="height: 440px; position: relative;" id="tbl-notifications"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -412,7 +420,7 @@
 	      <div class="modal-body">
 	        <div class="row">
 	          <div class="col-md-12">
-	            <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications"></div>
+	            <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-modal"></div>
 	          </div>
 	        </div>
 	      </div>
@@ -617,8 +625,8 @@
         
         get_ongoing_production_orders(operation, el);
         get_qa(operation, el);
-        get_machine_status_per_operation(operation, el);
-        maintenance_schedules_per_operation(operation, el);
+        // get_machine_status_per_operation(operation, el);
+        // maintenance_schedules_per_operation(operation, el);
       });
     }
 
@@ -644,8 +652,10 @@
       }); 
     }
 
-    //setInterval(load_dashboard, 10000);
-    //setInterval(count_current_production, 8000);
+    // setInterval(load_dashboard, 10000);
+    // setInterval(count_current_production, 8000);
+
+    setInterval(notif_dashboard('#tbl-notifications'), 7000);
 
     function get_qa(operation, el){
       $.ajax({
@@ -894,7 +904,7 @@
     $('#get-notifications-btn').click(function(e){
       e.preventDefault();
 
-      notif_dashboard();
+      notif_dashboard('#tbl-notifications-modal');
       $('#view-notifications-modal').modal('show');
     });
   
@@ -958,12 +968,12 @@
 
 <script type="text/javascript">
   
-  function notif_dashboard(){
+  function notif_dashboard(el){
     $.ajax({
       url:"/get_tbl_notif_dashboard",
       type:"GET",
       success:function(data){
-        $('#tbl-notifications').html(data);
+        $(el).html(data);
       }
     }); 
   }
@@ -990,7 +1000,7 @@
       data:data,
       success:function(response){
         if (response.success > 0) {
-          notif_dashboard();
+          notif_dashboard('#tbl-notifications');
         }else{
         }
       }, 
