@@ -923,7 +923,11 @@ class MainController extends Controller
 
 		$timesheet = DB::connection('mysql_mes')->table('job_ticket')->select('job_ticket_id')->get();
 
-		return view('main_dashboard', compact('timesheet', 'user_details', 'mes_user', 'mes_user_operations', 'permissions'));
+		$permitted_production_operation = collect($permissions['permitted_module_operation'])->where('module', 'Production')->toArray();
+
+		$permitted_production_operation = array_column($permitted_production_operation, 'operation_name');
+
+		return view('main_dashboard', compact('timesheet', 'user_details', 'mes_user', 'mes_user_operations', 'permissions', 'permitted_production_operation'));
 	}
 
 	public function productionPlanning(){
@@ -1774,6 +1778,9 @@ class MainController extends Controller
 				->join('operation', 'operation.operation_id', 'user.operation_id')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
 				->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
+				->when($request->operation, function($q) use ($request){
+					return $q->where('user.operation_id', $request->operation);
+				})
 				->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
 				->distinct()->get();
 

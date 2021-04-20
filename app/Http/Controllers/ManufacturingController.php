@@ -1362,7 +1362,8 @@ class ManufacturingController extends Controller
             // get returned items reference stock entry
             $returned_stes = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
+                ->where('ste.purpose', 'Material Transfer')
+                ->where('ste.transfer_as', 'For Return')
                 ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
                 ->distinct()->pluck('return_reference');
 
@@ -1932,9 +1933,9 @@ class ManufacturingController extends Controller
 
         $q = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.purpose', 'Material Transfer for Manufacture')->where('ste.production_order', $production_order)
+            ->where('ste.purpose', 'Material Transfer for Manufacture')
+            ->where('ste.production_order', $production_order)
             ->where('ste.docstatus', 1)
-            // ->select('sted.*', 'ste.docstatus')
             ->selectRaw('sted.item_code, sted.s_warehouse, sted.t_warehouse, GROUP_CONCAT(DISTINCT ste.name) as ste_names, SUM(sted.qty) as qty')
             ->groupBy('sted.item_code', 'sted.s_warehouse', 'sted.t_warehouse')->get();
 
@@ -1942,6 +1943,24 @@ class ManufacturingController extends Controller
         foreach ($q as $item) {
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
             $item_classification = $item_details->item_classification;
+
+             // get returned / for return items linked with production order (stock entry material transfer)
+            $item_return = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
+                ->where('ste.production_order', $production_order)
+                ->where('sted.item_code', $item->item_code)->where('ste.docstatus', '<', 2)
+                ->select('sted.*', 'ste.docstatus')->first();
+
+            $status = 'For Return';
+            if($item_return){
+                if($item_return->docstatus < 1) {
+                    $status = 'Pending';
+                } else {
+                    $status = 'Returned';
+                }
+            }
+
             $items[] = [
                 'ste_names' => $item->ste_names,
                 'item_code' => $item->item_code,
@@ -1952,6 +1971,7 @@ class ManufacturingController extends Controller
                 'target_warehouse' => $item->t_warehouse,
                 'qty' => $item->qty,
                 'stock_uom' => $item_details->stock_uom,
+                'status' => $status,
             ];
         }
 
