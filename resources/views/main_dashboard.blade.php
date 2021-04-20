@@ -293,6 +293,7 @@
               <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
               <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
             </tr>
+            @if (in_array('Fabrication', $permitted_production_operation))
             <tr>
               <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Fabrication</td>
               <td>
@@ -326,6 +327,8 @@
                 <span class="custom-text-3 font-weight-bold" id="fab-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
+            @endif
+            @if (in_array('Wiring and Assembly', $permitted_production_operation))
             <tr>
               <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Wiring & Assembly</td>
               <td>
@@ -359,6 +362,8 @@
                 <span class="custom-text-3 font-weight-bold" id="wa-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
+            @endif
+            @if (in_array('Painting', $permitted_production_operation))
             <tr>
               <td rowspan="2" class="font-weight-bold">Painting</td>
               <td>
@@ -392,6 +397,7 @@
                 <span class="custom-text-3 font-weight-bold" id="pa-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
+            @endif
           </table>
         </div>
         <div class="col-md-12 mt-2">
