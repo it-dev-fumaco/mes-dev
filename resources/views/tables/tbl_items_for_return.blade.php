@@ -11,8 +11,9 @@
 	<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 		<col style="width: 5%;">
 		<col style="width: 8%;">
-		<col style="width: 32%;">
+		<col style="width: 22%;">
 		<col style="width: 15%;">
+		<col style="width: 10%;">
 		<col style="width: 10%;">
 		<col style="width: 10%;">
 		<col style="width: 10%;">
@@ -42,8 +43,8 @@
 				<span class="d-block font-weight-bold item-code">{{ $row['item_code'] }}</span>
 				<span class="d-block item-description" style="font-size: 8pt;">{!! $row['description'] !!}</span>
 			</td>
-			<td class="text-center source-warehouse" style="font-size: 9pt;">{{ $row['source_warehouse'] }}</td>
 			<td class="text-center target-warehouse" style="font-size: 9pt;">{{ $row['target_warehouse'] }}</td>
+			<td class="text-center source-warehouse" style="font-size: 9pt;">{{ $row['source_warehouse'] }}</td>
 			<td class="text-center">
 				<span class="d-block font-weight-bold qty">{{ $row['qty'] * 1 }}</span>
 				<span class="d-block" style="font-size: 8pt;">{{ $row['stock_uom'] }}</span>
