@@ -198,7 +198,7 @@
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
 						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
-						<span class="d-block target-warehouse">{{ $details->wip_warehouse }}</span>
+						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
@@ -402,7 +402,7 @@
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
 						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
-						<span class="d-block target-warehouse">{{ $details->wip_warehouse }}</span>
+						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
