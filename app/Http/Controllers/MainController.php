@@ -3559,7 +3559,8 @@ class MainController extends Controller
 
 		$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
 			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-			->where('job_ticket.process_id', '!=', $request->process_id)
+			->where('job_ticket.production_order', '!=', $request->production_order)
+			// ->where('job_ticket.process_id', '!=', $request->process_id)
 			->where('time_logs.operator_id', $request->operator_id)
 			->where('time_logs.status', 'In Progress')->first();
 
