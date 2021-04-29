@@ -27,8 +27,74 @@ class PaintingOperatorController extends Controller
 		$process_details = DB::connection('mysql_mes')->table('process')->where('process_name', $process_name)->first();
 
 		$machine_status = $this->get_machine_status();
-
-        return view('painting_operator.index', compact('process_details', 'machine_status', 'painting_process'));
+		$now = Carbon::now();
+		$time=$now->format('h:i:s');
+		$breaktime = [];
+		$shift= DB::connection('mysql_mes')->table('shift_schedule')
+			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+			->whereDate('shift_schedule.date', $now)
+			->where('shift.operation_id', 2)
+			->where('shift.shift_type', 'Special Shift')
+			->select('shift.shift_id')->first();
+			if(empty($shift)){
+				$reg_shift= DB::connection('mysql_mes')
+					->table('shift')
+					->where('shift.operation_id',  2)
+					->where('shift_type', 'Regular Shift')
+					->first();
+					if($reg_shift){
+						$breaktime_tbl= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $reg_shift->shift_id)->get();
+						if(!empty($breaktime_tbl)){
+							foreach($breaktime_tbl as $r){
+								$breaktime[]=[
+									"break_type" => $r->category,
+									"time_in" => $r->time_from,
+									'time_out' =>$r->time_to,
+									'div_id'=> str_replace(' ', '', $r->category),
+									"time_in_show" => date("h:i a", strtotime($r->time_from)),
+									'time_out_show' =>date("h:i a", strtotime($r->time_to))
+								];
+							}
+						}
+					}	
+			}else{
+				$breaktime_tbl= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $shift->shift_id)->get();
+				if(!empty($breaktime_tbl)){
+					foreach($breaktime_tbl as $r){
+						$breaktime[]=[
+							"break_type" => $r->category,
+							"time_in" => $r->time_from,
+							'time_out' =>$r->time_to,
+							'div_id'=> str_replace(' ', '', $r->category),
+							"time_in_show" => date("h:i a", strtotime($r->time_from)),
+							'time_out_show' =>date("h:i a", strtotime($r->time_to))
+						];
+					}
+				}
+			}
+		$o_shift_shift= DB::connection('mysql_mes')->table('shift_schedule')
+			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+			->whereDate('shift_schedule.date', $now)
+			->where('shift.operation_id', 2)
+			->where('shift.shift_type', 'Overtime Shift')
+			->select('shift.shift_id')->first();
+			if($o_shift_shift){
+				$breaktime_tbll= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $o_shift_shift->shift_id)->get();
+				if($breaktime_tbll){
+					foreach($breaktime_tbll as $r){
+						$breaktime[]=[
+							"break_type" => $r->category,
+							"time_in" => $r->time_from,
+							'time_out' =>$r->time_to,
+							'div_id'=> str_replace(' ', '', $r->category),
+							"time_in_show" => date("h:i a", strtotime($r->time_from)),
+							'time_out_show' =>date("h:i a", strtotime($r->time_to))
+						];
+					}
+				}
+			}
+		$breaktime_data= collect($breaktime);
+        return view('painting_operator.index', compact('process_details', 'machine_status', 'painting_process', 'breaktime_data'));
 	}
 
 	public function get_production_order_details($production_order, $process_id){
@@ -145,12 +211,9 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-			
-			$this->updateProdOrderOps($request->production_order, 'Painting');
-			$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
-			$this->update_job_ticket_good($time_log->job_ticket_id);
-			$this->update_job_ticket_reject($time_log->job_ticket_id);
+
+			$this->uodate_job_ticket($time_log->job_ticket_id);
+		
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -263,10 +326,7 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 
-			$this->update_completed_qty_per_workstation($request->job_ticket_id);
-			$this->update_jobticket_actual_start_end($request->job_ticket_id);
-			$this->update_job_ticket_good($request->job_ticket_id);
-			$this->update_job_ticket_reject($request->job_ticket_id);
+			$this->uodate_job_ticket($request->job_ticket_id);
     	}
 
 		return response()->json(['success' => 1, 'message' => 'Task updated.']);
@@ -293,10 +353,8 @@ class PaintingOperatorController extends Controller
 			];
 			
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-			
-			$this->updateProdOrderOps($request->production_order, $request->workstation);
-			$this->update_produced_qty($request->production_order);
 
+			$this->update_job_ticket($current_task->job_ticket_id);
 			// get completed qty in painting workstation
 			$painting_completed_qty = DB::connection('mysql_mes')->table('job_ticket')
 				->where('production_order', $request->production_order)
@@ -305,12 +363,6 @@ class PaintingOperatorController extends Controller
 			// get production order qty_to_manufacture
 			$qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('qty_to_manufacture');
 
-			$this->updateProdOrderOps($request->production_order, $request->workstation);
-			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
-			$this->update_job_ticket_good($current_task->job_ticket_id);
-			$this->update_job_ticket_reject($current_task->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
-			$this->update_jobticket_actual_start_end($current_task->job_ticket_id);
 			if($qty_to_manufacture == $painting_completed_qty){
 				// update spotwelding status and completed qty
 				$values = [
@@ -325,10 +377,9 @@ class PaintingOperatorController extends Controller
 					->whereIn('status', ['In Progress', 'Pending'])
 					->update($values);
 
-				$this->updateProdOrderOps($request->production_order, $request->workstation);
-				$this->update_produced_qty($request->production_order);
+				$this->update_job_ticket($current_task->job_ticket_id);
 			}
-			
+
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -551,7 +602,7 @@ class PaintingOperatorController extends Controller
 		DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
 		
 		if($qry){
-			$this->update_completed_qty_per_workstation($qry->job_ticket_id);
+			$this->update_job_ticket($qry->job_ticket_id);
 		}
  
     	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);

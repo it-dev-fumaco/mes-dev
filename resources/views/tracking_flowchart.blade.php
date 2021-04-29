@@ -88,7 +88,11 @@
                     <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:100%;">
                       <div class="row text-center bread justify-content-center" style="padding-top:5px;width:100%;">
                         <div class="col-md-12 bread">
-                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>  @endif</b> </span>
+                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}
+                          @if($materials['status'] == 'Unknown Status')
+                          <br>
+                          <span class="badge badge-danger">{{ $materials['status'] }}</span> @endif
+                          @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>  @endif</b> </span>
                         <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['description'] !!} </span>
                         <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
 
@@ -119,6 +123,9 @@
                                     }elseif($item['status'] == 'In Progress'){
                                       $stat= '';
                                       $colorme= '#f5b041 ';
+                                    }elseif($item['status'] == 'Unknown Status'){
+                                      $stat= $item['status'];
+                                      $colorme= '';
                                     }else{
                                       $stat= 'Pending';
                                       $colorme= '#d6dbdf';
@@ -161,6 +168,8 @@
                               <td colspan="2" style="text-align: center; font-size: 9pt;">
                                 @if( $stat == 'Pending')
                                 <i><span>Pending</span><i>
+                                  @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                 @else
                                   @forelse($item['current_load'] as $row)
                                    {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -184,6 +193,9 @@
                                         }elseif($child['status'] == 'In Progress'){
                                           $colorme= '#f5b041 ';
                                           $stat= '';
+                                        }elseif($child['status'] == 'Unknown Status'){
+                                      $stat= $child['status'];
+                                      $colorme= '';
                                         }else{
                                           $colorme= '#d6dbdf';
                                           $stat= 'Pending';
@@ -228,6 +240,8 @@
                                       <td colspan="2" style="text-align: center; font-size: 9pt;">
                                         @if( $stat == 'Pending')
                                         <i><span>Pending</span><i>
+                                          @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                         @else
                                           @forelse($child['current_load'] as $row)
                                            {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -251,6 +265,9 @@
                                                 }elseif($child1['status'] == 'In Progress'){
                                                   $colorme= '#f5b041 ';
                                                   $stat= '';
+                                                }elseif($child1['status'] == 'Unknown Status'){
+                                      $stat= $child1['status'];
+                                      $colorme= '';
                                                 }else{
                                                   $colorme= '#d6dbdf';
                                                   $stat= 'Pending';
@@ -295,6 +312,8 @@
                                             <td colspan="2" style="text-align: center; font-size: 9pt;">
                                               @if( $stat == 'Pending')
                                               <i><span>Pending</span><i>
+                                                @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                               @else
                                                 @forelse($child1['current_load'] as $row)
                                                  {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -318,6 +337,9 @@
                                                       }elseif($child2['status'] == 'In Progress'){
                                                         $colorme= '#f5b041 ';
                                                         $stat= '';
+                                                      }elseif($child2['status'] == 'Unknown Status'){
+                                      $stat= $child2['status'];
+                                      $colorme= '';
                                                       }else{
                                                         $colorme= '#d6dbdf';
                                                         $stat= 'Pending';
@@ -362,6 +384,8 @@
                                                   <td colspan="2" style="text-align: center; font-size: 9pt;">
                                                     @if( $stat == 'Pending')
                                                     <i><span>Pending</span><i>
+                                                      @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                                     @else
                                                       @forelse($child2['current_load'] as $row)
                                                        {{ $row->workstation }} - {{ $row->process_name }} <br>

@@ -30,7 +30,16 @@
         <td class="text-center">{{ $r['reference_no'] }}<br>{{ $r['customer'] }}</td>
         <td class="text-center">@if($r['delivery_date']){{ date('M-d-Y', strtotime($r['delivery_date'])) }}@endif</td>
         <td class="text-center">
-          <span class="badge tab-heading--{{ ($r['status'] == 'Material For Issue') ? 'reddish' : 'gray' }}" style="font-size: 10pt;">{{ $r['status'] }}</span>
+          @php
+              if($r['status'] == 'Material For Issue'){
+                $status_badge = 'danger';
+              }elseif ($r['status'] == 'Unknown Status') {
+                $status_badge = 'secondary';
+              }else{
+                $status_badge = 'success';
+              }
+          @endphp
+          <span class="badge badge-{{ $status_badge }}" style="font-size: 10pt;">{{ $r['status'] }}</span>
           @if($r['is_scheduled'] && $r['planned_start_date'])<span class="d-block" style="font-size: 10pt;">{{ date('M-d-Y', strtotime($r['planned_start_date'])) }}</span>@endif
         </td>
         <td class="text-center">

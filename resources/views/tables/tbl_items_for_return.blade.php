@@ -7,12 +7,13 @@
 @else
 
 	@if(count($items) > 0)
-	<h5 class="text-center mt-3 mb-1">Item(s) for Return</h5>
+	<h5 class="text-center mt-3 mb-1">Item(s) Issued</h5>
 	<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 		<col style="width: 5%;">
 		<col style="width: 8%;">
-		<col style="width: 32%;">
+		<col style="width: 22%;">
 		<col style="width: 15%;">
+		<col style="width: 10%;">
 		<col style="width: 10%;">
 		<col style="width: 10%;">
 		<col style="width: 10%;">
@@ -23,6 +24,7 @@
 			<th>Source</th>
 			<th>Target</th>
 			<th>Quantity</th>
+			<th>Status</th>
 			<th>Action</th>
 		</tr>
 		@foreach ($items as $i => $row)
@@ -41,14 +43,29 @@
 				<span class="d-block font-weight-bold item-code">{{ $row['item_code'] }}</span>
 				<span class="d-block item-description" style="font-size: 8pt;">{!! $row['description'] !!}</span>
 			</td>
-			<td class="text-center source-warehouse" style="font-size: 9pt;">{{ $row['source_warehouse'] }}</td>
 			<td class="text-center target-warehouse" style="font-size: 9pt;">{{ $row['target_warehouse'] }}</td>
+			<td class="text-center source-warehouse" style="font-size: 9pt;">{{ $row['source_warehouse'] }}</td>
 			<td class="text-center">
 				<span class="d-block font-weight-bold qty">{{ $row['qty'] * 1 }}</span>
 				<span class="d-block" style="font-size: 8pt;">{{ $row['stock_uom'] }}</span>
 			</td>
+			@php
+				$badge = 'secondary';
+				$btn = '';
+				if($row['status'] == 'Pending'){
+					$badge = 'warning';
+					$btn = 'disabled';
+				}
+				
+				if($row['status'] == 'Returned'){
+					$badge = 'success';
+					$btn = 'disabled';
+				}
+			@endphp
 			<td class="text-center">
-				<button type="button" class="btn btn-secondary btn-icon btn-icon-mini return-required-item-btn" data-production-order="{{ $details->production_order }}">
+				<span class="badge badge-{{ $badge }}" style="font-size: 9pt;">{{ $row['status'] }}</span></td>
+			<td class="text-center">
+				<button type="button" class="btn btn-secondary btn-icon btn-icon-mini return-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $btn }}>
 					<i class="now-ui-icons loader_refresh"></i>
 				</button>
 			</td>

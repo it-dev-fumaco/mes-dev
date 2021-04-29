@@ -44,7 +44,7 @@
             @endphp
             @if (count($b) > 0)
             <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
-              <a href="/main_dashboard">
+              <a href="/qa_dashboard">
                 <i class="now-ui-icons business_chart-bar-32"></i>
                 <p>QA Dashboard</p>
               </a>
@@ -121,8 +121,8 @@
             </li>
             @endif
           @endisset
-          <li>
-            <a href="/report/production_schedule_report">
+          <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
+            <a href="/report_index">
               <i class="now-ui-icons files_single-copy-04"></i>
               <p>Reports</p>
             </a>
@@ -134,7 +134,6 @@
             </a>
           </li>
         </ul>
-
     </div>
   </div>
  
@@ -355,7 +354,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.7</b> <span style="font-size: 9pt;">Latest Release: 2020-01-21</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>8.3</b> <span style="font-size: 9pt;">Latest Release: 2021-04-19</span></h5>
             </div>          
           </div>
         </div>
@@ -558,6 +557,7 @@
     </div>
   </div>
   @include('modals.item_track_modal')
+  @include('modals.change_required_qty_modal')
 
   <div class="modal fade" id="cancel-production-order-feedback-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-md" role="document">
@@ -830,6 +830,26 @@
     </form>
   </div>
 </div>
+
+<!-- Modal Review BOM -->
+<div class="modal fade" id="review-bom-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width: 70%;">
+     <div class="modal-content">
+        <div class="modal-header">
+           <h5 class="modal-title" style="font-weight: bolder;">Modal Title</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <input type="text" id="production-order-val-bom" style="display: none;">
+           <input type="text" id="operation_id_update_bom" style="display: none;">
+
+           <div id="review-bom-details-div"></div>
+        </div>
+     </div>
+  </div>
+</div>
     
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
@@ -852,6 +872,85 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+  
+  
+  $(document).on('change', '#sel-workstation', function(){
+         $('#add-operation-btn').attr('disabled', true);
+         var workstation = $(this).val();
+         $('#sel-process').empty();
+         if (workstation) {
+            $.ajax({
+               url: '/get_workstation_process/' + workstation,
+               type:"GET",
+               success:function(data){
+                  if (data.length > 0) {
+                     var opt = '<option value="">Select Process</option>';
+                     $.each(data, function(i, v){
+                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+                     });
+                     $('#sel-process').append(opt);
+                     $('#add-operation-btn').removeAttr('disabled');
+                     $('#add-operation-btn').text('Add Operation');
+                  }else{
+                     $('#add-operation-btn').text('No Assigned Process');
+                  }
+               }
+            });
+         }
+      });
+  $(document).on('click', '.view-bom-details-btn', function(e){
+    e.preventDefault();
+    var guidebom =  $(this).data('bom');
+    if(guidebom){
+      var bom = guidebom;
+    }else{
+      var bom = "No BOM";
+    }
+    $('#production-order-val-bom').val($(this).data('production-order'));
+    $('#operation_id_update_bom').val($(this).data('operationid'));
+    $.ajax({
+      url: "/view_bom_for_review/" + bom,
+      type:"GET",
+      data:{production: $(this).data('production-order') },
+      success:function(data){
+        $('#review-bom-details-div').html(data);
+      }
+    });
+    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
+    $('#review-bom-modal').modal('show');
+  });
+  
+    $('#change-required-qty-btn').click(function(e){
+      e.preventDefault();
+  
+      var production_order_item_id = $('#change-required-item-modal input[name="production_order_item_id"]').val();
+      var required_qty = $('#change-required-item-modal input[name="required_qty"]').val();
+  
+      $('#change-required-qty-modal input[name="production_order_item_id"]').val(production_order_item_id);
+      $('#change-required-qty-modal input[name="required_qty"]').val(required_qty);
+      $('#change-required-qty-modal input[name="qty"]').val(required_qty);
+  
+      $('#change-required-qty-modal').modal('show');
+    });
+  
+    $('#change-required-qty-modal form').submit(function(e){
+      e.preventDefault();
+  
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#change-required-qty-modal').modal('hide');
+            get_production_order_items(data.production_order);
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
 
     $(document).on('click', '.cancel-production-order-feedback-btn', function(e){
       e.preventDefault();
@@ -1069,8 +1168,39 @@
       add_row_required_item();
     });
 
+    $(document).on('click', '.add-item-as-select', function(e){
+      e.preventDefault();
+
+      var item_classification = $(this).find(':selected').data('item-classification');
+
+      $(this).closest('tr').find('.selected-item-classification').eq(0).val(item_classification);
+
+      $(this).closest('tr').find('.autocomplete-item-code').eq(0).val('');
+
+      if($(this).val() == 'new_item'){
+        $(this).closest('tr').find('.selected-item-classification').eq(0).val('');
+      }
+    });
+
     function add_row_required_item(){
       var opt = '';
+      var item_as = '<option value="new_item">New Item</option>';
+
+      item_as += '<optgroup label="Alternative For">';
+
+      var production_order_items = [];
+      $('#tbl_view_transfer_details .for-add-item').each(function(d){
+        var item_code = $(this).find('.item-code').eq(0).text();
+        var item_classification = $(this).find('.item-classification').eq(0).text();
+
+        if(production_order_items.indexOf(item_code) < 0){
+          item_as += '<option value="' + item_code + '" data-item-classification="' + item_classification + '">' + item_code + '</option>';
+          production_order_items.push($(this).text());
+        }
+      });
+
+      item_as += '</optgroup>';
+  
       $.ajax({
         url: "/get_mes_warehouse",
         type:"GET",
@@ -1082,6 +1212,12 @@
           });
 
           var row = '<tr>' +
+            '<td class="p-1">' +
+              '<div class="form-group m-0">' +
+                '<select name="item_as[]" class="form-control m-0 add-item-as-select" required>' + item_as + '</select>' +
+                '<input type="hidden" class="selected-item-classification">' +
+              '</div>' +
+            '</td>' +
             '<td class="p-1">' +
               '<div class="form-group m-0">' +
               '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" maxlength="7" required>' +
@@ -1105,25 +1241,29 @@
           '</tr>';
           
           $('#add-required-item-tbody').append(row);
-
-          $('.autocomplete-item-code').autocomplete({
-            source:function(request,response){
-              $.ajax({
-                url: '/items',
-                dataType: "json",
-                data: {
-                  term : request.term
-                },
-                success: function(data) {
-                  response(data);
-                }
-              });
-            },
-            minLength: 1,
-          });
         }
       });   
     }
+
+    $(document).on('keypress', '.autocomplete-item-code', function(){
+      var item_classification = $(this).closest('tr').find('.selected-item-classification').eq(0).val();
+      $(this).autocomplete({
+        source:function(request,response){
+          $.ajax({
+            url: '/items',
+            dataType: "json",
+            data: {
+              term : request.term,
+              item_classification: item_classification
+            },
+            success: function(data) {
+              response(data);
+            }
+          });
+        },
+        minLength: 1,
+      });
+    }); 
 
     $('#add-required-item-modal').on('hidden.bs.modal', function(){
       $('#add-required-item-tbody').empty();
@@ -1152,9 +1292,11 @@
       var description = $row.find('.item-description').eq(0).text();
       var item_name = $row.find('.item-name').eq(0).text();
       var required_qty = $row.find('.required-qty').eq(0).text();
+      var requested_qty = $row.find('.requested-qty').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
       var stock_uom = $row.find('.stock-uom').eq(0).text();
-      
+      var production_order_item_id = $row.find('.production-order-item-id').eq(0).text();
+
       $('#change-required-item-production-order').val($(this).data('production-order'));
 
       var row = '';
@@ -1181,7 +1323,10 @@
       $('#change-required-item-modal input[name="item_name"]').val(item_name);
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
-      $('#change-required-item-modal input[name="quantity"]').val(required_qty);
+      $('#change-required-item-modal input[name="requested_quantity"]').val(requested_qty);
+
+      $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
+      $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
       $.ajax({
         url: "/get_available_warehouse_qty/" + item_code,
@@ -1296,11 +1441,13 @@
       var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
+      var production_order_item_id = $row.find('.production-order-item-id').eq(0).text();
       
       $('#delete-required-item-modal input[name="production_order"]').val($(this).data('production-order'));
       $('#delete-required-item-modal input[name="ste_names"]').val(ste_names);
       $('#delete-required-item-modal input[name="item_code"]').val(item_code);
       $('#delete-required-item-modal input[name="source_warehouse"]').val(source_warehouse);
+      $('#delete-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
       $('#delete-required-item-modal .modal-body span').eq(0).text(item_code);
 
       $('#delete-required-item-modal').modal('show');
@@ -1347,6 +1494,30 @@
         }
       });
     }
+
+  $(document).on('click', '.view-bom-details-btn', function(e){
+    e.preventDefault();
+    var guidebom =  $(this).data('bom');
+    if(guidebom){
+      var bom = guidebom;
+    }else{
+      var bom = "No BOM";
+    }
+    $('#production-order-val-bom').val($(this).data('production-order'));
+    $('#operation_id_update_bom').val($(this).data('operationid'));
+
+    $.ajax({
+      url: "/view_bom_for_review/" + bom,
+      type:"GET",
+      data:{production: $(this).data('production-order') },
+      success:function(data){
+        $('#review-bom-details-div').html(data);
+      }
+    });
+
+    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
+    $('#review-bom-modal').modal('show');
+  });
 
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();

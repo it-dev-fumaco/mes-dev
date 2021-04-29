@@ -11,10 +11,11 @@
             <div class="modal-body pt-0">
                 <div class="col-md-4 pull-right" style="margin-top: -50px; padding-right: 50px;">
                     <div class="form-group m-0 p-0">
-                        <input type="text" class="form-control search-feedback-prod" placeholder="Search" style="background-color: white;">
+                        <input type="text" class="form-control search-feedback-prod" placeholder="Search" style="background-color: white;" id="view-for-feedback-list-search-box">
                     </div>
                 </div>
                 <div class="row p-0">
+                    <span class="operation-id d-none" id="view-for-feedback-list-operation-id">0</span>
                     <div class="col-md-12 m-0 p-1" id="view-for-feedback-list-table"></div>
                 </div>
             </div>
