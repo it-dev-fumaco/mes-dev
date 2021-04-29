@@ -4600,6 +4600,14 @@ class MainController extends Controller
     public function create_stock_entry(Request $request, $production_order){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if($request->fg_completed_qty <= 0){
+				return response()->json(['success' => 0, 'message' => 'Qty for feedback cannot be less than or equal to zero.']);
+			}
+			
+			if (Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session expired. Please refresh the page.']);
+			}
+
 			$existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
 				->where('production_order', $production_order)
 				->where('purpose', 'Material Transfer for Manufacture')
@@ -4870,6 +4878,11 @@ class MainController extends Controller
 			];
 
 			DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
+
+			$inserted_ste = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->first();
+			if(!$inserted_ste){
+				return response()->json(['success' => 0, 'message' => 'There was no generated Stock Entry in ERP. Please try again.']);
+			}
 			
 			if($docstatus == 1){
 
