@@ -4627,6 +4627,11 @@ class MainController extends Controller
 			$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
 				->where('production_order', $production_order)->first();
 
+			$remarks_override = null;
+			if($produced_qty > $mes_production_order_details->produced_qty){
+				$remarks_override = 'Override';
+			}
+
 			if($mes_production_order_details->is_stock_item < 1){
 				return redirect('/create_bundle_feedback/'. $production_order .'/' . $request->fg_completed_qty);
 			}
@@ -4888,7 +4893,7 @@ class MainController extends Controller
 				$this->create_stock_ledger_entry($new_id);
 				$this->create_gl_entry($new_id);
 				
-				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details, $mes_production_order_details){
+				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details, $mes_production_order_details, $remarks_override){
 					$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
 					$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
 
@@ -4897,17 +4902,33 @@ class MainController extends Controller
 							'last_modified_at' => $now->toDateTimeString(),
 							'last_modified_by' => Auth::user()->email,
 							'feedback_qty' => $manufactured_qty,
-							'status' => $status
+							'status' => $status,
+							'remarks' => $remarks_override
 						];
 					}else{
 						$production_data_mes = [
 							'last_modified_at' => $now->toDateTimeString(),
 							'last_modified_by' => Auth::user()->email,
 							'feedback_qty' => $manufactured_qty,
+							'remarks' => $remarks_override
 						];
 					}
 
-					DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order_details->name)->update($production_data_mes);
+					if($remarks_override == 'Override'){
+						$job_ticket_mes = [
+							'completed_qty' => $manufactured_qty,
+							'remarks' => $remarks_override,
+							'status' => 'Completed',
+							'last_modified_by' => Auth::user()->email,
+						];
+	
+						DB::connection('mysql_mes')->table('job_ticket')
+							->where('production_order', $production_order_details->name)
+							->where('status', '!=', 'Completed')->update($job_ticket_mes);
+					}
+
+					DB::connection('mysql_mes')->table('production_order')
+						->where('production_order', $production_order_details->name)->update($production_data_mes);
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}
