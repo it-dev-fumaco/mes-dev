@@ -1328,6 +1328,16 @@
       $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
+      if(!$('#has-no-bom').text()) {
+        $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
+        $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
+        $('#change-required-qty-btn').attr('readonly', true);
+      } else {
+        $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
+        $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
+        $('#change-required-qty-btn').removeAttr('readonly');
+      }
+
       $.ajax({
         url: "/get_available_warehouse_qty/" + item_code,
         type:"GET",
