@@ -2136,6 +2136,10 @@ class ManufacturingController extends Controller
                 $existing_production_item = DB::connection('mysql')->table('tabProduction Order Item')
                     ->where('parent', $request->production_order)->where('item_code', $item_code)->first();
 
+                if($existing_production_item) {
+                    return response()->json(['status' => 2, 'message' => 'Item Code ' . $item_code . ' already exist.']);
+                }
+
                 if(!$existing_production_item){
                     // get remaining required qty if item is an alternative
                     if($request->item_as[$id] != 'new_item'){
