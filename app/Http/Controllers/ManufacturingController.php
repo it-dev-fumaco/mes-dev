@@ -1621,7 +1621,10 @@ class ManufacturingController extends Controller
                 ->where('sted.item_code', $item->item_code)->where('purpose', 'Manufacture')
                 ->where('ste.docstatus', 1)->sum('qty');
 
-            $available_qty_at_wip = $transferred_qty - $consumed_qty;
+            $remaining_available_qty_at_wip = $transferred_qty - $consumed_qty;
+            if($available_qty_at_wip > $remaining_available_qty_at_wip) {
+                $available_qty_at_wip = $remaining_available_qty_at_wip;
+            }
 
             $is_alternative = ($item->item_alternative_for && $item->item_alternative_for != 'new_item') ? 1 : 0;
 
