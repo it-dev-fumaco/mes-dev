@@ -8,9 +8,9 @@ Instructions using GUI and Commands
     Create "sessions" folder in /storage/framework
     Setup database connections in config/database.php
         - ESSEX (for dev)
-            - host = 10.0.48.82
+            - host = 10.0.0.93
             - database name = 'essex'
-            - username = it2
+            - username = dev
             - password = 'fumaco'
         - ERP (for dev)
             - host = 10.0.48.85
@@ -18,9 +18,9 @@ Instructions using GUI and Commands
             - username = erp
             - password = 'fumaco'
         - MES (for dev)
-            - host 10.0.48.82
-            - database name = 'mes'
-            - username = it2
+            - host 10.0.0.93
+            - database name = 'mes-testing'
+            - username = dev
             - password = 'fumaco'
     Type php artisan key:generate
     Type php artisan optimize
