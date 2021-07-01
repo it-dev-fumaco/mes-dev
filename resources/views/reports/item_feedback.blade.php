@@ -1147,6 +1147,7 @@ $(document).ready(function(){
       success:function(data){
         if(data.status) {
           $('#review-bom-modal').modal('hide');
+          $('#manual-production-modal input[name="is_reviewed"]').val(1);
           showNotification("success", data.message, "now-ui-icons ui-1_check");
         } else {
           showNotification("danger", data.message, "now-ui-icons travel_info");

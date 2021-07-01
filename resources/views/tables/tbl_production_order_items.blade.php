@@ -16,7 +16,7 @@
 		}
 	}
 
-	$no_bom = ($details->bom_no == null) ? 'disabled' : '';
+	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
 <table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1">

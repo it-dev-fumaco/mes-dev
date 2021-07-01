@@ -4638,11 +4638,11 @@ class MainController extends Controller
 
 			$now = Carbon::now();
 
-			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
+			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->where('name', 'like', '%step%')->max('name');
 			$latest_pro_exploded = explode("-", $latest_pro);
-			$new_id = $latest_pro_exploded[1] + 1;
-			$new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-			$new_id = 'STEM-'.$new_id;
+			$new_id = (($latest_pro) ? $latest_pro_exploded[1] : 0) + 1;
+			$new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
+			$new_id = 'STEP-'.$new_id;
 
 			$production_order_items = $this->feedback_production_order_items($production_order, $mes_production_order_details->qty_to_manufacture, $request->fg_completed_qty);
 
