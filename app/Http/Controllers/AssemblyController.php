@@ -28,9 +28,9 @@ class AssemblyController extends Controller
 
     public function get_reference_details($reference_type, $id){
         try {
-            $reference_details = DB::connection('mysql')->table('tab' . $reference_type)->where('name', $id)->first();
+            $reference_details = DB::connection('mysql')->table('tab' . $reference_type)->where('name', $id)->where('docstatus', 1)->first();
             if (!$reference_details) {
-                return response()->json(['message' => $reference .' <b>' . $id . '</b> not found.']);
+                return response()->json(['message' => $reference_type .' <b>' . $id . '</b> not found.']);
             }
 
             if ($reference_type == 'Sales Order') {

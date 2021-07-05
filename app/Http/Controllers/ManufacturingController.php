@@ -94,7 +94,7 @@ class ManufacturingController extends Controller
 
     public function get_sales_order_details($id){
         try {
-            $so = DB::connection('mysql')->table('tabSales Order')->where('name', $id)->first();
+            $so = DB::connection('mysql')->table('tabSales Order')->where('name', $id)->where('docstatus', 1)->first();
             if (!$so) {
                 return response()->json(['message' => 'Sales Order <b>' . $id . '</b> not found.']);
             }
