@@ -86,7 +86,9 @@ trait GeneralTrait
 
         // update production order status in ERP
         $production_order_status = ($production_order_status == 'In Progress') ? 'In Process' : $production_order_status;
-        DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
+        if($production_order_status != 'Completed') {
+            DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
+        }
 
         // get job ticket actual start and end time 
         $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
