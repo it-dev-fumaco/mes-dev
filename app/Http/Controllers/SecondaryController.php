@@ -2156,6 +2156,7 @@ class SecondaryController extends Controller
 
         }else{
             DB::connection('mysql_mes')->table('process')->where("process_id", $request->delete_process_id)->delete();
+            DB::connection('mysql_mes')->table('process_assignment')->where("process_id", $request->delete_process_id)->delete();
             return response()->json(['success' => 1, 'message' => 'Process successfully deleted.']);
         } 
     }
