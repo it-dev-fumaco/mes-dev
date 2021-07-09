@@ -1049,6 +1049,10 @@ class ManufacturingController extends Controller
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
 
+            if ($item_details->is_stock_item == 0) {
+                return response()->json(['success' => 0, 'message' => 'Item <b>' . $request->item_code . '</b> is not a stock item.']);
+            }
+
             $item_classification = ($request->item_classification) ? $request->item_classification : $item_details->item_classification;
             $stock_uom = ($request->stock_uom) ? $request->stock_uom : $item_details->stock_uom;
             $item_name = ($request->item_name) ? $request->item_name : $item_details->item_name;
@@ -2670,6 +2674,10 @@ class ManufacturingController extends Controller
             $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
             if (!$item) {
                 return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' not found.']);
+            }
+
+            if(!$request->custom_bom && $item->is_stock_item == 0){
+                return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' is not a stock item.']);
             }
 
             $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
