@@ -635,6 +635,10 @@ class MainController extends Controller
 
 	public function endTask(Request $request){
         try {
+			if(!Auth::user()) {
+				return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$now = Carbon::now();
 			$current_task = DB::connection('mysql_mes')->table('time_logs')
 				->where('time_log_id', $request->id)->first();
@@ -1341,6 +1345,10 @@ class MainController extends Controller
 
 	public function end_scrap_task(Request $request){
         try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
         	if (number_format($request->completed_qty_kg, 12) > number_format($request->balance_qty, 12)) {
 				return response()->json(['success' => 0, 'message' => number_format($request->completed_qty_kg, 12) . 'Completed qty cannot be greater than ' . number_format($request->balance_qty, 12)]);
 			}
@@ -2252,6 +2260,10 @@ class MainController extends Controller
 	}
 
     public function update_production_task_schedules(Request $request){
+		if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
 		$now = Carbon::now();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 		if (!$production_order_details) {
@@ -3286,6 +3298,10 @@ class MainController extends Controller
     }
 
     public function reset_task(Request $request){
+		if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
     	$now = Carbon::now();
     	$update = [
     		'from_time' => null,
@@ -3328,6 +3344,10 @@ class MainController extends Controller
 
     public function mark_as_done_task(Request $request){
     	try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
             if ($request->id) {
                 $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)
                     ->where('status','=', 'Completed')->first();
@@ -3868,6 +3888,10 @@ class MainController extends Controller
 	
 	public function reject_task(Request $request){
 		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 
@@ -4045,6 +4069,10 @@ class MainController extends Controller
 	}
 
 	public function add_helper(Request $request){
+		if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
 		$now = Carbon::now();
 		if (Auth::user()->user_id == $request->helper_id) {
 			return response()->json(['success' => 0, 'message' => "Please enter helper ID."]);
@@ -4600,6 +4628,10 @@ class MainController extends Controller
     public function create_stock_entry(Request $request, $production_order){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
 				->where('production_order', $production_order)
 				->where('purpose', 'Material Transfer for Manufacture')
@@ -5580,6 +5612,10 @@ class MainController extends Controller
 	public function delete_pending_material_transfer_for_manufacture($production_order, Request $request){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if(!Auth::user()) {
+				return response()->json(['error' => 1, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$production_order_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->first();
 			$now = Carbon::now();
 			// get all pending stock entries based on item code production order
@@ -5684,6 +5720,10 @@ class MainController extends Controller
 	public function delete_pending_material_transfer_for_return($sted_id, Request $request){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if(!Auth::user()) {
+				return response()->json(['error' => 1, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$now = Carbon::now();
 			$sted_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $sted_id)->first();
 			
