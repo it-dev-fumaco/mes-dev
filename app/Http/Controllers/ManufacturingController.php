@@ -1193,7 +1193,8 @@ class ManufacturingController extends Controller
                 'erp_reference_id' => $request->item_reference_id,
                 'reference_no' => ($sales_order) ? $sales_order : $material_request,
                 'parent_item_code' => strtoupper($request->parent_code),
-                'delivery_date' => $request->delivery_date
+                'delivery_date' => $request->delivery_date,
+                'created_by' => Auth::user()->email
             ];
 
             $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
@@ -2888,7 +2889,8 @@ class ManufacturingController extends Controller
                     'erp_reference_id' => $reference_child_details->name,
                     'reference_no' => $reference_parent,
                     'parent_item_code' => $parent_item_code,
-                    'delivery_date' => ($request->reference_type == 'SO') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date
+                    'delivery_date' => ($request->reference_type == 'SO') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date,
+                    'created_by' => Auth::user()->email
                 ];
 
                 $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
