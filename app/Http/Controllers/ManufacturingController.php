@@ -443,7 +443,7 @@ class ManufacturingController extends Controller
                                 'item_classification' => $child_part['item_classification'],
                                 'bom' => $child_default_bom->name,
                                 'bom_reviewed' => $child_default_bom->is_reviewed,
-                                'planned_qty' => $child_part['qty'] * $request->qty[$idx],
+                                'planned_qty' => ($child_part['qty'] * $request->qty[$idx]) * $parent_part['qty'],
                                 'reference_no' => $reference_no,
                                 'planned_start_date' => ($existing_prod2) ? $planned_start_date2 : null,
                                 'production_order' => ($existing_prod2) ? $existing_prod2->name : null,
@@ -494,7 +494,7 @@ class ManufacturingController extends Controller
                                     'item_classification' => $child_part2['item_classification'],
                                     'bom' => $child_default_bom->name,
                                     'bom_reviewed' => $child_default_bom->is_reviewed,
-                                    'planned_qty' => $child_part2['qty'] * $request->qty[$idx],
+                                    'planned_qty' => ($child_part2['qty'] * $request->qty[$idx]) * $child_part['qty'],
                                     'reference_no' => $request->so[$idx],
                                     'planned_start_date' => ($existing_prod3) ? $planned_start_date3 : null,
                                     'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
@@ -545,7 +545,7 @@ class ManufacturingController extends Controller
                                         'item_classification' => $child_part3['item_classification'],
                                         'bom' => $child_default_bom->name,
                                         'bom_reviewed' => $child_default_bom->is_reviewed,
-                                        'planned_qty' => $child_part3['qty'] * $request->qty[$idx],
+                                        'planned_qty' => ($child_part3['qty'] * $request->qty[$idx]) * $child_part2['qty'],
                                         'reference_no' => $request->so[$idx],
                                         'planned_start_date' => ($existing_prod3) ? $planned_start_date2 : null,
                                         'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
@@ -775,6 +775,7 @@ class ManufacturingController extends Controller
 
     // wizard / manual create production order / bom crud
     public function submit_bom_review(Request $request, $bom){
+        // return $request->all();
         $process_arr = [];
         foreach ($request->wprocess as $i => $process_id) {
             if(!in_array($process_id, $process_arr)){

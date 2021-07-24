@@ -123,8 +123,9 @@ trait GeneralTrait
         $logs = DB::connection('mysql_mes')->table('job_ticket')
             ->where('production_order', $production_order)
             ->whereIn('status', ['In Progress'])->get();
+        $produced_qty = 0;
          // get production order produced qty
-         $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+         $produced_qty += DB::connection('mysql_mes')->table('job_ticket')
             ->where('production_order', $production_order)->min('completed_qty');
         // set production order status
         if($production_order_details->qty_to_manufacture <= $produced_qty){
