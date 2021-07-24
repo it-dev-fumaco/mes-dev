@@ -73,7 +73,7 @@ trait GeneralTrait
 			->where('production_order', $job_ticket_detail->production_order)->min('completed_qty');
 
         // set production order status
-        if($job_ticket_detail->qty_to_manufacture <= $produced_qty){
+        if($job_ticket_detail->qty_to_manufacture == $produced_qty){
             $production_order_status = 'Completed';
         }else if(count($logs) > 0){
             $production_order_status = 'In Progress';
