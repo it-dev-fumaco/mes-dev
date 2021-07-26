@@ -780,35 +780,45 @@ class ManufacturingController extends Controller
 
     // wizard / manual create production order / bom crud
     public function submit_bom_review(Request $request, $bom){
-        if(!Auth::user()) {
-            return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
-        }
-
-        $process_arr = [];
-        foreach ($request->wprocess as $i => $process_id) {
-            if(!in_array($process_id, $process_arr)){
-                array_push($process_arr, $process_id);
-            }else{
-                return response()->json(['status' => 0, 'message' => 'Duplicate process was selected for workstation <b>' . $request->workstation[$i] . '</b>.']);
-            }
-        }
-
-        $now = Carbon::now();
-        if($bom == "no_bom"){
-            $bom_value= "nobom";
-        }else{
-            $bom_value= "withbom";
-
-        }
-        if (is_numeric($request->operation)){
-            $operation_name=DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation)->first();
-            $operation=$operation_name->operation_name;
-
-        }else{
-            $operation=$request->operation;
-
-        }
         try {
+            if(!Auth::user()) {
+                return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
+            if(!$request->wprocess) {
+                return response()->json(['status' => 0, 'message' => 'Workstation / Process cannot be empty.']);
+            }
+    
+            $process_arr = [];
+            foreach ($request->wprocess as $i => $process_id) {
+                if(!in_array($process_id, $process_arr)){
+                    array_push($process_arr, $process_id);
+                }else{
+                    return response()->json(['status' => 0, 'message' => 'Duplicate process was selected for workstation <b>' . $request->workstation[$i] . '</b>.']);
+                }
+            }
+
+            if($request->production_order) {
+                $in_process_job_ticket = DB::connection('mysql_mes')->table('job_ticket as jt')
+                    ->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+                    ->where('jt.production_order', $request->production_order)
+                    ->where('tl.status', 'In Progress')->first();
+
+                if($in_process_job_ticket) {
+                    return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. ' . $in_process_job_ticket->workstation .' is currently in progress.']);
+                }
+            }
+
+            $now = Carbon::now();
+            
+            $bom_value = ($bom == "no_bom") ? "nobom" : "withbom";
+            
+            if (is_numeric($request->operation)){
+                $operation_name = DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation)->first();
+                $operation = ($operation_name) ? $operation_name->operation_name : null;
+            }else{
+                $operation = $request->operation;
+            }
             // operations for delete
             if ($request->id) {
                 $bom_operations = DB::connection('mysql')->table('tabBOM Operation')
@@ -822,39 +832,60 @@ class ManufacturingController extends Controller
                 if($production_order_details && $production_order_details->feedback_qty > 0) {
                     return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. Production Order has been partially feedbacked.']);
                 }
-                DB::connection('mysql_mes')->table('job_ticket')
-                    ->where('production_order', $request->production_order)
-                    ->when($bom_value == 'nobom', function ($query) use ($request){
-                        return $query->whereNotIn('job_ticket_id', array_filter($request->id));
-                    })
-                    ->when($bom_value == 'withbom', function ($query) use ($request){
-                        return $query->whereNotIn('bom_operation_id', array_filter($request->id));
-                    })->delete();
-            }
 
+                if ($bom_value == 'nobom') {
+                    DB::connection('mysql_mes')->table('job_ticket')
+                        ->where('production_order', $request->production_order)
+                        ->whereNotIn('job_ticket_id', array_filter($request->id))
+                        ->delete();
+                }
+
+                if ($bom_value == 'withbom') {
+                    DB::connection('mysql_mes')->table('job_ticket')
+                        ->where('production_order', $request->production_order)
+                        ->whereNotIn('bom_operation_id', array_filter($request->id))
+                        ->delete();
+                }
+            }
+        
             if ($request->workstation) {
                 foreach ($request->workstation as $index => $workstation) {
                     if ($request->id[$index]) {
                         if ($workstation != 'Painting') {
-                            DB::connection('mysql')->table('tabBOM Operation')->where('name', $request->id[$index])
-                            ->update(['process' => $request->wprocess[$index], 'idx' => $index + 1]);
+                            if($bom_value == 'withbom') {
+                                DB::connection('mysql')->table('tabBOM Operation')->where('name', $request->id[$index])
+                                    ->update(['process' => $request->wprocess[$index], 'idx' => $index + 1]);
+                            }
 
                             if ($request->production_order) {
-                                DB::connection('mysql_mes')->table('job_ticket')
+                                $jtd = DB::connection('mysql_mes')->table('job_ticket')
                                     ->where('production_order', $request->production_order)
-                                    ->where('workstation', $workstation)
-                                    ->where('status', 'Pending')
+                                    ->where('workstation', $workstation)->where('status', 'Pending')
                                     ->when($bom_value == 'nobom', function ($query) use ($request, $index){
                                         return $query->where('job_ticket_id', $request->id[$index]);
                                     })
                                     ->when($bom_value == 'withbom', function ($query) use ($request, $index){
                                         return $query->where('bom_operation_id', $request->id[$index]);
-                                    })->update([
-                                        'process_id' => $request->wprocess[$index],
-                                        'idx' => $index + 1,
-                                        'status' => 'Pending',
-                                        'last_modified_by' => $request->user,
-                                    ]);
+                                    })->first();
+
+                                if($jtd) {
+                                    DB::connection('mysql_mes')->table('job_ticket')
+                                        ->where('job_ticket_id', $jtd->job_ticket_id)
+                                        ->update([
+                                            'process_id' => $request->wprocess[$index],
+                                            'idx' => $index + 1,
+                                            'last_modified_by' => $request->user,
+                                        ]);
+                                        
+                                    DB::connection('mysql')->table('tabProduction Order Operation')
+                                        ->where('parent', $request->production_order)->where('workstation', $workstation)
+                                        ->where('status', 'Pending')->where('process', $jtd->process_id)
+                                       ->update([
+                                            'process' => $request->wprocess[$index],
+                                            'idx' => $index + 1,
+                                            'modified_by' => $request->user,
+                                        ]);
+                                }
                             }
                         }else{
                             DB::connection('mysql')->table('tabBOM Operation')->where('name', $request->id[$index])
@@ -877,7 +908,6 @@ class ManufacturingController extends Controller
                                             'bom_operation_id' => $request->id[$index],
                                             'process_id' => $painting_process,
                                             'idx' => $index + $i + 1,
-                                            'status' => 'Pending',
                                             'last_modified_by' => $request->user,
                                         ]);
                                 }
@@ -885,13 +915,14 @@ class ManufacturingController extends Controller
                         }
                     }else{
                         if($operation == null){
-                            $operation_db=db::connection('mysql_mes')
-                            ->table('workstation')
-                            ->join('operation', 'operation.operation_id', 'workstation.operation_id')
-                            ->where('workstation_name',$request->workstation[$index])
-                            ->select('operation.operation_name')->first();
-                            $operation=$operation_db->operation_name;
+                            $operation_db = DB::connection('mysql_mes')->table('workstation')
+                                ->join('operation', 'operation.operation_id', 'workstation.operation_id')
+                                ->where('workstation_name',$request->workstation[$index])
+                                ->select('operation.operation_name')->first();
+
+                            $operation = $operation_db->operation_name;
                         }
+                      
                         if ($workstation != 'Painting') {
                             $name = uniqid();
                             $values = [
@@ -913,6 +944,37 @@ class ManufacturingController extends Controller
                             DB::connection('mysql')->table('tabBOM Operation')->insert($values);
 
                             if ($request->production_order) {
+                                $prod_ops = [
+                                    'name' => 'mes'.uniqid(),
+                                    'creation' => $now->toDateTimeString(),
+                                    'modified' => $now->toDateTimeString(),
+                                    'modified_by' => Auth::user()->email,
+                                    'owner' => Auth::user()->email,
+                                    'docstatus' => 1,
+                                    'parent' => $request->production_order,
+                                    'parentfield' => 'operations',
+                                    'parenttype' => 'Production Order',
+                                    'idx' => $index + 1,
+                                    'status' => 'Pending',
+                                    'actual_start_time' => null,
+                                    'workstation' => $workstation,
+                                    'completed_qty' => 0,
+                                    'planned_operating_cost' => 0,
+                                    'description' => $workstation,
+                                    'actual_end_time' => null,
+                                    'actual_operating_cost' => 0,
+                                    'hour_rate' => 0,
+                                    'planned_start_time' => null,
+                                    'bom' => $bom,
+                                    'actual_operation_time' => 0,
+                                    'operation' => $operation,
+                                    'planned_end_time' => null,
+                                    'time_in_mins' => 1,
+                                    'process' => $request->wprocess[$index],
+                                ];
+
+                                DB::connection('mysql')->table('tabProduction Order Operation')->insert($prod_ops);
+
                                 $insert = [
                                     'production_order' => $request->production_order,
                                     'workstation' => $workstation,
@@ -971,17 +1033,32 @@ class ManufacturingController extends Controller
                 }
             }
             if ($request->production_order) {
-                $pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+                DB::connection('mysql')->table('tabProduction Order Operation')
+                    ->where('parent', $request->production_order)->whereNotIn('process', $request->wprocess)
+                    ->whereNotIn('status', ['Completed'])->delete();
+
+                $jt = DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $request->production_order)->get();
+                $count_jt = collect($jt)->count();
+                $pending_jt = collect($jt)->where('status', 'Pending')->count();
+                $completed_jt = collect($jt)->where('status', 'Completed')->count();
+
+                $status = ($count_jt == $pending_jt) ? 'Not Started' : 'In Progress';
+                $status = ($count_jt == $completed_jt) ? 'Completed' : $status;
+
+                DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)
-                    ->where('status', 'Pending')->count();
-                if ($pending_job_ticket > 0) {
-                    DB::connection('mysql_mes')->table('production_order')
-                        ->where('production_order', $request->production_order)
-                        ->update(['status' => 'In Progress', 'produced_qty' => 0]);
-                }
+                    ->update(['status' => $status]);
+
+                $status = ($status == 'In Progress') ? 'In Process' : $status;
+
+                DB::connection('mysql')->table('tabProduction Order')
+                    ->where('name', $request->production_order)
+                    ->update(['status' => $status]);
 
                 $this->update_production_order_produced_qty($request->production_order);
             }
+
             DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $request->user, 'last_date_reviewed' => $now->toDateTimeString()]);
             
             return response()->json(['status' => 1, 'message' => 'BOM updated and reviewed.']);
