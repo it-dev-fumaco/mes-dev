@@ -158,7 +158,7 @@
 						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
@@ -336,7 +336,7 @@
 						<span class="d-block font-weight-bold item-code">{{ $part['item_code'] }}</span>
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
