@@ -1,54 +1,49 @@
+<table cellspacing="0" cellpadding="0" class="text-center table table-bordered tableFixHead" style="width: 2600px; border-collapse: separate;overflow:;" id="ceo" >
 
 
-<table cellspacing="0" cellpadding="0" class="text-center table table-bordered" style="width: 2600px; border-collapse: collapse;overflow: visible;" id="ceo" >
+<thead class="classheader">
 
-
-<thead style="font-weight:bold; color:#e67e22;border-bottom:1px solid black;">
-
-<tr style="font-size:10px;border-bottom:0px solid black;border:1px solid black">
+<tr style="border-bottom:1px solid white;">
   
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;width:100px;font-weight: bold;" class="classme" data-sort="name" colspan="7">Item Details</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" colspan="7">Item Details</th>
   
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" colspan="4" rowspan="2">Quantity</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;border-bottom:1px solid black;background-color:#fef5e7;width:100px;background-color:#f6ddcc; font-weight: bold;" class="classme" data-sort="name" colspan="{{ $quality_check }}">Quality Check</th>
-  <th style="#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px; border: 1px solid black; border-right: 1px solid black;" data-sort="name" rowspan="3">Status </th>
-  <th style="#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px; border: 1px solid black; border-right: 1px solid black;" data-sort="name" rowspan="3">Remarks </th>
-  <th style="#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px; border: 1px solid black; border-right: 1px solid black;" data-sort="name" rowspan="3">Operator </th>
-    <th style="#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px; border: 1px solid black; border-right: 1px solid black;" data-sort="name" rowspan="3">QC Staff </th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" colspan="4" rowspan="2">Quantity</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" colspan="4" rowspan="2">Quality Check</th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" rowspan="3">Status </th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" rowspan="3">Remarks </th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" rowspan="3">Operator </th>
+  <th style="color:#ffffff; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px; border: 1px solid white; border-right: 1px solid white;z-index:2;"  class="classme" data-sort="name" rowspan="3">QC Staff </th>
 
 </tr>
-<tr style="border-bottom:1px solid black;">
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Production Order</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:70px;" class="classme" data-sort="name" rowspan="2">Ref No</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black; background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Description</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Workstation</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black; background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Process</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;background-color:#fef5e7;font-weight: bold;font-size: 13px;width:70px;" class="classme" data-sort="name" rowspan="2">Machine</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black; background-color:#fef5e7;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Date</th>
-  <th style=";color: #d35400;padding: 7px 5px 6px 12px ;border:1px solid black;font-weight: bold;width:100px;background-color:#f6ddcc;font-size: 11px;" class="classme" data-sort="name" colspan="{{$count_header_variable}}">Variable Checked</th>
-  <th style=";color: #d35400;padding: 7px 5px 6px 12px ;border:1px solid black;font-weight: bold;width:100px;background-color:#f6ddcc;font-size: 11px;" class="classme" data-sort="name" colspan="{{$count_header_visual}}"> Visual Checked</th>
+<tr style="border-bottom:1px solid white;">
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Production Order</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:60px;" class="classme" data-sort="name" rowspan="2">Ref No</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:360px;" class="classme" data-sort="name" rowspan="2">Description</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Workstation</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Process</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;background-color:#0277BD;font-weight: bold;font-size: 13px;width:50px;" class="classme" data-sort="name" rowspan="2">Machine</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white; background-color:#0277BD;font-weight: bold;font-size: 13px;width:100px;" class="classme" data-sort="name" rowspan="2">Date</th>
 </tr>
-<tr style="border-bottom:1px solid black;">
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;width:20px;background-color:#fef5e7;width:20px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Batch</th>
-  <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;width:20px;background-color:#fef5e7;width:20px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Samples</th>
- <th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;width:20px;background-color:#fef5e7;width:20px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Actual</th>
-<th style="color:#d35400; padding: 7px 5px 6px 12px;border:1px solid black;width:20px;background-color:#fef5e7;width:40px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Reject</th>
-   @foreach($header as $values)
-
- <th style=";color: #d35400;width:10px;background-color:#fef5e7;padding: 7px 5px 6px 12px ;font-size: 11px;font-weight: bold;border:1px solid black;border-bottom: 50px;" class="classme" data-sort="name">{{$values['reject_checklist']}}</th>
+<tr style="border-bottom:1px solid white;">
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Batch</th>
+  <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 13px;" class="classme" data-sort="name">Samples</th>
+ <th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Actual</th>
+<th style="color:#ffffff;z-index:2; padding: 7px 5px 6px 12px;border:0.8px solid white;width:20px;background-color:#0277BD;width:8px;font-weight: bold;font-size: 12px;" class="classme" data-sort="name">Reject</th>
+  @foreach($header as $values)
+ <th style="z-index:2;color: #ffffff;width:10px;background-color:#0277BD;padding: 7px 5px 6px 12px ;font-size: 11px;font-weight: bold;border:0.8px solid white;border-bottom: 50px;" class="classme" data-sort="name">{{$values->reject_category_name}}</th>
   @endforeach
 
   
 </tr>
 </thead>
-<tbody style="font-size:12px;">
+<tbody style="font-size:10.5px;">
 
 @forelse($data as $rows)
   
-  <tr class="item" style="font-size: 13px;">
+  <tr class="item" style="font-size: 11.5px;">
     <td style="padding:0px; margin:0px;"><a class="prod-details-btn" data-jtno="{{$rows['production_order']}}"><b><span>{{$rows['production_order']}}</span></b></a><span style="display: block;font-size: 10px;">{{$rows['customer']}}</span></td>
     <td style="">{{$rows['reference_id']}} </td>
-    <td style="padding:0px; margin:0px;"><b>{{$rows['item_code']}}</b> - {{$rows['decsription']}}</td>
+    <td style="padding:0px; margin:0px;text-align:justify;"><b>{{$rows['item_code']}}</b> - {{$rows['decsription']}}</td>
     <td style="padding:0px; margin:0px;">{{$rows['workstation']}} </td>
     <td style="padding:0px; margin:0px;">{{$rows['process']}}</td>
     <td style="padding:0px; margin:0px;">{{$rows['machine']}}</td>
@@ -57,42 +52,39 @@
     <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['samples']}}</span> </td>
     <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['actual_qty']}}</span></td>
     <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['reject']}}</span></td>
-    <td colspan="{{ $quality_check }}" style="margin:0px;padding:0px;border:0; text-align: center;vertical-align: middle;" class="text-center">
-      <table style="width:100%;text-align:center;border:0;vertical-align: middle;">
-          @foreach($width as $value)
-           <col style="width: {{$value['value']}}%;">
-          @endforeach
-          @foreach($rows['checklist'] as $value)
-           <tr style="word-break: break-word;padding: 0;margin: 0;border:0;vertical-align: middle;">
-                  
-              @foreach($value['checklist'] as $s)
+         
+              @foreach($rows['checklist'] as $value)
                 @php
-                if($s['stat'] == 'good'){
-                  $bcolor="#7dcea0";
-                  $fontw="bold";
-                  }else{
-                  $bcolor="#ec7063";
-                  $fontw="bolder";
-                }
-                @endphp 
-                <td class="classme" style="color:black; text-align:center;font-size: 12px;font-weight:{{$fontw}}; background-color: {{$bcolor}};vertical-align: middle;padding: 0;margin: 0;;" data-sort="name">
-                  <table style="vertical-align: middle;">
-                    <tr style="display: {{($s['size'] == 'none')? 'none':""}};vertical-align: middle;">
-                      <td>{{$s['size']}}</td>
-                    </tr>
-                    <tr rowspan="{{($s['size'] == 'none')? '2':''}}" style="vertical-align: middle;"><td style="vertical-align: middle;">{{$s['value']}}</td></tr>
-                  </table>
-                </td>
+                    if ($value['stat'] =="QC Passed") {
+                      $div_color="#52be80";
+                    }elseif ($value['stat'] =="QC Failed") {
+                      $div_color="#ec7063";
+                    }else{
+                      $div_color="#fae5d3";
+                    }
+                @endphp
+                    <td style="padding:0px; margin:0px;vertical-align:baseline;" class="align-middle">
+                      <table style="padding:0px; margin:0px;vertical-align:baseline;border:0.8px solid white;">
+                        @if($value['count'] == 0)
+                          <tr style="padding:0px; margin:0px;vertical-align:baseline;border:0.8px solid white;"  class="align-middle">
+                            <td  class="align-middle" style="padding:0px; margin:0px;vertical-align:baseline;border:0.8px solid white;background-color:{{$div_color}};" colspan="{{$value['colspan']}}">{{$value['stat']}}</td>
+                          </tr>
+                        @endif
+                        @if($value['count'] == 1)
+                          @foreach($value['value'] as $row)
+                          <tr style="padding:0px; margin:0px;vertical-align:baseline; ">
+                            <td style="padding:0px; margin:0px;vertical-align:baseline; background-color:{{$div_color}};"  class="align-middle">{{$row->reject_reason}}</td>
+                            <td style="padding: 7px 5px 6px 12px; margin:1px;vertical-align:baseline;background-color:{{$div_color}}"  class="align-middle">{{($row->reject_value == "undefined") ? "Failed":$row->reject_value}}</td>
+                          </tr>
+                          @endforeach
+                        @endif
+                      </table>
+                    </td>
               @endforeach
-            </tr>
-          @endforeach
-      </table>
-    </td>
-  <td style="padding: 7px 5px 6px 12px;">{{$rows['status']}} </td>
-  <td style="padding: 7px 5px 6px 12px;">{{$rows['remarks']}} </td>
-  <td style="padding: 7px 5px 6px 12px;">{{$rows['operator']}} </td>
-  <td style="padding: 7px 5px 6px 12px;">{{$rows['qc_staff']}} </td>
-      
+              <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['status']}}</span> </td>
+              <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['remarks']}}</span> </td>
+              <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['operator']}}</span></td>
+              <td style="padding:0px; margin:0px;"><span style="display: block;">{{$rows['qc_staff']}}</span></td>
 </tr>
    
 

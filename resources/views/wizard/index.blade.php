@@ -708,32 +708,32 @@
          }
       });
 
-      $(document).on('change', '#sel-workstation', function(){
-         $('#add-operation-btn').attr('disabled', true);
-         var workstation = $(this).val();
-         $('#sel-process').empty();
-         if (workstation) {
-            $.ajax({
-               url: '/get_workstation_process/' + workstation,
-               type:"GET",
-               success:function(data){
-                  if (data.length > 0) {
-                     var opt = '<option value="">Select Process</option>';
-                     $.each(data, function(i, v){
-                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
-                     });
+      // $(document).on('change', '#sel-workstation', function(){
+      //    $('#add-operation-btn').attr('disabled', true);
+      //    var workstation = $(this).val();
+      //    $('#sel-process').empty();
+      //    if (workstation) {
+      //       $.ajax({
+      //          url: '/get_workstation_process/' + workstation,
+      //          type:"GET",
+      //          success:function(data){
+      //             if (data.length > 0) {
+      //                var opt = '<option value="">Select Process</option>';
+      //                $.each(data, function(i, v){
+      //                   opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+      //                });
 
-                     $('#sel-process').append(opt);
+      //                $('#sel-process').append(opt);
 
-                     $('#add-operation-btn').removeAttr('disabled');
-                     $('#add-operation-btn').text('Add Operation');
-                  }else{
-                     $('#add-operation-btn').text('No Assigned Process');
-                  }
-               }
-            });
-         }
-      });
+      //                $('#add-operation-btn').removeAttr('disabled');
+      //                $('#add-operation-btn').text('Add Operation');
+      //             }else{
+      //                $('#add-operation-btn').text('No Assigned Process');
+      //             }
+      //          }
+      //       });
+      //    }
+      // });
 
       $('.prev-btn').click(function(){         
          $('.nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');

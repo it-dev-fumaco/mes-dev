@@ -44,7 +44,7 @@
             @endphp
             @if (count($b) > 0)
             <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
-              <a href="/main_dashboard">
+              <a href="/qa_dashboard">
                 <i class="now-ui-icons business_chart-bar-32"></i>
                 <p>QA Dashboard</p>
               </a>
@@ -121,8 +121,8 @@
             </li>
             @endif
           @endisset
-          <li>
-            <a href="/report/production_schedule_report">
+          <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
+            <a href="/report_index">
               <i class="now-ui-icons files_single-copy-04"></i>
               <p>Reports</p>
             </a>
@@ -134,7 +134,6 @@
             </a>
           </li>
         </ul>
-
     </div>
   </div>
  
@@ -355,7 +354,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>7.6.1</b> <span style="font-size: 9pt;">Latest Release: 2020-01-11</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>8.3</b> <span style="font-size: 9pt;">Latest Release: 2021-04-19</span></h5>
             </div>          
           </div>
         </div>
@@ -370,12 +369,17 @@
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
+          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
+          
+      
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body" style="min-height: 600px;">
+            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
+              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails1" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
+            </div>
           <div id="production-search-content"></div>
         </div>
       </div>
@@ -385,13 +389,17 @@
   <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
+        <div class="modal-header text-white" style="background-color: #0277BD;" id="prod_search2">
+          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body" style="min-height: 600px;">
+            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
+              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails2" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
+
+            </div>
           <div id="production-search-content-modal2"></div>
         </div>
       </div>
@@ -415,7 +423,13 @@
               <div class="col-md-12">
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
-                <p style="font-size: 14pt; margin: 0;" class="text-center">Cancel Production Order <b><span></span></b>?</p>
+                <p style="font-size: 14pt;" class="text-center m-0">Cancel Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-6 offset-md-3 mt-3">
+                <div class="form-group text-center">
+                  <span class="font-weight-bold">Select Reason for Cancellation</span>
+                  <select name="reason_for_cancellation" class="form-control rounded" required></select>
+                </div>
               </div>
               <div class="col-md-12" id="items-for-return-table"></div>
             </div>
@@ -481,12 +495,12 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog">
+  <div class="modal fade" id="reschedule-delivery-modal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog" role="document" style="min-width:40%;">
       <form action="/update_rescheduled_delivery_date" id="reschedule_delivery_frm" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header  text-white" style="background-color: #0277BD;" >
             <h5 class="modal-title">Reschedule Delivery Date</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -499,6 +513,41 @@
               </div>
             </div>
           </div>
+          <input type="hidden" class="tbl_reload_deli_modal" name="reload_tbl" value="reloadpage">
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal fade" id="confirm-reset-workstation-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <form action="/reset_workstation_data" method="POST" id="reset-works-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title">Confirmation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-md-12">
+                   <input type="hidden" name="reset_job_ticket_id" class="reset_job_ticket_id">
+                   <input type="hidden" name="reset_prod"  class="reset_prod">
+                   <input type="hidden" name="reload_tbl"  class="reset_reload_tbl">
+
+                   <div class="row">
+                     <div class="col-sm-12"style="font-size: 12pt;">
+                         <label> Are you sure you want to reset <span class="reset_job_ticket_workstation" style="font-weight: bold;"></span> ?</label>
+                     </div>               
+                   </div>
+                </div>
+            </div>
+          </div>
           <div class="modal-footer" style="padding: 5px 10px;">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-primary">Submit</button>
@@ -508,6 +557,37 @@
     </div>
   </div>
   @include('modals.item_track_modal')
+  @include('modals.change_required_qty_modal')
+
+  <div class="modal fade" id="cancel-production-order-feedback-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+      <form action="/cancel_production_order_feedback" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title">Cancel Production Order Feedback</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row m-0 p-0">
+              <div class="col-md-12 p-0">
+                  <input type="hidden" name="stock_entry">
+                  <p class="text-center p-0 m-0">
+                  <span class="d-block">Do you want to cancel production order feedback</span> for <span class="production-order font-weight-bold">-</span> <span class="qty font-weight-bold">-</span>?</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer p-2">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Confirm</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <style type="text/css">
     .qc_passed{
       background-image: url("{{ asset('img/chk.png') }}");
@@ -750,6 +830,26 @@
     </form>
   </div>
 </div>
+
+<!-- Modal Review BOM -->
+<div class="modal fade" id="review-bom-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width: 70%;">
+     <div class="modal-content">
+        <div class="modal-header">
+           <h5 class="modal-title" style="font-weight: bolder;">Modal Title</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <input type="text" id="production-order-val-bom" style="display: none;">
+           <input type="text" id="operation_id_update_bom" style="display: none;">
+
+           <div id="review-bom-details-div"></div>
+        </div>
+     </div>
+  </div>
+</div>
     
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
@@ -772,6 +872,123 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+  
+  
+  $(document).on('change', '#sel-workstation', function(){
+         $('#add-operation-btn').attr('disabled', true);
+         var workstation = $(this).val();
+         $('#sel-process').empty();
+         if (workstation) {
+            $.ajax({
+               url: '/get_workstation_process/' + workstation,
+               type:"GET",
+               success:function(data){
+                  if (data.length > 0) {
+                     var opt = '<option value="">Select Process</option>';
+                     $.each(data, function(i, v){
+                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+                     });
+                     $('#sel-process').append(opt);
+                     $('#add-operation-btn').removeAttr('disabled');
+                     $('#add-operation-btn').text('Add Operation');
+                  }else{
+                     $('#add-operation-btn').text('No Assigned Process');
+                  }
+               }
+            });
+         }
+      });
+  $(document).on('click', '.view-bom-details-btn', function(e){
+    e.preventDefault();
+    var guidebom =  $(this).data('bom');
+    if(guidebom){
+      var bom = guidebom;
+    }else{
+      var bom = "No BOM";
+    }
+    $('#production-order-val-bom').val($(this).data('production-order'));
+    $('#operation_id_update_bom').val($(this).data('operationid'));
+    $.ajax({
+      url: "/view_bom_for_review/" + bom,
+      type:"GET",
+      data:{production: $(this).data('production-order') },
+      success:function(data){
+        $('#review-bom-details-div').html(data);
+      }
+    });
+    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
+    $('#review-bom-modal').modal('show');
+  });
+  
+    $('#change-required-qty-btn').click(function(e){
+      e.preventDefault();
+  
+      var production_order_item_id = $('#change-required-item-modal input[name="production_order_item_id"]').val();
+      var required_qty = $('#change-required-item-modal input[name="required_qty"]').val();
+  
+      $('#change-required-qty-modal input[name="production_order_item_id"]').val(production_order_item_id);
+      $('#change-required-qty-modal input[name="required_qty"]').val(required_qty);
+      $('#change-required-qty-modal input[name="qty"]').val(required_qty);
+  
+      $('#change-required-qty-modal').modal('show');
+    });
+  
+    $('#change-required-qty-modal form').submit(function(e){
+      e.preventDefault();
+  
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#change-required-qty-modal').modal('hide');
+            get_production_order_items(data.production_order);
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+
+    $(document).on('click', '.cancel-production-order-feedback-btn', function(e){
+      e.preventDefault();
+      var $row = $(this).closest('tr');
+
+      var qty_uom = '[' + $row.find('.qty').eq(0).text() + ' ' + $row.find('.uom').eq(0).text() + ']';
+
+      $('#cancel-production-order-feedback-modal input[name="stock_entry"]').val($(this).data('stock-entry'));
+      $('#cancel-production-order-feedback-modal .production-order').text($row.find('.production-order').eq(0).text());
+      $('#cancel-production-order-feedback-modal .qty').text(qty_uom);
+      $('#cancel-production-order-feedback-modal').modal('show');
+    });
+
+    $('#cancel-production-order-feedback-modal form').submit(function(e){
+      e.preventDefault();
+
+      var production_order = $('#cancel-production-order-feedback-modal .production-order').eq(0).text();
+      var stock_entry = $('#cancel-production-order-feedback-modal input[name="stock_entry"]').val();
+      $.ajax({
+        url:"/cancel_production_order_feedback/" + stock_entry,
+        type:"POST",
+        success:function(data){
+          if(data.status == 1){
+            get_production_order_items(production_order);
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#cancel-production-order-feedback-modal').modal('hide');
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
 
     $(document).on('click', '.generate-ste-btn', function(e){
       e.preventDefault();
@@ -841,6 +1058,7 @@
     $('#cancel-production-modal .modal-title').text('Cancel Production Order');
     $('#cancel-production-modal span').eq(1).text(production_order);
     get_items_for_return(production_order);
+    get_reason_for_cancellation();
     $('#cancel-production-modal').modal('show');
   });
 
@@ -866,6 +1084,34 @@
       }
     });
   });
+  
+  function get_reason_for_cancellation(){
+    $('#cancel-production-modal select[name="reason_for_cancellation"]').empty();
+    $.ajax({
+      url: '/get_reason_for_cancellation',
+      type:"GET",
+      success:function(data){
+        if(data.length < 1){
+          $('#cancel-production-modal button[type="submit"]').attr('disabled', true);
+          showNotification("warning", 'Please enter reasons for cancellation in Settings', "now-ui-icons travel_info");
+          return false;
+        }else{
+          $('#cancel-production-modal button[type="submit"]').removeAttr('disabled');
+        }
+        var opt = '';
+        $.each(data, function(i, v){
+          opt += '<option value="' + v.reason_for_cancellation + '">' + v.reason_for_cancellation + '</option>';
+        });
+        
+        $('#cancel-production-modal select[name="reason_for_cancellation"]').append(opt);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  }
 
   $(document).on('click', '.return-required-item-btn', function(e){
     e.preventDefault();
@@ -875,6 +1121,7 @@
     $('#return-required-item-modal form input[name="production_order"]').val($(this).data('production-order'));
     $('#return-required-item-modal form input[name="id"]').val($(this).data('production-order-item-id'));
     
+    $('#return-required-item-modal form input[name="ste_names"]').val($row.find('.ste-names').eq(0).text());
     $('#return-required-item-modal form input[name="target_warehouse"]').val($row.find('.target-warehouse').eq(0).text());
     $('#return-required-item-modal form input[name="source_warehouse"]').val($row.find('.source-warehouse').eq(0).text());
     $('#return-required-item-modal form input[name="item_code"]').val($row.find('.item-code').eq(0).text());
@@ -921,8 +1168,39 @@
       add_row_required_item();
     });
 
+    $(document).on('click', '.add-item-as-select', function(e){
+      e.preventDefault();
+
+      var item_classification = $(this).find(':selected').data('item-classification');
+
+      $(this).closest('tr').find('.selected-item-classification').eq(0).val(item_classification);
+
+      $(this).closest('tr').find('.autocomplete-item-code').eq(0).val('');
+
+      if($(this).val() == 'new_item'){
+        $(this).closest('tr').find('.selected-item-classification').eq(0).val('');
+      }
+    });
+
     function add_row_required_item(){
       var opt = '';
+      var item_as = '<option value="new_item">New Item</option>';
+
+      item_as += '<optgroup label="Alternative For">';
+
+      var production_order_items = [];
+      $('#tbl_view_transfer_details .for-add-item').each(function(d){
+        var item_code = $(this).find('.item-code').eq(0).text();
+        var item_classification = $(this).find('.item-classification').eq(0).text();
+
+        if(production_order_items.indexOf(item_code) < 0){
+          item_as += '<option value="' + item_code + '" data-item-classification="' + item_classification + '">' + item_code + '</option>';
+          production_order_items.push($(this).text());
+        }
+      });
+
+      item_as += '</optgroup>';
+  
       $.ajax({
         url: "/get_mes_warehouse",
         type:"GET",
@@ -936,7 +1214,13 @@
           var row = '<tr>' +
             '<td class="p-1">' +
               '<div class="form-group m-0">' +
-              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" required>' +
+                '<select name="item_as[]" class="form-control m-0 add-item-as-select" required>' + item_as + '</select>' +
+                '<input type="hidden" class="selected-item-classification">' +
+              '</div>' +
+            '</td>' +
+            '<td class="p-1">' +
+              '<div class="form-group m-0">' +
+              '<input type="text" class="form-control m-0 autocomplete-item-code" name="item_code[]" placeholder="Item Code" maxlength="7" required>' +
               '</div>' +
             '</td>' +
             '<td class="p-1">' +
@@ -957,25 +1241,29 @@
           '</tr>';
           
           $('#add-required-item-tbody').append(row);
-
-          $('.autocomplete-item-code').autocomplete({
-            source:function(request,response){
-              $.ajax({
-                url: '/items',
-                dataType: "json",
-                data: {
-                  term : request.term
-                },
-                success: function(data) {
-                  response(data);
-                }
-              });
-            },
-            minLength: 1,
-          });
         }
       });   
     }
+
+    $(document).on('keypress', '.autocomplete-item-code', function(){
+      var item_classification = $(this).closest('tr').find('.selected-item-classification').eq(0).val();
+      $(this).autocomplete({
+        source:function(request,response){
+          $.ajax({
+            url: '/items',
+            dataType: "json",
+            data: {
+              term : request.term,
+              item_classification: item_classification
+            },
+            success: function(data) {
+              response(data);
+            }
+          });
+        },
+        minLength: 1,
+      });
+    }); 
 
     $('#add-required-item-modal').on('hidden.bs.modal', function(){
       $('#add-required-item-tbody').empty();
@@ -999,13 +1287,16 @@
       e.preventDefault();
 
       var $row = $(this).closest('tr');
+      var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var description = $row.find('.item-description').eq(0).text();
       var item_name = $row.find('.item-name').eq(0).text();
       var required_qty = $row.find('.required-qty').eq(0).text();
+      var requested_qty = $row.find('.requested-qty').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
       var stock_uom = $row.find('.stock-uom').eq(0).text();
-      
+      var production_order_item_id = $row.find('.production-order-item-id').eq(0).text();
+
       $('#change-required-item-production-order').val($(this).data('production-order'));
 
       var row = '';
@@ -1025,13 +1316,27 @@
         }
       });
 
+      $('#change-required-item-modal input[name="ste_names"]').val(ste_names);
       $('#change-required-item-modal input[name="item_classification"]').val($(this).data('item-classification'));
       $('#change-required-item-modal input[name="old_item_code"]').val(item_code);
       $('#change-required-item-modal input[name="item_code"]').val(item_code);
       $('#change-required-item-modal input[name="item_name"]').val(item_name);
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
-      $('#change-required-item-modal input[name="quantity"]').val(required_qty);
+      $('#change-required-item-modal input[name="requested_quantity"]').val(requested_qty);
+
+      $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
+      $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
+
+      if(!$('#has-no-bom').text()) {
+        $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
+        $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
+        $('#change-required-qty-btn').attr('readonly', true);
+      } else {
+        $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
+        $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
+        $('#change-required-qty-btn').removeAttr('readonly');
+      }
 
       $.ajax({
         url: "/get_available_warehouse_qty/" + item_code,
@@ -1104,8 +1409,6 @@
       var ste_no = $row.find('.ste-name').eq(0).text();
       var sted_name = $row.find('.sted-name').eq(0).text();
 
-      console.log(item_code, ste_no, sted_name);
-
       $('#cancel-return-item-modal input[name="sted_id"]').val(sted_name);
       $('#cancel-return-item-modal input[name="production_order"]').val($(this).data('production-order'));
       $('#cancel-return-item-modal input[name="ste_no"]').val(ste_no);
@@ -1145,12 +1448,16 @@
     $(document).on('click', '.delete-required-item-btn', function(e){
       e.preventDefault();
       var $row = $(this).closest('tr');
+      var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
       var source_warehouse = $row.find('.source-warehouse').eq(0).text();
+      var production_order_item_id = $row.find('.production-order-item-id').eq(0).text();
       
       $('#delete-required-item-modal input[name="production_order"]').val($(this).data('production-order'));
+      $('#delete-required-item-modal input[name="ste_names"]').val(ste_names);
       $('#delete-required-item-modal input[name="item_code"]').val(item_code);
       $('#delete-required-item-modal input[name="source_warehouse"]').val(source_warehouse);
+      $('#delete-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
       $('#delete-required-item-modal .modal-body span').eq(0).text(item_code);
 
       $('#delete-required-item-modal').modal('show');
@@ -1198,6 +1505,30 @@
       });
     }
 
+  $(document).on('click', '.view-bom-details-btn', function(e){
+    e.preventDefault();
+    var guidebom =  $(this).data('bom');
+    if(guidebom){
+      var bom = guidebom;
+    }else{
+      var bom = "No BOM";
+    }
+    $('#production-order-val-bom').val($(this).data('production-order'));
+    $('#operation_id_update_bom').val($(this).data('operationid'));
+
+    $.ajax({
+      url: "/view_bom_for_review/" + bom,
+      type:"GET",
+      data:{production: $(this).data('production-order') },
+      success:function(data){
+        $('#review-bom-details-div').html(data);
+      }
+    });
+
+    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
+    $('#review-bom-modal').modal('show');
+  });
+
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();
   
@@ -1207,6 +1538,36 @@
       get_pending_material_transfer_for_manufacture(production_order);
   
       $('#confirm-feedback-production-modal').modal('show');
+    });
+
+    $('#confirm-feedback-production-modal form').submit(function(e){
+      e.preventDefault();
+      $('#submit-feedback-btn').attr('disabled', true);
+      $('#loader-wrapper').removeAttr('hidden');
+      var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
+      var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
+      var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
+  
+      $.ajax({
+        url:"/create_stock_entry/" + production_order,
+        type:"POST",
+        data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
+        success:function(response){
+          $('#loader-wrapper').attr('hidden', true);
+          if (response.success == 0) {
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+            $('#submit-feedback-btn').removeAttr('disabled');
+          }else{
+            showNotification("success", response.message, "now-ui-icons travel_info");
+            $('#confirm-feedback-production-modal').modal('hide');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
     });
 
     $('#change-required-item-modal input[name="item_code"]').autocomplete({
@@ -1297,25 +1658,7 @@
         }
       });
     }
-    $('#reschedule_delivery_frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#reschedule-delivery-modal').modal('hide');
-            location.reload();
-
-          }
-        }
-      });
-    });
+   
     $(document).on('click', '.resched-deli-btn', function(){
       var prod = $(this).data('production-order');
       $.ajax({
@@ -1341,14 +1684,12 @@
     $(document).on('click', '.view-production-order-details', function(e){
       e.preventDefault();
       var production_order = $(this).data('production-order');
-      console.log(production_order);
       $('#jt-workstations-modal .modal-title').text(production_order);
       getJtDetails(production_order);
     });
     $(document).on('click', '.prod-details-btn', function(e){
       e.preventDefault();
       var production_order = $(this).attr('data-jtno');
-      console.log(production_order);
       $('#jt-workstations-modal .modal-title').text(production_order);
       getJtDetails(production_order);
     });
@@ -1507,6 +1848,19 @@
         }
       });
     });
+  });
+  $(document).on('click', '.reset_workstation_btn', function(){
+    var getParentID =$(this).attr('data-namemodal');
+    var prod_parent = "#"+ getParentID + " .prod_title_reset";
+    var prod = $(prod_parent).text();
+    var reload_tbl = $(this).attr('data-prodsearch');
+    var jt_id = null;
+    $('#confirm-reset-workstation-modal .reset_job_ticket_workstation').text(prod);
+    $('#confirm-reset-workstation-modal .reset_job_ticket_id').val(jt_id);
+    $('#confirm-reset-workstation-modal .reset_prod').val(prod);
+    $('#confirm-reset-workstation-modal').modal('show');
+    $("#confirm-reset-workstation-modal .modal-title").text("RESET");
+    $('#confirm-reset-workstation-modal .reset_reload_tbl').val(reload_tbl);
   });
 </script>
 </body>

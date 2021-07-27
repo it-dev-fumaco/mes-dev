@@ -41,7 +41,7 @@
                 <td>{{$rows['parts_category']}}</td>
                 <td>{{$rows['item_code']}}</td>
                 <td>{{$rows['quantity']}}</td>
-                <td><span class="tohide">{{$rows['duration']}}</span>{{$rows['cycle_time']}}</td>
+                <td>{{$rows['cycle_time']}}</td>
                 <!-- <td>{{-- $rows['change_over'] --}}</td> -->
                 <td>{{$rows['total_rejects']}}</td>
                 <td>{{$rows['reject_rate']}}</td>

@@ -30,7 +30,16 @@
         <td class="text-center">{{ $r['reference_no'] }}<br>{{ $r['customer'] }}</td>
         <td class="text-center">@if($r['delivery_date']){{ date('M-d-Y', strtotime($r['delivery_date'])) }}@endif</td>
         <td class="text-center">
-          <span class="badge tab-heading--{{ ($r['status'] == 'Material For Issue') ? 'reddish' : 'gray' }}" style="font-size: 10pt;">{{ $r['status'] }}</span>
+          @php
+              if($r['status'] == 'Material For Issue'){
+                $status_badge = 'danger';
+              }elseif ($r['status'] == 'Unknown Status') {
+                $status_badge = 'secondary';
+              }else{
+                $status_badge = 'success';
+              }
+          @endphp
+          <span class="badge badge-{{ $status_badge }}" style="font-size: 10pt;">{{ $r['status'] }}</span>
           @if($r['is_scheduled'] && $r['planned_start_date'])<span class="d-block" style="font-size: 10pt;">{{ date('M-d-Y', strtotime($r['planned_start_date'])) }}</span>@endif
         </td>
         <td class="text-center">
@@ -48,7 +57,7 @@
             <div class="dropdown-menu">
               <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}" style="display:{{ $resched_btn }};">Reschedule Delivery Date</a>
               <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['production_order'] }}">View Materials</a>
-              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}">Create Feedback</a>
+              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}">Feedback</a>
               <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['production_order'] }}" data-operationid="{{ $r['operation_id'] }}">Update Process</a>
               <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
             </div>

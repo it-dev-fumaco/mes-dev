@@ -31,10 +31,10 @@ class AssemblyController extends Controller
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
-
+          
             $reference_details = DB::connection('mysql')->table('tab' . $reference_type)->where('name', $id)->where('docstatus', 1)->first();
             if (!$reference_details) {
-                return response()->json(['message' => $reference .' <b>' . $id . '</b> not found.']);
+                return response()->json(['message' => $reference_type .' <b>' . $id . '</b> not found.']);
             }
 
             if ($reference_type == 'Sales Order') {
@@ -462,6 +462,10 @@ class AssemblyController extends Controller
 
             $item_code_details = DB::connection('mysql')->table('tabItem')
                 ->where('name', $request->item_code_replacecment)->first();
+
+            if(!$item_code_details){
+                return response()->json(['success' => 0, 'message' => 'Item <b>'.$request->item_code_replacecment.'</b> not found.']);
+            }
 
             $values = [
                 'parent' => $production_order_item_details->parent,
@@ -968,30 +972,30 @@ class AssemblyController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function get_scheduled_for_assembly($date){
-        $sched_date= Carbon::parse($date);
-		$start = $sched_date->startOfDay()->toDateTimeString();
-		$end = $sched_date->endOfDay()->toDateTimeString();
+    
+    public function get_scheduled_production_order($operation_id, $scheduled_date){
+        $scheduled_date = Carbon::parse($scheduled_date);
+		$start = $scheduled_date->startOfDay()->toDateTimeString();
+        $end = $scheduled_date->endOfDay()->toDateTimeString();
+        
+        $operation_details = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->first();
 
-
-		$scheduled = DB::connection('mysql_mes')->table('production_order')
-			->where('operation_id', '3')->whereBetween('planned_start_date', [$start, $end])
-			->where('status', '!=', 'Cancelled')->select('production_order.*')->get();
+        if($operation_details->operation_name == 'Painting'){
+            $scheduled = DB::connection('mysql_mes')->table('production_order as prod')
+                ->join('job_ticket as tsd', 'tsd.production_order', 'prod.production_order')
+                ->whereNotIn('prod.status', ['Cancelled'])->whereBetween('tsd.planned_start_date', [$start, $end])
+                ->where('tsd.workstation', 'Painting')->distinct('prod.production_order', 'tsd.sequence')
+                ->select('prod.*')->orderBy('tsd.sequence','asc')->get();
+        }else{
+            $scheduled = DB::connection('mysql_mes')->table('production_order')
+                ->where('operation_id', $operation_id)->whereBetween('planned_start_date', [$start, $end])
+                ->where('status', '!=', 'Cancelled')->select('production_order.*')->get();
+        }
 
 		$scheduled_arr = [];
 		foreach ($scheduled as $i => $row) {
-			$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
-
-			$process = DB::connection('mysql_mes')->table('job_ticket')
-				->join('process', 'job_ticket.process_id', 'process.process_id')
-				->where('job_ticket.production_order', $row->production_order)
-				->select('job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.sequence')
-				->get();
-
-			$completed_qty = collect($process)->min('completed_qty');
-
-			$sequence = collect($process)->min('sequence');
-			
+            $reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+            			
 			$scheduled_arr[] = [
 				'production_order' => $row->production_order,
 				'reference_no' => $reference_no,
@@ -999,17 +1003,16 @@ class AssemblyController extends Controller
 				'item_code' => $row->item_code,
 				'description' => $row->description,
 				'required_qty' => $row->qty_to_manufacture,
-				'processes' => $process,
-				'sequence' => $sequence,
-                'completed_qty' => $completed_qty,
-				'balance_qty' => $row->qty_to_manufacture - $completed_qty
+                'completed_qty' => $row->produced_qty,
+                'sequence' => $row->order_no,
+				'balance_qty' => $row->qty_to_manufacture - $row->produced_qty
 			];
-		}
-
+        }
+        
         $scheduled_arr = collect($scheduled_arr)->sortBy('sequence')->toArray();
-        $sched_format= Carbon::parse($date)->format('F d, Y');
+        $sched_format= Carbon::parse($scheduled_date)->format('F d, Y');
 
-		return view('assembly.print_production_schedule_assembly', compact('scheduled_arr','sched_format'));
+		return view('assembly.print_production_schedule_assembly', compact('scheduled_arr','sched_format', 'operation_details'));
     }
     
     public function get_production_sched_assembly_view_process($prod){

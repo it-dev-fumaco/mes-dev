@@ -28,7 +28,7 @@ class SpotweldingController extends Controller
 			->table('workstation as w')
 			->join('operation as op','op.operation_id', "w.operation_id")
 			->where('op.operation_name', 'Fabrication')
-			->orderBy('w.order_no', 'desc')->pluck('w.workstation_name');
+			->orderBy('w.order_no', 'asc')->pluck('w.workstation_name');
         
         $now = Carbon::now();
         $workstation = $tabWorkstation->workstation_name;
@@ -93,10 +93,20 @@ class SpotweldingController extends Controller
 	    	$total_good = DB::connection('mysql_mes')->table('spotwelding_qty')
 	    		->where('spotwelding_part_id', $spotwelding_part_id)->sum('good');
 
-	    	$balance_qty = $request->qty_to_manufacture - $total_good;
+			$balance_qty = $request->qty_to_manufacture - $total_good;
 	    	if ($balance_qty <= 0) {
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
+
+			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			if($production_order->qty_to_manufacture == 1 && $production_order){
+				$in_progress_part = DB::connection('mysql_mes')->table('spotwelding_qty')
+					->where('spotwelding_part_id', $spotwelding_part_id)->where('status', 'In Progress')->first();
+
+				if($in_progress_part){
+					return response()->json(['success' => 0, 'message' => 'Selected parts already in progress.', 'details' => []]);
+				}
+			}
 
 	    	$log = [
 				'job_ticket_id' => $request->job_ticket_id,
@@ -113,20 +123,14 @@ class SpotweldingController extends Controller
 				'parts' => $request->process_description
 	    	];
 
-	    	$parts = [];
-	    	foreach ($request->parts as $part) {
-	    		$existing_spotwelding_part = DB::connection('mysql_mes')->table('spotwelding_part')
-					->where('housing_production_order', $request->production_order)
-					->where('part_code', $part['part_code'])->exists();
-
-    			if (!$existing_spotwelding_part) {
-					$stocks = DB::connection('mysql_mes')->table('fabrication_inventory')->where('item_code', $part['part_code'])->where('balance_qty', '>', 0)->exists();
-					// if(!$stocks){
-					// 	return response()->json(["success" => 0, "message" => "No available quantity for item " . $part['part_code']]);
-					// }
-					
-    				$parts[] = [
-			    		'housing_production_order' => $request->production_order,
+			$existing_spotwelding_part = DB::connection('mysql_mes')->table('spotwelding_part')
+				->where('spotwelding_part_id', $spotwelding_part_id)->exists();
+			
+			if(!$existing_spotwelding_part){
+				$parts = [];
+				foreach ($request->parts as $part) {
+					$parts[] = [
+						'housing_production_order' => $request->production_order,
 						'spotwelding_part_id' => $spotwelding_part_id,
 						'housing_code' => $request->ho_code,
 						'reference_no' => $request->reference_no,
@@ -135,11 +139,12 @@ class SpotweldingController extends Controller
 						'part_code' => $part['part_code'],
 						'created_by' => $operator->employee_name,
 						'created_at' => $now->toDateTimeString(),
-			    	];
-    			}	
-	    	}
+					];
+				}
+					
+				DB::connection('mysql_mes')->table('spotwelding_part')->insert($parts);
+			}
 
-	    	DB::connection('mysql_mes')->table('spotwelding_part')->insert($parts);
 	    	DB::connection('mysql_mes')->table('spotwelding_qty')->insert($log);
 
 	    	$details = [	
@@ -147,14 +152,12 @@ class SpotweldingController extends Controller
 	    		'process_id' => $request->process_id,
 	    	];
 	    	
-			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 			if ($production_order && $production_order->status == 'Not Started') {
 				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
 
-			$this->update_completed_qty_per_workstation($request->job_ticket_id);
-			$this->update_production_actual_start_end($request->production_order);
-			
+			$this->update_job_ticket($request->job_ticket_id);
+
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
     		return response()->json(["success" => 0, "message" => $e->getMessage()]);
@@ -194,11 +197,7 @@ class SpotweldingController extends Controller
 
 			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->first()->process_id;
 			
-			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
-			$this->update_completed_qty_per_workstation($current_task->job_ticket_id);
-			$this->update_produced_qty($request->production_order);
-			$this->update_production_actual_start_end($request->production_order);
-
+			$this->update_job_ticket($current_task->job_ticket_id);
 			$ho_bom = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first()->bom_no;
 
 			$parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->get();
@@ -255,7 +254,6 @@ class SpotweldingController extends Controller
 	
 	public function restart_task(Request $request){
     	$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
-
     	DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->delete();
 
     	$existing = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -265,16 +263,20 @@ class SpotweldingController extends Controller
     		DB::connection('mysql_mes')->table('spotwelding_part')
     			->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->delete();
     	}
-
     	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
     }
 
    	public function update_task_reject(Request $request){
    		// return $request->all();
 		try {
+			if(empty($request->reject_list)){
+				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
+			}
 			$now = Carbon::now();
-			$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
+			// dd($time_log);
+			
 			if ($request->per_row_reject == 1) {
+				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
 				$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
 				
 	            $update = [
@@ -284,29 +286,67 @@ class SpotweldingController extends Controller
 	                'reject' => $request->rejected_qty,
 				];
 
+				if($request->reject_list){
+                    $reject_values = [];
+                    foreach ($request->reject_list as $i => $value) {
+                        $reject_values[] = [
+                            'job_ticket_id' => $time_log->job_ticket_id,
+                            'timelog_id' => $request->id,
+                            'reject_list_id' => $request->reject_list [$i],
+							'reject_value' => '-',
+							'created_by' => Auth::user()->employee_name,
+							'created_at' => $now->toDateTimeString(),
+                        ];
+                    }
+                    DB::connection('mysql_mes')->table('spotwelding_reject')->insert($reject_values);
+                }
+
+
 				DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->update($update);
 				
-				$this->update_completed_qty_per_workstation($time_log->job_ticket_id); 
-			}else{				
+				$this->update_job_ticket($time_log->job_ticket_id); 
+			}else{
+				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->first();
+				$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
+
+				$total_good=$request->good - $request->rejected_qty;
 	            $insert = [
-					'job_ticket_id' => $request->id,
+					'reference_id' => $request->id,
+					'reference_type' => 'Spotwelding',
 					'qa_inspection_type' => 'Reject Confirmation',
 					'rejected_qty' => $request->rejected_qty,
-					'total_qty' => $request->good,
+					'total_qty' => $total_good,
 					'status' => 'For Confirmation',
 					'created_by' => Auth::user()->employee_name,
 					'created_at' => $now->toDateTimeString(),
 				];
 
-				DB::connection('mysql_mes')->table('spotwelding_reject')->insert($insert);
+				$update_jt = [
+	                'last_modified_at' => $now->toDateTimeString(),
+	                'last_modified_by' => Auth::user()->employee_name,
+					'completed_qty' => $total_good,
+					'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0')
+				];
 				
-				$this->update_completed_qty_per_workstation($time_log->job_ticket_id);
+				DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id',$request->id)->update($update_jt);
+				$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+				
+				if($request->reject_list){
+                    $reject_values = [];
+                    foreach ($request->reject_list as $i => $value) {
+                        $reject_values[] = [
+                            'job_ticket_id' => $request->id,
+                            'qa_id' => $qa_id,
+                            'reject_list_id' => $request->reject_list [$i],
+                            'reject_value' => '-'
+                        ];
+                    }
+                    DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
+                }
+
+				
+				$this->update_job_ticket($time_log->job_ticket_id);
 			}
-
-			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $time_log->job_ticket_id)->first()->process_id;
-
-			$this->updateProdOrderOps($request->production_order, $request->workstation, $process_id);
-			$this->update_produced_qty($request->production_order);
 
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
@@ -319,55 +359,41 @@ class SpotweldingController extends Controller
     	$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
     		->join('production_order', 'job_ticket.production_order', 'production_order.production_order')
     		->where('job_ticket_id', $job_ticket_id)
-    		->select('job_ticket.production_order', 'production_order.qty_to_manufacture')->first();
+    		->select('job_ticket.production_order', 'production_order.qty_to_manufacture', 'job_ticket.reject')->first();
 
     	$logs = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $job_ticket_id)->exists();
 
-    	$total_good = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
-    	$total_good = collect($total_good)->min('total_good');
+    	$total_good = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
+			
+		$total_good = collect($total_good)->min('total_good');
+		$total_reject = $job_ticket_details->reject;
 
     	$bom_parts = $this->get_production_order_bom_parts($job_ticket_details->production_order);
-    	$bom_parts = array_column($bom_parts, 'item_code');
-    	$parts_done = DB::connection('mysql_mes')->table('spotwelding_part')
+    	$count_parts_done = DB::connection('mysql_mes')->table('spotwelding_part')
     		->where('housing_production_order', $job_ticket_details->production_order)
-    		->distinct()->pluck('part_code');
-
-    	$parts_done = $parts_done->toArray();
-
-    	sort($bom_parts); 
-		sort($parts_done);
+    		->distinct()->pluck('part_code')->count();
 
 		if ($logs && $total_good >= 0) {
-    		DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-    			->update(['status' => 'In Progress']);
-	    }
+			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
+				->update(['status' => 'In Progress']);
+		}
 
-		if ($bom_parts == $parts_done) {
-	    	if ($job_ticket_details->qty_to_manufacture == $total_good) {
+		if(count($bom_parts) == $count_parts_done){
+			if ($job_ticket_details->qty_to_manufacture == $total_good) {
 	    		DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-	    			->update(['status' => 'Completed', 'completed_qty' => $total_good]);
+	    			->update(['status' => 'Completed', 'completed_qty' => $total_good, 'reject' => $total_reject, 'good' => $total_good ]);
 	    	}else{
 	    		DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-	    			->update(['completed_qty' => $total_good]);
+	    			->update(['completed_qty' => $total_good , 'reject' => $total_reject, 'good' => $total_good ]);
 	    	}
 		}
     }
 
     public function update_produced_qty($production_order){
-		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->distinct()->pluck('process_id');
-		$process_list = [];
-		foreach ($processes as $process) {
-			$total_completed = DB::connection('mysql_mes')->table('job_ticket')
-				->where('production_order', $production_order)
-				->where('process_id', $process)->sum('completed_qty');
-
-			$process_list[] = [
-				'process_id' => $process,
-				'total_completed' => $total_completed
-			];
-		}
-
-		$produced_qty = collect(array_column($process_list, 'total_completed'))->min();
+		$produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+			->where('production_order', $production_order)->min('completed_qty');
+			
 		if ($produced_qty > 0) {
 			DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update(['produced_qty' => $produced_qty]);
 		}
@@ -435,6 +461,7 @@ class SpotweldingController extends Controller
 	public function get_spotwelding_current_operator_task_details(Request $request, $operator_id){
 		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $request->job_ticket_id)->first();
+			
 		if(!$job_ticket_details){
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
 		}
@@ -451,7 +478,7 @@ class SpotweldingController extends Controller
 				->where('po.production_order', $request->production_order)
 				->where('jt.workstation', $request->workstation)
 				->where('jt.job_ticket_id', $request->job_ticket_id)
-				->select('po.item_code', 'jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'po.customer', 'po.qty_to_manufacture', 'po.stock_uom', 'po.project', 'jt.process_id')
+				->select('po.item_code', 'jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'po.customer', 'po.qty_to_manufacture', 'po.stock_uom', 'po.project', 'jt.process_id', 'jt.reject')
 				->orderBy('jt.last_modified_at', 'desc')->get();
 		}else{
 			$task_list_qry = DB::connection('mysql_mes')->table('production_order AS po')
@@ -461,7 +488,7 @@ class SpotweldingController extends Controller
 				->where('jt.workstation', $request->workstation)
 				->where('jt.job_ticket_id', $request->job_ticket_id)
 				->where('spotwelding_qty.operator_id', Auth::user()->user_id)
-				->select('po.item_code', 'spotwelding_qty.time_log_id', 'jt.job_ticket_id', 'spotwelding_qty.operator_id', 'spotwelding_qty.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'spotwelding_qty.status', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'po.customer', 'po.qty_to_manufacture', DB::raw('(SELECT SUM(good) FROM spotwelding_qty WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM spotwelding_qty WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'po.stock_uom', 'po.project', 'spotwelding_qty.operator_name', 'jt.process_id', 'spotwelding_qty.good', 'spotwelding_qty.spotwelding_part_id', 'jt.completed_qty')
+				->select('po.item_code', 'spotwelding_qty.time_log_id', 'jt.job_ticket_id', 'spotwelding_qty.operator_id', 'spotwelding_qty.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'spotwelding_qty.status', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'po.customer', 'po.qty_to_manufacture', DB::raw('(SELECT SUM(good) FROM spotwelding_qty WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM spotwelding_qty WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'po.stock_uom', 'po.project', 'spotwelding_qty.operator_name', 'jt.process_id', 'spotwelding_qty.good', 'spotwelding_qty.spotwelding_part_id', 'jt.completed_qty', 'jt.reject')
 				->orderByRaw("FIELD(spotwelding_qty.status, 'In Progress', 'Pending', 'Completed') ASC")
 				->orderBy('spotwelding_qty.last_modified_at', 'desc')->get();
 		}
@@ -516,6 +543,7 @@ class SpotweldingController extends Controller
 				'helpers' => $helpers,
 				'count_helpers' => $count_helpers,
 				'spotwelding_part_id' => ($time_logs) ? $row->spotwelding_part_id : null,
+				'reject_jt' => $row->reject
 			];
 		}
 
@@ -530,36 +558,35 @@ class SpotweldingController extends Controller
 
 		$in_progress_operator = DB::connection('mysql_mes')->table('job_ticket')
 			->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
-			->where('production_order', $request->production_order)
-			->where('workstation', $request->workstation)
-			->where('process_id', $job_ticket_details->process_id)
-			->where('operator_id', '!=', $operator_id)
-			->whereNotNull('operator_id')
-			->select('operator_id', 'operator_nickname', DB::raw('SUM(good + reject) as completed_qty'))->groupBy('operator_id', 'operator_nickname')->get();
+			->where('job_ticket.production_order', $request->production_order)
+			->where('job_ticket.workstation', $request->workstation)
+			->where('job_ticket.process_id', $job_ticket_details->process_id)
+			->where('spotwelding_qty.operator_id', '!=', $operator_id)
+			->whereNotNull('spotwelding_qty.operator_id')
+			->select('spotwelding_qty.operator_id', 'spotwelding_qty.operator_nickname', DB::raw('SUM(spotwelding_qty.good + spotwelding_qty.reject) as completed_qty'))->groupBy('spotwelding_qty.operator_id', 'spotwelding_qty.operator_nickname')->get();
 
 		$bom_parts = $this->get_production_order_bom_parts($request->production_order);
 
 		$bom_parts = collect($bom_parts)->sortBy('status');
 
-		$timelogs = DB::connection('mysql_mes')->table('spotwelding_qty')
+	 	$timelogs = DB::connection('mysql_mes')->table('spotwelding_qty')
 			->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
 			->where('job_ticket.job_ticket_id', $request->job_ticket_id)
 			->select('job_ticket.process_id', 'spotwelding_qty.*', DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process_name'))->get();
-
+			
 		$logs = [];
 		foreach ($timelogs as $log) {
 			$parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $log->spotwelding_part_id)->get();
 			$process_description = '';
 			foreach ($parts as $part) {
-				$process_description .= $part->part_code . ' (' . $part->part_category . ') >>> ';
+				$process_description .= $part->part_code . ' (' . $part->part_category . ') > ';
 			}
 
-			$process_description = rtrim($process_description, ' >>> ');
+			$process_description = rtrim($process_description, ' > ');
 
 			$from = Carbon::parse($log->from_time);
 			$to = Carbon::parse($log->to_time);
 
-			// modified start
 			$days = $from->diffInDays($to);
 			$hours = $from->copy()->addDays($days)->diffInHours($to);
 			$minutes = $from->copy()->addDays($days)->addHours($hours)->diffInMinutes($to);
@@ -582,13 +609,13 @@ class SpotweldingController extends Controller
 				'status' => $log->status,
 				'machine' => $log->machine_code,
 				'operator_id' => $log->operator_id,
-				'operator_name' => $log->operator_name
+				'operator_name' => $log->operator_name,
+				'count_parts' => count($parts),
+				'total_completed_qty' => $timelogs->where('spotwelding_part_id', $log->spotwelding_part_id)->sum('good')
 			];
-			// modified end
 		}
 
-		$total_rejects = DB::connection('mysql_mes')->table('spotwelding_reject')
-			->where('job_ticket_id', $request->job_ticket_id)->sum('rejected_qty');
+		$total_rejects = $job_ticket_details->reject;
 
     	return view('tables.tbl_spotwelding_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator', 'helpers', 'count_helpers', 'bom_parts', 'logs', 'total_rejects'));
 	}
@@ -601,10 +628,10 @@ class SpotweldingController extends Controller
     		$parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $row->spotwelding_part_id)->get();
 			$process_description = '';
 			foreach ($parts as $part) {
-				$process_description .= $part->part_code . ' (' . $part->part_category . ') >>> ';
+				$process_description .= $part->part_code . ' (' . $part->part_category . ') > ';
 			}
 
-			$process_description = rtrim($process_description, ' >>> ');
+			$process_description = rtrim($process_description, ' > ');
 
     		$task_list[] = [
     			'operator_name' => $row->operator_name,
@@ -635,10 +662,7 @@ class SpotweldingController extends Controller
 				->orderByRaw("FIELD(spotwelding_qty.status, 'In Progress', 'Completed') ASC")
 				->first();
 
-			$status = 'Not Started';
-			if ($time_log) {
-				$status = $time_log->status;
-			}
+			$status = ($time_log) ? $time_log->status : 'Not Started';
 
 			$available_stock = DB::connection('mysql_mes')->table('fabrication_inventory')
 				->where('item_code', $part->item_code)->sum('balance_qty');
@@ -653,21 +677,14 @@ class SpotweldingController extends Controller
 				->where('material_request', $production_order_details->material_request)
 				->first();
 
-			if($part_production_order){
-				$prod_order = $part_production_order->production_order;
-				$part_qty = $part_production_order->qty_to_manufacture;
-				$part_category = $part_production_order->parts_category;
-			}else{
-				$prod_order = null;
-				$part_qty = $part->qty * $production_order_details->qty_to_manufacture;
-				$part_category = null;
-			}
+			$prod_order = ($part_production_order) ? $part_production_order->production_order : null;
+			$part_qty = ($part_production_order) ? $part_production_order->qty_to_manufacture : ($part->qty * $production_order_details->qty_to_manufacture);
 
 			$bom_parts_arr[] = [
 				'item_code' => $part->item_code,
 				'item_name' => $item_name[0],
 				'production_order' => $prod_order,
-				'parts_category' => $part_category,
+				'parts_category' => $part->item_classification,
 				'qty' => $part_qty,
 				'status' => $status,
 				'available_stock' => $available_stock
@@ -694,14 +711,16 @@ class SpotweldingController extends Controller
 
     	return 'Pending';
     }
-
     public function get_spotwelding_part_remaining_qty(Request $request){
     	$completed_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
     		->where('job_ticket_id', $request->job_ticket_id)
     		->where('spotwelding_part_id', $request->spotwelding_part_id)
-    		->where('status', 'Completed')->sum('good');
+			->where('status', 'Completed')->sum('good');
+			
+		$jt_spot= DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->select('reject')->first();
 
-    	return $request->qty_to_manufacture - $completed_qty;
+		$reject=(($request->qty_to_manufacture) == $request->qty_to_manufacture)? 0: $jt_spot->reject;
+    	return ($request->qty_to_manufacture - $completed_qty) - $reject;
     }
 
     public function update_production_order_operation($production_order){
@@ -742,9 +761,82 @@ class SpotweldingController extends Controller
 	    	return $values;
 
     	}
+	}
 
-    	
+	public function continue_log_task($time_log_id, Request $request){
+    	try {
+			$now = Carbon::now();
+	    	$operator = DB::connection('mysql_essex')->table('users')->where('user_id', Auth::user()->user_id)->first();
+	    	if (!$operator) {
+	    		return response()->json(['success' => 0, 'message' => 'Operator not found.']);
+	    	}
 
-    
-    }
+			$operator_in_progress_task = DB::connection('mysql_mes')->table('time_logs')
+				->where('operator_id', Auth::user()->user_id)->where('status', 'In Progress')
+				->count();
+
+			$operator_in_progress_task += DB::connection('mysql_mes')->table('spotwelding_qty')
+				->where('operator_id', Auth::user()->user_id)->where('status', 'In Progress')
+				->count();
+
+			if($operator_in_progress_task <= 0){
+				$time_log_detail = DB::connection('mysql_mes')->table('spotwelding_qty as sq')
+					->join('job_ticket as jt', 'sq.job_ticket_id', 'jt.job_ticket_id')
+					->where('sq.time_log_id', $time_log_id)
+					->select('jt.status as jt_status', 'sq.*', 'jt.production_order', 'jt.process_id')->first();
+	
+				if($time_log_detail->jt_status == 'Completed'){
+					return response()->json(['success' => 0, 'message' => 'Task already completed.']);
+				}
+	
+				$production_order_qty = DB::connection('mysql_mes')->table('production_order')
+					->where('production_order', $time_log_detail->production_order)->sum('qty_to_manufacture');
+	
+				$completed_qty_spotwelding_part = DB::connection('mysql_mes')->table('spotwelding_qty as sq')
+					->where('spotwelding_part_id', $time_log_detail->spotwelding_part_id)
+					->where('job_ticket_id', $time_log_detail->job_ticket_id)->sum('good');
+				
+				if($completed_qty_spotwelding_part >= $production_order_qty){
+					return response()->json(['success' => 0, 'message' => 'Part already completed.']);
+				}
+	
+				$machine_name = DB::connection('mysql_mes')->table('machine')
+					->where('machine_code', $request->machine_code)->first()->machine_name;
+	
+				$log = [
+					'job_ticket_id' => $time_log_detail->job_ticket_id,
+					'spotwelding_part_id' => $time_log_detail->spotwelding_part_id,
+					'from_time' => $now->toDateTimeString(),
+					'machine_code' => $request->machine_code,
+					'machine_name' => $machine_name,
+					'operator_id' => $operator->user_id,
+					'operator_name' => $operator->employee_name,
+					'operator_nickname' => $operator->nick_name,
+					'status' => 'In Progress',
+					'created_by' => $operator->employee_name,
+					'created_at' => $now->toDateTimeString(),
+					'parts' => $time_log_detail->parts,
+				];
+	
+				DB::connection('mysql_mes')->table('spotwelding_qty')->insert($log);
+	
+				$details = [	
+					'production_order' => $time_log_detail->production_order,
+					'process_id' => $time_log_detail->process_id,
+				];
+				
+				$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $time_log_detail->production_order)->first();
+				if ($production_order && $production_order->status == 'Not Started') {
+					DB::connection('mysql_mes')->table('production_order')->where('production_order', $time_log_detail->production_order)->update(['status' => 'In Progress']);
+				}
+	
+				$this->update_job_ticket($time_log_detail->job_ticket_id);
+			}
+
+	    	return response()->json(['success' => 1, 'message' => 'Task Updated.']);
+    	} catch (Exception $e) {
+    		return response()->json(["success" => 0, "message" => $e->getMessage()]);
+    	}
+	}
+
 }

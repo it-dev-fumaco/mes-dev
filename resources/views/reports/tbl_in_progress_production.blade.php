@@ -55,7 +55,16 @@
           <td class="text-center">{{ $r['reference_no'] }}<br>{{ $r['customer'] }}</td>
           <td class="text-center">@if($r['delivery_date']){{ date('M-d-Y', strtotime($r['delivery_date'])) }}@endif</td>
           <td class="text-center">
-              <span class="badge tab-heading--{{ ($r['status'] == 'Material For Issue') ? 'reddish' : 'orange' }}" style="font-size: 10pt;">{{ $r['status'] }}</span>
+            @php
+              if($r['status'] == 'Material For Issue'){
+                $status_badge = 'danger';
+              }elseif ($r['status'] == 'Unknown Status') {
+                $status_badge = 'secondary';
+              }else{
+                $status_badge = 'warning';
+              }
+          @endphp
+              <span class="badge badge-{{ $status_badge }}" style="font-size: 10pt;">{{ $r['status'] }}</span>
         </td>
           <td class="text-center">
             <div class="btn-group">
@@ -64,10 +73,11 @@
               </button>
               <div class="dropdown-menu">
                 <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}" style="display:{{ $resched_btn }};">Reschedule Delivery Date</a>
-                <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty_to_manufacture'] - $r['feedback_qty'] }}">Create Feedback</a>
+                <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty_to_manufacture'] - $r['feedback_qty'] }}">Feedback</a>
                 <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
                 <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
                 <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['production_order'] }}">View Materials</a>
+                {{--<a class="dropdown-item prod-reset-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reset</a>--}}
               </div>
             </div>
           </td>

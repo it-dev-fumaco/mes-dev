@@ -932,6 +932,11 @@
             }
           });
         });
+
+        $(document).on('click', '.reload-btn', function(e){
+          e.preventDefault();
+          get_current_job_ticket_tasks();
+        });
   
       $(document).on('click', '.view-in-progress-operator', function(e){
         e.preventDefault();
@@ -1020,7 +1025,6 @@
         type:"GET",
         data: data,
         success:function(data){
-          console.log(data);
           $('#end-task-modal .balance-qty').val(data);
           $('#end-task-modal .max-qty').text(data);
         },
@@ -1090,7 +1094,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
@@ -1146,6 +1149,34 @@
       });
     });
 
+    $(document).on('click', '.continue-log-btn', function(e){
+      e.preventDefault();
+
+      var data = {  
+        machine_code: '{{ $machine_details->machine_code }}', 
+        _token: '{{ csrf_token() }}', 
+      }
+
+      $.ajax({
+        url: "/continue_log_task/" + $(this).data('timelog-id'),
+        type:"POST",
+        data: data,
+        success:function(response){
+          if (response.success > 0) {
+            get_current_job_ticket_tasks();
+            showNotification("success", response.message, "now-ui-icons ui-1_check");
+          }else{
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+          }
+        }, 
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $(document).on('click', '.start-task-btn', function(e){
       e.preventDefault();
       var count_selected_parts = $('#select-part-div .selected-part').length;
@@ -1159,9 +1190,9 @@
       $('#select-part-div .selected-part').each(function(){
         process_description += $(this).find('span').eq(0).text() + ',';
         parts.push({
-          part_code: $(this).find('span').eq(0).text(),
-          category: $(this).find('span').eq(1).text(),
-          production_order: $(this).find('span').eq(3).text(),
+          part_code: $(this).find('.part-item-code').eq(0).text(),
+          category: $(this).find('.part-category').eq(0).text(),
+          production_order: $(this).find('.part-production-order').eq(0).text(),
         });
       });
 
@@ -1184,7 +1215,6 @@
         type:"POST",
         data: data,
         success:function(response){
-          console.log(response);
           if (response.success > 0) {
             get_current_job_ticket_tasks();
             showNotification("success", response.message, "now-ui-icons ui-1_check");
@@ -1214,24 +1244,18 @@
       $('#enter-reject-modal .process-name').text($(this).data('process-name'));
       $('#enter-reject-modal .per-row-reject').val($(this).data('row'));
       $('#enter-reject-modal .good-qty-input').val($(this).data('good-qty'));
-      
-      get_reject_types('Spotwelding');
+      var process_id = $(this).data('processid');
+      get_reject_types(process_id);
       $('#enter-reject-modal').modal('show');
     });
 
-    function get_reject_types(workstation){
+    function get_reject_types(process_id){
       $('#rejected-type-sel').empty();
       $.ajax({
-        url: "/get_reject_types/" + workstation,
+        url: "/get_reject_types/Spotwelding/"+ process_id,
         type:"GET",
-        success:function(response){
-          console.log(response);
-          var row = '';
-          $.each(response, function(i, d){
-            row += '<option value="' + d.reject_list_id + '">' + d.reject_reason + '</option>';
-          });
-
-          $('#rejected-type-sel').append(row);
+        success:function(data){
+          $(".spotwelding_reject_list").html(data);
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(jqXHR);
@@ -1265,7 +1289,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(response){
-          console.log(response);
           if (response.success < 1) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
           }else{

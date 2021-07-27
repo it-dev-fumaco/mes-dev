@@ -84,7 +84,7 @@
 
         <div class="col-md-4 p-0 text-center" style="font-size: 9pt;">
           <input type="hidden" id="primary-operation-id" value="{{ $primary_id }}">
-
+          <input type="hidden" id="reload_point_page">
           <button type="button" class="btn btn-success m-1" id="ready-for-feedback-btn">
             Ready for Feedback <span class="badge badge-danger m-0" id="ready-for-feedback-badge" style="font-size: 9pt;">0</span>
           </button>
@@ -163,8 +163,8 @@
                               $divcolor="white";
                             }
                             @endphp
-                            <div data-parent-item="{{ $row['parent_item_code'] }}" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['sales_order'] }}" class="kanban-card card {{ $row['status'] }}" data-duration="" data-index="{{ $row['id'] }}" data-position="{{ $row['order_no'] }}" data-delivery="{{ $row['delivery_date'] }}" data-card="unscheduled" data-name="{{ $row['production_order'] }}" style="margin-top: -13px;background-color: {{$divcolor}};">
-                              <div class="card-body" style="font-size: 8pt; margin-top: -3px;">
+                            <div data-parent-item="{{ $row['parent_item_code'] }}" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['sales_order'] }}" class="kanban-card card {{ $row['status'] }}" data-duration="" data-index="{{ $row['id'] }}" data-position="{{ $row['order_no'] }}" data-parentitemcode="{{ $row['parent_item_code'] }}" data-itemcode="{{ $row['item_code'] }}" data-delivery="{{ $row['delivery_date'] }}" data-card="unscheduled" data-name="{{ $row['production_order'] }}" style="margin-top: -13px;background-color: {{$divcolor}};">                              
+                              <div class="card-body" style="font-size: 8pt; margin-top: -3px;">                              
                                 <table style="width: 100%;">
                                   <tr>
                                     <td colspan="4" style="font-size: 10pt;">
@@ -258,23 +258,27 @@
                     <tr id="containers">
                       @foreach($scheduled as $r)
                       <td class="td unique_container">
-                        <div class="card" style="background-color:#e5e7e9;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
-                          <div class="card-header" style="margin-top: -15px;">
+                        <div class="card" style="background-color:#e5e7e9;height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
+                          <div class="card-header text-center" style="margin-top: -25px;">
                             <input type="hidden" id="divcount-{{ $r['schedule'] }}" style="margin-bott0m:20px;" value="">
-                            <h5 class="card-title text-center" style="font-size: 12pt;">
+                            <h5 class="card-title text-center" style="font-size: 11pt;">
                               <img src="{{ asset('img/calendar4.png') }}" width="20">
                               <span class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
                                 {{ date('D, M-d-Y', strtotime($r['schedule'])) }} <span style="font-size: 11pt;"><b>{{ (date('Y-m-d') == date('Y-m-d', strtotime($r['schedule']))) ? '[Today]' : '' }}</b></span>
                               </span>
                               @if(date('Y-m-d', strtotime($r['schedule'])) >= date('Y-m-d'))
-                              <img src="{{ asset('img/scheduling.png') }}" width="25" class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
-                              <img src="{{ asset('img/print.png') }}" width="25" class="printbtnprint" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/wid.png') }}" width="25" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/scheduling.png') }}" width="20" class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                              <img src="{{ asset('img/print.png') }}" width="20" class="printbtnprint" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/wid.png') }}" width="20" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+
 
                               @else
-                              <img src="{{ asset('img/down.png') }}" width="25">
-                              <img src="{{ asset('img/print.png') }}" width="25" class="printbtnprint" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/wid.png') }}" width="25" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/down.png') }}" width="20">
+                              <img src="{{ asset('img/print.png') }}" width="20" class="printbtnprint" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/wid.png') }}" width="20" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
+                              <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+
                               @endif
                               @if($r['duplicate_item_code'] < 0)
                               <i class="now-ui-icons ui-1_bell-53 bell show-merge-modal" style="font-size: 15pt;"></i>
@@ -286,23 +290,27 @@
                               </span>
                             </h5>
                             <br>
-                            <div class="form-check" style="margin: -65px 0 40px 0;">
+                            <div class="form-check" style="margin: -60px 0 20px 0;">
                               <label class="customcontainer">
                                 <input type="checkbox" id="check-{{ $r['schedule'] }}" class="checkmeall" data-checkall="{{ $r['schedule'] }}">
                                 <span class="checkmark1" style="margin-left: -5px !important;"></span>
                               </label>
                             </div>
                             <input type="hidden" id="tryme-{{ $r['schedule'] }}" class="printbox"></input>
+
                             @forelse($r['shift'] as $i => $sched)
-                            <span class="text-center" style="font-size:8pt;display:block; margin-top: -75px;">
-                              <span style="display: {{($sched['shift_type'] == 'Special Shift') ? '' : 'none'}}">Shift - &nbsp;</span>
-                              <span style="display: {{($sched['shift_type'] == 'Overtime Shift') ? '' : 'none'}}">Overtime - &nbsp;</span>{{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}
-                            </span>
+                            <div class="text-center" style="font-size:8pt; margin: -20px 0 5px 0;line-height:20px;text-align:center;display:inline;">
+                              <span class="noshift_blink" style="display: {{($sched['shift_type'] == 'No Shift') ? '' : 'none'}}; color:red;font-weight:bold;">-&nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
+                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Regular Shift') ? 'inline' : 'none'}}"> <b>Shift</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
+                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Special Shift') ? 'inline' : 'none'}}"> <b>Shift</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
+                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Overtime Shift') ? 'inline' : 'none'}}">| &nbsp;<span style="background-color:#2980b9  ;color:white;font-weight:bold;"> <b>OT</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span></span>
+                              
+                            </div>
                             @empty
                             <span class="text-center" style="font-size:8pt;display:block; margin-top: -8px;"></span>
                             @endforelse
                           </div>
-                          <div class="card-body sortable_list connectedSortable" id="{{ $r['schedule'] }}" style="height: 750px; position: relative; overflow-y: auto;">
+                          <div class="card-body sortable_list connectedSortable" id="{{ $r['schedule'] }}" style="height: 700px; position: relative; overflow-y: auto;">
                           @foreach($r['orders'] as $i => $order)
                             @php
                             if( $order['status'] == 'Completed'){
@@ -318,7 +326,8 @@
                                 }
                             }
                             @endphp
-                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-duration="" style="margin-top: -10px;background-color: {{$divcolor}};">
+                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px;background-color: {{$divcolor}};">                                  
+                                  <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="reference-class d-none">{{ $order['sales_order'] }}</span>
                                   <span class="item-code-class d-none">{{ $order['production_item'] }}</span>
@@ -401,11 +410,11 @@
                                 if($order['process_stat'] == "Material For Issue"){
                                   $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Material Issued"){
-                                  $stat_badge ="primary";
+                                  $stat_badge ="info";
                                 }else if($order['process_stat'] == "Cancelled"){
                                   $stat_badge ="danger";
                                 }else if($order['process_stat'] == "Ready For Feedback"){
-                                  $stat_badge ="info";
+                                  $stat_badge ="primary";
                                 }else if($order['process_stat'] == "Partial Feedbacked"){
                                   $stat_badge ="success";
                                 }else if($order['process_stat'] == "Feedbacked"){
@@ -499,6 +508,9 @@
           </li>
           <li class="nav-item"  id="tab_change_code">
             <a class="nav-link" id="change_code_tab" data-toggle="tab" href="#change_code_prod" role="tab" aria-controls="changecode" aria-selected="false">Change Code Alert</a>
+          </li>
+          <li class="nav-item"  id="tab_warning_fromshift">
+            <a class="nav-link" id="warning_fromshift_tab" data-toggle="tab" href="#warning_fromshift" role="tab" aria-controls="warning_fromshift" aria-selected="false">Shift Warning</a>
           </li>
         </ul>
         <div class="tab-content" style="min-height: 620px;">
@@ -609,6 +621,21 @@
               </div>
             </div>
           </div>
+          <div class="tab-pane" id="warning_fromshift" role="tabpanel" aria-labelledby="change_code_tab">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-warning-fromshift"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer p-2 pr-3">
@@ -634,7 +661,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <input type="submit" class="btn btn-primary" id="fabrication_update" value="Save">
+          <input type="submit" class="btn btn-primary" value="Save">
         </div>
       </div>
     </form>
@@ -657,7 +684,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <input type="submit" class="btn btn-primary" id="fabrication_update" value="Save">
+          <input type="submit" class="btn btn-primary" value="Save">
         </div>
       </div>
     </form>
@@ -679,7 +706,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <input type="submit" class="btn btn-primary" id="fabrication_update" value="Save">
+          <input type="submit" class="btn btn-primary" value="Save">
         </div>
       </div>
     </form>
@@ -703,7 +730,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <input type="submit" class="btn btn-primary" id="fabrication_update" value="Save">
+          <input type="submit" class="btn btn-primary" value="Save">
         </div>
       </div>
     </form>
@@ -762,10 +789,184 @@
       </div>
   </div>
 </div>
+<div class="modal fade" id="delete-shift-sched-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-sm" role="document" style="min-width:30%;">
+     <form action="/delete_shift_schedule" method="POST" id="delete-shift-sched-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 Delete Shift Schedule
+              </h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">×</span>
+              </button>
+           </div>
+           <div class="modal-body" style="font-size:18px;">
+              <div class="row">
+                 <div class="col-md-12">
+                       <input type="hidden" name="shift_sched_id" id="delete_shift_sched_id" class="delete_shift_sched_id">
+                       <input type="hidden" name="delete_shift_date" id="delete_shift_date" class="delete_shift_date">
+                       <div class="row" style="margin-top: -3%;">
+                          <div class="col-sm-12" style="margin-top:10px;">
+                             <span >Delete shift schedule permanently?</span>
+                          </div>               
+                       </div>
+                 </div>
+
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding-top: -100px;">Cancel</button>
+              &nbsp;
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+<div class="modal fade" id="datetodayModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document" style="min-width: 69%;">
+    <form action="/add_shift_schedule_prod" method="POST" id="add_shift_schedule_frm">
+      @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white align-top" style="background-color: #0277BD;">
+            <img src="{{ asset('img/calendar4.png') }}" width="30" class="align-middle" style="display: inline-block; margin-right:5px;">
+            <h5 class="modal-title" style="display: inline;">&nbsp;Shift Schedule</h5>
+            <button type="button" class="close btn-close-click-validator" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+           <div class="modal-body">
+             <div class="row">
+               <div class="col-md-8" style="padding: 1px 2px 1px 5px;">
+                 <div class="row">
+                   <div class="col-md-12">
+                    <div class="card">
+                      <div class="card-header"  style="padding: 1px 1px 1px 1px;">
+                       <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Shift Schedule</b></h5>
+                      </div>
+                      <input type="hidden" class="selected_prod_order" id="selected_prod_order">
+                      <div class="card-body">
+                        <input type="hidden" id='tbl_opration_id' name="operation_id">
+                       <input type="hidden" id="date_tobe_sched_shift" name="date">
+                       <input type="hidden" id="date_reload_tbl" name="date_reload_tbl">
+                       <input type="hidden" name="pagename" value="prod_sched" id="pagename">
+                       <div id="default_shift_sched" style="margin-top: -10px;"></div>
+                       <div id="old_ids"></div>
+                         <table class="table table-bordered" style="margin-top: 5px;">
+                           <col style="width: 50%;">
+                           <col style="width: 20%;">
+                           <col style="width: 20%;">
+                           <col style="width: 10%;">
+                           <tr>
+                             <th class="text-center">Shift</th>
+                             <th class="text-center">Time-in</th>
+                             <th class="text-center">Time-out</th>
+                             <th></th>
+                           </tr>
+                           <tbody id="shiftsched-table">
+                           </tbody>
+                         </table>
+                       <div class="pull-left">
+                         <button type="button" class="btn btn-info btn-sm" id="add-row-shift-btn">
+                           <i class="now-ui-icons ui-1_simple-add"></i> Add Row
+                         </button>
+                       </div>
+                      </div>
+                    </div>
+                   </div>
+                   <div class="col-md-12">
+                    <div class="card" style="min-height: 150px;">
+                      <div class="card-header"  style="padding: 1px 1px 1px 1px;">
+                       <h5 class="card-title" style="font-size:13pt;">&nbsp;&nbsp;<b>Moved Planned Start Date</b></h5>
+                      </div>
+                      <div class="card-body">
+                        <div class="form-group" style="margin-top:-10px;">
+                          <label> <i><b>Note:</b> Select production order from the list to reschedule. </i></label>
+                        </div>
+                        <div class="form-group">
+                          <label for="planned_start_datepicker" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date:</b></label>
+                          <input type="date" class="form-control" name="planned_start_datepicker" id="planned_start_datepicker" style="display: inline-block; width: 80%; font-weight: bolder;">
+                       </div>
+                      </div>
+                    </div>
+                  </div>
+                 </div>
+               </div>
+               <div class="col-md-4"  style="padding: 1px 2px 1px 5px;">
+                <div class="card">
+                  <div class="card-header" style="padding: 1px 1px 1px 1px;">
+                   <h5 class="card-title" style="font-size:13pt; margin-left:3px;">&nbsp;<b>Scheduled Production Order</b></h5>
+                  </div>
+                  <div class="card-body" style="height:400px;overflow:auto;">
+                    <div>
+                      <div id="prod_list_calendar" style="margin-top:-5px;font-size:10px;" ></div>
+                    </div>
+                  </div>
+                </div>
+               </div>
+             </div>
+           </div>
+           <div class="modal-footer">
+               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+               <button type="submit" class="btn btn-primary" id="fabrication_update">Submit</button>
+            </div>
+        </div>
+      </form>
+  </div>
+</div>
+<div class="modal fade" id="reschedule-deli-modal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog" role="document" style="min-width:40%;">
+    <form action="/calendar_update_rescheduled_delivery_date" id="calendar_update_rescheduled_delivery_date_form" method="POST">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header  text-white" style="background-color: #0277BD;" >
+          <h5 class="modal-title">Reschedule Delivery Date</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-12" id="tbl_container_details">
+            
+            </div>
+          </div>
+        </div>
+        <input type="hidden" class="tbl_reload_deli_modal" name="reload_tbl" value="reloadpage">
+        <div class="modal-footer" style="padding: 5px 10px;">
+          <button type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 @include('modals.modal_select_item_merge')
 @include('modals.select_late_delivery_reason_modal')
 
 <style type="text/css">
+ #shift-schedule-modal .form-control{
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;  
+  }
+  .shift-sched-class .form-control {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
+  }
+  .shift-sched-class .form-control:hover, .shift-sched-class .form-control:focus, .shift-sched-class .form-control:active {
+    box-shadow: none;
+  }
+  .shift-sched-class .form-control:focus {
+    border: 1px solid #34495e;
+  }
+
   .bell{
     font-size: 40px;
     width: 30px;
@@ -924,6 +1125,57 @@
 
   .details-pane:hover {
     display: block;
+  }
+  .details-pane-plan {
+    display: none;
+    color: #414141;
+    background: #f1f1f1;
+    border: 1px solid #a9a9a9;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0;
+    margin: 0 auto;
+    left: 0;
+    z-index: 10;
+    width: 230px;
+    padding: 6px 8px;
+    text-align: left;
+    -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    -moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    white-space: normal;
+  }
+
+  .details-pane-plan h5 {
+    font-size: 1.5em;
+    line-height: 1.1em;
+    margin-bottom: 4px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan h5 span {
+    font-size: 0.75em;
+    font-style: italic;
+    color: #555;
+    padding-left: 15px;
+    line-height: 8px;
+  }
+
+  .details-pane-plan .desc {
+    font-size: 1.0em;
+    margin-bottom: 6px;
+    line-height: 16px;
+  }
+  /** hover styles **/
+  span.hvrlink-plan:hover + .details-pane-plan {
+    display: block;
+
+  }
+
+  .details-pane-plan:hover {
+    display: block;
+
   }
 
   /**end **/
@@ -1202,6 +1454,26 @@
 
 
   }
+  #datetodayModal .form-control{
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;  
+  }
+  #reschedule-deli-modal .form-control{
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;  
+  }
+  .text_shorter {
+    display: block;
+  width:auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 8px;
+}
 
   @keyframes sonar {
     0% {
@@ -1285,6 +1557,14 @@
       -webkit-animation-timing-function:ease-in-out;
       -webkit-animation-direction: alternate;
     }
+   .noshift_blink {
+    color: red;
+    animation: blinker 3s linear infinite;
+  }
+
+  @keyframes blinker {  
+    50% { opacity: 0; }
+  }
 </style>
 
 
@@ -1343,17 +1623,101 @@
     display: none;
   }
   
+  .ui-autocomplete {
+    position: absolute;
+    z-index: 2150000000 !important;
+    cursor: default;
+    border: 2px solid #ccc;
+    padding: 5px 0;
+    border-radius: 2px;
+  }
 </style>
 
 @endsection
 
 @section('script')
+
+<link rel="stylesheet" href="{{ asset('css/jquery-ui-1-12.css') }}">
+<script src="{{ asset('js/jquery-ui-1.12.js') }}"></script>
+
+
 <script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 
 <script>
   $(document).ready(function(){
+    $(document).on('click', '#add-operation-btn', function(){
+    var workstation = $('#sel-workstation option:selected').text();
+    var wprocess = $('#sel-process').val();
+    if (!$('#sel-workstation').val()) {
+      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
+      return false;
+    }
+    var rowno = $('#bom-workstations-tbl tr').length;
+    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
+    if (workstation) {
+      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
+      $("#bom-workstations-tbl tbody").append(markup);
+    }
+  });
+  $(document).on("click", ".delete-row", function(e){
+         e.preventDefault();
+         $(this).parents("tr").remove();
+      });
+    $(document).on('click', '#submit-bom-review-btn', function(){
+    var production_order = $('#production-order-val-bom').val();
+    var operation_id = $('#operation_id_update_bom').val();
+    var id = [];
+    var workstation = [];
+    var wprocess = [];
+    var workstation_process = [];
+    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
+    var user = $('#bom-workstations-tbl input[name=username]').val();
+    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
+    $("#bom-workstations-tbl > tbody > tr").each(function () {
+      id.push($(this).find('span').eq(0).text());
+      workstation.push($(this).find('td').eq(1).text());
+      wprocess.push($(this).find('select').eq(0).val());
+      workstation_process.push($(this).find('select option:selected').eq(0).text());
+    });
+    var filtered_process = wprocess.filter(function (el) {
+      return el != null && el != "";
+    });
+    if (workstation.length != filtered_process.length) {
+      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
+      return false;
+    }
+    var processArr = workstation_process.sort();
+    var processDup = [];
+    for (var i = 0; i < processArr.length - 1; i++) {
+        if (processArr[i + 1] == processArr[i]) {
+            processDup.push(processArr[i]);
+            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
+            return false;
+        }
+    }
+    $.ajax({
+      url: '/submit_bom_review/' + bom,
+      type:"POST",
+      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
+      success:function(data){
+        if(data.status) {
+          $('#review-bom-modal').modal('hide');
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+        } else {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+  
+    $('#reload_point_page').val('');
     $('.select-custom').select2({
       dropdownParent: $("#filter-form"),
       dropdownAutoWidth: false,
@@ -1382,10 +1746,6 @@
        if (fltr3 !== 'all') {
          selector =  selector + '[data-parent-item="' + fltr3 + '"]';
        }
- 
-       console.log(selector);
-       console.log(fltr1, fltr2, fltr3);
-         
        // show all results
        $(selector).addClass('active-1');
    }
@@ -1420,36 +1780,9 @@
       });
     }
 
-     $('#confirm-feedback-production-modal form').submit(function(e){
-    e.preventDefault();
-    $('#submit-feedback-btn').attr('disabled', true);
-    $('#loader-wrapper').removeAttr('hidden');
-    var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
-    var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
-    var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
-
-    $.ajax({
-      url:"/create_stock_entry/" + production_order,
-      type:"POST",
-      data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-      success:function(response){
-        $('#loader-wrapper').attr('hidden', true);
-        if (response.success == 0) {
-          showNotification("danger", response.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", response.message, "now-ui-icons travel_info");
-          get_for_feedback_production(1);
-          $('#confirm-feedback-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
+    $('#confirm-feedback-production-modal').on('hide.bs.modal', function (e) {
+      get_for_feedback_production(1);
     });
-  });
-
     
     $(document).on('click', '.show-merge-modal', function(e){
       e.preventDefault();
@@ -1472,59 +1805,37 @@
 
       
     });
-
-    function get_production_order_items(id){
-      $.ajax({
-        url:"/get_production_order_items/"+ id,
-        type:"GET",
-        success:function(data){
-          $('#tbl_view_transfer_details').html(data);
-          $('#stock-entry-details-modal').modal('show');
-        },
-        error : function(data) {
-          console.log(data.responseText);
-        }
-      });
-    }
-
-    $(document).on('click', '.create-ste-btn', function(e){
+    $('#reschedule_delivery_frm').submit(function(e){
       e.preventDefault();
-      var prod = $(this).data('production-order');
-  
-      get_production_order_items(prod);
-    });
-
-    $(document).on('click', '.generate-ste-btn', function(e){
-      e.preventDefault();
-      var production_order = $(this).data('production-order');
+      var url = $(this).attr("action");
       $.ajax({
-        url:"/generate_stock_entry/" + production_order,
+        url: url,
         type:"POST",
+        data: $(this).serialize(),
         success:function(data){
-          console.log(data);
-          if(data.success == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if(data.success == 1){
-            get_production_order_items(production_order);
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-          }else{
+          if(data.success == 3){
             showNotification("danger", data.message, "now-ui-icons travel_info");
+            $('#reschedule-delivery-modal').modal('hide');
+          }else if (data.success == 0){
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            if(data.reload_tbl == "reloadpage"){ 
+              setTimeout(function() {
+                  location.reload();
+              }, 3000);
+            }else{
+              get_for_feedback_production(1);
+            }
           }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
         }
       });
     });
-
-
-
-
     $('#ready-for-feedback-btn').click(function(e){
       e.preventDefault();
       get_for_feedback_production(1);
+      $('#reschedule-delivery-modal .tbl_reload_deli_modal').val("reload_ajax");
       $('#view-for-feedback-list-modal').modal('show');
     });
     
@@ -1560,32 +1871,6 @@
           }
         }); 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     painting_ready_list();
     function painting_ready_list(){
       $.ajax({
@@ -1731,7 +2016,6 @@
           type:"GET",
           data: data,
           success:function(data){
-            console.log(data);
             $.each(data, function(i, d){
               opt += '<option value="' + d + '">' + d + '</option>';
             });
@@ -1753,7 +2037,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
@@ -1773,6 +2056,12 @@
       appendTo: 'body',
       helper: 'clone',
       update:function(event, ui) {
+        var primary_operation_id = $('#primary-operation-id').val();
+        var parent_id = ui.item.attr("data-parentitemcode");
+        var item_code_id = ui.item.attr("data-itemcode");
+        var delivery_id = ui.item.attr("data-delivery");
+        var drop_to = $(ui.item[0]).parent().attr('id');
+        var drop_from = $(ui.item[1]).parent().attr('id');
         var card_id = this.id;
         $(this).children().each(function(index){
           if ($(this).attr('data-position') != (index + 1) || $(this).attr('data-card') != card_id) {
@@ -1789,33 +2078,76 @@
           // console.log(pos);
           $(this).removeClass('updated');
         });
-
-        
-        if (pos) {
-          var p_operation_id = $('#primary-operation-id').val();
-          $.ajax({
-            url:"/reorder_production/"+ p_operation_id,
-            type:"POST",
-            data: {
-              positions: pos
-            },
-            success:function(data){
-              if(data.success < 1){
-                // console.log(data);
-              }else{
-                // console.log(data);
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
+        if(primary_operation_id == 3){//FOR ASSEMBLY VALIDATE IF THE ITEM CODE IS EQUAL TO PARENT ITEM CODE, IF THE TARGET (BOX) TO DROP IS UNSCHEDULED, IF THE DELIVERY DATE IS GREATER THAN THE TARGET BOX TO DROP
+          if(parent_id != item_code_id || drop_to == "unscheduled" || drop_to <= delivery_id){
+            if (pos) {
+              $.ajax({
+                url:"/reorder_production/"+ primary_operation_id,
+                  type:"POST",
+                  data: {
+                    positions: pos
+                  },
+                  success:function(data){
+                    if(data.success < 1){
+                    }else{
+                    }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                  }
+              });
+            }
+          }
+          $('#reschedule_delivery_frm').submit(function(e){ //FUNCTION ONCE THE SUBMIT BUTTON IS CLICK
+            e.preventDefault();
+            if (pos) {
+              $.ajax({
+                url:"/reorder_production/"+ primary_operation_id,// UPDATE PLANNED START DATE
+                  type:"POST",
+                  data: {
+                    positions: pos
+                  },
+                  success:function(data){
+                    if(data.success < 1){
+                    }else{
+                    }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                  }
+              });
             }
           });
+ 
+        }else{ //UPDATE PLANNED START DATE IF NOT OPERATION IS NOT ASSEMBLY
+          if (pos) {
+            $.ajax({
+              url:"/reorder_production/"+ primary_operation_id,
+              type:"POST",
+              data: {
+                positions: pos
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+              }
+            });
+          }
         }
       },
       receive: function(ev, ui) {
         var primary_operation_id = $('#primary-operation-id').val();
+        var primary_operation_id = $('#primary-operation-id').val();
+        var data_delivery_date =  ui.item.data('delivery');
+        var prod = ui.item.data('name');
+        var parent_id = ui.item.attr("data-parentitemcode");
+        var item_code_id = ui.item.attr("data-itemcode");
+        var drop_to = $(ui.item[0]).parent().attr('id');
         if(primary_operation_id =="3"){
           var production_order = ui.item.find('.production-order-class').eq(0).text();
           var reference = ui.item.find('.reference-class').eq(0).text();
@@ -1823,32 +2155,37 @@
           var description = ui.item.find('.description-class').eq(0).text();
           var qty = ui.item.find('.qty-to-manufacture-class').eq(0).text();
           var delivery_date = ui.item.find('.delivery-date-class').eq(0).text();
-          
+          var parent_id = ui.item.attr("data-parentitemcode");
+          var item_code_id = ui.item.attr("data-itemcode");
+          var dragndrop = "reloadpage";
           $('#custom-production-order').val(production_order);
-
-          // if(new Date($(this).attr('id')) > new Date(delivery_date)){
-          //   $('#select-late-delivery-reason-modal .production-order').text(production_order);
-          //   $('#select-late-delivery-reason-modal .reference').text(reference);
-          //   $('#select-late-delivery-reason-modal .item-code').text(item_code);
-          //   $('#select-late-delivery-reason-modal .item-description').text(description);
-          //   $('#select-late-delivery-reason-modal .qty-uom').text(qty);
-          //   $('#select-late-delivery-reason-modal .delivery-date').text(delivery_date);
-          //   $('#select-late-delivery-reason-modal .rescheduled-date').text($(this).attr('id'));
-
-          //   $('#select-late-delivery-reason-modal input[name="delivery_date"]').val(delivery_date);
-          //   $('#select-late-delivery-reason-modal input[name="reschedule_date"]').val($(this).attr('id'));
-
-          //   $('#select-late-delivery-reason-modal').modal('show');
-          // }
-
+          if(parent_id == item_code_id){
+            if(new Date($(this).attr('id')) > new Date(data_delivery_date)){
+              $.ajax({
+                url: "/reschedule_prod_details/" + prod,
+                type:"GET",
+                success:function(data){
+                    $('#tbl_reschduled_deli').html(data);
+                    $('#reschedule-delivery-modal').modal('show');
+                    $('#reschedule-delivery-modal .close').hide();
+                    $('#reschedule-delivery-modal .tbl_reload_deli_modal').val(dragndrop);
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                      console.log(jqXHR);
+                      console.log(textStatus);
+                      console.log(errorThrown);
+                  },
+                });
+              }
+            }
+          $(document).on('click', '#reschedule-delivery-modal .btn-close', function(){
+            ui.sender.sortable("cancel");
+          });
         }
         var id_check = '#print-' + ui.item.data('name');
         var sched = $(this).attr('id');
-        var delivery_date =  ui.item.data('delivery');
         var date = $(this).attr('id');
         var prod_id = "#sched-" +  ui.item.data('name');
-        var primary_operation_id= $('#primary-operation-id').val();
-        var prod = ui.item.data('name');
         $(id_check).attr("data-dateslct", sched); //setter
 
 
@@ -1866,7 +2203,7 @@
                   if($(this).attr('id') == "unscheduled"){
                     $(prod_id).css('background-color', 'white');
                     // alert(delivery_date);
-                  }else if(date > delivery_date){
+                  }else if(date > data_delivery_date){
                     $(prod_id).css('background-color', '#e74c3c');
                     // alert(delivery_date);
                   }else{
@@ -1878,9 +2215,37 @@
                       $(prod_id).css('background-color', 'white');
                     }
                   }
+                if(parent_id != item_code_id || drop_to == "unscheduled" || drop_to <= data_delivery_date){
+                    $.ajax({
+                      url:"/update_production_task_schedules",
+                      type:"POST",
+                      data: {
+                        production_order: ui.item.data('name'),
+                        planned_start_date: ev.target.id,
+                        current: ui.sender.attr('id')
+                      },
+                      error : function(data) {
+                        console.log(data.responseText);
+                      }
+                    });
+                  }
+                  $('#reschedule_delivery_frm').submit(function(e){ //FUNCTION ONCE THE SUBMIT BUTTON IS CLICK
+                    // alert(ui.item.data('name'));
+                    $.ajax({
+                      url:"/update_production_task_schedules",
+                      type:"POST",
+                      data: {
+                        production_order: ui.item.data('name'),
+                        planned_start_date: ev.target.id,
+                        current: ui.sender.attr('id')
+                      },
+                      error : function(data) {
+                        console.log(data.responseText);
+                      }
+                    });
+                  });
                 }
-
-                if(primary_operation_id > 0){
+                if(primary_operation_id < 3){
                   $.ajax({
                     url:"/update_production_task_schedules",
                     type:"POST",
@@ -1889,9 +2254,7 @@
                       production_order: ui.item.data('name'),
                       planned_start_date: ev.target.id,
                     },
-                    success:function(data){
-                      // console.log(data);
-                    },
+                   
                     error : function(data) {
                       console.log(data.responseText);
                     }
@@ -1905,49 +2268,26 @@
               console.log(errorThrown);
             }
           });
-
-                
-
-
-                
-                // console.log(ui.item.data('name'));
-                // console.log($(this).attr('id'));
-                var fromt = '#'+ ui.sender.attr('id');
-                var to = '#'+sched;
-                var datas = ['#'+ ui.sender.attr('id'),'#'+sched ];
-
-                $(datas).each(function(index, value){
-                  var card_id = value;
-                  $(value).children().each(function(index, value){
-
-                  if ($(this).attr('data-position') != (index + 1) || $(this).attr('data-card') != card_id) {
-                    $(this).attr('data-position', (index + 1)).attr('data-card', card_id).addClass('updated');
-                    $(this).find('.badgecount').text( (index + 1));
-                  }
-                  
-                  });
-                  // alert(value);
-                  var pos = [];
-                  $('.updated').each(function(){
-                    var name = $(this).attr('data-index');
-                    var position = $(this).attr('data-position');
-                    var prod = $(this).attr('data-name');
-                    pos.push([name, position, card_id, prod]);
-                    console.log(pos);
-                    $(this).removeClass('updated');
-                  });
-                });
-                var pos = [];
-
-                  $('.updated').each(function(){
-                    var name = $(this).attr('data-index');
-                    var position = $(this).attr('data-position');
-                    var prod = $(this).attr('data-name');
-                    pos.push([name, position, card_id, prod]);
-                    console.log(pos);
-                    $(this).removeClass('updated');
-                  });
-
+          var fromt = '#'+ ui.sender.attr('id');
+          var to = '#'+sched;
+          var datas = ['#'+ ui.sender.attr('id'),'#'+sched ];
+          $(datas).each(function(index, value){
+            var card_id = value;
+            $(value).children().each(function(index, value){
+              if ($(this).attr('data-position') != (index + 1) || $(this).attr('data-card') != card_id) {
+                $(this).attr('data-position', (index + 1)).attr('data-card', card_id).addClass('updated');
+                $(this).find('.badgecount').text( (index + 1));
+              }     
+            });
+            var pos = [];
+            $('.updated').each(function(){
+              var name = $(this).attr('data-index');
+              var position = $(this).attr('data-position');
+              var prod = $(this).attr('data-name');
+              pos.push([name, position, card_id, prod]);
+              $(this).removeClass('updated');
+            });
+          });   
       }
     }).disableSelection();
     
@@ -1985,13 +2325,9 @@
   $(document).on('click', '.goto_machine_kanban', function(){
     var operation_id =$('#primary-operation-id').val();
     var date = $(this).data('date');
-    if(operation_id =="1"){
-      window.location.href = "/machine_kanban/15/" + date;  
-    }else if(operation_id =="0"){
-      window.location.href = "/production_schedule_monitoring/" + date;
-    }else{
-      window.location.href = "/production_schedule_monitoring_assembly/" + date;
-    }
+   
+      window.location.href = "/production_schedule_monitoring/" + operation_id + "/" + date;
+   
           
   });
 </script>
@@ -2233,6 +2569,7 @@ error : function(data) {
 console.log(data.responseText);
 }
 });
+warning_notif_for_custom_shift();
 
 });
 $(document).on('click', '.reschedule-prod-btn', function(e){
@@ -2485,13 +2822,11 @@ $('#sel-customer-notif-inprogress').append(n);
 $(document).on('click', '#btn-prod-sched', function(event){
 event.preventDefault();
 var operation_id = $('#primary-operation-id').val();
-if(operation_id =="0"){
-  window.location.href = "/production_schedule_calendar_painting";
-
-}else{
+  if(operation_id == 0){
+    var operation_id = 2;
+  }
   window.location.href = "/production_schedule_calendar/"+operation_id;
 
-}
 });
 $('#btnPrint').on("click", function () {
   
@@ -2518,4 +2853,299 @@ $('#btnPrint').on("click", function () {
   });
   }
   </script>
+  <script>
+    function changeDate(date){
+    let currentDate = new Date(date);
+    var fd = currentDate.toDateString();
+    return fd;
+    }
+    $(document).on('click', '.btnshift', function(e){
+      e.preventDefault();
+      var normal_date_format = $(this).attr('data-date');
+      var newDate = changeDate(normal_date_format);
+      var reload_tbl = $(this).attr('data-reloadtbl');
+      var primary_operation_id = $('#primary-operation-id').val();
+      if(primary_operation_id == 0){
+        var primary_operation_id= 2;
+      }
+      $("#date_tobe_sched_shift").val(normal_date_format);
+      tbl_shift_schedule_sched(1, normal_date_format,primary_operation_id);
+      $('#datetodayModal .modal-title').text(newDate);
+      get_default_shift_sched(normal_date_format,primary_operation_id );
+      $('#datetodayModal').modal('show');
+      add_row();
+      prod_list_calendar(normal_date_format,primary_operation_id);
+      $("#tbl_opration_id").val(primary_operation_id);
+      $('#planned_start_datepicker').val('');
+      $('#datetodayModal').modal();
+    
+    });
+</script>
+<script>
+  function warning_notif_for_custom_shift(filters){
+  var operation_id = $('#primary-operation-id').val();
+  $.ajax({
+  url:"/get_warning_notif_for_custom_shift/"+ operation_id,
+  type:"GET",
+  data: filters,
+  success:function(data){
+  $('#tbl-warning-fromshift').html(data);  
+  },
+  error : function(data) {
+  console.log(data.responseText);
+  }
+  });
+  }
+  </script>
+<script>
+  $(document).ready(function() {
+    $('#planned_start_datepicker').val('');
+      $(document).on('change', '.custom-control-input', function(){
+        if($('input[name="prodname[]"]:checked').length == 0){
+          $( "#planned_start_datepicker" ).prop( "disabled", true );
+        }else{
+          $( "#planned_start_datepicker" ).prop( "disabled", false );
+        }
+        var someObj = {};
+        someObj.slectedbox = [];
+        someObj.unslectedbox = [];
+        name = $(this).data('dateslct');
+        inputid = "#selected_prod_order";
+        console.log(someObj.slectedbox);
+        
+        $('.custom-control-input').each(function() {
+          if ($(this).is(":checked")) {
+            someObj.slectedbox.push($(this).attr("data-dateslct"));
+          } else {
+            someObj.unslectedbox.push($(this).attr("data-dateslct"));
+          }
+        });    
+        $(inputid).val(someObj.slectedbox);
+      });
+      $(document).on('change', '#planned_start_datepicker', function(){
+        var prod_list = $('#selected_prod_order').val();
+        var operation = $('#primary-operation-id').val();
+        var planned = $(this).val();
+        if(operation == "3"){
+          $.ajax({
+                url: '/get_assembly_prod_calendar',
+                type: 'get',
+                data: { 'prod_list': prod_list, 'planned':planned},
+                success: function(data)
+                  {
+                    if(data.success == 0){
+                      $("#fabrication_update").attr("disabled", false);
+
+                    }else{
+                      $('#tbl_container_details').html(data);
+                      $('#reschedule-deli-modal').modal('show');
+                      $("#fabrication_update").attr("disabled", true);
+                    }
+                  },
+                error: function(jqXHR, textStatus, errorThrown) {
+                  console.log(jqXHR);
+                  onsole.log(textStatus);
+                  console.log(errorThrown);
+                }
+          });
+        }else{
+          $("#fabrication_update").attr("disabled", false);
+
+        }
+        console.log(prod_list);
+      });
+      
+      if($('input[name="prodname[]"]:checked').length == 0){
+        $( "#planned_start_datepicker" ).prop( "disabled", true );
+      }else{
+        $( "#planned_start_datepicker" ).prop( "disabled", false );
+      }
+  });
+</script>
+<script>
+$('#calendar_update_rescheduled_delivery_date_form').submit(function(e){
+      e.preventDefault();
+        $.ajax({
+          url:"/calendar_update_rescheduled_delivery_date",
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            console.log(data);
+            if (data.success < 1) {
+              showNotification("danger", data.message, "now-ui-icons travel_info");
+            }else{
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+              $('#reschedule-deli-modal').modal('hide');
+              $("#fabrication_update").attr("disabled", false);
+            }
+          },
+          error : function(data) {
+            console.log(data.responseText);
+          }
+        });
+});
+$('#add_shift_schedule_frm').submit(function(e){
+      e.preventDefault();
+        $.ajax({
+          url: $(this).attr("action"),
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            console.log(data);
+            if (data.success < 1) {
+              showNotification("danger", data.message, "now-ui-icons travel_info");
+            }else{
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+              $('#datetodayModal').modal('hide');
+              setTimeout(function() {
+                  location.reload();
+              }, 1000);
+            }
+          },
+          error : function(data) {
+            console.log(data.responseText);
+          }
+        });
+    });
+
+function tbl_shift_schedule_sched(page, date, operation){
+  $("#shiftsched-table").empty();
+  $.ajax({
+    url:"/get_tbl_shiftsched_list/?page="+page,
+    type:"GET",
+    data: {date_sched: date, operation: operation},
+    success: function(data){
+      var old_break = '';
+      $.each(data.shift, function(i, d){
+	      var sel_id = d.shift_id;
+	      var break_id = d.shift_schedule_id;
+	      old_break += '<input type="hidden" name="old_shift_sched[]" value="'+d.shift_schedule_id+'">';
+	      console.log(d.shift_schedule_id);
+        var s_type= d.shift_type;
+	      var row1 = '';
+	      $.each(data.shift_type, function(i, d){
+	        selected = (d.shift_id == sel_id) ? 'selected' : null;
+	        row1 += '<option value="' + d.shift_id  + '" '+selected+'>' + d.shift_type + '</option>';
+	      });
+	      var thizz = document.getElementById('shiftsched-table');
+	      var id = $(thizz).closest('table').find('tr:last td:first').text();
+	      var validation = isNaN(parseFloat(id));
+	      if(validation){
+	        var new_id = 1;
+	      }else{
+	        var new_id = parseInt(id) + 1;
+	      }
+	      var len2 = new_id;
+	      var id_unique="shiftin"+len2;
+        var id_unique1="shiftout"+len2;
+        var id_unique2="shifttype"+len2;
+        var id_stype= "#" + id_unique2;
+	      var tblrow = '<tr>' +
+          '<td style="display:none;">'+len2+'</td>' +
+	        '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="oldshift_sched_id[]"  value="'+break_id+'"><input type="hidden" style="width:100%;" name="shifttype[]" id='+id_unique2+'><select name="oldshift[]" data-shifttype='+id_unique2+' data-timein='+id_unique +' data-timeout='+id_unique1+' class="form-control m-0 count-row onchange-shift-select" required>'+row1+'</select></div></td>' +
+	        '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="From Time" value="'+ d.time_in +'" id='+id_unique+' class="form-control m-0 select-input"  readonly></div></td>' +
+	        '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="To Time" value="'+ d.time_out +'" id='+id_unique1+' class="form-control m-0 select-input" readonly></div></td>' +
+	        '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+	      '</tr>';
+	      $("#datetodayModal #shiftsched-table").append(tblrow);
+	      $("#datetodayModal #old_ids").html(old_break);
+        $(id_stype).val(s_type);
+	    });
+    }
+ }); 
+}
+function get_default_shift_sched(date, operation){
+  $.ajax({
+      url:"/get_tbl_default_shift_sched",
+      type:"GET",
+      data: {date: date , operation: operation},
+      success:function(data){
+        $('#default_shift_sched').html(data);
+      }
+  });
+}
+function add_row(){
+  var date = $('#date_tobe_sched_shift').val();
+  var operation =$('#primary-operation-id').val();
+  if(operation == 0){
+        var operation= 2;
+      }
+  $.ajax({
+    url:"/get_tbl_shiftsched_list",
+    type:"GET",
+    data: {date_sched: date, operation: operation},
+    success: function(data){
+      var row1 = '<option value=""></option>';
+      $.each(data.shift_type, function(i, d){
+        row1 += '<option value="' + d.shift_id + '">' + d.shift_type + '</option>';
+      });
+      var thizz = document.getElementById('shiftsched-table');
+      var id = $(thizz).closest('table').find('tr:last td:first').text();
+      var validation = isNaN(parseFloat(id));
+      if(validation){
+        var new_id = 1;
+      }else{
+        var new_id = parseInt(id) + 1;
+      }
+      var len2 = new_id;
+      var id_unique="shiftin"+len2;
+      var id_unique1="shiftout"+len2;
+      var id_unique2="shifttype"+len2;
+      var tblrow = '<tr>' +
+        '<td style="display:none;">'+len2+'</td>' +
+        '<td class="p-1"><div class="form-group m-0"><input type="hidden" name="shifttype[]" id='+id_unique2+'><select name="newshift[]" class="form-control m-0 count-row onchange-shift-select"  data-timein='+id_unique +' data-shifttype='+id_unique2+' data-timeout='+id_unique1+' required>'+row1+'</select></div></td>' +
+        '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="From Time" value="" class="form-control m-0 select-input" id='+id_unique+'  readonly></div></td>' +
+        '<td class="p-1"><div class="form-group m-0"><input type="text" autocomplete="off" placeholder="To Time" value="" class="form-control m-0 select-input" id='+id_unique1+'  readonly></div></td>' +
+        '<td class="p-1 text-center"><button type="button" class="btn btn-danger btn-icon btn-icon-mini m-0 remove-row"><i class="now-ui-icons ui-1_simple-remove"></i></button></td>' +
+        '</tr>';
+      
+      $("#datetodayModal #shiftsched-table").append(tblrow);
+    } 
+  });
+}
+$('#add-row-shift-btn').click(function(e){
+      add_row();
+});
+$(document).on('change', '.onchange-shift-select', function(){
+           var shift_id = $(this).val();
+           var shift_in = $(this).attr('data-timein');
+           var shift_out = $(this).attr('data-timeout');
+           var shift_type = $(this).attr('data-shifttype');
+           var show_data_shiftin = "#"+shift_in;
+           var show_data_shiftout = "#"+shift_out;
+           var show_data_shifttype = "#"+shift_type;
+            $.ajax({
+            url:"/shift_sched_details",
+            data:{shift:shift_id},
+            type:"GET",
+            success:function(data){
+              if(data == null){
+                $(show_data_shiftin).val("");
+                $(show_data_shiftout).val("");
+                $(show_data_shiftout).val("");
+              }else{
+                $(show_data_shiftin).val(data.time_in);
+                $(show_data_shiftout).val(data.time_out);
+                $(show_data_shifttype).val(data.shift_type);
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+          });
+      });
+  function prod_list_calendar(date, operation){
+    var forpage ="Prod_Sched";
+    $.ajax({
+      url:"/schedule_prod_calendar_details",
+      type:"GET",
+      data: {date: date , operation: operation, forpage:forpage},
+      success:function(data){
+        $('#prod_list_calendar').html(data);
+      }
+    });
+  }
+</script>
 @endsection

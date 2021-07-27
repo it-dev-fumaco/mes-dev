@@ -519,7 +519,7 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Item to Manufacture</label>
-                    <input type="text" class="form-control" id="sel-item" name="item_code" required>
+                    <input type="text" class="form-control" id="sel-item" name="item_code" maxlength="7" required>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -577,13 +577,13 @@
                 <div class="col-md-4">
                   <div class="form-group">
                     <label>Parent Item Code</label>
-                    <input type="text" class="form-control" name="parent_code" id="sel-parent-code">
+                    <input type="text" class="form-control" name="parent_code" id="sel-parent-code" maxlength="7">
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="form-group">
                     <label>Sub Parent Item Code</label>
-                    <input type="text" class="form-control" name="sub_parent_code" id="sel-sub-parent-code">
+                    <input type="text" class="form-control" name="sub_parent_code" id="sel-sub-parent-code" maxlength="7">
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -690,28 +690,6 @@
   </div>
 </div>
 
-<!-- Modal Review BOM -->
-<div class="modal fade" id="review-bom-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="min-width: 70%;">
-      <div class="modal-content">
-         <div class="modal-header">
-            <h5 class="modal-title" style="font-weight: bolder;">Modal Title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <input type="text" id="production-order-val" style="display: none;">
-            <input type="text" id="operation_id_update_bom" style="display: none;">
-
-            <div id="review-bom-details-div"></div>
-         </div>
-      </div>
-   </div>
-</div>
-
-
-
 <!-- Delete Pending Material Transfer for Manufacture Modal -->
 <div class="modal fade" id="delete-pending-mtfm-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -800,6 +778,57 @@
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
       </div>
+  </div>
+</div>
+<div class="modal fade" id="reset-workstation-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width:40%;">
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title" id="modal-title">Reset Workstation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="col-md-12" id="tbl_workstation_reset">
+            
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+<div class="modal fade" id="prod-list-confirm-reset-workstation-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <form action="/reset_workstation_data" method="POST" id="prod-list-reset-works-frm">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+          <h5 class="modal-title">Confirmation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+              <div class="col-md-12">
+                 <input type="hidden" name="reset_job_ticket_id"  class="reset_job_ticket_id">
+                 <input type="hidden" name="reset_prod"  class="reset_prod">
+                 <input type="hidden" name="reload_tbl"  class="reset_reload_tbl">
+
+                 <div class="row">
+                   <div class="col-sm-12"style="font-size: 12pt;">
+                       <label> Are you sure you want to reset <span class="reset_job_ticket_workstation" style="font-weight: bold;"></span> ?</label>
+                   </div>               
+                 </div>
+              </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 5px 10px;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -1065,6 +1094,73 @@
 
 <script>
 $(document).ready(function(){
+  $(document).on('click', '#add-operation-btn', function(){
+    var workstation = $('#sel-workstation option:selected').text();
+    var wprocess = $('#sel-process').val();
+    if (!$('#sel-workstation').val()) {
+      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
+      return false;
+    }
+    var rowno = $('#bom-workstations-tbl tr').length;
+    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
+    if (workstation) {
+      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
+      $("#bom-workstations-tbl tbody").append(markup);
+    }
+  });
+  $(document).on('click', '#submit-bom-review-btn', function(){
+    var production_order = $('#production-order-val-bom').val();
+    var operation_id = $('#operation_id_update_bom').val();
+    var id = [];
+    var workstation = [];
+    var wprocess = [];
+    var workstation_process = [];
+    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
+    var user = $('#bom-workstations-tbl input[name=username]').val();
+    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
+    $("#bom-workstations-tbl > tbody > tr").each(function () {
+      id.push($(this).find('span').eq(0).text());
+      workstation.push($(this).find('td').eq(1).text());
+      wprocess.push($(this).find('select').eq(0).val());
+      workstation_process.push($(this).find('select option:selected').eq(0).text());
+    });
+    var filtered_process = wprocess.filter(function (el) {
+      return el != null && el != "";
+    });
+    if (workstation.length != filtered_process.length) {
+      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
+      return false;
+    }
+    var processArr = workstation_process.sort();
+    var processDup = [];
+    for (var i = 0; i < processArr.length - 1; i++) {
+        if (processArr[i + 1] == processArr[i]) {
+            processDup.push(processArr[i]);
+            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
+            return false;
+        }
+    }
+    $.ajax({
+      url: '/submit_bom_review/' + bom,
+      type:"POST",
+      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
+      success:function(data){
+        if(data.status) {
+          $('#review-bom-modal').modal('hide');
+          $('#manual-production-modal input[name="is_reviewed"]').val(1);
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+        } else {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+  
   $('#manual-material-operation-row').hide();
   $('#has-no-bom-checkbox').click(function(){
     $('#manual-material-operation-row').toggle();
@@ -1220,37 +1316,6 @@ $(document).ready(function(){
       }
     });
   }
-
-  $('#confirm-feedback-production-modal form').submit(function(e){
-    e.preventDefault();
-    $('#submit-feedback-btn').attr('disabled', true);
-    $('#loader-wrapper').removeAttr('hidden');
-    var production_order = $('#confirm-feedback-production-modal input[name="production_order"]').val();
-    var target_warehouse = $('#confirm-feedback-production-modal input[name="target_warehouse"]').val();
-    var completed_qty = $('#confirm-feedback-production-modal input[name="completed_qty"]').val();
-
-    $.ajax({
-      url:"/create_stock_entry/" + production_order,
-      type:"POST",
-      data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-      success:function(response){
-        $('#loader-wrapper').attr('hidden', true);
-        if (response.success == 0) {
-          showNotification("danger", response.message, "now-ui-icons travel_info");
-          $('#submit-feedback-btn').removeAttr('disabled');
-        }else{
-          showNotification("success", response.message, "now-ui-icons travel_info");
-          load_list();
-          $('#confirm-feedback-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
 
   $('#sel-mreq').autocomplete({
     source:function(request,response){
@@ -1491,8 +1556,25 @@ $(document).ready(function(){
       }
     });
   }
-  
 
+  $('#reschedule_delivery_frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reschedule-delivery-modal').modal('hide');
+            load_list();
+          }
+        }
+      });
+    });
   $(document).on('click', '.spotclass', function(event){
     event.preventDefault();
     var jtid = $(this).attr('data-jobticket');
@@ -1646,7 +1728,6 @@ $(document).ready(function(){
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success == 0) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
@@ -1679,24 +1760,6 @@ $(document).ready(function(){
     $('#review-bom-modal').modal('show');
   });
 
-  $(document).on('click', '#add-operation-btn', function(){
-    var workstation = $('#sel-workstation option:selected').text();
-    var wprocess = $('#sel-process').val();
-
-    if (!$('#sel-workstation').val()) {
-      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
-      return false;
-    }
-
-
-    var rowno = $('#bom-workstations-tbl tr').length;
-    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
-    if (workstation) {
-      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
-      $("#bom-workstations-tbl tbody").append(markup);
-    }
-  });
-
   $(document).on('change', '#sel-workstation', function(){
     var workstation = $(this).val();
     $('#sel-process').empty();
@@ -1718,101 +1781,12 @@ $(document).ready(function(){
     }
   });
 
-  $(document).on('click', '#submit-bom-review-btn', function(){
-    var production_order = $('#production-order-val').val();
-    var operation_id = $('#operation_id_update_bom').val();
-
-    var id = [];
-    var workstation = [];
-    var wprocess = [];
-    var workstation_process = [];
-    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
-    var user = $('#bom-workstations-tbl input[name=username]').val();
-    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
-    $("#bom-workstations-tbl > tbody > tr").each(function () {
-      id.push($(this).find('span').eq(0).text());
-      workstation.push($(this).find('td').eq(1).text());
-      wprocess.push($(this).find('select').eq(0).val());
-      workstation_process.push($(this).find('select option:selected').eq(0).text());
-    });
-
-    var filtered_process = wprocess.filter(function (el) {
-      return el != null && el != "";
-    });
-
-    if (workstation.length != filtered_process.length) {
-      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
-      return false;
-    }
-
-    var processArr = workstation_process.sort();
-    var processDup = [];
-    for (var i = 0; i < processArr.length - 1; i++) {
-        if (processArr[i + 1] == processArr[i]) {
-            processDup.push(processArr[i]);
-            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
-            return false;
-        }
-    }
-
-    $.ajax({
-      url: '/submit_bom_review/' + bom,
-      type:"POST",
-      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
-      success:function(data){
-        console.log(data);
-        $('#review-bom-modal').modal('hide');
-        showNotification("success", data.message, "now-ui-icons ui-1_check");
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
   $(document).on("click", ".delete-row", function(e){
     e.preventDefault();
     $(this).parents("tr").remove();
 
     $('#bom-workstations-tbl tbody tr').each(function (idx) {
       $(this).children("td:eq(0)").html(idx + 1);
-    });
-  });
-
-  $(document).on('click', '.cancel-production-btn', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    var production_order = $(this).data('production-order');
-
-    $('#cancel-production-modal input[name="id"]').val(id);
-    $('#cancel-production-modal input[name="production_order"]').val(production_order);
-    $('#cancel-production-modal .modal-title').text('Cancel Production Order');
-    $('#cancel-production-modal span').eq(1).text(production_order);
-    $('#cancel-production-modal').modal('show');
-  });
-
-  $('#cancel-production-modal form').submit(function(e){
-    e.preventDefault();
-    $.ajax({
-      url: '/cancel_production_order',
-      type:"POST",
-      data: $(this).serialize(),
-      success:function(data){
-        if (!data.success) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          location.reload();
-          $('#cancel-production-modal').modal('hide');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
     });
   });
 
@@ -1827,30 +1801,6 @@ $(document).ready(function(){
     setTimeout(function() {
       $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
     }, 0);
-  });
-
-  $(document).on('click', '.view-bom-details-btn', function(e){
-    e.preventDefault();
-    var guidebom =  $(this).data('bom');
-    if(guidebom){
-      var bom = guidebom;
-    }else{
-      var bom = "No BOM";
-    }
-    $('#production-order-val').val($(this).data('production-order'));
-    $('#operation_id_update_bom').val($(this).data('operationid'));
-
-    $.ajax({
-      url: "/view_bom_for_review/" + bom,
-      type:"GET",
-      data:{production: $(this).data('production-order') },
-      success:function(data){
-        $('#review-bom-details-div').html(data);
-      }
-    });
-
-    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
-    $('#review-bom-modal').modal('show');
   });
 });
 </script>
@@ -1921,6 +1871,35 @@ $(document).on('click', '.feedbacked_log_btn', function(){
        },
     });
 });
+$(document).on('click', '.prod-reset-btn', function(){
+  var prod = $(this).data('production-order');
+    $.ajax({
+       url: "/tbl_reset_workstation/" + prod,
+       type:"GET",
+       success:function(data){
+          $('#tbl_workstation_reset').html(data);
+          $('#reset-workstation-modal').modal('show');
+       },
+       error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+       },
+    });
+});
+$(document).on('click', '.btn_reset_workstation', function(){
+  var jt_id = $(this).data('id');
+  var prod = $(this).data('prod');
+  var work = $(this).data('workstation');
+  var process = $(this).data('process');
+  $('#prod-list-confirm-reset-workstation-modal .reset_job_ticket_workstation').text(work+"-"+ process);
+  $('#prod-list-confirm-reset-workstation-modal .reset_job_ticket_id').val(jt_id);
+  $('#prod-list-confirm-reset-workstation-modal .reset_prod').val(prod);
+  $('#prod-list-confirm-reset-workstation-modal').modal('show');
+  $('#prod-list-confirm-reset-workstation-modal .reset_reload_tbl').val("prod_list");
+});
+
+
 
 </script>
 @endsection

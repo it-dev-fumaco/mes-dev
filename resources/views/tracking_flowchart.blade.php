@@ -63,7 +63,7 @@
                                       $colorme= 'white';
                                       $hideme= 'none';
                                       $hide_ongoing_process='none';
-                                      }else{
+                                    }else{
                                       $stat= 'Pending';
                                       $colorme= '#d6dbdf';
                                       $hideme= '';
@@ -73,6 +73,9 @@
                             $displayasssembly = ($materials['operation_id']  == "1") ? "none" : "" ;
                             $prod = ($materials['production_order']  == "") ? "No Production Order" : $materials['production_order'] ;
                             $prod_dash = ($materials['production_order']  == "") ? "" : " - " ;
+                            $parent_item_border= ($materials['operation_id']  == "3") ? "none" : "1px solid #abb2b9";
+                            $parent_radius= ($materials['operation_id']  == "3") ? "none" : ".2em" ;
+
                         @endphp
           
           <div style="width: 100%; overflow: auto; min-height:740px;"  class="col-md-12 my-auto">
@@ -82,28 +85,31 @@
                 <ul class="tree ulclass text-center">
                 
                   <li class="liclass text-center">
-                    <div  class="row bread justify-content-center" style="border: 1px solid black;border-radius: .2em;overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;">
-                      <div class="row text-center bread justify-content-center" style="padding-top:5px">
+                    <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:100%;">
+                      <div class="row text-center bread justify-content-center" style="padding-top:5px;width:100%;">
                         <div class="col-md-12 bread">
-                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }} @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>  @endif</b> </span>
-                        <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['item_name'] !!} </span>
+                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}
+                          @if($materials['status'] == 'Unknown Status')
+                          <br>
+                          <span class="badge badge-danger">{{ $materials['status'] }}</span> @endif
+                          @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>  @endif</b> </span>
+                        <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['description'] !!} </span>
                         <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
 
                         </div>
                       </div>
-                      <div class="row bread breads" style="margin-top:5px;display:{{$displayasssembly}}; text-align:initial !mportant;">
-                        <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; text-align:initial !mportant;">
-                          <ul class="breadcrumb-css bread breads" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};  text-align:initial !mportant;">
+                      <div class="row bread breads row" style="margin-top:5px;display:{{$displayasssembly}}; text-align:initial !important;">
+                        <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; text-align:initial !important;width:100%;">
+                          <ul class="breadcrumb-css bread breads row align-items-center justify-content-center" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};  text-align:initial !important;">
                             @forelse($materials['process'] as $uli)
-                              <li class="{{$uli['status']}} bread breads" style=" text-align:initial !mportant;"><a class="bread breads" style=" text-align:initial !mportant;padding-left:25px;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
+                              <li class="{{$uli['status']}} bread breads" style=" text-align:initial !important;width:auto;"><a class="bread breads" style=" text-align:initial !important;padding-left:25px;margin-right:10px;width:auto;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block; padding-right:20px;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
                             @empty
-                            <li class="bread" style="text-align:initial !mportant;"></li>
+                            <li class="bread" style="text-align:initial !important;"></li>
                             @endforelse
                           </ul>
                         </div>
                       </div>
                     </div>
-
                     <ul class="ulclass">
                       @foreach($boms as $idx => $item)
                       <li class="liclass">
@@ -117,6 +123,9 @@
                                     }elseif($item['status'] == 'In Progress'){
                                       $stat= '';
                                       $colorme= '#f5b041 ';
+                                    }elseif($item['status'] == 'Unknown Status'){
+                                      $stat= $item['status'];
+                                      $colorme= '';
                                     }else{
                                       $stat= 'Pending';
                                       $colorme= '#d6dbdf';
@@ -159,6 +168,8 @@
                               <td colspan="2" style="text-align: center; font-size: 9pt;">
                                 @if( $stat == 'Pending')
                                 <i><span>Pending</span><i>
+                                  @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                 @else
                                   @forelse($item['current_load'] as $row)
                                    {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -169,7 +180,6 @@
                               </td>
                             </tr>
                           </table>
-
                         @if(count($item['child_nodes']) > 0)
                           <ul class="ulclass">
                             @foreach($item['child_nodes'] as $child)
@@ -183,6 +193,9 @@
                                         }elseif($child['status'] == 'In Progress'){
                                           $colorme= '#f5b041 ';
                                           $stat= '';
+                                        }elseif($child['status'] == 'Unknown Status'){
+                                      $stat= $child['status'];
+                                      $colorme= '';
                                         }else{
                                           $colorme= '#d6dbdf';
                                           $stat= 'Pending';
@@ -227,6 +240,8 @@
                                       <td colspan="2" style="text-align: center; font-size: 9pt;">
                                         @if( $stat == 'Pending')
                                         <i><span>Pending</span><i>
+                                          @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                         @else
                                           @forelse($child['current_load'] as $row)
                                            {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -250,6 +265,9 @@
                                                 }elseif($child1['status'] == 'In Progress'){
                                                   $colorme= '#f5b041 ';
                                                   $stat= '';
+                                                }elseif($child1['status'] == 'Unknown Status'){
+                                      $stat= $child1['status'];
+                                      $colorme= '';
                                                 }else{
                                                   $colorme= '#d6dbdf';
                                                   $stat= 'Pending';
@@ -294,6 +312,8 @@
                                             <td colspan="2" style="text-align: center; font-size: 9pt;">
                                               @if( $stat == 'Pending')
                                               <i><span>Pending</span><i>
+                                                @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                               @else
                                                 @forelse($child1['current_load'] as $row)
                                                  {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -317,6 +337,9 @@
                                                       }elseif($child2['status'] == 'In Progress'){
                                                         $colorme= '#f5b041 ';
                                                         $stat= '';
+                                                      }elseif($child2['status'] == 'Unknown Status'){
+                                      $stat= $child2['status'];
+                                      $colorme= '';
                                                       }else{
                                                         $colorme= '#d6dbdf';
                                                         $stat= 'Pending';
@@ -361,6 +384,8 @@
                                                   <td colspan="2" style="text-align: center; font-size: 9pt;">
                                                     @if( $stat == 'Pending')
                                                     <i><span>Pending</span><i>
+                                                      @elseif ($stat == 'Unknown Status')
+                                  <span class="badge badge-danger"> {{ $stat }}</span>
                                                     @else
                                                       @forelse($child2['current_load'] as $row)
                                                        {{ $row->workstation }} - {{ $row->process_name }} <br>
@@ -399,7 +424,7 @@
         <div class="card-body pb-0">
 					<div class="row">
 						<div class="col-md-12 text-center" style="margin-top: -10px;">
-							<h5 class="text-white" style="font-size: 15pt; margin-bottom: 5px;">Status Details</h5>
+							<h5 class="text-white" style="font-size: 14pt; margin-bottom: 5px;"><b>STATUS DETAILS</b></h5>
 						</div>
 					</div>
           @php
@@ -520,17 +545,17 @@
                       <col style="width: 33.33%;">
                       <tr>
                         <td class="align-top">
-                          <span class="d-block font-weight-bold" style="font-size: 0.9vw;">Total QTY</span>
+                          <span class="d-block font-weight-bold" style="font-size: 0.8vw;">Total Qty</span>
                           <span class="d-block font-weight-bold" style="font-size:1.8vw;">{{$required}}</span>
                           <span class="d-block" style="font-size:0.8vw;">{{$materials['uom']}}</span>
                         </td>
                         <td class="align-top">
-                          <span class="d-block font-weight-bold" style="font-size: 0.9vw;">Bal Qty</span>
+                          <span class="d-block font-weight-bold" style="font-size: 0.8vw;">Bal Qty</span>
                           <span class="d-block font-weight-bold" style="font-size:1.8vw;">{{$bal}}</span>
                           <span class="d-block" style="font-size:0.8vw;">{{$materials['uom']}}</span>
                         </td>
                         <td class="align-top">
-                          <span class="d-block font-weight-bold" style="font-size: 0.9vw;">Del Qty</span>
+                          <span class="d-block font-weight-bold" style="font-size: 0.8vw;">Del Qty</span>
                           <span class="d-block font-weight-bold" style="font-size:1.8vw;">{{$feed}}</span>
                           <span class="d-block" style="font-size:0.8vw;">{{$materials['uom']}}</span>
                         </td>
@@ -545,7 +570,7 @@
                       <div class="timeline-action">
                         <h2 class="title">Fabrication</h2>
                         {{--<span style="display:block; font-size:1vw;font-weight:bold;"> {{ $timeline['fab_produced']}} /  {{ $timeline['fab_required']}}</span>--}}
-                        <p style="font-size:0.8vw;"><i>{{ $fab_status_label }}</i></p>
+                        <p style="font-size:0.9vw;"><span class="badge badge-{{$timeline['fab_badge']}}">{{ $fab_status_label }}</span></p>
                         <span style="display:{{ $display_fab_end}};font-size:0.8vw;"><b>Total Duration:</b> {{ $timeline['fab_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
                         <p style="font-size:0.7vw;display:{{ $display_fab}};"><b>Start Time:</b> <span>{{ $timeline['fab_min']}}</span> </p>
@@ -558,7 +583,8 @@
                       <div class="timeline-action" >
                         <h2 class="title">Painting</h2>
                         {{--<span style="display:block; font-size:1vw;font-weight:bold;">{{ $timeline['fab_produced']}} /  {{ $timeline['fab_required']}}</span>--}}
-                        <p style="font-size:0.8vw;"><i>{{ $pain_status_label }}</i></p>
+                        {{-- <p style="font-size:0.9vw;"><i>{{ $pain_status_label }}</i></p> --}}
+                        <p style="font-size:0.9vw;"><span class="badge badge-{{$timeline['pain_badge']}}" style="font-size:10pt;">{{ $pain_status_label }}</span></p>
                         <span style="display:{{ $display_pain_end }};font-size:0.8vw;"><b>Total Duration:</b>  {{ $timeline['pain_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
                         <p style="display:{{ $display_pain }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['pain_min']}}</span> </p>
@@ -572,7 +598,9 @@
                       <div class="timeline-action" >
                         <h2 class="title">Assembly</h2>
                         <span style="display:block; font-size:1vw;font-weight:bold;"> {{$produced}} /  {{$required}}</span>
-                        <p style="font-size:0.8vw;"><i>{{ $assem_status_label }}</i></p>
+                        {{-- <p style="font-size:0.8vw;"><i>{{ $assem_status_label }}</i></p> --}}
+                        <p style="font-size:0.9vw;"><span class="badge badge-{{$timeline['assem_badge']}}" style="font-size:10pt;">{{ $assem_status_label }}</span></p>
+
                         <span style="display:{{ $display_assem_end}};font-size:0.8vw;"><b>Total Duration:</b>  {{ $timeline['assem_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
                         <p style="display:{{ $display_assem }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['assem_min']}}</span> </p>
@@ -903,7 +931,7 @@ a.hvrlink:hover + .details-pane {
             padding: .2em .5em;
             position: relative;
             color: black;
-            width: 170px;
+            min-width: 200px;;
         }
             /* | */
             .tree a:not(.bread):before{

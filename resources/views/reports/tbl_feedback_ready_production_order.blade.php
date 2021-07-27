@@ -61,7 +61,16 @@
         <td class="text-center" style="padding: 3px;">{{ $r['duration'] }}</td>
         <td class="text-center" style="padding: 3px;">@if($r['delivery_date']){{date('M-d-Y', strtotime($r['delivery_date']))}}@endif</td>
         <td class="text-center font-weight-bold" style="padding: 3px;">{{ $r['target_warehouse'] }}<br>
-          <span class="badge tab-heading--{{ ($r['status'] == 'Material For Issue') ? 'reddish' : 'teal' }} text-white" style="font-size: 9pt;">{{ $r['status'] }}</span>
+          @php
+              if($r['status'] == 'Material For Issue'){
+                $status_badge = 'reddish';
+              }elseif ($r['status'] == 'Unknown Status') {
+                $status_badge = 'gray';
+              }else{
+                $status_badge = 'teal';
+              }
+          @endphp
+          <span class="badge tab-heading--{{ $status_badge }} text-white" style="font-size: 9pt;">{{ $r['status'] }}</span>
         </td>
         <td class="text-center" style="padding: 3px;">
           <div class="btn-group">
@@ -82,9 +91,8 @@
               @if($r['status'] == 'Partially Feedbacked')
               <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['name'] }}" href="#">Print Transfer Slip</a>
               @endif
-              <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}" data-item-code="{{ $r['item_code'] }}" data-qty="{{ number_format($r['qty']) }}" data-uom="{{ $r['stock_uom'] }}">Create Stock Entry</a>
               @else
-              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty'] - $r['feedback_qty'] }}">Create Feedback</a>
+              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}" data-max="{{ $r['qty'] - $r['feedback_qty'] }}">Feedback</a>
               @endif
               <a class="dropdown-item  view-bom-details-btn" href="#" data-bom="{{ $r['bom_no'] }}" data-production-order="{{ $r['name'] }}">Update Process</a>
               <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['name'] }}">View Materials</a>

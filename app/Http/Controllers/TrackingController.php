@@ -41,8 +41,8 @@ class TrackingController extends Controller
                     ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->select('sales_order', 'material_request', 'parent_item_code')
-            ->groupBy('sales_order','material_request', 'parent_item_code')
+            ->select('sales_order', 'material_request')
+            ->groupBy('sales_order','material_request')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -55,7 +55,7 @@ class TrackingController extends Controller
             $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order;
             $so_item_list[] = [
                 'guide_id' => $guide_id,
-                'item' => $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code)
+                'item' => $this->get_so_item_list($row->sales_order,$row->material_request)
             ];
         }
         // // $array = collect($production_order_list)->sortBy('item')->reverse()->toArray();
@@ -85,6 +85,7 @@ class TrackingController extends Controller
                     ->where('sotbl.parent', $sales_order)
                     ->where('item.item_group', '!=', 'Raw Material')
                     ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                    ->distinct('sotbl.parent')
                     ->get();
         }else{
             $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
@@ -93,6 +94,7 @@ class TrackingController extends Controller
                     ->where('sotbl.parent', $material_request)
                     ->where('item.item_group', '!=', 'Raw Material')
                     ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                    ->distinct('sotbl.parent')
                     ->get();
         }
         
@@ -110,6 +112,7 @@ class TrackingController extends Controller
                         'erp_reference_no' => $row->name
                     ];
             }
+        // dd($production_order_list);
             return $production_order_list;
                     
 
@@ -126,14 +129,14 @@ class TrackingController extends Controller
                         ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
                         ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
                 })
-                ->select('sales_order', 'material_request', 'customer', 'parent_item_code')
-                ->groupBy('sales_order','material_request', 'customer', 'parent_item_code')
+                ->select('sales_order', 'material_request', 'customer')
+                ->groupBy('sales_order','material_request', 'customer')
                 ->paginate(10);
 
             $so_item_list = [];
             foreach ($production_orders as $row) {
                 $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order; 
-                $function_function= $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code);
+                $function_function= $this->get_so_item_list($row->sales_order,$row->material_request);
 
                     $so_item_list[] = [
                         'guide_id' => $guide_id,
@@ -155,9 +158,7 @@ class TrackingController extends Controller
             // $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
             // // set url path for generted links
             // $paginatedItems->setPath($request->url());
-
             // $so_item_list = $paginatedItems;
-
             return view('tables.tbl_item_list_for_tracking', compact('so_item_list', 'production_orders'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -296,6 +297,17 @@ class TrackingController extends Controller
 
 
             if (!empty($parent_productions)) {
+                $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                    ->where('name', $production_order_no)->first();
+
+                if($prod_details->docstatus == 2 && $status != 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else if($prod_details->docstatus == 1 && $status == 'Cancelled'){
+                    $status = 'Unknown Status';
+                }else{
+                    $status = $status;
+                }
+
                 $materials = [
                         'item_code' => $parent_productions->item_code,
                         'description' => $item_description,
@@ -397,6 +409,7 @@ class TrackingController extends Controller
             if((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Pending")->count()) == $fabrication){                
                 $fab_timeline_stat = "not_started";
                 $fab_duration="-";
+                $fab_badge="secondary";
             }elseif ($fabrication == $fabrication_completed ){ 
                 $fab_timeline_stat = "Completed";
                 $from = Carbon::parse($min_fab);
@@ -404,13 +417,18 @@ class TrackingController extends Controller
 
                 $duration = $from->diffInSeconds($to);
                 $fab_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $fab_badge="success";
+
             }else{
                  $fab_timeline_stat = "In Progress";
                  $fab_duration="- On Going";
+                 $fab_badge="warning";
+
             }
             if((collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Pending")->count()) == $assembly ){
                 $assem_timeline_stat = "not_started";
                 $assem_duration=" - ";
+                $assem_badge="secondary";
 
             }elseif ($assembly == $assembly_completed){
                 $assem_timeline_stat = "Completed";
@@ -419,15 +437,18 @@ class TrackingController extends Controller
 
                 $duration = $from->diffInSeconds($to);
                 $assem_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $assem_badge="success";
+
             }else{
                  $assem_timeline_stat = "In Progress";
                  $assem_duration=" - On Going";
-
+                 $assem_badge="warning";
             }
 
             if((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Pending")->count()) == $painting){
                 $pain_timeline_stat = "not_started";
                 $pain_duration=" - ";
+                $pain_badge="secondary";
 
             }elseif ($painting == $painting_completed){
                 $pain_timeline_stat = "Completed";
@@ -436,9 +457,12 @@ class TrackingController extends Controller
 
                 $duration = $from->diffInSeconds($to);
                 $pain_duration= ($duration == null) ? '': $this->seconds2human($duration);
+                $pain_badge="success";
+
             }else{
                  $pain_timeline_stat = "In Progress";
                  $pain_duration=" - On Going ";
+                 $pain_badge="warning";
 
             }
             if($assem_timeline_stat == "Completed" && $fab_timeline_stat == "Completed" && $pain_timeline_stat="Completed"){
@@ -453,12 +477,12 @@ class TrackingController extends Controller
             }
             $total_qty_fab=0;
             $timeline=[
-                'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('F d, Y h:ia'),
-                'fab_max' => ($max_fab == null) ? '-': Carbon::parse($max_fab)->format('F d, Y h:ia'),
-                'pain_min' => ($min_pain == null) ? '-': Carbon::parse($min_pain)->format('F d, Y h:ia'),
-                'pain_max' => ($max_pain == null) ? '-': Carbon::parse($max_pain)->format('F d, Y h:ia'),
-                'assem_min'=> ($min_assem == null) ? '-': Carbon::parse($min_assem)->format('F d, Y h:ia'),
-                'assem_max' => ($max_assem == null) ? '-': Carbon::parse($max_assem)->format('F d, Y h:ia'),
+                'fab_min' => ($min_fab == null) ? '-': Carbon::parse($min_fab)->format('M d, Y h:i A'),
+                'fab_max' => ($max_fab == null) ? '-': Carbon::parse($max_fab)->format('M d, Y h:i A'),
+                'pain_min' => ($min_pain == null) ? '-': Carbon::parse($min_pain)->format('M d, Y h:i A'),
+                'pain_max' => ($max_pain == null) ? '-': Carbon::parse($max_pain)->format('M d, Y h:i A'),
+                'assem_min'=> ($min_assem == null) ? '-': Carbon::parse($min_assem)->format('M d, Y h:i A'),
+                'assem_max' => ($max_assem == null) ? '-': Carbon::parse($max_assem)->format('M d, Y h:i A'),
                 'fab_stat' => $fab_timeline_stat,
                 'assem_stat' => $assem_timeline_stat,
                 'pain_stat' => $pain_timeline_stat,
@@ -468,8 +492,10 @@ class TrackingController extends Controller
                 'assem_duration' => $assem_duration,
                 'fab_required' => empty($total_qty_fab) ? '0' : $total_qty_fab->qty_to_manufacture,
                 'fab_produced' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->produced_qty,
-                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom
-
+                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom,
+                'fab_badge' => $fab_badge,
+                'assem_badge' => $assem_badge,
+                'pain_badge' => $pain_badge
             ];
         if ($bom != null) {
             $boms = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
@@ -567,9 +593,18 @@ class TrackingController extends Controller
                         
 
                     }
-                   
-                    
-                   
+     
+                    $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                        ->where('name', $production->production_order)->first();
+
+                    if($prod_details->docstatus == 2 && $status != 'Cancelled'){
+                        $status = 'Unknown Status';
+                    }else if($prod_details->docstatus == 1 && $status == 'Cancelled'){
+                        $status = 'Unknown Status';
+                    }else{
+                        $status = $status;
+                    }
+                        
                 }else{
                     $production_order_no= null;
                     $planned_start_date=null;
