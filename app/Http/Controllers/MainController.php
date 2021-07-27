@@ -1503,11 +1503,11 @@ class MainController extends Controller
 				$prod_details = DB::connection('mysql')->table('tabProduction Order')
 					->where('name', $row->production_order)->first();
 
-				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
 					$status = 'Unknown Status';
-				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
 					$status = 'Unknown Status';
-				}else if ($prod_details->material_transferred_for_manufacturing > 0) {
+				}else if ($prod_details && $prod_details->material_transferred_for_manufacturing > 0) {
 					$status = 'Material Issued';
 				}else{
 					$status = 'Material For Issue';
@@ -1589,9 +1589,9 @@ class MainController extends Controller
 				$prod_details = DB::connection('mysql')->table('tabProduction Order')
 					->where('name', $row->production_order)->first();
 
-				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
 					$status = 'Unknown Status';
-				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
 					$status = 'Unknown Status';
 				}else{
 					$status = $row->status;
@@ -1676,9 +1676,9 @@ class MainController extends Controller
 				$prod_details = DB::connection('mysql')->table('tabProduction Order')
 					->where('name', $row->production_order)->first();
 
-				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
 					$status = 'Unknown Status';
-				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
 					$status = 'Unknown Status';
 				}else{
 					$status = 'On Queue';
@@ -1747,9 +1747,9 @@ class MainController extends Controller
 				$prod_details = DB::connection('mysql')->table('tabProduction Order')
 					->where('name', $row->production_order)->first();
 
-				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
 					$status = 'Unknown Status';
-				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
 					$status = 'Unknown Status';
 				}else{
 					$status = $row->status;
@@ -1856,9 +1856,9 @@ class MainController extends Controller
 				$prod_details = DB::connection('mysql')->table('tabProduction Order')
 					->where('name', $row->production_order)->first();
 
-				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
 					$status = 'Unknown Status';
-				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
 					$status = 'Unknown Status';
 				}else{
 					$status = $status;

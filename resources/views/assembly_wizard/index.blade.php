@@ -797,13 +797,18 @@
             type:"GET",
             data: {so: so, bom: bom, idx: idx, qty: qty, item_reference_id: item_reference_id, delivery_date: delivery_date},
             success:function(data){
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#parts-list-div').html(data);
+
+               if (bom.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
             }
          });
-
-         if (bom.length > 0) {
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
       });
 
       $(document).on("click", ".review-bom-row", function(e){
@@ -813,13 +818,18 @@
             type:"GET",
             data: {operation_name: 'Assembly'},
             success:function(data){
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#review-bom-details-div').html(data);
+               $('#review-bom-modal').modal('show');
             }
          });
-
+         
          $('#review-bom-modal .modal-title').html('Review & Finalize BOM [' + $(this).data('bom') + ']');
          $('#review-bom-modal #bom-idx').text($(this).data('idx'));
-         $('#review-bom-modal').modal('show');
       });
 
       $('.get-parts-prodorder').click(function(e){
@@ -935,6 +945,11 @@
             type:"POST",
             data: {user: user, id: id, workstation: workstation, wprocess: wprocess, operation: operation},
             success:function(data){
+               if (data.status == 0) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#review-bom-modal').modal('hide');
                $('#parts-list').find('#'+idx+''+bombtn).removeClass('unchecked').addClass('now-ui-icons ui-1_check text-success');
                showNotification("success", data.message, "now-ui-icons ui-1_check");
@@ -1005,13 +1020,18 @@
             type:"GET",
             data: {production_orders: production_order},
             success:function(data){
+               if (data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#material-planning-div').html(data);
+
+               if (production_order.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
             }
          });
-
-         if (production_order.length > 0) {
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
       });
 
       
@@ -1042,11 +1062,16 @@
             type:"GET",
             data: {production_orders: production_orders},
             success:function(data){
+               if (data.message) {
+                  showNotification('danger', data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#planning-summary-div').html(data);
+
+               $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
             }
          });
-
-         $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
       });
 
       
@@ -1342,6 +1367,11 @@
             //data: data,
             success:function(response){
                console.log(response);
+               if (response.success == 0) {
+                  showNotification("danger", response.message, "now-ui-icons travel_info");
+
+                  return false;
+               }
                // $btn.removeClass('btn-primary create-ste-btn').addClass('btn-success');
                // $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + response);
                if (response.error) {
