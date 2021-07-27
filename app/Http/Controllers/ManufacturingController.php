@@ -49,6 +49,10 @@ class ManufacturingController extends Controller
 
     public function get_material_request_details($id){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $mr = DB::connection('mysql')->table('tabMaterial Request')->where('name', $id)->first();
             if (!$mr) {
                 return response()->json(['message' => 'Material Request <b>' . $id . '</b> not found.']);
@@ -94,7 +98,11 @@ class ManufacturingController extends Controller
 
     public function get_sales_order_details($id){
         try {
-            $so = DB::connection('mysql')->table('tabSales Order')->where('name', $id)->first();
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+            
+            $so = DB::connection('mysql')->table('tabSales Order')->where('name', $id)->where('docstatus', 1)->first();
             if (!$so) {
                 return response()->json(['message' => 'Sales Order <b>' . $id . '</b> not found.']);
             }
@@ -196,6 +204,10 @@ class ManufacturingController extends Controller
 
     public function get_production_req_items(Request $request){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $items = DB::table('tabProduction Order Item')->whereIn('parent', $request->production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
@@ -295,6 +307,10 @@ class ManufacturingController extends Controller
 
     public function get_parts(Request $request){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $not_allowed_item_classification = ['RA - REFLECTOR ASSEMBLY', 'FA - FRAM1E ASSEMBLY'];
             $parts = [];
             foreach ($request->bom as $idx => $bom) {
@@ -572,6 +588,10 @@ class ManufacturingController extends Controller
 
     public function view_bom_for_review(Request $request, $bom){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+            
             $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
             if($bom == "No BOM"){
                 $workstations = DB::connection('mysql_mes')->table('workstation')
@@ -775,11 +795,23 @@ class ManufacturingController extends Controller
 
     // wizard / manual create production order / bom crud
     public function submit_bom_review(Request $request, $bom){
-        $now = Carbon::now();
-        if($bom == "no_bom"){
-            $bom_value= "nobom";
-        }else{
-            $bom_value= "withbom";
+        try {
+            if(!Auth::user()) {
+                return response()->json(['status' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
+            if(!$request->wprocess) {
+                return response()->json(['status' => 0, 'message' => 'Workstation / Process cannot be empty.']);
+            }
+    
+            $process_arr = [];
+            foreach ($request->wprocess as $i => $process_id) {
+                if(!in_array($process_id, $process_arr)){
+                    array_push($process_arr, $process_id);
+                }else{
+                    return response()->json(['status' => 0, 'message' => 'Duplicate process was selected for workstation <b>' . $request->workstation[$i] . '</b>.']);
+                }
+            }
 
         }
         if (is_numeric($request->operation)){
@@ -966,6 +998,10 @@ class ManufacturingController extends Controller
     public function create_production_order(Request $request){
         DB::connection('mysql_mes')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $now = Carbon::now();
 
             if ($request->reference_type) {
@@ -2707,6 +2743,10 @@ class ManufacturingController extends Controller
     public function generate_stock_entry($production_order, Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+            
             $now = Carbon::now();
             $mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $production_order)->first();
@@ -3422,6 +3462,10 @@ class ManufacturingController extends Controller
     }
 
     public function production_planning_summary(Request $request){
+        if(!Auth::user()) {
+            return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+        }
+
         $production_orders = DB::connection('mysql')->table('tabProduction Order')->whereIn('name', $request->production_orders)
             ->where('docstatus', 1)->where('company', 'FUMACO Inc.')->orderBy('name', 'asc')->get();
 
@@ -3444,6 +3488,9 @@ class ManufacturingController extends Controller
     }
 
     public function print_withdrawals(Request $request){
+        if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+        }
         $myArray = explode(',', $request->production_orders);
         $now = Carbon::now();
         $ste = DB::connection('mysql')->table('tabStock Entry')

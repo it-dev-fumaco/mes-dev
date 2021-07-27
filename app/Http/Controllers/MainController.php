@@ -1514,11 +1514,14 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$is_transferred = DB::connection('mysql')->table('tabProduction Order')
-					->where('material_transferred_for_manufacturing', '>', 0)
-					->where('name', $row->production_order)->where('docstatus', 1)->first();
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
 
-				if ($is_transferred) {
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if ($prod_details && $prod_details->material_transferred_for_manufacturing > 0) {
 					$status = 'Material Issued';
 				}else{
 					$status = 'Material For Issue';
@@ -1597,10 +1600,16 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				// $actual_start_date = DB::connection('mysql_mes')->table('job_ticket')
-				// 	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				// 	->where('job_ticket.production_order', $row->production_order)
-				// 	->min('time_logs.from_time');
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $row->status;
+				}
 
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
@@ -1678,10 +1687,16 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				// $actual_start_date = DB::connection('mysql_mes')->table('job_ticket')
-				// 	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				// 	->where('job_ticket.production_order', $row->production_order)
-				// 	->min('time_logs.from_time');
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = 'On Queue';
+				}
 
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
@@ -1743,6 +1758,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $row->status;
+				}
+
 				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
@@ -1842,8 +1868,10 @@ class MainController extends Controller
 					->where('material_transferred_for_manufacturing', '>', 0)
 					->where('name', $row->production_order)->where('docstatus', 1)->first();
 
-				if ($is_transferred) {
-					$status = 'Material Issued';
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
 				}else{
 					$status = 'Material For Issue';
 				}
