@@ -586,6 +586,9 @@ class ManufacturingController extends Controller
 
     public function view_bom_for_review(Request $request, $bom){
         try {
+
+            $jtno = $request->production;
+
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
@@ -1086,36 +1089,40 @@ class ManufacturingController extends Controller
                             DB::connection('mysql')->table('tabBOM Operation')->insert($values);
 
                             if ($request->production_order) {
-                                $prod_ops = [
-                                    'name' => 'mes'.uniqid(),
-                                    'creation' => $now->toDateTimeString(),
-                                    'modified' => $now->toDateTimeString(),
-                                    'modified_by' => Auth::user()->email,
-                                    'owner' => Auth::user()->email,
-                                    'docstatus' => 1,
-                                    'parent' => $request->production_order,
-                                    'parentfield' => 'operations',
-                                    'parenttype' => 'Production Order',
-                                    'idx' => $index + 1,
-                                    'status' => 'Pending',
-                                    'actual_start_time' => null,
-                                    'workstation' => $workstation,
-                                    'completed_qty' => 0,
-                                    'planned_operating_cost' => 0,
-                                    'description' => $workstation,
-                                    'actual_end_time' => null,
-                                    'actual_operating_cost' => 0,
-                                    'hour_rate' => 0,
-                                    'planned_start_time' => null,
-                                    'bom' => $bom,
-                                    'actual_operation_time' => 0,
-                                    'operation' => $operation,
-                                    'planned_end_time' => null,
-                                    'time_in_mins' => 1,
-                                    'process' => $request->wprocess[$index],
-                                ];
-
-                                DB::connection('mysql')->table('tabProduction Order Operation')->insert($prod_ops);
+                                $existing_prod_ops = DB::connection('mysql')->table('tabProduction Order Operation')
+                                    ->where('workstation', $workstation)->where('process', $request->wprocess[$index])->exists();
+                                if(!$existing_prod_ops) {
+                                    $prod_ops = [
+                                        'name' => 'mes'.uniqid(),
+                                        'creation' => $now->toDateTimeString(),
+                                        'modified' => $now->toDateTimeString(),
+                                        'modified_by' => Auth::user()->email,
+                                        'owner' => Auth::user()->email,
+                                        'docstatus' => 1,
+                                        'parent' => $request->production_order,
+                                        'parentfield' => 'operations',
+                                        'parenttype' => 'Production Order',
+                                        'idx' => $index + 1,
+                                        'status' => 'Pending',
+                                        'actual_start_time' => null,
+                                        'workstation' => $workstation,
+                                        'completed_qty' => 0,
+                                        'planned_operating_cost' => 0,
+                                        'description' => $workstation,
+                                        'actual_end_time' => null,
+                                        'actual_operating_cost' => 0,
+                                        'hour_rate' => 0,
+                                        'planned_start_time' => null,
+                                        'bom' => $bom,
+                                        'actual_operation_time' => 0,
+                                        'operation' => $operation,
+                                        'planned_end_time' => null,
+                                        'time_in_mins' => 1,
+                                        'process' => $request->wprocess[$index],
+                                    ];
+    
+                                    DB::connection('mysql')->table('tabProduction Order Operation')->insert($prod_ops);
+                                }
 
                                 $insert = [
                                     'production_order' => $request->production_order,
