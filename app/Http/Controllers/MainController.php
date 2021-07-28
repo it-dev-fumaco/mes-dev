@@ -17,6 +17,7 @@ use Image;
 use App\Mail\SendMail_feedbacking;
 use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
+use Session;
 
 use Illuminate\Support\Facades\Route;
 
@@ -548,6 +549,8 @@ class MainController extends Controller
                 }
 			}
 		$success=1;
+
+		// Session::put('op_list', $operation_list);
 		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no'));
 	}
 

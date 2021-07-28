@@ -341,6 +341,8 @@ Route::post('/restart_task', 'MainController@restart_task');
 Route::post('/reject_task', 'MainController@reject_task');
 Route::get('/get_workstation_process_batch', 'MainController@get_workstation_process_batch');
 Route::get('/get_jt_details/{jtno}', 'MainController@getTimesheetDetails');
+// Route::post('/status_reset', 'ManufacturingController@time_log_reset');//!!
+Route::post('/log_delete', 'ManufacturingController@time_log_delete');//!!
 Route::get('/random_inspect_task/{job_ticket_id}', 'MainController@random_inspect_task');
 Route::get('/reject_confirmation_task/{job_ticket_id}', 'MainController@reject_confirmation_task');
 Route::get('/get_tasks_for_inspection/{workstation}/{production_order}', 'MainController@get_tasks_for_inspection');
