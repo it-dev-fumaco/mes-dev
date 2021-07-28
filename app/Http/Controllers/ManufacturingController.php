@@ -11,6 +11,7 @@ use DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendMail_feedbacking;
 use App\Traits\GeneralTrait;
+use Session;
 
 class ManufacturingController extends Controller
 {
@@ -589,6 +590,7 @@ class ManufacturingController extends Controller
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
             
+            $jtno = $request->production;
             $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
             if($bom == "No BOM"){
                 $workstations = DB::connection('mysql_mes')->table('workstation')
@@ -658,11 +660,126 @@ class ManufacturingController extends Controller
                     }
                 }
 
-                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom'));
+                // !!
+                $process_arr = DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $details->production_order)
+                    ->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
+                    ->get();
+
+                $operation_list = [];
+                foreach ($process_arr as $row) {
+                    $operations_arr = [];
+                    if($row->workstation == "Spotwelding"){
+                        $operations =  DB::connection('mysql_mes')->table('spotwelding_qty as qpart')
+                        ->where('qpart.job_ticket_id',  $row->job_ticket_id)->get();
+                        $total_rejects =$row->reject;
+                        $min_count= collect($operations)->min('from_time');
+                        $max_count=collect($operations)->max('to_time');
+                        $status = collect($operations)->where('status', 'In Progress');
+                        $operations_arr[] = [
+                            'machine_code' => "",
+                            'operator_name' => "",
+                            'from_time' => $min_count,
+                            'to_time' => ($row->status == "In Progress") ? '' : $max_count,
+                            'status' => (count($status) == 0 )? 'Not started': "In Progress",
+                            'qa_inspection_status' => "",
+                            'good' => $row->completed_qty,
+                            'reject' => $total_rejects,
+                            'remarks' => "",
+                        ];
+                    }else{
+                        $operations = DB::connection('mysql_mes')->table('job_ticket AS jt')
+                        ->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
+                        ->where('time_logs.job_ticket_id', $row->job_ticket_id)
+                        ->where('workstation','!=', 'Spotwelding')
+                        ->select('jt.*', 'time_logs.*')
+                        ->orderBy('idx', 'asc')->get();
+
+                        foreach ($operations as $d) {
+                            $reference_type = ($d->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
+                            $reference_id = ($d->workstation == 'Spotwelding') ? $d->job_ticket_id : $d->time_log_id;
+                            // $qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
+
+                            if ($d->cycle_time_in_seconds > 0) {
+                                $cycle_time_in_seconds = $d->cycle_time_in_seconds / $d->good;
+
+                                $dur_hours = floor($cycle_time_in_seconds / 3600);
+                                $dur_minutes = floor(($cycle_time_in_seconds / 60) % 60);
+                                $dur_seconds = $cycle_time_in_seconds % 60;
+                    
+                                $dur_hours = ($dur_hours > 0) ? $dur_hours .'h' : null;
+                                $dur_minutes = ($dur_minutes > 0) ? $dur_minutes .'m' : null;
+                                $dur_seconds = ($dur_seconds > 0) ? $dur_seconds .'s' : null;
+                    
+                                $cycle_time_per_log = $dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds;
+                            }else{
+                                $cycle_time_per_log = '-';
+                            }
+
+                            $helpers = DB::connection('mysql_mes')->table('helper')
+                                ->where('time_log_id', $d->time_log_id)->orderBy('operator_name', 'asc')
+                                ->distinct()->pluck('operator_name');
+
+                            $operations_arr[] = [
+                                'machine_code' => $d->machine_code,
+                                'operator_name' => $d->operator_name,
+                                'helpers' => $helpers,
+                                'from_time' => ($d->from_time) ? Carbon::parse($d->from_time)->format('M-d-Y h:i A') : '',
+                                'to_time' => ($d->to_time) ? Carbon::parse($d->to_time)->format('M-d-Y h:i A') : '',
+                                'status' => $d->status,
+                                // 'qa_inspection_status' => $qa_inspection_status,
+                                'good' => $d->good,
+                                'reject' => $d->reject,
+                                'remarks' => $d->remarks,
+                                'cycle_time_per_log' => $cycle_time_per_log
+                            ];
+                        }
+                    }
+                    $operation_list[] = [
+                        'production_order' => $jtno,
+                        'workstation' => $row->workstation,
+                        'process' => $row->process,
+                        'job_ticket' => $row->job_ticket_id,
+                        'count_good' => (count($operations_arr) <= 1) ? '' : "Total: ".collect($operations_arr)->sum('good'),
+                        'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
+                        'operations' => $operations_arr,
+                        'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
+                    ];
+                }
+
+                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list'));
             }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
+    }
+
+    public function time_log_delete(Request $request){
+        $process_id = DB::connection('mysql_mes')->table('process')->where('process_name', $request->process)->pluck('process_id')->first();
+
+        $time_log_qty = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('operator_name', $request->operator)->pluck('good')->first();
+        $jt_qty = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->jtid)->pluck('completed_qty')->first();
+        $new_qty = $jt_qty - $time_log_qty;
+
+        $mes_delete = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('operator_name', $request->operator)->delete();
+
+        $jt_stat = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('status', 'In Progress')->get();
+        $jt_val = [
+            'status' => count($jt_stat) > 0 ? 'In Progress' : 'Pending',
+            'good' => $new_qty,
+            'completed_qty' => $new_qty
+        ];// !!!
+
+        $jt_update = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod_order)->where('workstation', $request->workstation)
+            ->where('process_id', $process_id)->update($jt_val);
+
+        $jt_status = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod_order)->select('status')->get();
+        $collection = collect($jt_status);
+        if(!$collection->contains('status', 'In Progress')){
+            $mes_update = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod_order)->update(['status' => 'Not Started']);
+        }
+
+        return redirect()->back()->with('deleted', 'Task updated');
     }
 
     public function get_workstation_process($workstation){
