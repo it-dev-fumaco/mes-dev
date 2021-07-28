@@ -558,10 +558,14 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
-            }
+            },
          });
       });
 
@@ -705,7 +709,16 @@
                load_req_items(req_url);
 
                $('#change-raw-mat-modal').modal('hide');
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -768,7 +781,16 @@
                   $('#so-item-list-div').html(data);
                   $('.btn-div').removeAttr('hidden');
                }
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -807,7 +829,16 @@
                if (bom.length > 0) {
                   $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
                }
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -825,6 +856,15 @@
 
                $('#review-bom-details-div').html(data);
                $('#review-bom-modal').modal('show');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
             }
          });
          
@@ -953,7 +993,16 @@
                $('#review-bom-modal').modal('hide');
                $('#parts-list').find('#'+idx+''+bombtn).removeClass('unchecked').addClass('now-ui-icons ui-1_check text-success');
                showNotification("success", data.message, "now-ui-icons ui-1_check");
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -1030,7 +1079,16 @@
                if (production_order.length > 0) {
                   $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
                }
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -1070,7 +1128,16 @@
                $('#planning-summary-div').html(data);
 
                $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -1141,6 +1208,10 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1234,6 +1305,10 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + data.message);
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1263,6 +1338,10 @@
                $('#view-sched-task-modal').modal('show');
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1280,7 +1359,16 @@
             type:"GET",
             success:function(data){
                $('#bom-details-div').html(data);
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
 
          $('#view-bom-modal .modal-title').html(sel_val);
@@ -1318,6 +1406,10 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + response);
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1366,7 +1458,6 @@
             type:"POST",
             //data: data,
             success:function(response){
-               console.log(response);
                if (response.success == 0) {
                   showNotification("danger", response.message, "now-ui-icons travel_info");
 
@@ -1384,6 +1475,10 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> STE');
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
