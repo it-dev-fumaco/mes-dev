@@ -73,7 +73,7 @@ trait GeneralTrait
 			->where('production_order', $job_ticket_detail->production_order)->min('completed_qty');
 
         // set production order status
-        if($job_ticket_detail->qty_to_manufacture <= $produced_qty){
+        if($job_ticket_detail->qty_to_manufacture == $produced_qty){
             $production_order_status = 'Completed';
         }else if(count($logs) > 0){
             $production_order_status = 'In Progress';
@@ -86,7 +86,9 @@ trait GeneralTrait
 
         // update production order status in ERP
         $production_order_status = ($production_order_status == 'In Progress') ? 'In Process' : $production_order_status;
-        DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
+        if($production_order_status != 'Completed') {
+            DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
+        }
 
         // get job ticket actual start and end time 
         $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
@@ -121,8 +123,9 @@ trait GeneralTrait
         $logs = DB::connection('mysql_mes')->table('job_ticket')
             ->where('production_order', $production_order)
             ->whereIn('status', ['In Progress'])->get();
+        $produced_qty = 0;
          // get production order produced qty
-         $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+         $produced_qty += DB::connection('mysql_mes')->table('job_ticket')
             ->where('production_order', $production_order)->min('completed_qty');
         // set production order status
         if($production_order_details->qty_to_manufacture <= $produced_qty){
@@ -657,10 +660,10 @@ trait GeneralTrait
             })
             ->orderBy('idx', 'asc')->get();
 
-        $production_order_items = [];
+        $arr = [];
         foreach ($production_order_items_qry as $index => $row) {
-            $required_qty = $row->required_qty;
-            $required_qty += DB::connection('mysql')->table('tabProduction Order Item')
+            $item_required_qty = $row->required_qty;
+            $item_required_qty += DB::connection('mysql')->table('tabProduction Order Item')
                 ->where('parent', $production_order)
                 ->where('item_alternative_for', $row->item_code)
                 ->whereNotNull('item_alternative_for')
@@ -672,66 +675,137 @@ trait GeneralTrait
                 ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
                 ->where('ste.docstatus', 1)->sum('qty');
 
-            $remaining_required_qty = ($row->required_qty - $consumed_qty);
-            
-            $qty_per_item = $required_qty / $qty_to_manufacture;
-            $total_rm_qty = $qty_per_item * $fg_completed_qty;
-            $rm_qty = $total_rm_qty;
-            if($total_rm_qty > $remaining_required_qty){
-                $rm_qty = $remaining_required_qty;
-                $remaining_rm_qty = $total_rm_qty - $rm_qty; 
-                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_rm_qty);
-                $alternative_items = [];
-                foreach ($alternative_items_qry as $ai_row) {
-                    if ($ai_row['required_qty'] > 0) {
-                        $production_order_items[] = [
-                            'item_code' => $ai_row['item_code'],
-                            'item_name' => $ai_row['item_name'],
-                            'description' => $ai_row['description'],
-                            'stock_uom' => $ai_row['stock_uom'],
-                            'required_qty' => $ai_row['required_qty'],
-                            'transferred_qty' => $ai_row['transferred_qty'],
-                        ];
-                    }
+            $balance_qty = ($row->transferred_qty - $consumed_qty);
+
+            $remaining_required_qty = ($fg_completed_qty - $balance_qty);
+
+            if($balance_qty <= 0 || $fg_completed_qty > $balance_qty){
+                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty);
+            }else{
+                $alternative_items_qry = [];
+            }
+
+            $qty_per_item = $item_required_qty / $qty_to_manufacture;
+            $per_item = $qty_per_item * $fg_completed_qty;
+
+            $required_qty = ($balance_qty > $per_item) ? $per_item : $balance_qty;
+
+            foreach ($alternative_items_qry as $ai_row) {
+                if ($ai_row['required_qty'] > 0) {
+                    $arr[] = [
+                        'item_code' => $ai_row['item_code'],
+                        'item_name' => $ai_row['item_name'],
+                        'description' => $ai_row['description'],
+                        'stock_uom' => $ai_row['stock_uom'],
+                        'required_qty' => $ai_row['required_qty'],
+                        'transferred_qty' => $ai_row['transferred_qty'],
+                        'consumed_qty' => $ai_row['consumed_qty'],
+                        'balance_qty' => $ai_row['balance_qty'],
+                    ];
                 }
             }
 
-            if($rm_qty > 0){
-                $production_order_items[] = [
+            if($balance_qty > 0){
+                $arr[] = [
                     'item_code' => $row->item_code,
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'required_qty' => $rm_qty,
+                    'required_qty' => $required_qty,
                     'transferred_qty' => $row->transferred_qty,
+                    'consumed_qty' => $consumed_qty,
+                    'balance_qty' => $balance_qty,
                 ];
             }
         }
 
-        return $production_order_items;
+        return $arr;
+
+        // $production_order_items = [];
+        // foreach ($production_order_items_qry as $index => $row) {
+        //     $required_qty = $row->required_qty;
+        //     $required_qty += DB::connection('mysql')->table('tabProduction Order Item')
+        //         ->where('parent', $production_order)
+        //         ->where('item_alternative_for', $row->item_code)
+        //         ->whereNotNull('item_alternative_for')
+        //         ->sum('required_qty');
+
+        //     $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+        //         ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+        //         ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
+        //         ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
+        //         ->where('ste.docstatus', 1)->sum('qty');
+            
+        //     $remaining_required_qty = ($row->transferred_qty - $consumed_qty);
+            
+        //     $qty_per_item = $required_qty / $qty_to_manufacture;
+        //     $total_rm_qty = $qty_per_item * $fg_completed_qty;
+        //     $rm_qty = $total_rm_qty;
+        //     if($total_rm_qty > $remaining_required_qty){
+        //         $rm_qty = $remaining_required_qty;
+        //         $remaining_rm_qty = $total_rm_qty - $rm_qty; 
+        //         $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_rm_qty);
+        //         $alternative_items = [];
+        //         foreach ($alternative_items_qry as $ai_row) {
+        //             if ($ai_row['required_qty'] > 0) {
+        //                 $production_order_items[] = [
+        //                     'item_code' => $ai_row['item_code'],
+        //                     'item_name' => $ai_row['item_name'],
+        //                     'description' => $ai_row['description'],
+        //                     'stock_uom' => $ai_row['stock_uom'],
+        //                     'required_qty' => $ai_row['required_qty'],
+        //                     'transferred_qty' => $ai_row['transferred_qty'],
+        //                 ];
+        //             }
+        //         }
+        //     }
+
+        //     if($rm_qty > 0){
+        //         $production_order_items[] = [
+        //             'item_code' => $row->item_code,
+        //             'item_name' => $row->item_name,
+        //             'description' => $row->description,
+        //             'stock_uom' => $row->stock_uom,
+        //             'required_qty' => $rm_qty,
+        //             'transferred_qty' => $row->transferred_qty,
+        //         ];
+        //     }
+        // }
+
+        // return $production_order_items;
     }
 
-    public function get_alternative_items($production_order, $item_code, $rm_qty){
+    public function get_alternative_items($production_order, $item_code, $remaining_required_qty){
         $q = DB::connection('mysql')->table('tabProduction Order Item')
 			->where('parent', $production_order)->where('item_alternative_for', $item_code)
             ->orderBy('required_qty', 'asc')->get();
 
+        $remaining = $remaining_required_qty;
         $arr = [];
-        $remaining_rm_qty = $rm_qty;
         foreach ($q as $row) {
-            if($remaining_rm_qty > 0){
-                $required_qty = ($remaining_rm_qty > $row->required_qty) ? $row->required_qty : $remaining_rm_qty;
+            if($remaining > 0){
+                $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
+                    ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
+                    ->where('ste.docstatus', 1)->sum('qty');
+
+                $balance_qty = ($row->transferred_qty - $consumed_qty);
+                    
+                $required_qty = ($balance_qty > $remaining) ? $remaining : $balance_qty;
                 $arr[] = [
                     'item_code' => $row->item_code,
                     'required_qty' => $required_qty,
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => $row->transferred_qty
+                    'transferred_qty' => $row->transferred_qty,
+                    'consumed_qty' => $consumed_qty,
+                    'balance_qty' => $balance_qty
                 ];
-            }
 
-            $remaining_rm_qty = $remaining_rm_qty - $row->required_qty;
+                $remaining = $remaining - $balance_qty;
+            }
         }
 
         return $arr;

@@ -354,7 +354,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>8.2</b> <span style="font-size: 9pt;">Latest Release: 2021-03-18</span></h5>
+              <h5 class="text-center" style="font-style: italic;">version: <b>8.3</b> <span style="font-size: 9pt;">Latest Release: 2021-04-19</span></h5>
             </div>          
           </div>
         </div>
@@ -872,6 +872,54 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+  
+  
+  // $(document).on('change', '#sel-workstation', function(){
+  //        $('#add-operation-btn').attr('disabled', true);
+  //        var workstation = $(this).val();
+  //        $('#sel-process').empty();
+  //        if (workstation) {
+  //           $.ajax({
+  //              url: '/get_workstation_process/' + workstation,
+  //              type:"GET",
+  //              success:function(data){
+  //                 if (data.length > 0) {
+  //                    var opt = '<option value="">Select Process</option>';
+  //                    $.each(data, function(i, v){
+  //                       opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+  //                    });
+  //                    $('#sel-process').append(opt);
+  //                    $('#add-operation-btn').removeAttr('disabled');
+  //                    $('#add-operation-btn').text('Add Operation');
+  //                 }else{
+  //                    $('#add-operation-btn').text('No Assigned Process');
+  //                 }
+  //              }
+  //           });
+  //        }
+  //     });
+  $(document).on('click', '.view-bom-details-btn', function(e){
+    e.preventDefault();
+    var guidebom =  $(this).data('bom');
+    if(guidebom){
+      var bom = guidebom;
+    }else{
+      var bom = "No BOM";
+    }
+    $('#production-order-val-bom').val($(this).data('production-order'));
+    $('#operation_id_update_bom').val($(this).data('operationid'));
+    $.ajax({
+      url: "/view_bom_for_review/" + bom,
+      type:"GET",
+      data:{production: $(this).data('production-order') },
+      success:function(data){
+        $('#review-bom-details-div').html(data);
+      }
+    });
+    $('#review-bom-modal .modal-title').html('Update Process [' + bom + ']');
+    $('#review-bom-modal').modal('show');
+  });
+  
     $('#change-required-qty-btn').click(function(e){
       e.preventDefault();
   
@@ -1280,6 +1328,16 @@
       $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
+      if(!$('#has-no-bom').text()) {
+        $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
+        $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
+        $('#change-required-qty-btn').attr('readonly', true);
+      } else {
+        $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
+        $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
+        $('#change-required-qty-btn').removeAttr('readonly');
+      }
+
       $.ajax({
         url: "/get_available_warehouse_qty/" + item_code,
         type:"GET",
@@ -1446,108 +1504,6 @@
         }
       });
     }
-
-    $(document).on('click', '#submit-bom-review-btn', function(){
-    var production_order = $('#production-order-val-bom').val();
-    var operation_id = $('#operation_id_update_bom').val();
-
-    var id = [];
-    var workstation = [];
-    var wprocess = [];
-    var workstation_process = [];
-    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
-    var user = $('#bom-workstations-tbl input[name=username]').val();
-    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
-    $("#bom-workstations-tbl > tbody > tr").each(function () {
-      id.push($(this).find('span').eq(0).text());
-      workstation.push($(this).find('td').eq(1).text());
-      wprocess.push($(this).find('select').eq(0).val());
-      workstation_process.push($(this).find('select option:selected').eq(0).text());
-    });
-
-    var filtered_process = wprocess.filter(function (el) {
-      return el != null && el != "";
-    });
-
-    if (workstation.length != filtered_process.length) {
-      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
-      return false;
-    }
-
-    var processArr = workstation_process.sort();
-    var processDup = [];
-    for (var i = 0; i < processArr.length - 1; i++) {
-        if (processArr[i + 1] == processArr[i]) {
-            processDup.push(processArr[i]);
-            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
-            return false;
-        }
-    }
-
-    $.ajax({
-      url: '/submit_bom_review/' + bom,
-      type:"POST",
-      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
-      success:function(data){
-        if(data.status) {
-          $('#review-bom-modal').modal('hide');
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-        } else {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
-
-  $(document).on('click', '#add-operation-btn', function(){
-    var workstation = $('#sel-workstation option:selected').text();
-    var wprocess = $('#sel-process').val();
-
-    if (!$('#sel-workstation').val()) {
-      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
-      return false;
-    }
-
-
-    var rowno = $('#bom-workstations-tbl tr').length;
-    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
-    if (workstation) {
-      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
-      $("#bom-workstations-tbl tbody").append(markup);
-    }
-  });
-
-  $(document).on('change', '#sel-workstation', function(){
-         $('#add-operation-btn').attr('disabled', true);
-         var workstation = $(this).val();
-         $('#sel-process').empty();
-         if (workstation) {
-            $.ajax({
-               url: '/get_workstation_process/' + workstation,
-               type:"GET",
-               success:function(data){
-                  if (data.length > 0) {
-                     var opt = '<option value="">Select Process</option>';
-                     $.each(data, function(i, v){
-                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
-                     });
-
-                     $('#sel-process').append(opt);
-
-                     $('#add-operation-btn').removeAttr('disabled');
-                     $('#add-operation-btn').text('Add Operation');
-                  }else{
-                     $('#add-operation-btn').text('No Assigned Process');
-                  }
-               }
-            });
-         }
-      });
 
   $(document).on('click', '.view-bom-details-btn', function(e){
     e.preventDefault();

@@ -638,6 +638,10 @@ class MainController extends Controller
 
 	public function endTask(Request $request){
         try {
+			if(!Auth::user()) {
+				return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$now = Carbon::now();
 			$current_task = DB::connection('mysql_mes')->table('time_logs')
 				->where('time_log_id', $request->id)->first();
@@ -901,7 +905,8 @@ class MainController extends Controller
 			'operator_name' => $row->operator_name,
 		];
 
-		$type = ($type == 'Quality Check') ? $type : ($type == 'Reject Confirmation') ? $type : 'Random Inspection';
+		$type = ($type == 'Reject Confirmation') ? $type : 'Random Inspection';
+		$type = ($type == 'Quality Check') ? 'Quality Check' : $type;
 
 		return view('tables.tbl_quality_check', compact('data', 'type'));
 	}
@@ -925,7 +930,11 @@ class MainController extends Controller
 
 		$timesheet = DB::connection('mysql_mes')->table('job_ticket')->select('job_ticket_id')->get();
 
-		return view('main_dashboard', compact('timesheet', 'user_details', 'mes_user', 'mes_user_operations', 'permissions'));
+		$permitted_production_operation = collect($permissions['permitted_module_operation'])->where('module', 'Production')->toArray();
+
+		$permitted_production_operation = array_column($permitted_production_operation, 'operation_name');
+
+		return view('main_dashboard', compact('timesheet', 'user_details', 'mes_user', 'mes_user_operations', 'permissions', 'permitted_production_operation'));
 	}
 
 	public function productionPlanning(){
@@ -989,7 +998,7 @@ class MainController extends Controller
 			->get();
 
 		foreach ($machine_breakdown as $mb) {
-			$converted= Carbon::parse($mb->date_reported)->format('Y-m-d');
+			$converted= Carbon::parse($mb->date_reported)->format('M-d-Y');
 			
         	$from_carbon = Carbon::parse($now);
             $to_carbon = Carbon::parse($mb->date_reported);
@@ -999,7 +1008,7 @@ class MainController extends Controller
 			
 			$notifs[] = [
 				'type' => 'Machine Breakdown',
-				'message' => $mb->machine_name.'<br>Machine Request: ' . $mb->type.'<br> Date Reported:'.$converted.'<br><b><i>'.$converted_duration.'</i> ago</b>',
+				'message' => '<b>' . $mb->machine_name.'</b><br><i>Machine Request: ' . $mb->type.'<br>Date Reported: '.$converted.'<br><b>'.$converted_duration.' ago</b></i>',
 				'created' => $mb->date_reported,
 				'timelog_id' =>	'',
 				'table' => 'machine'
@@ -1016,18 +1025,6 @@ class MainController extends Controller
 		->whereDate('production_order.created_at', '>', '2020-07-01')
 		->select( 'delivery_date.rescheduled_delivery_date','production_order.production_order','production_order.delivery_date', 'production_order.planned_start_date', 'production_order.stock_uom','production_order.qty_to_manufacture', 'production_order.created_at')
 		->where('production_order.operation_id', '3')->get();
-		// dd($prod_late_delivery);
-		// $unassigned = Carbon::now()->subHour(8)->toDateTimeString();
-		// $accepted = Carbon::now()->subHour(2)->toDateTimeString();
-		
-		// $os_unassigned = DB::connection('mysql_mes')->table('job_ticket as td')
-		// 	->join('production_order as t', 't.production_order', 'td.production_order')
-		// 	->where('td.status', 'Unassigned')->whereDate('t.created_at', '<', $unassigned);
-
-		// $os_accepted = DB::connection('mysql_mes')->table('job_ticket as td')
-		// 	->join('production_order as t', 't.production_order', 'td.production_order')
-		// 	->where('td.status', 'Accepted')->whereDate('t.created_at', '<', $accepted)
-		// 	->union($os_unassigned)->get();
 		
 		$dateMinusOneWeek = Carbon::now()->subWeek()->toDateTimeString();
 
@@ -1082,10 +1079,13 @@ class MainController extends Controller
 				}
 		}
 		foreach ($prod_late_delivery as $prodsched) {
-			$delivery_date=($prodsched->rescheduled_delivery_date == null)? $prodsched->delivery_date:$prodsched->rescheduled_delivery_date;
+			$delivery_date = ($prodsched->rescheduled_delivery_date == null)? $prodsched->delivery_date:$prodsched->rescheduled_delivery_date;
+			$converted_delivery_date = Carbon::parse($delivery_date)->format('M-d-Y');
+
+			$planned_start_date = Carbon::parse($prodsched->planned_start_date)->format('M-d-Y');
 			$notifs[] = [	
 				'type' => 'Production Schedule',
-				'message' => '<b>'.$prodsched->production_order.'</b><br> Delivery Date:'.$delivery_date.'<br> Planned Start Date:'.$prodsched->planned_start_date.'<br> QTY: <b>' . $prodsched->qty_to_manufacture.'&nbsp;'.$prodsched->stock_uom.'</b>',
+				'message' => '<b>'.$prodsched->production_order.'</b><br><i>Delivery Date: '.$converted_delivery_date.'<br> Planned Start Date: '.$planned_start_date.'<br> Quantity: <b>' . $prodsched->qty_to_manufacture.'&nbsp;'.$prodsched->stock_uom.'</b></i>',
 				'created' => $prodsched->created_at,
 				'timelog_id' =>	"",
 				'table' => 'production_scheduling'
@@ -1348,6 +1348,10 @@ class MainController extends Controller
 
 	public function end_scrap_task(Request $request){
         try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
         	if (number_format($request->completed_qty_kg, 12) > number_format($request->balance_qty, 12)) {
 				return response()->json(['success' => 0, 'message' => number_format($request->completed_qty_kg, 12) . 'Completed qty cannot be greater than ' . number_format($request->balance_qty, 12)]);
 			}
@@ -1499,11 +1503,14 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
-				$is_transferred = DB::connection('mysql')->table('tabProduction Order')
-					->where('material_transferred_for_manufacturing', '>', 0)
-					->where('name', $row->production_order)->where('docstatus', 1)->first();
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
 
-				if ($is_transferred) {
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if ($prod_details && $prod_details->material_transferred_for_manufacturing > 0) {
 					$status = 'Material Issued';
 				}else{
 					$status = 'Material For Issue';
@@ -1582,6 +1589,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $row->status;
+				}
+
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1601,7 +1619,7 @@ class MainController extends Controller
 					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
-					'status' => $row->status,
+					'status' => $status,
 					'actual_start_date' => $row->actual_start_date,
 					'planned_start_date' => $row->planned_start_date,
 					'is_scheduled' => $row->is_scheduled,
@@ -1658,6 +1676,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = 'On Queue';
+				}
+
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
 				$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1677,7 +1706,7 @@ class MainController extends Controller
 					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
-					'status' => 'On Queue',
+					'status' => $status,
 					'actual_start_date' => $row->actual_start_date,
 					'planned_start_date' => $row->planned_start_date,
 					'is_scheduled' => $row->is_scheduled,
@@ -1718,6 +1747,17 @@ class MainController extends Controller
 
 			$production_orders = [];
 			foreach ($q as $row) {
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $row->status;
+				}
+
 				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
 				// get owner of production order
 				$owner = explode('@', $row->created_by);
@@ -1733,7 +1773,7 @@ class MainController extends Controller
 					'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date, // new delivery from delivery table
 					'customer' => $row->customer,
 					'bom_no' => $row->bom_no,
-					'status' => $row->status,
+					'status' => $status,
 					'planned_start_date' => $row->planned_start_date,
 					'is_scheduled' => $row->is_scheduled,
 					'owner' => $owner,
@@ -1749,8 +1789,8 @@ class MainController extends Controller
 				->join('operation', 'operation.operation_id', 'user.operation_id')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
 				->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
-				->when($request->operation, function ($query) use ($request) {
-					return $query->where('user.operation_id', $request->operation);
+				->when($request->operation, function($q) use ($request){
+					return $q->where('user.operation_id', $request->operation);
 				})
 				->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
 				->distinct()->get();
@@ -1791,8 +1831,6 @@ class MainController extends Controller
 				->select('po.*', 'delivery_date.rescheduled_delivery_date')
 				->paginate(10);
 
-			$q->appends($request->all());
-
 			if($request->get_total){
 				return ['div' => '#awaiting-feedback-total', 'total' => number_format($q->total())];
 			}
@@ -1818,14 +1856,15 @@ class MainController extends Controller
 					}
 				}
 
-				$is_transferred = DB::connection('mysql')->table('tabProduction Order')
-					->where('material_transferred_for_manufacturing', '>', 0)
-					->where('name', $row->production_order)->where('docstatus', 1)->first();
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
 
-				if ($is_transferred) {
-					$status = 'Material Issued';
+				if($prod_details && $prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details && $prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
 				}else{
-					$status = 'Material For Issue';
+					$status = $status;
 				}
 
 				$from_time = $row->actual_start_date;
@@ -1935,6 +1974,17 @@ class MainController extends Controller
 					if ($manufacture_entry) {
 						$status = 'Partially Feedbacked';
 					}
+				}
+
+				$prod_details = DB::connection('mysql')->table('tabProduction Order')
+					->where('name', $row->production_order)->first();
+
+				if($prod_details->docstatus == 2 && $row->status != 'Cancelled'){
+					$status = 'Unknown Status';
+				}else if($prod_details->docstatus == 1 && $row->status == 'Cancelled'){
+					$status = 'Unknown Status';
+				}else{
+					$status = $status;
 				}
 
 				$from_time = $row->actual_start_date;
@@ -2213,6 +2263,10 @@ class MainController extends Controller
 	}
 
     public function update_production_task_schedules(Request $request){
+		if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
 		$now = Carbon::now();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 		if (!$production_order_details) {
@@ -3247,6 +3301,10 @@ class MainController extends Controller
     }
 
     public function reset_task(Request $request){
+		if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
     	$now = Carbon::now();
     	$update = [
     		'from_time' => null,
@@ -3289,6 +3347,10 @@ class MainController extends Controller
 
     public function mark_as_done_task(Request $request){
     	try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
             if ($request->id) {
                 $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)
                     ->where('status','=', 'Completed')->first();
@@ -3521,6 +3583,7 @@ class MainController extends Controller
 		$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
 			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 			->where('job_ticket.production_order', '!=', $request->production_order)
+			// ->where('job_ticket.process_id', '!=', $request->process_id)
 			->where('time_logs.operator_id', $request->operator_id)
 			->where('time_logs.status', 'In Progress')->first();
 
@@ -3828,6 +3891,10 @@ class MainController extends Controller
 	
 	public function reject_task(Request $request){
 		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 
@@ -4005,6 +4072,10 @@ class MainController extends Controller
 	}
 
 	public function add_helper(Request $request){
+		if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
 		$now = Carbon::now();
 		if (Auth::user()->user_id == $request->helper_id) {
 			return response()->json(['success' => 0, 'message' => "Please enter helper ID."]);
@@ -4247,7 +4318,8 @@ class MainController extends Controller
 			->where('production_order.operation_id', $request->operation)
 			->whereBetween('time_logs.from_time', [$d1, $d2])
 			->select('job_ticket.workstation', DB::raw('(time_logs.good + time_logs.reject) as completed_qty'), 'time_logs.from_time', 'time_logs.to_time', 'time_logs.operator_id', 'production_order.production_order')
-			->union($query_1)->union($query_2)->union($query_3)->get();
+			->union($query_1)->union($query_2)->union($query_3)
+			->get();
 	}
 
 	public function get_tbl_notif_dashboard(){
@@ -4559,6 +4631,10 @@ class MainController extends Controller
     public function create_stock_entry(Request $request, $production_order){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
 				->where('production_order', $production_order)
 				->where('purpose', 'Material Transfer for Manufacture')
@@ -4586,17 +4662,22 @@ class MainController extends Controller
 			$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
 				->where('production_order', $production_order)->first();
 
+			$remarks_override = null;
+			if($produced_qty > $mes_production_order_details->produced_qty){
+				$remarks_override = 'Override';
+			}
+
 			if($mes_production_order_details->is_stock_item < 1){
 				return redirect('/create_bundle_feedback/'. $production_order .'/' . $request->fg_completed_qty);
 			}
 
 			$now = Carbon::now();
 
-			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
+			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->where('name', 'like', '%step%')->max('name');
 			$latest_pro_exploded = explode("-", $latest_pro);
-			$new_id = $latest_pro_exploded[1] + 1;
-			$new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-			$new_id = 'STEM-'.$new_id;
+			$new_id = (($latest_pro) ? $latest_pro_exploded[1] : 0) + 1;
+			$new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
+			$new_id = 'STEP-'.$new_id;
 
 			$production_order_items = $this->feedback_production_order_items($production_order, $mes_production_order_details->qty_to_manufacture, $request->fg_completed_qty);
 
@@ -4847,7 +4928,7 @@ class MainController extends Controller
 				$this->create_stock_ledger_entry($new_id);
 				$this->create_gl_entry($new_id);
 				
-				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details, $mes_production_order_details){
+				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details, $mes_production_order_details, $remarks_override){
 					$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
 					$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
 
@@ -4856,17 +4937,33 @@ class MainController extends Controller
 							'last_modified_at' => $now->toDateTimeString(),
 							'last_modified_by' => Auth::user()->email,
 							'feedback_qty' => $manufactured_qty,
-							'status' => $status
+							'status' => $status,
+							'remarks' => $remarks_override
 						];
 					}else{
 						$production_data_mes = [
 							'last_modified_at' => $now->toDateTimeString(),
 							'last_modified_by' => Auth::user()->email,
 							'feedback_qty' => $manufactured_qty,
+							'remarks' => $remarks_override
 						];
 					}
 
-					DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order_details->name)->update($production_data_mes);
+					if($remarks_override == 'Override'){
+						$job_ticket_mes = [
+							'completed_qty' => $manufactured_qty,
+							'remarks' => $remarks_override,
+							'status' => 'Completed',
+							'last_modified_by' => Auth::user()->email,
+						];
+	
+						DB::connection('mysql_mes')->table('job_ticket')
+							->where('production_order', $production_order_details->name)
+							->where('status', '!=', 'Completed')->update($job_ticket_mes);
+					}
+
+					DB::connection('mysql_mes')->table('production_order')
+						->where('production_order', $production_order_details->name)->update($production_data_mes);
 					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
 				});
 			}
@@ -5442,6 +5539,12 @@ class MainController extends Controller
             ->where('production_order.production_order', $production_order)
             ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
             ->first();
+
+		if(!$production_order_details){
+			$message = 'Production Order <b>' . $production_order . '</b> parent item code mismatch. Please contact your system administrator.';
+
+			return view('tables.tbl_pending_material_transfer_for_manufacture', compact('message'));
+		}
 				
 		$q = DB::connection('mysql')->table('tabStock Entry as ste')
 			->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
@@ -5512,6 +5615,10 @@ class MainController extends Controller
 	public function delete_pending_material_transfer_for_manufacture($production_order, Request $request){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if(!Auth::user()) {
+				return response()->json(['error' => 1, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$production_order_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->first();
 			$now = Carbon::now();
 			// get all pending stock entries based on item code production order
@@ -5616,6 +5723,10 @@ class MainController extends Controller
 	public function delete_pending_material_transfer_for_return($sted_id, Request $request){
 		DB::connection('mysql')->beginTransaction();
 		try {
+			if(!Auth::user()) {
+				return response()->json(['error' => 1, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
 			$now = Carbon::now();
 			$sted_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $sted_id)->first();
 			
@@ -6432,7 +6543,7 @@ class MainController extends Controller
 
 			$on_queue = collect($on_queue_arr)->sum('pending_qty');
 			$on_going = collect($time_logs)->sum('wip_qty');
-			
+
 			$result[] = [
 				'machine_code' => $machine_code,
 				'machine_name' => $machine_name,
@@ -6441,8 +6552,6 @@ class MainController extends Controller
 				'status' => ($on_going > 0) ? 'Active' : 'Idle'
 			];
 		}
-    
-		$result = collect($result)->sortBy('status')->toArray();
 
 		return view('tables.tbl_machine_status_per_operation', compact('result'));
 	}
@@ -6462,8 +6571,6 @@ class MainController extends Controller
 			'corrective' => $corrective_count,
 			'preventive' => $preventive_count,
 		];
-
-		// return $unplanned;
 
 		return view('tables.tbl_maintenance_schedule_per_operation', compact('maintenance_count', 'unplanned'));
 	}

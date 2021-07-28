@@ -293,6 +293,7 @@
               <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
               <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
             </tr>
+            @if (in_array('Fabrication', $permitted_production_operation))
             <tr>
               <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Fabrication</td>
               <td>
@@ -326,6 +327,8 @@
                 <span class="custom-text-3 font-weight-bold" id="fab-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
+            @endif
+            @if (in_array('Wiring and Assembly', $permitted_production_operation))
             <tr>
               <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Wiring & Assembly</td>
               <td>
@@ -359,6 +362,8 @@
                 <span class="custom-text-3 font-weight-bold" id="wa-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
+            @endif
+            @if (in_array('Painting', $permitted_production_operation))
             <tr>
               <td rowspan="2" class="font-weight-bold">Painting</td>
               <td>
@@ -392,7 +397,16 @@
                 <span class="custom-text-3 font-weight-bold" id="pa-for-feedback-qty">-</span> <small>Piece(s)</small>
               </td>
             </tr>
+            @endif
           </table>
+        </div>
+        <div class="col-md-12 mt-2">
+          <div class="card" style="height: 490px;">
+            <div class="card-header text-center text-white p-2" style="background-color: #3498db">
+              <h5 class="title m-0 text-uppercase">Notifications</h5>
+            </div>
+            <div class="table-full-width table-responsive" style="height: 440px; position: relative;" id="tbl-notifications"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -412,7 +426,7 @@
 	      <div class="modal-body">
 	        <div class="row">
 	          <div class="col-md-12">
-	            <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications"></div>
+	            <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-modal"></div>
 	          </div>
 	        </div>
 	      </div>
@@ -617,8 +631,8 @@
         
         get_ongoing_production_orders(operation, el);
         get_qa(operation, el);
-        get_machine_status_per_operation(operation, el);
-        maintenance_schedules_per_operation(operation, el);
+        // get_machine_status_per_operation(operation, el);
+        // maintenance_schedules_per_operation(operation, el);
       });
     }
 
@@ -644,8 +658,30 @@
       }); 
     }
 
-    //setInterval(load_dashboard, 10000);
-    //setInterval(count_current_production, 8000);
+    // setInterval(load_dashboard, 10000);
+    // setInterval(count_current_production, 8000);
+
+    setInterval(notif_dashboard('#tbl-notifications'), 7000);
+
+    $(document).on('click', '#add-operation-btn', function(){
+    var workstation = $('#sel-workstation option:selected').text();
+    var wprocess = $('#sel-process').val();
+    if (!$('#sel-workstation').val()) {
+      showNotification("info", 'Please select Workstation', "now-ui-icons travel_info");
+      return false;
+    }
+    var rowno = $('#bom-workstations-tbl tr').length;
+    var sel = '<div class="form-group" style="margin: 0;"><select class="form-control form-control-lg">' + $('#sel-process').html() + '</select></div>';
+    if (workstation) {
+      var markup = "<tr><td class='text-center'>" + rowno + "</td><td>" + workstation + "</td><td>" + sel + "</td><td class='td-actions text-center'><button type='button' class='btn btn-danger delete-row'><i class='now-ui-icons ui-1_simple-remove'></i></button></td></tr>";
+      $("#bom-workstations-tbl tbody").append(markup);
+    }
+  });
+
+  $(document).on("click", ".delete-row", function(e){
+         e.preventDefault();
+         $(this).parents("tr").remove();
+      });
 
     function get_qa(operation, el){
       $.ajax({
@@ -842,6 +878,58 @@
       });
     }
 
+    $(document).on('click', '#submit-bom-review-btn', function(){
+    var production_order = $('#production-order-val-bom').val();
+    var operation_id = $('#operation_id_update_bom').val();
+    var id = [];
+    var workstation = [];
+    var wprocess = [];
+    var workstation_process = [];
+    var bom = $('#bom-workstations-tbl input[name=bom_id]').val();
+    var user = $('#bom-workstations-tbl input[name=username]').val();
+    // var operation = $('#bom-workstations-tbl input[name=operation]').val();
+    $("#bom-workstations-tbl > tbody > tr").each(function () {
+      id.push($(this).find('span').eq(0).text());
+      workstation.push($(this).find('td').eq(1).text());
+      wprocess.push($(this).find('select').eq(0).val());
+      workstation_process.push($(this).find('select option:selected').eq(0).text());
+    });
+    var filtered_process = wprocess.filter(function (el) {
+      return el != null && el != "";
+    });
+    if (workstation.length != filtered_process.length) {
+      showNotification("danger", 'Please select process', "now-ui-icons travel_info");
+      return false;
+    }
+    var processArr = workstation_process.sort();
+    var processDup = [];
+    for (var i = 0; i < processArr.length - 1; i++) {
+        if (processArr[i + 1] == processArr[i]) {
+            processDup.push(processArr[i]);
+            showNotification("danger", 'Process <b>' + processArr[i] + '</b> already exist.', "now-ui-icons travel_info");
+            return false;
+        }
+    }
+    $.ajax({
+      url: '/submit_bom_review/' + bom,
+      type:"POST",
+      data: {user: user, id: id, workstation: workstation, wprocess: wprocess, production_order: production_order, operation:operation_id},
+      success:function(data){
+        if(data.status) {
+          $('#review-bom-modal').modal('hide');
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+        } else {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();
   
@@ -894,7 +982,7 @@
     $('#get-notifications-btn').click(function(e){
       e.preventDefault();
 
-      notif_dashboard();
+      notif_dashboard('#tbl-notifications-modal');
       $('#view-notifications-modal').modal('show');
     });
   
@@ -958,12 +1046,12 @@
 
 <script type="text/javascript">
   
-  function notif_dashboard(){
+  function notif_dashboard(el){
     $.ajax({
       url:"/get_tbl_notif_dashboard",
       type:"GET",
       success:function(data){
-        $('#tbl-notifications').html(data);
+        $(el).html(data);
       }
     }); 
   }
@@ -990,7 +1078,7 @@
       data:data,
       success:function(response){
         if (response.success > 0) {
-          notif_dashboard();
+          notif_dashboard('#tbl-notifications');
         }else{
         }
       }, 

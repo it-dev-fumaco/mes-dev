@@ -28,9 +28,13 @@ class AssemblyController extends Controller
 
     public function get_reference_details($reference_type, $id){
         try {
-            $reference_details = DB::connection('mysql')->table('tab' . $reference_type)->where('name', $id)->first();
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+          
+            $reference_details = DB::connection('mysql')->table('tab' . $reference_type)->where('name', $id)->where('docstatus', 1)->first();
             if (!$reference_details) {
-                return response()->json(['message' => $reference .' <b>' . $id . '</b> not found.']);
+                return response()->json(['message' => $reference_type .' <b>' . $id . '</b> not found.']);
             }
 
             if ($reference_type == 'Sales Order') {
@@ -114,6 +118,10 @@ class AssemblyController extends Controller
 
     public function get_parts(Request $request){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $parts = [];
             foreach ($request->bom as $idx => $bom) {
                 $item_reference_id = $request->item_reference_id[$idx];
@@ -353,6 +361,10 @@ class AssemblyController extends Controller
 
     public function get_production_req_items(Request $request){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $items = DB::connection('mysql')->table('tabProduction Order Item')->whereIn('parent', $request->production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
@@ -436,6 +448,10 @@ class AssemblyController extends Controller
 
     public function submit_change_raw_material(Request $request){
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $now = Carbon::now();
             $production_order_item_details = DB::connection('mysql')->table('tabProduction Order Item')
                 ->where('name', $request->production_order_item_id)->first();

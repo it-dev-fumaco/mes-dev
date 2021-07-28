@@ -15,7 +15,10 @@
 			$tab3 = 'active';
 		}
 	}
+
+	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
+<span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
 <table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1">
 	<col style="width: 10%;">
 	<col style="width: 10%;">
@@ -166,7 +169,7 @@
 						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
@@ -198,6 +201,7 @@
 						<span class="d-none item-description">{!! $component['description'] !!}</span>
 						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
+						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
@@ -235,10 +239,10 @@
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }}>
+						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }} {{ $no_bom }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }}>
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -298,7 +302,7 @@
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}">
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }}>
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -369,7 +373,7 @@
 						</div>
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">WIP Current Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
@@ -401,10 +405,11 @@
 						<span class="d-none item-description">{!! $part['description'] !!}</span>
 						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
+						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
 						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
-						<span class="font-weight-bold {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
+						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="border-top-0 text-center">
@@ -438,10 +443,10 @@
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }}>
+						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }} {{ $no_bom }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }}>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }}>
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -501,7 +506,7 @@
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}">
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }}>
 							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
 						</button>
 					</td>
@@ -629,7 +634,7 @@
 		
 	@if($details->feedback_qty < $details->qty_to_manufacture)
     <div class="pull-left m-1">
-        <button class="btn btn-primary btn-sm" id="add-required-item-btn" data-production-order="{{ $details->production_order }}">
+        <button class="btn btn-primary btn-sm" id="add-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }}>
             <i class="now-ui-icons ui-1_simple-add"></i> Add Item(s)
         </button>
 	</div>

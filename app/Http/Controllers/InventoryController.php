@@ -2298,6 +2298,10 @@ class InventoryController extends Controller
     public function generate_material_request(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $now = Carbon::now();
             if (count($request->item_code) <= 0) {
                 return response()->json(['success' => 0, 'message' => 'No Material Request created.']);
