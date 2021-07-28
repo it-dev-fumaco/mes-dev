@@ -750,7 +750,10 @@ class ManufacturingController extends Controller
                     ];
                 }
 
-                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list'));
+                $collection = collect($operations_arr);
+                $collection->contains('status', 'In Progress') ? $tbl_display = "show" : $tbl_display = "hide";
+
+                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list', 'tbl_display'));
             }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -760,11 +763,23 @@ class ManufacturingController extends Controller
     public function time_log_delete(Request $request){
         $process_id = DB::connection('mysql_mes')->table('process')->where('process_name', $request->process)->pluck('process_id')->first();
 
-        $time_log_qty = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('operator_name', $request->operator)->pluck('good')->first();
+        $time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('operator_name', $request->operator);
+
+        $time_log_qty = $time_log->pluck('good')->first();
         $jt_qty = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->jtid)->pluck('completed_qty')->first();
         $new_qty = $jt_qty - $time_log_qty;
 
-        $mes_delete = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('operator_name', $request->operator)->delete();
+        $time_log_id = $time_log->pluck('time_log_id')->first();
+        $log_msg = "Job ticket ID: ".$request->jtid.", Workstation: ".$request->workstation.", Process: ".$request->process.", Good: ".$request->tbl_good.", Reject: ".$request->tbl_reject.", Machine: ".$request->machine.", Start Time: ".$request->from_time.", End Time: ".$request->to_time.", Operator Name: ".$request->operator;
+        
+        $logs = [
+            'action' => 'Delete Time Log',
+            'message' => $log_msg,
+            'created_at' => Carbon::now(),
+            'created_by' => Auth::user()->employee_name
+        ];
+        
+        $mes_delete = $time_log->delete();
 
         $jt_stat = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('status', 'In Progress')->get();
         $jt_val = [
@@ -781,6 +796,8 @@ class ManufacturingController extends Controller
         if(!$collection->contains('status', 'In Progress')){
             $mes_update = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod_order)->update(['status' => 'Not Started']);
         }
+
+        $act_log = DB::connection('mysql_mes')->table('activity_logs')->insert($logs);
 
         return redirect()->back()->with('deleted', 'Task updated');
     }

@@ -169,7 +169,7 @@
 	</div>
 </div>
 
-<div class="container">
+<div class="container deleteTable">
 	<div class="table-responsive">
 		<table style="width: 100%; border-color: #D5D8DC;">
 			<col style="width: 15%;">
@@ -203,6 +203,7 @@
 					$icon="";
 				}
 				@endphp
+				
 				<tr>
 					<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
 						<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
@@ -253,21 +254,11 @@
 								@endif
 							</td>
 							<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
-								{{-- <form action="/log_delete" method="POST">
-									@csrf
-									<input type="text" name="prod_order" value="{{ $b['production_order'] }}" readonly required/>
-									<input type="text" name="jtid" value="{{ $b['job_ticket'] }}" readonly hidden required/>
-									<input type="text" name="workstation" value="{{ $b['workstation'] }}" readonly hidden required/>
-									<input type="text" name="process" value="{{ $b['process'] }}" readonly hidden required/>
-									<button type="submit" class="btn btn-danger">Delete</button>
-								</form> --}}
-								<!-- Button trigger modal -->
 								<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal-{{ $b['production_order'] }}">
 									Delete
 								</button>
 								
-								<!-- Modal -->
-								<div class="modal fade try" id="deleteModal-{{ $b['production_order'] }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+								<div class="modal fade deleteModal" id="deleteModal-{{ $b['production_order'] }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
 									<div class="modal-dialog">
 									<div class="modal-content">
 										<div class="modal-header">
@@ -280,9 +271,14 @@
 											<form action="/log_delete" method="POST">
 												@csrf
 												<div class="d-none">
-													<input type="text" name="prod_order" value="{{ $b['production_order'] }}" readonly required/>
+													<input class="prod_no" type="text" name="prod_order" value="{{ $b['production_order'] }}" readonly required/>
 													<input type="text" name="jtid" value="{{ $b['job_ticket'] }}" readonly required/>
 													<input type="text" name="workstation" value="{{ $b['workstation'] }}" readonly required/>
+													<input type="text" name="tbl_good" value="{{ $c['good'] }}" readonly required/>
+													<input type="text" name="tbl_reject" value="{{ $c['reject'] }}" readonly required/>
+													<input type="text" name="machine" value="{{ $machine }}" readonly required/>
+													<input type="text" name="from_time" value="{{ $from_time }}" readonly required/>
+													<input type="text" name="to_time" value="{{ $to_time }}" readonly required/>
 													<input type="text" name="process" value="{{ $b['process'] }}" readonly required/>
 													<input type="text" name="operator" value="{{ $operator_name }}" readonly required/>
 												</div>
@@ -294,9 +290,8 @@
 									</div>
 								</div>
 							</td>
-						</tr>
+						{{-- </tr> --}}
 						@endforeach
-							
 					@else
 						<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
 						<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
@@ -318,7 +313,7 @@
 	<span>Task Updated</span>
 @endif
 <style>
-	.try{
+	.deleteModal{
 		background-color: rgba(0,0,0,.8);
 	}
 </style>
@@ -326,4 +321,8 @@
 	$( function() {
 		$( ".sortable-operation-list" ).sortable().disableSelection();
 	  } );
+
+	$(document).ready(function() {
+		$(".deleteTable").{{ $tbl_display }}();
+	});
 </script>
