@@ -664,6 +664,8 @@ class ManufacturingController extends Controller
                 }
 
                 // !!
+                $tbl_display = "";
+                $tbl_display2 = "";
                 $process_arr = DB::connection('mysql_mes')->table('job_ticket')
                     ->where('production_order', $details->production_order)
                     ->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
@@ -737,7 +739,12 @@ class ManufacturingController extends Controller
                                 'cycle_time_per_log' => $cycle_time_per_log
                             ];
                         }
+
+                        $collection2 = collect($operations_arr);
+                        $collection2->contains('status', 'In Progress') ? $tbl_display2 = "show" : $tbl_display2 = "hide";
+
                     }
+
                     $operation_list[] = [
                         'production_order' => $jtno,
                         'workstation' => $row->workstation,
@@ -746,12 +753,14 @@ class ManufacturingController extends Controller
                         'count_good' => (count($operations_arr) <= 1) ? '' : "Total: ".collect($operations_arr)->sum('good'),
                         'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
                         'operations' => $operations_arr,
+                        'display' => $tbl_display2,
                         'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
                     ];
+                    
                 }
 
-                $collection = collect($operations_arr);
-                $collection->contains('status', 'In Progress') ? $tbl_display = "show" : $tbl_display = "hide";
+                $collection = collect($operation_list);
+                $collection->contains('display', "show") ? $tbl_display = "show" : $tbl_display = "hide";
 
                 return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list', 'tbl_display'));
             }
@@ -786,7 +795,7 @@ class ManufacturingController extends Controller
             'status' => count($jt_stat) > 0 ? 'In Progress' : 'Pending',
             'good' => $new_qty,
             'completed_qty' => $new_qty
-        ];// !!!
+        ];
 
         $jt_update = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod_order)->where('workstation', $request->workstation)
             ->where('process_id', $process_id)->update($jt_val);
