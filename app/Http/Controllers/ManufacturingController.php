@@ -970,6 +970,8 @@ class ManufacturingController extends Controller
                     ->where('parent', $bom)->whereNotIn('name', array_filter($request->id))->delete();
             }
 
+             // array for logs
+             $arr = [];
             if ($request->production_order) {
                 $production_order_details = DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)->first();
@@ -979,17 +981,42 @@ class ManufacturingController extends Controller
                 }
 
                 if ($bom_value == 'nobom') {
-                    DB::connection('mysql_mes')->table('job_ticket')
+                    // get removed processes
+                    $removed_process = DB::connection('mysql_mes')->table('job_ticket')
                         ->where('production_order', $request->production_order)
-                        ->whereNotIn('job_ticket_id', array_filter($request->id))
-                        ->delete();
+                        ->whereNotIn('job_ticket_id', array_filter($request->id));
+
+                    $removed_process_query = $removed_process->get();
+
+                    foreach($removed_process_query as $row) {
+                        $arr[] = [
+                            'delete' => [
+                                'workstation' => $row->workstation,
+                                'process' => $row->process_id
+                            ]
+                        ];
+                    }
+
+                    $removed_process->delete();
                 }
 
                 if ($bom_value == 'withbom') {
-                    DB::connection('mysql_mes')->table('job_ticket')
+                    $removed_process = DB::connection('mysql_mes')->table('job_ticket')
                         ->where('production_order', $request->production_order)
-                        ->whereNotIn('bom_operation_id', array_filter($request->id))
-                        ->delete();
+                        ->whereNotIn('bom_operation_id', array_filter($request->id));
+
+                    $removed_process_query = $removed_process->get();
+
+                    foreach($removed_process_query as $row) {
+                        $arr[] = [
+                            'delete' => [
+                                'workstation' => $row->workstation,
+                                'process' => $row->process_id
+                            ]
+                        ];
+                    }
+
+                    $removed_process->delete();
                 }
             }
         
@@ -1014,22 +1041,34 @@ class ManufacturingController extends Controller
                                     })->first();
 
                                 if($jtd) {
-                                    DB::connection('mysql_mes')->table('job_ticket')
-                                        ->where('job_ticket_id', $jtd->job_ticket_id)
+                                    if($jtd->process_id != $request->wprocess[$index]) {
+                                        DB::connection('mysql_mes')->table('job_ticket')
+                                            ->where('job_ticket_id', $jtd->job_ticket_id)
+                                            ->update([
+                                                'process_id' => $request->wprocess[$index],
+                                                'idx' => $index + 1,
+                                                'last_modified_by' => $request->user,
+                                            ]);
+                                            
+                                        DB::connection('mysql')->table('tabProduction Order Operation')
+                                            ->where('parent', $request->production_order)->where('workstation', $workstation)
+                                            ->where('status', 'Pending')->where('process', $jtd->process_id)
                                         ->update([
-                                            'process_id' => $request->wprocess[$index],
-                                            'idx' => $index + 1,
-                                            'last_modified_by' => $request->user,
-                                        ]);
-                                        
-                                    DB::connection('mysql')->table('tabProduction Order Operation')
-                                        ->where('parent', $request->production_order)->where('workstation', $workstation)
-                                        ->where('status', 'Pending')->where('process', $jtd->process_id)
-                                       ->update([
-                                            'process' => $request->wprocess[$index],
-                                            'idx' => $index + 1,
-                                            'modified_by' => $request->user,
-                                        ]);
+                                                'process' => $request->wprocess[$index],
+                                                'idx' => $index + 1,
+                                                'modified_by' => $request->user,
+                                            ]);
+                                    }
+                                }
+
+                                if($jtd->process_id != $request->wprocess[$index]) {
+                                    $arr[] = [
+                                        'update' => [
+                                            'workstation' => $workstation,
+                                            'old_process' => $jtd->process_id,
+                                            'new_process' => $request->wprocess[$index],
+                                        ]
+                                    ];
                                 }
                             }
                         }else{
@@ -1055,6 +1094,14 @@ class ManufacturingController extends Controller
                                             'idx' => $index + $i + 1,
                                             'last_modified_by' => $request->user,
                                         ]);
+
+                                    $arr[] = [
+                                        'update' => [
+                                            'workstation' => $workstation,
+                                            'old_process' => $painting_process,
+                                            'new_process' => $painting_process,
+                                        ]
+                                    ];
                                 }
                             }
                         }
@@ -1090,7 +1137,8 @@ class ManufacturingController extends Controller
 
                             if ($request->production_order) {
                                 $existing_prod_ops = DB::connection('mysql')->table('tabProduction Order Operation')
-                                    ->where('workstation', $workstation)->where('process', $request->wprocess[$index])->exists();
+                                    ->where('workstation', $workstation)->where('process', $request->wprocess[$index])
+                                    ->where('parent', $request->production_order)->exists();
                                 if(!$existing_prod_ops) {
                                     $prod_ops = [
                                         'name' => 'mes'.uniqid(),
@@ -1132,6 +1180,13 @@ class ManufacturingController extends Controller
                                     'bom_operation_id' => $name,
                                     'created_by' => Auth::user()->employee_name,
                                     'last_modified_by' => Auth::user()->employee_name,
+                                ];
+
+                                $arr[] = [
+                                    'add' => [
+                                        'workstation' => $workstation,
+                                        'process' => $request->wprocess[$index],
+                                    ]
                                 ];
                             
                                 DB::connection('mysql_mes')->table('job_ticket')->insert($insert);
@@ -1175,6 +1230,13 @@ class ManufacturingController extends Controller
                                     ];
                                 
                                     DB::connection('mysql_mes')->table('job_ticket')->insert($insert);
+
+                                    $arr[] = [
+                                        'add' => [
+                                            'workstation' => $workstation,
+                                            'process' => $painting_process,
+                                        ]
+                                    ];
                                 }
                             }
                         }
@@ -1206,10 +1268,20 @@ class ManufacturingController extends Controller
                     ->update(['status' => $status]);
 
                 $this->update_production_order_produced_qty($request->production_order);
+
+                $arr[] = ['production_order' => $request->production_order, 'user' => Auth::user()->email];
             }
 
             DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $request->user, 'last_date_reviewed' => $now->toDateTimeString()]);
             
+            if (isset($arr[0]['delete']) || isset($arr[0]['update']) || isset($arr[0]['add'])) {
+                DB::connection('mysql_mes')->table('activity_logs')->insert([
+                    'action' => 'BOM Update',
+                    'message' => json_encode($arr),
+                    'created_by' => Auth::user()->email
+                ]);
+            }
+
             return response()->json(['status' => 1, 'message' => 'BOM updated and reviewed.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
