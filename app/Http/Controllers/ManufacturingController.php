@@ -971,6 +971,10 @@ class ManufacturingController extends Controller
                     $existing_not_pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
                         ->where('production_order', $request->production_order)->where('status', '!=', 'Pending')->first();
                     if ($existing_not_pending_job_ticket) {
+                        $bom_operation_id_index = array_search($existing_not_pending_job_ticket->bom_operation_id, $request->id);
+                        if ($request->wprocess[$bom_operation_id_index] != $existing_not_pending_job_ticket->process_id) {
+                            return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. <b>' . $existing_not_pending_job_ticket->workstation .'</b> is currently in progress.']);
+                        }
                         // validate if existing_not_pending_job_ticket bom operation id not in $request->id
                         if (!in_array($existing_not_pending_job_ticket->bom_operation_id, array_filter($request->id))) {
                             return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. <b>' . $existing_not_pending_job_ticket->workstation .'</b> is currently in progress.']);
@@ -1117,17 +1121,21 @@ class ManufacturingController extends Controller
                                 ->where('production_order', $request->production_order)->where('bom_operation_id', $request->id[$x])
                                 ->where('process_id', '!=', $request->wprocess[$x])->where('status', 'Pending');
 
-                            if($jt_query->process_id != $request->wprocess[$x]) {
-                                $logs[] = [
-                                    'update' => [
-                                        'workstation' => $workstation,
-                                        'old_process' => $jt_query->process_id,
-                                        'new_process' => $request->wprocess[$x],
-                                    ]
-                                ];
-
-                                $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                            $jt = $jt_query->first();
+                            if ($jt) {
+                                if($jt->process_id != $request->wprocess[$x]) {
+                                    $logs[] = [
+                                        'update' => [
+                                            'workstation' => $request->workstation[$x],
+                                            'old_process' => $jt->process_id,
+                                            'new_process' => $request->wprocess[$x],
+                                        ]
+                                    ];
+    
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                }
                             }
+                            
                         }
                     } else {
                         // insert new workstation in bom operation table
@@ -1194,16 +1202,19 @@ class ManufacturingController extends Controller
                                 ->where('production_order', $request->production_order)->where('bom_operation_id', $new_bom_operation_id)
                                 ->where('process_id', '!=', $request->wprocess[$x])->where('status', 'Pending');
 
-                            if($jt_query->process_id != $request->wprocess[$x]) {
-                                $logs[] = [
-                                    'update' => [
-                                        'workstation' => $workstation,
-                                        'old_process' => $jt_query->process_id,
-                                        'new_process' => $request->wprocess[$x],
-                                    ]
-                                ];
-
-                                $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                            $jt = $jt_query->first();
+                            if ($jt) {
+                                if($jt->process_id != $request->wprocess[$x]) {
+                                    $logs[] = [
+                                        'update' => [
+                                            'workstation' => $workstation,
+                                            'old_process' => $jt->process_id,
+                                            'new_process' => $request->wprocess[$x],
+                                        ]
+                                    ];
+    
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                }
                             }
 
                             // check if bom operation id exists in job ticket table filtered by production order
@@ -1262,13 +1273,13 @@ class ManufacturingController extends Controller
             }
 
             // delete not existing bom operation id or null bom operation id in job ticket
-            if ($bom != 'No BOM') {
+            if ($bom != 'no_bom') {
                 $updated_bom_operation_id = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom)->pluck('name');
             } else {
                 $updated_bom_operation_id = DB::connection('mysql')->table('tabProduction Order Operation')
                     ->where('parent', $request->production_order)->pluck('bom_operation_id');
             }
-
+            
             DB::connection('mysql_mes')->table('job_ticket')
                 ->where('production_order', $request->production_order)->where('status', 'Pending')
                 ->where(function($q) use ($updated_bom_operation_id) {
