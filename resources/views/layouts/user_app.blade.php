@@ -872,32 +872,34 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+  @if($activePage == 'main_dashboard')
   
-  
-  // $(document).on('change', '#sel-workstation', function(){
-  //        $('#add-operation-btn').attr('disabled', true);
-  //        var workstation = $(this).val();
-  //        $('#sel-process').empty();
-  //        if (workstation) {
-  //           $.ajax({
-  //              url: '/get_workstation_process/' + workstation,
-  //              type:"GET",
-  //              success:function(data){
-  //                 if (data.length > 0) {
-  //                    var opt = '<option value="">Select Process</option>';
-  //                    $.each(data, function(i, v){
-  //                       opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
-  //                    });
-  //                    $('#sel-process').append(opt);
-  //                    $('#add-operation-btn').removeAttr('disabled');
-  //                    $('#add-operation-btn').text('Add Operation');
-  //                 }else{
-  //                    $('#add-operation-btn').text('No Assigned Process');
-  //                 }
-  //              }
-  //           });
-  //        }
-  //     });
+  $(document).on('change', '#sel-workstation', function(){
+         $('#add-operation-btn').attr('disabled', true);
+         var workstation = $(this).val();
+         $('#sel-process').empty();
+         if (workstation) {
+            $.ajax({
+               url: '/get_workstation_process/' + workstation,
+               type:"GET",
+               success:function(data){
+                  if (data.length > 0) {
+                     var opt = '<option value="">Select Process</option>';
+                     $.each(data, function(i, v){
+                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+                     });
+                     $('#sel-process').append(opt);
+                     $('#add-operation-btn').removeAttr('disabled');
+                     $('#add-operation-btn').text('Add Operation');
+                  }else{
+                     $('#add-operation-btn').text('No Assigned Process');
+                  }
+               }
+            });
+         }
+      });
+
+  @endif
   $(document).on('click', '.view-bom-details-btn', function(e){
     e.preventDefault();
     var guidebom =  $(this).data('bom');

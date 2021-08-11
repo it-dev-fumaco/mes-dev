@@ -1022,7 +1022,11 @@ class ManufacturingController extends Controller
                     if ($request->id[$x]) {
                         // update existing bom operation
                         DB::connection('mysql')->table('tabBOM Operation')
-                            ->where('name', $request->id[$x])->where('process', '!=', $request->wprocess[$x])->where('parent', $bom)
+                            ->where('name', $request->id[$x])
+                            ->where('parent', $bom)
+                            ->where(function($q) use ($request, $x) {
+                                $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
+                            })
                             ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
                         
                         if ($request->production_order) {
@@ -1063,8 +1067,11 @@ class ManufacturingController extends Controller
                             }
                             // update existing production order operation
                             DB::connection('mysql')->table('tabProduction Order Operation')
-                                ->where('bom_operation_id', $request->id[$x])->where('process', '!=', $request->wprocess[$x])
+                                ->where('bom_operation_id', $request->id[$x])
                                 ->where('parent', $request->production_order)->where('status', 'Pending')
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
+                                })
                                 ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
                             // check if bom operation id exists in job ticket table filtered by production order
@@ -1119,7 +1126,10 @@ class ManufacturingController extends Controller
                             // update existing job ticket
                             $jt_query = DB::connection('mysql_mes')->table('job_ticket')
                                 ->where('production_order', $request->production_order)->where('bom_operation_id', $request->id[$x])
-                                ->where('process_id', '!=', $request->wprocess[$x])->where('status', 'Pending');
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process_id', '!=', $request->wprocess[$x])->orWhereNull('process_id');
+                                })
+                                ->where('status', 'Pending');
 
                             $jt = $jt_query->first();
                             if ($jt) {
@@ -1193,14 +1203,20 @@ class ManufacturingController extends Controller
                             }
                             // update existing production order operation
                             DB::connection('mysql')->table('tabProduction Order Operation')
-                                ->where('bom_operation_id', $new_bom_operation_id)->where('process', '!=', $request->wprocess[$x])
+                                ->where('bom_operation_id', $new_bom_operation_id)
                                 ->where('parent', $request->production_order)->where('status', 'Pending')
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
+                                })
                                 ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
                             // update existing job ticket
                             $jt_query = DB::connection('mysql_mes')->table('job_ticket')
                                 ->where('production_order', $request->production_order)->where('bom_operation_id', $new_bom_operation_id)
-                                ->where('process_id', '!=', $request->wprocess[$x])->where('status', 'Pending');
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process_id', '!=', $request->wprocess_id[$x])->orWhereNull('process_id');
+                                })
+                                ->where('status', 'Pending');
 
                             $jt = $jt_query->first();
                             if ($jt) {
