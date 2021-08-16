@@ -2289,7 +2289,10 @@ class ManufacturingController extends Controller
             DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
 
             if ($docstatus == 1) {
-                $this->update_bin($new_id);
+                $update_bin_res = $this->update_bin($new_id);
+                if ($update_bin_res['status'] == 0) {
+                    return response()->json(['status' => 0, 'message' => $update_bin_res['message']]);
+                }
                 $this->create_stock_ledger_entry($new_id);
                 $this->create_gl_entry($new_id);
 
@@ -3606,7 +3609,10 @@ class ManufacturingController extends Controller
                                 ->where('name', $mes_production_order_details->production_order)
                                 ->update($values);
 
-                            $this->update_bin($new_id);
+                            $update_bin_res = $this->update_bin($new_id);
+                            if ($update_bin_res['status'] == 0) {
+                                return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+                            }
                             $this->create_stock_ledger_entry($new_id);
                             $this->create_gl_entry($new_id);
                         }
@@ -3808,6 +3814,11 @@ class ManufacturingController extends Controller
 
                         DB::connection('mysql')->table('tabBin')->insert($bin);
                     }else{
+                        $qty_after_transaction = $bin_qry->actual_qty - $row->transfer_qty;
+						if ($qty_after_transaction < 0) {
+							return ['status' => 0, 'message' => 'Insufficient stock for ' . $row->item_code . ' in ' . $row->s_warehouse];
+						}
+
                         $bin = [
                             'modified' => $now->toDateTimeString(),
                             'modified_by' => Auth::user()->email,
@@ -3864,6 +3875,11 @@ class ManufacturingController extends Controller
 
                         DB::connection('mysql')->table('tabBin')->insert($bin);
                     }else{
+                        $qty_after_transaction = $bin_qry->actual_qty + $row->transfer_qty;
+						if ($qty_after_transaction <= 0) {
+							return ['status' => 0, 'message' => 'Qty cannot be less than or equal to zero for ' . $row->item_code . ' in ' . $row->t_warehouse];
+						}
+
                         $bin = [
                             'modified' => $now->toDateTimeString(),
                             'modified_by' => Auth::user()->email,
@@ -3876,9 +3892,11 @@ class ManufacturingController extends Controller
                     }
                 }
             }
+
+            return ['status' => 1, 'message' => 'Bin updated.'];
             
         } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage(), 'id' => $stock_entry]);
+            return ['status' => 0, 'message' => 'Error creating transaction. Please try again.'];
         }
     }
     
@@ -4250,7 +4268,10 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabStock Entry')->where('name', $ste)->update($values);
                 DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $ste)->update($values);
 
-                $this->update_bin($ste);
+                $update_bin_res = $this->update_bin($ste);
+				if ($update_bin_res['status'] == 0) {
+					return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+				}
                 $this->create_stock_ledger_entry($ste);
                 $this->create_gl_entry($ste);
             }
@@ -4483,7 +4504,10 @@ class ManufacturingController extends Controller
 
             DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->update($production_data);
 
-            $this->update_bin($new_id);
+            $update_bin_res = $this->update_bin($new_id);
+            if ($update_bin_res['status'] == 0) {
+                return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+            }
             $this->create_stock_ledger_entry($new_id);
             $this->create_gl_entry($new_id);
             

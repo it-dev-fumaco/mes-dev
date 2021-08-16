@@ -625,6 +625,58 @@
       }
     });
 
+    $(document).on('click', '.reject-confirmation-btn', function(e){
+      e.preventDefault();
+      
+      var inspection_type = $(this).data('inspection-type');
+      var workstation = $(this).data('workstation');
+      var production_order = $(this).data('production-order');
+      var process_id = $(this).data('process-id');
+      var qa_id = $(this).data('qaid');
+
+      $.ajax({
+        url:"/get_reject_confirmation_checklist/" + production_order + "/" + workstation + "/" + process_id + "/" + qa_id + "?page=operator",
+        type:"GET",
+        success:function(data){
+          $('#quality-inspection-div').html(data);
+          $('#quality-inspection-modal .qc-type').text(inspection_type);
+          $('#quality-inspection-modal .qc-workstation').text('[' + workstation + ']');
+          $('#quality-inspection-modal').modal('show');
+        }
+      });
+    });
+
+    $(document).on('click', '#reject-confirmation-frm .next-tab', function() {
+      $('#reject-confirmation-frm .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+  });
+
+  $(document).on('click', '#reject-confirmation-frm .prev-tab', function() {
+    $('#reject-confirmation-frm .nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
+  });
+
+  $(document).on('submit', '#reject-confirmation-frm', function(e){
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#quality-inspection-modal').modal('hide');
+            get_tasks_for_inspection(data.details.workstation, data.details.production_order)
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+      });
+    });
+
     $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
       if($(this).data('edit') > 0){
         active_input = $(this).attr('id');
