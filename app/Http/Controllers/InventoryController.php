@@ -344,11 +344,11 @@ class InventoryController extends Controller
         $permissions = $this->get_user_permitted_operation();
 
         $item_list = DB::connection('mysql')->table('tabItem as item')
-        ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-        ->where('w.disabled', 0)
-        ->where('w.is_group', 0)
-        ->where('w.company', 'FUMACO Inc.')
-        ->where('w.department', 'Fabrication')
+        // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
+        // ->where('w.disabled', 0)
+        // ->where('w.is_group', 0)
+        // ->where('w.company', 'FUMACO Inc.')
+        // ->where('w.department', 'Fabrication')
         ->whereIn('item.item_group', ['Raw Material'])
         ->select('item.name', 'item.description')
         ->orderBy('item.modified', 'desc')->get();
@@ -527,9 +527,9 @@ class InventoryController extends Controller
                     ->where('s_warehouse', $request->source_warehouse);
             })
             ->where('ste.purpose', 'Material Transfer for Manufacture')
-            ->whereIn('ste.production_order', $production_orders)
+            ->whereIn('ste.work_order', $production_orders)
             ->when($request->production_order, function($q) use ($request){
-                $q->where('ste.production_order', 'like', '%'.$request->production_order.'%');
+                $q->where('ste.work_order', 'like', '%'.$request->production_order.'%');
             })
             ->when($request->ste_no, function($q) use ($request){
                 $q->where('ste.name', 'like', '%'.$request->ste_no.'%');
@@ -543,7 +543,7 @@ class InventoryController extends Controller
             ->when($request->q, function($q) use ($request){
                 $q->where(function($r) use ($request){
                     $r->where('ste.name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.production_order', 'LIKE', '%' . $request->q . '%')
+                    ->orWhere('ste.work_order', 'LIKE', '%' . $request->q . '%')
                     ->orWhere('ste.sales_order_no', 'LIKE', '%' . $request->q . '%')
                     ->orWhere('ste.material_request', 'LIKE', '%' . $request->q . '%')
                     ->orWhere('ste.so_customer_name', 'LIKE', '%' . $request->q . '%')
@@ -559,7 +559,7 @@ class InventoryController extends Controller
             $sted = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $row->name)->orderBy('date_modified', 'desc')->first();
             $list_arr[] = [
                 'name' => $row->name,
-                'production_order' => $row->production_order,
+                'production_order' => $row->work_order,
                 'sales_order_no' => $row->sales_order_no,
                 'so_customer_name' => $row->so_customer_name,
                 'bom_no' => $row->bom_no,
@@ -882,7 +882,7 @@ class InventoryController extends Controller
                     '_liked_by' => null,
                     'purchase_receipt_no' => null,
                     'posting_time' => $now->format('H:i:s'),
-                    'customer_name' => null,
+                    // 'customer_name' => null,
                     'to_warehouse' => $request->t_warehouse,
                     'title' => 'Material Transfer',
                     '_comments' => null,
@@ -900,13 +900,13 @@ class InventoryController extends Controller
                     'sales_invoice_no' => null,
                     'company' => 'FUMACO Inc.',
                     'target_warehouse_address' => null,
-                    'customer_address' => null,
+                    // 'customer_address' => null,
                     'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                     'supplier_name' => null,
                     'remarks' => null,
                     '_user_tags' => null,
                     'total_additional_costs' => 0,
-                    'customer' => null,
+                    // 'customer' => null,
                     'bom_no' => null,
                     'amended_from' => null,
                     'total_amount' =>collect($stock_entry_detail)->sum('basic_amount'),
@@ -916,8 +916,9 @@ class InventoryController extends Controller
                     'select_print_heading' => null,
                     'posting_date' => $now->format('Y-m-d'),
                     'target_address_display' => null,
-                    'production_order' => null,
+                    'work_order' => null,
                     'purpose' => 'Material Transfer',
+                    'stock_entry_type' => 'Material Transfer',
                     'shipping_address_contact_person' => null,
                     'customer_1' => null,
                     'material_request' => $request->material_request,
@@ -953,9 +954,6 @@ class InventoryController extends Controller
     }
      public function create_stock_ledger_entry($stock_entry){
         $now = Carbon::now();
-        $latest_id = DB::connection('mysql')->table('tabStock Ledger Entry')->max('name');
-        $latest_id_exploded = explode("/", $latest_id);
-        $new_id = $latest_id_exploded[1] + 1;
 
         $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
 
@@ -964,15 +962,11 @@ class InventoryController extends Controller
         $s_data = [];
         $t_data = [];
         foreach ($stock_entry_detail as $row) {
-            $new_id = $new_id + 1;
-            $new_id = str_pad($new_id, 8, '0', STR_PAD_LEFT);
-            $id = 'SLEM/'.$new_id;
-            
             $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
                 ->where('item_code', $row->item_code)->first();
                 
             $s_data[] = [
-                'name' => $id,
+                'name' => 'mes' . uniqid(),
                 'creation' => $now->toDateTimeString(),
                 'modified' => $now->toDateTimeString(),
                 'modified_by' => Auth::user()->email,
@@ -1012,12 +1006,8 @@ class InventoryController extends Controller
             $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
                 ->where('item_code', $row->item_code)->first();
             
-            $new_id = $new_id + 1;
-            $new_id = str_pad($new_id, 8, '0', STR_PAD_LEFT);
-            $id = 'SLEM/'.$new_id;
-
             $t_data[] = [
-                'name' => $id,
+                'name' => 'mes' . uniqid(),
                 'creation' => $now->toDateTimeString(),
                 'modified' => $now->toDateTimeString(),
                 'modified_by' => Auth::user()->email,
@@ -1715,14 +1705,14 @@ class InventoryController extends Controller
         }
         public function raw_material_monitoring_data_diff(){
             $item_list = DB::connection('mysql')->table('tabItem as item')
-            ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            ->where('w.disabled', 0)
-            ->where('w.is_group', 0)
-            ->where('w.company', 'FUMACO Inc.')
-            ->where('item.description', 'LIKE', '%Acrylic Diffuser%')
-            ->where('stock_uom', 'Piece(s)')
-            ->where('has_variants',"!=", 1)
-            ->where('w.department', 'Fabrication')
+            // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
+            // ->where('w.disabled', 0)
+            // ->where('w.is_group', 0)
+            // ->where('w.company', 'FUMACO Inc.')
+            // ->where('item.description', 'LIKE', '%Acrylic Diffuser%')
+            // ->where('stock_uom', 'Piece(s)')
+            // ->where('has_variants',"!=", 1)
+            // ->where('w.department', 'Fabrication')
             ->whereIn('item.item_group', ['Raw Material'])
             ->whereIn('item.item_classification', ['DI - Diffuser'])
             ->select('item.name', 'item.item_name')
@@ -1736,7 +1726,7 @@ class InventoryController extends Controller
                 ->distinct()
                 ->pluck('production_order');
                 
-                $planned= DB::connection('mysql')->table('tabProduction Order Item as pri')
+                $planned= DB::connection('mysql')->table('tabWork Order Item as pri')
                     ->where('pri.source_warehouse', "Fabrication  - FI")
                     ->whereIn('pri.parent', $prod)
                     ->where('pri.item_code',$row->name)
@@ -1790,12 +1780,12 @@ class InventoryController extends Controller
         }
         public function raw_material_monitoring_data_crs(){
             $item_list = DB::connection('mysql')->table('tabItem as item')
-            ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            ->where('w.disabled', 0)
-            ->where('w.is_group', 0)
-            ->where('w.company', 'FUMACO Inc.')
-            ->where('has_variants',"!=", 1)
-            ->where('w.department', 'Fabrication')
+            // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
+            // ->where('w.disabled', 0)
+            // ->where('w.is_group', 0)
+            // ->where('w.company', 'FUMACO Inc.')
+            // ->where('has_variants',"!=", 1)
+            // ->where('w.department', 'Fabrication')
             ->whereIn('item.item_group', ['Raw Material'])
             ->whereIn('item.item_classification', ['CS - Crs Steel Coil'])
             ->select('item.name', 'item.item_name')
@@ -1809,7 +1799,7 @@ class InventoryController extends Controller
                 ->distinct()
                 ->pluck('production_order');
                 
-                $planned= DB::connection('mysql')->table('tabProduction Order Item as pri')
+                $planned= DB::connection('mysql')->table('tabWork Order Item as pri')
                     ->where('pri.source_warehouse', "Fabrication  - FI")
                     ->whereIn('pri.parent', $prod)
                     ->where('pri.item_code',$row->name)
@@ -1864,12 +1854,12 @@ class InventoryController extends Controller
         }
         public function raw_material_monitoring_data_alum(){
             $item_list = DB::connection('mysql')->table('tabItem as item')
-            ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            ->where('w.disabled', 0)
-            ->where('w.is_group', 0)
-            ->where('w.company', 'FUMACO Inc.')
-            ->where('has_variants',"!=", 1)
-            ->where('w.department', 'Fabrication')
+            // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
+            // ->where('w.disabled', 0)
+            // ->where('w.is_group', 0)
+            // ->where('w.company', 'FUMACO Inc.')
+            // ->where('has_variants',"!=", 1)
+            // ->where('w.department', 'Fabrication')
             ->whereIn('item.item_group', ['Raw Material'])
             ->whereIn('item.item_classification', ['AS - Aluminum Sheets'])
             ->select('item.name', 'item.item_name')
@@ -1883,7 +1873,7 @@ class InventoryController extends Controller
                 ->distinct()
                 ->pluck('production_order');
                 
-                $planned= DB::connection('mysql')->table('tabProduction Order Item as pri')
+                $planned= DB::connection('mysql')->table('tabWork Order Item as pri')
                     ->where('pri.source_warehouse', "Fabrication  - FI")
                     ->whereIn('pri.parent', $prod)
                     ->where('pri.item_code',$row->name)
@@ -1945,16 +1935,16 @@ class InventoryController extends Controller
         }
         public function alum_out_of_stock(Request $request){
         $item_list = DB::connection('mysql')->table('tabItem as item')
-        ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-        ->where('w.disabled', 0)
-        ->where('w.is_group', 0)
-        ->where('w.company', 'FUMACO Inc.')
+        // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
+        // ->where('w.disabled', 0)
+        // ->where('w.is_group', 0)
+        // ->where('w.company', 'FUMACO Inc.')
         // ->where('stock_uom', 'Piece(s)')
         ->where('has_variants',"!=", 1)
-        ->where('w.department', 'Fabrication')
+        // ->where('w.department', 'Fabrication')
         ->whereIn('item.item_group', ['Raw Material'])
         ->where('item.item_classification', $request->id)
-        ->select('item.name', 'item.item_name', 'item.item_classification', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name', 'item.item_classification')
         ->orderBy('item.modified', 'desc')->get();
         $data=[];
         foreach ($item_list as $row) {
@@ -1967,7 +1957,7 @@ class InventoryController extends Controller
                 'item_code' => $row->name,
                 'description' => $row->item_name,
                 'item_class' => $row->item_classification,
-                'default_warehouse' => $row->default_warehouse,
+                'default_warehouse' => null,
                 'minimum' => empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level
 
             ];
@@ -2298,10 +2288,6 @@ class InventoryController extends Controller
     public function generate_material_request(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
-            if(Auth::user()) {
-                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
-            }
-
             $now = Carbon::now();
             if (count($request->item_code) <= 0) {
                 return response()->json(['success' => 0, 'message' => 'No Material Request created.']);

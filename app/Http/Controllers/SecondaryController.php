@@ -93,7 +93,7 @@ class SecondaryController extends Controller
 
         $unassigned = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
             ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-            ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+            ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
             ->where('tsd.workstation', $machine_details->workstation)
             ->where('ts.docstatus', 0)->where('tsd.status', 'Unassigned')
             ->whereDate('ts.creation', '>', '2019-10-11')
@@ -118,7 +118,7 @@ class SecondaryController extends Controller
         $operator_id = (Auth::check()) ? Auth::user()->id_security_key : null;
         $assigned = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
             ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-            ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+            ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
             ->where('tsd.workstation', $machine_details->workstation)
             ->where('operator_id', $operator_id)
             ->where('ts.docstatus', 0)->where('tsd.status', '!=', 'Unassigned')
@@ -332,7 +332,7 @@ class SecondaryController extends Controller
         try {
             $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                 ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
                 ->join('tabWorkstation AS wt', 'wt.workstation_name', 'tsd.workstation')
                 ->where('wt.workstation', $workstation)
                 ->where('tsd.operation', 'Fabrication')
@@ -625,7 +625,7 @@ class SecondaryController extends Controller
     public function timesheet_details_report($id){
         $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                    ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                    ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
                     ->where('tsd.parent', $id)
                     ->where('tsd.operation', 'Fabrication')
                     ->where('ts.docstatus', 0)
@@ -638,7 +638,7 @@ class SecondaryController extends Controller
         foreach ($tasks as $row) {
              $jt_details = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                    ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                    ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
                     ->where('tsd.parent', $id)
                     ->where('tsd.workstation', $row->workstation)
                     ->where('tsd.operation', 'Fabrication')
@@ -658,7 +658,7 @@ class SecondaryController extends Controller
 
     public function tbl_productionSchedule_report(Request $request){
         try {
-            $production_orders = DB::connection('mysql')->table('tabProduction Order as tpo')
+            $production_orders = DB::connection('mysql')->table('tabWork Order as tpo')
             ->where('tpo.docstatus', 1)
             ->where('tpo.planned_start_date', $request->date)
             ->get();
@@ -667,9 +667,9 @@ class SecondaryController extends Controller
             foreach ($production_orders as $row) {
                 $timesheet = DB::connection('mysql')->table('tabTimesheet')
                     ->where('production_order', $row->name)->first();
-                $batch=DB::connection('mysql')->table('tabProduction Batch Table as tpbt')
+                $batch=DB::connection('mysql')->table('tabWork Batch Table as tpbt')
                 ->where('tpbt.production_order', $row->name)->select('parent','idx')->first();
-                // $last_process =DB::connection('mysql')->table('tabProduction Order Operation')
+                // $last_process =DB::connection('mysql')->table('tabWork Order Operation')
                 //     ->where('parent', $row->name)->orderBy('idx', 'desc')->first();
 
                 // $completed_qty = ($last_process) ? $last_process->completed_qty : 0;
@@ -961,7 +961,7 @@ class SecondaryController extends Controller
 
     public function machine_kanban_workstation($workstation, $schedule){
 
-        $unscheduled = DB::connection('mysql')->table('tabProduction Order as prod')
+        $unscheduled = DB::connection('mysql')->table('tabWork Order as prod')
             ->join('tabTimesheet as ts','ts.production_order','=','prod.name')
             ->join('tabTimesheet Detail as tsd','tsd.parent', '=','ts.name')
             ->where('tsd.workstation', $workstation)
@@ -1025,7 +1025,7 @@ class SecondaryController extends Controller
     }
 
     public function continue_process($prod_name, $date){
-            $prod_qty=DB::connection('mysql')->table('tabProduction Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
+            $prod_qty=DB::connection('mysql')->table('tabWork Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
             $workstations = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->get();
 
             $qtys = collect($workstations)->where('workstation',$row->workstation)->max("completed_qty");
@@ -2710,7 +2710,7 @@ class SecondaryController extends Controller
 
         $unscheduled = [];
         foreach ($unscheduled_prod as $row) {
-            // $erp_prod = DB::connection('mysql')->table('tabProduction Order')
+            // $erp_prod = DB::connection('mysql')->table('tabWork Order')
             //  ->where('name', $row->production_order)->first();
 
             // $erp_prod_status = ($erp_prod) ? $erp_prod->docstatus : -1;
@@ -2734,7 +2734,7 @@ class SecondaryController extends Controller
                 ];
             // }
 
-            // $batch = DB::connection('mysql')->table('tabProduction Batch Table')->where('production_order', $row->name)->first();
+            // $batch = DB::connection('mysql')->table('tabWork Batch Table')->where('production_order', $row->name)->first();
 
             
         }
@@ -2838,7 +2838,7 @@ class SecondaryController extends Controller
         $scheduled = [];
         foreach($orders as $row){
             $status = $this->prodJtStatus_proScheduling($row->production_order);
-            // $batch = DB::connection('mysql')->table('tabProduction Batch Table')->where('production_order', $row->name)->first();
+            // $batch = DB::connection('mysql')->table('tabWork Batch Table')->where('production_order', $row->name)->first();
             $scheduled[] = [
                 'id' => $row->production_order,
                 'name' => $row->production_order,
@@ -7489,7 +7489,7 @@ class SecondaryController extends Controller
         ->where('item.item_classification', ['PA - Paints'])
         ->where('item.item_name','like', '%powder%')
         ->orderBy('item.modified', 'desc')
-        ->select('item.name', 'item.item_name', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name')
         ->get();
 
         foreach($item_list as $row){
@@ -7647,7 +7647,7 @@ class SecondaryController extends Controller
           
   
           foreach($datas as $row){
-            $prod_details = DB::connection('mysql')->table('tabProduction Order')
+            $prod_details = DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $row->production_order)->first();
             
             $status = $row->status;
@@ -7759,7 +7759,7 @@ class SecondaryController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Please stop all task for Production Order ' . $request->production_order]);
             }
 
-            DB::connection('mysql')->table('tabProduction Order')->where('name', $request->production_order)
+            DB::connection('mysql')->table('tabWork Order')->where('name', $request->production_order)
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
@@ -7891,7 +7891,7 @@ class SecondaryController extends Controller
           
   
           foreach($datas as $row){
-            $prod_details = DB::connection('mysql')->table('tabProduction Order')
+            $prod_details = DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $row->production_order)->first();
             
             $status = $row->status;
@@ -8722,7 +8722,7 @@ class SecondaryController extends Controller
             if($timelogs){
                 $timelogss = date('H:i:s', strtotime($timelogs->to_time));
                 if($shift_sched < $timelogss) {
-                    $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                    $prod_details = DB::connection('mysql')->table('tabWork Order')
 					    ->where('name', $timelogs->production_order)->first();
 
                     if($prod_details->docstatus == 2 && $timelogs->status != 'Cancelled'){

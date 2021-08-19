@@ -408,7 +408,7 @@ class QualityInspectionController extends Controller
                 'actual_operation_time' => $operation_time,
             ];
 
-            DB::connection('mysql')->table('tabProduction Order Operation')
+            DB::connection('mysql')->table('tabWork Order Operation')
 				->where('parent', $prod_order)->where('workstation', $workstation)->update($data);
 
         } catch (Exception $e) {

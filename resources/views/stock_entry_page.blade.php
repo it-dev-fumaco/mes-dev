@@ -61,7 +61,7 @@
                                         @foreach ($list as $row)
                                         <tr>
                                             <td class="text-center">{{ $row->name }}</td>
-                                            <td class="text-center">{{ $row->production_order }}</td>
+                                            <td class="text-center">{{ $row->work_order }}</td>
                                             <td class="text-center"><b>{{ $row->sales_order_no }}</b> <br> {{ $row->so_customer_name }} </td>
                                             <td class="text-center">{{ $row->bom_no }}</td>
                                             <td class="text-center">{{ $row->item_status }}</td>

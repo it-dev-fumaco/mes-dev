@@ -163,7 +163,7 @@ class AssemblyController extends Controller
                         ->where('item_code', $parent_part['item_code'])->sum('balance_qty');
 
                     if ($parent_default_bom) {
-                        $existing_prod1 = DB::connection('mysql')->table('tabProduction Order')
+                        $existing_prod1 = DB::connection('mysql')->table('tabWork Order')
                             ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                             ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                 return $query->where('sales_order_no', $reference_no);
@@ -178,7 +178,7 @@ class AssemblyController extends Controller
                         $s_warehouse = null;
                         if ($existing_prod1) {
                             $planned_start_date1 = Carbon::parse($existing_prod1->planned_start_date)->format('Y-m-d');
-                            $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')->where('parent', $existing_prod1->name)->first()->source_warehouse;
+                            $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $existing_prod1->name)->first()->source_warehouse;
                         }
 
                         $parts[] = [
@@ -214,7 +214,7 @@ class AssemblyController extends Controller
                             ->where('item_code', $child_part['item_code'])->sum('balance_qty');
 
                         if ($child_default_bom) {
-                            $existing_prod2 = DB::connection('mysql')->table('tabProduction Order')
+                            $existing_prod2 = DB::connection('mysql')->table('tabWork Order')
                                 ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                 ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                     return $query->where('sales_order_no', $reference_no);
@@ -229,7 +229,7 @@ class AssemblyController extends Controller
                             $s_warehouse = null;
                             if ($existing_prod2) {
                                 $planned_start_date2 = Carbon::parse($existing_prod2->planned_start_date)->format('Y-m-d');
-                                $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')->where('parent', $existing_prod2->name)->first()->source_warehouse;
+                                $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $existing_prod2->name)->first()->source_warehouse;
                             }
                     
                             $parts[] = [
@@ -264,7 +264,7 @@ class AssemblyController extends Controller
                                 ->where('item_code', $child_part2['item_code'])->sum('balance_qty');
 
                             if ($child_default_bom) {
-                                $existing_prod3 = DB::connection('mysql')->table('tabProduction Order')
+                                $existing_prod3 = DB::connection('mysql')->table('tabWork Order')
                                     ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                     ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                         return $query->where('sales_order_no', $reference_no);
@@ -280,7 +280,7 @@ class AssemblyController extends Controller
                                 $s_warehouse = null;
                                 if ($existing_prod3) {
                                     $planned_start_date3 = Carbon::parse($existing_prod3->planned_start_date)->format('Y-m-d');
-                                    $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')
+                                    $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')
                                         ->where('parent', $existing_prod3->name)->first()->source_warehouse;
                                 }
 
@@ -365,19 +365,19 @@ class AssemblyController extends Controller
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
-            $items = DB::connection('mysql')->table('tabProduction Order Item')->whereIn('parent', $request->production_orders)
+            $items = DB::connection('mysql')->table('tabWork Order Item')->whereIn('parent', $request->production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
             $req_items = [];
             foreach ($items as $item) {
-                $prod = DB::connection('mysql')->table('tabProduction Order')->where('name', $item->parent)->first();
+                $prod = DB::connection('mysql')->table('tabWork Order')->where('name', $item->parent)->first();
                 $mr = DB::connection('mysql')->table('tabMaterial Request Item')->where('docstatus', 1)->where('item_code', $item->item_code)
                     ->where('sales_order', $prod->sales_order_no)->first();
 
                 $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
 
                $ste = DB::connection('mysql')->table('tabStock Entry AS se')->join('tabStock Entry Detail AS sed', 'se.name', 'sed.parent')
-                    ->where('se.docstatus', '<', 2)->where('se.production_order', $item->parent)
+                    ->where('se.docstatus', '<', 2)->where('se.work_order', $item->parent)
                     ->where('se.sales_order_no', $prod->sales_order_no)
                     ->where('sed.item_code', $item->item_code)->select('se.*')->first();
 
@@ -431,7 +431,8 @@ class AssemblyController extends Controller
 
     public function get_raw_materials_item($item_classification, Request $request){
         if($request->autocomplete){
-            $q = DB::connection('mysql')->table('tabItem')->where('item_group', 'Raw Material')
+            return $q = DB::connection('mysql')->table('tabItem')
+                ->where('item_group', 'Raw Material')
                 ->where('item_classification', $item_classification)
                 ->where('has_variants', 0)->where('disabled', 0)
                 ->where('name', 'like', '%' . $request->q . '%')
@@ -453,7 +454,7 @@ class AssemblyController extends Controller
             }
 
             $now = Carbon::now();
-            $production_order_item_details = DB::connection('mysql')->table('tabProduction Order Item')
+            $production_order_item_details = DB::connection('mysql')->table('tabWork Order Item')
                 ->where('name', $request->production_order_item_id)->first();
 
             if ($production_order_item_details->item_code == $request->item_code_replacecment) {
@@ -478,7 +479,7 @@ class AssemblyController extends Controller
                 'modified' => $now->toDateTimeString(),
             ];
 
-             DB::connection('mysql')->table('tabProduction Order Item')
+             DB::connection('mysql')->table('tabWork Order Item')
                 ->where('name', $request->production_order_item_id)->update($values);
 
             $details = [
