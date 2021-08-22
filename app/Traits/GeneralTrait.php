@@ -64,7 +64,7 @@ trait GeneralTrait
             'actual_operation_time' => $operation_time,
         ];
 
-        DB::connection('mysql')->table('tabProduction Order Operation')
+        DB::connection('mysql')->table('tabWork Order Operation')
             ->where('parent', $job_ticket_detail->production_order)->where('workstation', $job_ticket_detail->workstation)
             ->where('process', $job_ticket_detail->process_id)->update($production_order_operation_values);
 
@@ -87,7 +87,7 @@ trait GeneralTrait
         // update production order status in ERP
         $production_order_status = ($production_order_status == 'In Progress') ? 'In Process' : $production_order_status;
         if($production_order_status != 'Completed') {
-            DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
+            DB::connection('mysql')->table('tabWork Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
         }
 
         // get job ticket actual start and end time 
@@ -109,7 +109,7 @@ trait GeneralTrait
         DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_detail->production_order)
             ->update($values);
 
-        DB::connection('mysql')->table('tabProduction Order')->where('name', $job_ticket_detail->production_order)
+        DB::connection('mysql')->table('tabWork Order')->where('name', $job_ticket_detail->production_order)
             ->update($values);
 
         return 1;
@@ -141,7 +141,7 @@ trait GeneralTrait
 
         // update production order status in ERP
         $production_order_status = ($production_order_status == 'In Progress') ? 'In Process' : $production_order_status;
-        DB::connection('mysql')->table('tabProduction Order')
+        DB::connection('mysql')->table('tabWork Order')
             ->where('name', $production_order)
             ->update(['status' => $production_order_status]);
 
@@ -166,7 +166,7 @@ trait GeneralTrait
             ->where('production_order', $production_order)
             ->update($values);
 
-        DB::connection('mysql')->table('tabProduction Order')
+        DB::connection('mysql')->table('tabWork Order')
             ->where('name', $production_order)
             ->update($values);
     }
@@ -470,7 +470,7 @@ trait GeneralTrait
         if (!in_array($stat, ['In Progress', 'Cancelled', 'Completed'])) {
             $is_transferred = DB::connection('mysql')->table('tabStock Entry')
                 ->where('purpose', 'Material Transfer for Manufacture')
-                ->where('production_order', $production_order)
+                ->where('work_order', $production_order)
                 ->where('docstatus', 1)->first();
 
             if ($is_transferred) {
@@ -552,14 +552,14 @@ trait GeneralTrait
     public function update_production_order_transferred_qty($production_order){
         DB::connection('mysql')->beginTransaction();
         try {
-            $production_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->first();
+            $production_details = DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->first();
 
             // get production order qty to manufacture
             $production_req_qty = $production_details->qty;
 
             // get total materials transferred for manufacturing in production order's stock entries
             $transferred_for_manufacturing = DB::connection('mysql')->table('tabStock Entry')
-                ->where('production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
+                ->where('work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
                 ->where('docstatus', 1)->sum('fg_completed_qty');
 
             $transferred_for_manufacturing = ($transferred_for_manufacturing > $production_req_qty) ? $production_req_qty : $transferred_for_manufacturing;
@@ -575,17 +575,17 @@ trait GeneralTrait
                 ];
             }
 
-            DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->update($values);
+            DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->update($values);
 
-            $production_order_items = DB::connection('mysql')->table('tabProduction Order Item')->where('parent', $production_order)->get();
+            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)->get();
             foreach ($production_order_items as $row) {
                 // get item code transferred_qty
                 $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
                     ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                    ->where('ste.production_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
                     ->where('ste.docstatus', 1)->where('sted.item_code', $row->item_code)->sum('sted.qty');
 
-                DB::connection('mysql')->table('tabProduction Order Item')
+                DB::connection('mysql')->table('tabWork Order Item')
                     ->where('parent', $production_order)->where('item_code', $row->item_code)
                     ->update(['transferred_qty' => $transferred_qty]);
             }
@@ -622,7 +622,7 @@ trait GeneralTrait
         
         $is_transferred = DB::connection('mysql')->table('tabStock Entry')
             ->where('purpose', 'Material Transfer for Manufacture')
-            ->where('production_order', $production_order)
+            ->where('work_order', $production_order)
             ->where('docstatus', 1)->first();
 
         if ($is_transferred) {
@@ -652,7 +652,7 @@ trait GeneralTrait
     }
 
     public function feedback_production_order_items($production_order, $qty_to_manufacture, $fg_completed_qty){
-        $production_order_items_qry = DB::connection('mysql')->table('tabProduction Order Item')
+        $production_order_items_qry = DB::connection('mysql')->table('tabWork Order Item')
             ->where('parent', $production_order)
             ->where(function($q) {
                 $q->where('item_alternative_for', 'new_item')
@@ -663,17 +663,13 @@ trait GeneralTrait
         $arr = [];
         foreach ($production_order_items_qry as $index => $row) {
             $item_required_qty = $row->required_qty;
-            $item_required_qty += DB::connection('mysql')->table('tabProduction Order Item')
+            $item_required_qty += DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $production_order)
                 ->where('item_alternative_for', $row->item_code)
                 ->whereNotNull('item_alternative_for')
                 ->sum('required_qty');
 
-            $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
-                ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
-                ->where('ste.docstatus', 1)->sum('qty');
+            $consumed_qty = $row->consumed_qty;
 
             $balance_qty = ($row->transferred_qty - $consumed_qty);
 
@@ -724,7 +720,7 @@ trait GeneralTrait
         // $production_order_items = [];
         // foreach ($production_order_items_qry as $index => $row) {
         //     $required_qty = $row->required_qty;
-        //     $required_qty += DB::connection('mysql')->table('tabProduction Order Item')
+        //     $required_qty += DB::connection('mysql')->table('tabWork Order Item')
         //         ->where('parent', $production_order)
         //         ->where('item_alternative_for', $row->item_code)
         //         ->whereNotNull('item_alternative_for')
@@ -776,7 +772,7 @@ trait GeneralTrait
     }
 
     public function get_alternative_items($production_order, $item_code, $remaining_required_qty){
-        $q = DB::connection('mysql')->table('tabProduction Order Item')
+        $q = DB::connection('mysql')->table('tabWork Order Item')
 			->where('parent', $production_order)->where('item_alternative_for', $item_code)
             ->orderBy('required_qty', 'asc')->get();
 
@@ -784,11 +780,7 @@ trait GeneralTrait
         $arr = [];
         foreach ($q as $row) {
             if($remaining > 0){
-                $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                    ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
-                    ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
-                    ->where('ste.docstatus', 1)->sum('qty');
+                $consumed_qty = $row->consumed_qty;
 
                 $balance_qty = ($row->transferred_qty - $consumed_qty);
                     
@@ -809,5 +801,134 @@ trait GeneralTrait
         }
 
         return $arr;
+    }
+
+    public function insert_job_card($production_order){
+        $existing_jcs = DB::connection('mysql')->table('tabJob Card')->where('work_order', $production_order)->where('docstatus', 0)->pluck('operation_id');
+
+        $work_order_operations = DB::connection('mysql')->table('tabWork Order as w')
+            ->join('tabWork Order Operation as wo', 'w.name', 'wo.parent')
+            ->where('w.name', $production_order)->whereNotIn('wo.name', $existing_jcs)
+            ->select('wo.name as operation_id', 'w.*', 'wo.*', 'w.name as work_order')->get();
+
+        $latest_jc = DB::connection('mysql')->table('tabJob Card')->max('name');
+        $new_id = preg_replace("/[^0-9]/", "", $latest_jc);
+        
+        $now = Carbon::now();
+        $job_cards = [];
+        foreach($work_order_operations as $row) {
+            $new_id = $new_id + 1;
+            $new_jc_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
+            $jc_name = 'PO-JOB' . $new_jc_id;
+            $job_cards[] = [
+                'name' => $jc_name,
+                'creation' => $now->toDateTimeString(),
+                'modified' => $now->toDateTimeString(),
+                'modified_by' => Auth::user()->email,
+                'owner' => Auth::user()->email,
+                'docstatus' => 0,
+                'parent' => null,
+                'parentfield' => null,
+                'parenttype' => null,
+                'idx' => 0,
+                'naming_series' => 'PO-JOB.#####',
+                'work_order' => $row->work_order,
+                'bom_no' => $row->bom_no,
+                'posting_date' => $now->format('Y-m-d'),
+                'company' => 'FUMACO Inc.',
+                'production_item' => $row->production_item,
+                'item_name' => $row->item_name,
+                'for_quantity' => $row->qty,
+                'serial_no' => null,
+                'wip_warehouse' => $row->wip_warehouse,
+                'quality_inspection' => null,
+                'project' => $row->project,
+                'batch_no' => null,
+                'operation' => $row->operation,
+                'operation_row_number' => null,
+                'workstation' => $row->workstation,
+                'total_completed_qty' => 0,
+                'total_time_in_mins' => 0,
+                'for_job_card' => null,
+                'is_corrective_job_card' => 0,
+                'hour_rate' => 0,
+                'for_operation' => null,
+                'operation_id' => $row->operation_id,
+                'sequence_id' => 0,
+                'transferred_qty' => 0,
+                'requested_qty' => 0,
+                'status' => 'Open',
+                'remarks' => 'MES Generated',
+                'barcode' => null,
+                'job_started' => 0,
+                'started_time' => null,
+                'current_time' => 0,
+                'amended_from' => null,
+                '_user_tags' => null,
+                '_comments' => null,
+                '_assign' => null,
+                '_liked_by' => null,
+            ];
+        }
+
+        DB::connection()->table('tabJob Card')->insert($job_cards);
+    }
+
+    public function update_job_card($production_order) {
+        // get production order operation id
+        $work_order_operations = DB::connection('mysql')->table('tabWork Order Operation')->where('parent', $production_order)->pluck('name');
+        // query production order job cards
+        $job_cards = DB::connection('mysql')->table('tabJob Card')->where('work_order', $production_order)
+            ->whereNotIn('operation_id', $work_order_operations)->where('docstatus', 0)->get();
+        foreach ($job_cards as $jc) {
+            // get job card logs
+            $has_existing_logs = DB::connection('mysql')->table('tabJob Card Time Log')
+                ->where('parent', $jc->name)->exists();
+            // delete not existing work order operation in job card (pending only)
+            if (!$has_existing_logs) {
+               DB::connection('mysql')->table('tabJob Card')->where('name', $jc->name)->where('docstatus', 0)->delete();
+            }
+        }
+        
+        $this->insert_job_card($production_order);
+    }
+
+    public function update_job_card_status($job_card_id) {
+        $job_card = DB::connection('mysql')->table('tabJob Card')->where('name', $job_card_id)->first();
+        if ($job_card) {
+            $job_card_time_log = DB::connection('mysql')->table('tabJob Card Time Log')->where('parent', $job_card_id)->get();
+            $total_completed_qty = collect($job_card_time_log)->sum('completed_qty');
+            $total_time_in_mins = collect($job_card_time_log)->sum('time_in_mins');
+            $status = 'Open';
+            if (count($job_card_time_log) > 0) {
+                if ($total_completed_qty == $job_card->for_quantity) {
+                    $status = 'Completed';
+
+                    $val = [
+                        'docstatus' => 1,
+                        'modified_by' => Auth::user()->employee_name,
+                        'modified' => Carbon::now()->toDateTimeString(),
+                    ];
+
+                    DB::connection('mysql')->table('tabJob Card')->where('name', $job_card_id)->update($val);
+                    DB::connection('mysql')->table('tabJob Card Time Log')->where('parent', $job_card_id)->update($val);
+                }
+
+                if ($status != 'Completed') {
+                    $in_progress = collect($job_card_time_log)->where('to_time', null)->count();
+                    if ($in_progress > 0) {
+                        $status = 'Work In Progress';
+                    } else {
+                        $status = 'On Hold';
+                    }
+                }
+            }
+
+            DB::connection('mysql')->table('tabJob Card')->where('name', $job_card_id)->update([
+                'status' => $status,
+                'total_completed_qty' => $total_completed_qty,
+                'total_time_in_mins' => $total_time_in_mins,
+            ]);
+        }
     }
 }

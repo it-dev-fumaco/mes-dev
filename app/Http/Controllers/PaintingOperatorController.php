@@ -212,7 +212,7 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 
-			$this->uodate_job_ticket($time_log->job_ticket_id);
+			$this->update_job_ticket($time_log->job_ticket_id);
 		
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
@@ -326,7 +326,7 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 
-			$this->uodate_job_ticket($request->job_ticket_id);
+			$this->update_job_ticket($request->job_ticket_id);
     	}
 
 		return response()->json(['success' => 1, 'message' => 'Task updated.']);
@@ -433,7 +433,7 @@ class PaintingOperatorController extends Controller
                 'actual_operation_time' => $operation_time,
             ];
 
-            DB::connection('mysql')->table('tabProduction Order Operation')
+            DB::connection('mysql')->table('tabWork Order Operation')
 				->where('parent', $prod_order)->where('workstation', $workstation)->update($data);
 
         } catch (Exception $e) {
@@ -609,7 +609,7 @@ class PaintingOperatorController extends Controller
     }
 
     public function create_stock_entry(Request $request, $production_order){
-    	$production_order_details = DB::connection('mysql')->table('tabProduction Order')
+    	$production_order_details = DB::connection('mysql')->table('tabWork Order')
     		->where('name', $production_order)->first();
 
     	$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
@@ -623,7 +623,7 @@ class PaintingOperatorController extends Controller
         $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
         $new_id = 'STEM-'.$new_id;
 
-    	$production_order_items = DB::connection('mysql')->table('tabProduction Order Item')
+    	$production_order_items = DB::connection('mysql')->table('tabWork Order Item')
     		->where('parent', $production_order)->get();
 
     	$stock_entry_detail = [];
@@ -818,7 +818,7 @@ class PaintingOperatorController extends Controller
 			'status' => ($produced_qty == $production_order_details->qty) ? 'Completed' : $production_order_details->status
 		];
 
-		DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->update($production_data);
+		DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->update($production_data);
 
 		$production_data_mes = [
 			'last_modified_at' => $now->toDateTimeString(),

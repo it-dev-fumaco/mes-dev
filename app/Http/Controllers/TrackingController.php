@@ -297,7 +297,7 @@ class TrackingController extends Controller
 
 
             if (!empty($parent_productions)) {
-                $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                $prod_details = DB::connection('mysql')->table('tabWork Order')
                     ->where('name', $production_order_no)->first();
 
                 if($prod_details->docstatus == 2 && $status != 'Cancelled'){
@@ -594,7 +594,7 @@ class TrackingController extends Controller
 
                     }
      
-                    $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                    $prod_details = DB::connection('mysql')->table('tabWork Order')
                         ->where('name', $production->production_order)->first();
 
                     if($prod_details->docstatus == 2 && $status != 'Cancelled'){
