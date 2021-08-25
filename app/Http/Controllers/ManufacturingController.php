@@ -1749,7 +1749,7 @@ class ManufacturingController extends Controller
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->where('ste.purpose', 'Material Transfer')
                 ->where('ste.transfer_as', 'For Return')
-                ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
+                ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
                 ->distinct()->pluck('return_reference');
 
             // get submitted stock entries
@@ -1758,7 +1758,7 @@ class ManufacturingController extends Controller
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->whereNotIn('sted.s_warehouse', $s_warehouses)
                 ->whereNotIn('ste.name', $returned_stes)
-                ->where('production_order', $request->production_order)
+                ->where('work_order', $request->production_order)
                 ->where('ste.docstatus', 1)->where('purpose', 'Material Transfer for Manufacture')
                 ->count();
 
@@ -1781,7 +1781,7 @@ class ManufacturingController extends Controller
             }
             // get pending material transfer for manufacture stock entries of production order
             $pending_withdrawal_slips = DB::connection('mysql')->table('tabStock Entry')
-                ->where('production_order', $request->production_order)
+                ->where('work_order', $request->production_order)
                 ->where('purpose', 'Material Transfer for Manufacture')
                 ->where('docstatus', 0)->distinct()->pluck('name');
 
@@ -1806,7 +1806,7 @@ class ManufacturingController extends Controller
             if(count($empty_ste) > 0){
                 // delete empty stock entries if any
                 DB::connection('mysql')->table('tabStock Entry')
-                    ->where('production_order', $request->production_order)
+                    ->where('work_order', $request->production_order)
                     ->where('purpose', 'Material Transfer for Manufacture')
                     ->where('docstatus', 0)->whereIn('name', $empty_ste)->delete();
             }
@@ -1844,7 +1844,7 @@ class ManufacturingController extends Controller
             $submitted_ste_by_wh = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->whereIn('sted.s_warehouse', $s_warehouses)
-                ->where('production_order', $request->production_order)
+                ->where('work_order', $request->production_order)
                 ->where('ste.docstatus', 1)->where('purpose', 'Material Transfer for Manufacture')
                 ->distinct()->pluck('ste.name');
 
@@ -2728,7 +2728,7 @@ class ManufacturingController extends Controller
                     'remarks' => null,
                     '_user_tags' => null,
                     'total_additional_costs' => 0,
-                    'customer' => null,
+                    // 'customer' => null,
                     'bom_no' => $mes_production_order_details->bom_no,
                     'amended_from' => null,
                     'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -2738,7 +2738,7 @@ class ManufacturingController extends Controller
                     'select_print_heading' => null,
                     'posting_date' => $now->format('Y-m-d'),
                     'target_address_display' => null,
-                    'production_order' => $request->production_order,
+                    'work_order' => $request->production_order,
                     'purpose' => 'Material Transfer for Manufacture',
                     'shipping_address_contact_person' => null,
                     'customer_1' => null,
@@ -2765,7 +2765,7 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
                 DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
             }
-            
+
             DB::connection('mysql')->commit();
 
             return response()->json(['status' => 1, 'message' => 'Stock Entry has been created.']);
@@ -3277,6 +3277,10 @@ class ManufacturingController extends Controller
                     if($request->is_stock_item > 0){
                         $req_item_detail = DB::connection('mysql')->table('tabItem')
                             ->where('name', $request->item_code)->first();
+
+                        $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                            ->where('company', 'FUMACO Inc.')->first();
+                        $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
     
                         $raw_required_items = [
                             'name' => 'mes'.uniqid(),
@@ -3296,7 +3300,7 @@ class ManufacturingController extends Controller
                             'transferred_qty' => 0,
                             'available_qty_at_source_warehouse' => 0,
                             'available_qty_at_wip_warehouse' => 0,
-                            'source_warehouse' => $req_item_detail->default_warehouse,
+                            'source_warehouse' => $item_default_warehouse,
                             'stock_uom' => $req_item_detail->stock_uom
                         ];
                     }else{
@@ -3304,6 +3308,10 @@ class ManufacturingController extends Controller
                         foreach ($bundle_items as $k => $v) {
                             $req_item_detail = DB::connection('mysql')->table('tabItem')
                                 ->where('name', $v->item_code)->first();
+
+                            $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                                ->where('company', 'FUMACO Inc.')->first();
+                            $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
 
                             $raw_required_items[] = [
                                 'name' => 'mes'.uniqid(),
@@ -3323,7 +3331,7 @@ class ManufacturingController extends Controller
                                 'transferred_qty' => 0,
                                 'available_qty_at_source_warehouse' => 0,
                                 'available_qty_at_wip_warehouse' => 0,
-                                'source_warehouse' => $req_item_detail->default_warehouse,
+                                'source_warehouse' => $item_default_warehouse,
                                 'stock_uom' => $v->uom
                             ];
                         }

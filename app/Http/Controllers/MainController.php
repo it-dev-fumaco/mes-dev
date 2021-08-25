@@ -447,8 +447,12 @@ class MainController extends Controller
 					$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
 
 					if ($d->cycle_time_in_seconds > 0) {
-						$cycle_time_in_seconds = $d->cycle_time_in_seconds / $d->good;
-
+						if ($d->good > 0) {
+							$cycle_time_in_seconds = $d->cycle_time_in_seconds / $d->good;
+						} else {
+							$cycle_time_in_seconds = 0;
+						}
+					
 						$dur_hours = floor($cycle_time_in_seconds / 3600);
 						$dur_minutes = floor(($cycle_time_in_seconds / 60) % 60);
 						$dur_seconds = $cycle_time_in_seconds % 60;

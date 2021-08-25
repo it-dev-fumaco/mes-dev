@@ -1283,6 +1283,8 @@
             delivery_date: $row.find('.delivery-date').text(),
          }
 
+         $btn.attr('disabled', true);
+
          $.ajax({
             url: "/create_production_order",
             type:"POST",
@@ -1290,6 +1292,7 @@
             success:function(data){
                if (data.success < 1) {
                   showNotification("danger", data.message, "now-ui-icons travel_info");
+                  $btn.removeAttr('disabled');
 
                   return false;
                }
@@ -1308,6 +1311,8 @@
                if(jqXHR.status == 401) {
                   showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                }
+
+               $btn.removeAttr('disabled');
                
                console.log(jqXHR);
                console.log(textStatus);
