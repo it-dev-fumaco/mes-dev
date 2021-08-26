@@ -5729,7 +5729,7 @@ class MainController extends Controller
 			// get all submitted stock entries based on item code production order
 			$submitted_pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				->where('ste.docstatus', '<', 2)->where('ste.production_order', $production_order)
+				->where('ste.docstatus', '<', 2)->where('ste.work_order', $production_order)
 				->where('sted.item_code', $request->item_code)
 				->where('ste.purpose', 'Material Transfer for Manufacture')->count();
 
