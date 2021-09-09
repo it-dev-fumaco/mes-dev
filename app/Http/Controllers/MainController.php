@@ -1349,7 +1349,8 @@ class MainController extends Controller
 		if ($reference_type == 'Material Request') {
 			return DB::connection('mysql')->table('tabMaterial Request')
 				->where('name', 'like', '%'.$request->term.'%')
-				->where('docstatus', 1)->where('material_request_type', 'Manufacture')
+				->where('docstatus', 1)
+				->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
 				->where('company', 'FUMACO Inc.')->where('per_ordered', '<', 100)
 				->select('name as value', 'name as id')
 				->orderBy('modified', 'desc')->limit(5)->get();
@@ -1480,12 +1481,13 @@ class MainController extends Controller
 		}
 
 		if ($reference_type == 'MREQ') {
-			$details = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)->where('material_request_type', 'Manufacture')
+			$details = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)
+			->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
         		->where('company', 'FUMACO Inc.')->where('per_ordered', '<', 100)->where('name', $reference_no)->first();
 		}
 
 		if (!$details) {
-			return response()->json(['success' => 0, 'message' => $id . ' not found.']);
+			return response()->json(['success' => 0, 'message' => $reference_no . ' not found.']);
 		}
 
 		return response()->json($details);
