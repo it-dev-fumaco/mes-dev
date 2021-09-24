@@ -3427,6 +3427,19 @@ class ManufacturingController extends Controller
                     ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')->where('ste.purpose', 'Material Transfer for Manufacture')
                     ->where('sted.item_code', $row->item_code)->where('ste.work_order', $row->parent)
                     ->where('ste.docstatus', 0)->first();
+                
+                $actual_qty = DB::connection('mysql')->table('tabBin')
+                    ->where('item_code', $row->item_code)->where('warehouse', $source_warehouse)
+                    ->sum('actual_qty');
+
+                if(in_array($source_warehouse, ['Fabrication - FI', 'Spotwelding Warehouse - FI']) && $mes_production_order_details->operation_id == 1){
+                    $item_status = 'Issued';
+                } else {
+                    $item_status = 'For Checking';
+                }
+
+                $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
+                $docstatus = ($item_status == 'Issued') ? $docstatus : 0;
 
                 if(!$pending_ste){
                     $remaining_qty = $row->required_qty - $row->transferred_qty;
@@ -3460,19 +3473,6 @@ class ManufacturingController extends Controller
 
                         $base_rate = ($bom_material) ? $bom_material->base_rate : $valuation_rate;
 
-                        $actual_qty = DB::connection('mysql')->table('tabBin')
-                            ->where('item_code', $row->item_code)->where('warehouse', $source_warehouse)
-                            ->sum('actual_qty');
-
-                        if(in_array($source_warehouse, ['Fabrication - FI', 'Spotwelding Warehouse - FI']) && $mes_production_order_details->operation_id == 1){
-                            $item_status = 'Issued';
-                        }else{
-                            $item_status = 'For Checking';
-                        }
-
-                        $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
-                        $docstatus = ($item_status == 'Issued') ? $docstatus : 0;
-            
                         $stock_entry_detail = [
                             'name' =>  uniqid(),
                             'creation' => $now->toDateTimeString(),
@@ -3543,7 +3543,6 @@ class ManufacturingController extends Controller
                             '_liked_by' => null,
                             'purchase_receipt_no' => null,
                             'posting_time' => $now->format('H:i:s'),
-                            // 'customer_name' => null,
                             'to_warehouse' => $mes_production_order_details->wip_warehouse,
                             'title' => 'Material Transfer for Manufacture',
                             '_comments' => null,
@@ -3561,13 +3560,11 @@ class ManufacturingController extends Controller
                             'sales_invoice_no' => null,
                             'company' => 'FUMACO Inc.',
                             'target_warehouse_address' => null,
-                            // 'customer_address' => null,
                             'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                             'supplier_name' => null,
                             'remarks' => null,
                             '_user_tags' => null,
                             'total_additional_costs' => 0,
-                            // 'customer' => null,
                             'bom_no' => $mes_production_order_details->bom_no,
                             'amended_from' => null,
                             'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -3634,6 +3631,36 @@ class ManufacturingController extends Controller
                             $this->create_stock_ledger_entry($new_id);
                             $this->create_gl_entry($new_id);
                         }
+                    }
+                } else {
+                    if ($docstatus == 1) {
+                        $production_order_item = [
+                            'transferred_qty' => $row->required_qty
+                        ];
+        
+                        DB::connection('mysql')->table('tabWork Order Item')->where('name', $row->name)->update($production_order_item);
+
+                        if($mes_production_order_details->status == 'Not Started'){
+                            $values = [
+                                'status' => 'In Process',
+                                'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture
+                            ];
+                        }else{
+                            $values = [
+                                'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture
+                            ];
+                        }
+                        
+                        DB::connection('mysql')->table('tabWork Order')
+                            ->where('name', $mes_production_order_details->production_order)
+                            ->update($values);
+
+                        $update_bin_res = $this->update_bin($pending_ste->name);
+                        if ($update_bin_res['status'] == 0) {
+                            return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+                        }
+                        $this->create_stock_ledger_entry($pending_ste->name);
+                        $this->create_gl_entry($pending_ste->name);
                     }
                 }
             }
