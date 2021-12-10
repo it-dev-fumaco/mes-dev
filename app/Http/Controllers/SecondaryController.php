@@ -3135,40 +3135,11 @@ class SecondaryController extends Controller
 
         $for_feedback_painting = $this->get_production_order_count_totals($for_feedback_painting_production_orders, 2);
 
-        return [
-            'fab_planned' => $fabrication['planned_count'],
-            'fab_planned_qty' => $fabrication['planned_qty'],
-            'fab_wip' => $fabrication['wip_count'],
-            'fab_wip_qty' => $fabrication['wip_qty'],
-            'fab_done' => $fabrication['done_count'],
-            'fab_done_qty' => $fabrication['done_qty'],
-            'fab_for_feedback' => $for_feedback_fabrication['for_feedback_count'],
-            'fab_for_feedback_qty' => $for_feedback_fabrication['for_feedback_qty'],
-
-            'wa_planned' => $assembly['planned_count'],
-            'wa_planned_qty' => $assembly['planned_qty'],
-            'wa_wip' => $assembly['wip_count'],
-            'wa_wip_qty' => $assembly['wip_qty'],
-            'wa_done' => $assembly['done_count'],
-            'wa_done_qty' => $assembly['done_qty'],
-            'wa_for_feedback' => $for_feedback_assembly['for_feedback_count'],
-            'wa_for_feedback_qty' => $for_feedback_assembly['for_feedback_qty'],
-
-            'pa_planned' => $painting['planned_count'],
-            'pa_planned_qty' => $painting['planned_qty'],
-            'pa_wip' => $painting['wip_count'],
-            'pa_wip_qty' => $painting['wip_qty'],
-            'pa_done' => $painting['done_count'],
-            'pa_done_qty' => $painting['done_qty'],
-            'pa_for_feedback' => $for_feedback_painting['for_feedback_count'],
-            'pa_for_feedback_qty' => $for_feedback_painting['for_feedback_qty'],
-        ];
-
         $user_permitted_operations = DB::connection('mysql_mes')->table('user')
-			->join('operation', 'operation.operation_id', 'user.operation_id')
-			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-			->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
-			->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
+            ->join('operation', 'operation.operation_id', 'user.operation_id')
+            ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+            ->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
+            ->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
             ->distinct()->pluck('operation_id');
             
         $start = Carbon::parse($schedule_date)->startOfDay();
@@ -3199,16 +3170,49 @@ class SecondaryController extends Controller
             ->sum('rejected_qty');
         
         // count all ready for feedback
-        $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order')
-            ->whereRaw('(feedback_qty < produced_qty)')->where('status', '!=', 'Cancelled')
-            ->where('produced_qty', '>', 0)
-            ->whereIn('operation_id', $user_permitted_operations)
-            ->selectRaw('(produced_qty - feedback_qty) as for_feedback')->get();
+        $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order AS po')
+            ->leftJoin('delivery_date', function($join)
+            {
+                $join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('po.parent_item_code','=','delivery_date.parent_item_code');
+            })
+            ->where('po.produced_qty', '>', 0)
+			->whereRaw('po.produced_qty > feedback_qty')
+            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereIn('po.operation_id', $user_permitted_operations)
+            ->selectRaw('(po.produced_qty - po.feedback_qty) as for_feedback')->get();
 
         $for_feedback_production_count = count($for_feedback_production_orders);
         $for_feedback_qty_count = collect($for_feedback_production_orders)->sum('for_feedback');
 
         return [
+            'fab_planned' => $fabrication['planned_count'],
+            'fab_planned_qty' => $fabrication['planned_qty'],
+            'fab_wip' => $fabrication['wip_count'],
+            'fab_wip_qty' => $fabrication['wip_qty'],
+            'fab_done' => $fabrication['done_count'],
+            'fab_done_qty' => $fabrication['done_qty'],
+            'fab_for_feedback' => $for_feedback_fabrication['for_feedback_count'],
+            'fab_for_feedback_qty' => $for_feedback_fabrication['for_feedback_qty'],
+
+            'wa_planned' => $assembly['planned_count'],
+            'wa_planned_qty' => $assembly['planned_qty'],
+            'wa_wip' => $assembly['wip_count'],
+            'wa_wip_qty' => $assembly['wip_qty'],
+            'wa_done' => $assembly['done_count'],
+            'wa_done_qty' => $assembly['done_qty'],
+            'wa_for_feedback' => $for_feedback_assembly['for_feedback_count'],
+            'wa_for_feedback_qty' => $for_feedback_assembly['for_feedback_qty'],
+
+            'pa_planned' => $painting['planned_count'],
+            'pa_planned_qty' => $painting['planned_qty'],
+            'pa_wip' => $painting['wip_count'],
+            'pa_wip_qty' => $painting['wip_qty'],
+            'pa_done' => $painting['done_count'],
+            'pa_done_qty' => $painting['done_qty'],
+            'pa_for_feedback' => $for_feedback_painting['for_feedback_count'],
+            'pa_for_feedback_qty' => $for_feedback_painting['for_feedback_qty'],
+
             'pending' => number_format($pending_production_count),
             'pending_qty' => number_format($pending_qty_count),
             'inProgress' => number_format($in_progress_production_count),
@@ -3217,6 +3221,60 @@ class SecondaryController extends Controller
             'completed_qty' => number_format($for_feedback_qty_count),
             'reject' =>  number_format($reject_qty),
         ];
+
+        // $user_permitted_operations = DB::connection('mysql_mes')->table('user')
+		// 	->join('operation', 'operation.operation_id', 'user.operation_id')
+		// 	->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+		// 	->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
+		// 	->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
+        //     ->distinct()->pluck('operation_id');
+            
+        // $start = Carbon::parse($schedule_date)->startOfDay();
+        // $end = Carbon::parse($schedule_date)->endOfDay();
+
+        // // pending production orders scheduled today
+        // $pending_production_orders = DB::connection('mysql_mes')->table('production_order')
+        //     ->where('planned_start_date', $schedule_date)
+        //     ->whereIn('operation_id', $user_permitted_operations)
+        //     ->where('status', 'Not Started')->get();
+
+        // $pending_production_count = count($pending_production_orders);
+        // $pending_qty_count = collect($pending_production_orders)->sum('qty_to_manufacture');
+        
+        // // in progress production orders scheduled today
+        // $in_progress_production_orders = DB::connection('mysql_mes')->table('production_order')
+        //     ->where('planned_start_date', $schedule_date)->where('status', 'In Progress')
+        //     ->whereIn('operation_id', $user_permitted_operations)
+        //     ->selectRaw('(qty_to_manufacture - produced_qty) as wip_qty')->get();
+
+        // $in_progress_production_count = count($in_progress_production_orders);
+        // $in_progress_qty_count = collect($in_progress_production_orders)->sum('wip_qty');
+
+        // // get total rejected qty based on scheduled date
+        // $reject_qty = DB::connection('mysql_mes')->table('quality_inspection')
+        //     ->whereBetween('qa_inspection_date', [$start, $end])
+        //     ->whereIn('status', ['QC Failed', 'QC Passed'])
+        //     ->sum('rejected_qty');
+        
+        // // count all ready for feedback
+        // $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order')
+        //     ->whereRaw('(feedback_qty < produced_qty)')->where('status', '!=', 'Cancelled')
+        //     ->where('produced_qty', '>', 0)
+        //     ->whereIn('operation_id', $user_permitted_operations)
+        //     ->selectRaw('(produced_qty - feedback_qty) as for_feedback')->get();
+
+        // $for_feedback_production_count = count($for_feedback_production_orders);
+        // $for_feedback_qty_count = collect($for_feedback_production_orders)->sum('for_feedback');
+
+        // return [
+        //     'pending' => number_format($pending_production_count),
+        //     'pending_qty' => number_format($pending_qty_count),
+        //     'inProgress' => number_format($in_progress_production_count),
+        //     'inProgress_qty' => number_format($in_progress_qty_count),
+        //     'completed' => number_format($for_feedback_production_count),
+        //     'completed_qty' => number_format($for_feedback_qty_count),
+        //     'reject' =>  number_format($reject_qty),
+        // ];
     }
 
     public function add_shift(Request $request){
