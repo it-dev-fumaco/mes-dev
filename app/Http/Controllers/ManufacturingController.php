@@ -4323,7 +4323,7 @@ class ManufacturingController extends Controller
             }
 
 			$existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
-				->where('production_order', $production_order)
+				->where('work_order', $production_order)
 				->where('purpose', 'Material Transfer for Manufacture')
 				->where('docstatus', 1)->exists();
 
@@ -4491,7 +4491,7 @@ class ManufacturingController extends Controller
 				'select_print_heading' => null,
 				'posting_date' => $now->format('Y-m-d'),
 				'target_address_display' => null,
-				'production_order' => $production_order,
+				'work_order' => $production_order,
 				'purpose' => 'Material Transfer',
 				'shipping_address_contact_person' => null,
 				'customer_1' => null,
