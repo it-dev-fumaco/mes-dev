@@ -59,7 +59,7 @@ return [
         // ERP Connection
         'mysql' => [
             'driver' => 'mysql',
-            'host' => '10.0.0.83',
+            'host' => '10.0.0.107',
             'port' => '3306',
             'database' => '_3f2ec5a818bccb73',
             'username' => 'erp',
