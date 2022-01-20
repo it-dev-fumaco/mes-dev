@@ -3434,8 +3434,10 @@ class ManufacturingController extends Controller
 
                 if(in_array($source_warehouse, ['Fabrication - FI', 'Spotwelding Warehouse - FI']) && $mes_production_order_details->operation_id == 1){
                     $item_status = 'Issued';
+                    $validate_item_code = $row->item_code;
                 } else {
                     $item_status = 'For Checking';
+                    $validate_item_code = null;
                 }
 
                 $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
@@ -3522,6 +3524,7 @@ class ManufacturingController extends Controller
                             'remarks' => ($item_status == 'Issued') ? 'MES' : null,
                             'production_order_req_item_id' => $row->name,
                             'issued_qty' => ($item_status == 'Issued') ? $remaining_qty : 0,
+                            'validate_item_code' => $validate_item_code
                         ];
 
                         $stock_entry_data = [
