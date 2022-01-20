@@ -171,8 +171,6 @@
                             <input type="text" id="completed-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Completed" data-div="#completed-div">
                         </div>
                       </div>
-                      
-                      
                       <div class="col-md-12" id="completed-div" style="min-height:500px;"></div>
                     </div>
                   </div>
@@ -1514,7 +1512,6 @@ $(document).ready(function(){
     }else if(status == 'Not Started'){
       query = $('#not-started-search').val();
     }
-    console.log(query);
     get_production_order_list(status, div_id, 0, page, query);
   });
 
