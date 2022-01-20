@@ -2434,44 +2434,66 @@ class SecondaryController extends Controller
         try {
             $now = Carbon::now();
             if ($request->id) {
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->where('status', 'Completed')->first();
-                    if ($jt_details) {
+                $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
+                if($job_ticket_details->status == 'Completed'){
                     return response()->json(['success' => 0, 'message' => 'Task already Completed']);
                 }
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
 
-                $prod_manufacturing_qty = DB::connection('mysql_mes')->table('production_order')
-                    ->where('production_order', $jt_details->production_order)->select('qty_to_manufacture')
-                    ->first();
+                $prod_manufacturing_qty = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->first();
+                $pending = $prod_manufacturing_qty->qty_to_manufacture - $job_ticket_details->completed_qty;
 
-                if(DB::connection('mysql_mes')->table('time_logs')
-                ->where('job_ticket_id', '=', $request->id)
-                ->exists()){
-
-                    $timelogs = DB::connection('mysql_mes')->table('time_logs')
-                    ->where('job_ticket_id', $request->id)
-                    ->get();
-                    $total_good_timelogs = collect($timelogs)->sum('good');
-                    $values1 = [
-                    'status' => 'Completed',
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                    ];
-
-                    DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->id)
-                    ->where('status', 'In Progress')->update($values1);
-                }
+                $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
+                $logs = DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
 
                 $values = [
-                    'completed_qty' => $prod_manufacturing_qty->qty_to_manufacture,
-                    'status' => 'Completed',
-                    'remarks' => 'Override',
                     'last_modified_by' => Auth::user()->employee_name,
                     'last_modified_at' => $now->toDateTimeString()
                 ];
 
+                // update and save timelogs
+                if($logs){
+                    $from_time = Carbon::parse($logs->from_time);
+                    $duration = $from_time->diffInSeconds($now);
+
+                    $values['status'] = 'Completed';
+                    $values['to_time'] = $now->toDateTimeString();
+                    $values['good'] = $pending;
+                    $values['duration'] = $duration;
+
+                    DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $request->id)->where('status', 'In Progress')->update($values);
+                }
+
+                // reset values array
+                unset($values['duration']);
+                unset($values['to_time']);
+
+                // update and save job ticket
+                $jt_completed = $job_ticket_details->completed_qty + $pending;
+
+                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
+
+                $values['remarks'] = 'Override';
+                $values['completed_qty'] = $request->workstation == 'Spotwelding' ? $total_good_spotwelding->min('total_good') : $jt_completed;
+                $values['actual_end_date'] = $now->toDateTimeString();
+
                 DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->update($values);
 
+                // reset values array
+                unset($values['status']);
+                unset($values['remarks']);
+                unset($values['completed_qty']);
+                unset($values['good']);
+
+                // check, update and save production order
+                $job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_details->production_order)->get();
+
+                $completed_qty_sum = collect($job_ticket)->sum('completed_qty');
+                $job_ticket_count = count($job_ticket);
+                $qty_check = (int)$completed_qty_sum / $job_ticket_count;
+
+                $values['status'] = $qty_check == $prod_manufacturing_qty->qty_to_manufacture ? 'Completed' : 'In Progress';
+
+                DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->update($values);
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
             }
         } catch (Exception $e) {
@@ -2969,7 +2991,7 @@ class SecondaryController extends Controller
         }
 
         $current_date = $schedule_date;
-
+        
         return view('tables.tbl_production_order_list_maindashboard', compact('result', 'current_date'));
     }
 
