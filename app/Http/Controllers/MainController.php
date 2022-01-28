@@ -2359,6 +2359,10 @@ class MainController extends Controller
 	}
 
 	public function production_schedule_module($operation_id){
+		if (!Auth::check()) {
+			return redirect('/login');
+		}
+		
 		$permissions = $this->get_user_permitted_operation();
 
 		$primary_id=$operation_id;
