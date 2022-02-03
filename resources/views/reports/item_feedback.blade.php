@@ -103,7 +103,7 @@
                     <div class="row">
                       <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
                         <div class="form-group mr-2">
-                          <input type="text" id="in-progress-search" class="form-control bg-white search-filter" placeholder="Search" data-status="In Progress" data-div="#in-progress-div">
+                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="In Progress" data-div="#in-progress-div">
                         </div>
                       </div>
                       <div class="col-md-12" id="in-progress-div" style="min-height:500px;"></div>
@@ -118,7 +118,7 @@
                     <div class="row">
                       <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
                         <div class="form-group mr-2">
-                          <input type="text" id="task-queue-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Task Queue" data-div="#task-queue-div">
+                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Task Queue" data-div="#task-queue-div">
                         </div>
                       </div>
                       <div class="col-md-12" id="task-queue-div" style="min-height:500px;"></div>
@@ -133,7 +133,7 @@
                     <div class="row">
                       <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
                         <div class="form-group mr-2">
-                          <input type="text" id="cancelled-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Cancelled" data-div="#cancelled-div">
+                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Cancelled" data-div="#cancelled-div">
                         </div>
                       </div>
                       <div class="col-md-12" id="cancelled-div" style="min-height:500px;"></div>
@@ -148,7 +148,7 @@
                     <div class="row">
                       <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
                         <div class="form-group mr-2">
-                          <input type="text" id="awaiting-feedback-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Awaiting Feedback" data-div="#awaiting-feedback-div">
+                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Awaiting Feedback" data-div="#awaiting-feedback-div">
                         </div>
                       </div>
                       <div class="col-md-12" id="awaiting-feedback-div" style="min-height:500px;"></div>
@@ -168,7 +168,7 @@
                       <div class="col-md-4" style="margin-top: -50px; padding-right: 30px;">
                         <div class="form-group m-0 p-0">
                             <input type="hidden" name="prod_list_print" id="prod_list_print">
-                            <input type="text" id="completed-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Completed" data-div="#completed-div">
+                            <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Completed" data-div="#completed-div">
                         </div>
                       </div>
                       <div class="col-md-12" id="completed-div" style="min-height:500px;"></div>
@@ -183,7 +183,7 @@
                     <div class="row">
                       <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
                         <div class="form-group mr-2">
-                          <input type="text" id="not-started-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Not Started" data-div="#not-started-div">
+                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Not Started" data-div="#not-started-div">
                         </div>
                       </div>
                       <div class="col-md-12" id="not-started-div" style="min-height:500px;"></div>
@@ -1472,12 +1472,12 @@ $(document).ready(function(){
   $(document).on('keyup', '.search-filter', function(){
     var status = $(this).data('status');
     var div = $(this).data('div');
+
     get_production_order_list(status, div, 0, 1, $(this).val());
   });
   
   function get_production_order_list(status, div, get_total, page, query){
     $('#loader-wrapper').removeAttr('hidden');
-    
     $.ajax({
       url: "/production_order_list/" + status + "?page=" + page,
       type:"GET",
@@ -1498,6 +1498,7 @@ $(document).ready(function(){
     var status = $(this).closest('.custom-production-pagination').data('status');
     var div_id = $(this).closest('.custom-production-pagination').data('div');
     var page = $(this).attr('href').split('page=')[1];
+
     var query = null;
     if(status == 'In Progress'){
       query = $('#in-progress-search').val();
