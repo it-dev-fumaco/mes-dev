@@ -94,6 +94,38 @@
     });
 </script>
 <script type="text/javascript">
+  function load_dashboard(){
+      $( "#on-going-production-orders-content .tab-pane" ).each(function( index ) {
+        const operation = $(this).data('operation');
+        const el = $(this);
+        
+        get_ongoing_production_orders(operation, el);
+        get_qa(operation, el);
+      });
+    }
+
+    function get_ongoing_production_orders(operation, el){
+      $.ajax({
+        url:"/get_production_order_list/" + date_today,
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          $(el).find('.table-div').eq(0).html(data);
+        }
+      }); 
+    }
+
+    function get_qa(operation, el){
+      $.ajax({
+        url:"/qa_monitoring_summary/" + date_today,
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          $(el).find('.table-div').eq(3).html(data);
+        }
+      }); 
+    }
+
       $('#mark-done-frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr('action');
@@ -107,6 +139,7 @@
             $('#mark-done-modal').modal('hide');
             $('#jtname-modal').modal("hide");
             $('#view-machine-task-modal').modal("hide");
+            load_dashboard();
             table_po_orders();
             count_current_production();
           }else{
