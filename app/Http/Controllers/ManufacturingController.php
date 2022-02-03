@@ -3434,8 +3434,10 @@ class ManufacturingController extends Controller
 
                 if(in_array($source_warehouse, ['Fabrication - FI', 'Spotwelding Warehouse - FI']) && $mes_production_order_details->operation_id == 1){
                     $item_status = 'Issued';
+                    $validate_item_code = $row->item_code;
                 } else {
                     $item_status = 'For Checking';
+                    $validate_item_code = null;
                 }
 
                 $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
@@ -3522,6 +3524,7 @@ class ManufacturingController extends Controller
                             'remarks' => ($item_status == 'Issued') ? 'MES' : null,
                             'production_order_req_item_id' => $row->name,
                             'issued_qty' => ($item_status == 'Issued') ? $remaining_qty : 0,
+                            'validate_item_code' => $validate_item_code
                         ];
 
                         $stock_entry_data = [
@@ -4300,9 +4303,46 @@ class ManufacturingController extends Controller
                 $this->create_gl_entry($ste);
             }
 
-            $update_production_order_transferred_qty = $this->update_production_order_transferred_qty($production_order);
-            if($update_production_order_transferred_qty['status'] == 0){
-                return response()->json(['success' => 0, 'message' => 'Error updating production order transferred qty']);
+            $production_details = DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->first();
+
+            // get production order qty to manufacture
+            $production_req_qty = $production_details->qty;
+
+            // get total materials transferred for manufacturing in production order's stock entries
+            $transferred_for_manufacturing = DB::connection('mysql')->table('tabStock Entry')
+                ->where('work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
+                ->where('docstatus', 1)->sum('fg_completed_qty');
+
+            $transferred_for_manufacturing = ($transferred_for_manufacturing > $production_req_qty) ? $production_req_qty : $transferred_for_manufacturing;
+            
+            $values = [
+                'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
+            ];
+
+            if($production_details->status == 'Not Started'){
+                $values = [
+                    'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
+                    'status' => 'In Process'
+                ];
+            }
+
+            DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->update($values);
+
+            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)->get();
+            foreach ($production_order_items as $row) {
+                // get item code transferred_qty
+                $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->where('ste.docstatus', 1)->where('sted.item_code', $row->item_code)->sum('sted.qty');
+
+                DB::connection('mysql')->table('tabWork Order Item')
+                    ->where('name', $row->name)->update(['transferred_qty' => $transferred_qty]);
+            }
+
+            $material_transferred_for_manufacturing = DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->sum('material_transferred_for_manufacturing');
+            if ($material_transferred_for_manufacturing <= 0) {
+                return response()->json(['success' => 0, 'message' => 'Error updating production order transferred qty. Please try again.']);
             }
 
             DB::connection('mysql')->commit();

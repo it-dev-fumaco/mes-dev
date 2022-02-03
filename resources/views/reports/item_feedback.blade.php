@@ -171,8 +171,6 @@
                             <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Completed" data-div="#completed-div">
                         </div>
                       </div>
-                      
-                      
                       <div class="col-md-12" id="completed-div" style="min-height:500px;"></div>
                     </div>
                   </div>
@@ -1500,7 +1498,22 @@ $(document).ready(function(){
     var status = $(this).closest('.custom-production-pagination').data('status');
     var div_id = $(this).closest('.custom-production-pagination').data('div');
     var page = $(this).attr('href').split('page=')[1];
-    get_production_order_list(status, div_id, 0, page);
+
+    var query = null;
+    if(status == 'In Progress'){
+      query = $('#in-progress-search').val();
+    }else if(status == 'Task Queue'){
+      query = $('#task-queue-search').val();
+    }else if(status == 'Cancelled'){
+      query = $('#cancelled-search').val();
+    }else if(status == 'Awaiting Feedback'){
+      query = $('#awaiting-feedback-search').val();
+    }else if(status == 'Completed'){
+      query = $('#completed-search').val();
+    }else if(status == 'Not Started'){
+      query = $('#not-started-search').val();
+    }
+    get_production_order_list(status, div_id, 0, page, query);
   });
 
   $(document).on('click', '.print-transfer-slip-btn', function(e){
