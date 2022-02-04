@@ -2099,7 +2099,31 @@ class ManufacturingController extends Controller
 
         $feedbacked_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->where('production_order', $production_order)->get();
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs'));
+        $time_logs_qry = DB::connection('mysql_mes')->table('job_ticket')
+        	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+        	->where('job_ticket.production_order', $production_order)->where('job_ticket.status', 'Completed')
+        	->get();
+
+        $from_time = collect($time_logs_qry)->min('from_time');
+        $to_time = collect($time_logs_qry)->max('to_time');
+
+        $actual_start_date = Carbon::parse($from_time);
+        $actual_end_date = Carbon::parse($to_time);
+
+        $days = $actual_start_date->diffInDays($actual_end_date);
+        $hours = $actual_start_date->copy()->addDays($days)->diffInHours($actual_end_date);
+        $minutes = $actual_start_date->copy()->addDays($days)->addHours($hours)->diffInMinutes($actual_end_date);
+        $seconds = $actual_start_date->copy()->addDays($days)->addHours($hours)->addMinutes($minutes)->diffInSeconds($actual_end_date);
+        $dur_days = ($days > 0) ? $days .'d' : null;
+        $dur_hours = ($hours > 0) ? $hours .'h' : null;
+        $dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+        $dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+
+        $start_date = ($from_time) ? Carbon::parse($from_time)->format('m-d-Y h:i A') : '--';
+        $end_date = ($from_time) ? Carbon::parse($to_time)->format('m-d-Y h:i A') : '--';
+        $duration = $dur_days .' '. $dur_hours . ' '. $dur_minutes . ' '. $dur_seconds;
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration'));
     }
 
     public function create_material_transfer_for_return(Request $request){

@@ -20,19 +20,27 @@
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
 <table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1">
-	<col style="width: 10%;">
-	<col style="width: 10%;">
-	<col style="width: 20%;">
-	<col style="width: 20%;">
-	<col style="width: 10%;">
-	<col style="width: 10%;">
-	<col style="width: 10%;">
-	<col style="width: 10%;">
+	<col style="width: 10%;"><!-- Prod. Order -->
+	<col style="width: 10%;"><!-- Reference No. -->
+	{{-- <col style="width: 20%;"> --}}
+	<col style="width: 12%;"><!-- Customer -->
+	<col style="width: 12%;"><!-- Project -->
+	{{-- <col style="width: 20%;"> --}}
+	<col style="width: 6%;"><!-- Actual Start Date -->
+	<col style="width: 6%;"><!-- Actual End Date -->
+	<col style="width: 6%;"><!-- Duration -->
+	<col style="width: 6%;"><!-- Delivery Date -->
+	<col style="width: 10%;"><!-- For Manufacture -->
+	<col style="width: 10%;"><!-- Produced -->
+	<col style="width: 10%;"><!-- Feedbacked -->
 	<tr class="text-center">
 		<th>Prod. Order</th>
 		<th>Reference No.</th>
 		<th>Customer</th>
 		<th>Project</th>
+		<th>Start Date</th>
+        <th>End Date</th>
+        <th>Duration</th>
 		<th>Delivery Date</th>
 		<td style="background-color: #28b463;" class="text-white">For Manufacture</td>
 		<td style="background-color: #28b463;" class="text-white">Produced</td>
@@ -45,6 +53,9 @@
 		<td><b>{{ $details->sales_order }}{{ $details->material_request }}</b></td>
 		<td>{{ $details->customer }}</td>
 		<td>{{ $details->project }}</td>
+		<td>{{ $start_date }}</td>
+		<td>{{ $end_date }}</td>
+		<td>{{ str_replace(' ', '', $duration) ? $duration : '--' }}</td>
 		<td>{{ ($details->rescheduled_delivery_date == null)? $details->delivery_date: $details->rescheduled_delivery_date   }}</td>
 		<td style="background-color: #263238;" class="text-white">
 			<span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $details->qty_to_manufacture }}</span>
@@ -60,7 +71,7 @@
 		</td>
 	</tr>
 	<tr style="font-size: 10pt;">
-		<td colspan="6">
+		<td colspan="9">
 			<div class="d-flex flex-row">
 				@if ($details->parent_item_code != $details->item_code)
 					<div class="p-2 align-self-center text-center" style="width: 15%;font-size: 12pt;">
