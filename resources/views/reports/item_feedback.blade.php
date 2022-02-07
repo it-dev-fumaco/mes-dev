@@ -69,30 +69,33 @@
                   <div class="tab-pane active" id="tab-production-orders">
                     {{-- All Production Orders --}}
                     <div class="tab-heading tab-heading--gray">
-                      <h4>Production Order(s)</h4>
+                      <div class="container-fluid">
+                        <div class="row">
+                          <div class="col-8">
+                            <input class='d-none' type="text" value="" id="current-status">
+                            @php
+                              $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed'];
+                            @endphp
+                            <div class="row">
+                              @foreach ($status_arr as $status)
+                                <label class="PillList-item">
+                                  <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
+                                  <span class="PillList-label">{{ $status }}
+                                  </span>
+                                </label>
+                              @endforeach
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="form-group mr-2">
+                              <input type="text" id="production-orders-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
+                            </div>
+                          </div>
+                        </div>
+                        
+                      </div>
                     </div>
                     <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" id="production-orders-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
-                        </div>
-                      </div>
-                      <div class="container-fluid pl-5 pt-2">
-                          <input class='d-none' type="text" value="" id="current-status">
-                          @php
-                            $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed'];
-                          @endphp
-                          <div class="row">
-                            @foreach ($status_arr as $status)
-                              <label class="PillList-item">
-                                <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
-                                <span class="PillList-label">{{ $status }}
-                                </span>
-                              </label>
-                            @endforeach
-                          </div>
-                         
-                      </div>
                       <div class="col-12" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
                     </div>
                   </div>
@@ -397,16 +400,16 @@
   display: none;
 }
 .PillList-item input[type="checkbox"]:checked + .PillList-label {
-  background-color: #F96332;
-  border: 1px solid #F96332;
-  color: #fff;
+  background-color: #FFF;
+  border: 1px solid #FFF;
+  color: #808495;
   padding-right: 16px;
   padding-left: 16px;
 }
 .PillList-label {
-  border: 1px solid #F96332;
+  border: 1px solid #FFF;
   border-radius: 20px;
-  color: #F96332;
+  color: #FFF;
   display: block;
   padding: 7px 28px;
   text-decoration: none;
