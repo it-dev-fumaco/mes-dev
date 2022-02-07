@@ -400,9 +400,9 @@
   display: none;
 }
 .PillList-item input[type="checkbox"]:checked + .PillList-label {
-  background-color: #FFF;
-  border: 1px solid #FFF;
-  color: #808495;
+  background-color: #F96332;
+  border: 1px solid #F96332;
+  color: #fff;
   padding-right: 16px;
   padding-left: 16px;
 }
