@@ -7,6 +7,12 @@
 	</div>
 </div>
 @else
+<div class="row" style="margin-top: -18px !important">
+	<div class="col-9">&nbsp;</div>
+	<div class="col-3">
+		<a class="btn btn-sm btn-secondary create-ste-btn float-right" href="#" data-production-order="{{ $production_order_details->production_order }}" data-item-code="{{ $production_order_details->item_code }}" data-qty="{{ number_format($production_order_details->qty_to_manufacture) }}" data-uom="{{ $production_order_details->stock_uom }}">View Materials</a>
+	</div>
+</div>
 <div class="row">
 	<div class="col-md-12">
 		<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-2">
