@@ -7,12 +7,6 @@
 	</div>
 </div>
 @else
-<div class="row" style="margin-top: -18px !important">
-	<div class="col-9">&nbsp;</div>
-	<div class="col-3">
-		<a class="btn btn-sm btn-secondary create-ste-btn float-right" href="#" data-production-order="{{ $production_order_details->production_order }}" data-item-code="{{ $production_order_details->item_code }}" data-qty="{{ number_format($production_order_details->qty_to_manufacture) }}" data-uom="{{ $production_order_details->stock_uom }}">View Materials</a>
-	</div>
-</div>
 <div class="row">
 	<div class="col-md-12">
 		<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-2">
@@ -61,61 +55,81 @@
 		</table>
 	</div>
 	
-	<div class="col-md-12 pr-5 pl-5 pt-2 pb-1 m-0">
-		@if(count($list) > 0)
-		<div class="alert alert-warning text-center mb-0 mt-1" role="alert">
-			<div class="container">
-				<strong>Warning:</strong> There are pending materials for issue in this production order.
-			</div>
-		</div>
-		@endif
-	</div>
-	<div class="col-md-5 offset-md-2 p-0">
-		<table style="width: 100%;" class="mb-0 mr-0 ml-0 mt-3">
-			<tr>
-				<td>
-					<span class="d-block text-center font-italic" style="font-size: 10pt;">Source Warehouse</span>
-				</td>
-				<td></td>
-				<td>
-					<span class="d-block text-center font-italic" style="font-size: 10pt;">Target Warehouse</span>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<h5 class="title m-0 text-center font-weight-bold" style="font-size: 12pt;">{{ $production_order_details->wip_warehouse }}</h5>
-				</td>
-				<td>
-					<h5 class="title m-0 text-center font-weight-bold" style="font-size: 12pt;"><i class="now-ui-icons arrows-1_minimal-right"></i></h5>
-				</td>
-				<td>
-					<h5 class="title m-0 text-center font-weight-bold" style="font-size: 12pt;">{{ $production_order_details->fg_warehouse }}</h5>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="3">
-					<div class="text-center">
-						<span class="text-center d-block mt-3 mb-3">Current Stock: <b>{{ number_format($actual_qty) }}</b> {{ $production_order_details->stock_uom }}</span>
+</div>
+<div class="row mt-2">
+	<div class="container-fluid">
+		<!-- Tab navigation -->
+		<ul class="nav nav-tabs" role="tablist">
+			<li class="nav-item">
+				<a class="nav-link active" data-toggle="tab" href="#create-feedback">Create Feedback</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" data-toggle="tab" href="#view-materials" id="view-materials-tab-btn" data-production-order="{{ $production_order_details->production_order }}" data-item-code="{{ $production_order_details->item_code }}" data-qty="{{ number_format($production_order_details->qty_to_manufacture) }}" data-uom="{{ $production_order_details->stock_uom }}">View Issued Materials</a>
+			</li>
+		</ul>
+
+		<!-- Tab panes -->
+		<div class="tab-content"> 
+			<div id="create-feedback" class="container tab-pane active">
+				<div class="row">
+					<div class="col-md-12 pr-5 pl-5 pt-2 pb-1 m-0">
+						@if(count($list) > 0)
+						<div class="alert alert-warning text-center mb-0 mt-1" role="alert">
+							<div class="container">
+								<strong>Warning:</strong> There are pending materials for issue in this production order.
+							</div>
+						</div>
+						@endif
 					</div>
-				</td>
-			</tr>
-		</table>
-	</div>
-	<div class="col-md-3">
-		<div class="form-group text-center m-2">
-			<div class="row">
-				<div class="col-md-12">
-					{{--  <p style="font-size: 11pt;" class="text-center m-0 font-weight-bold">Enter Qty</p>  --}}
-					<input type="text" value="{{ $production_order_details->produced_qty - $production_order_details->feedback_qty }}" class="form-control form-control-lg mt-1" name="completed_qty" style="text-align: center; font-size: 20pt;">
-					<small class="form-text text-muted">Maximum: <span>{{ $production_order_details->qty_to_manufacture - $production_order_details->feedback_qty }}</span></small>
-					
-					<button type="submit" class="btn btn-block btn-primary" id="submit-feedback-btn">Submit</button>
+					<div class="col-md-5 offset-md-2 p-0">
+						<table style="width: 100%;" class="mb-0 mr-0 ml-0 mt-3">
+							<tr>
+								<td>
+									<span class="d-block text-center font-italic" style="font-size: 10pt;">Source Warehouse</span>
+								</td>
+								<td></td>
+								<td>
+									<span class="d-block text-center font-italic" style="font-size: 10pt;">Target Warehouse</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<h5 class="title m-0 text-center font-weight-bold" style="font-size: 12pt;">{{ $production_order_details->wip_warehouse }}</h5>
+								</td>
+								<td>
+									<h5 class="title m-0 text-center font-weight-bold" style="font-size: 12pt;"><i class="now-ui-icons arrows-1_minimal-right"></i></h5>
+								</td>
+								<td>
+									<h5 class="title m-0 text-center font-weight-bold" style="font-size: 12pt;">{{ $production_order_details->fg_warehouse }}</h5>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="3">
+									<div class="text-center">
+										<span class="text-center d-block mt-3 mb-3">Current Stock: <b>{{ number_format($actual_qty) }}</b> {{ $production_order_details->stock_uom }}</span>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group text-center m-2">
+							<div class="row">
+								<div class="col-md-12">
+									<input type="text" value="{{ $production_order_details->produced_qty - $production_order_details->feedback_qty }}" class="form-control form-control-lg mt-1" name="completed_qty" style="text-align: center; font-size: 20pt;">
+									<small class="form-text text-muted">Maximum: <span>{{ $production_order_details->qty_to_manufacture - $production_order_details->feedback_qty }}</span></small>
+									
+									<button type="submit" class="btn btn-block btn-primary" id="submit-feedback-btn">Submit</button>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
+			<div id="view-materials" class="container tab-pane"><div>
 		</div>
 	</div>
 </div>
-
 @if(count($list) > 0 || count($feedbacked_logs) > 0)
 
 @php
@@ -337,3 +351,20 @@
 </style>
 
 @endif
+
+<script>
+	$(document).ready(function(){
+		$('#view-materials-tab-btn').click(function(){
+			production_order = $(this).data('production-order');
+
+			$.ajax({
+				type:'GET',
+ 				url:'/get_production_order_items/' + production_order, 
+				success: function (response) {
+					$('#view-materials').html(response);
+					$('.summary-table').addClass('d-none');
+				}
+			});
+		});
+	});
+</script>

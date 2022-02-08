@@ -19,7 +19,7 @@
 	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
-<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1">
+<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1 summary-table">
 	<col style="width: 10%;"><!-- Prod. Order -->
 	<col style="width: 10%;"><!-- Reference No. -->
 	{{-- <col style="width: 20%;"> --}}
