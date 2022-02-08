@@ -19,7 +19,7 @@
 	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
-<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1 summary-table">
+<table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1 exclude-table">
 	<col style="width: 10%;"><!-- Prod. Order -->
 	<col style="width: 10%;"><!-- Reference No. -->
 	{{-- <col style="width: 20%;"> --}}
@@ -135,15 +135,15 @@
 		<div class="tab-pane {{ $tab1 }}" id="w1" role="tabpanel" aria-labelledby="w1-tab">
 			@if(count($components) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
-				<col style="width: 3%;">
-				<col style="width: 7%;">
-				<col style="width: 32%;">
-				<col style="width: 8%;">
-				<col style="width: 8%;">
-				<col style="width: 12%;">
-				<col style="width: 10%;">
-				<col style="width: 10%;">
-				<col style="width: 10%;">
+				<col style="width: 3%;"><!-- No. -->
+				<col style="width: 7%;"><!-- Item Code -->
+				<col style="width: 30%;"><!-- Item Code -->
+				<col style="width: 8%;"><!-- Required Qty -->
+				<col style="width: 8%;"><!-- Requested Qty -->
+				<col style="width: 12%;"><!-- Source Warehouse -->
+				<col style="width: 10%;"><!-- Transferred Qty -->
+				<col style="width: 8%;"><!-- Status -->
+				<col style="width: 14%;"><!-- Action -->
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
@@ -328,15 +328,15 @@
 		<div class="tab-pane {{ $tab2 }}" id="w2" role="tabpanel" aria-labelledby="w2-tab">
 			@if(count($parts) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
-				<col style="width: 3%;">
-				<col style="width: 9%;">
-				<col style="width: 24%;">
-				<col style="width: 10%;">
-				<col style="width: 10%;">
-				<col style="width: 12%;">
-				<col style="width: 12%;">
-				<col style="width: 10%;">
-				<col style="width: 10%;">
+				<col style="width: 3%;"><!-- No. -->
+				<col style="width: 9%;"><!-- Prod. Order -->
+				<col style="width: 24%;"><!-- Item Description -->
+				<col style="width: 10%;"><!-- Required Qty -->
+				<col style="width: 10%;"><!-- Requested Qty -->
+				<col style="width: 12%;"><!-- Source Warehouse -->
+				<col style="width: 12%;"><!-- Transferred Qty -->
+				<col style="width: 10%;"><!-- Status -->
+				<col style="width: 10%;"><!-- Action -->
 				<tr class="text-center">
 					<th>No.</th>
 					<th>Prod. Order</th>
