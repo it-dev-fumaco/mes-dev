@@ -64,7 +64,7 @@
 				<a class="nav-link active" data-toggle="tab" href="#create-feedback">Create Feedback</a>
 			</li>
 			<li class="nav-item create-feedback-tab">
-				<a class="nav-link" data-toggle="tab" href="#view-materials" id="view-materials-tab-btn" data-production-order="{{ $production_order_details->production_order }}" data-item-code="{{ $production_order_details->item_code }}" data-qty="{{ number_format($production_order_details->qty_to_manufacture) }}" data-uom="{{ $production_order_details->stock_uom }}">View Issued Materials</a>
+				<a class="nav-link" data-toggle="tab" href="#view-materials" id="view-materials-tab-btn" data-production-order="{{ $production_order_details->production_order }}" data-item-code="{{ $production_order_details->item_code }}" data-qty="{{ number_format($production_order_details->qty_to_manufacture) }}" data-uom="{{ $production_order_details->stock_uom }}">View Materials</a>
 			</li>
 		</ul>
 
