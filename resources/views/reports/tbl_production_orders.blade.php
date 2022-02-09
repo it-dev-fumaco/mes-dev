@@ -88,8 +88,8 @@
                 Action
               </button>
               <div class="dropdown-menu">
-                @if($r['status'] == 'For Feedback')
-                <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
+                @if(!in_array($r['status'], ['Cancelled', 'Feedbacked']))
+                  <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
                 @endif
                 @if($r['status'] == 'Feedbacked')
                 <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
