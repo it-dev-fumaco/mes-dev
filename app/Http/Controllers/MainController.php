@@ -1495,7 +1495,12 @@ class MainController extends Controller
 
 	public function get_production_order_list(Request $request, $status){
 		$status = count(array_filter(explode(',', $status))) == 6 ? 'All' : $status;
+
 		$status_array = !in_array($status, ['All', 'Production Orders']) ? array_filter(explode(',', $status)) : [];
+		if(in_array('Awaiting Feedback', $status_array)){
+			$status_array = str_replace('Awaiting Feedback', 'Ready for Feedback', $status_array);
+		}
+
 		$user_permitted_operations = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
 			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
@@ -1640,21 +1645,20 @@ class MainController extends Controller
 			->orderBy('production_order.created_at', 'desc')->paginate(10);
 
 		$filtered_production_orders = array_column($production_orders->items(), 'production_order');
-		
+
 		$prod_details = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $filtered_production_orders)->get();
 		$work_order_details = collect($prod_details)->groupBy('name');
 
-		$manufacture_entry = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $filtered_production_orders)->where('docstatus', 1)->orderBy('posting_date', 'desc')->orderBy('posting_time', 'desc')->where('purpose', 'Manufacture')->get();
+		$manufacture_entry_q = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $filtered_production_orders)->where('docstatus', 1)->orderBy('posting_date', 'desc')->orderBy('posting_time', 'desc')->where('purpose', 'Manufacture')->get();
+		$manufacture_entry = collect($manufacture_entry_q)->groupBy('work_order');
 
 		$manufacture_entries_q = DB::connection('mysql')->table('tabStock Entry')->where('docstatus', 1)->whereIn('work_order', $filtered_production_orders)->where('purpose', 'Manufacture')->get();
 		$manufacture_entries = collect($manufacture_entries_q)->groupBy('work_order');
 
 		$production_order_list = [];
 		foreach ($production_orders as $row) {
-			$manufacture_entries = [];
-			$manufacture_entry = [];
 			$prod_status = '';
-			
+
 			if($row->status == 'Not Started'){
 				if (isset($work_order_details[$row->production_order]) and $work_order_details[$row->production_order][0]->material_transferred_for_manufacturing > 0) {
 					$prod_status = 'Material Issued';
@@ -1663,21 +1667,23 @@ class MainController extends Controller
 				}
 			}else if($row->status == 'Cancelled'){
 				$prod_status = $row->status;
-			}else if($row->status == 'In Progress'){
-				if(count($pending_production_orders) > 0 and in_array($row->production_order, $pending_production_orders->toArray())){
-					$prod_status = 'On Queue';
-				}else if(count($in_progress_production_orders) > 0 and in_array($row->production_order, $in_progress_production_orders)){
-					$prod_status = $row->status;
-				}
 			}else if(in_array($row->production_order, $jt_production_orders)){
 				$prod_status = ($row->qty_to_manufacture == $row->produced_qty) ? 'For Feedback' : 'For Partial Feedback';
-			
+
 				if ($row->feedback_qty >= $row->qty_to_manufacture) {
 					$prod_status = 'Feedbacked';
 				}else{
 					if (collect($manufacture_entry)->contains('work_order', $row->production_order)) {
 						$prod_status = 'Partially Feedbacked';
+					}else{
+						$prod_status = ($row->qty_to_manufacture == $row->produced_qty) ? 'For Feedback' : 'For Partial Feedback';
 					}
+				}
+			}else if($row->status == 'In Progress'){
+				if(count($pending_production_orders) > 0 and in_array($row->production_order, $pending_production_orders->toArray())){
+					$prod_status = 'On Queue';
+				}else if(count($in_progress_production_orders) > 0 and in_array($row->production_order, $in_progress_production_orders)){
+					$prod_status = $row->status;
 				}
 			}else if(in_array($row->production_order, $erp_completed_production_orders)){
 				$prod_status = ($row->qty_to_manufacture == $row->produced_qty) ? 'For Feedback' : 'For Partial Feedback';
@@ -1696,7 +1702,6 @@ class MainController extends Controller
 			}else{
 				$prod_status = 'Unknown Status';
 			}
-			
 			// get owner of production order
 			$owner = explode('@', $row->created_by);
 			$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1722,7 +1727,7 @@ class MainController extends Controller
 				'material_request' => $row->material_request,
 				'ste_entries' => collect($manufacture_entries)->contains('work_order', $row->production_order) ? collect($manufacture_entries[$row->production_order])->pluck('name') : [],
 				'count_ste_entries' => collect($manufacture_entries)->contains('work_order', $row->production_order) ? count($manufacture_entries) : null,
-				'ste_manufacture' => ($manufacture_entry) ? $manufacture_entry->name : '',
+				'ste_manufacture' => isset($manufacture_entry[$row->production_order]) ? $manufacture_entry[$row->production_order][0]->name : null,
 				'planned_start_date' => $row->planned_start_date,
 				'is_scheduled' => $row->is_scheduled,
 				'owner' => $owner,

@@ -1,4 +1,4 @@
-<div class="table-responsive vh-100" style="font-size: 9pt;">
+<div id="all-production-orders-table" class="table-responsive vh-100" style="font-size: 9pt;">
     <table class="table table-striped">
       <col style="width: 10%;">
       <col style="width: 35%;">
