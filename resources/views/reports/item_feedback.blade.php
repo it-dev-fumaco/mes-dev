@@ -46,7 +46,7 @@
     <div class="col-md-12" style="min-height:440px;">
       <div class="panel panel-default">
         <div class="panel-body panel-body">
-          <div class="col-sm-12 ticket-status-widget p-0" role="tabpanel" aria-expanded="true" aria-hidden="false">
+          <div class="col-sm-12 ticket-status-widget pt-" role="tabpanel" aria-expanded="true" aria-hidden="false">
             <div class="ui-tab-container ui-tab-default">
               <div justified="true" class="ui-tab">
                 <ul class="nav nav-tabs nav-justified">

@@ -47,12 +47,12 @@
               $a = array_intersect($mes_user_operations, ['Painting', 'Fabrication', 'Wiring and Assembly']);
               @endphp
               @if (count($a) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color: #2C3E50;">
                 <a href="/item_feedback" class="text-center">
-                <div class="menu-box m-1">
+                <div class="menu-box m-1" style="background-color: transparent; border: none;">
                    <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 25%; height: 40%; margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                  <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Production Orders</footer>
+                      margin-right: auto; display: block; padding-top: 10px;filter:  brightness(0) invert(1);">
+                  <footer class="hmt small text-center text-white" style="padding: 10px 0;">Production Orders</footer>
                 </div>
               </a>
               </td>
@@ -61,12 +61,12 @@
               $b = array_intersect($mes_user_operations, ['Fabrication']);
               @endphp
               @if (count($b) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color: #566573;">
                 <a href="/wizard" class="text-center">
-                  <div class="menu-box m-1">
+                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Planning</footer>
+                      margin-right: auto; display: block; padding-top: 10px;filter:  brightness(0) invert(1);">
+                    <footer class="hmt small text-center text-white" style="padding: 10px 0;">Fabrication Planning</footer>
                   </div>
                 </a>
               </td>
@@ -75,12 +75,12 @@
               $b1 = array_intersect($mes_user_operations, ['Wiring and Assembly']);
               @endphp
               @if (count($b1) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color: #808B96;">
                 <a href="/assembly/wizard" class="text-center">
-                  <div class="menu-box m-1">
+                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Planning</footer>
+                      margin-right: auto; display: block; padding-top: 10px;filter:  brightness(0) invert(1);">
+                    <footer class="hmt small text-center text-white" style="padding: 10px 0;">Assembly Planning</footer>
                   </div>
                 </a>
               </td>
@@ -96,9 +96,9 @@
               }
               @endphp
               @if (count($c) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color: #ABB2B9;">
                 <a href="{{ $link }}" class="text-center">
-                  <div class="menu-box m-1">
+                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:25%; height:40%;margin-left: auto;
                       margin-right: auto; display: block; padding-top: 10px;">
                     <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Scheduling</footer>
@@ -110,7 +110,7 @@
               $d = array_intersect($mes_user_operations, ['Fabrication', 'Wiring and Assembly']);
               @endphp
               @if (count($d) > 0)
-              <td style="width: 10%;">
+              {{-- <td style="width: 10%;">
                 <a href="/stock_entry" class="text-center">
                   <div class="menu-box m-1">
                     <img src="{{ asset('storage/Main Icon/material_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -118,15 +118,15 @@
                     <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Widthrawal Slips</footer>
                   </div>
                 </a>
-              </td>
+              </td> --}}
               @endif
               @php
               $e = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
               @endphp
               @if (count($e) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color:#D5D8DC;">
                 <a href="/bom" class="text-center">
-                  <div class="menu-box m-1">
+                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:25%; height:40%;margin-left: auto;
                       margin-right: auto; display: block; padding-top: 10px;">
                     <footer class="hmt small text-center text-dark" style="padding: 10px 0;">BOM List </footer>
@@ -138,9 +138,9 @@
               $f = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
               @endphp
               @if (count($f) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color:#EAECEE;">
                 <a href="/maintenance_request" class="text-center">
-                  <div class="menu-box m-1">
+                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
                       <img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
                       margin-right: auto; display: block; padding-top: 10px;">
                     <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Maintenance Request</footer>
@@ -152,7 +152,7 @@
               $h = array_intersect($mes_user_operations, ['Fabrication', 'Wiring and Assembly']);
               @endphp
               @if (count($h) > 0)
-              <td style="width: 10%;">
+              {{-- <td style="width: 10%;">
                 <a href="/inventory" class="text-center">
                   <div class="menu-box m-1">
                     <img src="{{ asset('storage/Main Icon/inventory.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -160,15 +160,15 @@
                     <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Inventory</footer>
                   </div>
                 </a>
-              </td>
+              </td> --}}
               @endif
               @php
               $i = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
               @endphp
               @if (count($i) > 0)
-              <td style="width: 10%;">
+              <td style="width: 10%; background-color:#F4F6F6;">
                 <a href="/report_index" class="text-center">
-                  <div class="menu-box m-1">
+                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:25%; height:40%;margin-left: auto;
                       margin-right: auto; display: block; padding-top: 10px;">
                     <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Reports & Analysis</footer>
@@ -196,38 +196,38 @@
               <div class="tab-content" id="on-going-production-orders-content">
                 <div class="tab-pane fade show active" id="fab" role="tabpanel" data-operation="1">
                   <div class="row m-0 p-0">
-                    <div class="col-md-8 m-0 pr-1 pl-1 pt-0">
+                    <div class="col-md-12 m-0 pr-1 pl-1 pt-0">
                       <div class="row m-0 p-0">
                         <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                         <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
                         <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
                       </div>
                     </div>
-                    <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
                 </div>
                 <div class="tab-pane fade" id="pa" role="tabpanel" data-operation="2">
                   <div class="row m-0 p-0">
-                    <div class="col-md-8 m-0 pr-1 pl-1 pt-0">
+                    <div class="col-md-12 m-0 pr-1 pl-1 pt-0">
                       <div class="row m-0 p-0">
                         <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                         <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
                         <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
                       </div>
                     </div>
-                    <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
                 </div>
                 <div class="tab-pane fade" id="wa" role="tabpanel" data-operation="3">
                   <div class="row m-0 p-0">
-                    <div class="col-md-8 m-0 pr-1 pl-1 pt-0">
+                    <div class="col-md-12 m-0 pr-1 pl-1 pt-0">
                       <div class="row m-0 p-0">
                         <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                         <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
                         <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
                       </div>
                     </div>
-                    <div class="col-md-4 table-div m-0 pr-1 pl-1 pt-0"></div>
+                    <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
                 </div>
               </div>
