@@ -76,7 +76,7 @@
 						@if(count($list) > 0)
 						<div class="alert alert-warning text-center mb-0 mt-1" role="alert">
 							<div class="container">
-								<strong>Warning:</strong> There are pending materials for issue in this production order.
+								<strong>Warning:</strong> There are pending materials for issue in this production order, all material(s) must be issued first.
 							</div>
 						</div>
 						@endif
@@ -117,9 +117,9 @@
 							<div class="row">
 								<div class="col-md-12">
 									<input type="text" value="{{ $production_order_details->produced_qty - $production_order_details->feedback_qty }}" class="form-control form-control-lg mt-1" name="completed_qty" style="text-align: center; font-size: 20pt;">
-									<small class="form-text text-muted">Maximum: <span>{{ $production_order_details->qty_to_manufacture - $production_order_details->feedback_qty }}</span></small>
+									<small class="form-text text-muted">Maximum Produced Qty: <span>{{ $production_order_details->qty_to_manufacture - $production_order_details->feedback_qty }}</span></small>
 									
-									<button type="submit" class="btn btn-block btn-primary" id="submit-feedback-btn">Submit</button>
+									<button type="submit" class="btn btn-block btn-primary" id="submit-feedback-btn">Submit Completed Qty</button>
 								</div>
 							</div>
 						</div>
