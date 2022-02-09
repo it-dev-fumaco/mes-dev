@@ -157,15 +157,15 @@
 				@foreach ($components as $i => $component)
 				@php
 					$rowspan = (count($component['withdrawals']) > 1) ? 'rowspan="' . (count($component['withdrawals']) + 1) .'"' : 'rowspan="2"';
-					$img = ($component['item_image']) ? "/img/" . $component['item_image'] : "/icon/no_img.png";
+					$img = ($component['item_image']) ? "/img/" . explode('.', $component['item_image'])[0].'.webp' : "/icon/no_img.webp";
 					$balance = $component['required_qty'] - $component['transferred_qty'];
 					$wwhb = ($component['available_qty_at_wip'] < $component['transferred_qty'] || $component['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
 				@endphp
 				<tr>
 					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
 					<td class="text-center" {!! $rowspan !!}>
-						<a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
-							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
+						<a href="http://athenaerp.fumaco.local/storage{{ $img }}" data-toggle="lightbox">
+							<img src="http://athenaerp.fumaco.local/storage{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
 					<td class="text-justify {{ (!$component['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
@@ -552,10 +552,10 @@
 					<td class="text-center">{{ $i + 1 }}</td>
 					<td class="text-center">
 						@php
-							$img = ($return['item_image']) ? "/img/" . $return['item_image'] : "/icon/no_img.png";
+							$img = ($return['item_image']) ? "/img/" . explode('.', $return['item_image'])[0].'.webp' : "/icon/no_img.webp";
 						@endphp
-						<a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
-							<img src="http://athenaerp.fumaco.local/storage/{{ $img }}" class="img-thumbnail" width="100">
+						<a href="http://athenaerp.fumaco.local/storage{{ $img }}" data-toggle="lightbox">
+							<img src="http://athenaerp.fumaco.local/storage{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
 					<td class="text-justify">
