@@ -19,7 +19,13 @@
   {{--  <!-- CSS Just for demo purpose, don't include it in your project -->  --}}
   <link href="{{ asset('/css/demo.css') }}" rel="stylesheet" />
 </head>
-
+<style>
+  @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
+	*:not(i):not(.fa){
+		font-family: 'Poppins' !important;
+		letter-spacing: 0.4px;
+	}
+</style>
 <body class="">
   <div class="wrapper">
      <div class="sidebar" data-color="orange">
