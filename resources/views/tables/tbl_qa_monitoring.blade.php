@@ -1,4 +1,4 @@
-<div class="card mt-2 mb-2">
+<div class="card mt-5 mb-2">
     <div class="card-body pb-0 pt-0">
       <div class="row bg-white">
         <div class="col-md-6 p-0">

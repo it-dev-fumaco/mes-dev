@@ -3002,7 +3002,7 @@ class SecondaryController extends Controller
             $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
                 ->join('job_ticket as jt', 'jt.job_ticket_id', 'qi.reference_id')
                 ->join('production_order as po', 'jt.production_order', 'po.production_order')
-                ->where('qi.qa_inspection_date', $schedule_date)
+                ->whereDate('qi.qa_inspection_date', $schedule_date)
                 ->where('qi.reference_type', 'Spotwelding')->where('po.operation_id', $request->operation)
                 ->select('jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'qi.created_by')->paginate(10);
 
@@ -3021,11 +3021,11 @@ class SecondaryController extends Controller
             }
         }
 
-        $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
+       $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
             ->join('time_logs as tl', 'tl.time_log_id', 'qi.reference_id')
             ->join('job_ticket as jt', 'jt.job_ticket_id', 'tl.job_ticket_id')
             ->join('production_order as po', 'jt.production_order', 'po.production_order')
-            ->where('qi.qa_inspection_date', $schedule_date)
+            ->whereDate('qi.qa_inspection_date', $schedule_date)
             ->where('qi.reference_type', 'Time Logs')->where('po.operation_id', $request->operation)
             ->when($request->operation == 2, function($q){
 				return $q->where('jt.workstation', 'Painting');
@@ -3033,7 +3033,7 @@ class SecondaryController extends Controller
             ->when($request->operation != 2, function($q){
 				return $q->where('jt.workstation', '!=', 'Painting');
 			})
-            ->select('jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'tl.operator_name')->paginate(10);
+            ->select('qi.qa_inspection_date', 'jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'tl.operator_name')->paginate(10);
 
         foreach($query as $row){
             $qa_staff_details = DB::connection('mysql_essex')->table('users')->where('user_id', $row->qa_staff_id)->first();
