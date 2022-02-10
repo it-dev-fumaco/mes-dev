@@ -5199,7 +5199,7 @@ class MainController extends Controller
 
         $ste_details = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('production_order', $production_order)->where('ste.purpose', 'Manufacture')
+            ->where('work_order', $production_order)->where('ste.purpose', 'Manufacture')
             ->whereNull('s_warehouse')->whereNotNull('t_warehouse')
             ->select('ste.name', 'sted.item_code', 'sted.description', 'sted.qty', 'ste.posting_date', 'sted.t_warehouse', 'sted.stock_uom')
             ->orderBy('ste.creation', 'desc')
@@ -5207,11 +5207,11 @@ class MainController extends Controller
 
         $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('production_order', $production_order)->where('ste.purpose', 'Manufacture')
+            ->where('work_order', $production_order)->where('ste.purpose', 'Manufacture')
             ->whereNull('s_warehouse')->whereNotNull('t_warehouse')
             ->sum('sted.qty');
 
-        $data = [
+        $data[] = [
             'production_order' => $production_order_details->production_order,
             'sales_order' => $production_order_details->sales_order,
             'material_request' => $production_order_details->material_request,

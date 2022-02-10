@@ -57,7 +57,7 @@
 	} 
 </style>
 <script>
-
+	window.print();
 	$(document).ready(function(){
         new QRCode('qr-code', {
             text: $('#qr-code').data('id'),
@@ -67,5 +67,6 @@
             colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.H
         });
+	
 	});
 </script>
