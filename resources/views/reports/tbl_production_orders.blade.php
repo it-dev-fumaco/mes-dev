@@ -1,4 +1,4 @@
-<div class="table-responsive vh-100" style="font-size: 9pt;">
+<div id="all-production-orders-table" class="table-responsive vh-100" style="font-size: 9pt;">
     <table class="table table-striped">
       <col style="width: 10%;">
       <col style="width: 35%;">
@@ -90,16 +90,20 @@
               <div class="dropdown-menu">
                 @if(!in_array($r['status'], ['Cancelled', 'Feedbacked']))
                   <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
+                  <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reschedule Delivery Date</a>
                 @endif
                 @if($r['status'] == 'Feedbacked')
                 <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
                 @else
                 <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedback</a>
                 @endif
-                @if($r['status'] == 'Partially Feedbacked')
-                <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['production_order'] }}" href="#">Print Transfer Slip</a>
+                @if(in_array($r['status'], ['Partially Feedbacked', 'Feedbacked']))
+                  <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['production_order'] }}" href="#">Print Transfer Slip</a>
                 @endif
                 <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-item-code="{{ $r['item_code'] }}" data-qty="{{ number_format($r['qty']) }}" data-uom="{{ $r['stock_uom'] }}">View Materials</a>
+                @if(!in_array($r['status'], ['Cancelled', 'Feedbacked']))
+                  <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
+                @endif
               </div>
             </div>
           </td>

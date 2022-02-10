@@ -1832,6 +1832,7 @@
         }
       });
     });
+    
     $('#ready-for-feedback-btn').click(function(e){
       e.preventDefault();
       get_for_feedback_production(1);
@@ -1850,7 +1851,7 @@
       });
     }
 
-    $(document).on('click', '.for-feedback-production-pagination a', function(event){
+    $(document).on('click', '.custom-production-pagination a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
       get_for_feedback_production(page);

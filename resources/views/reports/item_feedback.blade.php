@@ -1430,7 +1430,7 @@ $(document).ready(function(){
   load_list();
 
   $(document).on('keyup', '.search-filter', function(){
-    var status = $(this).data('status');
+    var status = $('#current-status').val();
     var div = $(this).data('div');
 
     get_production_order_list(status, div, 0, 1, $(this).val());
