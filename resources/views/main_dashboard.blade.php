@@ -47,7 +47,7 @@
               $a = array_intersect($mes_user_operations, ['Painting', 'Fabrication', 'Wiring and Assembly']);
               @endphp
               @if (count($a) > 0)
-              <td style="width: 10%; background-color: #2C3E50;">
+              <td class="mm1" style="width: 10%; background-color: #2C3E50;">
                 <a href="/item_feedback" class="text-center">
                 <div class="menu-box m-1" style="background-color: transparent; border: none;">
                    <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 25%; height: 40%; margin-left: auto;
@@ -55,13 +55,18 @@
                   <footer class="hmt small text-center text-white" style="padding: 10px 0;">Production Orders</footer>
                 </div>
               </a>
+              <style>
+              td.mm1:hover {
+                background-color:#797D7F !important;
+              }
+              </style>
               </td>
               @endif
               @php
               $b = array_intersect($mes_user_operations, ['Fabrication']);
               @endphp
               @if (count($b) > 0)
-              <td style="width: 10%; background-color: #566573;">
+              <td class="mm1" style="width: 10%; background-color: #566573;">
                 <a href="/wizard" class="text-center">
                   <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -75,7 +80,7 @@
               $b1 = array_intersect($mes_user_operations, ['Wiring and Assembly']);
               @endphp
               @if (count($b1) > 0)
-              <td style="width: 10%; background-color: #808B96;">
+              <td class="mm1" style="width: 10%; background-color: #808B96;">
                 <a href="/assembly/wizard" class="text-center">
                   <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -96,7 +101,7 @@
               }
               @endphp
               @if (count($c) > 0)
-              <td style="width: 10%; background-color: #ABB2B9;">
+              <td class="mm1" style="width: 10%; background-color: #ABB2B9;">
                 <a href="{{ $link }}" class="text-center">
                   <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -124,7 +129,7 @@
               $e = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
               @endphp
               @if (count($e) > 0)
-              <td style="width: 10%; background-color:#D5D8DC;">
+              <td class="mm1" style="width: 10%; background-color:#D5D8DC;">
                 <a href="/bom" class="text-center">
                   <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -138,7 +143,7 @@
               $f = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
               @endphp
               @if (count($f) > 0)
-              <td style="width: 10%; background-color:#EAECEE;">
+              <td class="mm1" style="width: 10%; background-color:#EAECEE;">
                 <a href="/maintenance_request" class="text-center">
                   <div class="menu-box m-1" style="background-color: transparent; border: none;">
                       <img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
@@ -166,7 +171,7 @@
               $i = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
               @endphp
               @if (count($i) > 0)
-              <td style="width: 10%; background-color:#F4F6F6;">
+              <td class="mm1" style="width: 10%; background-color:#F4F6F6;">
                 <a href="/report_index" class="text-center">
                   <div class="menu-box m-1" style="background-color: transparent; border: none;">
                     <img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:25%; height:40%;margin-left: auto;
