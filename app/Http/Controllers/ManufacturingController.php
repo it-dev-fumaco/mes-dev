@@ -1027,7 +1027,7 @@ class ManufacturingController extends Controller
                             ->where(function($q) use ($request, $x) {
                                 $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                             })
-                            ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                            ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name]);
                         
                         if ($request->production_order) {
                             // check if bom_operation_id exists in production order operation table
@@ -1039,8 +1039,8 @@ class ManufacturingController extends Controller
                                     'name' => 'mes'.uniqid(),
                                     'creation' => $now->toDateTimeString(),
                                     'modified' => $now->toDateTimeString(),
-                                    'modified_by' => Auth::user()->email,
-                                    'owner' => Auth::user()->email,
+                                    'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                                    'owner' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                                     'docstatus' => 1,
                                     'parent' => $request->production_order,
                                     'parentfield' => 'operations',
@@ -1072,7 +1072,7 @@ class ManufacturingController extends Controller
                                 ->where(function($q) use ($request, $x) {
                                     $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                                 })
-                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name]);
 
                             // check if bom operation id exists in job ticket table filtered by production order
                             $existing_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
@@ -1086,8 +1086,8 @@ class ManufacturingController extends Controller
                                         'process_id' => $request->wprocess[$x],
                                         'idx' => $x + 1,
                                         'bom_operation_id' => $request->id[$x],
-                                        'created_by' => Auth::user()->email,
-                                        'last_modified_by' => Auth::user()->email,
+                                        'created_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                                        'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                                     ]);
 
                                     $logs[] = [
@@ -1110,8 +1110,8 @@ class ManufacturingController extends Controller
                                             'process_id' => $painting_process,
                                             'idx' => $x + $i + 1,
                                             'bom_operation_id' => $request->id[$x],
-                                            'created_by' => Auth::user()->email,
-                                            'last_modified_by' => Auth::user()->email,
+                                            'created_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                                            'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                                         ]);
 
                                         $logs[] = [
@@ -1142,7 +1142,7 @@ class ManufacturingController extends Controller
                                         ]
                                     ];
     
-                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name]);
                                 }
                             }
                             
@@ -1154,8 +1154,8 @@ class ManufacturingController extends Controller
                             'name' => $new_bom_operation_id,
                             'creation' => $now->toDateTimeString(),
                             'modified' => $now->toDateTimeString(),
-                            'modified_by' => Auth::user()->email,
-                            'owner' => Auth::user()->email,
+                            'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                            'owner' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                             'docstatus' => 1,
                             'parent' => $bom,
                             'parentfield' => 'operations',
@@ -1175,8 +1175,8 @@ class ManufacturingController extends Controller
                                     'name' => 'mes'.uniqid(),
                                     'creation' => $now->toDateTimeString(),
                                     'modified' => $now->toDateTimeString(),
-                                    'modified_by' => Auth::user()->email,
-                                    'owner' => Auth::user()->email,
+                                    'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                                    'owner' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                                     'docstatus' => 1,
                                     'parent' => $request->production_order,
                                     'parentfield' => 'operations',
@@ -1208,7 +1208,7 @@ class ManufacturingController extends Controller
                                 ->where(function($q) use ($request, $x) {
                                     $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                                 })
-                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name]);
 
                             // update existing job ticket
                             $jt_query = DB::connection('mysql_mes')->table('job_ticket')
@@ -1229,7 +1229,7 @@ class ManufacturingController extends Controller
                                         ]
                                     ];
     
-                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name]);
                                 }
                             }
 
@@ -1245,8 +1245,8 @@ class ManufacturingController extends Controller
                                         'process_id' => $request->wprocess[$x],
                                         'idx' => $x + 1,
                                         'bom_operation_id' => $new_bom_operation_id,
-                                        'created_by' => Auth::user()->email,
-                                        'last_modified_by' => Auth::user()->email,
+                                        'created_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                                        'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                                     ]);
 
                                     $logs[] = [
@@ -1270,8 +1270,8 @@ class ManufacturingController extends Controller
                                             'process_id' => $painting_process,
                                             'idx' => $x + $i + 1,
                                             'bom_operation_id' => $new_bom_operation_id,
-                                            'created_by' => Auth::user()->email,
-                                            'last_modified_by' => Auth::user()->email,
+                                            'created_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+                                            'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
                                         ]);
 
                                         $logs[] = [
@@ -1315,7 +1315,7 @@ class ManufacturingController extends Controller
                 // update status of production order in mes
                 DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)
-                    ->update(['status' => $status, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                    ->update(['status' => $status, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name]);
                 // set status of production order in erp
                 $status = (in_array($status, ['In Progress', 'Completed'])) ? 'In Process' : $status;
                 // update status of production order in erp
@@ -1325,14 +1325,14 @@ class ManufacturingController extends Controller
 
                 $this->update_production_order_produced_qty($request->production_order);
 
-                $logs[] = ['production_order' => $request->production_order, 'user' => Auth::user()->email];
+                $logs[] = ['production_order' => $request->production_order, 'user' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name];
 
                 // insert activity logs
                 if (isset($logs[0]['delete']) || isset($logs[0]['update']) || isset($logs[0]['add'])) {
                     DB::connection('mysql_mes')->table('activity_logs')->insert([
                         'action' => 'BOM Update',
                         'message' => json_encode($logs),
-                        'created_by' => Auth::user()->email
+                        'created_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name
                     ]);
                 }
             }
@@ -1930,6 +1930,16 @@ class ManufacturingController extends Controller
                 ->where('production_order', $request->production_order)
                 ->where('status', '!=', 'Completed')->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'remarks' => $request->reason_for_cancellation]);
 
+            $employee = Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name;
+
+			$activity_logs = [
+				'action' => 'Cancelled Process',
+				'message' => $request->production_order.' has been cancelled by '.$employee.' at '.$now->toDateTimeString().'.',
+				'created_at'  => $now->toDateTimeString(),
+				'created_by'  =>  $employee
+			];
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
             DB::connection('mysql')->commit();
 
             return response()->json(['success' => 1, 'message' => 'Production Order <b>' . $request->production_order . '</b> and its pending withdrawal request has been cancelled.']);

@@ -715,7 +715,16 @@ class MainController extends Controller
 				$this->update_job_card_status($job_card_id);
 			}
 
-			
+			$operator_name = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->pluck('operator_name')->first();
+
+			$activity_logs = [
+				'action' => 'Ended Process',
+				'message' => 'Process has been completed for '.$request->production_order,
+				'created_at' => $now->toDateTimeString(),
+				'created_by' => $operator_name
+			];
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert completed processes log in activity logs
 
 			$this->update_job_ticket($current_task->job_ticket_id);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
@@ -2991,8 +3000,20 @@ class MainController extends Controller
     }
 
     public function restart_task(Request $request){
+		// insert logs
+		$workstation = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')->where('logs.time_log_id', $request->id)->first();
+
+		$activity_logs = [
+			'action' => 'Restarted Process',
+			'message' => 'Process has been restarted for '.$workstation->workstation,
+			'created_by' => $workstation->operator_name,
+			'created_at' => Carbon::now()->toDateTimeString()
+		];
+
+		DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert restarted process log in activity logs
+
     	DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
-		
 		$jctl = DB::connection('mysql')->table('tabJob Card Time Log')->where('mes_timelog_id', $request->id);
 
 		$job_card_time_log = $jctl->first();
@@ -3247,12 +3268,35 @@ class MainController extends Controller
 	    		'process_id' => $request->process_id,
 	    	];
 	    	
-			
 			if ($production_order && $production_order->status == 'Not Started') {
 				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
 
 			$this->update_job_ticket($request->job_ticket_id);
+	    	$operation = DB::connection('mysql_mes')->table('process')->where('process_id', $request->process_id)->first();
+
+			$activity_logs = [
+				'created_at' => $now->toDateTimeString(),
+				'created_by' => $operator->employee_name
+			];
+
+			$job_ticket_ids = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->pluck('job_ticket_id');
+
+			$checker = DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', $job_ticket_ids)->count();
+			if($checker <= 1){ // check if 
+				$activity_logs['message'] = 'Production has started by '.$operator->employee_name.' at '.$now->toDateTimeString().' in '.$operation->process_name.'.';
+				$activity_logs['action'] = 'Started Production Order';
+
+				DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert started production order log in activity logs
+			}
+
+			unset($activity_logs['message']);
+			unset($activity_logs['action']);
+
+			$activity_logs['message'] = 'Process has been started for '.$request->production_order;
+			$activity_logs['action'] = 'Started Process';
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert started process log in activity logs
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
@@ -4476,8 +4520,8 @@ class MainController extends Controller
 						'name' =>  uniqid(),
 						'creation' => $now->toDateTimeString(),
 						'modified' => $now->toDateTimeString(),
-						'modified_by' => Auth::user()->email,
-						'owner' => Auth::user()->email,
+						'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+						'owner' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 						'docstatus' => $docstatus,
 						'parent' => $new_id,
 						'parentfield' => 'items',
@@ -4526,8 +4570,8 @@ class MainController extends Controller
 				'name' =>  uniqid(),
 				'creation' => $now->toDateTimeString(),
 				'modified' => $now->toDateTimeString(),
-				'modified_by' => Auth::user()->email,
-				'owner' => Auth::user()->email,
+				'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+				'owner' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 				'docstatus' => $docstatus,
 				'parent' => $new_id,
 				'parentfield' => 'items',
@@ -4573,8 +4617,8 @@ class MainController extends Controller
 				'name' => $new_id,
 				'creation' => $now->toDateTimeString(),
 				'modified' => $now->toDateTimeString(),
-				'modified_by' => Auth::user()->email,
-				'owner' => Auth::user()->email,
+				'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
+				'owner' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 				'docstatus' => $docstatus,
 				'parent' => null,
 				'parentfield' => null,
@@ -4655,7 +4699,7 @@ class MainController extends Controller
 			
 				$production_data = [
 					'modified' => $now->toDateTimeString(),
-					'modified_by' => Auth::user()->email,
+					'modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 					'produced_qty' => $produced_qty,
 					'status' => ($produced_qty == $production_order_details->qty) ? 'Completed' : $production_order_details->status
 				];
@@ -4676,7 +4720,7 @@ class MainController extends Controller
 					if($status == 'Completed'){
 						$production_data_mes = [
 							'last_modified_at' => $now->toDateTimeString(),
-							'last_modified_by' => Auth::user()->email,
+							'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 							'feedback_qty' => $manufactured_qty,
 							'status' => $status,
 							'remarks' => $remarks_override
@@ -4684,7 +4728,7 @@ class MainController extends Controller
 					}else{
 						$production_data_mes = [
 							'last_modified_at' => $now->toDateTimeString(),
-							'last_modified_by' => Auth::user()->email,
+							'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 							'feedback_qty' => $manufactured_qty,
 							'remarks' => $remarks_override
 						];
@@ -4695,7 +4739,7 @@ class MainController extends Controller
 							'completed_qty' => $manufactured_qty,
 							'remarks' => $remarks_override,
 							'status' => 'Completed',
-							'last_modified_by' => Auth::user()->email,
+							'last_modified_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 						];
 	
 						DB::connection('mysql_mes')->table('job_ticket')
@@ -4717,7 +4761,7 @@ class MainController extends Controller
                 'item_code'     => $production_order_details->production_item,
 				'item_name'     => $production_order_details->item_name,
 				'customer'		=> $mes_production_order_details->customer,
-				'feedbacked_by' => Auth::user()->email,
+				'feedbacked_by' => Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 				'completed_qty' => $request->fg_completed_qty, 
 				'uom'			=> $production_order_details->stock_uom
 			);
@@ -4745,9 +4789,20 @@ class MainController extends Controller
 				'transaction_date'=>$now->format('Y-m-d'),
 				'transaction_time' =>$now->format('G:i:s'),
 				'created_at'  => $now->toDateTimeString(),
-				'created_by'  =>  Auth::user()->email,
+				'created_by'  =>  Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name,
 			];
 			DB::connection('mysql_mes')->table('feedbacked_logs')->insert($feedbacked_timelogs);
+
+			$employee = Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name;
+
+			$activity_logs = [
+				'action' => 'Feedbacked',
+				'message' => $production_order.' for '.$data['customer'].' is now completed at '.$now->toDateTimeString().' by '.$employee,
+				'created_at'  => $now->toDateTimeString(),
+				'created_by'  =>  $employee
+			];
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
 			DB::connection('mysql')->commit();
 
 			return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.']);
@@ -5807,6 +5862,15 @@ class MainController extends Controller
 				->where('material_request',$production_order_details->material_request)
 				->update($production_order_data);
 		}
+
+		$activity_logs = [
+			'action' => 'Rescheduled Delivery Date',
+			'message' => 'Rescheduled delivery date for '.$request->production_order.' by '.Auth::user()->employee_name.'.',
+			'created_at' => $now->toDateTimeString(),
+			'created_by' => Auth::user()->employee_name
+		];
+
+		DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert resched delivery date log in activity logs
 		return response()->json(['success' => 1, 'message' => 'Production Order updated.', 'reload_tbl' => $request->reload_tbl]);	
 	}
 
