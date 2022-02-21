@@ -192,6 +192,10 @@ Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'Seco
 
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/planning_wizard/no_bom', 'ManufacturingController@wizardNoBom');
+	Route::post('/create_production_order_without_bom', 'ManufacturingController@create_production_order_without_bom');
+	Route::get('/view_operations_wizard', 'ManufacturingController@viewAddOperationsWizard');
+	
 	Route::get('/view_bundle/{item_code}', 'ManufacturingController@view_bundle_components');
 
 	Route::post('/create_material_transfer_for_return', 'ManufacturingController@create_material_transfer_for_return');

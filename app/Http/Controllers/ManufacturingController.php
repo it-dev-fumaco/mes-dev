@@ -1339,7 +1339,7 @@ class ManufacturingController extends Controller
 
             $this->update_job_card($request->production_order);
             // update bom as reviewed
-            DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $request->user, 'last_date_reviewed' => $now->toDateTimeString()]);
+            DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => Auth::user()->email, 'last_date_reviewed' => $now->toDateTimeString()]);
            
             return response()->json(['status' => 1, 'message' => 'BOM updated and reviewed.']);
         } catch (Exception $e) {
@@ -3431,7 +3431,8 @@ class ManufacturingController extends Controller
             if(!Auth::user()) {
                 return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
-            
+
+            $new_id = null;
             $now = Carbon::now();
             $mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $production_order)->first();
@@ -3694,7 +3695,7 @@ class ManufacturingController extends Controller
 
             DB::connection('mysql')->commit();
 
-            return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.']);
+            return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'id' => $new_id]);
         } catch (Exception $e) {
             DB::connection('mysql')->rollback();
             return response()->json(['success' => 0, 'message' => 'There was a problem creating stock entries.']);
@@ -4833,5 +4834,331 @@ class ManufacturingController extends Controller
 
             return response()->json(['status' => 0, 'message' => 'There was a problem cancelling production order feedback.']);
         }
+    }
+
+    public function wizardNoBom() {
+        return view('wizard_no_bom.index');
+    }
+
+    public function create_production_order_without_bom(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $now = Carbon::now();
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
+            if($request->reference_type == 'Sales Order' && !$request->reference_no){
+                return response()->json(['success' => 0, 'message' => 'Please enter reference Sales Order.']);
+            }
+
+            if($request->reference_type == 'Material Request' && !$request->reference_no){
+                return response()->json(['success' => 0, 'message' => 'Please enter reference Material Request.']);
+            }
+
+            if ($request->qty <= 0) {
+                return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
+            }
+
+            $reference_table = ($request->reference_type == 'Sales Order') ? 'tabSales Order' : 'tabMaterial Request';
+            $reference_name = $request->reference_no;
+            $reference_details = DB::connection('mysql')->table($reference_table)
+                ->where('name', $reference_name)->first();
+            if(!$reference_details){
+                return response()->json(['success' => 0, 'message' => $reference_name . ' does not exist.']);
+            }
+
+            $per_status = ($request->reference_type == 'Sales Order') ? $reference_details->per_delivered : $reference_details->per_ordered;
+            if($reference_details->docstatus > 1){
+                return response()->json(['success' => 0, 'message' => $reference_name . ' was CANCELLED']);
+            }
+
+            if ($per_status >= 100) {
+                return response()->json(['success' => 0, 'message' => $reference_name . ' was already COMPLETED']);
+            }
+
+            $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+            if (!$item) {
+                return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' not found.']);
+            }
+
+            if($item->is_stock_item == 0){
+                return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' is not a stock item.']);
+            }
+
+            $parent_item_code = $request->item_code;
+            $sub_parent_item_code = $request->item_code;
+
+            $operation_details = DB::connection('mysql_mes')->table('operation')
+                ->where('operation_name', 'like', '%wiring%')->first();
+
+            $operation_id = ($operation_details) ? $operation_details->operation_id : 3;
+            
+            $wip_wh = $this->get_operation_wip_warehouse($operation_id);
+            if ($wip_wh['success'] < 1) {
+                return response()->json(['success' => 0, 'message' => $wip_wh['message']]);
+            }
+            
+            $wip = $wip_wh['message'];
+            
+      
+            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
+            $latest_pro_exploded = explode("-", $latest_pro);
+            $new_id = $latest_pro_exploded[1] + 1;
+            $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
+            $new_id = 'PROM-'.$new_id;
+            
+            $existing_id = DB::connection('mysql_mes')->table('production_order')
+                ->where('production_order', $new_id)->first();
+            if ($existing_id) {
+                return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $new_id . '</b> already exist.']);
+            }
+
+            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+
+            $classification = ($request->reference_type == 'Sales Order') ? (($reference_details->sales_type == 'Sample') ? 'Sample' : 'Customer Order') : $reference_details->purpose;
+
+            $data = [
+                'name' => $new_id,
+                'creation' => $now->toDateTimeString(),
+                'modified' => $now->toDateTimeString(),
+                'modified_by' => Auth::user()->email,
+                'owner' => Auth::user()->email,
+                'docstatus' => 1,
+                'idx' => 0,
+                'qty' => $request->qty,
+                'fg_warehouse' => $request->target,
+                'use_multi_level_bom' => 0,
+                'material_transferred_for_manufacturing' => 0,
+                'stock_uom' => $item_details->stock_uom,
+                'naming_series' => 'PRO-',
+                'status' => 'Not Started',
+                'description' => $request->description,
+                'company' => 'FUMACO Inc.',
+                'production_item' => strtoupper($request->item_code),
+                'sales_order_item' => ($request->reference_type == 'Sales Order') ? $request->item_reference_id : null,
+                'bom_no' => null,
+                'wip_warehouse' => $wip,
+                'project' => $reference_details->project,
+                'scrap_warehouse' => 'Scrap Warehouse P1 - FI',
+                'item_classification' => $item_details->item_classification,
+                'delivery_date' => ($request->reference_type == 'Sales Order') ? $reference_details->delivery_date : $reference_details->schedule_date,
+                'item_name' => $item_details->item_name,
+                'customer' => $reference_details->customer,
+                'sales_order_no' => ($request->reference_type == 'Sales Order') ? $reference_details->name : null,
+                'sales_order' => ($request->reference_type == 'Sales Order') ? $reference_details->name : null,
+                'material_request' => ($request->reference_type == 'Material Request') ? $reference_details->name : null,
+                'scheduled' => ($request->planned_date) ? 1 : 0,
+                'order_no' => 0,
+                'priority' => 'Normal',
+                'classification' => $classification,
+                'parent_item_code' => strtoupper($parent_item_code),
+                'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
+            ];
+
+            $params = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $request->item_code)
+                ->where('attribute', 'LIKE', '%cutting size%')->first();
+
+            $data_mes = [
+                'production_order' => $new_id,
+                'parent_item_code' => strtoupper($parent_item_code),
+                'sub_parent_item_code' => strtoupper($sub_parent_item_code),
+                'item_code' => strtoupper($request->item_code),
+                'description' => $request->description,
+                'parts_category' => $item_details->parts_category,
+                'item_classification' => $item_details->item_classification,
+                'qty_to_manufacture' => $request->qty,
+                'classification' => $classification,
+                'order_no' => 0,
+                'cutting_size' => ($params) ? $params->attribute_value : null,
+                'is_scheduled' => ($request->planned_date) ? 1 : 0,
+                'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
+                'project' => $reference_details->project,
+                'bom_no' => null,
+                'sales_order' => ($request->reference_type == 'Sales Order') ? $reference_details->name : null,
+                'material_request' => ($request->reference_type == 'Material Request') ? $reference_details->name : null,
+                'delivery_date' => ($request->reference_type == 'Sales Order') ? $reference_details->delivery_date : $reference_details->schedule_date,
+                'status' => 'Not Started',
+                'stock_uom' => $item_details->stock_uom,
+                'customer' => $reference_details->customer,
+                'wip_warehouse' => $wip,
+                'fg_warehouse' => $request->target,
+                'last_modified_at' => $now->toDateTimeString(),
+                'last_modified_by' => Auth::user()->email,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString(),
+                'operation_id' => $operation_id,
+                'is_stock_item' => $item_details->is_stock_item
+            ];
+
+            DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
+
+            $default_workstations = [25, 28, 27];
+            $mes_custom_operations = [];
+            $custom_operations = [];
+            foreach($default_workstations as $p => $w_id){
+                $workstation_details = DB::connection('mysql_mes')->table('workstation')->where('workstation_id', $w_id)->first();
+                $bom_operation_id = 'nbop' . uniqid();
+                $mes_custom_operations[] = [
+                    'production_order' => $new_id,
+                    'idx' => $p + 1,
+                    'workstation' => $workstation_details->workstation_name,
+                    'process_id' => null,
+                    'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
+                    'created_by' => Auth::user()->employee_name,
+                    'created_at' => $now->toDateTimeString(),
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'bom_operation_id' => $bom_operation_id
+                ];
+
+                $custom_operations[] = [
+                    'name' => 'mes'.uniqid(),
+                    'creation' => $now->toDateTimeString(),
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->email,
+                    'owner' => Auth::user()->email,
+                    'docstatus' => 1,
+                    'parent' => $new_id,
+                    'parentfield' => 'operations',
+                    'parenttype' => 'Work Order',
+                    'idx' => $p + 1,
+                    'status' => 'Pending',
+                    'actual_start_time' => null,
+                    'workstation' => $workstation_details->workstation_name,
+                    'completed_qty' => 0,
+                    'planned_operating_cost' => 0,
+                    'description' => $workstation_details->workstation_name,
+                    'actual_end_time' => null,
+                    'actual_operating_cost' => 0,
+                    'hour_rate' => 0,
+                    'planned_start_time' => null,
+                    'bom' => null,
+                    'actual_operation_time' => 0,
+                    'operation' => $operation_details->operation_name,
+                    'planned_end_time' => null,
+                    'time_in_mins' => 1,
+                    'process' => null,
+                    'bom_operation_id' => $bom_operation_id
+                ];
+            }
+
+            DB::connection('mysql_mes')->table('job_ticket')->insert($mes_custom_operations);
+            DB::connection('mysql')->table('tabWork Order Operation')->insert($custom_operations);
+
+            $reference_child_table = ($request->reference_type == 'Sales Order') ? 'tabSales Order Item' : 'tabMaterial Request Item';
+            $reference_parent = $reference_details->name;
+            $reference_child_details = DB::connection('mysql')->table($reference_child_table)
+                ->where('name', $request->item_reference_id)->first();
+
+            if($reference_child_details){
+                $del_data = [
+                    'erp_reference_id' => $reference_child_details->name,
+                    'reference_no' => $reference_parent,
+                    'parent_item_code' => $parent_item_code,
+                    'delivery_date' => ($request->reference_type == 'Sales Order') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date,
+                    'created_by' => Auth::user()->email
+                ];
+
+                $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
+                    ->where('erp_reference_id', $reference_child_details->name)->where('parent_item_code', $parent_item_code)
+                    ->exists();
+                
+                if(!$existing_del_data){
+                    DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
+                }
+            }
+
+            DB::connection('mysql')->beginTransaction();
+            try{
+                DB::connection('mysql')->table('tabWork Order')->insert($data);
+                $raw_required_items = [];
+                if($item_details->is_stock_item > 0){
+                    $req_item_detail = DB::connection('mysql')->table('tabItem')
+                        ->where('name', $request->item_code)->first();
+
+                    $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                        ->where('company', 'FUMACO Inc.')->first();
+                    $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
+
+                    $raw_required_items = [
+                        'name' => 'mes'.uniqid(),
+                        'creation' => $now->toDateTimeString(),
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->email,
+                        'owner' => Auth::user()->email,
+                        'docstatus' => 1,
+                        'parent' => $new_id,
+                        'parentfield' => 'required_items',
+                        'parenttype' => 'Work Order',
+                        'idx' => 1,
+                        'description' => $req_item_detail->description,
+                        'item_name' => $req_item_detail->item_name,
+                        'item_code' => $req_item_detail->item_code,
+                        'required_qty' => $request->qty,
+                        'transferred_qty' => 0,
+                        'available_qty_at_source_warehouse' => 0,
+                        'available_qty_at_wip_warehouse' => 0,
+                        'source_warehouse' => $item_default_warehouse,
+                        'stock_uom' => $req_item_detail->stock_uom
+                    ];
+                }else{
+                    $bundle_items = DB::connection('mysql')->table('tabProduct Bundle Item')->where('parent', $request->item_code)->get();
+                    foreach ($bundle_items as $k => $v) {
+                        $req_item_detail = DB::connection('mysql')->table('tabItem')
+                            ->where('name', $v->item_code)->first();
+
+                        $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                            ->where('company', 'FUMACO Inc.')->first();
+                        $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
+
+                        $raw_required_items[] = [
+                            'name' => 'mes'.uniqid(),
+                            'creation' => $now->toDateTimeString(),
+                            'modified' => $now->toDateTimeString(),
+                            'modified_by' => Auth::user()->email,
+                            'owner' => Auth::user()->email,
+                            'docstatus' => 1,
+                            'parent' => $new_id,
+                            'parentfield' => 'required_items',
+                            'parenttype' => 'Work Order',
+                            'idx' => $k + 1,
+                            'description' => $req_item_detail->description,
+                            'item_name' => $req_item_detail->item_name,
+                            'item_code' => $req_item_detail->item_code,
+                            'required_qty' => $v->qty * $request->qty,
+                            'transferred_qty' => 0,
+                            'available_qty_at_source_warehouse' => 0,
+                            'available_qty_at_wip_warehouse' => 0,
+                            'source_warehouse' => $item_default_warehouse,
+                            'stock_uom' => $v->uom
+                        ];
+                    }
+                }
+
+                DB::connection('mysql')->table('tabWork Order Item')->insert($raw_required_items);
+
+                $this->insert_job_card($new_id);
+                
+                DB::connection('mysql')->commit();
+            } catch (Exception $e) {
+                DB::connection('mysql')->rollback();
+                return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
+            }
+                   
+            DB::connection('mysql_mes')->commit();
+              
+            return response()->json(["success" => 1, 'message' => $new_id]);
+        } catch (Exception $e) {
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
+        }
+    }
+
+    public function viewAddOperationsWizard(Request $request) {
+        $production_orders = DB::connection('mysql')->table('tabWork Order as wo')->join('tabItem as i', 'wo.production_item', 'i.name')
+            ->whereIn('wo.name', $request->production_orders)->select('wo.name', 'wo.production_item', 'wo.item_name', 'i.item_classification', 'wo.description', 'i.item_image_path')->get();
+
+        return view('wizard_no_bom.add_operations', compact('production_orders'));
     }
 }
