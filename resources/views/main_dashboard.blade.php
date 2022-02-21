@@ -270,135 +270,191 @@
         display: block;
       }
   </style>
+    @php
+        $fabrication_active = null;
+        $wa_active = null;
+        $painting_active = null;
+        if(in_array('Fabrication', $permitted_production_operation)){
+          $fabrication_active = 'active';
+        }else if(!in_array('Fabrication', $permitted_production_operation) and in_array('Wiring and Assembly', $permitted_production_operation)){
+          $wa_active = 'active';
+        }else{
+          $painting_active = 'active';
+        }
+    @endphp
     <div class="col-md-4">
       <div class="row">
-        <div class="col-md-12">
-          <table class="w-100 text-center text-white mt-1" id="production-order-totals" style="background-color: #263238;">
-            <col style="width: 20%;">
-            <col style="width: 20%;">
-            <col style="width: 20%;">
-            <col style="width: 20%;">
-            <col style="width: 20%;">
-            <tr>
-              <td colspan="4" class="text-dark bg-white">
-                <span class="font-weight-bold text-uppercase">Production Order(s)</span>
-              </td>
-              <td rowspan="2" style="background-color: #28b463";>
-                <span class="font-weight-bold">For Feedback</span>
-              </td>
-            </tr>
-            <tr>
-              <td class="bg-white text-dark"><span class="font-weight-bold">Operation</span></td>
-              <td class="bg-white text-dark"><span class="font-weight-bold">Planned</span></td>
-              <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
-              <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
-            </tr>
-            @if (in_array('Fabrication', $permitted_production_operation))
-            <tr>
-              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Fabrication</td>
-              <td>
-                <span class="d-block custom-text-1" id="fab-planned">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1" id="fab-wip">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1" id="fab-done">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1 for-feedback-count" id="fab-for-feedback" data-operation-id="1">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-            </tr>
-            <tr style="border-bottom: 1px solid #ABB2B9;">
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="fab-planned-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="fab-wip-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="fab-done-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="fab-for-feedback-qty">-</span> <small>Piece(s)</small>
-              </td>
-            </tr>
-            @endif
-            @if (in_array('Wiring and Assembly', $permitted_production_operation))
-            <tr>
-              <td rowspan="2" class="font-weight-bold" style="border-bottom: 1px solid #ABB2B9;">Wiring & Assembly</td>
-              <td>
-                <span class="d-block custom-text-1" id="wa-planned">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1" id="wa-wip">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1" id="wa-done">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1 for-feedback-count" id="wa-for-feedback" data-operation-id="3">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-            </tr>
-            <tr style="border-bottom: 1px solid #ABB2B9;">
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="wa-planned-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="wa-wip-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="wa-done-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="wa-for-feedback-qty">-</span> <small>Piece(s)</small>
-              </td>
-            </tr>
-            @endif
-            @if (in_array('Painting', $permitted_production_operation))
-            <tr>
-              <td rowspan="2" class="font-weight-bold">Painting</td>
-              <td>
-                <span class="d-block custom-text-1" id="pa-planned">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1" id="pa-wip">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1" id="pa-done">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-              <td>
-                <span class="d-block custom-text-1 for-feedback-count" id="pa-for-feedback" data-operation-id="2">-</span>
-                <small class="custom-text-2">Production Order(s)</small>
-              </td>
-            </tr>
-            <tr>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="pa-planned-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="pa-wip-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="pa-done-qty">-</span> <small>Piece(s)</small>
-              </td>
-              <td class="pb-2">
-                <span class="custom-text-3 font-weight-bold" id="pa-for-feedback-qty">-</span> <small>Piece(s)</small>
-              </td>
-            </tr>
-            @endif
-          </table>
+        <div class="col-md-12 p-0">
+          <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+            {{-- <ol class="carousel-indicators">
+              <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+            </ol> --}}
+            <div class="carousel-inner">
+              @if (in_array('Fabrication', $permitted_production_operation))
+              <div class="carousel-item {{ $fabrication_active }}">
+                <table class="w-100 text-center text-white mt-1" id="production-order-totals" style="background-color: #263238;">
+                  <tr>
+                    <td colspan="3" class="text-dark bg-white">
+                      <span class="font-weight-bold text-uppercase">Fabrication</span>
+                    </td>
+                    <td rowspan="2" style="background-color: #28b463";>
+                      <span class="font-weight-bold">For Feedback</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">Planned</span></td>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="d-block custom-text-1" id="fab-planned">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1" id="fab-wip">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1" id="fab-done">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1 for-feedback-count" id="fab-for-feedback" data-operation-id="1">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #ABB2B9;">
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="fab-planned-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="fab-wip-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="fab-done-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="fab-for-feedback-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              @endif
+              @if (in_array('Wiring and Assembly', $permitted_production_operation))
+              <div class="carousel-item {{ $wa_active }}">
+                <table class="w-100 text-center text-white mt-1 border border-secondary" id="production-order-totals" style="background-color: #263238;">
+                  <tr>
+                    <td colspan="3" class="text-dark bg-white">
+                      <span class="font-weight-bold text-uppercase">Wiring & Assembly</span>
+                    </td>
+                    <td rowspan="2" style="background-color: #28b463";>
+                      <span class="font-weight-bold">For Feedback</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">Planned</span></td>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="d-block custom-text-1" id="wa-planned">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1" id="wa-wip">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1" id="wa-done">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1 for-feedback-count" id="wa-for-feedback" data-operation-id="3">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #ABB2B9;">
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="wa-planned-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="wa-wip-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="wa-done-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="wa-for-feedback-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              @endif
+              @if (in_array('Painting', $permitted_production_operation))
+              <div class="carousel-item {{ $painting_active }}">
+                <table class="w-100 text-center text-white mt-1 border border-secondary" id="production-order-totals" style="background-color: #263238;">
+                  <tr>
+                    <td colspan="3" class="text-dark bg-white">
+                      <span class="font-weight-bold text-uppercase">Painting</span>
+                    </td>
+                    <td rowspan="2" style="background-color: #28b463";>
+                      <span class="font-weight-bold">For Feedback</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">Planned</span></td>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">In Progress</span></td>
+                    <td class="bg-white text-dark"><span class="font-weight-bold">Done</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="d-block custom-text-1" id="pa-planned">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1" id="pa-wip">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1" id="pa-done">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                    <td>
+                      <span class="d-block custom-text-1 for-feedback-count" id="pa-for-feedback" data-operation-id="2">-</span>
+                      <small class="custom-text-2">Production Order(s)</small>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="pa-planned-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="pa-wip-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="pa-done-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                    <td class="pb-2">
+                      <span class="custom-text-3 font-weight-bold" id="pa-for-feedback-qty">-</span> <small>Piece(s)</small>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              @endif
+            </div>
+            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="sr-only">Next</span>
+            </a>
+          </div>
         </div>
         <div class="col-md-12 mt-2">
           <div class="card" style="height: 490px;">
