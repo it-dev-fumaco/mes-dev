@@ -456,12 +456,35 @@
             </a>
           </div>
         </div>
-        <div class="col-md-12 mt-2">
-          <div class="card" style="height: 490px;">
-            <div class="card-header text-center text-white p-2" style="background-color: #3498db">
-              <h5 class="title m-0 text-uppercase">Activity Logs</h5>
+        </div>
+        <div class="container-fluid mt-2">
+          <ul class="nav nav-tabs bg-white" role="tablist">
+						<li class="nav-item logs">
+							<a class="nav-link active" data-toggle="tab" href="#logs">Activity Logs</a>
+						</li>
+						<li class="nav-item logs">
+							<a class="nav-link" data-toggle="tab" href="#warnings">Warnings</a>
+						</li>
+					</ul>
+
+          <div class="tab-content p-0">
+            <div id="logs" class="container-fluid tab-pane p-0 active">
+              <div class="card p-0" style="height: 600px;">
+                <div class="card-header text-center text-white p-2" style="background-color: #3498db">
+                  <h5 class="title m-0 text-uppercase">Activity Logs</h5>
+                </div>
+                <div class="table-full-width table-responsive" style="height: 550px; position: relative;" id="tbl-notifications"></div>
+              </div>
             </div>
-            <div class="table-full-width table-responsive" style="height: 440px; position: relative;" id="tbl-notifications"></div>
+
+            <div id="warnings" class="container-fluid tab-pane p-0">
+              <div class="card p-0" style="height: 600px;">
+                <div class="card-header text-center text-white p-2" style="background-color: #3498db">
+                  <h5 class="title m-0 text-uppercase">Warnings</h5>
+                </div>
+                <div class="table-full-width table-responsive" style="height: 550px; position: relative;" id="tbl-warnings"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -578,6 +601,12 @@
   .tab-heading--ltgray {
     background-color: #F3F3F3;
     color: #242424;
+  }
+
+  .logs .active{
+    background-color: #3498DB !important;
+    color: #fff !important;
+    border: 2px solid #3498DB !important;
   }
   
   </style>
@@ -1101,17 +1130,29 @@
 </script>
 
 <script type="text/javascript">
-  
+  warnings_dashboard();
   function notif_dashboard(el){
     setInterval(function() {
-    $.ajax({
-      url:"/get_tbl_notif_dashboard",
-      type:"GET",
-      success:function(data){
-        $(el).html(data);
-      }
-    });
-  }, 5000);
+      $.ajax({
+        url:"/get_tbl_notif_dashboard",
+        type:"GET",
+        success:function(data){
+          $(el).html(data);
+        }
+      });
+    }, 5000);
+  }
+
+  function warnings_dashboard(){
+    setInterval(function() {
+      $.ajax({
+        url:"/get_tbl_warnings_dashboard",
+        type:"GET",
+        success:function(data){
+          $('#tbl-warnings').html(data);
+        }
+      });
+    }, 5000);
   }
 
   $.ajaxSetup({

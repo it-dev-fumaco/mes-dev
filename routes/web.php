@@ -293,6 +293,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/create_gl_entry/{stock_entry}', 'MainController@create_gl_entry');
 
 	Route::get('/get_tbl_notif_dashboard', 'MainController@get_tbl_notif_dashboard');
+	Route::get('/get_tbl_warnings_dashboard', 'MainController@get_tbl_warnings_dashboard');
 
 	Route::get('/get_fabrication_inventory_data', 'SecondaryController@get_fabrication_inventory_data');
 	Route::get('/stock_adjustment_entries_page', 'SecondaryController@stock_adjustment_entries_page');

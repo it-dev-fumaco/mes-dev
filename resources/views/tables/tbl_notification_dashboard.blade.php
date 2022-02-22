@@ -1,4 +1,4 @@
-<ol class="activity-feed border border-secondary">
+<ol class="activity-feed fa-ul">
    @foreach($notifications as $n)
       @php
          if($n['type'] == 'Machine Breakdown'){
@@ -34,25 +34,23 @@
          // Icon
          $icon = null;
          if($n['type'] == 'Cancelled Process'){
-            $icon = 'cancelled';
+            $icon = 'fa-ban';
          }else if($n['type'] == 'Feedbacked'){
-            $icon = 'feedbacked';
+            $icon = 'fa-check';
          }else if(in_array($n['type'], ['Rescheduled Delivery Date', 'Production Schedule'])){
-            $icon = 'reschedule';
-         }else if($n['type'] == 'Ended Process'){
-            $icon = 'end-process';
+            $icon = 'fa-calendar-check';
+         }else if(in_array($n['type'], ['Ended Process', 'Process Completed'])){
+            $icon = 'fa-clipboard-list';
          }else if(in_array($n['type'], ['Start Process', 'Started Process', 'Started Production Order'])){
-            $icon = 'start-process';
+            $icon = 'fa-circle-play';
          }else if(in_array($n['type'], ['Restart Process', 'Restarted Process'])){
-            $icon = 'restart-process';
+            $icon = 'fa-arrow-rotate-right';
          }else if($n['type'] == 'BOM Update'){
-            $icon = 'bom-update';
-         }else if($n['type'] == 'Machine Breakdown'){
-            $icon = 'machine-breakdown';
+            $icon = 'fa-pen-to-square';
          }
       @endphp
-      <li class="feed-item {{ $blink.' '.$icon }}" style="padding-top: 5px !important;">
-         <time class="date" style="text-transform: {{ $case }}">{{ $created }}</time>
+      <li class="feed-item {{ $blink }}" style="padding-top: 5px !important;"><i class="fa-solid {{ $icon }}" style="margin-left: -40px; font-size: 20px;"></i>
+         <time class="date" style="text-transform: {{ $case }}; margin-top: -16px">{{ $created }}</time>
          <span><b>{{ $n['type'] }}</b></span><br>
          @if ($n['type'] == 'BOM Update')
              @foreach ($n['message'] as $item)
@@ -67,7 +65,7 @@
                         $from_process = collect($process)['old_process'] ? ' from '.collect($process_collect)->where('process_id', collect($process)['old_process'])->pluck('process_name')->first() : null;
                         $to_process = collect($process)['new_process'] ? ' to '.collect($process_collect)->where('process_id', collect($process)['new_process'])->pluck('process_name')->first() : null;
                      @endphp
-                        <p class="p-1 m-0">{{ 'Updated process of '.collect($process)['workstation'].$from_process.$to_process }}</p>
+                     <p class="p-1 m-0">{{ 'Updated process of '.collect($process)['workstation'].$from_process.$to_process }}</p>
                   @else
                      @if(isset(collect($process)['process']))
                         @php
@@ -77,7 +75,6 @@
                         <p class="p-1 m-0">{{ $action.$proc }}</p>
                      @endif
                   @endif
-
                   @if ($actions == 'user')
                      <table class="table" style="font-size: 10pt !important">
                         <tr>
@@ -98,7 +95,7 @@
       </li>
    @endforeach
 </ol>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> 
 <style>
    @import url(https://fonts.googleapis.com/css?family=Open+Sans);
          /* apply a natural box layout model to all elements, but allowing components to change */
@@ -134,42 +131,9 @@
   .feed-item:last-child {
       border-color: transparent;
     }
-    /* Icons */
-    .cancelled::after{
-      content: "\f05e";
-    }
-
-    .feedbacked::after{
-       content: '\f00c';
-    }
-
-    .reschedule::after{
-       content: '\f274';
-    }
-
-    .end-process::after{
-      content: '\f04d';
-    }
-
-    .start-process::after{
-       content: '\f04b';
-    }
-
-    .restart-process::after{
-       content: '\f01e';
-    }
-
-    .bom-update::after{
-       content: '\f044';
-    }
-
-    .machine-breakdown::after{
-       content: '\f071';
-    }
-
     .feed-item::after {
-      font-family: FontAwesome;
-      display: block;
+      /* font-family: FontAwesome; */
+      display: none;
       position: absolute;
       top: 0;
       left: -6px;

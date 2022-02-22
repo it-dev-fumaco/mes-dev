@@ -718,7 +718,7 @@ class MainController extends Controller
 			$workstation = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->pluck('workstation')->first();
 
 			$activity_logs = [
-				'action' => 'Ended Process',
+				'action' => 'Process Completed',
 				'message' => $workstation.' process has been completed for '.$request->production_order.' by '.$operator_name,
 				'created_at' => $now->toDateTimeString(),
 				'created_by' => $operator_name
@@ -4136,9 +4136,18 @@ class MainController extends Controller
 
 	public function get_tbl_notif_dashboard(){
 		$notifications = $this->getNotifications();
+		$notifications = collect($notifications)->where('type', '!=', 'Machine Breakdown');
 		$process_collect = DB::connection('mysql_mes')->table('process')->select('process_id', 'process_name')->get();
 
 		return view('tables.tbl_notification_dashboard', compact('notifications', 'process_collect'));
+	}
+
+	public function get_tbl_warnings_dashboard(){
+		$notifications = $this->getNotifications();
+
+		$warnings = collect($notifications)->where('type', 'Machine Breakdown');
+
+		return view('tables.tbl_warnings_dashboard', compact('warnings'));
 	}
 
     public function operator_spotwelding_dashboard(){
