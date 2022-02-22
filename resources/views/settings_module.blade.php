@@ -28,1850 +28,1846 @@
 @include('modals.uom_conversion_modal')
 @include('modals.delete_uom_conversion_modal')
 <div class="panel-header">
-   <div class="header text-center" style="margin-top: -60px;">
-      <div class="row">
-         <div class="col-md-12">
-            <table style="text-align: center; width: 100%;">
-               <tr>
-                  <td style="width: 36%; border-right: 5px solid white;">
-                     <h2 class="title">
-                        <div class="pull-right" style="margin-right: 20px;">
-                           <span style="display: block; font-size: 15pt;">{{ date('M-d-Y') }}</span>
-                           <span style="display: block; font-size: 10pt;">{{ date('l') }}</span>
-                        </div>
-                     </h2>
-                  </td>
-                  <td style="width: 14%; border-right: 5px solid white;">
-                     <h5 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h5>
-                  </td>
-                  <td style="width: 50%">
-                     <h5 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Settings</h5>
-                  </td>
-               </tr>
-            </table>
-         </div>
+  <div class="header text-center" style="margin-top: -60px;">
+    <div class="row">
+      <div class="col-md-12">
+        <table style="text-align: center; width: 100%;">
+          <tr>
+            <td style="width: 36%; border-right: 5px solid white;">
+              <h2 class="title">
+                <div class="pull-right" style="margin-right: 20px;">
+                  <span style="display: block; font-size: 15pt;">{{ date('M-d-Y') }}</span>
+                  <span style="display: block; font-size: 10pt;">{{ date('l') }}</span>
+                </div>
+              </h2>
+            </td>
+            <td style="width: 14%; border-right: 5px solid white;">
+              <h5 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h5>
+            </td>
+            <td style="width: 50%">
+              <h5 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Settings</h5>
+            </td>
+          </tr>
+        </table>
       </div>
-   </div>
+    </div>
+  </div>
 </div>
 <div class="content">
-    <div class="row justify-content-center">
-<!--         <div class="col-1"></div>
- -->        <div class="col-2" style="margin-top: -160px; height: 500px; padding-right: 0px;">
-            <div class="card" style="background-color: #0277BD;" id="workstation_navbar">
-              <div class="card-body" style="padding-bottom: 0;">
-                <div class="row">
-                  <div class="col-md-12" style="margin-top: -10px;">
-                    <h5 class="text-white text-center" style="font-size: 13pt; margin-bottom: 5px;">Settings</h5>
-                  </div>
-                </div>
-                <div class="row" style="background-color: #ffffff;" class="text-center">
-                  <div class="col-md-12 text-center">
-                        <ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">   <h6 class="text-center" style="padding-top: 10px;">Production</h6>
-                            <li class="nav-item">
-                                <a class="nav-link active"  href="#process_setup" data-toggle="tab" onclick="tbl_process_setup_list()">Production Process Setup</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#operation_setup" data-toggle="tab">Operation Setup</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link " href="#workstation_setup" data-toggle="tab">Workstation Setup</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#machine_setup" data-toggle="tab">Machine Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#machine_setup" data-toggle="tab">Machine Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#late_delivery_setup" data-toggle="tab">Reschedule Delivery Reason Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#cancel_po_setup" data-toggle="tab">Reason/s for Cancellation Setup</a>
-                            </li>
-                            <h6 class="text-center" style="padding-top: 10px;">User</h6>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#users_setup" data-toggle="tab">Users Setup</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
-                            </li>
-                            
-                            <li class="nav-item">
-                                <a class="nav-link" href="#shift" data-toggle="tab">Shift Setup</a>
-                            </li>
-                            <h6 class="text-center" style="padding-top: 10px;">Quality Assurance</h6>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#qa_setup" data-toggle="tab">QA Inspection Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#operator_reject_setup" data-toggle="tab">Operator Reject Setup</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#qa_lot_size" data-toggle="tab">Sampling Plan Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#qa_reject_category" data-toggle="tab">Reject Category Setup</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link" href="#material_type_setup" data-toggle="tab">Material Type Setup</a>
-                            </li>
-                            <h6 class="text-center" style="padding-top: 10px;">Inventory</h6>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#item_warehouse_setup" data-toggle="tab">Item Warehouse Setup</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#uom-conversion-tab" data-toggle="tab">UoM Conversion</a>
-                            </li>
-                        </ul>
-                      </div>
-                </div>
-              </div>
+  <div class="row justify-content-center">
+    <div class="col-2" style="margin-top: -160px; height: 500px; padding-right: 0px;">
+      <div class="card" style="background-color: #0277BD;" id="workstation_navbar">
+        <div class="card-body" style="padding-bottom: 0;">
+          <div class="row">
+            <div class="col-md-12" style="margin-top: -10px;">
+              <h5 class="text-white text-center" style="font-size: 13pt; margin-bottom: 5px;">Settings</h5>
+            </div>
+          </div>
+          <div class="row" style="background-color: #ffffff;" class="text-center">
+            <div class="col-md-12 text-center">
+              <ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">
+                <h6 class="text-center" style="padding-top: 10px;">Production</h6>
+                <li class="nav-item">
+                  <a class="nav-link active"  href="#process_setup" data-toggle="tab" onclick="tbl_process_setup_list()">Production Process Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#operation_setup" data-toggle="tab">Operation Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link " href="#workstation_setup" data-toggle="tab">Workstation Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#machine_setup" data-toggle="tab">Machine Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#late_delivery_setup" data-toggle="tab">Reschedule Delivery Reason Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#cancel_po_setup" data-toggle="tab">Reason/s for Cancellation Setup</a>
+                </li>
+                <h6 class="text-center" style="padding-top: 10px;">User</h6>
+                <li class="nav-item">
+                  <a class="nav-link" href="#users_setup" data-toggle="tab">Users Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#shift" data-toggle="tab">Shift Setup</a>
+                </li>
+                <h6 class="text-center" style="padding-top: 10px;">Quality Assurance</h6>
+                <li class="nav-item">
+                  <a class="nav-link" href="#qa_setup" data-toggle="tab">QA Inspection Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#operator_reject_setup" data-toggle="tab">Operator Reject Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#qa_lot_size" data-toggle="tab">Sampling Plan Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#qa_reject_category" data-toggle="tab">Reject Category Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#material_type_setup" data-toggle="tab">Material Type Setup</a>
+                </li>
+                <h6 class="text-center" style="padding-top: 10px;">Inventory</h6>
+                <li class="nav-item">
+                  <a class="nav-link" href="#item_warehouse_setup" data-toggle="tab">Item Warehouse Setup</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#uom-conversion-tab" data-toggle="tab">UoM Conversion</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-        <div class="col-10" style="margin-top: -160px; min-height:1000px; ">
-            <div class="tab-content text-center">
-                <div class="tab-pane active" id="process_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Production Process Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search-production-process">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                      <button type="button" class="btn btn-primary" id="add-process-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Process</button>
-                                        <div class="tbl_process_setup_list_div" id="tbl_process_setup_list_div" style="font-size:11px;"></div>
-                                    </div>
-                                    
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="workstation_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Workstation Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_workstation_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                      <button type="button" class="btn btn-primary" id="add-workstation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Workstation</button>
-                                        <div class="table-responsive" id="tbl_workstation_list"></div>
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="operation_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Operation Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_operation_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                      <button type="button" class="btn btn-primary" id="add-operation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Operation</button>
-                                        <div class="tbl_operation" id="tbl_operation"></div>
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="cancel_po_setup">
-                  <div class="card" style="background-color: #0277BD;" >
-                      <div class="card-body" style="padding-bottom: 0;">
-                          <div class="row">
-                              <div class="col-md-8">
-                                  <h5 class="text-white font-weight-bold text-left">Reason/s for Cancellation Setup</h5>
-                              </div>
-                              <div class="col-md-4">
-                                  <div class="form-group">
-                                      <input type="text" class="form-control form-control" placeholder="Search" id="search_reason_cancelled_po">
-                                  </div>
-                              </div>
-                          </div>
-                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                              <div class="card card-nav-tabs card-plain">
-                                  <div class="col-md-8 offset-md-2">
-                                    <button type="button" class="btn btn-primary" id="add-cancelled-reason-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
-                                      <div class="tbl_reason_for_cancellation_po" id="tbl_reason_for_cancellation_po"></div>
-                                  </div>
-                              </div>
-                          </div>        
-                      </div>
-                  </div>
-              </div>
-                <div class="tab-pane" id="users_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">User Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_user_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
-                                <div class="col-md-12">
-                                    <div class="nav-tabs-navigation">
-                                            <div class="nav-tabs-wrapper">
-                                                <ul class="nav nav-tabs" data-tabs="tabs">
-                                                    <li class="nav-item">
-                                                        <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    <div class="tab-content text-center">
-                                        <div class="tab-pane active" id="user_list">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User List</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary" id="add-user-btn" data-id="1" style="margin: 5px;">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                <div id="div-user-table"></div>  
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                        <div class="tab-pane" id="user_group_list">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User Group</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary" id="add-user-group" style="margin: 5px;">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_user_group" id="tbl_user_group"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>      
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="late_delivery_setup">
-                  <div class="card" style="background-color: #0277BD;" >
-                      <div class="card-body" style="padding-bottom: 0;">
-                          <div class="row">
-                              <div class="col-md-8">
-                                  <h5 class="text-white font-weight-bold text-left">Reschedule Delivery Reason Setup</h5>
-                              </div>
-                              <div class="col-md-4">
-                                  <div class="form-group">
-                                      <input type="text" class="form-control form-control" placeholder="Search" id="search_late_delivery_setup">
-                                  </div>
-                              </div>
-                          </div>
-                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                              <div class="card card-nav-tabs card-plain">
-                                  <div class="col-md-8 offset-md-2">
-                                    <button type="button" class="btn btn-primary" id="add-late-deli-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reschedule Delivery Reason </button>
-                                      <div id="tbl_late_delivery_list"></div>    
-                                  </div>
-        
-                              </div>
-                          </div>        
-                      </div>
-                  </div>
-                </div>
-                <div class="tab-pane" id="email_alert_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Email Alert Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_email_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
-                                <div class="col-md-12">
-                                    <button type="button" class="btn btn-primary pull-right" id="email_trans_btn" style="margin: 5px;">
-                                      <i class="now-ui-icons ui-1_simple-add"></i> Add Email Alert Recipient
-                                    </button>
-                                      <div class="tbl_email_trans" id="tbl_email_trans"></div>
-                                </div>
-                            </div>      
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="machine_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Machine Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_machine_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                      <button type="button" class="btn btn-primary" id="add-machine-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
-                                        <div id="tbl_setting_machine_list"></div>    
-                                    </div>
-          
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="tab-pane" id="qa_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Quality Inspection Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_reject_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
-                                <div class="col-md-12">
-                                    <div class="nav-tabs-navigation">
-                                        <div class="nav-tabs-wrapper" id="qa_tab">
-                                            <ul class="nav nav-tabs" data-tabs="tabs">
-                                                <li class="nav-item">
-                                                    <a class="nav-link active" data-qatab="checklist" href="#inspection_checklist" data-toggle="tab">Inspection Checklist</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-qatab="reject" href="#qa_reject_list" data-toggle="tab">QA Inspection List</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="tab-content text-center">
-                                        <div class="tab-pane active" id="inspection_checklist">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary" id="add-checklist-fabrication-button" style="margin: 5px;">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_check_list_fabrication" id="tbl_check_list_fabrication"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary" id="add-checklist-painting-button" style="margin: 5px;">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_check_list_painting" id="tbl_check_list_painting"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Wiring and Assembly</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary" id="add-checklist-assembly-button" style="margin: 5px;">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_check_list_assembly" id="tbl_check_list_assembly"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                        <div class="tab-pane" id="qa_reject_list">
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <div class="card" style="min-height: 720px;">
-                                                        <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                        <col style="width: 70%;">
-                                                        <col style="width: 30%;">
-                                                        <tr>
-                                                            <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
-                                                            <td class="text-right">
-                                                            <button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5px;">
-                                                                <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                            </button>
-                                                            </td>
-                                                        </tr>
-                                                        </table>
-                                                        <div class="card-body">
-                                                            <div class="tbl_reject_list" id="tbl_reject_list"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="qa_lot_size">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Sampling Plan Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_machine_setupss">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                    <div class="row" style="padding-top:10px;">
-                                                        <div class="col-md-4">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Visual(Minor Defects)</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary add-smpl-plan add-smpl-plan" id="add-visual-button" data-id="1" data-spname="Visual" style="margin: 5px;">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_visual" id="tbl_visual"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Variable(Major Defects)</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary add-smpl-plan" id="add-variable-button" style="margin: 5px;" data-id="2" data-spname="Variable">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_variable" id="tbl_variable"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Reliability(Critical Defects)</b></th>
-                                                                  <td class="text-right">
-                                                                    <button type="button" class="btn btn-primary add-smpl-plan" id="add-reliability-button" style="margin: 5px;" data-id="3" data-spname="Reliability">
-                                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                                    </button>
-                                                                  </td>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div class="tbl_reliability" id="tbl_reliability"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                    </div>   
-                                    </div>
-          
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="operator_reject_setup">
-                  <div class="card" style="background-color: #0277BD;" >
-                      <div class="card-body" style="padding-bottom: 0;">
-                          <div class="row">
-                              <div class="col-md-8">
-                                  <h5 class="text-white font-weight-bold text-left">Operator Reject Setup</h5>
-                              </div>
-                              <div class="col-md-4">
-                                  <div class="form-group">
-                                      <input type="text" class="form-control form-control" placeholder="Search" id="search_operator_reject_setup">
-                                  </div>
-                              </div>
-                          </div>
-                          <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
-                              <div class="col-md-12">
-                                  <div class="nav-tabs-navigation">
-                                      <div class="nav-tabs-wrapper" id="operator_tab">
-                                          <ul class="nav nav-tabs" data-tabs="tabs">
-                                              <li class="nav-item">
-                                                  <a class="nav-link active" data-qatab="op_fabrication" href="#op_fabrication" data-toggle="tab">Fabrication</a>
-                                              </li>
-                                              <li class="nav-item">
-                                                  <a class="nav-link" data-qatab="op_painting" href="#op_painting" data-toggle="tab">Painting</a>
-                                              </li>
-                                              <li class="nav-item">
-                                                  <a class="nav-link" data-qatab="op_assembly" href="#op_assembly" data-toggle="tab">Wiring and Assembly</a>
-                                              </li>
-                                              <li class="nav-item">
-                                                <a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
-                                              </li>
-                                          </ul>
-                                      </div>
-                                  </div>
-                                  <div class="tab-content text-center">
-                                      <div class="tab-pane" id="qa_reject_list">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                      <col style="width: 70%;">
-                                                      <col style="width: 30%;">
-                                                      <tr>
-                                                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
-                                                          <td class="text-right">
-                                                          <button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5px;">
-                                                              <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                          </td>
-                                                      </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_reject_list" id="tbl_reject_list"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane" id="operator_reject_list">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                      <col style="width: 70%;">
-                                                      <col style="width: 30%;">
-                                                      <tr>
-                                                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Reject List</b></th>
-                                                          <td class="text-right">
-                                                          <button type="button" class="btn btn-primary" id="add-operator-reject-button" style="margin: 5px;">
-                                                              <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                          </td>
-                                                      </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane active" id="op_fabrication">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                    <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                      <col style="width: 70%;">
-                                                      <col style="width: 30%;">
-                                                      <tr>
-                                                        <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
-                                                        <td class="text-right">
-                                                          <button type="button" class="btn btn-primary" id="add-opchecklist-fabrication-button" style="margin: 5px;">
-                                                            <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                          </button>
-                                                        </td>
-                                                      </tr>
-                                                    </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane" id="op_painting">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                        <col style="width: 70%;">
-                                                        <col style="width: 30%;">
-                                                        <tr>
-                                                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
-                                                          <td class="text-right">
-                                                            <button type="button" class="btn btn-primary" id="add-opchecklist-painting-button" style="margin: 5px;">
-                                                              <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                            </button>
-                                                          </td>
-                                                        </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                        <div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <div class="tab-pane" id="op_assembly">
-                                          <div class="row">
-                                              <div class="col-md-12">
-                                                  <div class="card" style="min-height: 720px;">
-                                                      <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                        <tr>
-                                                          <td class="text-left" style="padding:13px; font-size: 12pt; margin: 5px;"><b>Wiring and Assembly</b></td>
-                                                        </tr>
-                                                      </table>
-                                                      <div class="card-body">
-                                                          <div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>         
-                      </div>
-                  </div>
-              </div>
-                <div class="tab-pane" id="material_type_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Material Type Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_material_type_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-8 offset-md-2">
-                                      <button type="button" class="btn btn-primary" id="add-material-type-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Material Type </button>
-                                        <div id="tbl_material_type"></div>    
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="qa_reject_category">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Reject Category Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_reject_category_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                      <button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Reject Category </button>
-                                      <div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="item_warehouse_setup">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">Item Warehouse Setup </h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search_item_warehouse_setup">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-12">
-                                        <div class="nav-tabs-navigation" style="margin-top: 8px;">
-                                            <div class="nav-tabs-wrapper">
-                                                <ul class="nav nav-tabs" data-tabs="tabs">
-                                                    <li class="nav-item">
-                                                        <a class="nav-link active add_icw_operation" href="#icw_fabrication" data-toggle="tab" data-operation="Fabrication" data-values="fab">Fabrication</a>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a class="nav-link add_icw_operation" href="#icw_painting" data-toggle="tab" data-operation="Painting" data-values="pain">Painting</a>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a class="nav-link add_icw_operation" href="#icw_assembly" data-toggle="tab" data-operation="Assembly" data-values="assem">Assembly</a>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a class="nav-link add_icw_operation" href="#icw_workinprogress" data-toggle="tab" data-operation="hide_me" data-values="assem">Work In Progress</a>
-                                                    </li>
-
-                                                    
-                                                </ul>
-                                            </div>
-                                        </div>
-                                         <button type="button" class="btn btn-primary pull-right" id="add-item-warehouse-button" style="margin: 5px;margin-top: -40px;">
-                                            <i class="now-ui-icons ui-1_simple-add"></i> Add Item Warehouse
-                                        </button>
-                                    <div class="tab-content text-center">
-                                        <div class="tab-pane active" id="icw_fabrication">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Fabrication</b></th>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div id="tbl_item_warehouse_list_fabrication"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                        <div class="tab-pane" id="icw_painting">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Painting</b></th>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div id="tbl_item_warehouse_list_painting"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                        <div class="tab-pane" id="icw_assembly">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Assembly</b></th>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <div id="tbl_item_warehouse_list_assembly"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                        <div class="tab-pane" id="icw_workinprogress">
-                                            <div class="card card-nav-tabs card-plain">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="card" style="min-height: 720px;">
-                                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                                <col style="width: 70%;">
-                                                                <col style="width: 30%;">
-                                                                <tr>
-                                                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Work In Progress</b></th>
-                                                                </tr>
-                                                              </table>
-                                                                <div class="card-body">
-                                                                    <button type="button" class="btn btn-primary pull-right" id="add-wip-button" style="margin: 5px;">
-                                                                        <i class="now-ui-icons ui-1_simple-add"></i> Add WIP
-                                                                    </button>
-                                                                    <div id="tbl_wip_list"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                        </div>
-                                    </div>  
-  
-                                  </div>
-                                    
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="uom-conversion-tab">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left">UOM Conversion</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="col-md-8 offset-md-2">
-                                        <button type="button" class="btn btn-primary" id="add-uom-conversion-btn" style="float: right;">
-                                            <i class="now-ui-icons ui-1_simple-add"></i> Add UoM Conversion
-                                        </button>
-                                        <div class="table-responsive" id="uom-conversion-tbl"></div>
-                                    </div>
-                                </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="shift">
-                    <div class="card" style="background-color: #0277BD;" >
-                        <div class="card-body" style="padding-bottom: 0;">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="text-white font-weight-bold text-left" style="font-size:20px;">Shift Setup</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control form-control" placeholder="Search" id="search-cancelled-prod">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                                <div class="card card-nav-tabs card-plain">
-                                    <div class="card-body">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <div class="card" style="min-height: 400px;">
-                                              <table class="text-white" style="width: 100%;background-color:#34495e;">
-                                                <col style="width: 70%;">
-                                                <col style="width: 30%;">
-                                                <tr>
-                                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Shift</b></th>
-                                                  <td class="text-right">
-                                                    <button type="button" class="btn btn-primary" id="add-shift-button" style="margin: 5px;">
-                                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                                    </button>
-                                                  </td>
-                                                </tr>
-                                              </table>
-                                                <div class="card-body">
-                                                    <div class="tbl_shift" id="tbl_shift"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        </div>
-                                    </div>
-                            </div>        
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+    <div class="col-10" style="margin-top: -160px; min-height:1000px;">
+      <div class="tab-content text-center">
+        <div class="tab-pane active" id="process_setup">
+          <div class="card" style="background-color: #0277BD;">
+            <div class="card-body" style="padding-bottom: 0;">
+              <div class="row">
+                <div class="col-md-8">
+                  <h5 class="text-white font-weight-bold text-left">Production Process Setup</h5>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <input type="text" class="form-control form-control" placeholder="Search" id="search-production-process">
+                  </div>
+                </div>
+              </div>
+              <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="card card-nav-tabs card-plain">
+                  <div class="col-md-12">
+                    <button type="button" class="btn btn-primary" id="add-process-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Process</button>
+                    <div class="tbl_process_setup_list_div" id="tbl_process_setup_list_div" style="font-size:11px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="workstation_setup">
+          <div class="card" style="background-color: #0277BD;">
+            <div class="card-body" style="padding-bottom: 0;">
+              <div class="row">
+                <div class="col-md-8">
+                  <h5 class="text-white font-weight-bold text-left">Workstation Setup</h5>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <input type="text" class="form-control form-control" placeholder="Search" id="search_workstation_setup">
+                  </div>
+                </div>
+              </div>
+              <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="card card-nav-tabs card-plain">
+                  <div class="col-md-12">
+                    <button type="button" class="btn btn-primary" id="add-workstation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Workstation</button>
+                  <div class="table-responsive" id="tbl_workstation_list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="operation_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Operation Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_operation_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+              <div class="card card-nav-tabs card-plain">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-operation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Operation</button>
+                  <div class="tbl_operation" id="tbl_operation"></div>
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="cancel_po_setup">
+        <div class="card" style="background-color: #0277BD;">
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Reason/s for Cancellation Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_reason_cancelled_po">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+              <div class="card card-nav-tabs card-plain">
+                <div class="col-md-8 offset-md-2">
+                  <button type="button" class="btn btn-primary" id="add-cancelled-reason-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
+                  <div class="tbl_reason_for_cancellation_po" id="tbl_reason_for_cancellation_po"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="users_setup">
+        <div class="card" style="background-color: #0277BD;">
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">User Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_user_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
+              <div class="col-md-12">
+                <div class="nav-tabs-navigation">
+                  <div class="nav-tabs-wrapper">
+                    <ul class="nav nav-tabs" data-tabs="tabs">
+                      <li class="nav-item">
+                        <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-content text-center">
+                  <div class="tab-pane active" id="user_list">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User List</b></th>
+                                  <td class="text-right">
+                                    <button type="button" class="btn btn-primary" id="add-user-btn" data-id="1" style="margin: 5px;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
+                                  </td>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div id="div-user-table"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane" id="user_group_list">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User Group</b></th>
+                                  <td class="text-right">
+                                    <button type="button" class="btn btn-primary" id="add-user-group" style="margin: 5px;">
+                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                    </button>
+                                  </td>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div class="tbl_user_group" id="tbl_user_group"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                </div>
+              </div>
+            </div>      
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="late_delivery_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Reschedule Delivery Reason Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_late_delivery_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+              <div class="card card-nav-tabs card-plain">
+                <div class="col-md-8 offset-md-2">
+                  <button type="button" class="btn btn-primary" id="add-late-deli-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reschedule Delivery Reason </button>
+                  <div id="tbl_late_delivery_list"></div>    
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="email_alert_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Email Alert Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_email_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
+              <div class="col-md-12">
+                <button type="button" class="btn btn-primary pull-right" id="email_trans_btn" style="margin: 5px;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add Email Alert Recipient
+                </button>
+                <div class="tbl_email_trans" id="tbl_email_trans"></div>
+              </div>
+            </div>      
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="machine_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Machine Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_machine_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">  
+              <div class="card card-nav-tabs card-plain">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-machine-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
+                  <div id="tbl_setting_machine_list"></div>    
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="qa_setup">
+        <div class="card" style="background-color: #0277BD;">
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Quality Inspection Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_reject_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
+              <div class="col-md-12">
+                <div class="nav-tabs-navigation">
+                  <div class="nav-tabs-wrapper" id="qa_tab">
+                    <ul class="nav nav-tabs" data-tabs="tabs">
+                      <li class="nav-item">
+                        <a class="nav-link active" data-qatab="checklist" href="#inspection_checklist" data-toggle="tab">Inspection Checklist</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" data-qatab="reject" href="#qa_reject_list" data-toggle="tab">QA Inspection List</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-content text-center">
+                  <div class="tab-pane active" id="inspection_checklist">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-4">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
+                                  <td class="text-right">
+                                    <button type="button" class="btn btn-primary" id="add-checklist-fabrication-button" style="margin: 5px;">
+                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                    </button>
+                                  </td>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div class="tbl_check_list_fabrication" id="tbl_check_list_fabrication"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
+                                  <td class="text-right">
+                                    <button type="button" class="btn btn-primary" id="add-checklist-painting-button" style="margin: 5px;">
+                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                    </button>
+                                  </td>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div class="tbl_check_list_painting" id="tbl_check_list_painting"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Wiring and Assembly</b></th>
+                                  <td class="text-right">
+                                    <button type="button" class="btn btn-primary" id="add-checklist-assembly-button" style="margin: 5px;">
+                                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                    </button>
+                                  </td>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div class="tbl_check_list_assembly" id="tbl_check_list_assembly"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                  <div class="tab-pane" id="qa_reject_list">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
+                              <td class="text-right">
+                                <button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5p;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                </button>
+                              </td>
+                            </tr>
+                          </table>
+                          <div class="card-body">
+                            <div class="tbl_reject_list" id="tbl_reject_list"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="qa_lot_size">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Sampling Plan Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_machine_setupss">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+              <div class="card card-nav-tabs card-plain">
+<div class="col-md-12">
+<div class="row" style="padding-top:10px;">
+<div class="col-md-4">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Visual(Minor Defects)</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary add-smpl-plan add-smpl-plan" id="add-visual-button" data-id="1" data-spname="Visual" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_visual" id="tbl_visual"></div>
+</div>
+</div>
+</div>
+<div class="col-md-4">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Variable(Major Defects)</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary add-smpl-plan" id="add-variable-button" style="margin: 5px;" data-id="2" data-spname="Variable">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_variable" id="tbl_variable"></div>
+</div>
+</div>
+</div>
+<div class="col-md-4">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Reliability(Critical Defects)</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary add-smpl-plan" id="add-reliability-button" style="margin: 5px;" data-id="3" data-spname="Reliability">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_reliability" id="tbl_reliability"></div>
+</div>
+</div>
+</div>
+
+</div>   
+</div>
+
+</div>
+</div>        
+</div>
+</div>
+</div>
+<div class="tab-pane" id="operator_reject_setup">
+<div class="card" style="background-color: #0277BD;" >
+<div class="card-body" style="padding-bottom: 0;">
+<div class="row">
+<div class="col-md-8">
+<h5 class="text-white font-weight-bold text-left">Operator Reject Setup</h5>
+</div>
+<div class="col-md-4">
+<div class="form-group">
+<input type="text" class="form-control form-control" placeholder="Search" id="search_operator_reject_setup">
+</div>
+</div>
+</div>
+<div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
+<div class="col-md-12">
+<div class="nav-tabs-navigation">
+<div class="nav-tabs-wrapper" id="operator_tab">
+<ul class="nav nav-tabs" data-tabs="tabs">
+<li class="nav-item">
+<a class="nav-link active" data-qatab="op_fabrication" href="#op_fabrication" data-toggle="tab">Fabrication</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" data-qatab="op_painting" href="#op_painting" data-toggle="tab">Painting</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" data-qatab="op_assembly" href="#op_assembly" data-toggle="tab">Wiring and Assembly</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
+</li>
+</ul>
+</div>
+</div>
+<div class="tab-content text-center">
+<div class="tab-pane" id="qa_reject_list">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_reject_list" id="tbl_reject_list"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tab-pane" id="operator_reject_list">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Reject List</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary" id="add-operator-reject-button" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tab-pane active" id="op_fabrication">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary" id="add-opchecklist-fabrication-button" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tab-pane" id="op_painting">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary" id="add-opchecklist-painting-button" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tab-pane" id="op_assembly">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<tr>
+<td class="text-left" style="padding:13px; font-size: 12pt; margin: 5px;"><b>Wiring and Assembly</b></td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>         
+</div>
+</div>
+</div>
+<div class="tab-pane" id="material_type_setup">
+<div class="card" style="background-color: #0277BD;" >
+<div class="card-body" style="padding-bottom: 0;">
+<div class="row">
+<div class="col-md-8">
+<h5 class="text-white font-weight-bold text-left">Material Type Setup</h5>
+</div>
+<div class="col-md-4">
+<div class="form-group">
+<input type="text" class="form-control form-control" placeholder="Search" id="search_material_type_setup">
+</div>
+</div>
+</div>
+<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+<div class="card card-nav-tabs card-plain">
+<div class="col-md-8 offset-md-2">
+<button type="button" class="btn btn-primary" id="add-material-type-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Material Type </button>
+<div id="tbl_material_type"></div>    
+</div>
+</div>
+</div>        
+</div>
+</div>
+</div>
+<div class="tab-pane" id="qa_reject_category">
+<div class="card" style="background-color: #0277BD;" >
+<div class="card-body" style="padding-bottom: 0;">
+<div class="row">
+<div class="col-md-8">
+<h5 class="text-white font-weight-bold text-left">Reject Category Setup</h5>
+</div>
+<div class="col-md-4">
+<div class="form-group">
+<input type="text" class="form-control form-control" placeholder="Search" id="search_reject_category_setup">
+</div>
+</div>
+</div>
+<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+<div class="card card-nav-tabs card-plain">
+<div class="col-md-12">
+<button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Reject Category </button>
+<div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
+</div>
+</div>
+</div>        
+</div>
+</div>
+</div>
+<div class="tab-pane" id="item_warehouse_setup">
+<div class="card" style="background-color: #0277BD;" >
+<div class="card-body" style="padding-bottom: 0;">
+<div class="row">
+<div class="col-md-8">
+<h5 class="text-white font-weight-bold text-left">Item Warehouse Setup </h5>
+</div>
+<div class="col-md-4">
+<div class="form-group">
+<input type="text" class="form-control form-control" placeholder="Search" id="search_item_warehouse_setup">
+</div>
+</div>
+</div>
+<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+<div class="card card-nav-tabs card-plain">
+<div class="col-md-12">
+<div class="nav-tabs-navigation" style="margin-top: 8px;">
+<div class="nav-tabs-wrapper">
+<ul class="nav nav-tabs" data-tabs="tabs">
+<li class="nav-item">
+<a class="nav-link active add_icw_operation" href="#icw_fabrication" data-toggle="tab" data-operation="Fabrication" data-values="fab">Fabrication</a>
+</li>
+<li class="nav-item">
+<a class="nav-link add_icw_operation" href="#icw_painting" data-toggle="tab" data-operation="Painting" data-values="pain">Painting</a>
+</li>
+<li class="nav-item">
+<a class="nav-link add_icw_operation" href="#icw_assembly" data-toggle="tab" data-operation="Assembly" data-values="assem">Assembly</a>
+</li>
+<li class="nav-item">
+<a class="nav-link add_icw_operation" href="#icw_workinprogress" data-toggle="tab" data-operation="hide_me" data-values="assem">Work In Progress</a>
+</li>
+<li class="nav-item">
+<a class="nav-link add_icw_operation" href="#fast_issuance_warehouse" data-toggle="tab" data-operation="fiw" data-values="fiw">Allowed Warehouse for Fast Issuance</a>
+</li>
+</ul>
+</div>
+</div>
+<button type="button" class="btn btn-primary pull-right" id="add-item-warehouse-button" style="margin: 5px;margin-top: -40px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add Item Warehouse
+</button>
+<div class="tab-content text-center">
+<div class="tab-pane" id="fast_issuance_warehouse">
+<div class="card card-nav-tabs card-plain">
+<div class="card-body">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Allowed Warehouse for Fast Issuance</b></th>
+</tr>
+</table>
+<div class="card-body">
+<button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-warehouse" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add Warehouse
+</button>
+<div id="tbl-fast-issuance-warehouse"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div> 
+</div>
+<div class="tab-pane active" id="icw_fabrication">
+<div class="card card-nav-tabs card-plain">
+<div class="card-body">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Fabrication</b></th>
+</tr>
+</table>
+<div class="card-body">
+<div id="tbl_item_warehouse_list_fabrication"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div> 
+</div>
+<div class="tab-pane" id="icw_painting">
+<div class="card card-nav-tabs card-plain">
+<div class="card-body">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Painting</b></th>
+</tr>
+</table>
+<div class="card-body">
+<div id="tbl_item_warehouse_list_painting"></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div> 
+</div>
+<div class="tab-pane" id="icw_assembly">
+<div class="card card-nav-tabs card-plain">
+<div class="card-body">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Assembly</b></th>
+</tr>
+</table>
+<div class="card-body">
+<div id="tbl_item_warehouse_list_assembly"></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div> 
+</div>
+<div class="tab-pane" id="icw_workinprogress">
+<div class="card card-nav-tabs card-plain">
+<div class="card-body">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 720px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Work In Progress</b></th>
+</tr>
+</table>
+<div class="card-body">
+<button type="button" class="btn btn-primary pull-right" id="add-wip-button" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add WIP
+</button>
+<div id="tbl_wip_list"></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div> 
+</div>
+</div>  
+
+</div>
+
+</div>
+</div>        
+</div>
+</div>
+</div>
+<div class="tab-pane" id="uom-conversion-tab">
+<div class="card" style="background-color: #0277BD;" >
+<div class="card-body" style="padding-bottom: 0;">
+<div class="row">
+<div class="col-md-8">
+<h5 class="text-white font-weight-bold text-left">UOM Conversion</h5>
+</div>
+<div class="col-md-4">
+<div class="form-group">
+<input type="text" class="form-control form-control" placeholder="Search">
+</div>
+</div>
+</div>
+<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+<div class="card card-nav-tabs card-plain">
+<div class="col-md-8 offset-md-2">
+<button type="button" class="btn btn-primary" id="add-uom-conversion-btn" style="float: right;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add UoM Conversion
+</button>
+<div class="table-responsive" id="uom-conversion-tbl"></div>
+</div>
+</div>
+</div>        
+</div>
+</div>
+</div>
+<div class="tab-pane" id="shift">
+<div class="card" style="background-color: #0277BD;" >
+<div class="card-body" style="padding-bottom: 0;">
+<div class="row">
+<div class="col-md-8">
+<h5 class="text-white font-weight-bold text-left" style="font-size:20px;">Shift Setup</h5>
+</div>
+<div class="col-md-4">
+<div class="form-group">
+<input type="text" class="form-control form-control" placeholder="Search" id="search-cancelled-prod">
+</div>
+</div>
+</div>
+<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+<div class="card card-nav-tabs card-plain">
+<div class="card-body">
+<div class="row">
+<div class="col-md-12">
+<div class="card" style="min-height: 400px;">
+<table class="text-white" style="width: 100%;background-color:#34495e;">
+<col style="width: 70%;">
+<col style="width: 30%;">
+<tr>
+<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Shift</b></th>
+<td class="text-right">
+<button type="button" class="btn btn-primary" id="add-shift-button" style="margin: 5px;">
+<i class="now-ui-icons ui-1_simple-add"></i> Add
+</button>
+</td>
+</tr>
+</table>
+<div class="card-body">
+<div class="tbl_shift" id="tbl_shift"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>        
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 <!--     <div class="col-1"></div>
- --></div>
+--></div>
 </div>
 
 
 <!-- Modal -->
 <div class="modal fade" id="add-user-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/save_user" method="POST" id="add-user-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Add User
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="form-group">
-                        <label>User ID:</label>
-                        <select class="form-control sel2" name="user_access_id" id="sel-user-id-add" >
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/save_user" method="POST" id="add-user-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Add User
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label>User ID:</label>
+                       <select class="form-control sel2" name="user_access_id" id="sel-user-id-add" >
                           <option value="">Select Employee</option>
                           @foreach($employees as $row)
                           <option value="{{ $row->user_id }}" data-empname="{{ $row->employee_name }}">{{ $row->user_id }} - {{ $row->employee_name }}</option>
                           @endforeach
-                        </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Employee Name:</label>
-                        <input type="text" class="form-control" name="employee_name" required id="emp-name-input-add">
-                     </div>
-                     <div class="form-group">
-                        <label>Module:</label>
-                         <select class="form-control sel2" name="user_group" id="user_group" onchange="change_userrole_add()">
-                              <option value="">Select Module</option>
-                               @foreach($module as $row)
-                              <option value="{{ $row->module }}">{{ $row->module }}</option>
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>Employee Name:</label>
+                       <input type="text" class="form-control" name="employee_name" required id="emp-name-input-add">
+                    </div>
+                    <div class="form-group">
+                       <label>Module:</label>
+                       <select class="form-control sel2" name="user_group" id="user_group" onchange="change_userrole_add()">
+                          <option value="">Select Module</option>
+                          @foreach($module as $row)
+                          <option value="{{ $row->module }}">{{ $row->module }}</option>
                           @endforeach
-                         </select>
-                     </div>
-                     <div class="form-group">
-                        <label>User Role:</label>
-                         <select class="form-control sel2" name="user_role" id="user_role">
-                              
-                         </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Operation:</label>
-                        <select class="form-control sel2" name="operation">
-                            <option value="">Select Operation</option>
-                            @foreach($operations as $row)
-                            <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
-                            @endforeach
-                         </select>
-                     </div>
-                  </div>
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>User Role:</label>
+                       <select class="form-control sel2" name="user_role" id="user_role">
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>Operation:</label>
+                       <select class="form-control sel2" name="operation">
+                          <option value="">Select Operation</option>
+                          @foreach($operations as $row)
+                          <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
-
 <!-- Modal -->
 <div class="modal fade" id="edit-user-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/update_user" method="POST" id="edit-user-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Edit User<br>
-               </h5>
-            </div>
-            <div class="modal-body">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/update_user" method="POST" id="edit-user-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Edit User<br>
+              </h5>
+           </div>
+           <div class="modal-body">
               <input type="hidden" name="user_id" id="edit-user-id-input">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="form-group">
-                        <label>User ID:</label>
-                        <select class="form-control sel3" name="user_access_id" id="edit_user_id">
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label>User ID:</label>
+                       <select class="form-control sel3" name="user_access_id" id="edit_user_id">
                           <option value="">Select Employee</option>
                           @foreach($employees as $row)
                           <option value="{{ $row->user_id }}" data-empname="{{ $row->employee_name }}">{{ $row->user_id }} - {{ $row->employee_name }}</option>
                           @endforeach
-                        </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Employee Name:</label>
-                        <input type="text" class="form-control" name="employee_name" required id="edit_employee_name">
-                     </div>
-                     <div class="form-group">
-                        <label>Module:</label>
-                         <select class="form-control sel3" name="user_group" id="edit_user_group" onchange="change_userrole_edit()">
-                              <option value="">Select Module</option>
-                               @foreach($module as $row)
-                              <option value="{{ $row->module }}">{{ $row->module }}</option>
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>Employee Name:</label>
+                       <input type="text" class="form-control" name="employee_name" required id="edit_employee_name">
+                    </div>
+                    <div class="form-group">
+                       <label>Module:</label>
+                       <select class="form-control sel3" name="user_group" id="edit_user_group" onchange="change_userrole_edit()">
+                          <option value="">Select Module</option>
+                          @foreach($module as $row)
+                          <option value="{{ $row->module }}">{{ $row->module }}</option>
                           @endforeach
-                         </select>
-                     </div>
-                     <div class="form-group">
-                        <label>User Role:</label>
-                         <select class="form-control sel3" name="user_role" id="edit_user_role">
-                              
-                         </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Operation:</label>
-                        <select class="form-control sel3" name="operation" id="edit_user_operation">
-                            <option value="">Select Operation</option>
-                            @foreach($operations as $row)
-                            <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
-                            @endforeach
-                         </select>
-                     </div>
-                  </div>
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>User Role:</label>
+                       <select class="form-control sel3" name="user_role" id="edit_user_role">
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>Operation:</label>
+                       <select class="form-control sel3" name="operation" id="edit_user_operation">
+                          <option value="">Select Operation</option>
+                          @foreach($operations as $row)
+                          <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
-
 <!-- Modal -->
 <div class="modal fade" id="delete-user-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/delete_user" method="POST" id="delete-user-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  Remove User
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                        <input type="hidden" name="user_id">
-                        <div class="row">
-                           <div class="col-sm-12"style="font-size: 12pt;">
-                              Remove <b><span></span></b>?
-                           </div>               
-                        </div>
-                  </div>
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/delete_user" method="POST" id="delete-user-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 Remove User
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <input type="hidden" name="user_id">
+                    <div class="row">
+                       <div class="col-sm-12"style="font-size: 12pt;">
+                          Remove <b><span></span></b>?
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <!-- Modal -->
 <div class="modal fade" id="add-user-group-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/save_user_group" method="POST" id="add-user-group-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Add User Group
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="form-group">
-                        <label>Module:</label>
-                         <select class="form-control sel11" name="add_user_group" id="add_user_group">
-                              <option value="">Select Module</option>
-                               @foreach($module as $row)
-                              <option value="{{ $row->module }}">{{ $row->module }}</option>
-                             @endforeach
-                         </select>
-                     </div>
-                     <div class="form-group">
-                        <label>User Role:</label>
-                        <select class="form-control sel11" name="add_user_role" id="add_user_role">
-                             <option value="Production Supervisor">Production Supervisor</option>
-                             <option value="Production Manager">Production Manager</option>
-                             <option value="QA Manager">QA Manager</option>
-                             <option value="QA Inspector">QA Inspector</option>
-                             <option value="Maintenance Manager">Maintenance Manager</option>
-                             <option value="Maintenance Staff">Maintenance Staff</option>
-                         </select>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/save_user_group" method="POST" id="add-user-group-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Add User Group
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label>Module:</label>
+                       <select class="form-control sel11" name="add_user_group" id="add_user_group">
+                          <option value="">Select Module</option>
+                          @foreach($module as $row)
+                          <option value="{{ $row->module }}">{{ $row->module }}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>User Role:</label>
+                       <select class="form-control sel11" name="add_user_role" id="add_user_role">
+                          <option value="Production Supervisor">Production Supervisor</option>
+                          <option value="Production Manager">Production Manager</option>
+                          <option value="QA Manager">QA Manager</option>
+                          <option value="QA Inspector">QA Inspector</option>
+                          <option value="Maintenance Manager">Maintenance Manager</option>
+                          <option value="Maintenance Staff">Maintenance Staff</option>
+                       </select>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="edit-user-group-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/update_user_group" method="POST" id="edit-user-group-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Edit User Group
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                <input type="hidden" name="edit_user_group_regis_id" id="edit_user_group_regis_id">
-                <input type="hidden" name="edit_orig_module" id="edit_orig_module">
-                <input type="hidden" name="edit_orig_role" id="edit_orig_role">
-                  <div class="col-md-12">
-                     <div class="form-group">
-                        <label>Module:</label>
-                         <select class="form-control sel12" name="edit_user_group_regis" id="edit_user_group_regis">
-                              <option value="">Select Module</option>
-                               @foreach($module as $row)
-                              <option value="{{ $row->module }}">{{ $row->module }}</option>
-                             @endforeach
-                         </select>
-                     </div>
-                     <div class="form-group">
-                        <label>User Role:</label>
-                        <select class="form-control sel12" name="edit_user_role_regis" id="edit_user_role_regis">
-                             <option value="Production Supervisor">Production Supervisor</option>
-                             <option value="Production Manager">Production Manager</option>
-                             <option value="QA Manager">QA Manager</option>
-                             <option value="QA Inspector">QA Inspector</option>
-                             <option value="Maintenance Manager">Maintenance Manager</option>
-                             <option value="Maintenance Staff">Maintenance Staff</option>
-                         </select>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/update_user_group" method="POST" id="edit-user-group-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Edit User Group
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <input type="hidden" name="edit_user_group_regis_id" id="edit_user_group_regis_id">
+                 <input type="hidden" name="edit_orig_module" id="edit_orig_module">
+                 <input type="hidden" name="edit_orig_role" id="edit_orig_role">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label>Module:</label>
+                       <select class="form-control sel12" name="edit_user_group_regis" id="edit_user_group_regis">
+                          <option value="">Select Module</option>
+                          @foreach($module as $row)
+                          <option value="{{ $row->module }}">{{ $row->module }}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>User Role:</label>
+                       <select class="form-control sel12" name="edit_user_role_regis" id="edit_user_role_regis">
+                          <option value="Production Supervisor">Production Supervisor</option>
+                          <option value="Production Manager">Production Manager</option>
+                          <option value="QA Manager">QA Manager</option>
+                          <option value="QA Inspector">QA Inspector</option>
+                          <option value="Maintenance Manager">Maintenance Manager</option>
+                          <option value="Maintenance Staff">Maintenance Staff</option>
+                       </select>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-user-group-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/delete_user_group" method="POST" id="delete-user-group-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  Remove User Group
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                        <input type="hidden" name="delete_user_group_id" id="delete_user_group_id">
-                        <div class="row">
-                           <div class="col-sm-12"style="font-size: 12pt;">
-                              <label> Remove User Group <span id="delete_label_user_group" style="font-weight: bold;"></span></label>?
-                           </div>               
-                        </div>
-                  </div>
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/delete_user_group" method="POST" id="delete-user-group-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 Remove User Group
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <input type="hidden" name="delete_user_group_id" id="delete_user_group_id">
+                    <div class="row">
+                       <div class="col-sm-12"style="font-size: 12pt;">
+                          <label> Remove User Group <span id="delete_label_user_group" style="font-weight: bold;"></span></label>?
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
-
-
 <!-- Reject Setup -->
-
 <div class="modal fade" id="add-reject-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document" style="min-width: 60%;">
-      <form action="/save_reject_list" method="POST" id="save-reject-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title "> Add Reject Checklist
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-md" role="document" style="min-width: 60%;">
+     <form action="/save_reject_list" method="POST" id="save-reject-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title "> Add Reject Checklist</h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div  style="margin:-5px; ">
-                      <a href="#" class="btn btn-primary add-row pull-right" >
-                        <i class="now-ui-icons ui-1_simple-add"></i>Add
-                      </a>
+                       <a href="#" class="btn btn-primary add-row pull-right" >
+                       <i class="now-ui-icons ui-1_simple-add"></i>Add
+                       </a>
                     </div>
                     <div class="row">
-                      <div class="col-md-4" style="display:none;" id="div_op_operation">
-                        <div class="form-group">
-                            <label>Operation:</label>
-                            <select class="form-controls sel6" name="op_operation" id="op_operation" class="op_operation">
-                            </select>
-                        </div>
-                      </div>
-                        <div class="col-md-4">
+                       <div class="col-md-4" style="display:none;" id="div_op_operation">
                           <div class="form-group">
-                              <label>Category:</label>
-                              <select class="form-controls sel6" name="reject_category" id="reject_category" class="reject_category" required="">
-                              </select>
+                             <label>Operation:</label>
+                             <select class="form-controls sel6" name="op_operation" id="op_operation" class="op_operation">
+                             </select>
                           </div>
-                        </div>
+                       </div>
+                       <div class="col-md-4">
+                          <div class="form-group">
+                             <label>Category:</label>
+                             <select class="form-controls sel6" name="reject_category" id="reject_category" class="reject_category" required="">
+                             </select>
+                          </div>
+                       </div>
                     </div>
-                    
-                     <input type="hidden" id="reject_owner" name="reject_owner">
-                     
-                  <table class="table" id="addreject-table" style="font-size: 10px;">
-                     <thead>
-                        <tr>
-                           <th style=" text-align: center;font-weight: bold;">No.</th>
-                           <th style=" text-align: center;font-weight: bold;" id="checklist_th" >Reject Checklist:</th>
-                           <th style=" text-align: center;font-weight: bold;">Reject Reason</th>
-                           <th style=" text-align: center;font-weight: bold;">Material Type</th>
-                           <th style=" text-align: center;font-weight: bold;">Responsible</th>
-                           <th style=" text-align: center;font-weight: bold;" >Recommended Action</th>
-                           <th style=" text-align: center;font-weight: bold;"></th>
-                        </tr>
-                     </thead>
-                     <tbody class="table-body text-center">
-                        <tr>
-                           
-                        </tr>
-                     </tbody>
-                  </table>
-
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                    <input type="hidden" id="reject_owner" name="reject_owner">
+                    <table class="table" id="addreject-table" style="font-size: 10px;">
+                       <thead>
+                          <tr>
+                             <th style=" text-align: center;font-weight: bold;">No.</th>
+                             <th style=" text-align: center;font-weight: bold;" id="checklist_th" >Reject Checklist:</th>
+                             <th style=" text-align: center;font-weight: bold;">Reject Reason</th>
+                             <th style=" text-align: center;font-weight: bold;">Material Type</th>
+                             <th style=" text-align: center;font-weight: bold;">Responsible</th>
+                             <th style=" text-align: center;font-weight: bold;" >Recommended Action</th>
+                             <th style=" text-align: center;font-weight: bold;"></th>
+                          </tr>
+                       </thead>
+                       <tbody class="table-body text-center">
+                          <tr>
+                          </tr>
+                       </tbody>
+                    </table>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="edit-reject-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/update_reject_list" method="POST" id="update-reject-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Edit Reject list
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                      <div class="form-group" id="div_operation_edit">
-                          <label>Operation:</label>
-                          <select class="form-control sel7" name="edit_reject_operation" id="edit_reject_operation">
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_reject_operation" id="orig_reject_operation">
-                      </div>
-                      <div class="form-group">
-                          <input type="hidden" class="form-control" name="edit_id_reject" required id="edit_id_reject">
-                          <label>Category:</label>
-                          <select class="form-control sel7" name="edit_reject_category" id="edit_reject_category" required>
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_reject_category" required id="orig_reject_category">
-                      </div>
-                      <input type="hidden" name="reloadtbl_edit" id="reloadtbl_edit">
-                      <input type="hidden"  name="edit_reject_owner" id="edit_reject_owner" class="edit_reject_owner">
-                      <div class="form-group" id="edit_reject_checklist_div">
-                          <label>Reject Checklist:</label>
-                          <input type="text" class="form-control" name="edit_reject_checklist" id="edit_reject_checklist">
-                          <input type="hidden" class="form-control" name="orig_reject_checklist" id="orig_reject_checklist">
-                      </div>
-                      <div class="form-group">
-                          <label>Reject Reason:</label>
-                          <input type="text" class="form-control" name="edit_reject_reason" required id="edit_reject_reason">
-                          <input type="hidden" class="form-control" name="orig_reject_reason" required id="orig_reject_reason">
-                      </div>
-                      <div class="form-group" id="edit_reject_responsible_div" style="">
-                          <label>Responsible:</label>
-                          <select class="form-controls sel7" name="edit_reject_responsible" id="edit_reject_responsible" class="edit_reject_responsible" required>
-                              <option value="" selected>Select Responsible</option>
-                              <option value="Engineering">Engineering</option>
-                              <option value="Operator">Operator</option>
-                              <option value="Assembler">Assembler</option>
-                              <option value="Supplier">Supplier</option>
-                              <option value="Machine/Equipment">Machine/Equipment</option>
-                              <option value="Others">Others</option>
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_reject_responsible"  id="orig_reject_responsible">
-                      </div>
-                      <div class="form-group" style="" id="edit_r_action_div">
-                          <label>Recommended Action:</label>
-                          <select class="form-controls sel7" name="edit_r_action" id="edit_r_action" class="edit_r_action" required>
-                            <option value="" selected>Select Recommended Action</option>
-                            <option value="Undefined">Undefined</option>
-                            <option value="Rework">Rework</option>
-                            <option value="Replace">Replace</option>
-                            <option value="Scrap">Scrap</option>
-                            <option value="Use as is">Use as is</option>
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_r_action"  id="orig_r_action">
-                      </div>
-                      <div class="form-group">
-                          <label>Material type:</label>
-                          <select class="form-controls sel7" name="edit_material_type" id="edit_material_type" class="edit_material_type">
-                          </select>
-                          <input type="hidden" class="form-control" name="orig_material_type" id="orig_material_type">
-                      </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/update_reject_list" method="POST" id="update-reject-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Edit Reject list
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group" id="div_operation_edit">
+                       <label>Operation:</label>
+                       <select class="form-control sel7" name="edit_reject_operation" id="edit_reject_operation">
+                       </select>
+                       <input type="hidden" class="form-control" name="orig_reject_operation" id="orig_reject_operation">
+                    </div>
+                    <div class="form-group">
+                       <input type="hidden" class="form-control" name="edit_id_reject" required id="edit_id_reject">
+                       <label>Category:</label>
+                       <select class="form-control sel7" name="edit_reject_category" id="edit_reject_category" required>
+                       </select>
+                       <input type="hidden" class="form-control" name="orig_reject_category" required id="orig_reject_category">
+                    </div>
+                    <input type="hidden" name="reloadtbl_edit" id="reloadtbl_edit">
+                    <input type="hidden"  name="edit_reject_owner" id="edit_reject_owner" class="edit_reject_owner">
+                    <div class="form-group" id="edit_reject_checklist_div">
+                       <label>Reject Checklist:</label>
+                       <input type="text" class="form-control" name="edit_reject_checklist" id="edit_reject_checklist">
+                       <input type="hidden" class="form-control" name="orig_reject_checklist" id="orig_reject_checklist">
+                    </div>
+                    <div class="form-group">
+                       <label>Reject Reason:</label>
+                       <input type="text" class="form-control" name="edit_reject_reason" required id="edit_reject_reason">
+                       <input type="hidden" class="form-control" name="orig_reject_reason" required id="orig_reject_reason">
+                    </div>
+                    <div class="form-group" id="edit_reject_responsible_div" style="">
+                       <label>Responsible:</label>
+                       <select class="form-controls sel7" name="edit_reject_responsible" id="edit_reject_responsible" class="edit_reject_responsible" required>
+                          <option value="" selected>Select Responsible</option>
+                          <option value="Engineering">Engineering</option>
+                          <option value="Operator">Operator</option>
+                          <option value="Assembler">Assembler</option>
+                          <option value="Supplier">Supplier</option>
+                          <option value="Machine/Equipment">Machine/Equipment</option>
+                          <option value="Others">Others</option>
+                       </select>
+                       <input type="hidden" class="form-control" name="orig_reject_responsible"  id="orig_reject_responsible">
+                    </div>
+                    <div class="form-group" style="" id="edit_r_action_div">
+                       <label>Recommended Action:</label>
+                       <select class="form-controls sel7" name="edit_r_action" id="edit_r_action" class="edit_r_action" required>
+                          <option value="" selected>Select Recommended Action</option>
+                          <option value="Undefined">Undefined</option>
+                          <option value="Rework">Rework</option>
+                          <option value="Replace">Replace</option>
+                          <option value="Scrap">Scrap</option>
+                          <option value="Use as is">Use as is</option>
+                       </select>
+                       <input type="hidden" class="form-control" name="orig_r_action"  id="orig_r_action">
+                    </div>
+                    <div class="form-group">
+                       <label>Material type:</label>
+                       <select class="form-controls sel7" name="edit_material_type" id="edit_material_type" class="edit_material_type">
+                       </select>
+                       <input type="hidden" class="form-control" name="orig_material_type" id="orig_material_type">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-reject-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/delete_rejectlist" method="POST" id="delete-reject-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/delete_rejectlist" method="POST" id="delete-reject-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
                  Delete Reject list
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12" style="font-size:13pt;">
-                     <div class="form-group">
-                        <label style="padding-left: 10px;display:inline;">Are you sure to delete reject checklist -</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_rejectlist_label"></label>?
-                        <input type="hidden" name="delete_rejectlist_id" id="delete_rejectlist_id">
-                     </div>
-                  </div>
-                  <input type="hidden" name="delete_reloadtbl" id="delete_reloadtbl">
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12" style="font-size:13pt;">
+                    <div class="form-group">
+                       <label style="padding-left: 10px;display:inline;">Are you sure to delete reject checklist -</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_rejectlist_label"></label>?
+                       <input type="hidden" name="delete_rejectlist_id" id="delete_rejectlist_id">
+                    </div>
+                 </div>
+                 <input type="hidden" name="delete_reloadtbl" id="delete_reloadtbl">
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="add-reject-category-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-md" role="document">
-        <form action="/save_reject_category" method="POST" id="add-reject-category-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Add Reject Category
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/save_reject_category" method="POST" id="add-reject-category-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Add Reject Category
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label>Type:</label>
-                        <select class="form-controls sel8" name="reject_ctgtype" id="reject_ctgtype" required="">
-                            <option value="Minor Reject(s)">Minor Reject(s)</option>
-                            <option value="Major Reject(s)">Major Reject(s)</option>
-                            <option value="Critical Reject(s)">Critical Reject(s)</option>
-                        </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Reject Category:</label>
-                        <input type="text" class="form-control" name="reject_category" required id="reject_category">
-                     </div>
+                       <label>Type:</label>
+                       <select class="form-controls sel8" name="reject_ctgtype" id="reject_ctgtype" required="">
+                          <option value="Minor Reject(s)">Minor Reject(s)</option>
+                          <option value="Major Reject(s)">Major Reject(s)</option>
+                          <option value="Critical Reject(s)">Critical Reject(s)</option>
+                       </select>
+                    </div>
                     <div class="form-group">
-                        <label>Description:</label>
-                        <textarea class="form-control" name="reject_ctgdesc" required id="reject_ctgdesc" cols="30" rows="5" style="width:100%;max-width:100%;min-width:100%;"></textarea>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label>Reject Category:</label>
+                       <input type="text" class="form-control" name="reject_category" required id="reject_category">
+                    </div>
+                    <div class="form-group">
+                       <label>Description:</label>
+                       <textarea class="form-control" name="reject_ctgdesc" required id="reject_ctgdesc" cols="30" rows="5" style="width:100%;max-width:100%;min-width:100%;"></textarea>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="edit-reject-category-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-md" role="document">
-        <form action="/update_reject_category" method="POST" id="edit-reject-category-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Edit Reject Category
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/update_reject_category" method="POST" id="edit-reject-category-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Edit Reject Category
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <input type="hidden" name="ctg_id" id="ctg_id">
-                        <label>Type:</label>
-                        <select class="form-control" name="edit_type" id="edit_type" required>
-                            <option value="Minor Reject(s)">Minor Reject(s)</option>
-                            <option value="Major Reject(s)">Major Reject(s)</option>
-                            <option value="Critical Reject(s)">Critical Reject(s)</option>
-                            <option value="Operator Reject(s)">Operator Reject(s)</option>
-                        </select>
-                        <input type="hidden" name="orig_reject_ctgtype" id="orig_reject_ctgtype">
-                     </div>
-                     <div class="form-group">
-                        <label>Reject Category:</label>
-                        <input type="text" class="form-control" name="edit_category" required id="edit_category">
-                        <input type="hidden" name="orig_reject_category" id="orig_category">
-                     </div>
+                       <input type="hidden" name="ctg_id" id="ctg_id">
+                       <label>Type:</label>
+                       <select class="form-control" name="edit_type" id="edit_type" required>
+                          <option value="Minor Reject(s)">Minor Reject(s)</option>
+                          <option value="Major Reject(s)">Major Reject(s)</option>
+                          <option value="Critical Reject(s)">Critical Reject(s)</option>
+                          <option value="Operator Reject(s)">Operator Reject(s)</option>
+                       </select>
+                       <input type="hidden" name="orig_reject_ctgtype" id="orig_reject_ctgtype">
+                    </div>
                     <div class="form-group">
-                        <label>Description:</label>
-                        <textarea class="form-control" name="edit_reject_ctgdesc" required id="edit_reject_ctgdesc" cols="30" rows="5" style="width:100%;max-width:100%;min-width:100%;"></textarea>
-                        <input type="hidden" name="orig_reject_ctgdesc" id="orig_reject_ctgdesc">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label>Reject Category:</label>
+                       <input type="text" class="form-control" name="edit_category" required id="edit_category">
+                       <input type="hidden" name="orig_reject_category" id="orig_category">
+                    </div>
+                    <div class="form-group">
+                       <label>Description:</label>
+                       <textarea class="form-control" name="edit_reject_ctgdesc" required id="edit_reject_ctgdesc" cols="30" rows="5" style="width:100%;max-width:100%;min-width:100%;"></textarea>
+                       <input type="hidden" name="orig_reject_ctgdesc" id="orig_reject_ctgdesc">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-reject-category-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/delete_reject_category" method="POST" id="delete-reject-category-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/delete_reject_category" method="POST" id="delete-reject-category-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
                  Delete Reject Category
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="form-group">
-                        <label style="padding-left: 10px;display:inline;">Are you sure to delete reject category -</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_reject_category_label"></label>?
-                        <input type="hidden" name="delete_reject_category_id" id="delete_reject_category_id">
-                     </div>
-                  </div>
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label style="padding-left: 10px;display:inline;">Are you sure to delete reject category -</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_reject_category_label"></label>?
+                       <input type="hidden" name="delete_reject_category_id" id="delete_reject_category_id">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="add-checklist-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-md" role="document" style="min-width: 40%;">
-      <form action="/save_checklist" method="POST" id="save-checklist-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                 
-               </h5>
-            </div>
-            <div class="modal-body"> 
-                <input type="hidden" name="owner_checklist" id="owner_checklist">
-                <div class="col-sm-12">
-                  <div class="form-group">
-                        <label><b>Workstation:</b></label>
-                        <select class="form-controls sel4" name="workstation_id" id="r_workstation_id" class="r_workstation_id" required>
-                          
-                        </select>
-                  </div>
-                  <a href="#" class="btn btn-primary add-row">
-                    <i class="now-ui-icons ui-1_simple-add"></i>Add
-                  </a>
-                  <table class="table" id="reject-table" style="font-size: 10px;">
-                     <thead>
-                        <tr>
-                           <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                           <th style="width: 45%; text-align: center;font-weight: bold;">Type</th>
-                           <th style="width: 45%; text-align: center;font-weight: bold;">Description</th>
-                           <th style="width: 5%; text-align: center;font-weight: bold;"></th>
-                        </tr>
-                     </thead>
-                     <tbody class="table-body text-center">
-                        <tr>
-                           <td>1</td>
-                           <td>
-                              <select name="new_checklist_r_type[]" class="form-control onchange-selection count-row" id="first-selection" data-idcolumn=''>
+  <div class="modal-dialog modal-md" role="document" style="min-width: 40%;">
+     <form action="/save_checklist" method="POST" id="save-checklist-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+              </h5>
+           </div>
+           <div class="modal-body">
+              <input type="hidden" name="owner_checklist" id="owner_checklist">
+              <div class="col-sm-12">
+                 <div class="form-group">
+                    <label><b>Workstation:</b></label>
+                    <select class="form-controls sel4" name="workstation_id" id="r_workstation_id" class="r_workstation_id" required>
+                    </select>
+                 </div>
+                 <a href="#" class="btn btn-primary add-row">
+                 <i class="now-ui-icons ui-1_simple-add"></i>Add
+                 </a>
+                 <table class="table" id="reject-table" style="font-size: 10px;">
+                    <thead>
+                       <tr>
+                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                          <th style="width: 45%; text-align: center;font-weight: bold;">Type</th>
+                          <th style="width: 45%; text-align: center;font-weight: bold;">Description</th>
+                          <th style="width: 5%; text-align: center;font-weight: bold;"></th>
+                       </tr>
+                    </thead>
+                    <tbody class="table-body text-center">
+                       <tr>
+                          <td>1</td>
+                          <td>
+                             <select name="new_checklist_r_type[]" class="form-control onchange-selection count-row" id="first-selection" data-idcolumn=''>
                                 @foreach($reject_category as $row)
-                                    <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
+                                <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
                                 @endforeach
-                                 
-                              </select>
-                           </td>
-                           <td>
-                              <select name="new_checklist_r_desc[]" class="form-control second-selection-only" id="">
-                                 <option value="">--Description--</option>
-                                 
-                              </select>
-                           </td>
-                           <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
-                        </tr>
-                     </tbody>
-                  </table>
-               </div>  
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                             </select>
+                          </td>
+                          <td>
+                             <select name="new_checklist_r_desc[]" class="form-control second-selection-only" id="">
+                                <option value="">--Description--</option>
+                             </select>
+                          </td>
+                          <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
+                       </tr>
+                    </tbody>
+                 </table>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-checklist-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 30%;">
-      <form action="/delete_checklist" method="POST" id="delete-checklist-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title">
-                <span>Delete</span>
-                <span class="operation-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/delete_checklist" method="POST" id="delete-checklist-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title">
+                 <span>Delete</span>
+                 <span class="operation-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group"  style="font-size:13pt;">
-                        <label style="padding-left: 10px;display:inline;">Delete</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_checklist_label"></label><label style="padding-left: 10px;display:inline;">from</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_workstation_label"></label><label style="padding-left: 10px;display:inline;">?</label>
-                        <input type="hidden" name="check_list_id" id="delete_checklist_id">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer" style="padding: 5px 8px;">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label style="padding-left: 10px;display:inline;">Delete</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_checklist_label"></label><label style="padding-left: 10px;display:inline;">from</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_workstation_label"></label><label style="padding-left: 10px;display:inline;">?</label>
+                       <input type="hidden" name="check_list_id" id="delete_checklist_id">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="add-sampling-plan-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document">
-      <form action="/save_sampling_plan" method="POST" id="add-sampling-plan-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title">
-                <span>Add Sampling Plan</span>
-                <span class="sampling-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Category:</label>
-                            <select class="form-control sel9" name="sp_category" id="sp_category" required="">
-                            </select>
-                        </div>
+  <div class="modal-dialog" role="document">
+     <form action="/save_sampling_plan" method="POST" id="add-sampling-plan-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title">
+                 <span>Add Sampling Plan</span>
+                 <span class="sampling-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label>Category:</label>
+                       <select class="form-control sel9" name="sp_category" id="sp_category" required="">
+                       </select>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Lot Size(Min):</label>
-                            <input type="text" class="form-control" name="lot_min" required id="lot_min">
-                         </div>
+                 </div>
+              </div>
+              <div class="row">
+                 <div class="col-md-6">
+                    <div class="form-group">
+                       <label>Lot Size(Min):</label>
+                       <input type="text" class="form-control" name="lot_min" required id="lot_min">
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Lot Size(Max):</label>
-                            <input type="text" class="form-control" name="lot_max" required id="lot_max">
-                         </div>
+                 </div>
+                 <div class="col-md-6">
+                    <div class="form-group">
+                       <label>Lot Size(Max):</label>
+                       <input type="text" class="form-control" name="lot_max" required id="lot_max">
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Sample Size:</label>
-                            <input type="text" class="form-control" name="spl_size" required id="spl_size">
-                         </div>
+                 </div>
+                 <div class="col-md-6">
+                    <div class="form-group">
+                       <label>Sample Size:</label>
+                       <input type="text" class="form-control" name="spl_size" required id="spl_size">
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Acceptance Level:</label>
-                            <input type="text" class="form-control" name="accpt_lvl" required id="accpt_lvl">
-                         </div>
+                 </div>
+                 <div class="col-md-6">
+                    <div class="form-group">
+                       <label>Acceptance Level:</label>
+                       <input type="text" class="form-control" name="accpt_lvl" required id="accpt_lvl">
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Reject Level:</label>
-                            <input type="text" class="form-control" name="rjt_lvl" required id="rjt_lvl">
-                         </div>
+                 </div>
+                 <div class="col-md-6">
+                    <div class="form-group">
+                       <label>Reject Level:</label>
+                       <input type="text" class="form-control" name="rjt_lvl" required id="rjt_lvl">
                     </div>
-                </div>
-                     
-            </div>
-            <div class="modal-footer" style="padding: 5px 8px;">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-sampling-plan-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 30%;">
-      <form action="/delete_sampling_plan" method="POST" id="delete-sampling-plan-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title">
-                <span>Delete Sampling Plan</span>
-                <span class="sampling-delete-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/delete_sampling_plan" method="POST" id="delete-sampling-plan-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title">
+                 <span>Delete Sampling Plan</span>
+                 <span class="sampling-delete-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label style="padding-left: 10px;display:inline;">Are you sure to delete sampling plan?</label>
-                        <input type="hidden" name="delete_sampling_plan_id" id="delete_sampling_plan_id">
-                        <input type="hidden" name="delete_sampling_plan_category" id="delete_sampling_plan_category">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer" style="padding: 5px 8px;">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label style="padding-left: 10px;display:inline;">Are you sure to delete sampling plan?</label>
+                       <input type="hidden" name="delete_sampling_plan_id" id="delete_sampling_plan_id">
+                       <input type="hidden" name="delete_sampling_plan_category" id="delete_sampling_plan_category">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade bd-example-modal-lg" id="add-item-warehouse-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document">
-      <form action="/save_item_classification_warehouse" method="POST" id="save-item-classification-warehouse-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Add Item Warehouse
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-lg" role="document">
+     <form action="/save_item_classification_warehouse" method="POST" id="save-item-classification-warehouse-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Add Item Warehouse
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label>Operation:</label>
-                        <select class="form-controls sel5" name="operation" id="icw_operation" required>
+                       <label>Operation:</label>
+                       <select class="form-controls sel5" name="operation" id="icw_operation" required>
                           @foreach($operation_list as $row)
-                            <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
+                          <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
                           @endforeach
-                        </select>
-                     </div>
-                     <a href="#" class="btn btn-primary add-row">
+                       </select>
+                    </div>
+                    <a href="#" class="btn btn-primary add-row">
                     <i class="now-ui-icons ui-1_simple-add"></i>Add
-                  </a>
-                  <table class="table" id="icw-table" style="font-size: 10px;">
-                     <thead>
-                        <tr>
-                           <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                           {{-- <th style="width: 22.5%; text-align: center;font-weight: bold;">Item Group</th> --}}
-                           <th style="width: 22.5%; text-align: center;font-weight: bold;">Item Classification</th>
-                           <th style="width: 22.5%; text-align: center;font-weight: bold;">Warehouse</th>
-                           {{-- <th style="width: 22.5%; text-align: center;font-weight: bold;">Target Warehouse</th> --}}
-                           <th style="width: 5%; text-align: center;font-weight: bold;"></th>
-                        </tr>
-                     </thead>
-                     <tbody class="table-body text-center">
-                        <tr>
-                           <td>1</td>
-                           <td>
-                              <select name="new_item_class[]" class="form-control sel5" id="icw_item_classification" data-idcolumn=''>
-                                <option value="none" selected>Select Item Classification</option>
-                                @foreach($item_classification as $ic)
-                                    <option value="{{ $ic->name }}">{{ $ic->name }}</option>
-                                @endforeach
-                              </select>
-                           </td>
-                           <td>
-                              <select name="new_source_warehouse[]" class="form-control second-selection sel5" id="icw_s_warehouse">
-                                <option value="none" selected>Select Source Warehouse</option>
-                                @foreach($warehouse as $w)
-                                    <option value="{{ $w->name }}">{{ $w->name }}</option>
-                                @endforeach
-                              </select>
-                           </td>
-                           <td>
-                              <select name="new_target_warehouse[]" class="form-control third-selection sel5" id="icw_t_warehouse">
-                                <option value="none" selected>Select Target Warehouse</option>
-                                @foreach($warehouse as $w)
-                                  <option value="{{ $w->name }}">{{ $w->name }}</option>
-                                @endforeach
-                              </select>
-                           </td>
-                           <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
-                        </tr>
-                     </tbody>
-                  </table>
-                     
-                  </div>
-                
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                    </a>
+                    <table class="table" id="icw-table" style="font-size: 10px;">
+                       <thead>
+                          <tr>
+                             <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                             {{-- 
+                             <th style="width: 22.5%; text-align: center;font-weight: bold;">Item Group</th>
+                             --}}
+                             <th style="width: 22.5%; text-align: center;font-weight: bold;">Item Classification</th>
+                             <th style="width: 22.5%; text-align: center;font-weight: bold;">Warehouse</th>
+                             {{-- 
+                             <th style="width: 22.5%; text-align: center;font-weight: bold;">Target Warehouse</th>
+                             --}}
+                             <th style="width: 5%; text-align: center;font-weight: bold;"></th>
+                          </tr>
+                       </thead>
+                       <tbody class="table-body text-center">
+                          <tr>
+                             <td>1</td>
+                             <td>
+                                <select name="new_item_class[]" class="form-control sel5" id="icw_item_classification" data-idcolumn=''>
+                                   <option value="none" selected>Select Item Classification</option>
+                                   @foreach($item_classification as $ic)
+                                   <option value="{{ $ic->name }}">{{ $ic->name }}</option>
+                                   @endforeach
+                                </select>
+                             </td>
+                             <td>
+                                <select name="new_source_warehouse[]" class="form-control second-selection sel5" id="icw_s_warehouse">
+                                   <option value="none" selected>Select Source Warehouse</option>
+                                   @foreach($warehouse as $w)
+                                   <option value="{{ $w->name }}">{{ $w->name }}</option>
+                                   @endforeach
+                                </select>
+                             </td>
+                             <td>
+                                <select name="new_target_warehouse[]" class="form-control third-selection sel5" id="icw_t_warehouse">
+                                   <option value="none" selected>Select Target Warehouse</option>
+                                   @foreach($warehouse as $w)
+                                   <option value="{{ $w->name }}">{{ $w->name }}</option>
+                                   @endforeach
+                                </select>
+                             </td>
+                             <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
+                          </tr>
+                       </tbody>
+                    </table>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="edit-item-warehouse-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-md" role="document">
-      <form action="/edit_item_classification_warehouse" method="POST" id="edit-item-classification-warehouse-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Edit Item Warehouse
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/edit_item_classification_warehouse" method="POST" id="edit-item-classification-warehouse-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Edit Item Warehouse
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <input type="hidden" name="orig_item_class" id="orig_item_class">
                     <input type="hidden" name="orig_source_w" id="orig_source_w">
                     <input type="hidden" name="orig_item_group" id="orig_item_group">
@@ -1879,235 +1875,239 @@
                     <input type="hidden" name="orig_operation" id="orig_operation">
                     <input type="hidden" name="icw_id" id="icw_id">
                     <div class="form-group">
-                        <label>Operation:</label>
-                        <select class="form-controls sel10" name="edit_operation" id="edit_icw_operation" required>
+                       <label>Operation:</label>
+                       <select class="form-controls sel10" name="edit_operation" id="edit_icw_operation" required>
                           @foreach($operation_list as $row)
-                            <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
+                          <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
                           @endforeach
-                        </select>
-                     </div>
-                     {{-- <div class="form-group">
-                        <label>Item Group:</label>
-                        <select class="form-controls sel10 edit-onchange-selections-item-group" data-itemgroup='edit_icw_item_classification' data-dateslct="" name="edit_item_group" id="edit_icw_item_group" required>
-                          @foreach($item_group as $ig)
-                            <option value="{{ $ig->name }}">{{ $ig->name }}</option>
-                          @endforeach
-                        </select>
-                     </div> --}}
+                       </select>
+                    </div>
+                    {{-- 
                     <div class="form-group">
-                        <label>Item Classification:</label>
-                        <select class="form-controls sel10" name="edit_item_classification" id="edit_icw_item_classification" >
+                       <label>Item Group:</label>
+                       <select class="form-controls sel10 edit-onchange-selections-item-group" data-itemgroup='edit_icw_item_classification' data-dateslct="" name="edit_item_group" id="edit_icw_item_group" required>
+                          @foreach($item_group as $ig)
+                          <option value="{{ $ig->name }}">{{ $ig->name }}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                    --}}
+                    <div class="form-group">
+                       <label>Item Classification:</label>
+                       <select class="form-controls sel10" name="edit_item_classification" id="edit_icw_item_classification" >
                           <option value=""></option>
                           @foreach($item_classification as $ic)
-                            <option value="{{ $ic->name }}">{{ $ic->name }}</option>
+                          <option value="{{ $ic->name }}">{{ $ic->name }}</option>
                           @endforeach
-                        </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Warehouse:</label>
-                        <select class="form-controls sel10" name="edit_s_warehouse" id="edit_icw_s_warehouse" required>
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>Warehouse:</label>
+                       <select class="form-controls sel10" name="edit_s_warehouse" id="edit_icw_s_warehouse" required>
                           @foreach($warehouse as $w)
-                            <option value="{{ $w->name }}">{{ $w->name }}</option>
-                          @endforeach
-                        </select>
-                     </div>
-                     {{-- <div class="form-group">
-                        <label>Target Warehouse:</label>
-                        <select class="form-controls sel10" name="edit_t_warehouse" id="edit_icw_t_warehouse" required>
-                        @foreach($warehouse as $w)
                           <option value="{{ $w->name }}">{{ $w->name }}</option>
-                        @endforeach
-                        </select>
-                     </div> --}}
-                     
-                  </div>
-                
-
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                          @endforeach
+                       </select>
+                    </div>
+                    {{-- 
+                    <div class="form-group">
+                       <label>Target Warehouse:</label>
+                       <select class="form-controls sel10" name="edit_t_warehouse" id="edit_icw_t_warehouse" required>
+                          @foreach($warehouse as $w)
+                          <option value="{{ $w->name }}">{{ $w->name }}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                    --}}
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-item-warehouse-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 30%;">
-      <form action="/delete_item_classification_warehouse" method="POST" id="delete-item-classification-warehouse-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title">
-                <span>Delete Item Warehouse</span>
-                <span class="sampling-delete-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/delete_item_classification_warehouse" method="POST" id="delete-item-classification-warehouse-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title">
+                 <span>Delete Item Warehouse</span>
+                 <span class="sampling-delete-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label style="padding-left: 10px;display:inline;">Delete Item Classification Warehouse under </label><span id="icw_itemclass_label" style="font-weight: bold;"></span>?
-                        <input type="hidden" name="delete_icw_id" id="delete_icw_id">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer" style="padding: 5px 8px;">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label style="padding-left: 10px;display:inline;">Delete Item Classification Warehouse under </label><span id="icw_itemclass_label" style="font-weight: bold;"></span>?
+                       <input type="hidden" name="delete_icw_id" id="delete_icw_id">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="add-wip-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-md" role="document">
-        <form action="/save_wip" method="POST" id="add-wip-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Add Work In Progress
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/save_wip" method="POST" id="add-wip-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Add Work In Progress
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label>Type:</label>
-                        <select class="form-controls sel14" name="icw_wip_operation" id="icw_wip_operation" required="">
-                            @foreach($operation_list as $row)
-                              <option value="{{ $row->operation_id }}"> {{$row->operation_name}}</option>
-                            @endforeach
-                        </select>
-                     </div>
-                     <div class="form-group">
-                        <label>Work In Progress:</label>
-                        <select class="form-controls sel14" name="icw_workinprogress" id="ict_workinprogress" required>
-                        @foreach($warehouse_wip as $w)
+                       <label>Type:</label>
+                       <select class="form-controls sel14" name="icw_wip_operation" id="icw_wip_operation" required="">
+                          @foreach($operation_list as $row)
+                          <option value="{{ $row->operation_id }}"> {{$row->operation_name}}</option>
+                          @endforeach
+                       </select>
+                    </div>
+                    <div class="form-group">
+                       <label>Work In Progress:</label>
+                       <select class="form-controls sel14" name="icw_workinprogress" id="ict_workinprogress" required>
+                          @foreach($warehouse_wip as $w)
                           <option value="{{ $w->name }}">{{ $w->name }}</option>
-                        @endforeach
-                        </select>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                          @endforeach
+                       </select>
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="edit-wip-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-md" role="document">
-        <form action="/edit_wip" method="POST" id="edit-wip-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title ">
-                  <i class="now-ui-icons"></i> Edit Work In Progress
-               </h5>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/edit_wip" method="POST" id="edit-wip-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title ">
+                 <i class="now-ui-icons"></i> Edit Work In Progress
+              </h5>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label>Type:</label>
-                        <select class="form-controls sel15" name="edit_icw_wip_operation" id="edit_icw_wip_operation" required="">
-                            @foreach($operation_list as $row)
-                              <option value="{{ $row->operation_id }}"> {{$row->operation_name}}</option>
-                            @endforeach
-                        </select>
-                        <input type="hidden" name="orig_icw_wip_operation" id="orig_icw_wip_operation">
-                     </div>
-                     <div class="form-group">
-                        <input type="hidden" name="wip_id" id="wip_id">
-                        <label>Work In Progress:</label>
-                        <select class="form-controls sel15" name="edit_icw_workinprogress" id="edit_icw_workinprogress" required>
-                        @foreach($warehouse_wip as $w)
+                       <label>Type:</label>
+                       <select class="form-controls sel15" name="edit_icw_wip_operation" id="edit_icw_wip_operation" required="">
+                          @foreach($operation_list as $row)
+                          <option value="{{ $row->operation_id }}"> {{$row->operation_name}}</option>
+                          @endforeach
+                       </select>
+                       <input type="hidden" name="orig_icw_wip_operation" id="orig_icw_wip_operation">
+                    </div>
+                    <div class="form-group">
+                       <input type="hidden" name="wip_id" id="wip_id">
+                       <label>Work In Progress:</label>
+                       <select class="form-controls sel15" name="edit_icw_workinprogress" id="edit_icw_workinprogress" required>
+                          @foreach($warehouse_wip as $w)
                           <option value="{{ $w->name }}">{{ $w->name }}</option>
-                        @endforeach
-                        </select>
-                        <input type="hidden" name="orig_icw_workinprogress" id="orig_icw_workinprogress">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                          @endforeach
+                       </select>
+                       <input type="hidden" name="orig_icw_workinprogress" id="orig_icw_workinprogress">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-wip-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 30%;">
-      <form action="/delete_wip" method="POST" id="delete-wip-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title" id="modal-title">
-                <span>Delete Work In Progress</span>
-                <span class="sampling-delete-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/delete_wip" method="POST" id="delete-wip-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD;">
+              <h5 class="modal-title" id="modal-title">
+                 <span>Delete Work In Progress</span>
+                 <span class="sampling-delete-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label style="padding-left: 10px;display:inline;">Delete Work in Progress under </label><span id="wip_label" style="font-weight: bold;"></span>?
-                        <input type="hidden" name="delete_wip_id" id="delete_wip_id">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer" style="padding: 5px 8px;">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label style="padding-left: 10px;display:inline;">Delete Work in Progress under </label><span id="wip_label" style="font-weight: bold;"></span>?
+                       <input type="hidden" name="delete_wip_id" id="delete_wip_id">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="delete-email-trans-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 30%;">
-      <form action="/delete_email_recipient" method="POST" id="delete-email-trans-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD; padding: 5px 8px;">
-               <h5 class="modal-title" id="modal-title">
-                <span>Delete Email Recipient</span>
-                <span class="operation-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/delete_email_recipient" method="POST" id="delete-email-trans-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header text-white" style="background-color: #0277BD; padding: 5px 8px;">
+              <h5 class="modal-title" id="modal-title">
+                 <span>Delete Email Recipient</span>
+                 <span class="operation-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
                     <div class="form-group">
-                        <label style="display:inline;">Delete</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_email_label"></label><label style="padding-left: 10px;display:inline;">from</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_etrans_label"></label><label style="padding-left: 10px;display:inline;">?</label>
-                        <input type="hidden" name="email_id" id="delete_email_id">
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer" style="padding: 5px 8px;">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
+                       <label style="display:inline;">Delete</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_email_label"></label><label style="padding-left: 10px;display:inline;">from</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_etrans_label"></label><label style="padding-left: 10px;display:inline;">?</label>
+                       <input type="hidden" name="email_id" id="delete_email_id">
+                    </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer" style="padding: 5px 8px;">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
 </div>
 <div class="modal fade" id="add-late-delivery-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-md" role="document">
@@ -2115,40 +2115,37 @@
         @csrf
         <div class="modal-content">
            <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Add Reschedule Delivery Reason<br>
-              </h5>
+              <h5 class="modal-title" id="modal-title "> Add Reschedule Delivery Reason<br></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
+              <span aria-hidden="true">×</span>
               </button>
            </div>
            <div class="modal-body">
               <div class="form-row">
                  <div class="form-group col-md-12">
                     <button type="button" class="btn btn-primary pull-right" id="add-late-delivery-button" style="margin: 5px;">
-                       <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
                     </button>
                  </div>
                  <hr>
                  <div class="col-md-12">
-                 <table class="table" id="latedelivery-table" style="font-size: 10px; ">
-                   <col style="width: 5%;">
-                   <col style="width: 90%;">
-                   <col style="width: 5%;">
-                    <thead>
-                       <tr style="">
-                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                          <th style="width: 40%; text-align: center;font-weight: bold; ">Late Delivery Reason:</th>
-                          <th style="width: 5%; text-align: center;font-weight: bold; "></th>
-                       </tr>
-                    </thead>
-                    <tbody class="table-body text-center" style="">
-                       <tr style="">
-                       </tr>
-                    </tbody>
-                 </table>
-                 </div> 
+                    <table class="table" id="latedelivery-table" style="font-size: 10px; ">
+                       <col style="width: 5%;">
+                       <col style="width: 90%;">
+                       <col style="width: 5%;">
+                       <thead>
+                          <tr style="">
+                             <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                             <th style="width: 40%; text-align: center;font-weight: bold; ">Late Delivery Reason:</th>
+                             <th style="width: 5%; text-align: center;font-weight: bold; "></th>
+                          </tr>
+                       </thead>
+                       <tbody class="table-body text-center" style="">
+                          <tr style=""></tr>
+                       </tbody>
+                    </table>
+                 </div>
               </div>
-              
            </div>
            <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -2164,25 +2161,22 @@
         @csrf
         <div class="modal-content">
            <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Edit Reschedule Delivery Reason<br>
-              </h5>
+              <h5 class="modal-title" id="modal-title "> Edit Reschedule Delivery Reason<br></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
+              <span aria-hidden="true">×</span>
               </button>
            </div>
            <div class="modal-body">
-               <div class="row">
-                   <div class="col-md-12">
-                     <div class="form-group">
-                         <label>Late Delivery Reason:</label>
-                         <input type="text" name="edit_late_deli_reason" id="edit_late_deli_reason" class="form-control">
-                         <input type="hidden" name="orig_late_deli_reason" id="orig_late_deli_reason" class="form-control">
-                         <input type="hidden" name="transid" id="transid" class="form-control">
-
-                     </div>
-                     
-                   </div>
-               </div>
+              <div class="row">
+                 <div class="col-md-12">
+                    <div class="form-group">
+                       <label>Late Delivery Reason:</label>
+                       <input type="text" name="edit_late_deli_reason" id="edit_late_deli_reason" class="form-control">
+                       <input type="hidden" name="orig_late_deli_reason" id="orig_late_deli_reason" class="form-control">
+                       <input type="hidden" name="transid" id="transid" class="form-control">
+                    </div>
+                 </div>
+              </div>
            </div>
            <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -2199,21 +2193,19 @@
         <div class="modal-content">
            <div class="modal-header text-white" style="background-color: #0277BD;">
               <h5 class="modal-title" id="modal-title ">
-                
               </h5>
            </div>
-           <div class="modal-body"> 
-               <input type="hidden" name="operator_owner_checklist" id="operator_owner_checklist">
-               <input type="hidden" name="reload_operator_checklist" id="reload_operator_checklist">
-               <div class="col-sm-12">
+           <div class="modal-body">
+              <input type="hidden" name="operator_owner_checklist" id="operator_owner_checklist">
+              <input type="hidden" name="reload_operator_checklist" id="reload_operator_checklist">
+              <div class="col-sm-12">
                  <div class="form-group">
-                       <label><b>Workstation:</b></label>
-                       <select class="form-controls operator-checklist-sel" name="workstation_id" id="opchecklist_workstation_id" class="opchecklist_workstation_id" required>
-                         
-                       </select>
+                    <label><b>Workstation:</b></label>
+                    <select class="form-controls operator-checklist-sel" name="workstation_id" id="opchecklist_workstation_id" class="opchecklist_workstation_id" required>
+                    </select>
                  </div>
                  <a href="#" class="btn btn-primary add-row">
-                   <i class="now-ui-icons ui-1_simple-add"></i>Add
+                 <i class="now-ui-icons ui-1_simple-add"></i>Add
                  </a>
                  <table class="table" id="operator-checklist-table" style="font-size: 10px;">
                     <thead>
@@ -2230,16 +2222,16 @@
                           <td>1</td>
                           <td>
                              <select name="operator_new_checklist_r_type[]" class="form-control onchange-selection count-row" id="operator-first-selection" data-idcolumn=''>
-                               @foreach($reject_category as $row)
-                                   <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
-                               @endforeach
+                                @foreach($reject_category as $row)
+                                <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
+                                @endforeach
                              </select>
                           </td>
                           <td>
-                            <select name="operator_new_checklist_r_process[]" class="form-control">
-                               <option value="">--Process--</option>
-                            </select>
-                         </td>
+                             <select name="operator_new_checklist_r_process[]" class="form-control">
+                                <option value="">--Process--</option>
+                             </select>
+                          </td>
                           <td>
                              <select name="operator_new_checklist_r_desc[]" class="form-control operator-second-selection-only" id="">
                                 <option value="">--Description--</option>
@@ -2249,7 +2241,7 @@
                        </tr>
                     </tbody>
                  </table>
-              </div>  
+              </div>
            </div>
            <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -2266,16 +2258,17 @@
         <div class="modal-content">
            <div class="modal-header text-white" style="background-color: #0277BD;">
               <h5 class="modal-title" id="modal-title">
-               <span>Delete</span>
-               <span class="operation-text" style="font-weight: bolder;"></span></h5>
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">&times;</span>
-               </button>
+                 <span>Delete</span>
+                 <span class="operation-text" style="font-weight: bolder;"></span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
            </div>
            <div class="modal-body">
               <div class="row">
                  <div class="col-md-12">
-                   <div class="form-group" style="font-size:13pt;">
+                    <div class="form-group" style="font-size:13pt;">
                        <label style="padding-left: 10px;display:inline;">Delete</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_opchecklist_label"></label><label style="padding-left: 10px;display:inline;">from</label><label style="padding-left: 10px;display:inline;font-weight:bold;" id="delete_opworkstation_label"></label><label style="padding-left: 10px;display:inline;">?</label>
                        <input type="hidden" name="check_list_id" id="delete_opchecklist_id">
                     </div>
@@ -2297,38 +2290,36 @@
         @csrf
         <div class="modal-content">
            <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Add Material Type<br>
-              </h5>
+              <h5 class="modal-title" id="modal-title "> Add Material Type<br></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
+              <span aria-hidden="true">×</span>
               </button>
            </div>
            <div class="modal-body">
               <div class="form-row">
                  <div class="form-group col-md-12">
                     <button type="button" class="btn btn-primary pull-right" id="add-material-type-row" style="margin: 5px;">
-                       <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
                     </button>
                  </div>
                  <hr>
                  <div class="col-md-12">
-                 <table class="table" id="material-type-table" style="font-size: 10px; ">
-                   <col style="width: 5%;">
-                   <col style="width: 90%;">
-                   <col style="width: 5%;">
-                    <thead>
-                       <tr style="">
-                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                          <th style="width: 40%; text-align: center;font-weight: bold; ">Material Type</th>
-                          <th style="width: 5%; text-align: center;font-weight: bold; "></th>
-                       </tr>
-                    </thead>
-                    <tbody class="table-body text-center" style="">
-                       <tr style="">
-                       </tr>
-                    </tbody>
-                 </table>
-                 </div> 
+                    <table class="table" id="material-type-table" style="font-size: 10px; ">
+                       <col style="width: 5%;">
+                       <col style="width: 90%;">
+                       <col style="width: 5%;">
+                       <thead>
+                          <tr style="">
+                             <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                             <th style="width: 40%; text-align: center;font-weight: bold; ">Material Type</th>
+                             <th style="width: 5%; text-align: center;font-weight: bold; "></th>
+                          </tr>
+                       </thead>
+                       <tbody class="table-body text-center" style="">
+                          <tr style=""></tr>
+                       </tbody>
+                    </table>
+                 </div>
               </div>
            </div>
            <div class="modal-footer">
@@ -2345,135 +2336,21 @@
         @csrf
         <div class="modal-content">
            <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Edit Material Type<br>
-              </h5>
+              <h5 class="modal-title" id="modal-title "> Edit Material Type<br></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
+              <span aria-hidden="true">×</span>
               </button>
            </div>
            <div class="modal-body">
-               <div class="row">
-                   <div class="col-md-12">
-                     <div class="form-group">
-                         <label>Material Type:</label>
-                         <input type="text" name="edit_material_type" id="edit_material_type_setup" class="form-control">
-                         <input type="hidden" name="orig_material_type" id="orig_material_type_setup" class="form-control">
-                         <input type="hidden" name="mtypeid" id="mtypeid" class="form-control">
-
-                     </div>
-                     
-                   </div>
-               </div>
-           </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
-           </div>
-        </div>
-     </form>
-  </div>
-</div>
-<div class="modal fade" id="add-checklist-painting-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document" style="min-width: 40%;">
-    <form action="/save_checklist" method="POST" id="save-painting-checklist-frm">
-       @csrf
-       <div class="modal-content">
-          <div class="modal-header text-white" style="background-color: #0277BD;">
-             <h5 class="modal-title" id="modal-title ">
-               
-             </h5>
-          </div>
-          <div class="modal-body"> 
-              <input type="hidden" name="owner_checklist" id="painting_owner_checklist">
-              <div class="col-sm-12">
-                <div class="form-group">
-                      <label><b>Workstation:</b></label>
-                      <select class="form-controls sel4" name="workstation_id" id="painting_r_workstation_id" class="r_workstation_id" required>
-                        
-                      </select>
-                </div>
-                <a href="#" class="btn btn-primary add-row">
-                  <i class="now-ui-icons ui-1_simple-add"></i>Add
-                </a>
-                <table class="table" id="painting-reject-table" style="font-size: 10px;">
-                   <thead>
-                      <tr>
-                         <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                         <th style="width: 30%; text-align: center;font-weight: bold;">Type</th>
-                         <th style="width: 30%; text-align: center;font-weight: bold;">Process</th>
-                         <th style="width: 30%; text-align: center;font-weight: bold;">Description</th>
-                         <th style="width: 5%; text-align: center;font-weight: bold;"></th>
-                      </tr>
-                   </thead>
-                   <tbody class="table-body text-center">
-                      <tr>
-                         <td>1</td>
-                         <td>
-                            <select name="new_checklist_r_type[]" class="form-control onchange-selection count-row" id="first-selection" data-idcolumn=''>
-                              @foreach($reject_category as $row)
-                                  <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
-                              @endforeach
-                               
-                            </select>
-                         </td>
-                         <td>
-                            <select name="new_checklist_r_desc[]" class="form-control second-selection-only" id="">
-                               <option value="">--Description--</option>
-                               
-                            </select>
-                         </td>
-                         <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
-                      </tr>
-                   </tbody>
-                </table>
-             </div>  
-          </div>
-          <div class="modal-footer">
-             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-             <button type="submit" class="btn btn-primary">Submit</button>
-          </div>
-       </div>
-    </form>
- </div>
-</div>
-<div class="modal fade" id="add-cancelled-reason-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-     <form action="/save_cancelled_reason" method="POST" id="add-cancelled-reason-frm">
-        @csrf
-        <div class="modal-content">
-           <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" id="modal-title "> Add Reason for Cancellation<br>
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
-              </button>
-           </div>
-           <div class="modal-body">
-              <div class="form-row">
-                 <div class="form-group col-md-12">
-                    <button type="button" class="btn btn-primary pull-right" id="add-reason-of-cancel-row" style="margin: 5px;">
-                       <i class="now-ui-icons ui-1_simple-add"></i> Add
-                    </button>
-                 </div>
-                 <hr>
+              <div class="row">
                  <div class="col-md-12">
-                 <table class="table" id="cancelled-reason-table" style="font-size: 10px; ">
-                   <col style="width: 5%;">
-                   <col style="width: 90%;">
-                   <col style="width: 5%;">
-                    <thead>
-                       <tr style="">
-                          <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
-                          <th style="width: 40%; text-align: center;font-weight: bold; ">Reason for Cancellation</th>
-                          <th style="width: 5%; text-align: center;font-weight: bold; "></th>
-                       </tr>
-                    </thead>
-                    <tbody class="table-body text-center" style="">
-                       <tr style="">
-                       </tr>
-                    </tbody>
-                 </table>
-                 </div> 
+                    <div class="form-group">
+                       <label>Material Type:</label>
+                       <input type="text" name="edit_material_type" id="edit_material_type_setup" class="form-control">
+                       <input type="hidden" name="orig_material_type" id="orig_material_type_setup" class="form-control">
+                       <input type="hidden" name="mtypeid" id="mtypeid" class="form-control">
+                    </div>
+                 </div>
               </div>
            </div>
            <div class="modal-footer">
@@ -2484,71 +2361,239 @@
      </form>
   </div>
 </div>
-<div class="modal fade" id="edit-cancelled-reason-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-     <form action="/edit_cancelled_reason" method="POST" id="edit-cancelled-reason-frm">
+
+
+  <div class="modal fade" id="add-checklist-painting-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document" style="min-width: 40%;">
+      <form action="/save_checklist" method="POST" id="save-painting-checklist-frm">
         @csrf
         <div class="modal-content">
-           <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" class="modal-title"> Edit Reason for Cancellation<br>
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
-              </button>
-           </div>
-           <div class="modal-body">
-               <div class="row">
-                   <div class="col-md-12">
-                     <div class="form-group">
-                         <label>Reason for Cancellation:</label>
-                         <input type="text" name="edit_reason_for_cancellation" id="edit_reason_for_cancellation_setup" class="form-control">
-                         <input type="hidden" name="orig_reason_for_cancellation" id="orig_reason_for_cancellation_setup" class="form-control">
-                         <input type="hidden" name="edit_reason_for_cancellation_id" id="edit_reason_for_cancellation_id" class="form-control">
-                     </div>
-                   </div>
-               </div>
-           </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
-           </div>
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title" id="modal-title"></h5>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="owner_checklist" id="painting_owner_checklist">
+            <div class="col-sm-12">
+              <div class="form-group">
+                <label><b>Workstation:</b></label>
+                <select class="form-controls sel4" name="workstation_id" id="painting_r_workstation_id" class="r_workstation_id" required></select>
+              </div>
+              <a href="#" class="btn btn-primary add-row"><i class="now-ui-icons ui-1_simple-add"></i>Add</a>
+              <table class="table" id="painting-reject-table" style="font-size: 10px;">
+                <thead>
+                  <tr>
+                    <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                    <th style="width: 30%; text-align: center;font-weight: bold;">Type</th>
+                    <th style="width: 30%; text-align: center;font-weight: bold;">Process</th>
+                    <th style="width: 30%; text-align: center;font-weight: bold;">Description</th>
+                    <th style="width: 5%; text-align: center;font-weight: bold;"></th>
+                  </tr>
+                </thead>
+                <tbody class="table-body text-center">
+                  <tr>
+                    <td>1</td>
+                    <td>
+                      <select name="new_checklist_r_type[]" class="form-control onchange-selection count-row" id="first-selection" data-idcolumn=''>
+                        @foreach($reject_category as $row)
+                        <option value="{{ $row->reject_category_id }}">{{ $row->reject_category_name }}</option>
+                        @endforeach
+                      </select>
+                    </td>
+                    <td>
+                      <select name="new_checklist_r_desc[]" class="form-control second-selection-only" id="">
+                        <option value="">--Description--</option>
+                      </select>
+                    </td>
+                    <td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
         </div>
-     </form>
+      </form>
+    </div>
   </div>
-</div>
-<div class="modal fade" id="delete-cancelled-reason-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-     <form action="/delete_cancelled_reason" method="POST" id="delete-cancelled-reason-frm">
+
+  <div class="modal fade" id="add-cancelled-reason-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+      <form action="/save_cancelled_reason" method="POST" id="add-cancelled-reason-frm">
+      @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title" id="modal-title ">Add Reason for Cancellation<br></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <button type="button" class="btn btn-primary pull-right" id="add-reason-of-cancel-row" style="margin: 5px;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                </button>
+              </div>
+              <hr>
+              <div class="col-md-12">
+                <table class="table" id="cancelled-reason-table" style="font-size: 10px; ">
+                  <col style="width: 5%;">
+                  <col style="width: 90%;">
+                  <col style="width: 5%;">
+                  <thead>
+                    <tr style="">
+                      <th style="width: 5%; text-align: center;font-weight: bold;">No.</th>
+                      <th style="width: 40%; text-align: center;font-weight: bold; ">Reason for Cancellation</th>
+                      <th style="width: 5%; text-align: center;font-weight: bold; "></th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body text-center" style="">
+                    <tr style=""></tr>
+                  </tbody>
+                </table>
+              </div> 
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="edit-cancelled-reason-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+      <form action="/edit_cancelled_reason" method="POST" id="edit-cancelled-reason-frm">
         @csrf
         <div class="modal-content">
-           <div class="modal-header text-white" style="background-color: #0277BD;">
-              <h5 class="modal-title" class="modal-title"> Remove Reason for Cancellation<br>
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">×</span>
-              </button>
-           </div>
-           <div class="modal-body">
-               <div class="row">
-                   <div class="col-md-12">
-                      <input type="hidden" name="delete_reason_cancellation_id" id="delete_reason_cancellation_id">
-                      <input type="hidden" name="delete_reason_cancellation" id="delete_reason_cancellation">
-                      <div class="row">
-                        <div class="col-sm-12"style="font-size: 12pt;">
-                            <label> Remove reason for cancellation -  <span id="delete_label_reason_cancellation_id" style="font-weight: bold;"></span></label>?
-                        </div>               
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title" class="modal-title">Edit Reason for Cancellation<br></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group">
+                  <label>Reason for Cancellation:</label>
+                  <input type="text" name="edit_reason_for_cancellation" id="edit_reason_for_cancellation_setup" class="form-control">
+                  <input type="hidden" name="orig_reason_for_cancellation" id="orig_reason_for_cancellation_setup" class="form-control">
+                  <input type="hidden" name="edit_reason_for_cancellation_id" id="edit_reason_for_cancellation_id" class="form-control">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="delete-cancelled-reason-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+      <form action="/delete_cancelled_reason" method="POST" id="delete-cancelled-reason-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title" class="modal-title"> Remove Reason for Cancellation<br></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" name="delete_reason_cancellation_id" id="delete_reason_cancellation_id">
+                <input type="hidden" name="delete_reason_cancellation" id="delete_reason_cancellation">
+                <div class="row">
+                  <div class="col-sm-12"style="font-size: 12pt;">
+                    <label> Remove reason for cancellation -  <span id="delete_label_reason_cancellation_id" style="font-weight: bold;"></span></label>?
+                  </div>               
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="add-allowed-fast-issuance-warehouse" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+       <form action="/save_allowed_warehouse_for_fast_issuance" method="POST">
+          @csrf
+          <div class="modal-content">
+             <div class="modal-header text-white" style="background-color: #0277BD;">
+                <h5 class="modal-title" style="font-size: 11pt;">
+                   <i class="now-ui-icons"></i> Add Allowed Warehouse for Fast Issuance
+                </h5>
+             </div>
+             <div class="modal-body">
+                <div class="row">
+                   <div class="col-md-10 offset-md-1">
+                      <div class="form-group">
+                         <label>Warehouse</label>
+                         <select class="form-control" name="warehouse" id="fast-issuance-sel" required>
+                            @foreach($warehouse_wip as $w)
+                            <option value="{{ $w->name }}">{{ $w->name }}</option>
+                            @endforeach
+                         </select>
                       </div>
                    </div>
-               </div>
-           </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
-           </div>
-        </div>
-     </form>
+                </div>
+             </div>
+             <div class="modal-footer pt-1 pb-1 pr-2">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
+             </div>
+          </div>
+       </form>
+    </div>
   </div>
-</div>
+
+  <div class="modal fade" id="delete-allowed-fast-issuance-warehouse" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="width: 30%;">
+       <form action="/delete_allowed_warehouse_for_fast_issuance" method="POST">
+          @csrf
+          <div class="modal-content">
+             <div class="modal-header text-white" style="background-color: #0277BD;">
+                <h5 class="modal-title" style="font-size: 11pt;">Delete Allowed Warehouse for Fast Issuance</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+             </div>
+             <div class="modal-body">
+                <div class="row">
+                   <div class="col-md-12">
+                      <div class="form-group">
+                         <p>Delete <span id="allowed-fast-issuance-warehouse-name" style="font-weight: bold;"></span> in allowed warehouses for fast issuance?</p>
+                         <input type="hidden" name="id" id="allowed-fast-issuance-warehouse-id">
+                      </div>
+                   </div>
+                </div>
+             </div>
+             <div class="modal-footer" style="padding: 5px 8px;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm</button>
+             </div>
+          </div>
+       </form>
+    </div>
+  </div>
+
 <style type="text/css">
   .scrolling table {
     table-layout: fixed;
@@ -3020,6 +3065,41 @@
         $('#uom-conversion-modal').modal('show');
     });
 
+    $(document).on('click', '.delete-allowed-fast-issuance-warehouse-btn', function(e){
+      e.preventDefault();
+      var warehouse = $(this).data('warehouse');
+      var id = $(this).data('id');
+
+      $('#allowed-fast-issuance-warehouse-id').val(id);
+      $('#allowed-fast-issuance-warehouse-name').text(warehouse);
+
+      $('#delete-allowed-fast-issuance-warehouse').modal('show');
+    });
+
+    $('#delete-allowed-fast-issuance-warehouse form').submit(function(e){
+      e.preventDefault();
+
+      $.ajax({
+        url: $(this).attr("action"),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-allowed-fast-issuance-warehouse').modal('hide');
+            fast_issuance_warehouse();
+          }else{
+            showNotification("danger", 'There was a problem deleting warehouse.', "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $(document).on('click', '.delete-uom-conversion-btn', function(e){
         e.preventDefault();
         var $row = $(this).closest('tr');
@@ -3075,7 +3155,7 @@
     
     $('.add_icw_operation').click(function(){
 		var is_active = $(this).attr('data-operation');
-    if(is_active == "hide_me"){
+    if(is_active == "hide_me" || is_active == "fiw"){
       $('#add-item-warehouse-button').hide();
       
       
@@ -4363,6 +4443,25 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
         }
       });
     });
+
+    $('#add-allowed-fast-issuance-warehouse form').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-allowed-fast-issuance-warehouse').modal('hide');
+            fast_issuance_warehouse();
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
 </script>
 <script>
   $(document).on('keyup', '#search-production-process', function(){
@@ -4634,6 +4733,13 @@ function check_list_assembly(page, query){
 </script>
 
 <script>
+
+$('#fast-issuance-sel').select2({
+                  dropdownParent: $("#add-allowed-fast-issuance-warehouse"),
+                  dropdownAutoWidth: false,
+                  width: '100%',
+                  cache: false
+                });
 
     $(document).on('click', '#add-checklist-fabrication-button', function(){
        $('#add-checklist-modal .modal-title').text('Fabrication');
@@ -5199,12 +5305,16 @@ function tbl_sampling_plan_reliability(page){
     });
 </script>
 <script type="text/javascript">
+$(document).on('click', '#tbl-fast-issuance-warehouse-pagination a', function(event){
+    event.preventDefault();
+    var page = $(this).attr('href').split('page=')[1];
+    fast_issuance_warehouse(page);
+  });
 
 $(document).on('click', '#sampling_visual_pagination a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
     tbl_sampling_plan_visual(page);
-
   });
 $(document).on('click', '#sampling_variable_pagination a', function(event){
     event.preventDefault();
@@ -5293,6 +5403,20 @@ $(document).on('click', '#sampling_reliability_pagination a', function(event){
   });
 </script>
 <script type="text/javascript">
+fast_issuance_warehouse();
+function fast_issuance_warehouse(page, query){
+        $.ajax({
+         url:"/allowed_warehouse_for_fast_issuance?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+        
+            $('#tbl-fast-issuance-warehouse').html(data);
+
+        }
+      });
+    }
+
     function item_classification_warehouse_tbl_fabrication(page, query){
         $.ajax({
          url:"/item_classification_warehouse_tbl_fabrication?page=" + page,

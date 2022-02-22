@@ -2415,31 +2415,31 @@ class InventoryController extends Controller
         }
     }
 
-    public function item_stock(){
-        $items = DB::connection('mysql')->table('tabItem')->whereIn('name', ['AC00081', 'AC00083', 'AC00090', 'AC00091', 'AC00095', 'AC00112', 'AC00117', 'AC00118', 'AC00119', 'AC00138', 'AC00143', 'AC00150', 'AC00194', 'AC00234', 'AC00262', 'AC00335', 'AC00355', 'AC00356', 'AC00367', 'AC00380', 'AC00455', 'AC00500', 'AC00544', 'AC00545', 'AC00546', 'AC00548', 'AC00855', 'AC01036', 'AS00021', 'AS00023', 'AS00044', 'AS00046', 'AS00057', 'AS00059', 'AS00067', 'AS00068', 'BA00054', 'BA00428', 'BL00015', 'BP00168', 'BT00557', 'BT00562', 'CA00002', 'CB00120', 'CB00127', 'CB00130', 'CB00131', 'CB00133', 'CB00134', 'CB00136', 'CB00139', 'CB00141', 'CB00144', 'CB00146', 'CB00147', 'CB00148', 'CB00149', 'CB00165', 'CB00166', 'CB00175', 'CS00023', 'CS00024', 'CS00025', 'CS00026', 'CS00027', 'CT00029', 'DI00009', 'DI00012', 'DI00015', 'DI00016', 'DI00055', 'DI00057', 'DI00068', 'EX00027', 'EX00118', 'EX00147', 'FA00027', 'FA00034', 'FA00136', 'FA00143', 'FA00145', 'FA00213', 'FA00317', 'FG13921', 'FG15966', 'FG63955', 'FG64083', 'FG64629', 'FG64847', 'FG65172', 'FG65241', 'FG65799', 'FG66549', 'FG66641', 'FG71555', 'FG73966', 'FG74279', 'FG74366', 'FG75062', 'FG75227', 'FG75861', 'FG76435', 'FG76461', 'FG76525', 'FG76540', 'FG76619', 'FG76621', 'FG76628', 'FG76629', 'FG76630', 'FG76632', 'FG76635', 'FG76646', 'FR00124', 'FR00127', 'FR00129', 'FR00137', 'FR00141', 'FR00167', 'FR00394', 'FR00398', 'GI00007', 'HI00056', 'HI00057', 'HO01979', 'HO02509', 'HO02538', 'HO02552', 'HO02762', 'HO02769', 'HO02782', 'HO02869', 'HO02902', 'HO03171', 'HO03574', 'HO03619', 'HO03645', 'HO03713', 'HO03714', 'HO03946', 'HO03993', 'HO04192', 'HO04196', 'HO04200', 'HO04791', 'HO04957', 'HO05080', 'HO05154', 'HO05156', 'HO05367', 'HO05462', 'HO05463', 'HO05470', 'HO05473', 'HO06078', 'HO06093', 'HO06095', 'HO06111', 'HO06179', 'HO06191', 'HO06194', 'HO06253', 'HO06267', 'HO06309', 'HO06329', 'HO06330', 'HO06331', 'HO06342', 'HO06358', 'HO06361', 'HO06369', 'HO06371', 'HO06378', 'HO06386', 'HO06399', 'HO06407', 'HO06412', 'HO06422', 'HO06424', 'HO06430', 'HO06433', 'HO06443', 'HO06457', 'HO06462', 'HO06463', 'HO06470', 'HO06477', 'HO06500', 'HO06514', 'HO06519', 'HO06524', 'HO06536', 'HO06537', 'HO06538', 'HO06541', 'HO06569', 'HO06571', 'HO06574', 'HO06578', 'HO06580', 'HO06588', 'HO06589', 'HO06592', 'HO06593', 'HO06594', 'HO06597', 'HO06598', 'HO06599', 'HO06601', 'HO06602', 'HO06603', 'HO06606', 'HO06608', 'HO06611', 'HO06612', 'HO06615', 'HO06627', 'HO06628', 'IP00200', 'IP00246', 'LC00089', 'LC00268', 'LC00271', 'LH00040', 'LH00058', 'LH00060', 'LH00072', 'LH00101', 'LH00122', 'LH00151', 'LH00155', 'LH00156', 'LH00176', 'LH00219', 'LH00255', 'LH00301', 'LM00066', 'LM00073', 'LM00141', 'LR00012', 'LR00046', 'LR00163', 'LR00274', 'LR00293', 'LR00383', 'LR00398', 'LR00404', 'LR00411', 'LR00428', 'LR00448', 'LT00722', 'LT00767', 'LT01060', 'LT01360', 'LT01364', 'LT01414', 'LT01423', 'LT01424', 'PK00002', 'PK00006', 'PN00003', 'RA00071', 'RA00080', 'RA00088', 'RA00091', 'RA00094', 'RA00095', 'RA00096', 'RA00100', 'RA00114', 'RA00389', 'RA00476', 'RA00507', 'RA00508', 'RA00528', 'RA00536', 'RA00539', 'RA00558', 'RA00591', 'RA00593', 'RL00058', 'RL00124', 'SA00278', 'SA00279', 'SA00281', 'SA00282', 'SA00283', 'SA00299', 'SA00305', 'SA00306', 'SA00749', 'SA04484', 'SA04489', 'SA04532', 'SA04545', 'SA04546', 'SA05191', 'SA05635', 'SA05796', 'SA05847', 'SA05967', 'SA06563', 'SA06577', 'SA06578', 'SA06601', 'SA06721', 'SA06725', 'SA06726', 'SA06727', 'SA06728', 'SA06736', 'SA06744', 'SA06787', 'SA06829', 'SA06842', 'SA06843', 'SA06845', 'SA06857', 'SA06858', 'SA06859', 'SA06873', 'SA06874', 'SA06875', 'SA06876', 'SA06877', 'SA06879', 'SA06880', 'SA06883', 'SA06892', 'SA06893', 'SA06894', 'SA06895', 'SA06896', 'SA06904', 'SA06905', 'SA06907', 'SA06908', 'SA06918', 'SA06929', 'SA07000', 'SA07001', 'SA07026', 'SA07027', 'SA07057', 'SA07058', 'SA07059', 'SA07060', 'SA07124', 'SA07172', 'SA07315', 'SA07320', 'SA07325', 'SA07507', 'SA07547', 'SA07693', 'SA07712', 'SA07714', 'SA07720', 'SA07748', 'SA07752', 'SA07754', 'SA07756', 'SA07759', 'SA07830', 'SA08092', 'SA08131', 'SA08211', 'SA08286', 'SA08329', 'SA08334', 'SA08335', 'SA08351', 'SA08352', 'SA08500', 'SA08502', 'SA08534', 'SA08908', 'SA08937', 'SA08940', 'SA08941', 'SA08981', 'SA09096', 'SA09097', 'SA09098', 'SA09099', 'SA09104', 'SA09137', 'SA09142', 'SA09150', 'SA09155', 'SA09163', 'SA09193', 'SA09254', 'SA09421', 'SA09475', 'SA09478', 'SA09480', 'SA09481', 'SA09484', 'SA09487', 'SA09489', 'SA09495', 'SA09676', 'SA09692', 'SA09713', 'SA09714', 'SA09715', 'SA09773', 'SA09801', 'SA09865', 'SA09873', 'SA09879', 'SA09890', 'SA09893', 'SA10014', 'SA10169', 'SA10335', 'SA10345', 'SA10524', 'SA10525', 'SA10526', 'SA10553', 'SA10686', 'SA10688', 'SA10705', 'SA10706', 'SA10710', 'SA10714', 'SA10764', 'SA10768', 'SA10772', 'SA10916', 'SA10917', 'SA10961', 'SA10998', 'SA11056', 'SA11057', 'SA11138', 'SA11142', 'SA11145', 'SA11147', 'SA11158', 'SA11190', 'SA11207', 'SA11212', 'SA11277', 'SA11300', 'SA11355', 'SA11404', 'SA11443', 'SA11456', 'SA11457', 'SA11463', 'SA11551', 'SA11566', 'SA11600', 'SA11601', 'SA11668', 'SA11669', 'SA11728', 'SA11729', 'SA11770', 'SA11794', 'SA11802', 'SA11898', 'SA11965', 'SA11968', 'SA11969', 'SA12019', 'SA12063', 'SA12294', 'SA12300', 'SA12367', 'SA12395', 'SA12397', 'SA12493', 'SA12494', 'SA12495', 'SA12818', 'SA12960', 'SA13203', 'SA13212', 'SA13292', 'SA13349', 'SA13431', 'SA13432', 'SA13433', 'SA13976', 'SA13977', 'SA13982', 'SA13985', 'SA14024', 'SA14025', 'SA14026', 'SA14045', 'SA14078', 'SA14101', 'SA14104', 'SA14146', 'SA14147', 'SA14234', 'SA14249', 'SA14251', 'SA14255', 'SA14264', 'SA14289', 'SA14301', 'SA14787', 'SA15045', 'SA15821', 'SA16339', 'SA16343', 'SA16466', 'SA16547', 'SA16779', 'SA16780', 'SA16781', 'SA16782', 'SA16794', 'SA16866', 'SA16870', 'SA16875', 'SA16927', 'SA17025', 'SA17197', 'SA17208', 'SA17231', 'SA17233', 'SA17282', 'SA17495', 'SA17531', 'SA17598', 'SA17604', 'SA17614', 'SA17658', 'SA17659', 'SA17672', 'SA17674', 'SA17677', 'SA17679', 'SA17683', 'SA17698', 'SA17734', 'SA17760', 'SA17761', 'SA17762', 'SA17774', 'SA17788', 'SA17790', 'SA17798', 'SA17808', 'SA17835', 'SA17846', 'SA17855', 'SA17859', 'SA17860', 'SA17861', 'SA17862', 'SA17893', 'SA17918', 'SA17919', 'SA17955', 'SA17965', 'SA17978', 'SA17980', 'SA17981', 'SA17983', 'SA17986', 'SA18067', 'SA18069', 'SA18097', 'SA18107', 'SA18121', 'SA18135', 'SA18136', 'SA18137', 'SA18139', 'SA18140', 'SA18141', 'SA18142', 'SA18148', 'SA18149', 'SA18155', 'SA18168', 'SA18176', 'SA18190', 'SA18198', 'SA18202', 'SA18203', 'SA18204', 'SA18205', 'SA18215', 'SA18266', 'SA18267', 'SA18268', 'SA18278', 'SA18290', 'SA18296', 'SA18328', 'SA18353', 'SA18357', 'SA18358', 'SA18390', 'SA18391', 'SA18392', 'SA18395', 'SA18396', 'SA18398', 'SA18400', 'SA18401', 'SA18402', 'SA18406', 'SA18408', 'SA18409', 'SA18411', 'SA18412', 'SA18413', 'SA18414', 'SA18415', 'SA18421', 'SA18422', 'SA18424', 'SA18428', 'SA18429', 'SA18431', 'SA18432', 'SA18435', 'SA18436', 'SA18441', 'SA18443', 'SA18444', 'SA18446', 'SA18447', 'SA18461', 'SA18462', 'SA18463', 'SA18464', 'SA18465', 'SA18466', 'SA18467', 'SA18476', 'SA18478', 'SA18479', 'SA18481', 'SA18483', 'SA18486', 'SA18487', 'SA18488', 'SA18495', 'SA18496', 'SA18497', 'SA18498', 'SA18499', 'SA18502', 'SA18503', 'SA18504', 'SA18505', 'SA18506', 'SA18507', 'SA18508', 'SA18509', 'SA18511', 'SA18512', 'SA18513', 'SA18527', 'SA18536', 'SA18537', 'SA18538', 'SA18540', 'SA18541', 'SA18542', 'SA18543', 'SA18544', 'SA18545', 'SA18546', 'SA18551', 'SA18559', 'SA18567', 'SF00259', 'ST00013', 'ST00014', 'SX00002', 'TB00019', 'TB00022', 'TL00209', 'TL00241', 'TL00255', 'TR00023', 'TT00429', 'WA00002', 'WC00017', 'WC00018', 'WC00019', 'WC00020', 'WC00023', 'WC00038', 'WC00070', 'WC00071', 'WC00072', 'WC00073', 'WC00086'])->get();
+    public function getAllowedWarehouseFastIssuance() {
+        $list = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->paginate(10);
 
-        foreach($items as $i){
-            // $stock_level = DB::connection('mysql')->table('tabBin')->where('item_code', $i->name)->where('actual_qty', '>', 0)->get();
-            $ledger = DB::connection('mysql')->table('tabStock Ledger Entry')
-                ->where('fiscal_year', 2020)
-                ->whereRaw("posting_time > CAST('00:00:00' AS TIME) AND posting_time < CAST('06:00:00' AS TIME)")
-                ->where('item_code', $i->name)->distinct()->pluck('posting_date');
+        return view('tables.tbl_fast_issuance_warehouse', compact('list'));
+    }
 
-            $ledger_1 = DB::connection('mysql')->table('tabStock Ledger Entry')
-                ->whereIn('posting_date', $ledger)->where('item_code', $i->name)
-                ->where('fiscal_year', 2020)
-                ->select('creation', 'posting_date', 'posting_time', 'warehouse', 'voucher_type', 'voucher_no')->orderBy('creation', 'asc')->get();
-            $arr[] = [
-                'item_code' => $i->name,
-                'description' => $i->description,
-                'item_classification' => $i->item_classification,
-                // 'stock_level' => $stock_level
-                'ledger' => $ledger_1
-            ];
+    public function saveAllowedWarehouseFastIssuance(Request $request) {
+        $existing = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where([
+            'warehouse' => $request->warehouse])->exists();
+
+        if($existing) {
+            return response()->json(['status' => 0, 'message' => $request->warehouse . ' already exists in allowed warehouses for fast issuance.']);
         }
 
-        // return $arr;
+        DB::connection('mysql_mes')->table('fast_issuance_warehouse')->insert([
+            'warehouse' => $request->warehouse,
+            'created_by' => Auth::user()->email
+        ]);
 
-        return view('testing', compact('arr'));
+        return response()->json(['status' => 1, 'message' => $request->warehouse . ' has been added to allowed warehouses for fast issuance.']);
+    }
+
+    public function deleteAllowedWarehouseFastIssuance(Request $request) {
+        DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where('fast_issuance_warehouse_id', $request->id)->delete();
+
+        return response()->json(['status' => 1, 'message' => 'Warehouse has been deleted to allowed warehouses for fast issuance.']);
     }
 }

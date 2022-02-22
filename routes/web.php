@@ -11,8 +11,6 @@
 |
 */
 
-Route::get('/item_stock', 'InventoryController@item_stock');
-
 Route::get('/production_floor', 'ProductionFloorController@index');
 Route::get('/get_total_output', 'ProductionFloorController@get_total_output');
 Route::get('/get_workstation_dashboard_content', 'ProductionFloorController@get_workstation_dashboard_content');
@@ -35,6 +33,10 @@ Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
 Route::get('/get_scheduled_for_painting', 'PaintingOperatorController@get_scheduled_for_painting');
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/allowed_warehouse_for_fast_issuance', 'InventoryController@getAllowedWarehouseFastIssuance');
+	Route::post('/save_allowed_warehouse_for_fast_issuance', 'InventoryController@saveAllowedWarehouseFastIssuance');
+	Route::post('/delete_allowed_warehouse_for_fast_issuance', 'InventoryController@deleteAllowedWarehouseFastIssuance');
+
 	Route::get('/get_items/{item_classification}', 'ManufacturingController@get_items');
 	Route::get('/get_mes_warehouse', 'ManufacturingController@get_mes_warehouse');
 
