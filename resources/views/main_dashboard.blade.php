@@ -408,7 +408,7 @@
         <div class="col-md-12 mt-2">
           <div class="card" style="height: 490px;">
             <div class="card-header text-center text-white p-2" style="background-color: #3498db">
-              <h5 class="title m-0 text-uppercase">Notifications</h5>
+              <h5 class="title m-0 text-uppercase">Activity Logs</h5>
             </div>
             <div class="table-full-width table-responsive" style="height: 440px; position: relative;" id="tbl-notifications"></div>
           </div>
@@ -1052,13 +1052,15 @@
 <script type="text/javascript">
   
   function notif_dashboard(el){
+    setInterval(function() {
     $.ajax({
       url:"/get_tbl_notif_dashboard",
       type:"GET",
       success:function(data){
         $(el).html(data);
       }
-    }); 
+    });
+  }, 5000);
   }
 
   $.ajaxSetup({

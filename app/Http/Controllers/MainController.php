@@ -22,7 +22,6 @@ use Session;
 use Illuminate\Support\Facades\Route;
 
 
-
 class MainController extends Controller
 {
 	use GeneralTrait;
@@ -715,7 +714,17 @@ class MainController extends Controller
 				$this->update_job_card_status($job_card_id);
 			}
 
-			
+			$operator_name = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->pluck('operator_name')->first();
+			$workstation = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->pluck('workstation')->first();
+
+			$activity_logs = [
+				'action' => 'Ended Process',
+				'message' => $workstation.' process has been completed for '.$request->production_order.' by '.$operator_name,
+				'created_at' => $now->toDateTimeString(),
+				'created_by' => $operator_name
+			];
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert completed processes log in activity logs
 
 			$this->update_job_ticket($current_task->job_ticket_id);
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
@@ -1082,23 +1091,48 @@ class MainController extends Controller
             ->select('item.name', 'item.item_name', 'stock_uom')
 			->orderBy('item.modified', 'desc')->get();
 
-		foreach ($item_list as $row) {
-                $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-				$actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
-				if(!empty($min_level)){
-					$minimum= empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level;
-					$actual= empty($actual->actual_qty)? 0 : $actual->actual_qty;
+		$activity_logs = DB::connection('mysql_mes')->table('activity_logs')->orderBy('created_at', 'desc')->get();
 
-					if($minimum >  $actual){
-						$notifs[] = [	
-							'type' => 'Inventory',
-							'message' => 'The Current Stock of <b>'.$row->name.'</b> is now below minimum stock level <br> Current Stock:<b>  '.$actual.' '.$row->stock_uom.'</b> <br> Minimum Stock Level: <b> '.$minimum.' '.$row->stock_uom.'</b>',
-							'created' => $now->toDateTimeString(),
-							'timelog_id' =>	"",
-							'table' => 'production_scheduling'
-						];
-					}
+		foreach($activity_logs as $logs){
+			if($logs->action == 'BOM Update'){
+				$message = json_decode($logs->message);
+			}else{
+				$message = $logs->message;
+				if($logs->action == 'Cancelled Process'){
+					$message = explode(' at ', $logs->message)[0];
+				}else if($logs->action == 'Started Production Order'){
+					$message = explode(' at ', $logs->message)[0].' in '.explode(' in ', $logs->message)[1];
+				}else if($logs->action == 'Feedbacked'){
+					$message = explode(' at ', $logs->message)[0].' by '.explode(' by ', $logs->message)[1];
 				}
+			}
+
+			$notifs[] = [
+				'type' => $logs->action,
+				'message' => $message,
+				'created' => $logs->created_at,
+				'timelog_id' => '',
+				'table' => 'production_scheduling'
+			];
+		}
+
+		foreach ($item_list as $row) {
+			$min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
+			$actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
+			if(!empty($min_level)){
+				$minimum= empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level;
+				$actual= empty($actual->actual_qty)? 0 : $actual->actual_qty;
+
+				if($minimum >  $actual){
+					$notifs[] = [	
+						'type' => 'Inventory',
+						'message' => 'The Current Stock of <b>'.$row->name.'</b> is now below minimum stock level <br> Current Stock:<b>  '.$actual.' '.$row->stock_uom.'</b> <br> Minimum Stock Level: <b> '.$minimum.' '.$row->stock_uom.'</b>',
+						'created' => $now->toDateTimeString(),
+						'timelog_id' =>	"",
+						'table' => 'production_scheduling'
+					];
+				}
+			}
 		}
 		foreach ($prod_late_delivery as $prodsched) {
 			$delivery_date = ($prodsched->rescheduled_delivery_date == null)? $prodsched->delivery_date:$prodsched->rescheduled_delivery_date;
@@ -1123,8 +1157,6 @@ class MainController extends Controller
 				'table' => 'fabrication'
 			];
 		}
-
-
 
 		foreach ($get_spotwelding_reject as $os) {
 			$notifs[] = [
@@ -2995,6 +3027,19 @@ class MainController extends Controller
     }
 
     public function restart_task(Request $request){
+		// insert logs
+		$workstation = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')->where('logs.time_log_id', $request->id)->first();
+
+		$activity_logs = [
+			'action' => 'Restarted Process',
+			'message' => $workstation->workstation.' process has been restarted for '.$workstation->workstation.' by '.$workstation->operator_name,
+			'created_by' => $workstation->operator_name,
+			'created_at' => Carbon::now()->toDateTimeString()
+		];
+
+		DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert restarted process log in activity logs
+
     	DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
 		
 		$jctl = DB::connection('mysql')->table('tabJob Card Time Log')->where('mes_timelog_id', $request->id);
@@ -3257,6 +3302,30 @@ class MainController extends Controller
 			}
 
 			$this->update_job_ticket($request->job_ticket_id);
+	    	$operation = DB::connection('mysql_mes')->table('process')->where('process_id', $request->process_id)->first();
+
+			$activity_logs = [
+				'created_at' => $now->toDateTimeString(),
+				'created_by' => $operator->employee_name
+			];
+
+			$job_ticket_ids = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->pluck('job_ticket_id');
+
+			$checker = DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', $job_ticket_ids)->count();
+			if($checker <= 1){ // check if 
+				$activity_logs['message'] = 'Production has started by '.$operator->employee_name.' at '.$now->toDateTimeString().' in '.$operation->process_name.'.';
+				$activity_logs['action'] = 'Started Production Order';
+
+				DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert started production order log in activity logs
+			}
+
+			unset($activity_logs['message']);
+			unset($activity_logs['action']);
+
+			$activity_logs['message'] = $operation->process_name.' process has been started for '.$request->production_order. ' by '.$operator->employee_name;
+			$activity_logs['action'] = 'Started Process';
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert started process log in activity logs
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
@@ -4067,8 +4136,9 @@ class MainController extends Controller
 
 	public function get_tbl_notif_dashboard(){
 		$notifications = $this->getNotifications();
+		$process_collect = DB::connection('mysql_mes')->table('process')->select('process_id', 'process_name')->get();
 
-    	return view('tables.tbl_notification_dashboard', compact('notifications'));
+		return view('tables.tbl_notification_dashboard', compact('notifications', 'process_collect'));
 	}
 
     public function operator_spotwelding_dashboard(){
