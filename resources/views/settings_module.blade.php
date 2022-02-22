@@ -517,512 +517,532 @@
             </div>
             <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
               <div class="card card-nav-tabs card-plain">
-<div class="col-md-12">
-<div class="row" style="padding-top:10px;">
-<div class="col-md-4">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Visual(Minor Defects)</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary add-smpl-plan add-smpl-plan" id="add-visual-button" data-id="1" data-spname="Visual" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_visual" id="tbl_visual"></div>
+                <div class="col-md-12">
+                  <div class="row" style="padding-top:10px;">
+                    <div class="col-md-4">
+                      <div class="card" style="min-height: 720px;">
+                        <table class="text-white" style="width: 100%;background-color:#34495e;">
+                          <col style="width: 70%;">
+                          <col style="width: 30%;">
+                          <tr>
+                            <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Visual(Minor Defects)</b></th>
+                            <td class="text-right">
+                              <button type="button" class="btn btn-primary add-smpl-plan add-smpl-plan" id="add-visual-button" data-id="1" data-spname="Visual" style="margin: 5px;">
+                                <i class="now-ui-icons ui-1_simple-add"></i> Add
+                              </button>
+                            </td>
+                          </tr>
+                        </table>
+                        <div class="card-body">
+                          <div class="tbl_visual" id="tbl_visual"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card" style="min-height: 720px;">
+                        <table class="text-white" style="width: 100%;background-color:#34495e;">
+                          <col style="width: 70%;">
+                          <col style="width: 30%;">
+                          <tr>
+                            <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Variable(Major Defects)</b></th>
+                            <td class="text-right">
+                              <button type="button" class="btn btn-primary add-smpl-plan" id="add-variable-button" style="margin: 5px;" data-id="2" data-spname="Variable">
+                                <i class="now-ui-icons ui-1_simple-add"></i> Add
+                              </button>
+                            </td>
+                          </tr>
+                        </table>
+                        <div class="card-body">
+                          <div class="tbl_variable" id="tbl_variable"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card" style="min-height: 720px;">
+                        <table class="text-white" style="width: 100%;background-color:#34495e;">
+                          <col style="width: 70%;">
+                          <col style="width: 30%;">
+                          <tr>
+                            <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Reliability(Critical Defects)</b></th>
+                            <td class="text-right">
+                              <button type="button" class="btn btn-primary add-smpl-plan" id="add-reliability-button" style="margin: 5px;" data-id="3" data-spname="Reliability">
+                                <i class="now-ui-icons ui-1_simple-add"></i> Add
+                              </button>
+                            </td>
+                          </tr>
+                        </table>
+                        <div class="card-body">
+                          <div class="tbl_reliability" id="tbl_reliability"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="operator_reject_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Operator Reject Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_operator_reject_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
+              <div class="col-md-12">
+                <div class="nav-tabs-navigation">
+                  <div class="nav-tabs-wrapper" id="operator_tab">
+                    <ul class="nav nav-tabs" data-tabs="tabs">
+                      <li class="nav-item">
+                        <a class="nav-link active" data-qatab="op_fabrication" href="#op_fabrication" data-toggle="tab">Fabrication</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" data-qatab="op_painting" href="#op_painting" data-toggle="tab">Painting</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" data-qatab="op_assembly" href="#op_assembly" data-toggle="tab">Wiring and Assembly</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-content text-center">
+                  <div class="tab-pane" id="qa_reject_list">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
+                              <td class="text-right">
+                                <button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                </button>
+                              </td>
+                            </tr>
+                          </table>
+                          <div class="card-body">
+                            <div class="tbl_reject_list" id="tbl_reject_list"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane" id="operator_reject_list">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Reject List</b></th>
+                              <td class="text-right">
+                                <button type="button" class="btn btn-primary" id="add-operator-reject-button" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                </button>
+                              </td>
+                            </tr>
+                          </table>
+                          <div class="card-body">
+                            <div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane active" id="op_fabrication">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
+                              <td class="text-right">
+                                <button type="button" class="btn btn-primary" id="add-opchecklist-fabrication-button" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                </button>
+                              </td>
+                            </tr>
+                          </table>
+                          <div class="card-body">
+                            <div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane" id="op_painting">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
+                              <td class="text-right">
+                                <button type="button" class="btn btn-primary" id="add-opchecklist-painting-button" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                </button>
+                              </td>
+                            </tr>
+                          </table>
+                          <div class="card-body">
+                            <div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane" id="op_assembly">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <tr>
+                              <td class="text-left" style="padding:13px; font-size: 12pt; margin: 5px;"><b>Wiring and Assembly</b></td>
+                            </tr>
+                          </table>
+                          <div class="card-body">
+                            <div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>         
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="material_type_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Material Type Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_material_type_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+              <div class="card card-nav-tabs card-plain">
+                <div class="col-md-8 offset-md-2">
+                  <button type="button" class="btn btn-primary" id="add-material-type-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Material Type </button>
+                  <div id="tbl_material_type"></div>    
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="qa_reject_category">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Reject Category Setup</h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_reject_category_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+              <div class="card card-nav-tabs card-plain">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Reject Category </button>
+                  <div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="item_warehouse_setup">
+        <div class="card" style="background-color: #0277BD;" >
+          <div class="card-body" style="padding-bottom: 0;">
+            <div class="row">
+              <div class="col-md-8">
+                <h5 class="text-white font-weight-bold text-left">Item Warehouse Setup </h5>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <input type="text" class="form-control form-control" placeholder="Search" id="search_item_warehouse_setup">
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+            <div class="card card-nav-tabs card-plain">
+              <div class="col-md-12">
+                <div class="nav-tabs-navigation" style="margin-top: 8px;">
+                  <div class="nav-tabs-wrapper">
+                    <ul class="nav nav-tabs" data-tabs="tabs">
+                      <li class="nav-item">
+                        <a class="nav-link active add_icw_operation" href="#icw_fabrication" data-toggle="tab" data-operation="Fabrication" data-values="fab">Fabrication</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link add_icw_operation" href="#icw_painting" data-toggle="tab" data-operation="Painting" data-values="pain">Painting</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link add_icw_operation" href="#icw_assembly" data-toggle="tab" data-operation="Assembly" data-values="assem">Assembly</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link add_icw_operation" href="#icw_workinprogress" data-toggle="tab" data-operation="hide_me" data-values="assem">Work In Progress</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link add_icw_operation" href="#fast_issuance_warehouse" data-toggle="tab" data-operation="fiw" data-values="fiw">Allowed Warehouses for Fast Issuance</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link add_icw_operation" href="#fast_issuance_user" data-toggle="tab" data-operation="fiu" data-values="fiu">Allowed Users for Fast Issuance</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-primary pull-right" id="add-item-warehouse-button" style="margin: 5px;margin-top: -40px;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add Item Warehouse
+                </button>
+                <div class="tab-content text-center">
+                  <div class="tab-pane" id="fast_issuance_user">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Allowed Users for Fast Issuance</b></th>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-user" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add User
+                                </button>
+                                <div id="tbl-fast-issuance-user"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                  <div class="tab-pane" id="fast_issuance_warehouse">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Allowed Warehouses for Fast Issuance</b></th>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-warehouse" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add Warehouse
+                                </button>
+                                <div id="tbl-fast-issuance-warehouse"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                  <div class="tab-pane active" id="icw_fabrication">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Fabrication</b></th>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div id="tbl_item_warehouse_list_fabrication"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                  <div class="tab-pane" id="icw_painting">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Painting</b></th>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div id="tbl_item_warehouse_list_painting"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                  <div class="tab-pane" id="icw_assembly">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Assembly</b></th>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <div id="tbl_item_warehouse_list_assembly"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                  <div class="tab-pane" id="icw_workinprogress">
+                    <div class="card card-nav-tabs card-plain">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="card" style="min-height: 720px;">
+                              <table class="text-white" style="width: 100%;background-color:#34495e;">
+                                <col style="width: 70%;">
+                                <col style="width: 30%;">
+                                <tr>
+                                  <th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Work In Progress</b></th>
+                                </tr>
+                              </table>
+                              <div class="card-body">
+                                <button type="button" class="btn btn-primary pull-right" id="add-wip-button" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add WIP
+                                </button>
+                                <div id="tbl_wip_list"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-pane" id="uom-conversion-tab">
+      <div class="card" style="background-color: #0277BD;" >
+        <div class="card-body" style="padding-bottom: 0;">
+          <div class="row">
+            <div class="col-md-8">
+              <h5 class="text-white font-weight-bold text-left">UOM Conversion</h5>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <input type="text" class="form-control form-control" placeholder="Search">
+              </div>
+            </div>
+          </div>
+          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+            <div class="card card-nav-tabs card-plain">
+              <div class="col-md-8 offset-md-2">
+                <button type="button" class="btn btn-primary" id="add-uom-conversion-btn" style="float: right;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add UoM Conversion
+                </button>
+                <div class="table-responsive" id="uom-conversion-tbl"></div>
+              </div>
+            </div>
+          </div>        
+        </div>
+      </div>
+    </div>
+    <div class="tab-pane" id="shift">
+      <div class="card" style="background-color: #0277BD;" >
+        <div class="card-body" style="padding-bottom: 0;">
+          <div class="row">
+            <div class="col-md-8">
+              <h5 class="text-white font-weight-bold text-left" style="font-size:20px;">Shift Setup</h5>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <input type="text" class="form-control form-control" placeholder="Search" id="search-cancelled-prod">
+              </div>
+            </div>
+          </div>
+          <div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
+            <div class="card card-nav-tabs card-plain">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="card" style="min-height: 400px;">
+                      <table class="text-white" style="width: 100%;background-color:#34495e;">
+                        <col style="width: 70%;">
+                        <col style="width: 30%;">
+                        <tr>
+                          <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Shift</b></th>
+                          <td class="text-right">
+                            <button type="button" class="btn btn-primary" id="add-shift-button" style="margin: 5px;">
+                              <i class="now-ui-icons ui-1_simple-add"></i> Add
+                            </button>
+                          </td>
+                        </tr>
+                      </table>
+                      <div class="card-body">
+                        <div class="tbl_shift" id="tbl_shift"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>        
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 </div>
-</div>
-<div class="col-md-4">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Variable(Major Defects)</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary add-smpl-plan" id="add-variable-button" style="margin: 5px;" data-id="2" data-spname="Variable">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_variable" id="tbl_variable"></div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Reliability(Critical Defects)</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary add-smpl-plan" id="add-reliability-button" style="margin: 5px;" data-id="3" data-spname="Reliability">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_reliability" id="tbl_reliability"></div>
-</div>
-</div>
-</div>
-
-</div>   
-</div>
-
-</div>
-</div>        
-</div>
-</div>
-</div>
-<div class="tab-pane" id="operator_reject_setup">
-<div class="card" style="background-color: #0277BD;" >
-<div class="card-body" style="padding-bottom: 0;">
-<div class="row">
-<div class="col-md-8">
-<h5 class="text-white font-weight-bold text-left">Operator Reject Setup</h5>
-</div>
-<div class="col-md-4">
-<div class="form-group">
-<input type="text" class="form-control form-control" placeholder="Search" id="search_operator_reject_setup">
-</div>
-</div>
-</div>
-<div class="row" style="background-color: #ffffff;height: auto; min-height: 700px;">
-<div class="col-md-12">
-<div class="nav-tabs-navigation">
-<div class="nav-tabs-wrapper" id="operator_tab">
-<ul class="nav nav-tabs" data-tabs="tabs">
-<li class="nav-item">
-<a class="nav-link active" data-qatab="op_fabrication" href="#op_fabrication" data-toggle="tab">Fabrication</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" data-qatab="op_painting" href="#op_painting" data-toggle="tab">Painting</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" data-qatab="op_assembly" href="#op_assembly" data-toggle="tab">Wiring and Assembly</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
-</li>
-</ul>
-</div>
-</div>
-<div class="tab-content text-center">
-<div class="tab-pane" id="qa_reject_list">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>QA Reject List</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary" id="add-reject-button" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_reject_list" id="tbl_reject_list"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="tab-pane" id="operator_reject_list">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Operator Reject List</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary" id="add-operator-reject-button" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="tab-pane active" id="op_fabrication">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Fabrication</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary" id="add-opchecklist-fabrication-button" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="tab-pane" id="op_painting">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Painting</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary" id="add-opchecklist-painting-button" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="tab-pane" id="op_assembly">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<tr>
-<td class="text-left" style="padding:13px; font-size: 12pt; margin: 5px;"><b>Wiring and Assembly</b></td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>         
-</div>
-</div>
-</div>
-<div class="tab-pane" id="material_type_setup">
-<div class="card" style="background-color: #0277BD;" >
-<div class="card-body" style="padding-bottom: 0;">
-<div class="row">
-<div class="col-md-8">
-<h5 class="text-white font-weight-bold text-left">Material Type Setup</h5>
-</div>
-<div class="col-md-4">
-<div class="form-group">
-<input type="text" class="form-control form-control" placeholder="Search" id="search_material_type_setup">
-</div>
-</div>
-</div>
-<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-<div class="card card-nav-tabs card-plain">
-<div class="col-md-8 offset-md-2">
-<button type="button" class="btn btn-primary" id="add-material-type-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Material Type </button>
-<div id="tbl_material_type"></div>    
-</div>
-</div>
-</div>        
-</div>
-</div>
-</div>
-<div class="tab-pane" id="qa_reject_category">
-<div class="card" style="background-color: #0277BD;" >
-<div class="card-body" style="padding-bottom: 0;">
-<div class="row">
-<div class="col-md-8">
-<h5 class="text-white font-weight-bold text-left">Reject Category Setup</h5>
-</div>
-<div class="col-md-4">
-<div class="form-group">
-<input type="text" class="form-control form-control" placeholder="Search" id="search_reject_category_setup">
-</div>
-</div>
-</div>
-<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-<div class="card card-nav-tabs card-plain">
-<div class="col-md-12">
-<button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Reject Category </button>
-<div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
-</div>
-</div>
-</div>        
-</div>
-</div>
-</div>
-<div class="tab-pane" id="item_warehouse_setup">
-<div class="card" style="background-color: #0277BD;" >
-<div class="card-body" style="padding-bottom: 0;">
-<div class="row">
-<div class="col-md-8">
-<h5 class="text-white font-weight-bold text-left">Item Warehouse Setup </h5>
-</div>
-<div class="col-md-4">
-<div class="form-group">
-<input type="text" class="form-control form-control" placeholder="Search" id="search_item_warehouse_setup">
-</div>
-</div>
-</div>
-<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-<div class="card card-nav-tabs card-plain">
-<div class="col-md-12">
-<div class="nav-tabs-navigation" style="margin-top: 8px;">
-<div class="nav-tabs-wrapper">
-<ul class="nav nav-tabs" data-tabs="tabs">
-<li class="nav-item">
-<a class="nav-link active add_icw_operation" href="#icw_fabrication" data-toggle="tab" data-operation="Fabrication" data-values="fab">Fabrication</a>
-</li>
-<li class="nav-item">
-<a class="nav-link add_icw_operation" href="#icw_painting" data-toggle="tab" data-operation="Painting" data-values="pain">Painting</a>
-</li>
-<li class="nav-item">
-<a class="nav-link add_icw_operation" href="#icw_assembly" data-toggle="tab" data-operation="Assembly" data-values="assem">Assembly</a>
-</li>
-<li class="nav-item">
-<a class="nav-link add_icw_operation" href="#icw_workinprogress" data-toggle="tab" data-operation="hide_me" data-values="assem">Work In Progress</a>
-</li>
-<li class="nav-item">
-<a class="nav-link add_icw_operation" href="#fast_issuance_warehouse" data-toggle="tab" data-operation="fiw" data-values="fiw">Allowed Warehouse for Fast Issuance</a>
-</li>
-</ul>
-</div>
-</div>
-<button type="button" class="btn btn-primary pull-right" id="add-item-warehouse-button" style="margin: 5px;margin-top: -40px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add Item Warehouse
-</button>
-<div class="tab-content text-center">
-<div class="tab-pane" id="fast_issuance_warehouse">
-<div class="card card-nav-tabs card-plain">
-<div class="card-body">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Allowed Warehouse for Fast Issuance</b></th>
-</tr>
-</table>
-<div class="card-body">
-<button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-warehouse" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add Warehouse
-</button>
-<div id="tbl-fast-issuance-warehouse"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div> 
-</div>
-<div class="tab-pane active" id="icw_fabrication">
-<div class="card card-nav-tabs card-plain">
-<div class="card-body">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Fabrication</b></th>
-</tr>
-</table>
-<div class="card-body">
-<div id="tbl_item_warehouse_list_fabrication"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div> 
-</div>
-<div class="tab-pane" id="icw_painting">
-<div class="card card-nav-tabs card-plain">
-<div class="card-body">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Painting</b></th>
-</tr>
-</table>
-<div class="card-body">
-<div id="tbl_item_warehouse_list_painting"></div>
-</div>
-</div>
-</div>
-
-</div>
-</div>
-</div> 
-</div>
-<div class="tab-pane" id="icw_assembly">
-<div class="card card-nav-tabs card-plain">
-<div class="card-body">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Assembly</b></th>
-</tr>
-</table>
-<div class="card-body">
-<div id="tbl_item_warehouse_list_assembly"></div>
-</div>
-</div>
-</div>
-
-</div>
-</div>
-</div> 
-</div>
-<div class="tab-pane" id="icw_workinprogress">
-<div class="card card-nav-tabs card-plain">
-<div class="card-body">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 720px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Work In Progress</b></th>
-</tr>
-</table>
-<div class="card-body">
-<button type="button" class="btn btn-primary pull-right" id="add-wip-button" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add WIP
-</button>
-<div id="tbl_wip_list"></div>
-</div>
-</div>
-</div>
-
-</div>
-</div>
-</div> 
-</div>
-</div>  
-
-</div>
-
-</div>
-</div>        
-</div>
-</div>
-</div>
-<div class="tab-pane" id="uom-conversion-tab">
-<div class="card" style="background-color: #0277BD;" >
-<div class="card-body" style="padding-bottom: 0;">
-<div class="row">
-<div class="col-md-8">
-<h5 class="text-white font-weight-bold text-left">UOM Conversion</h5>
-</div>
-<div class="col-md-4">
-<div class="form-group">
-<input type="text" class="form-control form-control" placeholder="Search">
-</div>
-</div>
-</div>
-<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-<div class="card card-nav-tabs card-plain">
-<div class="col-md-8 offset-md-2">
-<button type="button" class="btn btn-primary" id="add-uom-conversion-btn" style="float: right;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add UoM Conversion
-</button>
-<div class="table-responsive" id="uom-conversion-tbl"></div>
-</div>
-</div>
-</div>        
-</div>
-</div>
-</div>
-<div class="tab-pane" id="shift">
-<div class="card" style="background-color: #0277BD;" >
-<div class="card-body" style="padding-bottom: 0;">
-<div class="row">
-<div class="col-md-8">
-<h5 class="text-white font-weight-bold text-left" style="font-size:20px;">Shift Setup</h5>
-</div>
-<div class="col-md-4">
-<div class="form-group">
-<input type="text" class="form-control form-control" placeholder="Search" id="search-cancelled-prod">
-</div>
-</div>
-</div>
-<div class="row" style="background-color: #ffffff;height: auto; min-height: 500px;">
-<div class="card card-nav-tabs card-plain">
-<div class="card-body">
-<div class="row">
-<div class="col-md-12">
-<div class="card" style="min-height: 400px;">
-<table class="text-white" style="width: 100%;background-color:#34495e;">
-<col style="width: 70%;">
-<col style="width: 30%;">
-<tr>
-<th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Shift</b></th>
-<td class="text-right">
-<button type="button" class="btn btn-primary" id="add-shift-button" style="margin: 5px;">
-<i class="now-ui-icons ui-1_simple-add"></i> Add
-</button>
-</td>
-</tr>
-</table>
-<div class="card-body">
-<div class="tbl_shift" id="tbl_shift"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>        
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!--     <div class="col-1"></div>
---></div>
 </div>
 
 
@@ -2594,6 +2614,70 @@
     </div>
   </div>
 
+
+  <div class="modal fade" id="add-allowed-fast-issuance-user" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+       <form action="/save_allowed_user_for_fast_issuance" method="POST">
+          @csrf
+          <div class="modal-content">
+             <div class="modal-header text-white" style="background-color: #0277BD;">
+                <h5 class="modal-title" style="font-size: 11pt;">
+                   <i class="now-ui-icons"></i> Add Allowed User for Fast Issuance
+                </h5>
+             </div>
+             <div class="modal-body">
+                <div class="row">
+                   <div class="col-md-10 offset-md-1">
+                      <div class="form-group">
+                         <label>User</label>
+                         <select class="form-control" name="user_access_id" id="fast-issuance-sel2" required>
+                            @foreach($mes_users as $user_access_id => $employee_name)
+                            <option value="{{ $user_access_id }}">{{ $employee_name }}</option>
+                            @endforeach
+                         </select>
+                      </div>
+                   </div>
+                </div>
+             </div>
+             <div class="modal-footer pt-1 pb-1 pr-2">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
+             </div>
+          </div>
+       </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="delete-allowed-fast-issuance-user" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="width: 30%;">
+       <form action="/delete_allowed_user_for_fast_issuance" method="POST">
+          @csrf
+          <div class="modal-content">
+             <div class="modal-header text-white" style="background-color: #0277BD;">
+                <h5 class="modal-title" style="font-size: 11pt;">Delete Allowed User for Fast Issuance</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+             </div>
+             <div class="modal-body">
+                <div class="row">
+                   <div class="col-md-12">
+                      <div class="form-group">
+                         <p>Delete <span id="allowed-fast-issuance-user-name" style="font-weight: bold;"></span> in allowed users for fast issuance?</p>
+                         <input type="hidden" name="id" id="allowed-fast-issuance-user-id">
+                      </div>
+                   </div>
+                </div>
+             </div>
+             <div class="modal-footer" style="padding: 5px 8px;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm</button>
+             </div>
+          </div>
+       </form>
+    </div>
+  </div>
+
 <style type="text/css">
   .scrolling table {
     table-layout: fixed;
@@ -3076,6 +3160,41 @@
       $('#delete-allowed-fast-issuance-warehouse').modal('show');
     });
 
+    $(document).on('click', '.delete-allowed-fast-issuance-user-btn', function(e){
+      e.preventDefault();
+      var username = $(this).data('username');
+      var id = $(this).data('id');
+
+      $('#allowed-fast-issuance-user-id').val(id);
+      $('#allowed-fast-issuance-user-name').text(username);
+
+      $('#delete-allowed-fast-issuance-user').modal('show');
+    });
+
+    $('#delete-allowed-fast-issuance-user form').submit(function(e){
+      e.preventDefault();
+
+      $.ajax({
+        url: $(this).attr("action"),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-allowed-fast-issuance-user').modal('hide');
+            fast_issuance_user();
+          }else{
+            showNotification("danger", 'There was a problem deleting user.', "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $('#delete-allowed-fast-issuance-warehouse form').submit(function(e){
       e.preventDefault();
 
@@ -3155,7 +3274,7 @@
     
     $('.add_icw_operation').click(function(){
 		var is_active = $(this).attr('data-operation');
-    if(is_active == "hide_me" || is_active == "fiw"){
+    if(is_active == "hide_me" || is_active == "fiw" || is_active == "fiu"){
       $('#add-item-warehouse-button').hide();
       
       
@@ -4462,6 +4581,25 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
         }
       });
     });
+
+    $('#add-allowed-fast-issuance-user form').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-allowed-fast-issuance-user').modal('hide');
+            fast_issuance_user();
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
 </script>
 <script>
   $(document).on('keyup', '#search-production-process', function(){
@@ -4733,7 +4871,12 @@ function check_list_assembly(page, query){
 </script>
 
 <script>
-
+$('#fast-issuance-sel2').select2({
+                  dropdownParent: $("#add-allowed-fast-issuance-user"),
+                  dropdownAutoWidth: false,
+                  width: '100%',
+                  cache: false
+                });
 $('#fast-issuance-sel').select2({
                   dropdownParent: $("#add-allowed-fast-issuance-warehouse"),
                   dropdownAutoWidth: false,
@@ -5305,6 +5448,11 @@ function tbl_sampling_plan_reliability(page){
     });
 </script>
 <script type="text/javascript">
+$(document).on('click', '#tbl-fast-issuance-user-pagination a', function(event){
+    event.preventDefault();
+    var page = $(this).attr('href').split('page=')[1];
+    fast_issuance_user(page);
+  });
 $(document).on('click', '#tbl-fast-issuance-warehouse-pagination a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
@@ -5404,6 +5552,19 @@ $(document).on('click', '#sampling_reliability_pagination a', function(event){
 </script>
 <script type="text/javascript">
 fast_issuance_warehouse();
+fast_issuance_user();
+function fast_issuance_user(page, query){
+        $.ajax({
+         url:"/allowed_user_for_fast_issuance?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+        
+            $('#tbl-fast-issuance-user').html(data);
+
+        }
+      });
+    }
 function fast_issuance_warehouse(page, query){
         $.ajax({
          url:"/allowed_warehouse_for_fast_issuance?page=" + page,

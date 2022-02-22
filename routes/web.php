@@ -36,6 +36,9 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/allowed_warehouse_for_fast_issuance', 'InventoryController@getAllowedWarehouseFastIssuance');
 	Route::post('/save_allowed_warehouse_for_fast_issuance', 'InventoryController@saveAllowedWarehouseFastIssuance');
 	Route::post('/delete_allowed_warehouse_for_fast_issuance', 'InventoryController@deleteAllowedWarehouseFastIssuance');
+	Route::get('/allowed_user_for_fast_issuance', 'InventoryController@getAllowedUserFastIssuance');
+	Route::post('/save_allowed_user_for_fast_issuance', 'InventoryController@saveAllowedUserFastIssuance');
+	Route::post('/delete_allowed_user_for_fast_issuance', 'InventoryController@deleteAllowedUserFastIssuance');
 
 	Route::get('/get_items/{item_classification}', 'ManufacturingController@get_items');
 	Route::get('/get_mes_warehouse', 'ManufacturingController@get_mes_warehouse');

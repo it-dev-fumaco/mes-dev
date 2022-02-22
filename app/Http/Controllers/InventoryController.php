@@ -2442,4 +2442,35 @@ class InventoryController extends Controller
 
         return response()->json(['status' => 1, 'message' => 'Warehouse has been deleted to allowed warehouses for fast issuance.']);
     }
+
+    public function getAllowedUserFastIssuance() {
+        $list = DB::connection('mysql_mes')->table('fast_issuance_user')->paginate(10);
+
+        $employee_ids = collect($list->items())->pluck('user_access_id');
+        $employee_names = DB::connection('mysql_mes')->table('user')->whereIn('user_access_id', $employee_ids)->pluck('employee_name', 'user_access_id');
+
+        return view('tables.tbl_fast_issuance_user', compact('list', 'employee_names'));
+    }
+
+    public function saveAllowedUserFastIssuance(Request $request) {
+        $existing = DB::connection('mysql_mes')->table('fast_issuance_user')->where([
+            'user_access_id' => $request->user_access_id])->exists();
+
+        if($existing) {
+            return response()->json(['status' => 0, 'message' => $existing->employee_name . ' already exists in allowed users for fast issuance.']);
+        }
+
+        DB::connection('mysql_mes')->table('fast_issuance_user')->insert([
+            'user_access_id' => $request->user_access_id,
+            'created_by' => Auth::user()->email
+        ]);
+
+        return response()->json(['status' => 1, 'message' => $request->warehouse . ' has been added to allowed warehouses for fast issuance.']);
+    }
+
+    public function deleteAllowedUserFastIssuance(Request $request) {
+        DB::connection('mysql_mes')->table('fast_issuance_user')->where('fast_issuance_user_id', $request->id)->delete();
+
+        return response()->json(['status' => 1, 'message' => 'User has been deleted to allowed users for fast issuance.']);
+    }
 }

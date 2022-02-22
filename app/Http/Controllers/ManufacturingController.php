@@ -2123,7 +2123,9 @@ class ManufacturingController extends Controller
         $end_date = ($from_time) ? Carbon::parse($to_time)->format('m-d-Y h:i A') : '--';
         $duration = $dur_days .' '. $dur_hours . ' '. $dur_minutes . ' '. $dur_seconds;
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration'));
+        $fast_issuance_warehouse = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->pluck('warehouse')->toArray();
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse'));
     }
 
     public function create_material_transfer_for_return(Request $request){
