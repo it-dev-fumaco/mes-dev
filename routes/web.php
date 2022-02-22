@@ -618,6 +618,8 @@ Route::get('/drag_n_drop/{production_order}', 'MainController@drag_n_drop');
 Route::get('/get_feedback_logs/{prod}', 'SecondaryController@get_feedbacked_log'); // N
 
 Route::group(['middleware' => 'auth'], function(){
+	Route::post('/submit_withdrawal_slip', 'ManufacturingController@submit_withdrawal_slip');
+
 	Route::get('/get_available_warehouse_qty/{item_code}', 'ManufacturingController@get_available_warehouse_qty');
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');

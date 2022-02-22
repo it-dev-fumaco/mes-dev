@@ -878,6 +878,29 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+    $(document).on('click', '.issue-now-btn', function(e){
+      e.preventDefault();
+
+      $btn = $(this);
+      $btn.removeClass('issue-now-btn').text('Loading...');
+
+      var production_order = $(this).data('production-order');
+      $.ajax({
+        url: '/submit_withdrawal_slip',
+        type:"POST",
+        data: {'child_tbl_id': $(this).data('id')},
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            get_production_order_items(production_order);
+          }else{
+            $btn.addClass('issue-now-btn').text('Issue Now');
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+
   @if($activePage == 'main_dashboard')
   
   $(document).on('change', '#sel-workstation', function(){
