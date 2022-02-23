@@ -120,7 +120,12 @@ class AssemblyController extends Controller
             $view = ($request->no_bom) ? 'wizard_no_bom.tbl_reference_details' : 'assembly_wizard.tbl_reference_details';
 
             $item_warehouses = DB::connection('mysql_mes')->table('item_classification_warehouse')
-                    ->whereIn('item_classification', $item_classifications)->distinct()->pluck('warehouse');
+                ->whereIn('item_classification', $item_classifications)->distinct()->pluck('warehouse');
+
+            $item_warehouses = array_values($item_warehouses->toArray());
+            if (!in_array('Finished Goods - FI', $item_warehouses)) {
+                array_push($item_warehouses, 'Finished Goods - FI');
+            }
 
             if (!in_array('Consignment Warehouse - FI', $item_warehouses)) {
                 array_push($item_warehouses, 'Consignment Warehouse - FI');

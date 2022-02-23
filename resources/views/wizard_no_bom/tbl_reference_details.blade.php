@@ -82,7 +82,7 @@
             <div class="form-group" style="margin: 0;">
                <select class="form-control form-control-lg target" {{ ($item['production_order']) ? 'disabled' : '' }}>
                   @forelse ($item_warehouses as $target_warehouse)
-                  <option value="{{ $target_warehouse }}" {{ $item['fg_warehouse'] == $target_warehouse ? 'selected' : '' }}>{{ $target_warehouse }}</option>
+                  <option value="{{ $target_warehouse }}" {{ ($item['fg_warehouse']) ? ($item['fg_warehouse'] == $target_warehouse ? 'selected' : '') : ('Finished Goods - FI' == $target_warehouse ? 'selected' : '') }}>{{ $target_warehouse }}</option>
                   @empty
                   <option value="">No warehouse found.</option>
                   @endforelse
