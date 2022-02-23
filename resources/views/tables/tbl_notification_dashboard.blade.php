@@ -25,7 +25,7 @@
             }else if($interval_hours > 1 and $interval_hours < 2){
                $created = 'an hour ago';
             }else{
-               $created = $interval_hours.' hours ago';
+               $created = $interval_hours.' hour(s) ago';
             }
          }else{
             $created = date('M d, Y', strtotime($n['created']));
