@@ -122,6 +122,10 @@ class AssemblyController extends Controller
             $item_warehouses = DB::connection('mysql_mes')->table('item_classification_warehouse')
                     ->whereIn('item_classification', $item_classifications)->distinct()->pluck('warehouse');
 
+            if (!in_array('Consignment Warehouse - FI', $item_warehouses)) {
+                array_push($item_warehouses, 'Consignment Warehouse - FI');
+            }
+
             return view($view, compact('reference_details', 'item_list', 'item_warehouses'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
