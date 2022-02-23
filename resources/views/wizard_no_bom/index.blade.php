@@ -20,7 +20,7 @@
                      <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
                   </td>
                   <td style="width: 50%">
-                     <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Planning Wizard - Items with No BOM</h3>
+                     <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Planning Wizard - Items without BOM</h3>
                   </td>
                </tr>
             </table>
