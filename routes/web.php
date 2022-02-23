@@ -11,8 +11,6 @@
 |
 */
 
-Route::get('/item_stock', 'InventoryController@item_stock');
-
 Route::get('/production_floor', 'ProductionFloorController@index');
 Route::get('/get_total_output', 'ProductionFloorController@get_total_output');
 Route::get('/get_workstation_dashboard_content', 'ProductionFloorController@get_workstation_dashboard_content');
@@ -35,6 +33,13 @@ Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
 Route::get('/get_scheduled_for_painting', 'PaintingOperatorController@get_scheduled_for_painting');
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/allowed_warehouse_for_fast_issuance', 'InventoryController@getAllowedWarehouseFastIssuance');
+	Route::post('/save_allowed_warehouse_for_fast_issuance', 'InventoryController@saveAllowedWarehouseFastIssuance');
+	Route::post('/delete_allowed_warehouse_for_fast_issuance', 'InventoryController@deleteAllowedWarehouseFastIssuance');
+	Route::get('/allowed_user_for_fast_issuance', 'InventoryController@getAllowedUserFastIssuance');
+	Route::post('/save_allowed_user_for_fast_issuance', 'InventoryController@saveAllowedUserFastIssuance');
+	Route::post('/delete_allowed_user_for_fast_issuance', 'InventoryController@deleteAllowedUserFastIssuance');
+
 	Route::get('/get_items/{item_classification}', 'ManufacturingController@get_items');
 	Route::get('/get_mes_warehouse', 'ManufacturingController@get_mes_warehouse');
 
@@ -192,6 +197,10 @@ Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'Seco
 
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/planning_wizard/no_bom', 'ManufacturingController@wizardNoBom');
+	Route::post('/create_production_order_without_bom', 'ManufacturingController@create_production_order_without_bom');
+	Route::get('/view_operations_wizard', 'ManufacturingController@viewAddOperationsWizard');
+	
 	Route::get('/view_bundle/{item_code}', 'ManufacturingController@view_bundle_components');
 
 	Route::post('/create_material_transfer_for_return', 'ManufacturingController@create_material_transfer_for_return');
@@ -284,6 +293,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/create_gl_entry/{stock_entry}', 'MainController@create_gl_entry');
 
 	Route::get('/get_tbl_notif_dashboard', 'MainController@get_tbl_notif_dashboard');
+	Route::get('/get_tbl_warnings_dashboard', 'MainController@get_tbl_warnings_dashboard');
 
 	Route::get('/get_fabrication_inventory_data', 'SecondaryController@get_fabrication_inventory_data');
 	Route::get('/stock_adjustment_entries_page', 'SecondaryController@stock_adjustment_entries_page');
@@ -608,6 +618,8 @@ Route::get('/drag_n_drop/{production_order}', 'MainController@drag_n_drop');
 Route::get('/get_feedback_logs/{prod}', 'SecondaryController@get_feedbacked_log'); // N
 
 Route::group(['middleware' => 'auth'], function(){
+	Route::post('/submit_withdrawal_slip', 'ManufacturingController@submit_withdrawal_slip');
+
 	Route::get('/get_available_warehouse_qty/{item_code}', 'ManufacturingController@get_available_warehouse_qty');
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');

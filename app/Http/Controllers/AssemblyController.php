@@ -26,7 +26,7 @@ class AssemblyController extends Controller
         return view('assembly_wizard.index', compact('permissions', 'mes_user_operations'));
     }
 
-    public function get_reference_details($reference_type, $id){
+    public function get_reference_details($reference_type, $id, Request $request){
         try {
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
@@ -43,6 +43,18 @@ class AssemblyController extends Controller
             }else{
                 $items = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
                    ->select(DB::raw('parent, (qty - ordered_qty) as pending_qty'), 'item_code', 'warehouse', 'description', 'uom', 'qty', 'idx', 'ordered_qty', 'name', 'item_classification', 'schedule_date as delivery_date')->orderBy('idx', 'asc')->get();
+            }
+
+            $existing_production_orders = [];
+            if($request->no_bom) {
+                $reference_order_items = array_column($items->toArray(), 'item_code');
+                $reference_sales_order = ($reference_type == 'Sales Order') ? $reference_details->name : null;
+                $reference_material_request = ($reference_type == 'Material Request') ? $reference_details->name : null;
+                $existing_production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('production_item', $reference_order_items)
+                    ->where('sales_order', $reference_sales_order)->where('material_request', $reference_material_request)
+                    ->where('docstatus', 1)->select('name', 'production_item', 'planned_start_date', 'fg_warehouse')->get();
+
+                $existing_production_orders = collect($existing_production_orders)->groupBy('production_item')->toArray();
             }
 
             $item_list = [];
@@ -85,7 +97,10 @@ class AssemblyController extends Controller
                     'delivery_date' => $item->delivery_date,
                     'match'=> $match,
                     'origl_code' => $origl_code,
-                    'new_code' => $new_code
+                    'new_code' => $new_code,
+                    'production_order' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->name : null,
+                    'planned_start_date' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->planned_start_date : null,
+                    'fg_warehouse' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->fg_warehouse : null,
                 ];
             }
 
@@ -99,7 +114,15 @@ class AssemblyController extends Controller
                 'project' => $reference_details->project,
                 'notes' => ($reference_type == 'Sales Order') ? $reference_details->notes : $reference_details->notes00
             ];
-            return view('assembly_wizard.tbl_reference_details', compact('reference_details', 'item_list'));
+
+            $item_classifications = array_unique(array_column($item_list, 'item_classification'));
+
+            $view = ($request->no_bom) ? 'wizard_no_bom.tbl_reference_details' : 'assembly_wizard.tbl_reference_details';
+
+            $item_warehouses = DB::connection('mysql_mes')->table('item_classification_warehouse')
+                    ->whereIn('item_classification', $item_classifications)->distinct()->pluck('warehouse');
+
+            return view($view, compact('reference_details', 'item_list', 'item_warehouses'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
@@ -418,7 +441,9 @@ class AssemblyController extends Controller
 
             $url = $request->fullUrl();
 
-            return view('assembly_wizard.tbl_req_items', compact('req_items', 'url'));
+            $view = ($request->no_bom) ? 'wizard_no_bom.tbl_req_items' : 'assembly_wizard.tbl_req_items';
+
+            return view($view, compact('req_items', 'url'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }

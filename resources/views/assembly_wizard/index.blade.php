@@ -54,7 +54,11 @@
                <!-- Tab panes -->
                <div class="tab-content" style="min-height: 620px;">
                   <div class="tab-pane active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
-                     <h4 class="title text-center" style="margin-left: 20px; margin: auto 20px;">1. Select Sales Order / Material Request</h4>
+                     <div>
+                        <a href="/planning_wizard/no_bom" class="btn btn-secondary">Wizard - Item without BOM</a>
+                        <a href="/assembly/wizard" class="btn btn-primary">Wizard - Item with BOM</a>
+                     </div>
+                     <h4 class="title text-center" style="margin-left: 20px; margin: auto 20px; margin-top: -50px;">1. Select Sales Order / Material Request</h4>
                      <div class="row" style="margin-top: 10px;">
                         <div class="col-md-6 offset-md-3">
                            <form id="get-somr-frm">

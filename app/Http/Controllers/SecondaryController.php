@@ -1837,35 +1837,8 @@ class SecondaryController extends Controller
 
         $reject_category = DB::connection('mysql_mes')->table('reject_category')->get();
         $operations = DB::connection('mysql_mes')->table('operation')->get();
-        return view('settings_module', compact('item_group','permissions', 'warehouse_wip','module','item_classification', 'warehouse','list','operation','machine_process', 'process_list','workstation_list', 'employees', 'operations', 'operation_list', 'shift_list','reject_category', 'uom_list', 'material_types'));
-
-        // $list=  DB::connection('mysql_mes')->table('workstation')
-        //         ->paginate(10);
-
-        // $operation = DB::connection('mysql')->table('tabOperation as top')->get();
-
-        // $machine_list= DB::connection('mysql_mes')
-        //         ->table('machine')
-        //         ->paginate(10);
-        // $machine_process= DB::connection('mysql_mes')
-        //         ->table('machine')
-        //         ->paginate(10);
-
-        // $process_list= DB::connection('mysql_mes')
-        //         ->table('process')
-        //         ->get();
-        // $operation_list=DB::connection('mysql_mes')
-        //         ->table('operation')
-        //         ->get();
-        // $shift_list=DB::connection('mysql_mes')
-        //         ->table('shift')
-        //         ->join('operation', 'operation.operation_id', 'shift.operation_id')
-        //         ->where('shift.shift_type','!=', 'Regular Shift')
-        //         ->get();
-        //                 // dd($process_list);
-        // $workstation_list= DB::connection('mysql_mes')
-        //         ->table('workstation')->orderBy('order_no','asc')->get();
-        // return view('settings_module', compact('list','operation', 'machine_list','machine_process', 'process_list','workstation_list','operation_list', 'shift_list'));
+        $mes_users = DB::connection('mysql_mes')->table('user')->pluck('employee_name', 'user_access_id');
+        return view('settings_module', compact('item_group','permissions', 'warehouse_wip','module','item_classification', 'warehouse','list','operation','machine_process', 'process_list','workstation_list', 'employees', 'operations', 'operation_list', 'shift_list','reject_category', 'uom_list', 'material_types', 'mes_users'));
     }
     public function save_process(Request $request){
             $now = Carbon::now();
