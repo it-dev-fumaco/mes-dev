@@ -981,14 +981,15 @@ class MainController extends Controller
 	public function getNotifications(){
 		$now = Carbon::now();
 		$notifs = [];
-		$get_prod_sched_today=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', $now)->groupBy('parent_item_code', 'sales_order', 'material_request')->select('parent_item_code', 'sales_order', 'material_request')->get();
+		$get_prod_sched_today=DB::connection('mysql_mes')->table('production_order')->whereDate('planned_start_date', '2022-02-23 16:30:05.105563')->groupBy('parent_item_code', 'sales_order', 'material_request')->select('parent_item_code', 'sales_order', 'material_request')->get();
 		foreach($get_prod_sched_today as $row){
 			$reference= ($row->sales_order == null)? $row->material_request: $row->sales_order;
 			$tbl_reference= ($row->sales_order == null)? "tabMaterial Request Item": "tabSales Order Item";
 			$get_delivery_date=DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $row->parent_item_code)->first();
 			if(!empty($get_delivery_date)){
-				$erp_sales_order=DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->first()->item_code;
-				if($erp_sales_order != $row->parent_item_code){
+				$erp_query = DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->first();
+				$erp_sales_order= $erp_query ? $erp_query->item_code : null;
+				if($erp_sales_order and $erp_sales_order != $row->parent_item_code){
 					$notifs[] = [	
 						'type' => 'Change Code',
 						'message' => 'Parent item code was change <br> from <b>'.$row->parent_item_code.'</b> to <b>'.$erp_sales_order.'</b> <br> Reference no: <b> '.$reference.'</b>',
@@ -998,7 +999,6 @@ class MainController extends Controller
 					];
 				}
 			}
-
 		}
 		$user_permitted_operations = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
