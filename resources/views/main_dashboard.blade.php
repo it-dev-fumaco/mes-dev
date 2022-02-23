@@ -457,7 +457,7 @@
           </div>
         </div>
         </div>
-        <div class="container-fluid mt-2">
+        <div class="container-fluid mt-2 p-0">
           <ul class="nav nav-tabs bg-white" role="tablist">
 						<li class="nav-item logs">
 							<a class="nav-link active" data-toggle="tab" href="#logs">Activity Logs</a>
@@ -526,19 +526,19 @@
     }
 
     @-webkit-keyframes blinker {
-      from { background-color: #CD6155; }
+      from { background-color: rgba(196, 21, 45, 0.2)/* #CD6155 */; }
       to { background-color: inherit; }
     }
     @-moz-keyframes blinker {
-      from { background-color: #CD6155; }
+      from { background-color: rgba(196, 21, 45, 0.2)/* #CD6155 */; }
       to { background-color: inherit; }
     }
     @-o-keyframes blinker {
-      from { background-color: #CD6155; }
+      from { background-color: rgba(196, 21, 45, 0.2)/* #CD6155 */; }
       to { background-color: inherit; }
     }
     @keyframes blinker {
-      from { background-color: #CD6155; }
+      from { background-color: rgba(196, 21, 45, 0.2)/* #CD6155 */; }
       to { background-color: inherit; }
     }
     @-webkit-keyframes blinker_change_code {

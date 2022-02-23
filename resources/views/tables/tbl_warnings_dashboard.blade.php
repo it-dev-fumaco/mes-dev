@@ -31,10 +31,13 @@
              $created = date('M d, Y', strtotime($n['created']));
           }
        @endphp
-        <li class="warning-feed-item {{ $blink }}" style="padding-top: 5px !important;"><i class="fa-solid fa-triangle-exclamation" style="margin-left: -40px; font-size: 20px;"></i>
+        <li class="warning-feed-item" style="padding-top: 5px !important;"><i class="fa-solid fa-triangle-exclamation" style="margin-left: -40px; font-size: 20px;"></i>
+         <div class="border border-light {{ $blink }}">
             <time class="date" style="text-transform: {{ $case }}; margin-top: -16px">{{ $created }}</time>
             <span><b>{{ $n['type'] }}</b></span><br>
             <span class="text" style="font-style: italic; font-size: 10pt">{!! $n['message'] !!}</span>
+         </div>
+            
         </li>
     @endforeach
  </ol>
