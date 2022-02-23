@@ -53,7 +53,7 @@
         <span class="item-name" style="display: none;">{{ $item['item_name'] }}</span>
         <span class="production-order d-none">{{ $item['production_order'] }}</span>
         @php
-        $img = ($item['item_image']) ? "/img/" . $item['item_image'] : "/icon/no_img.png";
+        $img = ($item['item_image']) ? "/img/" . explode('.', $item['item_image'])[0] . '.webp' : "/icon/no_img.png";
         @endphp
         <span class="reference-no" style="display: none;">{{ $item['sales_order'] }}{{ $item['material_request'] }}</span>
         <a href="http://athenaerp.fumaco.local/storage/{{ $img }}" data-toggle="lightbox">
