@@ -4272,7 +4272,9 @@ class ManufacturingController extends Controller
     }
     // NEW (FOR BOM CRUD)
     public function view_bom_list(){
-        return view('bom.index');
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('bom.index', compact('permissions'));
     }
 
     public function get_bom_list(Request $request){
@@ -4865,7 +4867,9 @@ class ManufacturingController extends Controller
     }
 
     public function wizardNoBom() {
-        return view('wizard_no_bom.index');
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('wizard_no_bom.index', compact('permissions'));
     }
 
     public function create_production_order_without_bom(Request $request){

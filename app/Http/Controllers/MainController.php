@@ -3874,7 +3874,9 @@ class MainController extends Controller
 	public function maintenance_request(){
 		$list = DB::connection('mysql_mes')->table('machine_breakdown')->orderBy('created_at', 'desc')->get();
 
-		return view('maintenance_request_page', compact('list'));
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('maintenance_request_page', compact('list', 'permissions'));
 	}
 
 	public function stock_entry(){

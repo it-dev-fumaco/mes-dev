@@ -509,11 +509,12 @@ class LinkReportController extends Controller
                         ->first();
             if($row->qa_staff_id != null){
                 $qc_name[]=[
-                "name" => $emp_name->employee_name,
+                "name" => ($emp_name) ? $emp_name->employee_name : null,
                 "user_id" =>  $row->qa_staff_id
                 ];
             }
         }
+
         $operators = DB::connection('mysql_essex')->table('users')
             ->where('status', 'Active')->where('user_type', 'Employee')
             ->whereIn('designation_id', [46, 47, 53])->orderBy('employee_name', 'asc')
