@@ -49,7 +49,7 @@
             $icon = 'fa-pen-to-square';
          }
       @endphp
-      <li class="feed-item {{ $blink }}" style="padding-top: 5px !important;"><i class="fa-solid {{ $icon }}" style="margin-left: -40px; font-size: 20px;"></i>
+      <li class="feed-item {{ $blink }} p-0" style="padding-top: 5px !important; font-size: 11px"><i class="fa-solid {{ $icon }}" style="margin-left: -40px; font-size: 20px !important;"></i>
          <time class="date" style="text-transform: {{ $case }}; margin-top: -16px">{{ $created }}</time>
          <span><b>{{ $n['type'] }}</b></span><br>
          @if ($n['type'] == 'BOM Update')
@@ -65,18 +65,18 @@
                         $from_process = collect($process)['old_process'] ? ' from '.collect($process_collect)->where('process_id', collect($process)['old_process'])->pluck('process_name')->first() : null;
                         $to_process = collect($process)['new_process'] ? ' to '.collect($process_collect)->where('process_id', collect($process)['new_process'])->pluck('process_name')->first() : null;
                      @endphp
-                     <p class="p-1 m-0">{{ 'Updated process of '.collect($process)['workstation'].$from_process.$to_process }}</p>
+                     <p class="p-0 m-0">{{ 'Updated process of '.collect($process)['workstation'].$from_process.$to_process }}</p>
                   @else
                      @if(isset(collect($process)['process']))
                         @php
                            $action = substr($actions, -1) == 'e' ? $actions.'d ' : $actions.'ed ';
                            $proc = collect($process_collect)->where('process_id', collect($process)['process'])->pluck('process_name')->first();
                         @endphp
-                        <p class="p-1 m-0">{{ $action.$proc }}</p>
+                        <p class="p-0 m-0">{{ $action.$proc }}</p>
                      @endif
                   @endif
                   @if ($actions == 'user')
-                     <table class="table" style="font-size: 10pt !important">
+                     <table class="table" style="font-size: 11px !important">
                         <tr>
                            <td class="p-1"><b>User</b></td>
                            <td class="p-1">{{ $user }}</td>
@@ -90,7 +90,7 @@
                @endforeach
              @endforeach 
          @else
-            <span class="text" style="font-style: italic; font-size: 10pt">{!! $n['message'] !!}</span>
+            <span class="text" style="font-style: italic; font-size: 11px">{!! $n['message'] !!}</span>
          @endif
       </li>
    @endforeach
