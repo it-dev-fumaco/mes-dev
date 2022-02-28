@@ -3829,8 +3829,9 @@ class SecondaryController extends Controller
         }else{
             $arr=$request->shifttype;
         }
-        $data= (array_count_values($arr));
-        if($data['Special Shift'] > 1){
+       $data= (array_count_values($arr));
+       $special_shift = array_key_exists('Special Shift', $data) ? $data['Special Shift'] : 0;
+        if($special_shift > 1){
             return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE Special Shift' ]);
                 
         }else{
