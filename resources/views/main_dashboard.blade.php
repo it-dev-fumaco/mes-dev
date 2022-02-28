@@ -1017,12 +1017,11 @@
 
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();
-  
+      
       $('#submit-feedback-btn').removeAttr('disabled');
       var production_order = $(this).data('production-order');
       $('#confirm-feedback-production-modal input[name="production_order"]').val(production_order);
       get_pending_material_transfer_for_manufacture(production_order);
-  
       $('#confirm-feedback-production-modal').modal('show');
     });
 
