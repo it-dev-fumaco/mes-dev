@@ -1450,6 +1450,8 @@ $(document).ready(function(){
   
   function get_production_order_list(status, div, get_total, page, query){
     $('#loader-wrapper').removeAttr('hidden');
+
+    status = status ? status : 'All';
     $.ajax({
       url: "/production_order_list/" + status + "?page=" + page,
       type:"GET",

@@ -1001,7 +1001,7 @@ class LinkReportController extends Controller
                 'id'=> $row->reject_list_id,
                 'per_month' => collect($node)->sum('sum'),
                 'per_rate' => ($total_output == 0)? 0 :round(collect($node)->sum('sum') /(($total_output) == 0? 1 : $total_output), 4),
-                'target'=> "2.0000",
+                'target'=> "0.5",
                 'series' => 'A'.$ir++
             ];
         }
