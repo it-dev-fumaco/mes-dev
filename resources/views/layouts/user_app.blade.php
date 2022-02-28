@@ -1583,18 +1583,24 @@
         url:"/create_stock_entry/" + production_order,
         type:"POST",
         data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-        success:function(response){
+        success:function(response, textStatus, xhr){
           $('#loader-wrapper').attr('hidden', true);
           if (response.success == 0) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
             $('#submit-feedback-btn').removeAttr('disabled');
           }else{
+            if(response.mail_sent < 1){
+              showNotification("warning", 'Feedback email notification sending failed.', "now-ui-icons travel_info");
+            }
             showNotification("success", response.message, "now-ui-icons travel_info");
             $('#confirm-feedback-production-modal').modal('hide');
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
+          showNotification("danger", 'An error occured. Please contact your system administrator.', "now-ui-icons travel_info");
+          $('#submit-feedback-btn').removeAttr('disabled');
+          $('#confirm-feedback-production-modal').modal('hide');
+          $('#loader-wrapper').attr('hidden', true);
           console.log(textStatus);
           console.log(errorThrown);
         }

@@ -4468,6 +4468,10 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Materials unavailable.']);
 			}
 
+			if ($request->fg_completed_qty <= 0) {
+				return response()->json(['success' => 0, 'message' => 'Feedback qty cannot be equal to 0.']);
+			}
+
 			$production_order_details = DB::connection('mysql')->table('tabWork Order')
 				->where('name', $production_order)->first();
 
@@ -4550,8 +4554,22 @@ class MainController extends Controller
 						->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
 
 					if($docstatus == 1){
+						$production_order_details_mes = DB::connection('mysql_mes')->table('production_order')
+							->where('production_order.production_order', $production_order)->first();
+
+						$has_production_order = DB::connection('mysql_mes')->table('production_order')
+							->where('item_code', $row['item_code'])->where('parent_item_code', $production_order_details_mes->parent_item_code)
+							->where('sales_order', $production_order_details_mes->sales_order)
+							->where('material_request', $production_order_details_mes->material_request)
+							->where('sub_parent_item_code', $production_order_details_mes->item_code)->first();
+						if ($has_production_order) {
+							$insufficient_stock_msg = 'Insufficient stock for ' . $row['item_code'] . ' in ' . $production_order_details->wip_warehouse . '. One or more production parts are pending for feedback, please check your parts production order.';
+						} else {
+							$insufficient_stock_msg = 'Insufficient stock for ' . $row['item_code'] . ' in ' . $production_order_details->wip_warehouse . '. Some of the components quantity are pending for Issue.';
+						}
+						
 						if($qty > $actual_qty){
-							return response()->json(['success' => 0, 'message' => 'Insufficient stock for ' . $row['item_code'] . ' in ' . $production_order_details->wip_warehouse]);
+							return response()->json(['success' => 0, 'message' => $insufficient_stock_msg]);
 						}
 					}
 
@@ -4673,7 +4691,6 @@ class MainController extends Controller
 				'_liked_by' => null,
 				'purchase_receipt_no' => null,
 				'posting_time' => $now->format('H:i:s'),
-				// 'customer_name' => null,
 				'to_warehouse' => $production_order_details->fg_warehouse,
 				'title' => 'Manufacture',
 				'_comments' => null,
@@ -4691,13 +4708,11 @@ class MainController extends Controller
 				'sales_invoice_no' => null,
 				'company' => 'FUMACO Inc.',
 				'target_warehouse_address' => null,
-				// 'customer_address' => null,
 				'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
 				'supplier_name' => null,
 				'remarks' => null,
 				'_user_tags' => null,
 				'total_additional_costs' => 0,
-				// 'customer' => null,
 				'bom_no' => $production_order_details->bom_no,
 				'amended_from' => null,
 				'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -4753,89 +4768,113 @@ class MainController extends Controller
 				}
 				$this->create_stock_ledger_entry($new_id);
 				$this->create_gl_entry($new_id);
+			}
+
+			$is_feedbacked = DB::connection('mysql')->table('tabStock Entry')
+				->where('name', $new_id)->where('purpose', 'Manufacture')->where('docstatus', 1)->first();
+
+			if ($is_feedbacked) {
+				DB::connection('mysql_mes')->beginTransaction();
 				
-				DB::connection('mysql_mes')->transaction(function() use ($now, $request, $production_order_details, $mes_production_order_details, $remarks_override){
-					$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
-					$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
-
-					if($status == 'Completed'){
-						$production_data_mes = [
-							'last_modified_at' => $now->toDateTimeString(),
-							'last_modified_by' => Auth::user()->email,
-							'feedback_qty' => $manufactured_qty,
-							'status' => $status,
-							'remarks' => $remarks_override
-						];
-					}else{
-						$production_data_mes = [
-							'last_modified_at' => $now->toDateTimeString(),
-							'last_modified_by' => Auth::user()->email,
-							'feedback_qty' => $manufactured_qty,
-							'remarks' => $remarks_override
-						];
-					}
-
-					if($remarks_override == 'Override'){
-						$job_ticket_mes = [
-							'completed_qty' => $manufactured_qty,
-							'remarks' => $remarks_override,
-							'status' => 'Completed',
-							'last_modified_by' => Auth::user()->email,
-						];
-	
-						DB::connection('mysql_mes')->table('job_ticket')
-							->where('production_order', $production_order_details->name)
-							->where('status', '!=', 'Completed')->update($job_ticket_mes);
-					}
-
-					DB::connection('mysql_mes')->table('production_order')
-						->where('production_order', $production_order_details->name)->update($production_data_mes);
-					$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
-				});
-			}
-			$data = array(
-                'posting_date'  => $now->format('Y-m-d'),
-                'posting_time'  => $now->format('H:i:s'),
-                'ste'           => $new_id,
-				'sales_order_no'=> $mes_production_order_details->sales_order,
-				'mreq'			=> $production_order_details->material_request,
-                'item_code'     => $production_order_details->production_item,
-				'item_name'     => $production_order_details->item_name,
-				'customer'		=> $mes_production_order_details->customer,
-				'feedbacked_by' => Auth::user()->email,
-				'completed_qty' => $request->fg_completed_qty, 
-				'uom'			=> $production_order_details->stock_uom
-			);
-			$recipient= DB::connection('mysql_mes')
-                ->table('email_trans_recipient')
-				->where('email_trans', "Feedbacking")
-				->where('email', 'like','%@fumaco.local%')
-                ->select('email')
-                ->get();
-			if(count($recipient) > 0){
-				if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
-					foreach ($recipient as $row) {
-						Mail::to($row->email)->send(new SendMail_feedbacking($data));
-					}	
+				$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
+				$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
+		
+				if($status == 'Completed'){
+					$production_data_mes = [
+						'last_modified_at' => $now->toDateTimeString(),
+						'last_modified_by' => Auth::user()->email,
+						'feedback_qty' => $manufactured_qty,
+						'status' => $status,
+						'remarks' => $remarks_override
+					];
+				}else{
+					$production_data_mes = [
+						'last_modified_at' => $now->toDateTimeString(),
+						'last_modified_by' => Auth::user()->email,
+						'feedback_qty' => $manufactured_qty,
+						'remarks' => $remarks_override
+					];
 				}
-			}
-			$feedbacked_timelogs = [
-                'production_order'  => $mes_production_order_details->production_order,
-                'ste_no'           => $new_id,
-                'item_code'     => $production_order_details->production_item,
-				'item_name'     => $production_order_details->item_name,
-				'feedbacked_qty' => $request->fg_completed_qty, 
-				'from_warehouse'=> $production_order_details->wip_warehouse,
-				'to_warehouse' => $mes_production_order_details->fg_warehouse,
-				'transaction_date'=>$now->format('Y-m-d'),
-				'transaction_time' =>$now->format('G:i:s'),
-				'created_at'  => $now->toDateTimeString(),
-				'created_by'  =>  Auth::user()->email,
-			];
-			DB::connection('mysql_mes')->table('feedbacked_logs')->insert($feedbacked_timelogs);
-			DB::connection('mysql')->commit();
 
-			return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.']);
+				if($remarks_override == 'Override'){
+					$job_ticket_mes = [
+						'completed_qty' => $manufactured_qty,
+						'remarks' => $remarks_override,
+						'status' => 'Completed',
+						'last_modified_by' => Auth::user()->email,
+					];
+
+					DB::connection('mysql_mes')->table('job_ticket')
+						->where('production_order', $production_order_details->name)
+						->where('status', '!=', 'Completed')->update($job_ticket_mes);
+				}
+
+				DB::connection('mysql_mes')->table('production_order')
+					->where('production_order', $production_order_details->name)->update($production_data_mes);
+
+				$data = array(
+					'posting_date' => $now->format('Y-m-d'),
+					'posting_time' => $now->format('H:i:s'),
+					'ste' => $new_id,
+					'sales_order_no' => $mes_production_order_details->sales_order,
+					'mreq' => $production_order_details->material_request,
+					'item_code' => $production_order_details->production_item,
+					'item_name' => $production_order_details->item_name,
+					'customer' => $mes_production_order_details->customer,
+					'feedbacked_by' => Auth::user()->email,
+					'completed_qty' => $request->fg_completed_qty, 
+					'uom' => $production_order_details->stock_uom
+				);
+
+				$recipient= DB::connection('mysql_mes')->table('email_trans_recipient')
+					->where('email_trans', "Feedbacking")->where('email', 'like','%@fumaco.local%')
+					->select('email')->get();
+
+				$mail_sent = 1;
+				if(count($recipient) > 0){
+					if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
+						foreach ($recipient as $row) {
+							Mail::to($row->email)->send(new SendMail_feedbacking($data));
+							if (Mail::failures()) {
+								$mail_sent = 0;
+							}
+						}
+					}
+				}
+
+				$feedbacked_timelogs = [
+					'production_order' => $mes_production_order_details->production_order,
+					'ste_no' => $new_id,
+					'item_code' => $production_order_details->production_item,
+					'item_name' => $production_order_details->item_name,
+					'feedbacked_qty' => $request->fg_completed_qty, 
+					'from_warehouse' => $production_order_details->wip_warehouse,
+					'to_warehouse' => $mes_production_order_details->fg_warehouse,
+					'transaction_date' => $now->format('Y-m-d'),
+					'transaction_time' => $now->format('G:i:s'),
+					'created_at' => $now->toDateTimeString(),
+					'created_by' => Auth::user()->email,
+				];
+
+				$feedback_id = DB::connection('mysql_mes')->table('feedbacked_logs')->insertGetId($feedbacked_timelogs);
+
+				DB::connection('mysql_mes')->commit();
+				DB::connection('mysql')->commit();
+
+				if (!$feedback_id) {
+					DB::connection('mysql_mes')->rollback();
+					DB::connection('mysql')->rollback();
+				}
+
+				$this->insert_production_scrap($production_order_details->name, $request->fg_completed_qty);
+			} else {
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry. Please try again.']);
+			}
+		
+			return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'mail_sent' => $mail_sent]);
 		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry']);
