@@ -1641,7 +1641,7 @@ class MainController extends Controller
 			array_push($statuses, 'Completed');
 		}
 		// Completed
-
+		
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->leftJoin('delivery_date', function($join)
 			{
@@ -1659,9 +1659,9 @@ class MainController extends Controller
 			->when(count($status_array) > 0, function($q) use ($filtered_production_orders){
 				$q->whereIn('production_order.production_order', $filtered_production_orders);
 			})
-			->when($status != 'All' and count($statuses) > 0, function($q) use ($statuses){
-				$q->whereIn('production_order.status', array_unique($statuses));
-			})
+			// ->when($status != 'All' and count($statuses) > 0, function($q) use ($statuses){
+			// 	$q->whereIn('production_order.status', array_unique($statuses));
+			// })
 			->when($status != 'All' and !in_array('Completed', $status_array) and in_array('Ready for Feedback', $status_array), function($q) use ($status_array){
 				$q->where('production_order.produced_qty', '>', 0)
 					->whereRaw('production_order.produced_qty > feedback_qty');
@@ -1675,6 +1675,8 @@ class MainController extends Controller
 			->whereIn('production_order.operation_id', $user_permitted_operation_id)
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 			->orderBy('production_order.created_at', 'desc')->paginate(10);
+
+			// return $production_orders;
 
 		$filtered_production_orders = array_column($production_orders->items(), 'production_order');
 
