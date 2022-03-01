@@ -1589,8 +1589,8 @@
             showNotification("danger", response.message, "now-ui-icons travel_info");
             $('#submit-feedback-btn').removeAttr('disabled');
           }else{
-            if(response.mail_sent < 1){
-              showNotification("warning", 'Feedback email notification sending failed.', "now-ui-icons travel_info");
+            if(response.stock_entry){
+              sendFeedbackEmail(production_order, response.stock_entry, completed_qty);
             }
             showNotification("success", response.message, "now-ui-icons travel_info");
             $('#confirm-feedback-production-modal').modal('hide');
@@ -1606,6 +1606,24 @@
         }
       });
     });
+
+    function sendFeedbackEmail(production_order, stock_entry, fg_completed_qty) {
+      $.ajax({
+        url:"/send_feedback_email",
+        type:"GET",
+        data: {production_order, stock_entry, fg_completed_qty},
+        success:function(response, textStatus, xhr){
+          if (response.status == 0) {
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", response.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          showNotification("danger", 'Feedback email notification sending failed. Please contact your system administrator.', "now-ui-icons travel_info");
+        }
+      });
+    }
 
     $('#change-required-item-modal input[name="item_code"]').autocomplete({
       source:function(request,response){

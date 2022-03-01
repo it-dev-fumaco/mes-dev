@@ -31,5 +31,5 @@ class SendMail_material_request extends Mailable
     public function build()
     {
         $username = Auth::user()->employee_name;
-        return $this->from('mes@fumaco.local')->subject('Material Request Alert')->view('mail_template.material_request_template')->with('data', $this->data);    }
+        return $this->from('notifications@fumaco.local')->subject('Material Request Alert')->view('mail_template.material_request_template')->with('data', $this->data);    }
 }
