@@ -1628,15 +1628,27 @@ class MainController extends Controller
 		// Awaiting Feedback
 
 		// Completed
-		$erp_completed_production_orders = [];
+		$mes_completed_production_orders = [];
 		if(in_array('Completed', $status_array)){
-				$mes_production_orders = DB::connection('mysql_mes')->table('production_order')
-				->where('status', 'Completed')->pluck('production_order');
-
-			$erp_completed_production_orders = DB::connection('mysql')->table('tabWork Order')
-				->where('status', 'Completed')->whereIn('name', $mes_production_orders)->pluck('name')->toArray();
-
-			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($erp_completed_production_orders));
+			$mes_completed_production_orders = DB::connection('mysql_mes')->table('production_order')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
+				->where(function($q) use ($request) {
+					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.sales_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.material_request', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
+				})
+				->where('production_order.status', 'Completed')
+				->whereRaw('feedback_qty >= qty_to_manufacture')
+				->whereIn('production_order.operation_id', $user_permitted_operation_id)
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
+				->orderBy('production_order.created_at', 'desc');
 
 			array_push($statuses, 'Completed');
 		}
@@ -1659,9 +1671,6 @@ class MainController extends Controller
 			->when(count($status_array) > 0, function($q) use ($filtered_production_orders){
 				$q->whereIn('production_order.production_order', $filtered_production_orders);
 			})
-			// ->when($status != 'All' and count($statuses) > 0, function($q) use ($statuses){
-			// 	$q->whereIn('production_order.status', array_unique($statuses));
-			// })
 			->when($status != 'All' and !in_array('Completed', $status_array) and in_array('Ready for Feedback', $status_array), function($q) use ($status_array){
 				$q->where('production_order.produced_qty', '>', 0)
 					->whereRaw('production_order.produced_qty > feedback_qty');
@@ -1674,9 +1683,11 @@ class MainController extends Controller
 			})
 			->whereIn('production_order.operation_id', $user_permitted_operation_id)
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
-			->orderBy('production_order.created_at', 'desc')->paginate(10);
-
-			// return $production_orders;
+			->when(count($status_array) > 0 and in_array('Completed', $status_array), function($q) use ($mes_completed_production_orders){
+				$q->union($mes_completed_production_orders);
+			})
+			->orderBy('created_at', 'desc')
+			->paginate(10);
 
 		$filtered_production_orders = array_column($production_orders->items(), 'production_order');
 
