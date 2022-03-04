@@ -134,6 +134,23 @@
                             </tbody>
                         </table>
                       </div>
+                      <div class="col-md-6"  style="margin-top:70px;">
+                        <table style= "width:100%;">
+                            <thead  style="">
+                                <tr style="">
+                                    <th><span style="font-size:13.5pt;padding-left:30px;">Data Export</span> </th>
+                                </tr>
+                            </thead>
+                            <tbody style=" padding-left:30px; text-align:left;">
+                                <tr>
+                                    <td><a href="/export/job_ticket" class="hover-class"><span style="padding-left:30px;line-height:25px;">Job Ticket</span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/export/rejection_logs" class="hover-class"><span style="padding-left:30px;line-height:25px;">Rejection Logs</span></a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                      </div>
                    </div>
                 </div>
             </div>
