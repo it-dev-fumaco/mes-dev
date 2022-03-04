@@ -93,7 +93,7 @@ class SecondaryController extends Controller
 
         $unassigned = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
             ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-            ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+            ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
             ->where('tsd.workstation', $machine_details->workstation)
             ->where('ts.docstatus', 0)->where('tsd.status', 'Unassigned')
             ->whereDate('ts.creation', '>', '2019-10-11')
@@ -118,7 +118,7 @@ class SecondaryController extends Controller
         $operator_id = (Auth::check()) ? Auth::user()->id_security_key : null;
         $assigned = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
             ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-            ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+            ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
             ->where('tsd.workstation', $machine_details->workstation)
             ->where('operator_id', $operator_id)
             ->where('ts.docstatus', 0)->where('tsd.status', '!=', 'Unassigned')
@@ -332,7 +332,7 @@ class SecondaryController extends Controller
         try {
             $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                 ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
                 ->join('tabWorkstation AS wt', 'wt.workstation_name', 'tsd.workstation')
                 ->where('wt.workstation', $workstation)
                 ->where('tsd.operation', 'Fabrication')
@@ -625,7 +625,7 @@ class SecondaryController extends Controller
     public function timesheet_details_report($id){
         $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                    ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                    ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
                     ->where('tsd.parent', $id)
                     ->where('tsd.operation', 'Fabrication')
                     ->where('ts.docstatus', 0)
@@ -638,7 +638,7 @@ class SecondaryController extends Controller
         foreach ($tasks as $row) {
              $jt_details = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
-                    ->join('tabProduction Order AS pro', 'pro.name', 'ts.production_order')
+                    ->join('tabWork Order AS pro', 'pro.name', 'ts.production_order')
                     ->where('tsd.parent', $id)
                     ->where('tsd.workstation', $row->workstation)
                     ->where('tsd.operation', 'Fabrication')
@@ -658,7 +658,7 @@ class SecondaryController extends Controller
 
     public function tbl_productionSchedule_report(Request $request){
         try {
-            $production_orders = DB::connection('mysql')->table('tabProduction Order as tpo')
+            $production_orders = DB::connection('mysql')->table('tabWork Order as tpo')
             ->where('tpo.docstatus', 1)
             ->where('tpo.planned_start_date', $request->date)
             ->get();
@@ -667,9 +667,9 @@ class SecondaryController extends Controller
             foreach ($production_orders as $row) {
                 $timesheet = DB::connection('mysql')->table('tabTimesheet')
                     ->where('production_order', $row->name)->first();
-                $batch=DB::connection('mysql')->table('tabProduction Batch Table as tpbt')
+                $batch=DB::connection('mysql')->table('tabWork Batch Table as tpbt')
                 ->where('tpbt.production_order', $row->name)->select('parent','idx')->first();
-                // $last_process =DB::connection('mysql')->table('tabProduction Order Operation')
+                // $last_process =DB::connection('mysql')->table('tabWork Order Operation')
                 //     ->where('parent', $row->name)->orderBy('idx', 'desc')->first();
 
                 // $completed_qty = ($last_process) ? $last_process->completed_qty : 0;
@@ -961,7 +961,7 @@ class SecondaryController extends Controller
 
     public function machine_kanban_workstation($workstation, $schedule){
 
-        $unscheduled = DB::connection('mysql')->table('tabProduction Order as prod')
+        $unscheduled = DB::connection('mysql')->table('tabWork Order as prod')
             ->join('tabTimesheet as ts','ts.production_order','=','prod.name')
             ->join('tabTimesheet Detail as tsd','tsd.parent', '=','ts.name')
             ->where('tsd.workstation', $workstation)
@@ -1025,7 +1025,7 @@ class SecondaryController extends Controller
     }
 
     public function continue_process($prod_name, $date){
-            $prod_qty=DB::connection('mysql')->table('tabProduction Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
+            $prod_qty=DB::connection('mysql')->table('tabWork Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
             $workstations = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->get();
 
             $qtys = collect($workstations)->where('workstation',$row->workstation)->max("completed_qty");
@@ -1837,35 +1837,8 @@ class SecondaryController extends Controller
 
         $reject_category = DB::connection('mysql_mes')->table('reject_category')->get();
         $operations = DB::connection('mysql_mes')->table('operation')->get();
-        return view('settings_module', compact('item_group','permissions', 'warehouse_wip','module','item_classification', 'warehouse','list','operation','machine_process', 'process_list','workstation_list', 'employees', 'operations', 'operation_list', 'shift_list','reject_category', 'uom_list', 'material_types'));
-
-        // $list=  DB::connection('mysql_mes')->table('workstation')
-        //         ->paginate(10);
-
-        // $operation = DB::connection('mysql')->table('tabOperation as top')->get();
-
-        // $machine_list= DB::connection('mysql_mes')
-        //         ->table('machine')
-        //         ->paginate(10);
-        // $machine_process= DB::connection('mysql_mes')
-        //         ->table('machine')
-        //         ->paginate(10);
-
-        // $process_list= DB::connection('mysql_mes')
-        //         ->table('process')
-        //         ->get();
-        // $operation_list=DB::connection('mysql_mes')
-        //         ->table('operation')
-        //         ->get();
-        // $shift_list=DB::connection('mysql_mes')
-        //         ->table('shift')
-        //         ->join('operation', 'operation.operation_id', 'shift.operation_id')
-        //         ->where('shift.shift_type','!=', 'Regular Shift')
-        //         ->get();
-        //                 // dd($process_list);
-        // $workstation_list= DB::connection('mysql_mes')
-        //         ->table('workstation')->orderBy('order_no','asc')->get();
-        // return view('settings_module', compact('list','operation', 'machine_list','machine_process', 'process_list','workstation_list','operation_list', 'shift_list'));
+        $mes_users = DB::connection('mysql_mes')->table('user')->pluck('employee_name', 'user_access_id');
+        return view('settings_module', compact('item_group','permissions', 'warehouse_wip','module','item_classification', 'warehouse','list','operation','machine_process', 'process_list','workstation_list', 'employees', 'operations', 'operation_list', 'shift_list','reject_category', 'uom_list', 'material_types', 'mes_users'));
     }
     public function save_process(Request $request){
             $now = Carbon::now();
@@ -2156,6 +2129,7 @@ class SecondaryController extends Controller
 
         }else{
             DB::connection('mysql_mes')->table('process')->where("process_id", $request->delete_process_id)->delete();
+            DB::connection('mysql_mes')->table('process_assignment')->where("process_id", $request->delete_process_id)->delete();
             return response()->json(['success' => 1, 'message' => 'Process successfully deleted.']);
         } 
     }
@@ -2433,44 +2407,66 @@ class SecondaryController extends Controller
         try {
             $now = Carbon::now();
             if ($request->id) {
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->where('status', 'Completed')->first();
-                    if ($jt_details) {
+                $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
+                if($job_ticket_details->status == 'Completed'){
                     return response()->json(['success' => 0, 'message' => 'Task already Completed']);
                 }
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
 
-                $prod_manufacturing_qty = DB::connection('mysql_mes')->table('production_order')
-                    ->where('production_order', $jt_details->production_order)->select('qty_to_manufacture')
-                    ->first();
+                $prod_manufacturing_qty = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->first();
+                $pending = $prod_manufacturing_qty->qty_to_manufacture - $job_ticket_details->completed_qty;
 
-                if(DB::connection('mysql_mes')->table('time_logs')
-                ->where('job_ticket_id', '=', $request->id)
-                ->exists()){
-
-                    $timelogs = DB::connection('mysql_mes')->table('time_logs')
-                    ->where('job_ticket_id', $request->id)
-                    ->get();
-                    $total_good_timelogs = collect($timelogs)->sum('good');
-                    $values1 = [
-                    'status' => 'Completed',
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                    ];
-
-                    DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->id)
-                    ->where('status', 'In Progress')->update($values1);
-                }
+                $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
+                $logs = DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
 
                 $values = [
-                    'completed_qty' => $prod_manufacturing_qty->qty_to_manufacture,
-                    'status' => 'Completed',
-                    'remarks' => 'Override',
                     'last_modified_by' => Auth::user()->employee_name,
                     'last_modified_at' => $now->toDateTimeString()
                 ];
 
+                // update and save timelogs
+                if($logs){
+                    $from_time = Carbon::parse($logs->from_time);
+                    $duration = $from_time->diffInSeconds($now);
+
+                    $values['status'] = 'Completed';
+                    $values['to_time'] = $now->toDateTimeString();
+                    $values['good'] = $pending;
+                    $values['duration'] = $duration;
+
+                    DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $request->id)->where('status', 'In Progress')->update($values);
+                }
+
+                // reset values array
+                unset($values['duration']);
+                unset($values['to_time']);
+
+                // update and save job ticket
+                $jt_completed = $job_ticket_details->completed_qty + $pending;
+
+                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
+
+                $values['remarks'] = 'Override';
+                $values['completed_qty'] = $request->workstation == 'Spotwelding' ? $total_good_spotwelding->min('total_good') : $jt_completed;
+                $values['actual_end_date'] = $now->toDateTimeString();
+
                 DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->update($values);
 
+                // reset values array
+                unset($values['status']);
+                unset($values['remarks']);
+                unset($values['completed_qty']);
+                unset($values['good']);
+
+                // check, update and save production order
+                $job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_details->production_order)->get();
+
+                $completed_qty_sum = collect($job_ticket)->sum('completed_qty');
+                $job_ticket_count = count($job_ticket);
+                $qty_check = (int)$completed_qty_sum / $job_ticket_count;
+
+                $values['status'] = $qty_check == $prod_manufacturing_qty->qty_to_manufacture ? 'Completed' : 'In Progress';
+
+                DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->update($values);
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
             }
         } catch (Exception $e) {
@@ -2709,7 +2705,7 @@ class SecondaryController extends Controller
 
         $unscheduled = [];
         foreach ($unscheduled_prod as $row) {
-            // $erp_prod = DB::connection('mysql')->table('tabProduction Order')
+            // $erp_prod = DB::connection('mysql')->table('tabWork Order')
             //  ->where('name', $row->production_order)->first();
 
             // $erp_prod_status = ($erp_prod) ? $erp_prod->docstatus : -1;
@@ -2733,7 +2729,7 @@ class SecondaryController extends Controller
                 ];
             // }
 
-            // $batch = DB::connection('mysql')->table('tabProduction Batch Table')->where('production_order', $row->name)->first();
+            // $batch = DB::connection('mysql')->table('tabWork Batch Table')->where('production_order', $row->name)->first();
 
             
         }
@@ -2837,7 +2833,7 @@ class SecondaryController extends Controller
         $scheduled = [];
         foreach($orders as $row){
             $status = $this->prodJtStatus_proScheduling($row->production_order);
-            // $batch = DB::connection('mysql')->table('tabProduction Batch Table')->where('production_order', $row->name)->first();
+            // $batch = DB::connection('mysql')->table('tabWork Batch Table')->where('production_order', $row->name)->first();
             $scheduled[] = [
                 'id' => $row->production_order,
                 'name' => $row->production_order,
@@ -2968,7 +2964,7 @@ class SecondaryController extends Controller
         }
 
         $current_date = $schedule_date;
-
+        
         return view('tables.tbl_production_order_list_maindashboard', compact('result', 'current_date'));
     }
 
@@ -2979,7 +2975,7 @@ class SecondaryController extends Controller
             $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
                 ->join('job_ticket as jt', 'jt.job_ticket_id', 'qi.reference_id')
                 ->join('production_order as po', 'jt.production_order', 'po.production_order')
-                ->where('qi.qa_inspection_date', $schedule_date)
+                ->whereDate('qi.qa_inspection_date', $schedule_date)
                 ->where('qi.reference_type', 'Spotwelding')->where('po.operation_id', $request->operation)
                 ->select('jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'qi.created_by')->paginate(10);
 
@@ -2998,11 +2994,11 @@ class SecondaryController extends Controller
             }
         }
 
-        $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
+       $query = DB::connection('mysql_mes')->table('quality_inspection as qi')
             ->join('time_logs as tl', 'tl.time_log_id', 'qi.reference_id')
             ->join('job_ticket as jt', 'jt.job_ticket_id', 'tl.job_ticket_id')
             ->join('production_order as po', 'jt.production_order', 'po.production_order')
-            ->where('qi.qa_inspection_date', $schedule_date)
+            ->whereDate('qi.qa_inspection_date', $schedule_date)
             ->where('qi.reference_type', 'Time Logs')->where('po.operation_id', $request->operation)
             ->when($request->operation == 2, function($q){
 				return $q->where('jt.workstation', 'Painting');
@@ -3010,7 +3006,7 @@ class SecondaryController extends Controller
             ->when($request->operation != 2, function($q){
 				return $q->where('jt.workstation', '!=', 'Painting');
 			})
-            ->select('jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'tl.operator_name')->paginate(10);
+            ->select('qi.qa_inspection_date', 'jt.production_order', 'qi.qa_staff_id', 'qi.actual_qty_checked', 'qi.status', 'qi.qa_inspection_type', 'qi.rejected_qty', 'tl.operator_name')->paginate(10);
 
         foreach($query as $row){
             $qa_staff_details = DB::connection('mysql_essex')->table('users')->where('user_id', $row->qa_staff_id)->first();
@@ -3134,40 +3130,11 @@ class SecondaryController extends Controller
 
         $for_feedback_painting = $this->get_production_order_count_totals($for_feedback_painting_production_orders, 2);
 
-        return [
-            'fab_planned' => $fabrication['planned_count'],
-            'fab_planned_qty' => $fabrication['planned_qty'],
-            'fab_wip' => $fabrication['wip_count'],
-            'fab_wip_qty' => $fabrication['wip_qty'],
-            'fab_done' => $fabrication['done_count'],
-            'fab_done_qty' => $fabrication['done_qty'],
-            'fab_for_feedback' => $for_feedback_fabrication['for_feedback_count'],
-            'fab_for_feedback_qty' => $for_feedback_fabrication['for_feedback_qty'],
-
-            'wa_planned' => $assembly['planned_count'],
-            'wa_planned_qty' => $assembly['planned_qty'],
-            'wa_wip' => $assembly['wip_count'],
-            'wa_wip_qty' => $assembly['wip_qty'],
-            'wa_done' => $assembly['done_count'],
-            'wa_done_qty' => $assembly['done_qty'],
-            'wa_for_feedback' => $for_feedback_assembly['for_feedback_count'],
-            'wa_for_feedback_qty' => $for_feedback_assembly['for_feedback_qty'],
-
-            'pa_planned' => $painting['planned_count'],
-            'pa_planned_qty' => $painting['planned_qty'],
-            'pa_wip' => $painting['wip_count'],
-            'pa_wip_qty' => $painting['wip_qty'],
-            'pa_done' => $painting['done_count'],
-            'pa_done_qty' => $painting['done_qty'],
-            'pa_for_feedback' => $for_feedback_painting['for_feedback_count'],
-            'pa_for_feedback_qty' => $for_feedback_painting['for_feedback_qty'],
-        ];
-
         $user_permitted_operations = DB::connection('mysql_mes')->table('user')
-			->join('operation', 'operation.operation_id', 'user.operation_id')
-			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-			->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
-			->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
+            ->join('operation', 'operation.operation_id', 'user.operation_id')
+            ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+            ->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
+            ->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
             ->distinct()->pluck('operation_id');
             
         $start = Carbon::parse($schedule_date)->startOfDay();
@@ -3198,16 +3165,49 @@ class SecondaryController extends Controller
             ->sum('rejected_qty');
         
         // count all ready for feedback
-        $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order')
-            ->whereRaw('(feedback_qty < produced_qty)')->where('status', '!=', 'Cancelled')
-            ->where('produced_qty', '>', 0)
-            ->whereIn('operation_id', $user_permitted_operations)
-            ->selectRaw('(produced_qty - feedback_qty) as for_feedback')->get();
+        $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order AS po')
+            ->leftJoin('delivery_date', function($join)
+            {
+                $join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
+                $join->on('po.parent_item_code','=','delivery_date.parent_item_code');
+            })
+            ->where('po.produced_qty', '>', 0)
+			->whereRaw('po.produced_qty > feedback_qty')
+            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereIn('po.operation_id', $user_permitted_operations)
+            ->selectRaw('(po.produced_qty - po.feedback_qty) as for_feedback')->get();
 
         $for_feedback_production_count = count($for_feedback_production_orders);
         $for_feedback_qty_count = collect($for_feedback_production_orders)->sum('for_feedback');
 
         return [
+            'fab_planned' => $fabrication['planned_count'],
+            'fab_planned_qty' => $fabrication['planned_qty'],
+            'fab_wip' => $fabrication['wip_count'],
+            'fab_wip_qty' => $fabrication['wip_qty'],
+            'fab_done' => $fabrication['done_count'],
+            'fab_done_qty' => $fabrication['done_qty'],
+            'fab_for_feedback' => $for_feedback_fabrication['for_feedback_count'],
+            'fab_for_feedback_qty' => $for_feedback_fabrication['for_feedback_qty'],
+
+            'wa_planned' => $assembly['planned_count'],
+            'wa_planned_qty' => $assembly['planned_qty'],
+            'wa_wip' => $assembly['wip_count'],
+            'wa_wip_qty' => $assembly['wip_qty'],
+            'wa_done' => $assembly['done_count'],
+            'wa_done_qty' => $assembly['done_qty'],
+            'wa_for_feedback' => $for_feedback_assembly['for_feedback_count'],
+            'wa_for_feedback_qty' => $for_feedback_assembly['for_feedback_qty'],
+
+            'pa_planned' => $painting['planned_count'],
+            'pa_planned_qty' => $painting['planned_qty'],
+            'pa_wip' => $painting['wip_count'],
+            'pa_wip_qty' => $painting['wip_qty'],
+            'pa_done' => $painting['done_count'],
+            'pa_done_qty' => $painting['done_qty'],
+            'pa_for_feedback' => $for_feedback_painting['for_feedback_count'],
+            'pa_for_feedback_qty' => $for_feedback_painting['for_feedback_qty'],
+
             'pending' => number_format($pending_production_count),
             'pending_qty' => number_format($pending_qty_count),
             'inProgress' => number_format($in_progress_production_count),
@@ -3216,6 +3216,60 @@ class SecondaryController extends Controller
             'completed_qty' => number_format($for_feedback_qty_count),
             'reject' =>  number_format($reject_qty),
         ];
+
+        // $user_permitted_operations = DB::connection('mysql_mes')->table('user')
+		// 	->join('operation', 'operation.operation_id', 'user.operation_id')
+		// 	->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+		// 	->where('module', 'Production')->where('user_access_id', Auth::user()->user_id)
+		// 	->select('user.operation_id', 'operation_name')->orderBy('user.operation_id', 'asc')
+        //     ->distinct()->pluck('operation_id');
+            
+        // $start = Carbon::parse($schedule_date)->startOfDay();
+        // $end = Carbon::parse($schedule_date)->endOfDay();
+
+        // // pending production orders scheduled today
+        // $pending_production_orders = DB::connection('mysql_mes')->table('production_order')
+        //     ->where('planned_start_date', $schedule_date)
+        //     ->whereIn('operation_id', $user_permitted_operations)
+        //     ->where('status', 'Not Started')->get();
+
+        // $pending_production_count = count($pending_production_orders);
+        // $pending_qty_count = collect($pending_production_orders)->sum('qty_to_manufacture');
+        
+        // // in progress production orders scheduled today
+        // $in_progress_production_orders = DB::connection('mysql_mes')->table('production_order')
+        //     ->where('planned_start_date', $schedule_date)->where('status', 'In Progress')
+        //     ->whereIn('operation_id', $user_permitted_operations)
+        //     ->selectRaw('(qty_to_manufacture - produced_qty) as wip_qty')->get();
+
+        // $in_progress_production_count = count($in_progress_production_orders);
+        // $in_progress_qty_count = collect($in_progress_production_orders)->sum('wip_qty');
+
+        // // get total rejected qty based on scheduled date
+        // $reject_qty = DB::connection('mysql_mes')->table('quality_inspection')
+        //     ->whereBetween('qa_inspection_date', [$start, $end])
+        //     ->whereIn('status', ['QC Failed', 'QC Passed'])
+        //     ->sum('rejected_qty');
+        
+        // // count all ready for feedback
+        // $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order')
+        //     ->whereRaw('(feedback_qty < produced_qty)')->where('status', '!=', 'Cancelled')
+        //     ->where('produced_qty', '>', 0)
+        //     ->whereIn('operation_id', $user_permitted_operations)
+        //     ->selectRaw('(produced_qty - feedback_qty) as for_feedback')->get();
+
+        // $for_feedback_production_count = count($for_feedback_production_orders);
+        // $for_feedback_qty_count = collect($for_feedback_production_orders)->sum('for_feedback');
+
+        // return [
+        //     'pending' => number_format($pending_production_count),
+        //     'pending_qty' => number_format($pending_qty_count),
+        //     'inProgress' => number_format($in_progress_production_count),
+        //     'inProgress_qty' => number_format($in_progress_qty_count),
+        //     'completed' => number_format($for_feedback_production_count),
+        //     'completed_qty' => number_format($for_feedback_qty_count),
+        //     'reject' =>  number_format($reject_qty),
+        // ];
     }
 
     public function add_shift(Request $request){
@@ -3775,8 +3829,9 @@ class SecondaryController extends Controller
         }else{
             $arr=$request->shifttype;
         }
-        $data= (array_count_values($arr));
-        if($data['Special Shift'] > 1){
+       $data= (array_count_values($arr));
+       $special_shift = array_key_exists('Special Shift', $data) ? $data['Special Shift'] : 0;
+        if($special_shift > 1){
             return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE Special Shift' ]);
                 
         }else{
@@ -7488,7 +7543,7 @@ class SecondaryController extends Controller
         ->where('item.item_classification', ['PA - Paints'])
         ->where('item.item_name','like', '%powder%')
         ->orderBy('item.modified', 'desc')
-        ->select('item.name', 'item.item_name', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name')
         ->get();
 
         foreach($item_list as $row){
@@ -7646,7 +7701,7 @@ class SecondaryController extends Controller
           
   
           foreach($datas as $row){
-            $prod_details = DB::connection('mysql')->table('tabProduction Order')
+            $prod_details = DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $row->production_order)->first();
             
             $status = $row->status;
@@ -7758,7 +7813,7 @@ class SecondaryController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Please stop all task for Production Order ' . $request->production_order]);
             }
 
-            DB::connection('mysql')->table('tabProduction Order')->where('name', $request->production_order)
+            DB::connection('mysql')->table('tabWork Order')->where('name', $request->production_order)
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
@@ -7890,7 +7945,7 @@ class SecondaryController extends Controller
           
   
           foreach($datas as $row){
-            $prod_details = DB::connection('mysql')->table('tabProduction Order')
+            $prod_details = DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $row->production_order)->first();
             
             $status = $row->status;
@@ -8721,7 +8776,7 @@ class SecondaryController extends Controller
             if($timelogs){
                 $timelogss = date('H:i:s', strtotime($timelogs->to_time));
                 if($shift_sched < $timelogss) {
-                    $prod_details = DB::connection('mysql')->table('tabProduction Order')
+                    $prod_details = DB::connection('mysql')->table('tabWork Order')
 					    ->where('name', $timelogs->production_order)->first();
 
                     if($prod_details->docstatus == 2 && $timelogs->status != 'Cancelled'){

@@ -61,7 +61,7 @@ return [
             'driver' => 'mysql',
             'host' => '10.0.0.83',
             'port' => '3306',
-            'database' => '3f2ec5a818bccb73',
+            'database' => '_3f2ec5a818bccb73',
             'username' => 'erp',
             'password' => 'fumaco',
             'unix_socket' => '',

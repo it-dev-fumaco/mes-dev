@@ -19,7 +19,13 @@
   {{--  <!-- CSS Just for demo purpose, don't include it in your project -->  --}}
   <link href="{{ asset('/css/demo.css') }}" rel="stylesheet" />
 </head>
-
+<style>
+  @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
+	*:not(i):not(.fa){
+		font-family: 'Poppins' !important;
+		letter-spacing: 0.4px;
+	}
+</style>
 <body class="">
   <div class="wrapper">
      <div class="sidebar" data-color="orange">
@@ -872,7 +878,30 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
-  
+    $(document).on('click', '.issue-now-btn', function(e){
+      e.preventDefault();
+
+      $btn = $(this);
+      $btn.removeClass('issue-now-btn').text('Loading...');
+
+      var production_order = $(this).data('production-order');
+      $.ajax({
+        url: '/submit_withdrawal_slip',
+        type:"POST",
+        data: {'child_tbl_id': $(this).data('id')},
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            get_production_order_items(production_order);
+          }else{
+            $btn.addClass('issue-now-btn').text('Issue Now');
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+
+  @if($activePage == 'main_dashboard')
   
   $(document).on('change', '#sel-workstation', function(){
          $('#add-operation-btn').attr('disabled', true);
@@ -898,6 +927,8 @@
             });
          }
       });
+
+  @endif
   $(document).on('click', '.view-bom-details-btn', function(e){
     e.preventDefault();
     var guidebom =  $(this).data('bom');
@@ -1328,6 +1359,16 @@
       $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
+      if(!$('#has-no-bom').text()) {
+        $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
+        $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
+        $('#change-required-qty-btn').attr('readonly', true);
+      } else {
+        $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
+        $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
+        $('#change-required-qty-btn').removeAttr('readonly');
+      }
+
       $.ajax({
         url: "/get_available_warehouse_qty/" + item_code,
         type:"GET",
@@ -1542,18 +1583,24 @@
         url:"/create_stock_entry/" + production_order,
         type:"POST",
         data: {fg_completed_qty: completed_qty, target_warehouse: target_warehouse},
-        success:function(response){
+        success:function(response, textStatus, xhr){
           $('#loader-wrapper').attr('hidden', true);
           if (response.success == 0) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
             $('#submit-feedback-btn').removeAttr('disabled');
           }else{
+            if(response.mail_sent < 1){
+              showNotification("warning", 'Feedback email notification sending failed.', "now-ui-icons travel_info");
+            }
             showNotification("success", response.message, "now-ui-icons travel_info");
             $('#confirm-feedback-production-modal').modal('hide');
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
+          showNotification("danger", 'An error occured. Please contact your system administrator.', "now-ui-icons travel_info");
+          $('#submit-feedback-btn').removeAttr('disabled');
+          $('#confirm-feedback-production-modal').modal('hide');
+          $('#loader-wrapper').attr('hidden', true);
           console.log(textStatus);
           console.log(errorThrown);
         }

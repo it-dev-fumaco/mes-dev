@@ -11,6 +11,7 @@ use DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendMail_feedbacking;
 use App\Traits\GeneralTrait;
+use Session;
 
 class ManufacturingController extends Controller
 {
@@ -49,6 +50,10 @@ class ManufacturingController extends Controller
 
     public function get_material_request_details($id){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $mr = DB::connection('mysql')->table('tabMaterial Request')->where('name', $id)->first();
             if (!$mr) {
                 return response()->json(['message' => 'Material Request <b>' . $id . '</b> not found.']);
@@ -94,7 +99,11 @@ class ManufacturingController extends Controller
 
     public function get_sales_order_details($id){
         try {
-            $so = DB::connection('mysql')->table('tabSales Order')->where('name', $id)->first();
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+            
+            $so = DB::connection('mysql')->table('tabSales Order')->where('name', $id)->where('docstatus', 1)->first();
             if (!$so) {
                 return response()->json(['message' => 'Sales Order <b>' . $id . '</b> not found.']);
             }
@@ -115,16 +124,17 @@ class ManufacturingController extends Controller
                 $match= "";
                 $new_code= "";
                 $origl_code= "";
+
                 if($delivery_date_tbl){
                     if($delivery_date_tbl->parent_item_code == $item->item_code){
                         $match= "true";
-                       
                     }else{
                         $match = "false";
                         $origl_code = $delivery_date_tbl->parent_item_code;
                         $new_code= $item->item_code;
                     }
                 }
+
                 $item_list[] = [
                     'id' => $item->name,
                     'idx' => $item->idx,
@@ -172,9 +182,6 @@ class ManufacturingController extends Controller
                 $item_group = ($item_details) ? $item_details->item_group : '';
                 $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
 
-                // $bom_operation = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $child_bom)->first();
-                // $operation_name = ($bom_operation) ? $bom_operation->operation : null;
-
                 $materials[] = [
                     'item_code' => $item->item_code,
                     'description' => $item_description,
@@ -183,7 +190,6 @@ class ManufacturingController extends Controller
                     'qty' => $item->qty,
                     'bom_no' => $child_bom,
                     'uom' => $item->uom,
-                    // 'operation_name' => $operation_name,
                     'child_nodes' => $this->get_bom($child_bom)
                 ];
             }
@@ -196,12 +202,16 @@ class ManufacturingController extends Controller
 
     public function get_production_req_items(Request $request){
         try {
-            $items = DB::table('tabProduction Order Item')->whereIn('parent', $request->production_orders)
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
+            $items = DB::table('tabWork Order Item')->whereIn('parent', $request->production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
             $req_items = [];
             foreach ($items as $item) {
-                $prod = DB::table('tabProduction Order')->where('name', $item->parent)->first();
+                $prod = DB::table('tabWork Order')->where('name', $item->parent)->first();
 
                 $arr = ['length', 'width', 'height', 'thickness', 'cutting size'];
 
@@ -220,7 +230,7 @@ class ManufacturingController extends Controller
                 $item_details = DB::table('tabItem')->where('name', $item->item_code)->first();
 
                 $ste = DB::table('tabStock Entry AS se')->join('tabStock Entry Detail AS sed', 'se.name', 'sed.parent')
-                    ->where('se.docstatus', '<', 2)->where('se.production_order', $item->parent)
+                    ->where('se.docstatus', '<', 2)->where('se.work_order', $item->parent)
                     ->where('se.sales_order_no', $prod->sales_order_no)
                     ->where('sed.item_code', $item->item_code)->select('se.*')->first();
 
@@ -295,6 +305,10 @@ class ManufacturingController extends Controller
 
     public function get_parts(Request $request){
         try {
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $not_allowed_item_classification = ['RA - REFLECTOR ASSEMBLY', 'FA - FRAM1E ASSEMBLY'];
             $parts = [];
             foreach ($request->bom as $idx => $bom) {
@@ -339,7 +353,7 @@ class ManufacturingController extends Controller
                             ->where('item_code', $parent_part['item_code'])->sum('balance_qty');
 
                         if ($parent_default_bom) {
-                            $existing_prod1 = DB::connection('mysql')->table('tabProduction Order')
+                            $existing_prod1 = DB::connection('mysql')->table('tabWork Order')
                                 ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                 ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                     return $query->where('sales_order_no', $reference_no);
@@ -355,7 +369,7 @@ class ManufacturingController extends Controller
                             $s_warehouse = null;
                             if ($existing_prod1) {
                                 $planned_start_date1 = Carbon::parse($existing_prod1->planned_start_date)->format('Y-m-d');
-                                $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')->where('parent', $existing_prod1->name)->first()->source_warehouse;
+                                $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $existing_prod1->name)->first()->source_warehouse;
                             }
 
                             $parts[] = [
@@ -414,7 +428,7 @@ class ManufacturingController extends Controller
                             ->where('item_code', $child_part['item_code'])->sum('balance_qty');
 
                         if ($child_default_bom) {
-                            $existing_prod2 = DB::connection('mysql')->table('tabProduction Order')
+                            $existing_prod2 = DB::connection('mysql')->table('tabWork Order')
                                 ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                 ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                     return $query->where('sales_order_no', $reference_no);
@@ -430,7 +444,7 @@ class ManufacturingController extends Controller
                             $s_warehouse = null;
                             if ($existing_prod2) {
                                 $planned_start_date2 = Carbon::parse($existing_prod2->planned_start_date)->format('Y-m-d');
-                                $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')->where('parent', $existing_prod2->name)->first()->source_warehouse;
+                                $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $existing_prod2->name)->first()->source_warehouse;
                             }
                     
                             $parts[] = [
@@ -443,7 +457,7 @@ class ManufacturingController extends Controller
                                 'item_classification' => $child_part['item_classification'],
                                 'bom' => $child_default_bom->name,
                                 'bom_reviewed' => $child_default_bom->is_reviewed,
-                                'planned_qty' => $child_part['qty'] * $request->qty[$idx],
+                                'planned_qty' => ($child_part['qty'] * $request->qty[$idx]) * $parent_part['qty'],
                                 'reference_no' => $reference_no,
                                 'planned_start_date' => ($existing_prod2) ? $planned_start_date2 : null,
                                 'production_order' => ($existing_prod2) ? $existing_prod2->name : null,
@@ -464,7 +478,7 @@ class ManufacturingController extends Controller
                                 ->where('item_code', $child_part2['item_code'])->sum('balance_qty');
 
                             if ($child_default_bom) {
-                                $existing_prod3 = DB::connection('mysql')->table('tabProduction Order')
+                                $existing_prod3 = DB::connection('mysql')->table('tabWork Order')
                                     ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                     ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                         return $query->where('sales_order_no', $reference_no);
@@ -480,7 +494,7 @@ class ManufacturingController extends Controller
                                 $s_warehouse = null;
                                 if ($existing_prod3) {
                                     $planned_start_date3 = Carbon::parse($existing_prod3->planned_start_date)->format('Y-m-d');
-                                    $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')
+                                    $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')
                                         ->where('parent', $existing_prod3->name)->first()->source_warehouse;
                                 }
 
@@ -494,7 +508,7 @@ class ManufacturingController extends Controller
                                     'item_classification' => $child_part2['item_classification'],
                                     'bom' => $child_default_bom->name,
                                     'bom_reviewed' => $child_default_bom->is_reviewed,
-                                    'planned_qty' => $child_part2['qty'] * $request->qty[$idx],
+                                    'planned_qty' => ($child_part2['qty'] * $request->qty[$idx]) * $child_part['qty'],
                                     'reference_no' => $request->so[$idx],
                                     'planned_start_date' => ($existing_prod3) ? $planned_start_date3 : null,
                                     'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
@@ -515,7 +529,7 @@ class ManufacturingController extends Controller
                                     ->where('item_code', $child_part3['item_code'])->sum('balance_qty');
 
                                 if ($child_default_bom) {
-                                    $existing_prod3 = DB::connection('mysql')->table('tabProduction Order')
+                                    $existing_prod3 = DB::connection('mysql')->table('tabWork Order')
                                         ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                         ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                             return $query->where('sales_order_no', $reference_no);
@@ -531,7 +545,7 @@ class ManufacturingController extends Controller
                                     $s_warehouse = null;
                                     if ($existing_prod3) {
                                         $planned_start_date3 = Carbon::parse($existing_prod3->planned_start_date)->format('Y-m-d');
-                                        $s_warehouse = DB::connection('mysql')->table('tabProduction Order Item')
+                                        $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')
                                             ->where('parent', $existing_prod3->name)->first()->source_warehouse;
                                     }
 
@@ -545,7 +559,7 @@ class ManufacturingController extends Controller
                                         'item_classification' => $child_part3['item_classification'],
                                         'bom' => $child_default_bom->name,
                                         'bom_reviewed' => $child_default_bom->is_reviewed,
-                                        'planned_qty' => $child_part3['qty'] * $request->qty[$idx],
+                                        'planned_qty' => ($child_part3['qty'] * $request->qty[$idx]) * $child_part2['qty'],
                                         'reference_no' => $request->so[$idx],
                                         'planned_start_date' => ($existing_prod3) ? $planned_start_date2 : null,
                                         'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
@@ -572,6 +586,14 @@ class ManufacturingController extends Controller
 
     public function view_bom_for_review(Request $request, $bom){
         try {
+
+            $jtno = $request->production;
+
+            if(!Auth::user()) {
+                return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+            
+            $jtno = $request->production;
             $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
             if($bom == "No BOM"){
                 $workstations = DB::connection('mysql_mes')->table('workstation')
@@ -641,11 +663,153 @@ class ManufacturingController extends Controller
                     }
                 }
 
-                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom'));
+                // !!
+                $tbl_display = "";
+                $tbl_display2 = "";
+                $production_order = ($details) ? $details->production_order : null;
+                $process_arr = DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $production_order)
+                    ->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
+                    ->get();
+
+                $operation_list = [];
+                foreach ($process_arr as $row) {
+                    $operations_arr = [];
+                    if($row->workstation == "Spotwelding"){
+                        $operations =  DB::connection('mysql_mes')->table('spotwelding_qty as qpart')
+                        ->where('qpart.job_ticket_id',  $row->job_ticket_id)->get();
+                        $total_rejects =$row->reject;
+                        $min_count= collect($operations)->min('from_time');
+                        $max_count=collect($operations)->max('to_time');
+                        $status = collect($operations)->where('status', 'In Progress');
+                        $operations_arr[] = [
+                            'machine_code' => "",
+                            'operator_name' => "",
+                            'from_time' => $min_count,
+                            'to_time' => ($row->status == "In Progress") ? '' : $max_count,
+                            'status' => (count($status) == 0 )? 'Not started': "In Progress",
+                            'qa_inspection_status' => "",
+                            'good' => $row->completed_qty,
+                            'reject' => $total_rejects,
+                            'remarks' => "",
+                        ];
+                    }else{
+                        $operations = DB::connection('mysql_mes')->table('job_ticket AS jt')
+                        ->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
+                        ->where('time_logs.job_ticket_id', $row->job_ticket_id)
+                        ->where('workstation','!=', 'Spotwelding')
+                        ->select('jt.*', 'time_logs.*')
+                        ->orderBy('idx', 'asc')->get();
+
+                        foreach ($operations as $d) {
+                            $reference_type = ($d->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
+                            $reference_id = ($d->workstation == 'Spotwelding') ? $d->job_ticket_id : $d->time_log_id;
+                            // $qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
+
+                            if ($d->cycle_time_in_seconds > 0) {
+                                $cycle_time_in_seconds = $d->cycle_time_in_seconds / $d->good;
+
+                                $dur_hours = floor($cycle_time_in_seconds / 3600);
+                                $dur_minutes = floor(($cycle_time_in_seconds / 60) % 60);
+                                $dur_seconds = $cycle_time_in_seconds % 60;
+                    
+                                $dur_hours = ($dur_hours > 0) ? $dur_hours .'h' : null;
+                                $dur_minutes = ($dur_minutes > 0) ? $dur_minutes .'m' : null;
+                                $dur_seconds = ($dur_seconds > 0) ? $dur_seconds .'s' : null;
+                    
+                                $cycle_time_per_log = $dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds;
+                            }else{
+                                $cycle_time_per_log = '-';
+                            }
+
+                            $helpers = DB::connection('mysql_mes')->table('helper')
+                                ->where('time_log_id', $d->time_log_id)->orderBy('operator_name', 'asc')
+                                ->distinct()->pluck('operator_name');
+
+                            $operations_arr[] = [
+                                'machine_code' => $d->machine_code,
+                                'operator_name' => $d->operator_name,
+                                'helpers' => $helpers,
+                                'from_time' => ($d->from_time) ? Carbon::parse($d->from_time)->format('M-d-Y h:i A') : '',
+                                'to_time' => ($d->to_time) ? Carbon::parse($d->to_time)->format('M-d-Y h:i A') : '',
+                                'status' => $d->status,
+                                // 'qa_inspection_status' => $qa_inspection_status,
+                                'good' => $d->good,
+                                'reject' => $d->reject,
+                                'remarks' => $d->remarks,
+                                'cycle_time_per_log' => $cycle_time_per_log
+                            ];
+                        }
+
+                        $collection2 = collect($operations_arr);
+                        $collection2->contains('status', 'In Progress') ? $tbl_display2 = "show" : $tbl_display2 = "hide";
+
+                    }
+
+                    $operation_list[] = [
+                        'production_order' => $jtno,
+                        'workstation' => $row->workstation,
+                        'process' => $row->process,
+                        'job_ticket' => $row->job_ticket_id,
+                        'count_good' => (count($operations_arr) <= 1) ? '' : "Total: ".collect($operations_arr)->sum('good'),
+                        'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
+                        'operations' => $operations_arr,
+                        'display' => $tbl_display2,
+                        'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
+                    ];
+                    
+                }
+
+                $collection = collect($operation_list);
+                $collection->contains('display', "show") ? $tbl_display = "show" : $tbl_display = "hide";
+
+                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list', 'tbl_display'));
             }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
+    }
+
+    public function time_log_delete(Request $request){
+        $process_id = DB::connection('mysql_mes')->table('process')->where('process_name', $request->process)->pluck('process_id')->first();
+
+        $time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('operator_name', $request->operator);
+
+        $time_log_qty = $time_log->pluck('good')->first();
+        $jt_qty = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->jtid)->pluck('completed_qty')->first();
+        $new_qty = $jt_qty - $time_log_qty;
+
+        $time_log_id = $time_log->pluck('time_log_id')->first();
+        $log_msg = "Job ticket ID: ".$request->jtid.", Workstation: ".$request->workstation.", Process: ".$request->process.", Good: ".$request->tbl_good.", Reject: ".$request->tbl_reject.", Machine: ".$request->machine.", Start Time: ".$request->from_time.", End Time: ".$request->to_time.", Operator Name: ".$request->operator;
+        
+        $logs = [
+            'action' => 'Delete Time Log',
+            'message' => $log_msg,
+            'created_at' => Carbon::now(),
+            'created_by' => Auth::user()->employee_name
+        ];
+        
+        $mes_delete = $time_log->delete();
+
+        $jt_stat = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->jtid)->where('status', 'In Progress')->get();
+        $jt_val = [
+            'status' => count($jt_stat) > 0 ? 'In Progress' : 'Pending',
+            'good' => $new_qty,
+            'completed_qty' => $new_qty
+        ];
+
+        $jt_update = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod_order)->where('workstation', $request->workstation)
+            ->where('process_id', $process_id)->update($jt_val);
+
+        $jt_status = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod_order)->select('status')->get();
+        $collection = collect($jt_status);
+        if(!$collection->contains('status', 'In Progress')){
+            $mes_update = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod_order)->update(['status' => 'Not Started']);
+        }
+
+        $act_log = DB::connection('mysql_mes')->table('activity_logs')->insert($logs);
+
+        return redirect()->back()->with('deleted', 'Task updated');
     }
 
     public function get_workstation_process($workstation){
@@ -775,206 +939,408 @@ class ManufacturingController extends Controller
 
     // wizard / manual create production order / bom crud
     public function submit_bom_review(Request $request, $bom){
-        $process_arr = [];
-        foreach ($request->wprocess as $i => $process_id) {
-            if(!in_array($process_id, $process_arr)){
-                array_push($process_arr, $process_id);
-            }else{
-                return response()->json(['status' => 0, 'message' => 'Duplicate process was selected for workstation <b>' . $request->workstation[$i] . '</b>.']);
-            }
-        }
-
-        $now = Carbon::now();
-        if($bom == "no_bom"){
-            $bom_value= "nobom";
-        }else{
-            $bom_value= "withbom";
-
-        }
-        if (is_numeric($request->operation)){
-            $operation_name=DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation)->first();
-            $operation=$operation_name->operation_name;
-
-        }else{
-            $operation=$request->operation;
-
-        }
         try {
-            // operations for delete
-            if ($request->id) {
-                $bom_operations = DB::connection('mysql')->table('tabBOM Operation')
-                    ->where('parent', $bom)->whereNotIn('name', array_filter($request->id))->delete();
+            $logs = [];
+            // validate if process is empty
+            if(!$request->wprocess) {
+                return response()->json(['status' => 0, 'message' => 'Workstation / Process cannot be empty.']);
             }
-
+            // validate for duplicate process
+            $process_arr = [];
+            foreach ($request->wprocess as $i => $process_id) {
+                if(!in_array($process_id, $process_arr)){
+                    array_push($process_arr, $process_id);
+                }else{
+                    return response()->json(['status' => 0, 'message' => 'Duplicate process was selected for workstation <b>' . $request->workstation[$i] . '</b>.']);
+                }
+            }
+            // validate requested production order if partially feedbacked
             if ($request->production_order) {
                 $production_order_details = DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)->first();
-                
+                    
                 if($production_order_details && $production_order_details->feedback_qty > 0) {
                     return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. Production Order has been partially feedbacked.']);
                 }
-                DB::connection('mysql_mes')->table('job_ticket')
-                    ->where('production_order', $request->production_order)
-                    ->when($bom_value == 'nobom', function ($query) use ($request){
-                        return $query->whereNotIn('job_ticket_id', array_filter($request->id));
-                    })
-                    ->when($bom_value == 'withbom', function ($query) use ($request){
-                        return $query->whereNotIn('bom_operation_id', array_filter($request->id));
-                    })->delete();
             }
+           
+            $now = Carbon::now();
+            if ($request->id) {
+                if ($request->production_order) {
+                    // check for in progress or completed job ticket
+                    $existing_not_pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+                        ->where('production_order', $request->production_order)->where('status', '!=', 'Pending')->first();
+                    if ($existing_not_pending_job_ticket) {
+                        $bom_operation_id_index = array_search($existing_not_pending_job_ticket->bom_operation_id, $request->id);
+                        if ($request->wprocess[$bom_operation_id_index] != $existing_not_pending_job_ticket->process_id) {
+                            return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. <b>' . $existing_not_pending_job_ticket->workstation .'</b> is currently in progress.']);
+                        }
+                        // validate if existing_not_pending_job_ticket bom operation id not in $request->id
+                        if (!in_array($existing_not_pending_job_ticket->bom_operation_id, array_filter($request->id))) {
+                            return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. <b>' . $existing_not_pending_job_ticket->workstation .'</b> is currently in progress.']);
+                        }
+                    }
+                    // delete production order operation
+                    DB::connection('mysql')->table('tabWork Order Operation')
+                        ->where('parent', $request->production_order)->whereNotIn('name', array_filter($request->id))->delete();
+                    // delete job ticket
+                    $removed_process = DB::connection('mysql_mes')->table('job_ticket')
+                        ->where('production_order', $request->production_order)
+                        ->whereNotIn('bom_operation_id', array_filter($request->id));
 
-            if ($request->workstation) {
-                foreach ($request->workstation as $index => $workstation) {
-                    if ($request->id[$index]) {
-                        if ($workstation != 'Painting') {
-                            DB::connection('mysql')->table('tabBOM Operation')->where('name', $request->id[$index])
-                            ->update(['process' => $request->wprocess[$index], 'idx' => $index + 1]);
+                    $removed_process_query = $removed_process->get();
+                    foreach($removed_process_query as $row) {
+                        $logs[] = [
+                            'delete' => [
+                                'workstation' => $row->workstation,
+                                'process' => $row->process_id
+                            ]
+                        ];
+                    }
 
-                            if ($request->production_order) {
-                                DB::connection('mysql_mes')->table('job_ticket')
-                                    ->where('production_order', $request->production_order)
-                                    ->where('workstation', $workstation)
-                                    ->where('status', 'Pending')
-                                    ->when($bom_value == 'nobom', function ($query) use ($request, $index){
-                                        return $query->where('job_ticket_id', $request->id[$index]);
-                                    })
-                                    ->when($bom_value == 'withbom', function ($query) use ($request, $index){
-                                        return $query->where('bom_operation_id', $request->id[$index]);
-                                    })->update([
-                                        'process_id' => $request->wprocess[$index],
-                                        'idx' => $index + 1,
-                                        'status' => 'Pending',
-                                        'last_modified_by' => $request->user,
-                                    ]);
+                    $removed_process->delete();
+                }
+                
+                // delete bom operation
+                DB::connection('mysql')->table('tabBOM Operation')
+                    ->where('parent', $bom)->whereNotIn('name', array_filter($request->id))->delete();
+
+                $operation = $request->operation;
+                foreach ($request->id as $x => $row) {
+                    // get operation name
+                    if (is_numeric($request->operation)){
+                        $operation_query = DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation)->first();
+                        $operation = ($operation_query) ? $operation_query->operation_name : null;
+                    }else{
+                        $operation_query = DB::connection('mysql_mes')->table('workstation')
+                            ->join('operation', 'operation.operation_id', 'workstation.operation_id')
+                            ->where('workstation_name',$request->workstation[$x])->first();
+        
+                        $operation = ($operation_query) ? $operation_query->operation_name : null;
+                    }
+                    // update existing records in bom operation, production order operation and job ticket table
+                    if ($request->id[$x]) {
+                        // update existing bom operation
+                        DB::connection('mysql')->table('tabBOM Operation')
+                            ->where('name', $request->id[$x])
+                            ->where('parent', $bom)
+                            ->where(function($q) use ($request, $x) {
+                                $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
+                            })
+                            ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                        
+                        if ($request->production_order) {
+                            // check if bom_operation_id exists in production order operation table
+                            $existing_production_order_operation = DB::connection('mysql')->table('tabWork Order Operation')
+                                ->where('parent', $request->production_order)->where('bom_operation_id', $request->id[$x])->exists();
+                            if (!$existing_production_order_operation) {
+                                // insert workstation in production order operation table
+                                DB::connection('mysql')->table('tabWork Order Operation')->insert([
+                                    'name' => 'mes'.uniqid(),
+                                    'creation' => $now->toDateTimeString(),
+                                    'modified' => $now->toDateTimeString(),
+                                    'modified_by' => Auth::user()->email,
+                                    'owner' => Auth::user()->email,
+                                    'docstatus' => 1,
+                                    'parent' => $request->production_order,
+                                    'parentfield' => 'operations',
+                                    'parenttype' => 'Work Order',
+                                    'idx' => $x + 1,
+                                    'status' => 'Pending',
+                                    'actual_start_time' => null,
+                                    'workstation' => $request->workstation[$x],
+                                    'completed_qty' => 0,
+                                    'planned_operating_cost' => 0,
+                                    'description' => $request->workstation[$x],
+                                    'actual_end_time' => null,
+                                    'actual_operating_cost' => 0,
+                                    'hour_rate' => 0,
+                                    'planned_start_time' => null,
+                                    'bom' => $bom,
+                                    'actual_operation_time' => 0,
+                                    'operation' => $operation,
+                                    'planned_end_time' => null,
+                                    'time_in_mins' => 1,
+                                    'process' => $request->wprocess[$x],
+                                    'bom_operation_id' => $request->id[$x]
+                                ]);
                             }
-                        }else{
-                            DB::connection('mysql')->table('tabBOM Operation')->where('name', $request->id[$index])
-                                ->update(['idx' => $index + 1]);
+                            // update existing production order operation
+                            DB::connection('mysql')->table('tabWork Order Operation')
+                                ->where('bom_operation_id', $request->id[$x])
+                                ->where('parent', $request->production_order)->where('status', 'Pending')
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
+                                })
+                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
-                            if ($request->production_order) {
-                                $painting_processes = DB::connection('mysql_mes')->table('process_assignment')
-                                    ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-                                    ->where('workstation.workstation_name', 'Painting')
-                                    ->orderBy('process_assignment.process_id', 'asc')
-                                    ->pluck('process_assignment.process_id');
+                            // check if bom operation id exists in job ticket table filtered by production order
+                            $existing_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+                                ->where('bom_operation_id', $request->id[$x])->where('production_order', $request->production_order)->exists();
+                            if (!$existing_job_ticket) {
+                                if ($request->workstation[$x] != 'Painting') {
+                                    // insert workstation in job ticket table
+                                    DB::connection('mysql_mes')->table('job_ticket')->insert([
+                                        'production_order' => $request->production_order,
+                                        'workstation' => $request->workstation[$x],
+                                        'process_id' => $request->wprocess[$x],
+                                        'idx' => $x + 1,
+                                        'bom_operation_id' => $request->id[$x],
+                                        'created_by' => Auth::user()->email,
+                                        'last_modified_by' => Auth::user()->email,
+                                    ]);
 
-                                foreach ($painting_processes as $i => $painting_process) {
-                                    DB::connection('mysql_mes')->table('job_ticket')
-                                        ->where('production_order', $request->production_order)
-                                        ->where('workstation', $workstation)
-                                        ->where('status', 'Pending')
-                                        ->where('process_id', $painting_process)
-                                        ->update([
-                                            'bom_operation_id' => $request->id[$index],
+                                    $logs[] = [
+                                        'add' => [
+                                            'workstation' => $request->workstation[$x],
+                                            'process' => $request->wprocess[$x],
+                                        ]
+                                    ];
+                                } else {
+                                    // get painting processes
+                                    $painting_processes = DB::connection('mysql_mes')->table('process_assignment')
+                                        ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
+                                        ->where('workstation.workstation_name', 'Painting')->orderBy('process_assignment.process_id', 'asc')
+                                        ->pluck('process_assignment.process_id');
+                                    // insert painting process
+                                    foreach ($painting_processes as $i => $painting_process) {
+                                        DB::connection('mysql_mes')->table('job_ticket')->insert([
+                                            'production_order' => $request->production_order,
+                                            'workstation' => $request->workstation[$x],
                                             'process_id' => $painting_process,
-                                            'idx' => $index + $i + 1,
-                                            'status' => 'Pending',
-                                            'last_modified_by' => $request->user,
+                                            'idx' => $x + $i + 1,
+                                            'bom_operation_id' => $request->id[$x],
+                                            'created_by' => Auth::user()->email,
+                                            'last_modified_by' => Auth::user()->email,
                                         ]);
+
+                                        $logs[] = [
+                                            'add' => [
+                                                'workstation' => $request->workstation[$x],
+                                                'process' => $painting_process,
+                                            ]
+                                        ];
+                                    }
                                 }
                             }
-                        }
-                    }else{
-                        if($operation == null){
-                            $operation_db=db::connection('mysql_mes')
-                            ->table('workstation')
-                            ->join('operation', 'operation.operation_id', 'workstation.operation_id')
-                            ->where('workstation_name',$request->workstation[$index])
-                            ->select('operation.operation_name')->first();
-                            $operation=$operation_db->operation_name;
-                        }
-                        if ($workstation != 'Painting') {
-                            $name = uniqid();
-                            $values = [
-                                'name' => $name,
-                                'creation' => $now->toDateTimeString(),
-                                'modified' => $now->toDateTimeString(),
-                                'modified_by' => $request->user,
-                                'owner' => $request->user,
-                                'docstatus' => 1,
-                                'parent' => $bom,
-                                'parentfield' => 'operations',
-                                'parenttype' => 'BOM',
-                                'idx' => $index + 1,
-                                'operation' => $operation,
-                                'workstation' => $request->workstation[$index],
-                                'process' => $request->wprocess[$index],
-                            ];
+                            // update existing job ticket
+                            $jt_query = DB::connection('mysql_mes')->table('job_ticket')
+                                ->where('production_order', $request->production_order)->where('bom_operation_id', $request->id[$x])
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process_id', '!=', $request->wprocess[$x])->orWhereNull('process_id');
+                                })
+                                ->where('status', 'Pending');
 
-                            DB::connection('mysql')->table('tabBOM Operation')->insert($values);
-
-                            if ($request->production_order) {
-                                $insert = [
-                                    'production_order' => $request->production_order,
-                                    'workstation' => $workstation,
-                                    'process_id' => $request->wprocess[$index],
-                                    'idx' => $index + 1,
-                                    'bom_operation_id' => $name,
-                                    'created_by' => Auth::user()->employee_name,
-                                    'last_modified_by' => Auth::user()->employee_name,
-                                ];
-                            
-                                DB::connection('mysql_mes')->table('job_ticket')->insert($insert);
-                            }
-                        }else{
-                            $name = uniqid();
-                            $values = [
-                                'name' => $name,
-                                'creation' => $now->toDateTimeString(),
-                                'modified' => $now->toDateTimeString(),
-                                'modified_by' => $request->user,
-                                'owner' => $request->user,
-                                'docstatus' => 1,
-                                'parent' => $bom,
-                                'parentfield' => 'operations',
-                                'parenttype' => 'BOM',
-                                'idx' => $index + 1,
-                                'operation' => $operation,
-                                'workstation' => $request->workstation[$index],
-                                // 'process' => $request->wprocess[$index],
-                            ];
-
-                            DB::connection('mysql')->table('tabBOM Operation')->insert($values);
-
-                            if ($request->production_order) {
-                                $painting_processes = DB::connection('mysql_mes')->table('process_assignment')
-                                ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-                                ->where('workstation.workstation_name', 'Painting')
-                                ->orderBy('process_assignment.process_id', 'asc')
-                                ->pluck('process_assignment.process_id');
-
-                                foreach ($painting_processes as $i => $painting_process) {
-                                    $insert = [
-                                        'production_order' => $request->production_order,
-                                        'workstation' => $workstation,
-                                        'process_id' => $painting_process,
-                                        'idx' => $index + $i + 1,
-                                        'bom_operation_id' => $name,
-                                        'created_by' => Auth::user()->employee_name,
-                                        'last_modified_by' => Auth::user()->employee_name,
+                            $jt = $jt_query->first();
+                            if ($jt) {
+                                if($jt->process_id != $request->wprocess[$x]) {
+                                    $logs[] = [
+                                        'update' => [
+                                            'workstation' => $request->workstation[$x],
+                                            'old_process' => $jt->process_id,
+                                            'new_process' => $request->wprocess[$x],
+                                        ]
                                     ];
-                                
-                                    DB::connection('mysql_mes')->table('job_ticket')->insert($insert);
+    
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                }
+                            }
+                            
+                        }
+                    } else {
+                        // insert new workstation in bom operation table
+                        $new_bom_operation_id = 'mes'. uniqid();
+                        DB::connection('mysql')->table('tabBOM Operation')->insert([
+                            'name' => $new_bom_operation_id,
+                            'creation' => $now->toDateTimeString(),
+                            'modified' => $now->toDateTimeString(),
+                            'modified_by' => Auth::user()->email,
+                            'owner' => Auth::user()->email,
+                            'docstatus' => 1,
+                            'parent' => $bom,
+                            'parentfield' => 'operations',
+                            'parenttype' => 'BOM',
+                            'idx' => $x + 1,
+                            'operation' => $operation,
+                            'workstation' => $request->workstation[$x],
+                            'process' => $request->wprocess[$x],
+                        ]);
+                        if ($request->production_order) {
+                            // check if bom_operation_id exists in production order operation table
+                            $existing_production_order_operation = DB::connection('mysql')->table('tabWork Order Operation')
+                                ->where('parent', $request->production_order)->where('bom_operation_id', $new_bom_operation_id)->exists();
+                            if (!$existing_production_order_operation) {
+                                // insert workstation in production order operation table
+                                DB::connection('mysql')->table('tabWork Order Operation')->insert([
+                                    'name' => 'mes'.uniqid(),
+                                    'creation' => $now->toDateTimeString(),
+                                    'modified' => $now->toDateTimeString(),
+                                    'modified_by' => Auth::user()->email,
+                                    'owner' => Auth::user()->email,
+                                    'docstatus' => 1,
+                                    'parent' => $request->production_order,
+                                    'parentfield' => 'operations',
+                                    'parenttype' => 'Work Order',
+                                    'idx' => $x + 1,
+                                    'status' => 'Pending',
+                                    'actual_start_time' => null,
+                                    'workstation' => $request->workstation[$x],
+                                    'completed_qty' => 0,
+                                    'planned_operating_cost' => 0,
+                                    'description' => $request->workstation[$x],
+                                    'actual_end_time' => null,
+                                    'actual_operating_cost' => 0,
+                                    'hour_rate' => 0,
+                                    'planned_start_time' => null,
+                                    'bom' => $bom,
+                                    'actual_operation_time' => 0,
+                                    'operation' => $operation,
+                                    'planned_end_time' => null,
+                                    'time_in_mins' => 1,
+                                    'process' => $request->wprocess[$x],
+                                    'bom_operation_id' => $new_bom_operation_id
+                                ]);
+                            }
+                            // update existing production order operation
+                            DB::connection('mysql')->table('tabWork Order Operation')
+                                ->where('bom_operation_id', $new_bom_operation_id)
+                                ->where('parent', $request->production_order)->where('status', 'Pending')
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
+                                })
+                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+
+                            // update existing job ticket
+                            $jt_query = DB::connection('mysql_mes')->table('job_ticket')
+                                ->where('production_order', $request->production_order)->where('bom_operation_id', $new_bom_operation_id)
+                                ->where(function($q) use ($request, $x) {
+                                    $q->where('process_id', '!=', $request->wprocess_id[$x])->orWhereNull('process_id');
+                                })
+                                ->where('status', 'Pending');
+
+                            $jt = $jt_query->first();
+                            if ($jt) {
+                                if($jt->process_id != $request->wprocess[$x]) {
+                                    $logs[] = [
+                                        'update' => [
+                                            'workstation' => $workstation,
+                                            'old_process' => $jt->process_id,
+                                            'new_process' => $request->wprocess[$x],
+                                        ]
+                                    ];
+    
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                }
+                            }
+
+                            // check if bom operation id exists in job ticket table filtered by production order
+                            $existing_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+                                ->where('bom_operation_id', $new_bom_operation_id)->where('production_order', $request->production_order)->exists();
+                            if (!$existing_job_ticket) {
+                                if ($request->workstation[$x] != 'Painting') {
+                                    // insert workstation in job ticket table
+                                    DB::connection('mysql_mes')->table('job_ticket')->insert([
+                                        'production_order' => $request->production_order,
+                                        'workstation' => $request->workstation[$x],
+                                        'process_id' => $request->wprocess[$x],
+                                        'idx' => $x + 1,
+                                        'bom_operation_id' => $new_bom_operation_id,
+                                        'created_by' => Auth::user()->email,
+                                        'last_modified_by' => Auth::user()->email,
+                                    ]);
+
+                                    $logs[] = [
+                                        'add' => [
+                                            'workstation' => $request->workstation[$x],
+                                            'process' => $request->wprocess[$x],
+                                        ]
+                                    ];
+                                } else {
+                                    // get painting processes
+                                    $painting_processes = DB::connection('mysql_mes')->table('process_assignment')
+                                        ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
+                                        ->where('workstation.workstation_name', 'Painting')->orderBy('process_assignment.process_id', 'asc')
+                                        ->pluck('process_assignment.process_id');
+                                    // insert painting process
+                                    foreach ($painting_processes as $i => $painting_process) {
+                                        $painting_process;
+                                        DB::connection('mysql_mes')->table('job_ticket')->insert([
+                                            'production_order' => $request->production_order,
+                                            'workstation' => $request->workstation[$x],
+                                            'process_id' => $painting_process,
+                                            'idx' => $x + $i + 1,
+                                            'bom_operation_id' => $new_bom_operation_id,
+                                            'created_by' => Auth::user()->email,
+                                            'last_modified_by' => Auth::user()->email,
+                                        ]);
+
+                                        $logs[] = [
+                                            'add' => [
+                                                'workstation' => $request->workstation[$x],
+                                                'process' => $painting_process,
+                                            ]
+                                        ];
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+
+            // delete not existing bom operation id or null bom operation id in job ticket
+            if ($bom != 'no_bom') {
+                $updated_bom_operation_id = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom)->pluck('name');
+            } else {
+                $updated_bom_operation_id = DB::connection('mysql')->table('tabWork Order Operation')
+                    ->where('parent', $request->production_order)->pluck('bom_operation_id');
+            }
+            
+            DB::connection('mysql_mes')->table('job_ticket')
+                ->where('production_order', $request->production_order)->where('status', 'Pending')
+                ->where(function($q) use ($updated_bom_operation_id) {
+                    $q->whereNotIn('bom_operation_id', $updated_bom_operation_id)->orWhereNull('bom_operation_id');
+                })->delete();
+
             if ($request->production_order) {
-                $pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+                // get production order job ticket
+                $jt = DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $request->production_order)->get();
+                $count_jt = collect($jt)->count();
+                $pending_jt = collect($jt)->where('status', 'Pending')->count();
+                $completed_jt = collect($jt)->where('status', 'Completed')->count();
+                // set status of production order
+                $status = ($count_jt == $pending_jt) ? 'Not Started' : 'In Progress';
+                $status = ($count_jt == $completed_jt) ? 'Completed' : $status;
+                // update status of production order in mes
+                DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)
-                    ->where('status', 'Pending')->count();
-                if ($pending_job_ticket > 0) {
-                    DB::connection('mysql_mes')->table('production_order')
-                        ->where('production_order', $request->production_order)
-                        ->update(['status' => 'In Progress', 'produced_qty' => 0]);
-                }
+                    ->update(['status' => $status, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                // set status of production order in erp
+                $status = (in_array($status, ['In Progress', 'Completed'])) ? 'In Process' : $status;
+                // update status of production order in erp
+                DB::connection('mysql')->table('tabWork Order')
+                    ->where('name', $request->production_order)
+                    ->update(['status' => $status, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
 
                 $this->update_production_order_produced_qty($request->production_order);
+
+                $logs[] = ['production_order' => $request->production_order, 'user' => Auth::user()->email];
+
+                // insert activity logs
+                if (isset($logs[0]['delete']) || isset($logs[0]['update']) || isset($logs[0]['add'])) {
+                    DB::connection('mysql_mes')->table('activity_logs')->insert([
+                        'action' => 'BOM Update',
+                        'message' => json_encode($logs),
+                        'created_by' => Auth::user()->email
+                    ]);
+                }
             }
-            DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $request->user, 'last_date_reviewed' => $now->toDateTimeString()]);
-            
+
+            $this->update_job_card($request->production_order);
+            // update bom as reviewed
+            DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => Auth::user()->email, 'last_date_reviewed' => $now->toDateTimeString()]);
+           
             return response()->json(['status' => 1, 'message' => 'BOM updated and reviewed.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -984,6 +1350,10 @@ class ManufacturingController extends Controller
     public function create_production_order(Request $request){
         DB::connection('mysql_mes')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
             $now = Carbon::now();
 
             if ($request->reference_type) {
@@ -1006,7 +1376,7 @@ class ManufacturingController extends Controller
                 }
             }
 
-            $latest_pro = DB::connection('mysql')->table('tabProduction Order')->max('name');
+            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
             $latest_pro_exploded = explode("-", $latest_pro);
             $new_id = $latest_pro_exploded[1] + 1;
             $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
@@ -1048,6 +1418,10 @@ class ManufacturingController extends Controller
             }
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+
+            if ($item_details->is_stock_item == 0) {
+                return response()->json(['success' => 0, 'message' => 'Item <b>' . $request->item_code . '</b> is not a stock item.']);
+            }
 
             $item_classification = ($request->item_classification) ? $request->item_classification : $item_details->item_classification;
             $stock_uom = ($request->stock_uom) ? $request->stock_uom : $item_details->stock_uom;
@@ -1176,7 +1550,8 @@ class ManufacturingController extends Controller
                 'erp_reference_id' => $request->item_reference_id,
                 'reference_no' => ($sales_order) ? $sales_order : $material_request,
                 'parent_item_code' => strtoupper($request->parent_code),
-                'delivery_date' => $request->delivery_date
+                'delivery_date' => $request->delivery_date,
+                'created_by' => Auth::user()->email
             ];
 
             $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
@@ -1189,9 +1564,11 @@ class ManufacturingController extends Controller
 
             DB::connection('mysql')->beginTransaction();
             try{
-                DB::connection('mysql')->table('tabProduction Order')->insert($data);
+                DB::connection('mysql')->table('tabWork Order')->insert($data);
                 $required_items = $this->save_production_req_items($new_id, $request->bom, $request->qty, $request->operation);
                 $this->save_production_operations($new_id, $request->bom, ($request->planned_date) ? $request->planned_date : null, 'erp');
+
+                $this->insert_job_card($new_id);
 
                 if($required_items['error'] == 1){
                     return response()->json(["success" => 0, 'message' => $required_items['message']]);
@@ -1230,7 +1607,10 @@ class ManufacturingController extends Controller
 
                 $source_warehouse = ($item_warehouse_setup) ? $item_warehouse_setup->warehouse : null;
 
-                $default_warehouse = ($source_warehouse) ? $source_warehouse : $item_details->default_warehouse;
+                $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $item->item_code)->where('company', 'FUMACO Inc.')->first();
+                $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
+
+                $default_warehouse = ($source_warehouse) ? $source_warehouse : $item_default_warehouse;
 
                 if(!$default_warehouse){
                     return ['error' => 1, 'message' => 'No assigned source warehouse for item ' . $item->item_code . ' not found.'];
@@ -1246,7 +1626,7 @@ class ManufacturingController extends Controller
                     'docstatus' => 1,
                     'parent' => $parent,
                     'parentfield' => 'required_items',
-                    'parenttype' => 'Production Order',
+                    'parenttype' => 'Work Order',
                     'idx' => $item->idx,
                     'description' => $item->description,
                     'item_name' => $item->item_name,
@@ -1260,7 +1640,7 @@ class ManufacturingController extends Controller
                 ];
             }
 
-            DB::connection('mysql')->table('tabProduction Order Item')->insert($req_items);
+            DB::connection('mysql')->table('tabWork Order Item')->insert($req_items);
 
             return ['error' => 0, 'message' => 'No error(s)'];
         } catch (Exception $e) {
@@ -1293,7 +1673,7 @@ class ManufacturingController extends Controller
                     'docstatus' => 1,
                     'parent' => $parent,
                     'parentfield' => 'operations',
-                    'parenttype' => 'Production Order',
+                    'parenttype' => 'Work Order',
                     'idx' => $operation->idx,
                     'status' => 'Pending',
                     'actual_start_time' => null,
@@ -1311,6 +1691,7 @@ class ManufacturingController extends Controller
                     'planned_end_time' => null,
                     'time_in_mins' => 1,
                     'process' => $operation->process,
+                    'bom_operation_id' => $operation->name,
                 ];
 
                 if ($operation->workstation != 'Painting') {
@@ -1347,7 +1728,7 @@ class ManufacturingController extends Controller
             if($db_site == 'mes'){
                 DB::connection('mysql_mes')->table('job_ticket')->insert($mes_operations);
             }else{
-                DB::connection('mysql')->table('tabProduction Order Operation')->insert($operations);
+                DB::connection('mysql')->table('tabWork Order Operation')->insert($operations);
             }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage(), "id" => $parent]);
@@ -1357,6 +1738,10 @@ class ManufacturingController extends Controller
     public function cancel_production_order(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
             $now = Carbon::now();
 
             // get returned items reference stock entry
@@ -1364,7 +1749,7 @@ class ManufacturingController extends Controller
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->where('ste.purpose', 'Material Transfer')
                 ->where('ste.transfer_as', 'For Return')
-                ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
+                ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
                 ->distinct()->pluck('return_reference');
 
             // get submitted stock entries
@@ -1373,7 +1758,7 @@ class ManufacturingController extends Controller
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->whereNotIn('sted.s_warehouse', $s_warehouses)
                 ->whereNotIn('ste.name', $returned_stes)
-                ->where('production_order', $request->production_order)
+                ->where('work_order', $request->production_order)
                 ->where('ste.docstatus', 1)->where('purpose', 'Material Transfer for Manufacture')
                 ->count();
 
@@ -1396,7 +1781,7 @@ class ManufacturingController extends Controller
             }
             // get pending material transfer for manufacture stock entries of production order
             $pending_withdrawal_slips = DB::connection('mysql')->table('tabStock Entry')
-                ->where('production_order', $request->production_order)
+                ->where('work_order', $request->production_order)
                 ->where('purpose', 'Material Transfer for Manufacture')
                 ->where('docstatus', 0)->distinct()->pluck('name');
 
@@ -1421,7 +1806,7 @@ class ManufacturingController extends Controller
             if(count($empty_ste) > 0){
                 // delete empty stock entries if any
                 DB::connection('mysql')->table('tabStock Entry')
-                    ->where('production_order', $request->production_order)
+                    ->where('work_order', $request->production_order)
                     ->where('purpose', 'Material Transfer for Manufacture')
                     ->where('docstatus', 0)->whereIn('name', $empty_ste)->delete();
             }
@@ -1459,7 +1844,7 @@ class ManufacturingController extends Controller
             $submitted_ste_by_wh = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->whereIn('sted.s_warehouse', $s_warehouses)
-                ->where('production_order', $request->production_order)
+                ->where('work_order', $request->production_order)
                 ->where('ste.docstatus', 1)->where('purpose', 'Material Transfer for Manufacture')
                 ->distinct()->pluck('ste.name');
 
@@ -1533,10 +1918,10 @@ class ManufacturingController extends Controller
             }
 
             // update transferred qty per production order item to 0
-            DB::connection('mysql')->table('tabProduction Order Item')
+            DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $request->production_order)->update(['transferred_qty' => 0]);
 
-            DB::connection('mysql')->table('tabProduction Order')
+            DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $request->production_order)
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email, 'material_transferred_for_manufacturing' => 0]);
@@ -1572,10 +1957,10 @@ class ManufacturingController extends Controller
         // get production order stock entries
         $stock_entry_arr = DB::connection('mysql')->table('tabStock Entry')
             ->where('purpose', 'Material Transfer for Manufacture')
-            ->where('production_order', $production_order)
+            ->where('work_order', $production_order)
             ->where('docstatus', '<', 2)->pluck('name');
 
-        $production_order_items = DB::connection('mysql')->table('tabProduction Order Item as poi')->where('parent', $production_order)->get();
+        $production_order_items = DB::connection('mysql')->table('tabWork Order Item as poi')->where('parent', $production_order)->get();
         $components = $parts = [];
         foreach ($production_order_items as $item) {
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
@@ -1588,18 +1973,27 @@ class ManufacturingController extends Controller
 
             $references = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.production_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
                 ->where('ste.docstatus', 1)->where('sted.item_code', $item->item_code)
                 ->select('ste.name', 'sted.date_modified', 'sted.session_user', 'sted.qty')->get();
 
             $item_withdrawals = DB::connection('mysql')->table('tabStock Entry Detail')
                 ->whereIn('parent', $stock_entry_arr)->where('item_code', $item->item_code)
-                ->selectRaw('SUM(qty) as qty, s_warehouse, status, SUM(issued_qty) as issued_qty, GROUP_CONCAT(DISTINCT parent) as ste_names, docstatus')
-                ->groupBy('s_warehouse', 'status', 'docstatus')->get();
+                ->where('docstatus', 1)
+                ->selectRaw('SUM(qty) as qty, s_warehouse, status, SUM(issued_qty) as issued_qty, GROUP_CONCAT(DISTINCT parent) as ste_names, docstatus, GROUP_CONCAT(DISTINCT remarks) as remarks')
+                ->groupBy('s_warehouse', 'status', 'docstatus')
+                ->get();
+
+            $pending_item_withdrawals = DB::connection('mysql')->table('tabStock Entry Detail')
+                ->whereIn('parent', $stock_entry_arr)->where('item_code', $item->item_code)
+                ->where('docstatus', 0)
+                ->selectRaw('qty, s_warehouse, status, issued_qty, name, docstatus, parent, remarks')
+                ->get();
 
             $withdrawals = [];
             foreach ($item_withdrawals as $i) {
                 $withdrawals[] = [
+                    'id' => null,
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
                     'qty' => ($i->docstatus == 1) ? $i->qty : 0,
@@ -1608,6 +2002,22 @@ class ManufacturingController extends Controller
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
                     'requested_qty' => $i->qty,
+                    'remarks' => $i->remarks
+                ];
+            }
+
+            foreach ($pending_item_withdrawals as $i) {
+                $withdrawals[] = [
+                    'id' => $i->name,
+                    'source_warehouse' => $i->s_warehouse,
+                    'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
+                    'qty' => ($i->docstatus == 1) ? $i->qty : 0,
+                    'issued_qty' => ($i->docstatus == 1) ? $i->issued_qty : 0,
+                    'status' => ($i->docstatus == 1) ? 'Issued' : 'For Checking',
+                    'ste_names' => $i->parent,
+                    'ste_docstatus' => $i->docstatus,
+                    'requested_qty' => $i->qty,
+                    'remarks' => $i->remarks
                 ];
             }
 
@@ -1617,11 +2027,14 @@ class ManufacturingController extends Controller
             $available_qty_at_wip = $this->get_actual_qty($item->item_code, $details->wip_warehouse);
             $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
+                ->where('ste.work_order', $production_order)->whereNull('sted.t_warehouse')
                 ->where('sted.item_code', $item->item_code)->where('purpose', 'Manufacture')
                 ->where('ste.docstatus', 1)->sum('qty');
 
-            $available_qty_at_wip = $transferred_qty - $consumed_qty;
+            $remaining_available_qty_at_wip = $transferred_qty - $consumed_qty;
+            if($available_qty_at_wip > $remaining_available_qty_at_wip) {
+                $available_qty_at_wip = $remaining_available_qty_at_wip;
+            }
 
             $is_alternative = ($item->item_alternative_for && $item->item_alternative_for != 'new_item') ? 1 : 0;
 
@@ -1678,7 +2091,7 @@ class ManufacturingController extends Controller
         $item_returns = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
             ->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
-            ->where('ste.production_order', $production_order)
+            ->where('ste.work_order', $production_order)
             ->where('ste.docstatus', '<', 2)->select('sted.*', 'ste.docstatus')->get();
 
         $items_return = [];
@@ -1705,20 +2118,51 @@ class ManufacturingController extends Controller
 
         $issued_qty = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.docstatus', 0)->where('ste.production_order', $production_order)
+            ->where('ste.docstatus', 0)->where('ste.work_order', $production_order)
             ->where('sted.status', 'Issued')->where('ste.purpose', 'Material Transfer for Manufacture')
             ->sum('qty');
 
         $feedbacked_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->where('production_order', $production_order)->get();
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs'));
+        $time_logs_qry = DB::connection('mysql_mes')->table('job_ticket')
+        	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+        	->where('job_ticket.production_order', $production_order)->where('job_ticket.status', 'Completed')
+        	->get();
+
+        $from_time = collect($time_logs_qry)->min('from_time');
+        $to_time = collect($time_logs_qry)->max('to_time');
+
+        $actual_start_date = Carbon::parse($from_time);
+        $actual_end_date = Carbon::parse($to_time);
+
+        $days = $actual_start_date->diffInDays($actual_end_date);
+        $hours = $actual_start_date->copy()->addDays($days)->diffInHours($actual_end_date);
+        $minutes = $actual_start_date->copy()->addDays($days)->addHours($hours)->diffInMinutes($actual_end_date);
+        $seconds = $actual_start_date->copy()->addDays($days)->addHours($hours)->addMinutes($minutes)->diffInSeconds($actual_end_date);
+        $dur_days = ($days > 0) ? $days .'d' : null;
+        $dur_hours = ($hours > 0) ? $hours .'h' : null;
+        $dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+        $dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+
+        $start_date = ($from_time) ? Carbon::parse($from_time)->format('m-d-Y h:i A') : '--';
+        $end_date = ($from_time) ? Carbon::parse($to_time)->format('m-d-Y h:i A') : '--';
+        $duration = $dur_days .' '. $dur_hours . ' '. $dur_minutes . ' '. $dur_seconds;
+
+        $fast_issuance_warehouse = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->pluck('warehouse')->toArray();
+        $is_fast_issuance_user = DB::connection('mysql_mes')->table('fast_issuance_user')->where('user_access_id', Auth::user()->user_id)->exists();
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user'));
     }
 
     public function create_material_transfer_for_return(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
             $now = Carbon::now();
-            $production_order_details = DB::connection('mysql')->table('tabProduction Order')
+            $production_order_details = DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $request->production_order)->first();
             
             if (!$production_order_details) {
@@ -1736,7 +2180,7 @@ class ManufacturingController extends Controller
             // copy values from stock entry detail
             $stock_entry_details = DB::connection('mysql')->table('tabStock Entry as ste')
 				        ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				        ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
+				        ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
                 ->where('ste.purpose', 'Material Transfer for Manufacture')->whereIn('ste.name', explode(',', $request->ste_names))
                 ->where('sted.item_code', $request->item_code)
                 ->select('ste.*', 'sted.*', 'ste.name as ste_name')->first();
@@ -1745,11 +2189,11 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Stock entry item ' . $request->item_code . ' not found.']);
             }
 
-            $latest_ste = DB::connection('mysql')->table('tabStock Entry')->max('name');
+            $latest_ste = DB::connection('mysql')->table('tabStock Entry')->where('name', 'like', '%step%')->max('name');
             $latest_ste_exploded = explode("-", $latest_ste);
-            $new_id = $latest_ste_exploded[1] + 1;
-            $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-            $new_id = 'STEM-'.$new_id;
+            $new_id = (($latest_ste) ? $latest_ste_exploded[1] : 0) + 1;
+            $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
+            $new_id = 'STEP-'.$new_id;
 
             $base_rate = $stock_entry_details->basic_rate;
 
@@ -1842,7 +2286,7 @@ class ManufacturingController extends Controller
                 '_liked_by' => null,
                 'purchase_receipt_no' => null,
                 'posting_time' => $now->format('H:i:s'),
-                'customer_name' => null,
+                // 'customer_name' => null,
                 'to_warehouse' => null,
                 'title' => 'Material Transfer',
                 '_comments' => null,
@@ -1860,13 +2304,13 @@ class ManufacturingController extends Controller
                 'sales_invoice_no' => null,
                 'company' => 'FUMACO Inc.',
                 'target_warehouse_address' => null,
-                'customer_address' => null,
+                // 'customer_address' => null,
                 'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                 'supplier_name' => null,
                 'remarks' => null,
                 '_user_tags' => null,
                 'total_additional_costs' => 0,
-                'customer' => null,
+                // 'customer' => null,
                 'bom_no' => null,
                 'amended_from' => null,
                 'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -1876,7 +2320,7 @@ class ManufacturingController extends Controller
                 'select_print_heading' => null,
                 'posting_date' => $now->format('Y-m-d'),
                 'target_address_display' => null,
-                'production_order' => $production_order_details->name,
+                'work_order' => $production_order_details->name,
                 'purpose' => 'Material Transfer',
                 'shipping_address_contact_person' => null,
                 'customer_1' => null,
@@ -1904,15 +2348,18 @@ class ManufacturingController extends Controller
             DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
 
             if ($docstatus == 1) {
-                $this->update_bin($new_id);
+                $update_bin_res = $this->update_bin($new_id);
+                if ($update_bin_res['status'] == 0) {
+                    return response()->json(['status' => 0, 'message' => $update_bin_res['message']]);
+                }
                 $this->create_stock_ledger_entry($new_id);
                 $this->create_gl_entry($new_id);
 
                 // update production order item transferred qty - return
-                $production_order_item = DB::connection('mysql')->table('tabProduction Order Item')->where('name', $request->id)->first();
+                $production_order_item = DB::connection('mysql')->table('tabWork Order Item')->where('name', $request->id)->first();
                 if($production_order_item){
                     $transferred_qty = $production_order_item->transferred_qty - $request->qty_to_return;
-                    DB::connection('mysql')->table('tabProduction Order Item')->where('name', $request->id)->update(['transferred_qty' => $transferred_qty]);
+                    DB::connection('mysql')->table('tabWork Order Item')->where('name', $request->id)->update(['transferred_qty' => $transferred_qty]);
                 }
             }
 
@@ -1934,7 +2381,7 @@ class ManufacturingController extends Controller
         $q = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
             ->where('ste.purpose', 'Material Transfer for Manufacture')
-            ->where('ste.production_order', $production_order)
+            ->where('ste.work_order', $production_order)
             ->where('ste.docstatus', 1)
             ->selectRaw('sted.item_code, sted.s_warehouse, sted.t_warehouse, GROUP_CONCAT(DISTINCT ste.name) as ste_names, SUM(sted.qty) as qty')
             ->groupBy('sted.item_code', 'sted.s_warehouse', 'sted.t_warehouse')->get();
@@ -1948,7 +2395,7 @@ class ManufacturingController extends Controller
             $item_return = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
-                ->where('ste.production_order', $production_order)
+                ->where('ste.work_order', $production_order)
                 ->where('sted.item_code', $item->item_code)->where('ste.docstatus', '<', 2)
                 ->select('sted.*', 'ste.docstatus')->first();
 
@@ -1994,19 +2441,23 @@ class ManufacturingController extends Controller
     public function update_ste_detail(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
 			$now = Carbon::now();
-            $production_order_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $request->production_order)->first();
+            $production_order_details = DB::connection('mysql')->table('tabWork Order')->where('name', $request->production_order)->first();
 
             // get stock entry transferred qty
             $ste_transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.docstatus', 1)->where('ste.production_order', $request->production_order)
+                ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
                 ->where('sted.item_code', $request->old_item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
                 ->sum('qty');
 
             if($request->old_item_code != $request->item_code){
                 // get production order item transferred qty
-                $transferred_qty = DB::connection('mysql')->table('tabProduction Order Item')
+                $transferred_qty = DB::connection('mysql')->table('tabWork Order Item')
                     ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)->sum('transferred_qty');
 
                 if($transferred_qty > 0){
@@ -2026,7 +2477,7 @@ class ManufacturingController extends Controller
 			// get all pending stock entries based on item code production order
 			$pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				->where('ste.docstatus', 0)->where('ste.production_order', $request->production_order)
+				->where('ste.docstatus', 0)->where('ste.work_order', $request->production_order)
 				->where('sted.item_code', $request->old_item_code)->whereIn('ste.name', explode(',', $request->ste_names))
 				->where('ste.purpose', 'Material Transfer for Manufacture')
 				->select('sted.name as sted_name', 'ste.name as ste_name')
@@ -2073,7 +2524,7 @@ class ManufacturingController extends Controller
                 'source_warehouse' => $request->source_warehouse
             ];
 
-            DB::connection('mysql')->table('tabProduction Order Item')
+            DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)
                 ->update($production_order_item);
 
@@ -2087,8 +2538,12 @@ class ManufacturingController extends Controller
     }
 
     public function update_production_order_item_required_qty(Request $request){
-        $production_order_item = DB::connection('mysql')->table('tabProduction Order Item as poi')
-            ->join('tabProduction Order as po', 'poi.parent', 'po.name')->where('poi.name', $request->production_order_item_id)
+        if(!Auth::user()) {
+            return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+        }
+
+        $production_order_item = DB::connection('mysql')->table('tabWork Order Item as poi')
+            ->join('tabWork Order as po', 'poi.parent', 'po.name')->where('poi.name', $request->production_order_item_id)
             ->select('poi.item_code', 'po.status', 'po.name as production_order', 'po.produced_qty', 'po.qty')->first();
 
         if (!$production_order_item) {
@@ -2101,7 +2556,7 @@ class ManufacturingController extends Controller
         // get transferred qty
         $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.docstatus', 1)->where('ste.production_order', $production_order_item->production_order)
+            ->where('ste.docstatus', 1)->where('ste.work_order', $production_order_item->production_order)
             ->where('sted.item_code', $production_order_item->item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
             ->sum('qty');
 
@@ -2109,7 +2564,7 @@ class ManufacturingController extends Controller
             return response()->json(['status' => 0, 'message' => 'Quantity cannot be less than transferred qty (' . $transferred_qty . ')']);
         }
 
-        DB::connection('mysql')->table('tabProduction Order Item')->where('name', $request->production_order_item_id)->update(['required_qty' => $request->qty]);
+        DB::connection('mysql')->table('tabWork Order Item')->where('name', $request->production_order_item_id)->update(['required_qty' => $request->qty]);
 
         return response()->json(['status' => 1, 'message' => 'Required qty has been updated.', 'production_order' => $production_order_item->production_order]);
     }
@@ -2117,6 +2572,10 @@ class ManufacturingController extends Controller
     public function add_ste_items(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
             if(count($request->item_code) < 1){
                 return response()->json(['status' => 2, 'message' => 'Please enter items to be added.']);
             }
@@ -2130,13 +2589,17 @@ class ManufacturingController extends Controller
 
                 $qty = $request->quantity[$id];
 
-                $existing_production_item = DB::connection('mysql')->table('tabProduction Order Item')
+                $existing_production_item = DB::connection('mysql')->table('tabWork Order Item')
                     ->where('parent', $request->production_order)->where('item_code', $item_code)->first();
+
+                if($existing_production_item) {
+                    return response()->json(['status' => 2, 'message' => 'Item Code ' . $item_code . ' already exist.']);
+                }
 
                 if(!$existing_production_item){
                     // get remaining required qty if item is an alternative
                     if($request->item_as[$id] != 'new_item'){
-                        $alternative_for = DB::connection('mysql')->table('tabProduction Order Item')
+                        $alternative_for = DB::connection('mysql')->table('tabWork Order Item')
                             ->where('parent', $request->production_order)->where('item_code', $request->item_as[$id])
                             ->first();
                         
@@ -2149,13 +2612,13 @@ class ManufacturingController extends Controller
                         $st_entries = DB::connection('mysql')->table('tabStock Entry as ste')
                             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                             ->where('ste.purpose', 'Material Transfer for Manufacture')->where('ste.docstatus', 0)
-                            ->where('ste.production_order', $request->production_order)->where('sted.item_code', $alternative_for->item_code)->pluck('ste.name');
+                            ->where('ste.work_order', $request->production_order)->where('sted.item_code', $alternative_for->item_code)->pluck('ste.name');
 
                         DB::connection('mysql')->table('tabStock Entry Detail')
                             ->whereIn('parent', $st_entries)->where('item_code', $alternative_for->item_code)
                             ->update(['qty' => ($remaining_required_qty - $qty), 'transfer_qty' => ($remaining_required_qty - $qty)]);
                             
-                        DB::connection('mysql')->table('tabProduction Order Item')
+                        DB::connection('mysql')->table('tabWork Order Item')
                             ->where('parent', $request->production_order)->where('item_code', $alternative_for->item_code)
                             ->update(['required_qty' => ($alternative_for->required_qty - $qty)]);
                     }
@@ -2171,7 +2634,7 @@ class ManufacturingController extends Controller
                         'docstatus' => 1,
                         'parent' => $mes_production_order_details->production_order,
                         'parentfield' => 'required_items',
-                        'parenttype' => 'Production Order',
+                        'parenttype' => 'Work Order',
                         'idx' => 0,
                         'description' => $item_details->description,
                         'item_name' => $item_details->item_name,
@@ -2185,7 +2648,7 @@ class ManufacturingController extends Controller
                         'item_alternative_for' => $request->item_as[$id]
                     ];
 
-                    DB::connection('mysql')->table('tabProduction Order Item')->insert($production_order_item);
+                    DB::connection('mysql')->table('tabWork Order Item')->insert($production_order_item);
                 }else{
                     // update required_qty for additional 
                     $production_order_item = [
@@ -2193,14 +2656,14 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                     ];
 
-                    DB::connection('mysql')->table('tabProduction Order Item')->where('name', $existing_production_item->name)->update($production_order_item);
+                    DB::connection('mysql')->table('tabWork Order Item')->where('name', $existing_production_item->name)->update($production_order_item);
                 }
 
-                $latest_ste = DB::connection('mysql')->table('tabStock Entry')->max('name');
+                $latest_ste = DB::connection('mysql')->table('tabStock Entry')->where('name', 'like', '%step%')->max('name');
                 $latest_ste_exploded = explode("-", $latest_ste);
-                $new_id = $latest_ste_exploded[1] + 1;
-                $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-                $new_id = 'STEM-'.$new_id;
+                $new_id = (($latest_ste) ? $latest_ste_exploded[1] : 0) + 1;
+                $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
+                $new_id = 'STEP-'.$new_id;
 
                 $qty = $request->quantity[$id];
 
@@ -2293,7 +2756,7 @@ class ManufacturingController extends Controller
                     '_liked_by' => null,
                     'purchase_receipt_no' => null,
                     'posting_time' => $now->format('H:i:s'),
-                    'customer_name' => null,
+                    // 'customer_name' => null,
                     'to_warehouse' => $mes_production_order_details->wip_warehouse,
                     'title' => 'Material Transfer for Manufacture',
                     '_comments' => null,
@@ -2311,13 +2774,13 @@ class ManufacturingController extends Controller
                     'sales_invoice_no' => null,
                     'company' => 'FUMACO Inc.',
                     'target_warehouse_address' => null,
-                    'customer_address' => null,
+                    // 'customer_address' => null,
                     'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                     'supplier_name' => null,
                     'remarks' => null,
                     '_user_tags' => null,
                     'total_additional_costs' => 0,
-                    'customer' => null,
+                    // 'customer' => null,
                     'bom_no' => $mes_production_order_details->bom_no,
                     'amended_from' => null,
                     'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -2327,7 +2790,7 @@ class ManufacturingController extends Controller
                     'select_print_heading' => null,
                     'posting_date' => $now->format('Y-m-d'),
                     'target_address_display' => null,
-                    'production_order' => $request->production_order,
+                    'work_order' => $request->production_order,
                     'purpose' => 'Material Transfer for Manufacture',
                     'shipping_address_contact_person' => null,
                     'customer_1' => null,
@@ -2354,7 +2817,7 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
                 DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
             }
-            
+
             DB::connection('mysql')->commit();
 
             return response()->json(['status' => 1, 'message' => 'Stock Entry has been created.']);
@@ -2510,6 +2973,10 @@ class ManufacturingController extends Controller
     public function create_material_request(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
             $now = Carbon::now();
             if (count($request->production_orders) <= 0) {
                 return response()->json(['success' => 0, 'message' => 'No Material Request created.']);
@@ -2556,7 +3023,7 @@ class ManufacturingController extends Controller
                 'purchase_request' => 'Local',
             ];
 
-            $items = DB::connection('mysql')->table('tabProduction Order Item')
+            $items = DB::connection('mysql')->table('tabWork Order Item')
                 ->whereIn('parent', array_unique($request->production_orders))
                 ->where('docstatus', 1)
                 ->select('item_code', DB::raw('SUM(required_qty) as required_qty'))
@@ -2632,6 +3099,10 @@ class ManufacturingController extends Controller
         try {
             $now = Carbon::now();
 
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
             if($request->reference_type == 'SO' && !$request->sales_order){
                 return response()->json(['success' => 0, 'message' => 'Please enter reference Sales Order.']);
             }
@@ -2663,6 +3134,10 @@ class ManufacturingController extends Controller
             $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
             if (!$item) {
                 return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' not found.']);
+            }
+
+            if(!$request->custom_bom && $item->is_stock_item == 0){
+                return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' is not a stock item.']);
             }
 
             $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
@@ -2712,7 +3187,7 @@ class ManufacturingController extends Controller
 
             $wip = $wip_wh['message'];
 
-            $latest_pro = DB::connection('mysql')->table('tabProduction Order')->max('name');
+            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
             $latest_pro_exploded = explode("-", $latest_pro);
             $new_id = $latest_pro_exploded[1] + 1;
             $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
@@ -2813,7 +3288,7 @@ class ManufacturingController extends Controller
                         'created_at' => $now->toDateTimeString(),
                         'last_modified_by' => Auth::user()->employee_name,
                         'last_modified_at' => $now->toDateTimeString(),
-                        'bom_operation_id' => null,
+                        'bom_operation_id' => 'op' . uniqid(),
                     ];
                 }
 
@@ -2832,7 +3307,8 @@ class ManufacturingController extends Controller
                     'erp_reference_id' => $reference_child_details->name,
                     'reference_no' => $reference_parent,
                     'parent_item_code' => $parent_item_code,
-                    'delivery_date' => ($request->reference_type == 'SO') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date
+                    'delivery_date' => ($request->reference_type == 'SO') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date,
+                    'created_by' => Auth::user()->email
                 ];
 
                 $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
@@ -2846,13 +3322,17 @@ class ManufacturingController extends Controller
 
             DB::connection('mysql')->beginTransaction();
             try{
-                DB::connection('mysql')->table('tabProduction Order')->insert($data);
+                DB::connection('mysql')->table('tabWork Order')->insert($data);
 
                 if($request->custom_bom){
                     $raw_required_items = [];
                     if($request->is_stock_item > 0){
                         $req_item_detail = DB::connection('mysql')->table('tabItem')
                             ->where('name', $request->item_code)->first();
+
+                        $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                            ->where('company', 'FUMACO Inc.')->first();
+                        $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
     
                         $raw_required_items = [
                             'name' => 'mes'.uniqid(),
@@ -2863,7 +3343,7 @@ class ManufacturingController extends Controller
                             'docstatus' => 1,
                             'parent' => $new_id,
                             'parentfield' => 'required_items',
-                            'parenttype' => 'Production Order',
+                            'parenttype' => 'Work Order',
                             'idx' => 1,
                             'description' => $req_item_detail->description,
                             'item_name' => $req_item_detail->item_name,
@@ -2872,7 +3352,7 @@ class ManufacturingController extends Controller
                             'transferred_qty' => 0,
                             'available_qty_at_source_warehouse' => 0,
                             'available_qty_at_wip_warehouse' => 0,
-                            'source_warehouse' => $req_item_detail->default_warehouse,
+                            'source_warehouse' => $item_default_warehouse,
                             'stock_uom' => $req_item_detail->stock_uom
                         ];
                     }else{
@@ -2880,6 +3360,10 @@ class ManufacturingController extends Controller
                         foreach ($bundle_items as $k => $v) {
                             $req_item_detail = DB::connection('mysql')->table('tabItem')
                                 ->where('name', $v->item_code)->first();
+
+                            $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                                ->where('company', 'FUMACO Inc.')->first();
+                            $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
 
                             $raw_required_items[] = [
                                 'name' => 'mes'.uniqid(),
@@ -2890,7 +3374,7 @@ class ManufacturingController extends Controller
                                 'docstatus' => 1,
                                 'parent' => $new_id,
                                 'parentfield' => 'required_items',
-                                'parenttype' => 'Production Order',
+                                'parenttype' => 'Work Order',
                                 'idx' => $k + 1,
                                 'description' => $req_item_detail->description,
                                 'item_name' => $req_item_detail->item_name,
@@ -2899,13 +3383,13 @@ class ManufacturingController extends Controller
                                 'transferred_qty' => 0,
                                 'available_qty_at_source_warehouse' => 0,
                                 'available_qty_at_wip_warehouse' => 0,
-                                'source_warehouse' => $req_item_detail->default_warehouse,
+                                'source_warehouse' => $item_default_warehouse,
                                 'stock_uom' => $v->uom
                             ];
                         }
                     }
 
-                    DB::connection('mysql')->table('tabProduction Order Item')->insert($raw_required_items);
+                    DB::connection('mysql')->table('tabWork Order Item')->insert($raw_required_items);
 
                     $custom_operations = [];
                     foreach($request->workstation_id as $p => $w_id){
@@ -2920,7 +3404,7 @@ class ManufacturingController extends Controller
                             'docstatus' => 1,
                             'parent' => $new_id,
                             'parentfield' => 'operations',
-                            'parenttype' => 'Production Order',
+                            'parenttype' => 'Work Order',
                             'idx' => $p + 1,
                             'status' => 'Pending',
                             'actual_start_time' => null,
@@ -2938,10 +3422,11 @@ class ManufacturingController extends Controller
                             'planned_end_time' => null,
                             'time_in_mins' => 1,
                             'process' => $process_details->process_name,
+                            'bom_operation_id' => $mes_custom_operations[$p]['bom_operation_id']
                         ];
                     }
     
-                    DB::connection('mysql')->table('tabProduction Order Operation')->insert($custom_operations);
+                    DB::connection('mysql')->table('tabWork Order Operation')->insert($custom_operations);
                 }else{
                     $required_items = $this->save_production_req_items($new_id, $request->bom, $request->qty, $request->operation);
                     $this->save_production_operations($new_id, $request->bom, ($request->planned_date) ? $request->planned_date : null, 'erp');
@@ -2950,6 +3435,8 @@ class ManufacturingController extends Controller
                         return response()->json(["success" => 0, 'message' => $required_items['message']]);
                     }
                 }
+
+                $this->insert_job_card($new_id);
                 
                 DB::connection('mysql')->commit();
             } catch (Exception $e) {
@@ -2969,12 +3456,17 @@ class ManufacturingController extends Controller
     public function generate_stock_entry($production_order, Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+            }
+
+            $new_id = null;
             $now = Carbon::now();
             $mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $production_order)->first();
 
             // get raw materials from production order items in erp
-            $production_order_items = DB::connection('mysql')->table('tabProduction Order Item')
+            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $production_order)->orderBy('idx', 'asc')->get();
 
             foreach ($production_order_items as $index => $row) {
@@ -2986,15 +3478,30 @@ class ManufacturingController extends Controller
 
                 $pending_ste = DB::connection('mysql')->table('tabStock Entry Detail as sted')
                     ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')->where('ste.purpose', 'Material Transfer for Manufacture')
-                    ->where('sted.item_code', $row->item_code)->where('ste.production_order', $row->parent)
+                    ->where('sted.item_code', $row->item_code)->where('ste.work_order', $row->parent)
                     ->where('ste.docstatus', 0)->first();
+                
+                $actual_qty = DB::connection('mysql')->table('tabBin')
+                    ->where('item_code', $row->item_code)->where('warehouse', $source_warehouse)
+                    ->sum('actual_qty');
+
+                if(in_array($source_warehouse, ['Fabrication - FI', 'Spotwelding Warehouse - FI']) && $mes_production_order_details->operation_id == 1){
+                    $item_status = 'Issued';
+                    $validate_item_code = $row->item_code;
+                } else {
+                    $item_status = 'For Checking';
+                    $validate_item_code = null;
+                }
+
+                $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
+                $docstatus = ($item_status == 'Issued') ? $docstatus : 0;
 
                 if(!$pending_ste){
                     $remaining_qty = $row->required_qty - $row->transferred_qty;
 
                     $issued_qty = DB::connection('mysql')->table('tabStock Entry as ste')
                         ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                        ->where('ste.production_order', $row->parent)
+                        ->where('ste.work_order', $row->parent)
                         ->where('sted.item_code', $row->item_code)
                         ->where('sted.s_warehouse', $source_warehouse)
                         ->where('ste.docstatus', 0)
@@ -3002,12 +3509,12 @@ class ManufacturingController extends Controller
 
                     $remaining_qty = $remaining_qty - $issued_qty;
                     if($remaining_qty > 0){
-                        $latest_ste = DB::connection('mysql')->table('tabStock Entry')->max('name');
+                        $latest_ste = DB::connection('mysql')->table('tabStock Entry')->where('name', 'like', '%step%')->max('name');
                         $latest_ste_exploded = explode("-", $latest_ste);
-                        $new_id = $latest_ste_exploded[1] + 1;
-                        $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-                        $new_id = 'STEM-'.$new_id;
-                        
+                        $new_id = (($latest_ste) ? $latest_ste_exploded[1] : 0) + 1;
+                        $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
+                        $new_id = 'STEP-'.$new_id;
+
                         $bom_material = DB::connection('mysql')->table('tabBOM Item')
                             ->where('parent', $mes_production_order_details->bom_no)
                             ->where('item_code', $row->item_code)->first();
@@ -3021,19 +3528,6 @@ class ManufacturingController extends Controller
 
                         $base_rate = ($bom_material) ? $bom_material->base_rate : $valuation_rate;
 
-                        $actual_qty = DB::connection('mysql')->table('tabBin')
-                            ->where('item_code', $row->item_code)->where('warehouse', $source_warehouse)
-                            ->sum('actual_qty');
-
-                        if(in_array($source_warehouse, ['Fabrication - FI', 'Spotwelding Warehouse - FI']) && $mes_production_order_details->operation_id == 1){
-                            $item_status = 'Issued';
-                        }else{
-                            $item_status = 'For Checking';
-                        }
-
-                        $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
-                        $docstatus = ($item_status == 'Issued') ? $docstatus : 0;
-            
                         $stock_entry_detail = [
                             'name' =>  uniqid(),
                             'creation' => $now->toDateTimeString(),
@@ -3083,6 +3577,7 @@ class ManufacturingController extends Controller
                             'remarks' => ($item_status == 'Issued') ? 'MES' : null,
                             'production_order_req_item_id' => $row->name,
                             'issued_qty' => ($item_status == 'Issued') ? $remaining_qty : 0,
+                            'validate_item_code' => $validate_item_code
                         ];
 
                         $stock_entry_data = [
@@ -3104,7 +3599,6 @@ class ManufacturingController extends Controller
                             '_liked_by' => null,
                             'purchase_receipt_no' => null,
                             'posting_time' => $now->format('H:i:s'),
-                            'customer_name' => null,
                             'to_warehouse' => $mes_production_order_details->wip_warehouse,
                             'title' => 'Material Transfer for Manufacture',
                             '_comments' => null,
@@ -3122,13 +3616,11 @@ class ManufacturingController extends Controller
                             'sales_invoice_no' => null,
                             'company' => 'FUMACO Inc.',
                             'target_warehouse_address' => null,
-                            'customer_address' => null,
                             'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                             'supplier_name' => null,
                             'remarks' => null,
                             '_user_tags' => null,
                             'total_additional_costs' => 0,
-                            'customer' => null,
                             'bom_no' => $mes_production_order_details->bom_no,
                             'amended_from' => null,
                             'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -3138,8 +3630,9 @@ class ManufacturingController extends Controller
                             'select_print_heading' => null,
                             'posting_date' => $now->format('Y-m-d'),
                             'target_address_display' => null,
-                            'production_order' => $production_order,
+                            'work_order' => $production_order,
                             'purpose' => 'Material Transfer for Manufacture',
+                            'stock_entry_type' => 'Material Transfer for Manufacture',
                             'shipping_address_contact_person' => null,
                             'customer_1' => null,
                             'material_request' => $mes_production_order_details->material_request,
@@ -3170,7 +3663,7 @@ class ManufacturingController extends Controller
                                 'transferred_qty' => $row->required_qty
                             ];
             
-                            DB::connection('mysql')->table('tabProduction Order Item')->where('name', $row->name)->update($production_order_item);
+                            DB::connection('mysql')->table('tabWork Order Item')->where('name', $row->name)->update($production_order_item);
 
                             if($mes_production_order_details->status == 'Not Started'){
                                 $values = [
@@ -3183,21 +3676,54 @@ class ManufacturingController extends Controller
                                 ];
                             }
                             
-                            DB::connection('mysql')->table('tabProduction Order')
+                            DB::connection('mysql')->table('tabWork Order')
                                 ->where('name', $mes_production_order_details->production_order)
                                 ->update($values);
 
-                            $this->update_bin($new_id);
+                            $update_bin_res = $this->update_bin($new_id);
+                            if ($update_bin_res['status'] == 0) {
+                                return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+                            }
                             $this->create_stock_ledger_entry($new_id);
                             $this->create_gl_entry($new_id);
                         }
+                    }
+                } else {
+                    if ($docstatus == 1) {
+                        $production_order_item = [
+                            'transferred_qty' => $row->required_qty
+                        ];
+        
+                        DB::connection('mysql')->table('tabWork Order Item')->where('name', $row->name)->update($production_order_item);
+
+                        if($mes_production_order_details->status == 'Not Started'){
+                            $values = [
+                                'status' => 'In Process',
+                                'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture
+                            ];
+                        }else{
+                            $values = [
+                                'material_transferred_for_manufacturing' => $mes_production_order_details->qty_to_manufacture
+                            ];
+                        }
+                        
+                        DB::connection('mysql')->table('tabWork Order')
+                            ->where('name', $mes_production_order_details->production_order)
+                            ->update($values);
+
+                        $update_bin_res = $this->update_bin($pending_ste->name);
+                        if ($update_bin_res['status'] == 0) {
+                            return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+                        }
+                        $this->create_stock_ledger_entry($pending_ste->name);
+                        $this->create_gl_entry($pending_ste->name);
                     }
                 }
             }
 
             DB::connection('mysql')->commit();
 
-            return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.']);
+            return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'id' => $new_id]);
         } catch (Exception $e) {
             DB::connection('mysql')->rollback();
             return response()->json(['success' => 0, 'message' => 'There was a problem creating stock entries.']);
@@ -3208,21 +3734,13 @@ class ManufacturingController extends Controller
     public function create_stock_ledger_entry($stock_entry){
         try {
             $now = Carbon::now();
-            $latest_id = DB::connection('mysql')->table('tabStock Ledger Entry')->max('name');
-            $latest_id_exploded = explode("/", $latest_id);
-            $new_id = $latest_id_exploded[1] + 1;
-
             $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
 
             $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
 
             $s_data = [];
             $t_data = [];
-            foreach ($stock_entry_detail as $row) {
-                $new_id = $new_id + 1;
-                $new_id = str_pad($new_id, 8, '0', STR_PAD_LEFT);
-                $id = 'SLEM/'.$new_id;
-                
+            foreach ($stock_entry_detail as $row) {              
                 $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
                     ->where('item_code', $row->item_code)->first();
                 
@@ -3232,7 +3750,7 @@ class ManufacturingController extends Controller
                 }
                     
                 $s_data[] = [
-                    'name' => $id,
+                    'name' => 'mes' . uniqid(),
                     'creation' => $now->toDateTimeString(),
                     'modified' => $now->toDateTimeString(),
                     'modified_by' => Auth::user()->email,
@@ -3261,7 +3779,7 @@ class ManufacturingController extends Controller
                     'project' => $stock_entry_qry->project,
                     'voucher_no' => $row->parent,
                     'outgoing_rate' => 0,
-                    'is_cancelled' => 'No',
+                    'is_cancelled' => 0,
                     'qty_after_transaction' => $actual_qty,
                     '_user_tags' => null,
                     'batch_no' => $row->batch_no,
@@ -3276,13 +3794,9 @@ class ManufacturingController extends Controller
                     $actual_qty = $bin_qry->actual_qty;
                     $valuation_rate = $bin_qry->valuation_rate;
                 }
-                
-                $new_id = $new_id + 1;
-                $new_id = str_pad($new_id, 8, '0', STR_PAD_LEFT);
-                $id = 'SLEM/'.$new_id;
 
                 $t_data[] = [
-                    'name' => $id,
+                    'name' => 'mes' . uniqid(),
                     'creation' => $now->toDateTimeString(),
                     'modified' => $now->toDateTimeString(),
                     'modified_by' => Auth::user()->email,
@@ -3311,7 +3825,7 @@ class ManufacturingController extends Controller
                     'project' => $stock_entry_qry->project,
                     'voucher_no' => $row->parent,
                     'outgoing_rate' => 0,
-                    'is_cancelled' => 'No',
+                    'is_cancelled' => 0,
                     'qty_after_transaction' => $actual_qty,
                     '_user_tags' => null,
                     'batch_no' => $row->batch_no,
@@ -3334,9 +3848,10 @@ class ManufacturingController extends Controller
 
             $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
 
-            $latest_id = DB::connection('mysql')->table('tabBin')->max('name');
+            $latest_id = DB::connection('mysql')->table('tabBin')->where('name', 'like', '%BINM%')->max('name');
+            $latest_id = ($latest_id) ? $latest_id : 0;
             $latest_id_exploded = explode("/", $latest_id);
-            $new_id = $latest_id_exploded[1] + 1;
+            $new_id = (array_key_exists(1, $latest_id_exploded)) ? $latest_id_exploded[1] + 1 : 1;
 
             $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
 
@@ -3389,6 +3904,11 @@ class ManufacturingController extends Controller
 
                         DB::connection('mysql')->table('tabBin')->insert($bin);
                     }else{
+                        $qty_after_transaction = $bin_qry->actual_qty - $row->transfer_qty;
+						if ($qty_after_transaction < 0) {
+							return ['status' => 0, 'message' => 'Insufficient stock for ' . $row->item_code . ' in ' . $row->s_warehouse];
+						}
+
                         $bin = [
                             'modified' => $now->toDateTimeString(),
                             'modified_by' => Auth::user()->email,
@@ -3445,6 +3965,11 @@ class ManufacturingController extends Controller
 
                         DB::connection('mysql')->table('tabBin')->insert($bin);
                     }else{
+                        $qty_after_transaction = $bin_qry->actual_qty + $row->transfer_qty;
+						if ($qty_after_transaction <= 0) {
+							return ['status' => 0, 'message' => 'Qty cannot be less than or equal to zero for ' . $row->item_code . ' in ' . $row->t_warehouse];
+						}
+
                         $bin = [
                             'modified' => $now->toDateTimeString(),
                             'modified_by' => Auth::user()->email,
@@ -3457,9 +3982,11 @@ class ManufacturingController extends Controller
                     }
                 }
             }
+
+            return ['status' => 1, 'message' => 'Bin updated.'];
             
         } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage(), 'id' => $stock_entry]);
+            return ['status' => 0, 'message' => 'Error creating transaction. Please try again.'];
         }
     }
     
@@ -3476,21 +4003,14 @@ class ManufacturingController extends Controller
                 ->select('t_warehouse', DB::raw('SUM(basic_amount) as basic_amount'), 'parent', 'cost_center', 'expense_account')
                 ->groupBy('t_warehouse', 'parent', 'cost_center', 'expense_account')
                 ->get();
-            
-            $latest_name = DB::connection('mysql')->table('tabGL Entry')->max('name');
-            $latest_name_exploded = explode("L", $latest_name);
-            $new_id = $latest_name_exploded[1] + 1;
 
             $id = [];
             $credit_data = [];
             $debit_data = [];
 
             foreach ($credit_qry as $row) {
-                $new_id = $new_id + 1;
-                $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-
                 $credit_data[] = [
-                    'name' => 'MGL'.$new_id,
+                    'name' => 'MGL'. uniqid(),
                     'creation' => $now->toDateTimeString(),
                     'modified' => $now->toDateTimeString(),
                     'modified_by' => Auth::user()->email,
@@ -3540,11 +4060,8 @@ class ManufacturingController extends Controller
             }
 
             foreach ($debit_qry as $row) {
-                $new_id = $new_id + 1;
-                $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-
                 $debit_data[] = [
-                    'name' => 'MGL'.$new_id,
+                    'name' => 'MGL'. uniqid(),
                     'creation' => $now->toDateTimeString(),
                     'modified' => $now->toDateTimeString(),
                     'modified_by' => Auth::user()->email,
@@ -3693,7 +4210,11 @@ class ManufacturingController extends Controller
     }
 
     public function production_planning_summary(Request $request){
-        $production_orders = DB::connection('mysql')->table('tabProduction Order')->whereIn('name', $request->production_orders)
+        if(!Auth::user()) {
+            return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
+        }
+
+        $production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $request->production_orders)
             ->where('docstatus', 1)->where('company', 'FUMACO Inc.')->orderBy('name', 'asc')->get();
 
         $production_order_list = [];
@@ -3715,14 +4236,17 @@ class ManufacturingController extends Controller
     }
 
     public function print_withdrawals(Request $request){
+        if(!Auth::user()) {
+            return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+        }
         $myArray = explode(',', $request->production_orders);
         $now = Carbon::now();
         $ste = DB::connection('mysql')->table('tabStock Entry')
             ->where('purpose', 'Material Transfer for Manufacture')
-            ->whereIn('production_order', $myArray)
+            ->whereIn('work_order', $myArray)
             ->where('docstatus',"<", 2)
-            ->selectRaw('production_order,sales_order_no,material_request,so_customer_name,project,GROUP_CONCAT(name ORDER BY production_order SEPARATOR ",") as ste_name')
-            ->groupBy('production_order', 'sales_order_no','material_request','so_customer_name','project')
+            ->selectRaw('work_order,sales_order_no,material_request,so_customer_name,project,GROUP_CONCAT(name ORDER BY work_order SEPARATOR ",") as ste_name')
+            ->groupBy('work_order', 'sales_order_no','material_request','so_customer_name','project')
             ->get();  //get parent_ste based on given production order
         $stock_entries=[];
         foreach ($ste as $row) {
@@ -3731,14 +4255,14 @@ class ManufacturingController extends Controller
             $stock_entries[] = [
                 'sales_order' => $row->sales_order_no,
                 'material_request' => $row->material_request,
-                'production_order' => $row->production_order,
+                'production_order' => $row->work_order,
                 'customer' => $row->so_customer_name,
                 'project' => $row->project,
                 'posting_date' => $now->format('y-m-d'),
                 'items' => $items
             ];
 
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $row->production_order)->update(['withdrawal_slip_print' => '1']);
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $row->work_order)->update(['withdrawal_slip_print' => '1']);
 
         }
         if(empty($stock_entries)){ //validation if with no ste found
@@ -3748,7 +4272,9 @@ class ManufacturingController extends Controller
     }
     // NEW (FOR BOM CRUD)
     public function view_bom_list(){
-        return view('bom.index');
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('bom.index', compact('permissions'));
     }
 
     public function get_bom_list(Request $request){
@@ -3791,7 +4317,7 @@ class ManufacturingController extends Controller
         try {
             $now = Carbon::now();
             $pending_ste = DB::connection('mysql')->table('tabStock Entry')
-                ->where('production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
+                ->where('work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
                 ->where('docstatus', 0)->pluck('name');
 
             if(count($pending_ste) <= 0){
@@ -3824,14 +4350,54 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabStock Entry')->where('name', $ste)->update($values);
                 DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $ste)->update($values);
 
-                $this->update_bin($ste);
+                $update_bin_res = $this->update_bin($ste);
+				if ($update_bin_res['status'] == 0) {
+					return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+				}
                 $this->create_stock_ledger_entry($ste);
                 $this->create_gl_entry($ste);
             }
 
-            $update_production_order_transferred_qty = $this->update_production_order_transferred_qty($production_order);
-            if($update_production_order_transferred_qty['status'] == 0){
-                return response()->json(['success' => 0, 'message' => 'Error updating production order transferred qty']);
+            $production_details = DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->first();
+
+            // get production order qty to manufacture
+            $production_req_qty = $production_details->qty;
+
+            // get total materials transferred for manufacturing in production order's stock entries
+            $transferred_for_manufacturing = DB::connection('mysql')->table('tabStock Entry')
+                ->where('work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
+                ->where('docstatus', 1)->sum('fg_completed_qty');
+
+            $transferred_for_manufacturing = ($transferred_for_manufacturing > $production_req_qty) ? $production_req_qty : $transferred_for_manufacturing;
+            
+            $values = [
+                'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
+            ];
+
+            if($production_details->status == 'Not Started'){
+                $values = [
+                    'material_transferred_for_manufacturing' => $transferred_for_manufacturing,
+                    'status' => 'In Process'
+                ];
+            }
+
+            DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->update($values);
+
+            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)->get();
+            foreach ($production_order_items as $row) {
+                // get item code transferred_qty
+                $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->where('ste.docstatus', 1)->where('sted.item_code', $row->item_code)->sum('sted.qty');
+
+                DB::connection('mysql')->table('tabWork Order Item')
+                    ->where('name', $row->name)->update(['transferred_qty' => $transferred_qty]);
+            }
+
+            $material_transferred_for_manufacturing = DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->sum('material_transferred_for_manufacturing');
+            if ($material_transferred_for_manufacturing <= 0) {
+                return response()->json(['success' => 0, 'message' => 'Error updating production order transferred qty. Please try again.']);
             }
 
             DB::connection('mysql')->commit();
@@ -3846,8 +4412,13 @@ class ManufacturingController extends Controller
     public function create_production_feedback_for_item_bundle($production_order, $fg_completed_qty){
         DB::connection('mysql')->beginTransaction();
 		try {
+
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
 			$existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
-				->where('production_order', $production_order)
+				->where('work_order', $production_order)
 				->where('purpose', 'Material Transfer for Manufacture')
 				->where('docstatus', 1)->exists();
 
@@ -3855,14 +4426,14 @@ class ManufacturingController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Materials unavailable.']);
 			}
 
-			$production_order_details = DB::connection('mysql')->table('tabProduction Order')
+			$production_order_details = DB::connection('mysql')->table('tabWork Order')
 				->where('name', $production_order)->first();
 
 			$produced_qty = $production_order_details->produced_qty + $fg_completed_qty;
 			if($produced_qty >= (int)$production_order_details->qty && $production_order_details->material_transferred_for_manufacturing > 0){
 				$pending_mtfm_count = DB::connection('mysql')->table('tabStock Entry as ste')
 					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-					->where('ste.production_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
+					->where('ste.work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
 					->where('ste.docstatus', 0)->count();
 				
 				if($pending_mtfm_count > 0){
@@ -3875,13 +4446,13 @@ class ManufacturingController extends Controller
 
 			$now = Carbon::now();
 
-			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
+			$latest_pro = DB::connection('mysql')->table('tabStock Entry')->where('name', 'like', '%step%')->max('name');
 			$latest_pro_exploded = explode("-", $latest_pro);
-			$new_id = $latest_pro_exploded[1] + 1;
-			$new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-			$new_id = 'STEM-'.$new_id;
+            $new_id = (($latest_pro) ? $latest_pro_exploded[1] : 0) + 1;
+			$new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
+			$new_id = 'STEP-'.$new_id;
 
-			$production_order_items = DB::connection('mysql')->table('tabProduction Order Item')
+			$production_order_items = DB::connection('mysql')->table('tabWork Order Item')
 				->where('parent', $production_order)->orderBy('idx', 'asc')->get();
 
 			$receiving_warehouse = ['P2 - Housing Temporary - FI1'];
@@ -3981,7 +4552,7 @@ class ManufacturingController extends Controller
 				'_liked_by' => null,
 				'purchase_receipt_no' => null,
 				'posting_time' => $now->format('H:i:s'),
-				'customer_name' => null,
+				// 'customer_name' => null,
 				'to_warehouse' => $production_order_details->fg_warehouse,
 				'title' => 'Material Transfer',
 				'_comments' => null,
@@ -3999,13 +4570,13 @@ class ManufacturingController extends Controller
 				'sales_invoice_no' => null,
 				'company' => 'FUMACO Inc.',
 				'target_warehouse_address' => null,
-				'customer_address' => null,
+				// 'customer_address' => null,
 				'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
 				'supplier_name' => null,
 				'remarks' => null,
 				'_user_tags' => null,
 				'total_additional_costs' => 0,
-				'customer' => null,
+				// 'customer' => null,
 				'bom_no' => $production_order_details->bom_no,
 				'amended_from' => null,
 				'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -4015,7 +4586,7 @@ class ManufacturingController extends Controller
 				'select_print_heading' => null,
 				'posting_date' => $now->format('Y-m-d'),
 				'target_address_display' => null,
-				'production_order' => $production_order,
+				'work_order' => $production_order,
 				'purpose' => 'Material Transfer',
 				'shipping_address_contact_person' => null,
 				'customer_1' => null,
@@ -4050,9 +4621,12 @@ class ManufacturingController extends Controller
                 'status' => ($produced_qty == $production_order_details->qty) ? 'Completed' : $production_order_details->status
             ];
 
-            DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->update($production_data);
+            DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->update($production_data);
 
-            $this->update_bin($new_id);
+            $update_bin_res = $this->update_bin($new_id);
+            if ($update_bin_res['status'] == 0) {
+                return response()->json(['success' => 0, 'message' => $update_bin_res['message']]);
+            }
             $this->create_stock_ledger_entry($new_id);
             $this->create_gl_entry($new_id);
             
@@ -4157,6 +4731,10 @@ class ManufacturingController extends Controller
     public function cancel_production_order_feedback($stock_entry){
         DB::connection('mysql')->beginTransaction();
         try {
+            if(!Auth::user()) {
+                return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+            
             $now = Carbon::now();
             $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry')
                 ->where('name', $stock_entry)->where('docstatus', 1)->where('purpose', 'Manufacture')->first();
@@ -4165,7 +4743,7 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Production Order Feedback not found. Ref. No: <b>' . $stock_entry . '</b>']);
             }
             // get production order details
-            $production_order_detail = DB::connection('mysql')->table('tabProduction Order')->where('name', $stock_entry_detail->production_order)->first();
+            $production_order_detail = DB::connection('mysql')->table('tabWork Order')->where('name', $stock_entry_detail->work_order)->first();
             // check if production order exists
             if(!$production_order_detail){
                 return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $stock_entry . '</b> not found.']);
@@ -4211,6 +4789,13 @@ class ManufacturingController extends Controller
                         'valuation_rate' => $bin_qry->valuation_rate,
                     ];
 
+                    $work_order_item = DB::connection('mysql')->table('tabWork Order Item')
+                        ->where('parent', $stock_entry_detail->work_order)->where('item_code', $row->item_code)->first();
+                    if ($work_order_item) {
+                        DB::connection('mysql')->table('tabWork Order Item')
+                            ->where('parent', $stock_entry_detail->work_order)->where('item_code', $row->item_code)->update(['consumed_qty' => ($work_order_item->consumed_qty - $row->transfer_qty)]);
+                    }
+
                     // update bin for stock entry item (raw materials)
                     DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
                 }
@@ -4254,13 +4839,13 @@ class ManufacturingController extends Controller
             // get production order remaining feedbacked qty 
             $remaining_feedbacked_qty = $production_order_detail->produced_qty - $stock_entry_detail->fg_completed_qty;
             // update production order produced qty and status in ERP
-            DB::connection('mysql')->table('tabProduction Order')
-                ->where('name', $stock_entry_detail->production_order)->update(['produced_qty' => $remaining_feedbacked_qty, 'modified' => $now->toDateTimeString(),
+            DB::connection('mysql')->table('tabWork Order')
+                ->where('name', $stock_entry_detail->work_order)->update(['produced_qty' => $remaining_feedbacked_qty, 'modified' => $now->toDateTimeString(),
                 'modified_by' => Auth::user()->email, 'status' => 'In Process']);
 
             DB::connection('mysql_mes')->beginTransaction();
             // update production order feedbacked qty  in MES
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->production_order)
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->work_order)
                 ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
             
              // update feedback logs as cancelled in MES
@@ -4278,6 +4863,697 @@ class ManufacturingController extends Controller
             DB::connection('mysql')->rollback();
 
             return response()->json(['status' => 0, 'message' => 'There was a problem cancelling production order feedback.']);
+        }
+    }
+
+    public function wizardNoBom() {
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('wizard_no_bom.index', compact('permissions'));
+    }
+
+    public function create_production_order_without_bom(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $now = Carbon::now();
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            }
+
+            if($request->reference_type == 'Sales Order' && !$request->reference_no){
+                return response()->json(['success' => 0, 'message' => 'Please enter reference Sales Order.']);
+            }
+
+            if($request->reference_type == 'Material Request' && !$request->reference_no){
+                return response()->json(['success' => 0, 'message' => 'Please enter reference Material Request.']);
+            }
+
+            if ($request->qty <= 0) {
+                return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
+            }
+
+            $reference_table = ($request->reference_type == 'Sales Order') ? 'tabSales Order' : 'tabMaterial Request';
+            $reference_name = $request->reference_no;
+            $reference_details = DB::connection('mysql')->table($reference_table)
+                ->where('name', $reference_name)->first();
+            if(!$reference_details){
+                return response()->json(['success' => 0, 'message' => $reference_name . ' does not exist.']);
+            }
+
+            $per_status = ($request->reference_type == 'Sales Order') ? $reference_details->per_delivered : $reference_details->per_ordered;
+            if($reference_details->docstatus > 1){
+                return response()->json(['success' => 0, 'message' => $reference_name . ' was CANCELLED']);
+            }
+
+            if ($per_status >= 100) {
+                return response()->json(['success' => 0, 'message' => $reference_name . ' was already COMPLETED']);
+            }
+
+            $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+            if (!$item) {
+                return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' not found.']);
+            }
+
+            if($item->is_stock_item == 0){
+                return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' is not a stock item.']);
+            }
+
+            $parent_item_code = $request->item_code;
+            $sub_parent_item_code = $request->item_code;
+
+            $operation_details = DB::connection('mysql_mes')->table('operation')
+                ->where('operation_name', 'like', '%wiring%')->first();
+
+            $operation_id = ($operation_details) ? $operation_details->operation_id : 3;
+            
+            $wip_wh = $this->get_operation_wip_warehouse($operation_id);
+            if ($wip_wh['success'] < 1) {
+                return response()->json(['success' => 0, 'message' => $wip_wh['message']]);
+            }
+            
+            $wip = $wip_wh['message'];
+            
+      
+            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
+            $latest_pro_exploded = explode("-", $latest_pro);
+            $new_id = $latest_pro_exploded[1] + 1;
+            $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
+            $new_id = 'PROM-'.$new_id;
+            
+            $existing_id = DB::connection('mysql_mes')->table('production_order')
+                ->where('production_order', $new_id)->first();
+            if ($existing_id) {
+                return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $new_id . '</b> already exist.']);
+            }
+
+            $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
+
+            $classification = ($request->reference_type == 'Sales Order') ? (($reference_details->sales_type == 'Sample') ? 'Sample' : 'Customer Order') : $reference_details->purpose;
+
+            $data = [
+                'name' => $new_id,
+                'creation' => $now->toDateTimeString(),
+                'modified' => $now->toDateTimeString(),
+                'modified_by' => Auth::user()->email,
+                'owner' => Auth::user()->email,
+                'docstatus' => 1,
+                'idx' => 0,
+                'qty' => $request->qty,
+                'fg_warehouse' => $request->target,
+                'use_multi_level_bom' => 0,
+                'material_transferred_for_manufacturing' => 0,
+                'stock_uom' => $item_details->stock_uom,
+                'naming_series' => 'PRO-',
+                'status' => 'Not Started',
+                'description' => $request->description,
+                'company' => 'FUMACO Inc.',
+                'production_item' => strtoupper($request->item_code),
+                'sales_order_item' => ($request->reference_type == 'Sales Order') ? $request->item_reference_id : null,
+                'bom_no' => null,
+                'wip_warehouse' => $wip,
+                'project' => $reference_details->project,
+                'scrap_warehouse' => 'Scrap Warehouse P1 - FI',
+                'item_classification' => $item_details->item_classification,
+                'delivery_date' => ($request->reference_type == 'Sales Order') ? $reference_details->delivery_date : $reference_details->schedule_date,
+                'item_name' => $item_details->item_name,
+                'customer' => $reference_details->customer,
+                'sales_order_no' => ($request->reference_type == 'Sales Order') ? $reference_details->name : null,
+                'sales_order' => ($request->reference_type == 'Sales Order') ? $reference_details->name : null,
+                'material_request' => ($request->reference_type == 'Material Request') ? $reference_details->name : null,
+                'scheduled' => ($request->planned_date) ? 1 : 0,
+                'order_no' => 0,
+                'priority' => 'Normal',
+                'classification' => $classification,
+                'parent_item_code' => strtoupper($parent_item_code),
+                'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
+            ];
+
+            $params = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $request->item_code)
+                ->where('attribute', 'LIKE', '%cutting size%')->first();
+
+            $data_mes = [
+                'production_order' => $new_id,
+                'parent_item_code' => strtoupper($parent_item_code),
+                'sub_parent_item_code' => strtoupper($sub_parent_item_code),
+                'item_code' => strtoupper($request->item_code),
+                'description' => $request->description,
+                'parts_category' => $item_details->parts_category,
+                'item_classification' => $item_details->item_classification,
+                'qty_to_manufacture' => $request->qty,
+                'classification' => $classification,
+                'order_no' => 0,
+                'cutting_size' => ($params) ? $params->attribute_value : null,
+                'is_scheduled' => ($request->planned_date) ? 1 : 0,
+                'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
+                'project' => $reference_details->project,
+                'bom_no' => null,
+                'sales_order' => ($request->reference_type == 'Sales Order') ? $reference_details->name : null,
+                'material_request' => ($request->reference_type == 'Material Request') ? $reference_details->name : null,
+                'delivery_date' => ($request->reference_type == 'Sales Order') ? $reference_details->delivery_date : $reference_details->schedule_date,
+                'status' => 'Not Started',
+                'stock_uom' => $item_details->stock_uom,
+                'customer' => $reference_details->customer,
+                'wip_warehouse' => $wip,
+                'fg_warehouse' => $request->target,
+                'last_modified_at' => $now->toDateTimeString(),
+                'last_modified_by' => Auth::user()->email,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString(),
+                'operation_id' => $operation_id,
+                'is_stock_item' => $item_details->is_stock_item
+            ];
+
+            DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
+
+            $default_workstations = [25, 28, 27];
+            $mes_custom_operations = [];
+            $custom_operations = [];
+            foreach($default_workstations as $p => $w_id){
+                $workstation_details = DB::connection('mysql_mes')->table('workstation')->where('workstation_id', $w_id)->first();
+                $bom_operation_id = 'nbop' . uniqid();
+                $mes_custom_operations[] = [
+                    'production_order' => $new_id,
+                    'idx' => $p + 1,
+                    'workstation' => $workstation_details->workstation_name,
+                    'process_id' => null,
+                    'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
+                    'created_by' => Auth::user()->employee_name,
+                    'created_at' => $now->toDateTimeString(),
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'bom_operation_id' => $bom_operation_id
+                ];
+
+                $custom_operations[] = [
+                    'name' => 'mes'.uniqid(),
+                    'creation' => $now->toDateTimeString(),
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->email,
+                    'owner' => Auth::user()->email,
+                    'docstatus' => 1,
+                    'parent' => $new_id,
+                    'parentfield' => 'operations',
+                    'parenttype' => 'Work Order',
+                    'idx' => $p + 1,
+                    'status' => 'Pending',
+                    'actual_start_time' => null,
+                    'workstation' => $workstation_details->workstation_name,
+                    'completed_qty' => 0,
+                    'planned_operating_cost' => 0,
+                    'description' => $workstation_details->workstation_name,
+                    'actual_end_time' => null,
+                    'actual_operating_cost' => 0,
+                    'hour_rate' => 0,
+                    'planned_start_time' => null,
+                    'bom' => null,
+                    'actual_operation_time' => 0,
+                    'operation' => $operation_details->operation_name,
+                    'planned_end_time' => null,
+                    'time_in_mins' => 1,
+                    'process' => null,
+                    'bom_operation_id' => $bom_operation_id
+                ];
+            }
+
+            DB::connection('mysql_mes')->table('job_ticket')->insert($mes_custom_operations);
+            DB::connection('mysql')->table('tabWork Order Operation')->insert($custom_operations);
+
+            $reference_child_table = ($request->reference_type == 'Sales Order') ? 'tabSales Order Item' : 'tabMaterial Request Item';
+            $reference_parent = $reference_details->name;
+            $reference_child_details = DB::connection('mysql')->table($reference_child_table)
+                ->where('name', $request->item_reference_id)->first();
+
+            if($reference_child_details){
+                $del_data = [
+                    'erp_reference_id' => $reference_child_details->name,
+                    'reference_no' => $reference_parent,
+                    'parent_item_code' => $parent_item_code,
+                    'delivery_date' => ($request->reference_type == 'Sales Order') ? $reference_child_details->delivery_date : $reference_child_details->schedule_date,
+                    'created_by' => Auth::user()->email
+                ];
+
+                $existing_del_data = DB::connection('mysql_mes')->table('delivery_date')
+                    ->where('erp_reference_id', $reference_child_details->name)->where('parent_item_code', $parent_item_code)
+                    ->exists();
+                
+                if(!$existing_del_data){
+                    DB::connection('mysql_mes')->table('delivery_date')->insert($del_data);
+                }
+            }
+
+            DB::connection('mysql')->beginTransaction();
+            try{
+                DB::connection('mysql')->table('tabWork Order')->insert($data);
+                $raw_required_items = [];
+                if($item_details->is_stock_item > 0){
+                    $req_item_detail = DB::connection('mysql')->table('tabItem')
+                        ->where('name', $request->item_code)->first();
+
+                    $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                        ->where('company', 'FUMACO Inc.')->first();
+                    $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
+
+                    $raw_required_items = [
+                        'name' => 'mes'.uniqid(),
+                        'creation' => $now->toDateTimeString(),
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->email,
+                        'owner' => Auth::user()->email,
+                        'docstatus' => 1,
+                        'parent' => $new_id,
+                        'parentfield' => 'required_items',
+                        'parenttype' => 'Work Order',
+                        'idx' => 1,
+                        'description' => $req_item_detail->description,
+                        'item_name' => $req_item_detail->item_name,
+                        'item_code' => $req_item_detail->item_code,
+                        'required_qty' => $request->qty,
+                        'transferred_qty' => 0,
+                        'available_qty_at_source_warehouse' => 0,
+                        'available_qty_at_wip_warehouse' => 0,
+                        'source_warehouse' => $item_default_warehouse,
+                        'stock_uom' => $req_item_detail->stock_uom
+                    ];
+                }else{
+                    $bundle_items = DB::connection('mysql')->table('tabProduct Bundle Item')->where('parent', $request->item_code)->get();
+                    foreach ($bundle_items as $k => $v) {
+                        $req_item_detail = DB::connection('mysql')->table('tabItem')
+                            ->where('name', $v->item_code)->first();
+
+                        $item_default_warehouse = DB::connection('mysql')->table('tabItem Default')->where('parent', $req_item_detail->name)
+                            ->where('company', 'FUMACO Inc.')->first();
+                        $item_default_warehouse = ($item_default_warehouse) ? $item_default_warehouse->default_warehouse : null;
+
+                        $raw_required_items[] = [
+                            'name' => 'mes'.uniqid(),
+                            'creation' => $now->toDateTimeString(),
+                            'modified' => $now->toDateTimeString(),
+                            'modified_by' => Auth::user()->email,
+                            'owner' => Auth::user()->email,
+                            'docstatus' => 1,
+                            'parent' => $new_id,
+                            'parentfield' => 'required_items',
+                            'parenttype' => 'Work Order',
+                            'idx' => $k + 1,
+                            'description' => $req_item_detail->description,
+                            'item_name' => $req_item_detail->item_name,
+                            'item_code' => $req_item_detail->item_code,
+                            'required_qty' => $v->qty * $request->qty,
+                            'transferred_qty' => 0,
+                            'available_qty_at_source_warehouse' => 0,
+                            'available_qty_at_wip_warehouse' => 0,
+                            'source_warehouse' => $item_default_warehouse,
+                            'stock_uom' => $v->uom
+                        ];
+                    }
+                }
+
+                DB::connection('mysql')->table('tabWork Order Item')->insert($raw_required_items);
+
+                $this->insert_job_card($new_id);
+                
+                DB::connection('mysql')->commit();
+            } catch (Exception $e) {
+                DB::connection('mysql')->rollback();
+                return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
+            }
+                   
+            DB::connection('mysql_mes')->commit();
+              
+            return response()->json(["success" => 1, 'message' => $new_id]);
+        } catch (Exception $e) {
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
+        }
+    }
+
+    public function viewAddOperationsWizard(Request $request) {
+        $production_orders = DB::connection('mysql')->table('tabWork Order as wo')->join('tabItem as i', 'wo.production_item', 'i.name')
+            ->whereIn('wo.name', $request->production_orders)->select('wo.name', 'wo.production_item', 'wo.item_name', 'i.item_classification', 'wo.description', 'i.item_image_path')->get();
+
+        return view('wizard_no_bom.add_operations', compact('production_orders'));
+    }
+
+    public function submit_withdrawal_slip(Request $request){
+        DB::beginTransaction();
+        
+        try {
+            $steDetails = DB::connection('mysql')->table('tabStock Entry as se')->join('tabStock Entry Detail as sed', 'se.name', 'sed.parent')->where('sed.name', $request->child_tbl_id)
+                ->select('se.name as parent_se', 'se.*', 'sed.*', 'sed.status as per_item_status', 'se.docstatus as se_status')->first();
+            if(!$steDetails){
+                return response()->json(['status' => 0, 'message' => 'Record not found.']);
+            }
+
+            if(in_array($steDetails->per_item_status, ['Issued', 'Returned'])){
+                return response()->json(['status' => 0, 'message' => 'Item already ' . $steDetails->per_item_status . '.']);
+            }
+
+            if($steDetails->se_status == 1){
+                return response()->json(['status' => 0, 'message' => 'Item already issued.']);
+            }
+
+            $itemDetails = DB::table('tabItem')->where('name', $steDetails->item_code)->first();
+            if(!$itemDetails){
+                return response()->json(['status' => 0, 'message' => 'Item  <b>' . $steDetails->item_code . '</b> not found.']);
+            }     
+ 
+            if($itemDetails->is_stock_item == 0){
+                return response()->json(['status' => 0, 'message' => 'Item  <b>' . $steDetails->item_code . '</b> is not a stock item.']);
+            }
+
+            if($steDetails->qty <= 0){
+                return response()->json(['status' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
+            }
+
+            $available_qty = $this->get_available_qty($steDetails->item_code, $steDetails->s_warehouse);
+            if($steDetails->purpose != 'Material Receipt'){
+                if($steDetails->qty > $available_qty){
+                    return response()->json(['status' => 0, 'message' => 'Qty not available for <b> ' . $steDetails->item_code . '</b> in <b>' . $steDetails->s_warehouse . '</b><
+                    br><br>Available qty is <b>' . $available_qty . '</b>, you need <b>' . $steDetails->qty . '</b>.']);
+                }
+            }
+
+            $status = $steDetails->status;
+            if($steDetails->purpose == 'Material Receipt' && $steDetails->receive_as == 'Sales Return') {
+                $status = 'Returned';
+            }else {
+                $status = 'Issued';
+            }
+
+            $values = [
+                'session_user' => Auth::user()->employee_name,
+                'status' => $status, 
+                'transfer_qty' => $steDetails->qty, 
+                'qty' => $steDetails->qty, 
+                'issued_qty' => $steDetails->qty, 
+                'validate_item_code' => $steDetails->item_code, 
+                'date_modified' => Carbon::now()->toDateTimeString(),
+                'remarks' => 'Fast Issued'
+            ];
+                                                  
+            DB::connection('mysql')->table('tabStock Entry Detail')->where('name', $request->child_tbl_id)->update($values);
+            
+            $this->insert_transaction_log('Stock Entry', $request->child_tbl_id);
+
+            $status_result = $this->update_pending_ste_item_status();
+
+            if ($steDetails->purpose == 'Material Transfer for Manufacture') {
+                $cancelled_production_order = DB::table('tabWork Order')
+                    ->where('name', $steDetails->work_order)->where('docstatus', 2)->first();
+
+                if($cancelled_production_order){
+                    return response()->json(['status' => 0, 'message' => 'Production Order ' . $cancelled_production_order->name . ' was cancelled. Please reload the page.']);
+                }
+
+                $this->submit_stock_entry($steDetails->parent_se);
+            }
+
+            DB::commit();
+
+            return response()->json(['status' => 1, 'message' => 'Item <b>' . $steDetails->item_code . '</b> has been issued.']);
+        } catch (Exception $e) {
+            DB::rollback();
+
+            return response()->json(['status' => 0, 'message' => 'Error creating transaction. Please contact your system administrator.']);
+        }
+    }
+
+    public function get_available_qty($item_code, $warehouse){
+        $reserved_qty = $this->get_reserved_qty($item_code, $warehouse);
+        $actual_qty = $this->get_actual_qty($item_code, $warehouse);
+        $issued_qty = $this->get_issued_qty($item_code, $warehouse);
+
+        $available_qty = ($actual_qty - $issued_qty);
+        $available_qty = ($available_qty - $reserved_qty);
+
+        return ($available_qty < 0) ? 0 : $available_qty;
+    }
+
+    public function get_reserved_qty($item_code, $warehouse){
+        $reserved_qty_for_website = 0;
+
+        $stock_reservation_qty = DB::connection('mysql')->table('tabStock Reservation')->where('item_code', $item_code)
+            ->where('warehouse', $warehouse)->whereIn('type', ['In-house', 'Consignment', 'Website Stocks'])->whereIn('status', ['Active', 'Partially Issued'])->sum('reserve_qty');
+
+        $consumed_qty = DB::connection('mysql')->table('tabStock Reservation')->where('item_code', $item_code)
+            ->where('warehouse', $warehouse)->whereIn('type', ['In-house', 'Consignment', 'Website Stocks'])->whereIn('status', ['Active', 'Partially Issued'])->sum('consumed_qty');
+
+        return ($reserved_qty_for_website + $stock_reservation_qty) + $consumed_qty;
+    }
+
+    public function get_issued_qty($item_code, $warehouse){
+        $total_issued = DB::connection('mysql')->table('tabStock Entry Detail')->where('docstatus', 0)->where('status', 'Issued')
+            ->where('item_code', $item_code)->where('s_warehouse', $warehouse)->sum('qty');
+
+        $total_issued += DB::connection('mysql')->table('tabAthena Transactions as at')
+            ->join('tabPacking Slip as ps', 'ps.name', 'at.reference_parent')
+            ->join('tabPacking Slip Item as psi', 'ps.name', 'ps.parent')
+            ->join('tabDelivery Note as dr', 'ps.delivery_note', 'dr.name')
+            ->whereIn('at.reference_type', ['Packing Slip', 'Picking Slip'])
+            ->where('dr.docstatus', 0)->where('ps.docstatus', '<', 2)
+            ->where('psi.status', 'Issued')
+            ->where('at.item_code', $item_code)->where('at.source_warehouse', $warehouse)
+            ->sum('at.issued_qty');
+
+        return $total_issued;
+    }
+
+    public function insert_transaction_log($transaction_type, $id){
+        if($transaction_type == 'Picking Slip'){
+            $q = DB::connection('mysql')->table('tabPacking Slip as ps')
+                ->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
+                ->join('tabDelivery Note Item as dri', 'dri.parent', 'ps.delivery_note')
+                ->join('tabDelivery Note as dr', 'dri.parent', 'dr.name')
+                ->whereRaw(('dri.item_code = psi.item_code'))->where('ps.item_status', 'For Checking')->where('dri.docstatus', 0)->where('psi.name', $id)
+                ->select('psi.name', 'psi.parent', 'psi.item_code', 'psi.description', 'ps.delivery_note', 'dri.warehouse', 'psi.qty', 'psi.barcode', 'psi.session_user', 'psi.stock_uom')
+                ->first();
+            $type = 'Check Out - Delivered';
+            $purpose = 'Picking Slip';
+            $barcode = $q->barcode;
+            $remarks = null;
+            $s_warehouse = $q->warehouse;
+            $t_warehouse = null;
+            $reference_no = $q->delivery_note;
+        } else if($transaction_type == 'Delivery Note') {
+            $q = DB::connection('mysql')->table('tabDelivery Note as dn')
+                ->join('tabDelivery Note Item as dni', 'dn.name', 'dni.parent')
+                ->where('dni.name', $id)->select('dni.name', 'dni.parent', 'dni.item_code', 'dni.description', 'dn.name as delivery_note', 'dni.warehouse', 'dni.qty', 'dni.barcode', 'dni.session_user', 'dni.stock_uom')
+                ->first();
+
+            $type = 'Check In - Received';
+            $purpose = 'Sales Return';
+            $barcode = $q->barcode;
+            $remarks = null;
+            $s_warehouse = null;
+            $t_warehouse = $q->warehouse;
+            $reference_no = $q->delivery_note;
+        } else {
+            $q = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')->where('sted.name', $id)
+                ->select('sted.*', 'ste.sales_order_no', 'ste.material_request', 'ste.purpose', 'ste.transfer_as', 'ste.issue_as', 'ste.receive_as')
+                ->first();
+
+            $type = null;
+            if($q->purpose == 'Manufacture') {
+                $type = 'Check In - Received';
+            }
+
+            if($q->purpose == 'Material Transfer for Manufacture') {
+                $type = 'Check Out - Issued';
+            }
+
+            if($q->purpose == 'Material Transfer' && $q->transfer_as == 'Internal Transfer') {
+                $type = 'Check Out - Transferred';
+            }
+
+            if($q->purpose == 'Material Transfer' && in_array($q->transfer_as, ['Consignment', 'Sample Item'])) {
+                $type = 'Check Out - Delivered';
+            }
+
+            if($q->purpose == 'Material Transfer' && $q->transfer_as == 'For Return') {
+                $type = 'Check In - Returned';
+            }
+
+            if($q->purpose == 'Material Issue' && $q->issue_as == 'Customer Replacement') {
+                $type = 'Check Out - Replaced';
+            }
+
+            if($q->purpose == 'Material Issue' && $q->issue_as != 'Customer Replacement') {
+                $type = 'Check Out - Issued';
+            }
+
+            if($q->purpose == 'Material Receipt' && $q->receive_as == 'Sales Return') {
+                $type = 'Check In - Received';
+            }
+
+            $purpose = $q->purpose;
+            $barcode = $q->validate_item_code;
+            $remarks = $q->remarks;
+            $s_warehouse = $q->s_warehouse;
+            $t_warehouse = $q->t_warehouse;
+            $reference_no = ($q->sales_order_no) ? $q->sales_order_no : $q->material_request;
+        }
+       
+        $now = Carbon::now();
+        
+        $values = [
+            'name' => uniqid(date('mdY')),
+            'reference_type' => $transaction_type,
+            'reference_name' => $q->name,
+            'reference_parent' => $q->parent,
+            'item_code' => $q->item_code,
+            'qty' => $q->qty,
+            'barcode' => $barcode,
+            'transaction_date' => $now->toDateTimeString(),
+            'warehouse_user' => $q->session_user,
+            'issued_qty' => $q->qty,
+            'remarks' => $remarks,
+            'source_warehouse' => $s_warehouse,
+            'target_warehouse' => $t_warehouse,
+            'description' => $q->description,
+            'reference_no' => $reference_no,
+            'creation' => $now->toDateTimeString(),
+            'modified' => $now->toDateTimeString(),
+            'modified_by' => Auth::user()->wh_user,
+            'owner' => Auth::user()->wh_user,
+            'uom' => $q->stock_uom,
+            'purpose' => $purpose,
+            'transaction_type' => $type
+        ];
+
+        $existing_log = DB::connection('mysql')->table('tabAthena Transactions')
+            ->where('reference_name', $q->name)->where('reference_parent', $q->parent)
+            ->exists();
+
+        if(!$existing_log){
+            DB::connection('mysql')->table('tabAthena Transactions')->insert($values);
+        }
+    }
+
+    public function update_pending_ste_item_status(){
+        DB::beginTransaction();
+        try {
+            $for_checking_ste = DB::connection('mysql')->table('tabStock Entry')
+                ->where('item_status', 'For Checking')->where('docstatus', 0)
+                ->select('name', 'transfer_as', 'receive_as')->get();
+
+            $item_status = null;
+            foreach($for_checking_ste as $ste){
+                $items_for_checking = DB::connection('mysql')->table('tabStock Entry Detail')
+                    ->where('parent', $ste->name)->where('status', 'For Checking')->exists();
+
+                if(!$items_for_checking){
+                    if($ste->receive_as == 'Sales Return'){
+                        DB::connection('mysql')->table('tabStock Entry')->where('name', $ste->name)->where('docstatus', 0)->update(['item_status' => 'Returned']);
+                    }else{
+                        $item_status = ($ste->transfer_as == 'For Return') ? 'Returned' : 'Issued';
+                        DB::connection('mysql')->table('tabStock Entry')->where('name', $ste->name)->where('docstatus', 0)->update(['item_status' => $item_status]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return $item_status;
+        } catch (Exception $e) {
+            DB::rollback();
+        }
+    }
+
+    public function submit_stock_entry($id){
+        try {
+            $now = Carbon::now();
+            $draft_ste = DB::connection('mysql')->table('tabStock Entry')->where('name', $id)->where('docstatus', 0)->first();
+            if($draft_ste){
+                if ($draft_ste->purpose != 'Manufacture') {
+                     // check if all items are issued
+                    $count_not_issued_items = DB::connection('mysql')->table('tabStock Entry Detail')->whereNotIn('status', ['Issued', 'Returned'])->where('parent', $draft_ste->name)->count();
+                    if($count_not_issued_items > 0){
+                        return response()->json(['success' => 0, 'message' => 'All item(s) must be issued.']);
+                    }
+                }
+
+                if($draft_ste->purpose == 'Material Transfer for Manufacture'){
+                    $production_order_details = DB::connection('mysql')->table('tabWork Order')->where('name', $draft_ste->work_order)->first();
+
+                    // get total "for quantity" (submitted)
+                    $transferred_qty = DB::connection('mysql')->table('tabStock Entry')
+                        ->where('work_order', $draft_ste->work_order)->where('docstatus', 1)
+                        ->where('purpose', 'Material Transfer for Manufacture')->sum('fg_completed_qty');
+                    
+                    $total_transferred_qty = $transferred_qty + $draft_ste->fg_completed_qty;
+                    if ($total_transferred_qty > $production_order_details->qty) {
+                        $fg_completed_qty = $production_order_details->qty - $transferred_qty;
+                    }else{
+                        $fg_completed_qty = $draft_ste->fg_completed_qty;
+                    }
+
+                    $material_transferred_for_manufacturing = $transferred_qty + $fg_completed_qty;
+
+                    DB::connection('mysql')->table('tabWork Order')->where('name', $draft_ste->work_order)
+                        ->update(['status' => 'In Process', 'material_transferred_for_manufacturing' => $material_transferred_for_manufacturing]);
+                
+                    $values = [
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->wh_user,
+                        'docstatus' => 1,
+                        'fg_completed_qty' => $fg_completed_qty
+                    ];
+                }else{
+                    $values = [
+                        'modified' => $now->toDateTimeString(),
+                        'modified_by' => Auth::user()->wh_user,
+                        'docstatus' => 1
+                    ];
+                }
+               
+                DB::connection('mysql')->table('tabStock Entry')->where('name', $id)->update($values);
+                DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $id)->update([
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->wh_user,
+                    'docstatus' => 1
+                ]);
+
+                if($draft_ste->purpose == 'Material Transfer for Manufacture'){
+                    $this->update_production_order_items($production_order_details->name);
+
+                    if($production_order_details->status == 'Not Started'){
+                        $values = [
+                            'status' => 'In Process',
+                            'material_transferred_for_manufacturing' => $production_order_details->qty
+                        ];
+                    }else{
+                        $values = [
+                            'material_transferred_for_manufacturing' => $production_order_details->qty
+                        ];
+                    }
+    
+                    DB::connection('mysql')->table('tabWork Order')
+                        ->where('name', $production_order_details->name)
+                        ->update($values);
+                }
+
+                $this->update_bin($id);
+                $this->create_stock_ledger_entry($id);
+                $this->create_gl_entry($id);
+            }
+        } catch (Exception $e) {
+            
+        }
+    }
+
+    public function update_production_order_items($production_order){
+        $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)->get();
+        foreach ($production_order_items as $row) {
+            $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->where('ste.docstatus', 1)->where('item_code', $row->item_code)->sum('qty');
+            
+                
+                DB::connection('mysql')->table('tabWork Order Item')
+                    ->where('parent', $production_order)
+                    ->where('item_code', $row->item_code)->update(['transferred_qty' => $transferred_qty]);
         }
     }
 }

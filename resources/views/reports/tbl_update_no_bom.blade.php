@@ -61,7 +61,7 @@
 						</div>
 					</td>
 					<td class="td-actions text-center">
-						<span style="display: none;">{{ $ops->job_ticket_id }}</span>
+						<span style="display: none;">{{ $ops->bom_operation_id }}</span>
 						<button type="button" rel="tooltip" class="btn btn-danger delete-row">
           				<i class="now-ui-icons ui-1_simple-remove"></i>
         				</button>
@@ -80,7 +80,7 @@
 						</div>
 					</td>
 					<td class="td-actions text-center">
-						<span style="display: none;">{{ $ops->job_ticket_id }}</span>
+						<span style="display: none;">{{ $ops->bom_operation_id }}</span>
 						<button type="button" rel="tooltip" class="btn btn-danger delete-row">
           				<i class="now-ui-icons ui-1_simple-remove"></i>
         				</button>

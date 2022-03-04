@@ -509,11 +509,12 @@ class LinkReportController extends Controller
                         ->first();
             if($row->qa_staff_id != null){
                 $qc_name[]=[
-                "name" => $emp_name->employee_name,
+                "name" => ($emp_name) ? $emp_name->employee_name : null,
                 "user_id" =>  $row->qa_staff_id
                 ];
             }
         }
+
         $operators = DB::connection('mysql_essex')->table('users')
             ->where('status', 'Active')->where('user_type', 'Employee')
             ->whereIn('designation_id', [46, 47, 53])->orderBy('employee_name', 'asc')
@@ -1000,7 +1001,7 @@ class LinkReportController extends Controller
                 'id'=> $row->reject_list_id,
                 'per_month' => collect($node)->sum('sum'),
                 'per_rate' => ($total_output == 0)? 0 :round(collect($node)->sum('sum') /(($total_output) == 0? 1 : $total_output), 4),
-                'target'=> "2.0000",
+                'target'=> "0.5",
                 'series' => 'A'.$ir++
             ];
         }

@@ -503,6 +503,10 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -539,10 +543,14 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
-            }
+            },
          });
       });
 
@@ -618,7 +626,16 @@
                      $('#so-item-list-div').html(data);
                      $('.btn-div').removeAttr('hidden');
                   }
-               }
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+               },
             });
          }else{
             $.ajax({
@@ -632,7 +649,16 @@
                      $('#so-item-list-div').html(data);
                      $('.btn-div').removeAttr('hidden');
                   }
-               }
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+               },
             });
          }
       });
@@ -680,10 +706,23 @@
             type:"POST",
             data: {user: user, id: id, workstation: workstation, wprocess: wprocess, operation: operation},
             success:function(data){
+               if (data.status == 0) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
                $('#review-bom-modal').modal('hide');
                $('#parts-list').find('#'+idx+''+bombtn).removeClass('unchecked').addClass('now-ui-icons ui-1_check text-success');
                showNotification("success", data.message, "now-ui-icons ui-1_check");
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -704,32 +743,41 @@
          }
       });
 
-      // $(document).on('change', '#sel-workstation', function(){
-      //    $('#add-operation-btn').attr('disabled', true);
-      //    var workstation = $(this).val();
-      //    $('#sel-process').empty();
-      //    if (workstation) {
-      //       $.ajax({
-      //          url: '/get_workstation_process/' + workstation,
-      //          type:"GET",
-      //          success:function(data){
-      //             if (data.length > 0) {
-      //                var opt = '<option value="">Select Process</option>';
-      //                $.each(data, function(i, v){
-      //                   opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
-      //                });
+      $(document).on('change', '#sel-workstation', function(){
+         $('#add-operation-btn').attr('disabled', true);
+         var workstation = $(this).val();
+         $('#sel-process').empty();
+         if (workstation) {
+            $.ajax({
+               url: '/get_workstation_process/' + workstation,
+               type:"GET",
+               success:function(data){
+                  if (data.length > 0) {
+                     var opt = '<option value="">Select Process</option>';
+                     $.each(data, function(i, v){
+                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+                     });
 
-      //                $('#sel-process').append(opt);
+                     $('#sel-process').append(opt);
 
-      //                $('#add-operation-btn').removeAttr('disabled');
-      //                $('#add-operation-btn').text('Add Operation');
-      //             }else{
-      //                $('#add-operation-btn').text('No Assigned Process');
-      //             }
-      //          }
-      //       });
-      //    }
-      // });
+                     $('#add-operation-btn').removeAttr('disabled');
+                     $('#add-operation-btn').text('Add Operation');
+                  }else{
+                     $('#add-operation-btn').text('No Assigned Process');
+                  }
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+               },
+            });
+         }
+      });
 
       $('.prev-btn').click(function(){         
          $('.nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
@@ -750,13 +798,26 @@
             type:"GET",
             data: {production_orders: production_order},
             success:function(data){
+               if (data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
                $('#material-planning-div').html(data);
-            }
-         });
 
-         if (production_order.length > 0) {
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
+               if (production_order.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       $('#get-parts').click(function(){
@@ -783,13 +844,27 @@
             type:"GET",
             data: {so: so, bom: bom, idx: idx, qty: qty, item_reference_id: item_reference_id, delivery_date: delivery_date},
             success:function(data){
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+               
                $('#parts-list-div').html(data);
-            }
-         });
 
-         if (bom.length > 0) {
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
+               if (bom.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       $('.finish-btn').click(function(e){
@@ -819,11 +894,24 @@
             type:"GET",
             data: {production_orders: production_orders},
             success:function(data){
+               if (data.message) {
+                  showNotification('danger', data.message, "now-ui-icons travel_info");
+                  return false;
+               }
                $('#planning-summary-div').html(data);
-            }
-         });
 
-         $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       $('.get-parts-prodorder').click(function(e){
@@ -958,6 +1046,10 @@
 
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -992,6 +1084,10 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1024,6 +1120,8 @@
 	         delivery_date: $row.find('.delivery-date').text(),
          }
 
+         $btn.attr('disabled', true);
+
          $.ajax({
             url: "/create_production_order",
             type:"POST",
@@ -1031,6 +1129,7 @@
             success:function(data){
                if (data.success < 1) {
                   showNotification("danger", data.message, "now-ui-icons travel_info");
+                  $btn.removeAttr('disabled');
 
                   return false;
                }
@@ -1045,6 +1144,12 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + data.message);
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+
+               $btn.removeAttr('disabled');
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1074,6 +1179,10 @@
                $('#view-sched-task-modal').modal('show');
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1091,7 +1200,16 @@
             type:"GET",
             success:function(data){
                $('#bom-details-div').html(data);
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
 
          $('#view-bom-modal .modal-title').html(sel_val);
@@ -1105,13 +1223,27 @@
             type:"GET",
             data: {operation_name: 'Fabrication'},
             success:function(data){
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#review-bom-details-div').html(data);
-            }
+               $('#review-bom-modal').modal('show');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
 
          $('#review-bom-modal .modal-title').html('Review & Finalize BOM [' + $(this).data('bom') + ']');
          $('#review-bom-modal #bom-idx').text($(this).data('idx'));
-         $('#review-bom-modal').modal('show');
       });
 
       $(document).on('click', '.create-ste-btn', function(e){
@@ -1139,7 +1271,12 @@
             type:"POST",
             data: data,
             success:function(response){
-               console.log(response);
+               if (response.success == 0) {
+                  showNotification("danger", response.message, "now-ui-icons travel_info");
+
+                  return false;
+               }
+
                if (response.error) {
                   showNotification("danger", 'There was a problem creating stock entry.', "now-ui-icons travel_info");
 
@@ -1151,10 +1288,15 @@
             },
             error: function(jqXHR, textStatus, errorThrown) {
                showNotification("danger", 'There was a problem creating stock entry.', "now-ui-icons travel_info");
+
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
-            },
+            }
          });
 
          var projected_scrap = $row.find('.projected-scrap-in-cubic-mm').text();
@@ -1163,6 +1305,10 @@
                url: "/update_production_projected_scrap/" + production_order + "/" + projected_scrap,
                type:"POST",
                error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
@@ -1311,6 +1457,10 @@
                $('#select-scrap-modal').modal('hide');
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);

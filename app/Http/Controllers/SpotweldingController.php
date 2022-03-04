@@ -449,7 +449,7 @@ class SpotweldingController extends Controller
                 'actual_operation_time' => $operation_time,
             ];
 
-            DB::connection('mysql')->table('tabProduction Order Operation')
+            DB::connection('mysql')->table('tabWork Order Operation')
 				->where('parent', $prod_order)->where('workstation', $workstation)
 				->where('process', $process_id)->update($data);
 
@@ -724,7 +724,7 @@ class SpotweldingController extends Controller
     }
 
     public function update_production_order_operation($production_order){
-    	$production_order_details = DB::connection('mysql')->table('tabProduction Order')->where('name', $production_order)->first();
+    	$production_order_details = DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->first();
     	if ($production_order_details) {
     		$values = [
 	    		// 'name'
@@ -755,7 +755,7 @@ class SpotweldingController extends Controller
 				// 'process'
 	    	];
 
-	    	DB::connection('mysql')->table('tabProduction Order Operation')
+	    	DB::connection('mysql')->table('tabWork Order Operation')
 	    		->where('parent', $production_order)->update($values);
 
 	    	return $values;

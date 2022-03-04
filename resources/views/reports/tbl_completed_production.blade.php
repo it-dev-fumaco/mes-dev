@@ -86,7 +86,7 @@
                 @if($r['status'] == 'Feedbacked')
                 <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
                 @else
-                <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedback</a>
+                <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['name'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedbacasdasdk</a>
                 @endif
                 @if($r['status'] == 'Partially Feedbacked')
                 <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['name'] }}" href="#">Print Transfer Slip</a>

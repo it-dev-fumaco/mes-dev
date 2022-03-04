@@ -126,7 +126,7 @@ class PaintingController extends Controller
 
             $production_order_list = [];
             foreach ($production_orders as $row) {
-                $feedbacked_prod = DB::connection('mysql')->table('tabProduction Order')->where('name', $row->production_order)->first();
+                $feedbacked_prod = DB::connection('mysql')->table('tabWork Order')->where('name', $row->production_order)->first();
 
                 $manufacture_entry = DB::connection('mysql')->table('tabStock Entry')
                     ->where('production_order', $row->production_order)->where('purpose', 'Manufacture')->first();

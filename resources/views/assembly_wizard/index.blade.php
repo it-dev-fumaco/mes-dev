@@ -54,7 +54,11 @@
                <!-- Tab panes -->
                <div class="tab-content" style="min-height: 620px;">
                   <div class="tab-pane active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
-                     <h4 class="title text-center" style="margin-left: 20px; margin: auto 20px;">1. Select Sales Order / Material Request</h4>
+                     <div>
+                        <a href="/planning_wizard/no_bom" class="btn btn-secondary">Wizard - Item without BOM</a>
+                        <a href="/assembly/wizard" class="btn btn-primary">Wizard - Item with BOM</a>
+                     </div>
+                     <h4 class="title text-center" style="margin-left: 20px; margin: auto 20px; margin-top: -50px;">1. Select Sales Order / Material Request</h4>
                      <div class="row" style="margin-top: 10px;">
                         <div class="col-md-6 offset-md-3">
                            <form id="get-somr-frm">
@@ -558,10 +562,14 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
-            }
+            },
          });
       });
 
@@ -705,7 +713,16 @@
                load_req_items(req_url);
 
                $('#change-raw-mat-modal').modal('hide');
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -768,7 +785,16 @@
                   $('#so-item-list-div').html(data);
                   $('.btn-div').removeAttr('hidden');
                }
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -797,13 +823,27 @@
             type:"GET",
             data: {so: so, bom: bom, idx: idx, qty: qty, item_reference_id: item_reference_id, delivery_date: delivery_date},
             success:function(data){
-               $('#parts-list-div').html(data);
-            }
-         });
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
 
-         if (bom.length > 0) {
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
+               $('#parts-list-div').html(data);
+
+               if (bom.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       $(document).on("click", ".review-bom-row", function(e){
@@ -813,13 +853,27 @@
             type:"GET",
             data: {operation_name: 'Assembly'},
             success:function(data){
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#review-bom-details-div').html(data);
+               $('#review-bom-modal').modal('show');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
             }
          });
-
+         
          $('#review-bom-modal .modal-title').html('Review & Finalize BOM [' + $(this).data('bom') + ']');
          $('#review-bom-modal #bom-idx').text($(this).data('idx'));
-         $('#review-bom-modal').modal('show');
       });
 
       $('.get-parts-prodorder').click(function(e){
@@ -935,10 +989,24 @@
             type:"POST",
             data: {user: user, id: id, workstation: workstation, wprocess: wprocess, operation: operation},
             success:function(data){
+               if (data.status == 0) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
+
                $('#review-bom-modal').modal('hide');
                $('#parts-list').find('#'+idx+''+bombtn).removeClass('unchecked').addClass('now-ui-icons ui-1_check text-success');
                showNotification("success", data.message, "now-ui-icons ui-1_check");
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
       });
 
@@ -959,32 +1027,32 @@
          }
       });
 
-      // $(document).on('change', '#sel-workstation', function(){
-      //    $('#add-operation-btn').attr('disabled', true);
-      //    var workstation = $(this).val();
-      //    $('#sel-process').empty();
-      //    if (workstation) {
-      //       $.ajax({
-      //          url: '/get_workstation_process/' + workstation,
-      //          type:"GET",
-      //          success:function(data){
-      //             if (data.length > 0) {
-      //                var opt = '<option value="">Select Process</option>';
-      //                $.each(data, function(i, v){
-      //                   opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
-      //                });
+      $(document).on('change', '#sel-workstation', function(){
+         $('#add-operation-btn').attr('disabled', true);
+         var workstation = $(this).val();
+         $('#sel-process').empty();
+         if (workstation) {
+            $.ajax({
+               url: '/get_workstation_process/' + workstation,
+               type:"GET",
+               success:function(data){
+                  if (data.length > 0) {
+                     var opt = '<option value="">Select Process</option>';
+                     $.each(data, function(i, v){
+                        opt += '<option value="' + v.process_id + '">' + v.process_name + '</option>';
+                     });
 
-      //                $('#sel-process').append(opt);
+                     $('#sel-process').append(opt);
 
-      //                $('#add-operation-btn').removeAttr('disabled');
-      //                $('#add-operation-btn').text('Add Operation');
-      //             }else{
-      //                $('#add-operation-btn').text('No Assigned Process');
-      //             }
-      //          }
-      //       });
-      //    }
-      // });
+                     $('#add-operation-btn').removeAttr('disabled');
+                     $('#add-operation-btn').text('Add Operation');
+                  }else{
+                     $('#add-operation-btn').text('No Assigned Process');
+                  }
+               }
+            });
+         }
+      });
 
       $('.prev-btn').click(function(){         
          $('.nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
@@ -1005,13 +1073,27 @@
             type:"GET",
             data: {production_orders: production_order},
             success:function(data){
-               $('#material-planning-div').html(data);
-            }
-         });
+               if (data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
 
-         if (production_order.length > 0) {
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
+               $('#material-planning-div').html(data);
+
+               if (production_order.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       
@@ -1042,11 +1124,25 @@
             type:"GET",
             data: {production_orders: production_orders},
             success:function(data){
-               $('#planning-summary-div').html(data);
-            }
-         });
+               if (data.message) {
+                  showNotification('danger', data.message, "now-ui-icons travel_info");
+                  return false;
+               }
 
-         $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               $('#planning-summary-div').html(data);
+
+               $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       
@@ -1116,6 +1212,10 @@
                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1187,6 +1287,8 @@
             delivery_date: $row.find('.delivery-date').text(),
          }
 
+         $btn.attr('disabled', true);
+
          $.ajax({
             url: "/create_production_order",
             type:"POST",
@@ -1194,6 +1296,7 @@
             success:function(data){
                if (data.success < 1) {
                   showNotification("danger", data.message, "now-ui-icons travel_info");
+                  $btn.removeAttr('disabled');
 
                   return false;
                }
@@ -1209,6 +1312,12 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + data.message);
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+
+               $btn.removeAttr('disabled');
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1238,6 +1347,10 @@
                $('#view-sched-task-modal').modal('show');
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1255,7 +1368,16 @@
             type:"GET",
             success:function(data){
                $('#bom-details-div').html(data);
-            }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });
 
          $('#view-bom-modal .modal-title').html(sel_val);
@@ -1293,6 +1415,10 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + response);
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);
@@ -1341,7 +1467,11 @@
             type:"POST",
             //data: data,
             success:function(response){
-               console.log(response);
+               if (response.success == 0) {
+                  showNotification("danger", response.message, "now-ui-icons travel_info");
+
+                  return false;
+               }
                // $btn.removeClass('btn-primary create-ste-btn').addClass('btn-success');
                // $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + response);
                if (response.error) {
@@ -1354,6 +1484,10 @@
                $btn.html('<i class="now-ui-icons ui-1_check"></i> STE');
             },
             error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
                console.log(jqXHR);
                console.log(textStatus);
                console.log(errorThrown);

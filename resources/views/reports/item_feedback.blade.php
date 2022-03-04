@@ -46,46 +46,17 @@
     <div class="col-md-12" style="min-height:440px;">
       <div class="panel panel-default">
         <div class="panel-body panel-body">
-          <div class="col-sm-12 ticket-status-widget p-0" role="tabpanel" aria-expanded="true" aria-hidden="false">
+          <div class="col-sm-12 ticket-status-widget pt-" role="tabpanel" aria-expanded="true" aria-hidden="false">
             <div class="ui-tab-container ui-tab-default">
               <div justified="true" class="ui-tab">
                 <ul class="nav nav-tabs nav-justified">
-                  <li class="tab next-deploy-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-next-deploy">
-                      <span class="tab-number" id="not-started-total">0</span> 
-                      <span class="tab-title">Not Started</span> 
+                  <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
+                    <a data-toggle="tab" href="#tab-production-orders">
+                      <span class="tab-number" id="production-orders-total">0</span> 
+                      <span class="tab-title">Production Order(s)</span> 
                     </a>
                   </li>
-                  <li class="tab in-progress-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-in-progress">
-                      <span class="tab-number" id="in-progress-total">0</span> 
-                      <span class="tab-title">In Progress</span> 
-                    </a>
-                  </li>
-                  <li class="tab task-queue-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-task-queue">
-                      <span class="tab-number" id="task-queue-total">0</span> 
-                      <span class="tab-title">Task On Queue</span> 
-                    </a>
-                  </li>
-                  <li class="tab bug-queue-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-bug-queue">
-                      <span class="tab-number" id="cancelled-total">0</span> 
-                      <span class="tab-title">Cancelled</span> 
-                    </a>
-                  </li>
-                  <li class="tab awaiting-feedback-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-awaiting-feedback">
-                      <span class="tab-number" id="awaiting-feedback-total">0</span> 
-                      <span class="tab-title">Ready for Feedback</span> 
-                    </a>
-                  </li>
-                  <li class="tab completed-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-completed">
-                      <span class="tab-number" id="completed-total">0</span> 
-                      <span class="tab-title">Completed</span> 
-                    </a>
-                  </li>
+                  
                   <li class="tab search-tab custom-nav-link" heading="Justified">
                     <a data-toggle="tab" href="#tab-search">
                       <span class="tab-number" id="item-tracking-total">0</span> 
@@ -95,100 +66,37 @@
                 </ul>
   
                 <div class="tab-content">
-                  <div class="tab-pane" id="tab-in-progress">
-                    {{--  in progress  --}}
-                    <div class="tab-heading tab-heading--orange">
-                      <h4>In Progress Production Order(s)</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="In Progress" data-div="#in-progress-div">
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="in-progress-div" style="min-height:500px;"></div>
-                    </div>
-                  </div>
-                
-                  <div class="tab-pane" id="tab-task-queue">
-                    {{--  on queue  --}}
-                    <div class="tab-heading tab-heading--blue">
-                      <h4>Task On Queue</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Task Queue" data-div="#task-queue-div">
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="task-queue-div" style="min-height:500px;"></div>
-                    </div>
-                  </div>
-                    
-                  <div class="tab-pane" id="tab-bug-queue">
-                    {{--  cancelled  --}}
-                    <div class="tab-heading tab-heading--reddish">
-                      <h4>Cancelled Production Order(s)</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Cancelled" data-div="#cancelled-div">
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="cancelled-div" style="min-height:500px;"></div>
-                    </div>
-                  </div>
-                  
-                  <div class="tab-pane" id="tab-awaiting-feedback">
-                    {{--  ready for feedback  --}}
-                    <div class="tab-heading tab-heading--teal">
-                      <h4>Ready for Feedback</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Awaiting Feedback" data-div="#awaiting-feedback-div">
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="awaiting-feedback-div" style="min-height:500px;"></div>
-                    </div>
-                  </div>
-                  
-                  <div class="tab-pane" id="tab-completed">
-                    {{--  completed production orders  --}}
-                    <div class="tab-heading tab-heading--green">
-                      <h4>Completed Production Order(s)</h4>
-                    </div>
-                    <div class="row">
-                   
-                    <div class="col-md-8" style="margin-top: -50px;">
-                              <button class="btn btn-primary printtransfer m-0 pull-right">Print Transfer Slip</button>
-                      </div>
-                      <div class="col-md-4" style="margin-top: -50px; padding-right: 30px;">
-                        <div class="form-group m-0 p-0">
-                            <input type="hidden" name="prod_list_print" id="prod_list_print">
-                            <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Completed" data-div="#completed-div">
-                        </div>
-                      </div>
-                      
-                      
-                      <div class="col-md-12" id="completed-div" style="min-height:500px;"></div>
-                    </div>
-                  </div>
-                  
-                  <div class="tab-pane active" id="tab-next-deploy">
-                    {{--  not started  --}}
+                  <div class="tab-pane active" id="tab-production-orders">
+                    {{-- All Production Orders --}}
                     <div class="tab-heading tab-heading--gray">
-                      <h4>Not Started Production Order(s)</h4>
+                      <div class="container-fluid">
+                        <div class="row">
+                          <div class="col-8">
+                            <input class='d-none' type="text" value="" id="current-status">
+                            @php
+                              $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed'];
+                            @endphp
+                            <div class="row">
+                              @foreach ($status_arr as $status)
+                                <label class="PillList-item">
+                                  <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
+                                  <span class="PillList-label">{{ $status }}
+                                  </span>
+                                </label>
+                              @endforeach
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="form-group mr-2">
+                              <input type="text" id="production-orders-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
+                            </div>
+                          </div>
+                        </div>
+                        
+                      </div>
                     </div>
                     <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white search-filter" placeholder="Search" data-status="Not Started" data-div="#not-started-div">
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="not-started-div" style="min-height:500px;"></div>
+                      <div class="col-12" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
                     </div>
                   </div>
                   
@@ -476,6 +384,64 @@
     -webkit-transition: all 0.3s 1s ease-out;  
     transition: all 0.3s 1s ease-out;
   }
+
+  .PillList-item {
+  cursor: pointer;
+  display: inline-block;
+  float: left;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 20px;
+  margin: 0 12px 12px 0;
+  text-transform: capitalize;
+}
+
+.PillList-item input[type="checkbox"] {
+  display: none;
+}
+.PillList-item input[type="checkbox"]:checked + .PillList-label {
+  background-color: #F96332;
+  border: 1px solid #F96332;
+  color: #fff;
+  padding-right: 16px;
+  padding-left: 16px;
+}
+.PillList-label {
+  border: 1px solid #FFF;
+  border-radius: 20px;
+  color: #FFF;
+  display: block;
+  padding: 7px 28px;
+  text-decoration: none;
+}
+.PillList-item
+  input[type="checkbox"]:checked
+  + .PillList-label
+  .Icon--checkLight {
+  display: none;
+}
+.PillList-item input[type="checkbox"]:checked + .PillList-label .Icon--addLight,
+.PillList-label .Icon--checkLight,
+.PillList-children {
+  display: none;
+}
+.PillList-label .Icon {
+  width: 12px;
+  height: 12px;
+  margin: 0 0 0 12px;
+}
+.Icon--smallest {
+  font-size: 12px;
+  line-height: 12px;
+}
+.Icon {
+  background: transparent;
+  display: inline-block;
+  font-style: normal;
+  vertical-align: baseline;
+  position: relative;
+}
+
 </style>
 
 <!-- Modal Manual Create Production Prder -->
@@ -1147,6 +1113,7 @@ $(document).ready(function(){
       success:function(data){
         if(data.status) {
           $('#review-bom-modal').modal('hide');
+          $('#manual-production-modal input[name="is_reviewed"]').val(1);
           showNotification("success", data.message, "now-ui-icons ui-1_check");
         } else {
           showNotification("danger", data.message, "now-ui-icons travel_info");
@@ -1451,55 +1418,65 @@ $(document).ready(function(){
   });
 
   function load_list(){
+    var status = $('#current-status').val() ? $('#current-status').val() : 'All';
+
     item_tracking(0);
-    get_production_order_list('Not Started', '#not-started-div');
-    get_production_order_list('In Progress', '#in-progress-div');
-    get_production_order_list('Task Queue', '#task-queue-div');
-    get_production_order_list('Cancelled', '#cancelled-div');
-    get_production_order_list('Awaiting Feedback', '#awaiting-feedback-div');
-    get_production_order_list('Completed', '#completed-div');
+    get_production_order_list(status, '#production-orders-div');
 
     item_tracking(1);
-    get_production_order_list('Not Started', '#not-started-div', 1);
-    get_production_order_list('In Progress', '#in-progress-div', 1);
-    get_production_order_list('Task Queue', '#task-queue-div', 1);
-    get_production_order_list('Cancelled', '#cancelled-div', 1);
-    get_production_order_list('Awaiting Feedback', '#awaiting-feedback-div', 1);
-    get_production_order_list('Completed', '#completed-div', 1);
+    get_production_order_list(status, '#production-orders-div', 1, 1, $('.search-filter').val());
   }
 
   load_list();
+  const status_array = [];
+  var status = '';
 
   $(document).on('keyup', '.search-filter', function(){
-    var status = $(this).data('status');
+    var status = $('#current-status').val();
     var div = $(this).data('div');
 
-    get_production_order_list(status, div, 0, 1, $(this).val());
+    get_production_order_list(status ? status : 'All', div, 0, 1, $(this).val());
+  });
+
+  $(".production-orders-checkbox").click(function(){
+    if($(this).prop('checked') == true){
+      status += $(this).val() + ',';
+    }else if($(this).prop('checked') == false){
+      status = status.replace($(this).val() + ',', '');
+    }
+
+    if(status == ''){
+      $('#current-status').val('All');
+    }else{
+      $('#current-status').val(status);
+    }
+
+    query = $('.search-filter').val();
+
+    get_production_order_list(status ? status : 'All', '#production-orders-div', 0, 1, query);
   });
   
   function get_production_order_list(status, div, get_total, page, query){
     $('#loader-wrapper').removeAttr('hidden');
+
+    status = status ? status : 'All';
     $.ajax({
       url: "/production_order_list/" + status + "?page=" + page,
       type:"GET",
       data: {search_string: query, get_total: get_total},
       success:function(data){
-        if(get_total){
-          $(data.div).text(data.total);
-        }else{
-          $('#loader-wrapper').attr('hidden', true);
-          $(div).html(data);
-        }
+        $('#loader-wrapper').attr('hidden', true);
+        $(div).html(data);
       }
     });
   }
 
   $(document).on('click', '.custom-production-pagination a', function(event){
     event.preventDefault();
-    var status = $(this).closest('.custom-production-pagination').data('status');
-    var div_id = $(this).closest('.custom-production-pagination').data('div');
     var page = $(this).attr('href').split('page=')[1];
-    get_production_order_list(status, div_id, 0, page);
+    var query = $('#production-orders-search').val();
+    var status = $('#current-status').val() ? $('#current-status').val() : 'All';
+    get_production_order_list(status, '#production-orders-div', 0, page, query);
   });
 
   $(document).on('click', '.print-transfer-slip-btn', function(e){

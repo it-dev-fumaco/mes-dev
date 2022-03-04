@@ -120,6 +120,20 @@
                             </tbody>
                         </table>
                       </div>
+                      <div class="col-md-6"  style="margin-top:70px;">
+                        <table style= "width:100%;">
+                            <thead  style="">
+                                <tr style="">
+                                    <th><span style="font-size:13.5pt;padding-left:30px;">Inventory</span> </th>
+                                </tr>
+                            </thead>
+                            <tbody style=" padding-left:30px; text-align:left;">
+                                <tr>
+                                    <td><a href="/inventory" class="hover-class"><span style="padding-left:30px;line-height:25px;">Stock Report</span></a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                      </div>
                    </div>
                 </div>
             </div>
