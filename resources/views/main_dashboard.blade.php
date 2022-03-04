@@ -463,7 +463,7 @@
 							<a class="nav-link active" data-toggle="tab" href="#logs">Activity Logs</a>
 						</li>
 						<li class="nav-item logs">
-							<a class="nav-link" data-toggle="tab" href="#warnings">Warnings</a>
+							<a class="nav-link" data-toggle="tab" href="#warnings">Warnings&nbsp;<span class="badge badge-danger" id="warnings-badge" style="font-size: 14px">0</span></a>
 						</li>
 					</ul>
 
@@ -1149,6 +1149,7 @@
         type:"GET",
         success:function(data){
           $('#tbl-warnings').html(data);
+          $('#warnings-badge').text($('#warnings-count').val());
         }
       });
     }, 5000);
