@@ -4751,6 +4751,11 @@ class MainController extends Controller
 			];
 
 			DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
+
+			$inserted_ste = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->first();
+			if(!$inserted_ste){
+				return response()->json(['success' => 0, 'message' => 'There was no generated Stock Entry in ERP. Please try again.']);
+			}
 			
 			if($docstatus == 1){
 
