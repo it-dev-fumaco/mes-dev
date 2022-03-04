@@ -241,6 +241,43 @@ class LinkReportController extends Controller
 
         return view('reports.export_rejection_logs', compact('export_arr', 'rejection_logs', 'statuses', 'operations_filter'));
     }
+    
+    public function export_machine_list(Request $request){
+        $status = $request->status;
+        $operation = $request->operation;
+
+        if($request->ajax()){
+            $machine_list = DB::connection('mysql_mes')->table('machine')
+                ->join('operation', 'machine.operation_id', 'operation.operation_id')
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('machine.status', $status);
+                })
+                ->when($request->operation and $request->operation != "All", function ($q) use ($operation){
+                    $q->where('machine.operation_id', $operation);
+                })
+                ->select('machine.machine_code', 'machine.machine_name', 'machine.model', 'machine.operation_id', 'machine.status', 'operation.operation_name')
+                ->limit(999)
+                ->get();
+
+            return view('reports.export_machine_list_file', compact('machine_list'));
+        }else{
+            $machine_list = DB::connection('mysql_mes')->table('machine')
+                ->join('operation', 'machine.operation_id', 'operation.operation_id')
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('machine.status', $status);
+                })
+                ->when($request->operation and $request->operation != "All", function ($q) use ($operation){
+                    $q->where('machine.operation_id', $operation);
+                })
+                ->select('machine.machine_code', 'machine.machine_name', 'machine.model', 'machine.operation_id', 'machine.status', 'operation.operation_name')
+                ->paginate(10);
+        }
+        
+        $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
+        $statuses = DB::connection('mysql_mes')->table('machine')->select('status')->distinct('status')->get();
+
+        return view('reports.export_machine_list', compact('machine_list', 'operations_filter', 'statuses'));
+    }
 
     public function daily_output_report(Request $request){
         $operation= 1;

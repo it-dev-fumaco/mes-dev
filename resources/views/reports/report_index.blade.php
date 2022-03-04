@@ -148,6 +148,9 @@
                                 <tr>
                                     <td><a href="/export/rejection_logs" class="hover-class"><span style="padding-left:30px;line-height:25px;">Rejection Logs</span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/export/machine_list" class="hover-class"><span style="padding-left:30px;line-height:25px;">Machine List</span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>

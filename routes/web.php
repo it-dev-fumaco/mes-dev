@@ -774,6 +774,7 @@ Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_p
 Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
+Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
 
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
