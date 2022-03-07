@@ -2473,4 +2473,46 @@ class InventoryController extends Controller
 
         return response()->json(['status' => 1, 'message' => 'User has been deleted to allowed users for fast issuance.']);
     }
+
+    public function getProductionOrderMaterialStatus(Request $request) {
+        $mes_production_orders = DB::connection('mysql_mes')->table('production_order')->whereRaw('feedback_qty < qty_to_manufacture')
+            ->where('status', '!=', 'Cancelled')->select('production_order', 'feedback_qty', 'qty_to_manufacture', 'status')->pluck('production_order');
+
+        if($request->get_total) {
+            $total = DB::connection('mysql')->table('tabWork Order as wo')->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
+                ->whereIn('wo.name', $mes_production_orders)->where('wo.docstatus', 1)
+                ->whereNotIn('status', ['Cancelled', 'Stopped', 'Completed'])
+                ->count();
+
+            return number_format($total);
+        }
+
+        $erp_production_order_required_items = DB::connection('mysql')->table('tabWork Order as wo')->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
+            ->whereIn('wo.name', $mes_production_orders)->where('wo.docstatus', 1)
+            ->whereNotIn('status', ['Cancelled', 'Stopped', 'Completed'])
+            ->when($request->q, function ($query) use ($request) {
+                return $query->where(function($q) use ($request) {
+                    $q->where('wo.name', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('wo.sales_order', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('wo.project', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('wo.material_request', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('wo.sales_order_no', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('wo.customer', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('woi.item_code', 'LIKE', '%'.$request->q.'%')
+                        ->orWhere('woi.description', 'LIKE', '%'.$request->q.'%');
+                });
+            })
+            ->select('wo.name', 'wo.sales_order', 'wo.project', 'wo.material_request', 'wo.sales_order_no', 'wo.customer', 'woi.item_code', 'woi.description', 'woi.required_qty', 'woi.transferred_qty', 'woi.stock_uom')
+            ->paginate(10);
+
+        $production_orders = array_column($erp_production_order_required_items->items(), 'name');
+        $item_codes = array_column($erp_production_order_required_items->items(), 'item_code');
+        $stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+            ->where('ste.purpose', 'Material Transfer for Manufacture')->whereIn('ste.work_order', $production_orders)
+            ->whereIn('sted.item_code', $item_codes)->where('ste.docstatus', '<', 2)
+            ->selectRaw('GROUP_CONCAT(ste.name SEPARATOR ", ") as ste_names, CONCAT(ste.work_order, sted.item_code) as work_order')
+            ->groupBy('work_order', 'item_code')->pluck('ste_names', 'work_order')->toArray();
+
+        return view('tables.tbl_production_order_material_status', compact('erp_production_order_required_items', 'stock_entries'));
+    }
 }

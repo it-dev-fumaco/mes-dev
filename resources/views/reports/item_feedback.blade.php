@@ -63,9 +63,29 @@
                       <span class="tab-title">Order Tracking</span> 
                     </a>
                   </li>
+
+                  <li class="tab material-status-tab custom-nav-link tab-heading--reddish" heading="Justified">
+                    <a data-toggle="tab" href="#tab-material-status">
+                      <span class="tab-number" id="material-status-total">0</span> 
+                      <span class="tab-title">Material Status</span> 
+                    </a>
+                  </li>
                 </ul>
   
                 <div class="tab-content">
+                  <div class="tab-pane" id="tab-material-status">
+                    <div class="tab-heading tab-heading--reddish pl-4">
+                      <h4>Production Order Material Status</h4>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
+                        <div class="form-group mr-2">
+                          <input type="text" class="form-control bg-white material-status-search" placeholder="Search" id="material-status-search">
+                        </div>
+                      </div>
+                      <div class="col-md-12" id="material-status-div" style="min-height:500px;"></div>
+                    </div>
+                  </div>
                   <div class="tab-pane active" id="tab-production-orders">
                     {{-- All Production Orders --}}
                     <div class="tab-heading tab-heading--gray">
@@ -1051,15 +1071,42 @@
 
  <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
 <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
-{{--  
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />   --}}
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 
 <script>
 $(document).ready(function(){
+  function get_production_order_material_status(page){
+    var q = $('#material-status-search').val();
+    $.ajax({
+      url: "/get_production_order_material_status?page=" + page,
+      type:"GET",
+      data: {q},
+      success: function(data){
+        $('#material-status-div').html(data);
+      }
+    });
+  }
+
+  function get_total_production_order_material_status(){
+    $.ajax({
+      url: "/get_production_order_material_status?get_total=1",
+      type:"GET",
+      success: function(data){
+        $('#material-status-total').text(data);
+      }
+    });
+  }
+
+  $(document).on('click', '#tbl-production-order-material-status-pagination a', function(event){
+    event.preventDefault();
+    var page = $(this).attr('href').split('page=')[1];
+    get_production_order_material_status(page);
+  });
+
+  $(document).on('keyup', '#material-status-search', function(){
+    get_production_order_material_status();
+  });
+
   $(document).on('click', '#add-operation-btn', function(){
     var workstation = $('#sel-workstation option:selected').text();
     var wprocess = $('#sel-process').val();
@@ -1421,9 +1468,12 @@ $(document).ready(function(){
     var status = $('#current-status').val() ? $('#current-status').val() : 'All';
 
     item_tracking(0);
-    get_production_order_list(status, '#production-orders-div');
-
     item_tracking(1);
+    get_production_order_list(status, '#production-orders-div', 1);
+
+    get_production_order_material_status();
+    get_total_production_order_material_status();
+
     get_production_order_list(status, '#production-orders-div', 1, 1, $('.search-filter').val());
   }
 

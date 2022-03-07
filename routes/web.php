@@ -200,6 +200,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/planning_wizard/no_bom', 'ManufacturingController@wizardNoBom');
 	Route::post('/create_production_order_without_bom', 'ManufacturingController@create_production_order_without_bom');
 	Route::get('/view_operations_wizard', 'ManufacturingController@viewAddOperationsWizard');
+
+	Route::get('/get_production_order_material_status', 'InventoryController@getProductionOrderMaterialStatus');
 	
 	Route::get('/view_bundle/{item_code}', 'ManufacturingController@view_bundle_components');
 
