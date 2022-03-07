@@ -63,7 +63,7 @@
 				@endforeach
 				<td class="m">{{ $row['per_month'] }}</td>
 				<td class="m"><b>{{$row['per_rate']}}<small>%</small></b></td>
-				<td class="m"><b>2.0000<small>%</small></b></td>
+				<td class="m"><b>0.5<small>%</small></b></td>
 			</tr>
 			@endforeach 
 			<tr>
@@ -73,7 +73,7 @@
 				@endforeach
 				<th>{{ $total_reject }}</th>
 				<th rowspan="2">{{ $reject_rate_for_total_reject }}<small>%</small></th>
-				<th rowspan="2">2.0000<small>%</small></th>
+				<th rowspan="2">0.5<small>%</small></th>
 			</tr>
 			<tr>
 				<th>Reject Rate</th>

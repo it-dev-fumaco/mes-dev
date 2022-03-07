@@ -1468,38 +1468,48 @@ $(document).ready(function(){
     var status = $('#current-status').val() ? $('#current-status').val() : 'All';
 
     item_tracking(0);
-    get_production_order_list(status, '#production-orders-div');
-
     item_tracking(1);
     get_production_order_list(status, '#production-orders-div', 1);
 
     get_production_order_material_status();
     get_total_production_order_material_status();
+
+    get_production_order_list(status, '#production-orders-div', 1, 1, $('.search-filter').val());
   }
 
   load_list();
+  const status_array = [];
+  var status = '';
 
   $(document).on('keyup', '.search-filter', function(){
     var status = $('#current-status').val();
     var div = $(this).data('div');
 
-    get_production_order_list(status, div, 0, 1, $(this).val());
+    get_production_order_list(status ? status : 'All', div, 0, 1, $(this).val());
   });
-  const status_array = [];
-  var status = '';
+
   $(".production-orders-checkbox").click(function(){
     if($(this).prop('checked') == true){
       status += $(this).val() + ',';
     }else if($(this).prop('checked') == false){
       status = status.replace($(this).val() + ',', '');
     }
-    $('#current-status').val(status);
 
-    get_production_order_list(status ? status : 'All', '#production-orders-div', 0, 1);
+    if(status == ''){
+      $('#current-status').val('All');
+    }else{
+      $('#current-status').val(status);
+    }
+
+    query = $('.search-filter').val();
+
+    get_production_order_list(status ? status : 'All', '#production-orders-div', 0, 1, query);
   });
   
   function get_production_order_list(status, div, get_total, page, query){
     $('#loader-wrapper').removeAttr('hidden');
+
+    status = status ? status : 'All';
     $.ajax({
       url: "/production_order_list/" + status + "?page=" + page,
       type:"GET",

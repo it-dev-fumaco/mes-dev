@@ -32,7 +32,7 @@
         @endforeach
         <td class="text-center tableclass" style="color:{{($row['per_month'] == 0) ? '#196f3d' :'#922b21'}};font-weight:{{($row['per_month'] == 0) ? '' :'bold'}}; " > {{$row['per_month']}}</td>
         <td class="text-center tableclass" style="background-color:#2ecc71;"><b> {{$row['per_rate']}}%</b></td>
-        <td class="text-center tableclass"  style="background-color:#2ecc71;"><b> 2.0000%</b></td>
+        <td class="text-center tableclass"  style="background-color:#2ecc71;"><b> 0.5%</b></td>
 
       </tr>
     @endforeach 
@@ -43,7 +43,7 @@
       @endforeach
       <td class="text-center tableclass" style="font-size: 10.5px;background-color: #e74c3c; "> <b>{{$total_reject}}</b></td>
       <td class="text-center tableclass" rowspan="2" style="font-size: 10.5px;background-color: #f7dc6f; "><b> {{$reject_rate_for_total_reject}}%</b></td>
-      <td class="text-center tableclass" rowspan="2" style="font-size: 10.5px;background-color: #f7dc6f; "><b> 2.0000%</b></td>
+      <td class="text-center tableclass" rowspan="2" style="font-size: 10.5px;background-color: #f7dc6f; "><b> 0.5%</b></td>
 
     </tr>
     <tr class="item tableclass text-center" style="font-size: 10.5px;background-color: #e74c3c; ">
