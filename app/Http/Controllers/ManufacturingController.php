@@ -1357,6 +1357,10 @@ class ManufacturingController extends Controller
             $now = Carbon::now();
 
             if ($request->reference_type) {
+                if (!$request->qty) {
+                    return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
+                }
+
                 if ($request->qty <= 0) {
                     return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
                 }
@@ -3109,6 +3113,10 @@ class ManufacturingController extends Controller
 
             if($request->reference_type == 'MREQ' && !$request->material_request){
                 return response()->json(['success' => 0, 'message' => 'Please enter reference Material Request.']);
+            }
+
+            if (!$request->qty) {
+                return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
             }
 
             if ($request->qty <= 0) {
