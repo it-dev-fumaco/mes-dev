@@ -1674,7 +1674,7 @@ class MainController extends Controller
 			->when(count($status_array) > 0, function($q) use ($filtered_production_orders){
 				$q->whereIn('production_order.production_order', $filtered_production_orders);
 			})
-			->when($status != 'All' and !in_array('Completed', $status_array) and in_array('Ready for Feedback', $status_array), function($q) use ($status_array){
+			->when($status != 'All' and in_array('Ready for Feedback', $status_array), function($q) use ($status_array){
 				$q->where('production_order.produced_qty', '>', 0)
 					->whereRaw('production_order.produced_qty > feedback_qty');
 			})
