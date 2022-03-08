@@ -1555,7 +1555,9 @@ class MainController extends Controller
 
 			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($not_started));
 
-			$statuses = array_merge($statuses, $inactive_status);
+			if(!in_array($status, ['All', 'Production Orders'])){
+				$statuses = array_merge($statuses, $inactive_status);
+			}
 		}
 		// Not Started / Cancelled
 
@@ -1577,7 +1579,9 @@ class MainController extends Controller
 
 			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($in_progress_production_orders));
 
-			array_push($statuses, 'In Progress');
+			if(!in_array($status, ['All', 'Production Orders'])){
+				array_push($statuses, 'In Progress');
+			}
 		}
 		// In Progress
 
@@ -1600,7 +1604,9 @@ class MainController extends Controller
 
 			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($pending_production_orders));
 
-			array_push($statuses, 'In Progress');
+			if(!in_array($status, ['All', 'Production Orders'])){
+				array_push($statuses, 'In Progress');
+			}
 		}
 		// Task Queue
 
@@ -1623,7 +1629,9 @@ class MainController extends Controller
 
 			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($jt_production_orders));
 
-			$statuses = array_merge($statuses, ['In Progress', 'Completed']);
+			if(!in_array($status, ['All', 'Production Orders'])){
+				$statuses = array_merge($statuses, ['In Progress', 'Completed']);
+			}
 		}
 		// Awaiting Feedback
 
@@ -1650,7 +1658,9 @@ class MainController extends Controller
 				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 				->orderBy('production_order.created_at', 'desc');
 
-			array_push($statuses, 'Completed');
+			if(!in_array($status, ['All', 'Production Orders'])){
+				array_push($statuses, 'Completed');
+			}
 		}
 		// Completed
 
