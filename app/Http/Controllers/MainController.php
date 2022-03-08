@@ -1653,7 +1653,7 @@ class MainController extends Controller
 			array_push($statuses, 'Completed');
 		}
 		// Completed
-		
+
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->leftJoin('delivery_date', function($join)
 			{
@@ -1668,6 +1668,9 @@ class MainController extends Controller
 					->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
 					->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
 			})
+			->when($statuses, function ($q) use ($statuses){
+				$q->whereIn('production_order.status', $statuses);
+			})
 			->when(count($status_array) > 0, function($q) use ($filtered_production_orders){
 				$q->whereIn('production_order.production_order', $filtered_production_orders);
 			})
@@ -1675,7 +1678,7 @@ class MainController extends Controller
 				$q->where('production_order.produced_qty', '>', 0)
 					->whereRaw('production_order.produced_qty > feedback_qty');
 			})
-			->when($status != 'All' and !in_array('Completed', $status_array) and in_array('Task Queue', $status_array), function($q){
+			->when($status != 'All' and in_array('Task Queue', $status_array), function($q){
 				$q->whereRaw('production_order.qty_to_manufacture > feedback_qty');
 			})
 			->when($status != 'All' and !in_array('Cancelled', $status_array), function($q){
