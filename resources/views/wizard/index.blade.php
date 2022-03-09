@@ -128,13 +128,14 @@
                            <table class="table table-hover table-bordered" id="parts-production-tbl">
                               <col style="width: 3%;">
                               <col style="width: 8%;">
-                              <col style="width: 28%;">
+                              <col style="width: 25%;">
                               <col style="width: 8%;">
                               <col style="width: 8%;">
-                              <col style="width: 12%;">
-                              <col style="width: 11%;">
-                              <col style="width: 11%;">
-                              <col style="width: 11%;">
+                              <col style="width: 10%;">
+                              <col style="width: 10%;">
+                              <col style="width: 10%;">
+                              <col style="width: 10%;">
+                              <col style="width: 8%;">
                               <thead class="text-white bg-secondary" style="font-size: 8pt;">
                                  <th class="text-center"><b>No.</b></th>
                                  <th class="text-center"><b>Item Code</b></th>
@@ -145,6 +146,7 @@
                                  <th class="text-center"><b>Planned Start Date</b></th>
                                  <th class="text-center"><b>Target Warehouse</b></th>
                                  <th class="text-center"><b>Action</b></th>
+                                 <th class="text-center"><b>Batch Created</b></th>
                               </thead>
                               <tbody style="font-size: 9pt;"></tbody>
                            </table>
@@ -793,6 +795,15 @@
             }
          });
 
+         $("#parts-production-tbl .po-reference").each(function () {
+            prod = $.trim($(this).text());
+            if (prod.indexOf('PROM-') > -1) {
+               if (production_order.indexOf(prod) < 0) {
+                  production_order.push(prod);
+               }
+            }
+         });
+
          $.ajax({
             url: "/get_production_req_items",
             type:"GET",
@@ -929,24 +940,27 @@
           $("#parts-list > tbody > tr").each(function () {
             var s_wh = get_warehouse($(this).find('.item-classification').eq(0).text(), 'source');
             var t_wh = get_warehouse($(this).find('.item-classification').eq(0).text(), 'target');
-            
+
+            var production_balance_qty = $(this).find('.production-balance-qty').eq(0).text();
+
             var prod_order = $(this).find('.production-order').eq(0).text();
-            if (prod_order) {
-               s_wh = '<option selected>' + $(this).find('.s-warehouse').eq(0).text() + '</option>';
-            }
-
-            if (prod_order) {
-               t_wh = '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
-            }
-
             var disable_sel = (prod_order) ? 'disabled' : null;
+            if(production_balance_qty < 1) {
+               if (prod_order) {
+                  s_wh = '<option selected>' + $(this).find('.s-warehouse').eq(0).text() + '</option>';
+               }
+
+               if (prod_order) {
+                  t_wh = '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
+               }
+            } else {
+               disable_sel = null;
+            }
 
             var btn;
-            if (prod_order) {
+            if (prod_order && production_balance_qty < 1) {
                btn = '<button type="button" class="btn btn-success prod-order"><i class="now-ui-icons ui-1_check"></i> ' + $(this).find('.production-order').eq(0).text() + '</button>';
             }else{
-               // btn = '<button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>';
-
                btn = '<div class="btn-group"><button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button><button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 15px; font-size: 9pt;"><span class="sr-only">Toggle Dropdown</span></button><div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div>';
             }
 
@@ -957,6 +971,22 @@
                var stylecss = 'color: red;';
             }
 
+            var qty = (production_balance_qty > 0) ? production_balance_qty : $(this).find('.qty').eq(0).text();
+            var po_ref_qty = $.trim($(this).find('.po-ref-qty').eq(0).text()).split(',');
+            var po_ref_qty_arr = [];
+            $(po_ref_qty).each(function(i, s){
+               var str = s.split('=');
+               po_ref_qty_arr[str[0]] = str[1];
+            });
+
+            var production_order_references = $(this).find('.production-order-reference').eq(0).text().split(',');
+            var po_references = '';
+            $(production_order_references).each(function(e, d){
+               if(po_ref_qty_arr[d] !== undefined) {
+                  po_references += '<p><span class="po-reference d-block">' + d + '</span> (' + po_ref_qty_arr[d] + ')</p>';
+               }
+            });
+
             row += '<tr>' +
                '<td class="text-center">' + n + '</td>' +
                '<td class="text-center"><span class="delivery-date" style="display: none;">'+$(this).find('.delivery-date').text()+'</span><span class="item-reference-id" style="display: none;">'+$(this).find('.item-reference-id').text()+'</span><span class="sub-parent-item" style="display: none;">'+$(this).find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">'+$(this).find('.parent-code').text()+'</span><span class="reference-no" style="display: none;">'+$(this).find('.reference-no').eq(0).text()+'</span><span class="item-code">' + $(this).find('td').eq(1).text() + '</span><br><span class="bom">' + $(this).find('.review-bom-row').eq(0).text() + '</span></td>' +
@@ -964,12 +994,13 @@
                '<td class="text-center" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
                '<td class="text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
                '<td class="text-center">' +
-                  '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;" ' + disable_sel + '></div>' +
+                  '<div class="form-group" style="margin: 0;"><input type="text" value="' + qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;" ' + disable_sel + '></div>' +
                '</td>' +
                '<td class="text-center">' +
                   '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" ' +disable_sel + ' value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
 	               '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target" ' + disable_sel + '>' + t_wh + '</select></div></td>' +
                '<td class="text-center">'+btn+'</td>' +
+               '<td class="text-center">'+ po_references +'</td>' +
                '</tr>';
 
             n++;

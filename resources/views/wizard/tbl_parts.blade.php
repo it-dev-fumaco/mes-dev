@@ -21,6 +21,7 @@
     $qty = $item['planned_qty'] - $item['available_stock'];
     $qty = ($qty < 0) ? 0 : $qty;
     $qty = $item['planned_qty'];
+    $production_balance_qty = $qty - $item['production_order_qty'];
     @endphp
     <tr>
       <td class="text-center">
@@ -31,11 +32,14 @@
         <span class="wip-warehouse" style="display: none;">{{ $item['wip_warehouse'] }}</span>
         <span class="fg-warehouse" style="display: none;">{{ $item['fg_warehouse'] }}</span>
         <span class="production-order" style="display: none;">{{ $item['production_order'] }}</span>
+        <span class="production-balance-qty" style="display: none;">{{ $production_balance_qty }}</span>
         <span class="parent-code font-weight-bold">{{ $item['parent_item'] }}</span><b></b><span style="display: none;" class="reference-no">{{ $item['reference_no'] }}</span>
         <span class="item-classification" style="display: none;">{{ $item['item_classification'] }}</span>
         <span class="s-warehouse" style="display: none;">{{ $item['s_warehouse'] }}</span>
         <span class="item-reference-id" style="display: none;">{{ $item['item_reference_id'] }}</span>
         <span class="delivery-date" style="display: none;">{{ $item['delivery_date'] }}</span>
+        <span class="production-order-reference" style="display: none;">{{ $item['production_references'] }}</span>
+        <span class="po-ref-qty" style="display: none;">@foreach ($item['po_ref_qty'] as $s => $r){{ $s . '=' . ($r * 1) }},@endforeach</span>
       </td>
       <td class="text-center"><b>{{ $item['item_code'] }}</b></td>
       <td class="text-justify">{!! $item['description'] !!}</td>

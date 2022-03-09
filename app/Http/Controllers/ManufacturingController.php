@@ -363,8 +363,14 @@ class ManufacturingController extends Controller
                                 })
                                 ->where('production_item', $parent_part['item_code'])
                                 ->where('parent_item_code', $bom_details->item)
+                                ->select('planned_start_date', 'name', 'qty', 'wip_warehouse', 'fg_warehouse')
                                 // ->where('qty', $parent_part['qty'] * $request->qty[$idx])
-                                ->first();
+                                ->get();
+                            
+                            $po_ref_qty = collect($existing_prod1)->pluck('qty', 'name');
+                            $production_references = collect($existing_prod1)->implode('name', ',');
+                            $total_production_order_qty = collect($existing_prod1)->sum('qty');
+                            $existing_prod1 = collect($existing_prod1)->first();
 
                             $s_warehouse = null;
                             if ($existing_prod1) {
@@ -386,6 +392,9 @@ class ManufacturingController extends Controller
                                 'reference_no' => $reference_no,
                                 'planned_start_date' => ($existing_prod1) ? $planned_start_date1 : null,
                                 'production_order' => ($existing_prod1) ? $existing_prod1->name : null,
+                                'production_order_qty' => ($existing_prod1) ? $total_production_order_qty : 0,
+                                'production_references' => ($existing_prod1) ? $production_references : null,
+                                'po_ref_qty' => $po_ref_qty,
                                 's_warehouse' => $s_warehouse,
                                 'wip_warehouse' => ($existing_prod1) ? $existing_prod1->wip_warehouse : null,
                                 'fg_warehouse' => ($existing_prod1) ? $existing_prod1->fg_warehouse : null,
@@ -408,6 +417,9 @@ class ManufacturingController extends Controller
                                 'reference_no' => $reference_no,
                                 'planned_start_date' => null,
                                 'production_order' => null,
+                                'production_order_qty' => 0,
+                                'production_references' => [],
+                                'po_ref_qty' => [],
                                 's_warehouse' => null,
                                 'wip_warehouse' => null,
                                 'fg_warehouse' => null,
@@ -438,8 +450,14 @@ class ManufacturingController extends Controller
                                 })
                                 ->where('production_item', $child_part['item_code'])
                                 ->where('parent_item_code', $bom_details->item)
+                                ->select('planned_start_date', 'name', 'qty', 'wip_warehouse', 'fg_warehouse')
                                 // ->where('qty', $child_part['qty'] * $request->qty[$idx])
-                                ->first();
+                                ->get();
+                            
+                            $po_ref_qty = collect($existing_prod2)->pluck('qty', 'name');
+                            $production_references = collect($existing_prod2)->implode('name', ',');
+                            $total_production_order_qty = collect($existing_prod2)->sum('qty');
+                            $existing_prod2 = collect($existing_prod2)->first();
 
                             $s_warehouse = null;
                             if ($existing_prod2) {
@@ -461,6 +479,9 @@ class ManufacturingController extends Controller
                                 'reference_no' => $reference_no,
                                 'planned_start_date' => ($existing_prod2) ? $planned_start_date2 : null,
                                 'production_order' => ($existing_prod2) ? $existing_prod2->name : null,
+                                'production_order_qty' => ($existing_prod2) ? $total_production_order_qty : 0,
+                                'production_references' => ($existing_prod2) ? $production_references : null,
+                                'po_ref_qty' => $po_ref_qty,
                                 's_warehouse' => $s_warehouse,
                                 'wip_warehouse' => ($existing_prod2) ? $existing_prod2->wip_warehouse : null,
                                 'fg_warehouse' => ($existing_prod2) ? $existing_prod2->fg_warehouse : null,
@@ -488,8 +509,14 @@ class ManufacturingController extends Controller
                                     })
                                     ->where('production_item', $child_part2['item_code'])
                                     ->where('parent_item_code', $bom_details->item)
+                                    ->select('planned_start_date', 'name', 'qty', 'wip_warehouse', 'fg_warehouse')
                                     // ->where('qty', $child_part2['qty'] * $request->qty[$idx])
-                                    ->first();
+                                    ->get();
+                                
+                                $po_ref_qty = collect($existing_prod3)->pluck('qty', 'name');
+                                $production_references = collect($existing_prod3)->implode('name', ',');
+                                $total_production_order_qty = collect($existing_prod3)->sum('qty');
+                                $existing_prod3 = collect($existing_prod3)->first();
 
                                 $s_warehouse = null;
                                 if ($existing_prod3) {
@@ -512,6 +539,9 @@ class ManufacturingController extends Controller
                                     'reference_no' => $request->so[$idx],
                                     'planned_start_date' => ($existing_prod3) ? $planned_start_date3 : null,
                                     'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
+                                    'production_order_qty' => ($existing_prod3) ? $total_production_order_qty : 0,
+                                    'production_references' => ($existing_prod3) ? $production_references : null,
+                                    'po_ref_qty' => $po_ref_qty,
                                     's_warehouse' => $s_warehouse,
                                     'wip_warehouse' => ($existing_prod3) ? $existing_prod3->wip_warehouse : null,
                                     'fg_warehouse' => ($existing_prod3) ? $existing_prod3->fg_warehouse : null,
@@ -529,7 +559,7 @@ class ManufacturingController extends Controller
                                     ->where('item_code', $child_part3['item_code'])->sum('balance_qty');
 
                                 if ($child_default_bom) {
-                                    $existing_prod3 = DB::connection('mysql')->table('tabWork Order')
+                                    $existing_prod4 = DB::connection('mysql')->table('tabWork Order')
                                         ->where('docstatus', 1)->where('company', 'FUMACO Inc.')
                                         ->when($reference_pref == 'SO', function ($query) use ($reference_no){
                                             return $query->where('sales_order_no', $reference_no);
@@ -539,14 +569,20 @@ class ManufacturingController extends Controller
                                         })
                                         ->where('production_item', $child_part3['item_code'])
                                         ->where('parent_item_code', $bom_details->item)
+                                        ->select('planned_start_date', 'name', 'qty', 'wip_warehouse', 'fg_warehouse')
                                         // ->where('qty', $child_part2['qty'] * $request->qty[$idx])
-                                        ->first();
+                                        ->get();
+
+                                    $po_ref_qty = collect($existing_prod4)->pluck('qty', 'name');                                        
+                                    $production_references = collect($existing_prod4)->implode('name', ',');
+                                    $total_production_order_qty = collect($existing_prod4)->sum('qty');
+                                    $existing_prod4 = collect($existing_prod4)->first();
 
                                     $s_warehouse = null;
-                                    if ($existing_prod3) {
-                                        $planned_start_date3 = Carbon::parse($existing_prod3->planned_start_date)->format('Y-m-d');
+                                    if ($existing_prod4) {
+                                        $planned_start_date3 = Carbon::parse($existing_prod4->planned_start_date)->format('Y-m-d');
                                         $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')
-                                            ->where('parent', $existing_prod3->name)->first()->source_warehouse;
+                                            ->where('parent', $existing_prod4->name)->first()->source_warehouse;
                                     }
 
                                     $parts[] = [
@@ -561,17 +597,19 @@ class ManufacturingController extends Controller
                                         'bom_reviewed' => $child_default_bom->is_reviewed,
                                         'planned_qty' => ($child_part3['qty'] * $request->qty[$idx]) * $child_part2['qty'],
                                         'reference_no' => $request->so[$idx],
-                                        'planned_start_date' => ($existing_prod3) ? $planned_start_date2 : null,
-                                        'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
+                                        'planned_start_date' => ($existing_prod4) ? $planned_start_date2 : null,
+                                        'production_order' => ($existing_prod4) ? $existing_prod4->name : null,
+                                        'production_order_qty' => ($existing_prod4) ? $total_production_order_qty : 0,
+                                        'production_references' => ($existing_prod4) ? $production_references : null,
+                                        'po_ref_qty' => $po_ref_qty,
                                         's_warehouse' => $s_warehouse,
-                                        'wip_warehouse' => ($existing_prod3) ? $existing_prod3->wip_warehouse : null,
-                                        'fg_warehouse' => ($existing_prod3) ? $existing_prod3->fg_warehouse : null,
+                                        'wip_warehouse' => ($existing_prod4) ? $existing_prod4->wip_warehouse : null,
+                                        'fg_warehouse' => ($existing_prod4) ? $existing_prod4->fg_warehouse : null,
                                         'available_stock' => $available_stock_child1,
                                         'cycle_time' => $this->compute_item_cycle_time($child_part3['item_code'], $child_part3['qty'] * $request->qty[$idx]),
                                         // 'operation_name' => $child_part2['operation_name']
                                     ];
                                 }
-
                             }
                         }
                     }
