@@ -2404,6 +2404,7 @@ class SecondaryController extends Controller
         
     }
      public function mark_as_done_task(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
         try {
             $now = Carbon::now();
             if ($request->id) {
@@ -2416,7 +2417,8 @@ class SecondaryController extends Controller
                 $pending = $prod_manufacturing_qty->qty_to_manufacture - $job_ticket_details->completed_qty;
 
                 $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
-                $logs = DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
+                $logs = DB::connection('mysql_mes')->table($logs_table)
+                    ->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
 
                 $values = [
                     'last_modified_by' => Auth::user()->employee_name,
@@ -2433,7 +2435,9 @@ class SecondaryController extends Controller
                     $values['good'] = $pending;
                     $values['duration'] = $duration;
 
-                    DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $request->id)->where('status', 'In Progress')->update($values);
+                    DB::connection('mysql_mes')->table($logs_table)
+                        ->where('job_ticket_id', $request->id)->where('status', 'In Progress')
+                        ->update($values);
                 }
 
                 // reset values array
@@ -2443,7 +2447,9 @@ class SecondaryController extends Controller
                 // update and save job ticket
                 $jt_completed = $job_ticket_details->completed_qty + $pending;
 
-                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
+                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
+                    ->where('job_ticket_id', $request->id)->selectRaw('SUM(good) as total_good')
+                    ->groupBy('spotwelding_part_id')->get();
 
                 $values['remarks'] = 'Override';
                 $values['completed_qty'] = $request->workstation == 'Spotwelding' ? $total_good_spotwelding->min('total_good') : $jt_completed;
@@ -2458,18 +2464,20 @@ class SecondaryController extends Controller
                 unset($values['good']);
 
                 // check, update and save production order
-                $job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_details->production_order)->get();
+                $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+                    ->where('production_order', $job_ticket_details->production_order)->min('completed_qty');
+                
+                $values['status'] = $produced_qty == $prod_manufacturing_qty->qty_to_manufacture ? 'Completed' : 'In Progress';
+                $values['produced_qty'] = $produced_qty;
 
-                $completed_qty_sum = collect($job_ticket)->sum('completed_qty');
-                $job_ticket_count = count($job_ticket);
-                $qty_check = (int)$completed_qty_sum / $job_ticket_count;
+                DB::connection('mysql_mes')->table('production_order')
+                    ->where('production_order', $job_ticket_details->production_order)->update($values);
 
-                $values['status'] = $qty_check == $prod_manufacturing_qty->qty_to_manufacture ? 'Completed' : 'In Progress';
-
-                DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->update($values);
+                DB::connection('mysql_mes')->commit();
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
             }
         } catch (Exception $e) {
+            DB::connection('mysql_mes')->rollback();
             return response()->json(["error" => $e->getMessage()]);
         }
     }
