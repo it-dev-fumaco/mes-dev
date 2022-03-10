@@ -1589,16 +1589,21 @@ class MainController extends Controller
 		$pending_production_orders = [];
 		if($status == 'All' or in_array('Task Queue', $status_array)){
 			$on_going_time_logs = DB::connection('mysql_mes')->table('time_logs')
-				->where('status', 'In Progress')->distinct()->pluck('job_ticket_id')->toArray();
+				->join('job_ticket', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+				->where('job_ticket.workstation', '!=', 'Spotwelding')
+				->where('time_logs.status', 'In Progress')
+				->distinct()->pluck('job_ticket.production_order')->toArray();
 
 			$on_going_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-				->where('status', 'In Progress')->distinct()->pluck('job_ticket_id')->toArray();
+				->join('job_ticket', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
+				->where('spotwelding_qty.status', 'In Progress')
+				->distinct()->pluck('job_ticket.production_order')->toArray();
 
 			$on_going_tasks = array_merge($on_going_time_logs, $on_going_spotwelding);
 
 			$pending_production_orders = DB::connection('mysql_mes')->table('job_ticket')
 				->whereIn('status', ['In Progress', 'Pending'])
-				->whereNotIn('job_ticket_id', $on_going_tasks)
+				->whereNotIn('production_order', $on_going_tasks)
 				->distinct()
 				->pluck('production_order');
 
@@ -1704,10 +1709,12 @@ class MainController extends Controller
 
 		$filtered_production_orders = array_column($production_orders->items(), 'production_order');
 
-		$prod_details = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $filtered_production_orders)->get();
+		$prod_details = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $filtered_production_orders)->select('name', 'material_transferred_for_manufacturing', 'docstatus')->get();
 		$work_order_details = collect($prod_details)->groupBy('name');
 
-		$manufacture_entry_q = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $filtered_production_orders)->where('docstatus', 1)->orderBy('posting_date', 'desc')->orderBy('posting_time', 'desc')->where('purpose', 'Manufacture')->get();
+		$manufacture_entry_q = DB::connection('mysql')->table('tabStock Entry')
+			->whereIn('work_order', $filtered_production_orders)->where('docstatus', 1)->where('purpose', 'Manufacture')
+			->orderBy('posting_date', 'desc')->orderBy('posting_time', 'desc')->get();
 		$manufacture_entry = collect($manufacture_entry_q)->groupBy('work_order');
 
 		$manufacture_entries_q = DB::connection('mysql')->table('tabStock Entry')->where('docstatus', 1)->whereIn('work_order', $filtered_production_orders)->where('purpose', 'Manufacture')->get();
@@ -1715,7 +1722,7 @@ class MainController extends Controller
 
 		$production_order_list = [];
 		foreach ($production_orders as $row) {
-			$prod_status = '';
+			$prod_status = 'Unknown Status';
 
 			if($row->status == 'Not Started'){
 				if (isset($work_order_details[$row->production_order]) and $work_order_details[$row->production_order][0]->material_transferred_for_manufacturing > 0) {
@@ -1723,33 +1730,50 @@ class MainController extends Controller
 				}else{
 					$prod_status = 'Material For Issue';
 				}
-			}else if($row->status == 'Cancelled'){
-				$prod_status = $row->status;
-			}else if($row->status == 'In Progress'){
+			}
+
+			if($row->status == 'In Progress'){
 				if(count($pending_production_orders) > 0 and in_array($row->production_order, $pending_production_orders->toArray())){
 					$prod_status = 'On Queue';
-				}else if(count($in_progress_production_orders) > 0 and in_array($row->production_order, $in_progress_production_orders)){
-					$prod_status = $row->status;
-				}else{
+				}
+	
+				if(count($in_progress_production_orders) > 0 and in_array($row->production_order, $in_progress_production_orders)){
 					$prod_status = $row->status;
 				}
-			}else if($row->status == 'Completed' or in_array($row->production_order, $erp_completed_production_orders) or in_array($row->production_order, $jt_production_orders)){
-				$prod_status = ($row->qty_to_manufacture == $row->produced_qty) ? 'For Feedback' : 'For Partial Feedback';
+			}
 
-				if ($row->feedback_qty >= $row->qty_to_manufacture) {
-					$prod_status = 'Feedbacked';
-				}else{
-					if (isset(collect($manufacture_entry)[$row->production_order])) {
-						$prod_status = 'Partially Feedbacked';
+			if (in_array($row->status, ['Completed', 'In Progress'])) {
+				if($prod_status != 'In Progress') {
+					if ($row->feedback_qty < $row->produced_qty) {
+						$prod_status = 'For Feedback';
+					}
+
+					if ($row->produced_qty > 0 && $row->produced_qty < $row->qty_to_manufacture) {
+						$prod_status = 'For Partial Feedback';
+					}
+
+					if ($row->feedback_qty >= $row->qty_to_manufacture) {
+						$prod_status = 'Feedbacked';
+					}else{
+						if (isset(collect($manufacture_entry)[$row->production_order]) && $prod_status != 'On Queue') {
+							$prod_status = 'Partially Feedbacked';
+						}
 					}
 				}
-			}else if(isset($work_order_details[$row->production_order]) && $work_order_details[$row->production_order][0]->docstatus == 2 && $row->status != 'Cancelled'){
+			}
+
+			if($row->status == 'Cancelled'){
+				$prod_status = $row->status;
+			}
+
+			if(isset($work_order_details[$row->production_order]) && $work_order_details[$row->production_order][0]->docstatus == 2 && $row->status != 'Cancelled'){
 				$prod_status = 'Unknown Status';
 			}else if(isset($work_order_details[$row->production_order]) && $work_order_details[$row->production_order][0]->docstatus == 1 && $row->status == 'Cancelled'){
 				$prod_status = 'Unknown Status';
 			}else{
- 				$prod_status = 'Unknown Status';
+				$prod_status = $prod_status;
 			}
+		
 			// get owner of production order
 			$owner = explode('@', $row->created_by);
 			$owner = ucwords(str_replace('.', ' ', $owner[0]));
