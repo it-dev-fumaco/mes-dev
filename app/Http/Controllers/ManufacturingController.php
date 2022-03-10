@@ -418,7 +418,7 @@ class ManufacturingController extends Controller
                                 'planned_start_date' => null,
                                 'production_order' => null,
                                 'production_order_qty' => 0,
-                                'production_references' => [],
+                                'production_references' => null,
                                 'po_ref_qty' => [],
                                 's_warehouse' => null,
                                 'wip_warehouse' => null,
