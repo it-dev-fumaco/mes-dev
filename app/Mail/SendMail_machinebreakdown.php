@@ -31,5 +31,5 @@ class SendMail_machinebreakdown extends Mailable
     public function build()
     {
         $username = Auth::user()->employee_name;
-        return $this->from('mes@fumaco.local')->subject('MACHINE MAINTENANCE REQUEST')->view('mail_template.machine_breakdown_template')->with('data', $this->data);    }
+        return $this->from('notifications@fumaco.local')->subject('MACHINE MAINTENANCE REQUEST')->view('mail_template.machine_breakdown_template')->with('data', $this->data);    }
 }

@@ -4852,36 +4852,6 @@ class MainController extends Controller
 				DB::connection('mysql_mes')->table('production_order')
 					->where('production_order', $production_order_details->name)->update($production_data_mes);
 
-				$data = array(
-					'posting_date' => $now->format('Y-m-d'),
-					'posting_time' => $now->format('H:i:s'),
-					'ste' => $new_id,
-					'sales_order_no' => $mes_production_order_details->sales_order,
-					'mreq' => $production_order_details->material_request,
-					'item_code' => $production_order_details->production_item,
-					'item_name' => $production_order_details->item_name,
-					'customer' => $mes_production_order_details->customer,
-					'feedbacked_by' => Auth::user()->email,
-					'completed_qty' => $request->fg_completed_qty, 
-					'uom' => $production_order_details->stock_uom
-				);
-
-				$recipient= DB::connection('mysql_mes')->table('email_trans_recipient')
-					->where('email_trans', "Feedbacking")->where('email', 'like','%@fumaco.local%')
-					->select('email')->get();
-
-				$mail_sent = 1;
-				if(count($recipient) > 0){
-					if($mes_production_order_details->parent_item_code == $mes_production_order_details->sub_parent_item_code && $mes_production_order_details->sub_parent_item_code == $mes_production_order_details->item_code){
-						foreach ($recipient as $row) {
-							Mail::to($row->email)->send(new SendMail_feedbacking($data));
-							if (Mail::failures()) {
-								$mail_sent = 0;
-							}
-						}
-					}
-				}
-
 				$feedbacked_timelogs = [
 					'production_order' => $mes_production_order_details->production_order,
 					'ste_no' => $new_id,
@@ -4914,7 +4884,7 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry. Please try again.']);
 			}
 		
-			return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'mail_sent' => $mail_sent]);
+			return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'stock_entry' => $new_id]);
 		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry']);
@@ -6677,5 +6647,49 @@ class MainController extends Controller
 		];
 
 		return view('tables.tbl_maintenance_schedule_per_operation', compact('maintenance_count', 'unplanned'));
+	}
+
+	public function sendFeedbackEmail(Request $request) {
+		try {
+			$production_order = $request->production_order;
+			$completed_qty = $request->fg_completed_qty;
+			$reference_ste = $request->stock_entry;
+
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')
+				->where('production_order', $production_order)->first();
+			
+			if ($production_order_details) {
+				$now = Carbon::now();
+				$data = array(
+					'posting_date' => $now->format('Y-m-d'),
+					'posting_time' => $now->format('H:i:s'),
+					'ste' => $reference_ste,
+					'sales_order_no'=> $production_order_details->sales_order,
+					'mreq' => $production_order_details->material_request,
+					'item_code' => $production_order_details->item_code,
+					'item_name' => $production_order_details->description,
+					'customer' => $production_order_details->customer,
+					'feedbacked_by' => Auth::user()->email,
+					'completed_qty' => $completed_qty, 
+					'uom' => $production_order_details->stock_uom
+				);
+				
+				$recipients = DB::connection('mysql_mes')->table('email_trans_recipient')
+					->where('email_trans', "Feedbacking")->where('email', 'like','%@fumaco.local%')
+					->distinct()->pluck('email');
+
+				if($production_order_details->parent_item_code == $production_order_details->sub_parent_item_code && $production_order_details->sub_parent_item_code == $production_order_details->item_code){
+					if(count($recipients) > 0){
+						foreach ($recipients as $recipient) {
+							Mail::to($recipient)->send(new SendMail_feedbacking($data));
+						}
+					}
+				}
+			}
+
+			return response()->json(['status' => 1, 'message' => 'Feedback email notification has been sent.']);
+		} catch (Exception $e) {
+			return response()->json(['status' => 0, 'message' => 'Warning! Feedback email notification sending failed.']);
+		}
 	}
 }

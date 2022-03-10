@@ -197,6 +197,8 @@ Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'Seco
 
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/send_feedback_email', 'MainController@sendFeedbackEmail');
+	
 	Route::get('/planning_wizard/no_bom', 'ManufacturingController@wizardNoBom');
 	Route::post('/create_production_order_without_bom', 'ManufacturingController@create_production_order_without_bom');
 	Route::get('/view_operations_wizard', 'ManufacturingController@viewAddOperationsWizard');

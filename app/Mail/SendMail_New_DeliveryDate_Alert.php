@@ -31,5 +31,5 @@ class SendMail_New_DeliveryDate_Alert extends Mailable
     public function build()
     {
         $username = Auth::user()->employee_name;
-        return $this->from('mes@fumaco.local')->subject('Reschedule Delivery Date Alert')->view('mail_template.new_delivery_date_template')->with('data', $this->data);    }
+        return $this->from('notifications@fumaco.local')->subject('Reschedule Delivery Date Alert')->view('mail_template.new_delivery_date_template')->with('data', $this->data);    }
 }
