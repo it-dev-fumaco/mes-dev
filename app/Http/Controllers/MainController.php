@@ -4520,10 +4520,10 @@ class MainController extends Controller
 				$pending_mtfm_count = DB::connection('mysql')->table('tabStock Entry as ste')
 					->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 					->where('ste.work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
-					->where('ste.docstatus', 0)->count();
+					->where('ste.docstatus', 0)->first();
 				
-				if($pending_mtfm_count > 0){
-					return response()->json(['success' => 0, 'message' => 'There are pending material request for issue.']);
+				if($pending_mtfm_count){
+					return response()->json(['success' => 0, 'message' => '<center>There are pending material request for issue. <br><br> Insufficient stock for ' . $pending_mtfm_count->item_code . ' in ' . $pending_mtfm_count->t_warehouse . '.</center>']);
 				}
 			}
 
@@ -4788,7 +4788,6 @@ class MainController extends Controller
 			];
 
 			DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
-			
 			if($docstatus == 1){
 
 				$produced_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
