@@ -4,8 +4,10 @@
         <th class="text-center font-weight-bold">Series</th>
         <th class="text-center font-weight-bold">Machine</th>
         <th class="text-center font-weight-bold">Category</th>
+        <th class="text-center font-weight-bold">Reason</th>
         <th class="text-center font-weight-bold">Reported By</th>
         <th class="text-center font-weight-bold">Date Reported</th>
+        <th class="text-center font-weight-bold">Maintenance Staff</th>
         <th class="text-center font-weight-bold">Status</th>
         <th class="text-center font-weight-bold">Actions</th>
     </thead>
@@ -15,8 +17,10 @@
             <td class="text-center">{{ $row->machine_breakdown_id }}</td>
             <td class="text-center">{{ $row->machine_id }}</td>
             <td class="text-center">{{ $row->category }}</td>
+            <td class="text-center">{{ $row->breakdown_reason ? $row->breakdown_reason : $row->corrective_reason }}</td>
             <td class="text-center">{{ $row->reported_by }}</td>
             <td class="text-center">{{ date('M-d-Y h:i A', strtotime($row->date_reported)) }}</td>
+            <td class="text-center">{{ $row->assigned_maintenance_staff ? $row->assigned_maintenance_staff : 'Unassigned' }}</td>
             <td class="text-center">{{ $row->status == '' ? 'Done' : $row->status }}</td>
             <td class="text-center">
                 <a href="#" data-toggle="modal" data-target="#{{ $row->machine_breakdown_id }}-Modal" class="machine-details" data-breakdown="{{ $row->machine_breakdown_id }}">
@@ -121,7 +125,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan=7 class="text-center">No Result(s) Found</td>
+            <td colspan=9 class="text-center">No Result(s) Found</td>
         </tr>
         @endforelse
     </tbody>

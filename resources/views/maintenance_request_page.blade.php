@@ -4,7 +4,7 @@
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -20px;">
+<div class="panel-header" style="margin-top: -50px;">
    <div class="header text-center">
     <div class="row">
          <div class="col-md-12">
@@ -32,7 +32,7 @@
 </div>
 <div class="content" style="margin-top: -110px;">
     <div class="row p-0">
-        <div class="col-8 p-0">
+        <div class="col-9 p-0">
             <div class="col-12 p-0" style="min-height:440px;">
                 <div class="panel panel-default p-0">
                   <div class="panel-body p-0 panel-body">
@@ -159,6 +159,31 @@
                   </div>
                 </div>
             </div>
+        </div>
+        <div class="col-3 p-0" style="background-color: #F7F7F9; margin-top: 56px">
+          <div class="container p-3">
+            <h5>Machines for Maintenance</h5>
+          </div>
+          <div class="container" style="height: 700px; overflow-y: scroll; overflow-x: hidden">
+            @foreach ($machine_arr as $machine)
+              <div class="card m-1">
+                <div class="card-body row">
+                  <div class="col-2 p-1">
+                    <center>
+                      <img src="{{ asset($machine['image']) }}" alt="" class="w-100">
+                    </center>
+                  </div>
+                  <div class="col-10">
+                    <span class="card-title" style="font-weight: bold">
+                      {{ $machine['machine_id'] }} <span class="badge badge-danger">{{ $machine['pending_breakdowns'] }}</span><br/>
+                      {{ $machine['machine_name'] }}
+                    </span>
+                    <p class="card-text">{{ $machine['total_breakdowns'] }} total breakdowns</p>
+                  </div>
+                </div>
+              </div>
+            @endforeach
+          </div>
         </div>
     </div>
 </div>
@@ -358,26 +383,143 @@
       status_check($(this).data('breakdown'));
     });
 
+    // tabs
+    function changeTab(operation, op){
+      get_maintenance_request_list(op, $('#'+operation+'-current-status').val(), $('.'+operation+'-search-filter').val(), '#'+operation+'-div', 1);
+    }
+
     function status_check(machine_breakdown_id){
-        if($('#'+machine_breakdown_id+'-status').val() == 'On Hold'){
-            $('#'+machine_breakdown_id+'-hold-container').slideDown();
-            $('#'+machine_breakdown_id+'-done-container').slideUp();
-            $('#'+machine_breakdown_id+'-hold-reason').prop('required', true);
-            $('#'+machine_breakdown_id+'-work-done').prop('required', false);
-            $('#'+machine_breakdown_id+'-findings').prop('required', false);
-        }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
-            $('#'+machine_breakdown_id+'-done-container').slideDown();
-            $('#'+machine_breakdown_id+'-hold-container').slideUp();
-            $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
-            $('#'+machine_breakdown_id+'-work-done').prop('required', true);
-            $('#'+machine_breakdown_id+'-findings').prop('required', true);
-        }else{
-            $('#'+machine_breakdown_id+'-done-container').slideUp();
-            $('#'+machine_breakdown_id+'-hold-container').slideUp();
-            $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
-            $('#'+machine_breakdown_id+'-work-done').prop('required', false);
-            $('#'+machine_breakdown_id+'-findings').prop('required', false);
+      if($('#'+machine_breakdown_id+'-status').val() == 'On Hold'){
+          $('#'+machine_breakdown_id+'-hold-container').slideDown();
+          $('#'+machine_breakdown_id+'-done-container').slideUp();
+          $('#'+machine_breakdown_id+'-hold-reason').prop('required', true);
+          $('#'+machine_breakdown_id+'-work-done').prop('required', false);
+          $('#'+machine_breakdown_id+'-findings').prop('required', false);
+      }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
+          $('#'+machine_breakdown_id+'-done-container').slideDown();
+          $('#'+machine_breakdown_id+'-hold-container').slideUp();
+          $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
+          $('#'+machine_breakdown_id+'-work-done').prop('required', true);
+          $('#'+machine_breakdown_id+'-findings').prop('required', true);
+      }else{
+          $('#'+machine_breakdown_id+'-done-container').slideUp();
+          $('#'+machine_breakdown_id+'-hold-container').slideUp();
+          $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
+          $('#'+machine_breakdown_id+'-work-done').prop('required', false);
+          $('#'+machine_breakdown_id+'-findings').prop('required', false);
+      }
+    }
+
+    // search
+    $(".maintenance-search").keyup(function(){
+        var operation = $(this).data('div');
+        var op = parseInt($(this).data('op'));
+
+        var status = $('#'+operation+'-current-status').val();
+        var query = $('.'+operation+'-search-filter').val();
+        var div = '#'+operation+'-div';
+        get_maintenance_request_list(op, status, query, div, 1);
+    });
+
+    // pill tabs
+    $(".fabrication-checkbox").click(function(){
+        if($(this).prop('checked') == true){
+            status += $(this).val() + ',';
+        }else if($(this).prop('checked') == false){
+            status = status.replace($(this).val() + ',', '');
         }
+
+        if(status == ''){
+            $('#fabrication-current-status').val('All');
+        }else{
+            $('#fabrication-current-status').val(status);
+        }
+
+        query = $('.fabrication-search-filter').val();
+        get_maintenance_request_list(1, $('#fabrication-current-status').val(), query, '#fabrication-div', 1);
+    });
+
+    $(".painting-checkbox").click(function(){
+        if($(this).prop('checked') == true){
+            status += $(this).val() + ',';
+        }else if($(this).prop('checked') == false){
+            status = status.replace($(this).val() + ',', '');
+        }
+
+        if(status == ''){
+            $('#painting-current-status').val('All');
+        }else{
+            $('#painting-current-status').val(status);
+        }
+
+        query = $('.painting-search-filter').val();
+        get_maintenance_request_list(2, $('#painting-current-status').val(), query, '#painting-div', 1);
+    });
+
+    $(".wiring-checkbox").click(function(){
+        if($(this).prop('checked') == true){
+            status += $(this).val() + ',';
+        }else if($(this).prop('checked') == false){
+            status = status.replace($(this).val() + ',', '');
+        }
+
+        if(status == ''){
+            $('#wiring-current-status').val('All');
+        }else{
+            $('#wiring-current-status').val(status);
+        }
+
+        query = $('.wiring-search-filter').val();
+        get_maintenance_request_list(3, $('#wiring-current-status').val(), query,'#wiring-div', 1);
+    });
+
+    // pagination links
+    $(document).on('click', '.custom-fabrication-pagination a', function(event){
+        event.preventDefault();
+        var page = $(this).attr('href').split('page=')[1];
+        var query = $('.fabrication-search-filter').val();
+        var status = $('#fabrication-current-status').val() ? $('#fabrication-current-status').val() : 'All';
+        get_maintenance_request_list(1, status, query,'#fabrication-div', page);
+    });
+
+    $(document).on('click', '.custom-painting-pagination a', function(event){
+        event.preventDefault();
+        var page = $(this).attr('href').split('page=')[1];
+        var query = $('.painting-search-filter').val();
+        var status = $('#painting-current-status').val() ? $('#painting-current-status').val() : 'All';
+        get_maintenance_request_list(1, status, query,'#painting-div', page);
+    });
+
+    $(document).on('click', '.custom-wiring-pagination a', function(event){
+        event.preventDefault();
+        var page = $(this).attr('href').split('page=')[1];
+        var query = $('.wiring-search-filter').val();
+        var status = $('#wiring-current-status').val() ? $('#wiring-current-status').val() : 'All';
+        get_maintenance_request_list(1, status, query,'#wiring-div', page);
+    });
+
+    // main function
+    function get_maintenance_request_list(operation, status, query, div, page){
+        if(parseInt(operation) == 1){
+            var op = '#fabrication';
+        }else if(parseInt(operation) == 2){
+            var op = '#painting';
+        }else if(parseInt(operation) == 3){
+            var op = '#wiring';
+        }
+        $.ajax({
+            url: "/maintenance_request_list/?page="+page,
+            type:"GET",
+            data: {
+                search_string: query,
+                operation: operation,
+                status: status
+            },
+            success:function(data){
+                $(div).html(data);
+                $(op+'-count').text($(op+'-total').val());
+            }
+        });
     }
 
     $(document).ready(function(){
@@ -403,123 +545,6 @@
             var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
 
             $("#current-time").html(currentTimeString);
-        }
-
-        // tabs
-        function changeTab(operation, op){
-            get_maintenance_request_list(op, $('#'+operation+'-current-status').val(), $('.'+operation+'-search-filter').val(), '#'+operation+'-div', 1);
-        }
-
-        // search
-        $(".maintenance-search").keyup(function(){
-            var operation = $(this).data('div');
-            var op = parseInt($(this).data('op'));
-
-            var status = $('#'+operation+'-current-status').val();
-            var query = $('.'+operation+'-search-filter').val();
-            var div = '#'+operation+'-div';
-            get_maintenance_request_list(op, status, query, div, 1);
-        });
-
-        // pill tabs
-        $(".fabrication-checkbox").click(function(){
-            if($(this).prop('checked') == true){
-                status += $(this).val() + ',';
-            }else if($(this).prop('checked') == false){
-                status = status.replace($(this).val() + ',', '');
-            }
-
-            if(status == ''){
-                $('#fabrication-current-status').val('All');
-            }else{
-                $('#fabrication-current-status').val(status);
-            }
-
-            query = $('.fabrication-search-filter').val();
-            get_maintenance_request_list(1, $('#fabrication-current-status').val(), query, '#fabrication-div', 1);
-        });
-
-        $(".painting-checkbox").click(function(){
-            if($(this).prop('checked') == true){
-                status += $(this).val() + ',';
-            }else if($(this).prop('checked') == false){
-                status = status.replace($(this).val() + ',', '');
-            }
-
-            if(status == ''){
-                $('#painting-current-status').val('All');
-            }else{
-                $('#painting-current-status').val(status);
-            }
-
-            query = $('.painting-search-filter').val();
-            get_maintenance_request_list(2, $('#painting-current-status').val(), query, '#painting-div', 1);
-        });
-
-        $(".wiring-checkbox").click(function(){
-            if($(this).prop('checked') == true){
-                status += $(this).val() + ',';
-            }else if($(this).prop('checked') == false){
-                status = status.replace($(this).val() + ',', '');
-            }
-
-            if(status == ''){
-                $('#wiring-current-status').val('All');
-            }else{
-                $('#wiring-current-status').val(status);
-            }
-
-            query = $('.wiring-search-filter').val();
-            get_maintenance_request_list(3, $('#wiring-current-status').val(), query,'#wiring-div', 1);
-        });
-
-        // pagination links
-        $(document).on('click', '.custom-fabrication-pagination a', function(event){
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            var query = $('.fabrication-search-filter').val();
-            var status = $('#fabrication-current-status').val() ? $('#fabrication-current-status').val() : 'All';
-            get_maintenance_request_list(1, status, query,'#fabrication-div', page);
-        });
-
-        $(document).on('click', '.custom-painting-pagination a', function(event){
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            var query = $('.painting-search-filter').val();
-            var status = $('#painting-current-status').val() ? $('#painting-current-status').val() : 'All';
-            get_maintenance_request_list(1, status, query,'#painting-div', page);
-        });
-
-        $(document).on('click', '.custom-wiring-pagination a', function(event){
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            var query = $('.wiring-search-filter').val();
-            var status = $('#wiring-current-status').val() ? $('#wiring-current-status').val() : 'All';
-            get_maintenance_request_list(1, status, query,'#wiring-div', page);
-        });
-
-        // main function
-        function get_maintenance_request_list(operation, status, query, div, page){
-            if(parseInt(operation) == 1){
-                var op = '#fabrication';
-            }else if(parseInt(operation) == 2){
-                var op = '#painting';
-            }else if(parseInt(operation) == 3){
-                var op = '#wiring';
-            }
-            $.ajax({
-                url: "/maintenance_request_list/?page="+page,
-                type:"GET",
-                data: {
-                    search_string: query,
-                    operation: operation,
-                    status: status
-                },
-                success:function(data){
-                    $(div).html(data);
-                    $(op+'-count').text($(op+'-total').val());
-                }
-            });
         }
     });
 </script>

@@ -3882,8 +3882,35 @@ class MainController extends Controller
 		$fabrication = collect($list)->where('operation_id', 1)->count();
 		$painting = collect($list)->where('operation_id', 2)->count();
 		$wiring = collect($list)->where('operation_id', 3)->count();
+
+		$total = DB::connection('mysql_mes')->table(DB::raw('(SELECT machine_id, COUNT(*) as total_count FROM machine_breakdown GROUP BY machine_id) AS subquery'))
+			->select('machine_id', 'total_count')
+			->orderBy('total_count', 'desc')
+			->get();
+
+		$total_breakdowns = collect($total)->groupBy('machine_id');
+
+		$machines_for_maintenance = DB::connection('mysql_mes')->table(DB::raw('(SELECT machine_id, COUNT(*) as breakdown_count FROM machine_breakdown where status not in ("Done", "") GROUP BY machine_id) AS subquery'))
+			->select('machine_id', 'breakdown_count')
+			->orderBy('breakdown_count', 'desc')
+			->get();
 		
-		return view('maintenance_request_page', compact('fabrication', 'painting', 'wiring'));
+		$machines = DB::connection('mysql_mes')->table('machine')->get();
+
+		$machine_list = collect($machines)->groupBy('machine_code');
+
+		$machine_arr = [];
+		foreach($machines_for_maintenance as $mach){
+			$machine_arr[] = [
+				'machine_id' => $mach->machine_id,
+				'machine_name' => isset($machine_list[$mach->machine_id]) ? $machine_list[$mach->machine_id][0]->machine_name : null,
+				'pending_breakdowns' => $mach->breakdown_count,
+				'image' => isset($machine_list[$mach->machine_id]) ? $machine_list[$mach->machine_id][0]->image : null,
+				'total_breakdowns' => isset($total_breakdowns[$mach->machine_id]) ? $total_breakdowns[$mach->machine_id][0]->total_count : null
+ 			];
+		}
+
+		return view('maintenance_request_page', compact('fabrication', 'painting', 'wiring', 'machine_arr'));
 	}
 
 	public function maintenance_request_list(Request $request){
