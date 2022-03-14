@@ -26,6 +26,7 @@
 		letter-spacing: 0.4px;
 	}
 </style>
+@yield('style')
 <body class="">
   <div class="wrapper">
      <div class="sidebar" data-color="orange">
@@ -114,7 +115,7 @@
               </a>
             </li>
             <li>
-              <a href="#">
+              <a href="/maintenance_request">
                 <i class="now-ui-icons ui-2_settings-90"></i>
                 <p>Maintenance Requests</p>
               </a>

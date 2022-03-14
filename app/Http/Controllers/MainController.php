@@ -180,6 +180,8 @@ class MainController extends Controller
 			$redirect_to = "/main_dashboard";
 			if($request->login_as == 'Quality Assurance'){
 				$redirect_to = '/qa_dashboard';
+			}else if($request->login_as == 'Maintenance'){
+				$redirect_to = '/maintenance_request';
 			}
 
 			// validate the info, create rules for the inputs
@@ -3874,12 +3876,86 @@ class MainController extends Controller
 		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order'));
 	}
 
-	public function maintenance_request(){
-		$list = DB::connection('mysql_mes')->table('machine_breakdown')->orderBy('created_at', 'desc')->get();
+	public function maintenance_request(Request $request){
+		$list = DB::connection('mysql_mes')->table('machine_breakdown')->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')->get();
+
+		$fabrication = collect($list)->where('operation_id', 1)->count();
+		$painting = collect($list)->where('operation_id', 2)->count();
+		$wiring = collect($list)->where('operation_id', 3)->count();
+		
+		return view('maintenance_request_page', compact('fabrication', 'painting', 'wiring'));
+	}
+
+	public function maintenance_request_list(Request $request){
+		$search_string = $request->search_string ? $request->search_string : null;
+		$status = [];
+
+		if($request->status != 'All'){
+			$status = explode(',', $request->status);
+		}
+
+		$view = null;
+		if($request->operation == 1){
+			$view = 'maintenance_request_fabrication';
+		}else if($request->operation == 2){
+			$view = 'maintenance_request_painting';
+		}else if($request->operation == 3){
+			$view = 'maintenance_request_wiring';
+		}
+
+		$list = DB::connection('mysql_mes')->table('machine_breakdown')
+			->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
+			->join('operation', 'operation.operation_id', 'machine.operation_id')
+			->when($search_string, function ($q) use ($search_string){
+				$q->where('machine_breakdown.machine_breakdown_id', 'LIKE', '%'.$search_string.'%')
+					->orWhere('machine_breakdown.machine_id', 'LIKE', '%'.$search_string.'%')
+					->orWhere('machine_breakdown.category', 'LIKE', '%'.$search_string.'%')
+					->orWhere('machine_breakdown.reported_by', 'LIKE', '%'.$search_string.'%');
+			})
+			->when($request->status != 'All', function ($q) use ($status){
+				$q->whereIn('machine_breakdown.status', $status)
+					->when(!in_array('Done', $status), function ($a){
+						$a->where('machine_breakdown.status', '!=' , '');
+					});
+			})
+			->where('operation.operation_id', $request->operation)
+			->select('machine_breakdown.*', 'machine.machine_code', 'operation.operation_name', 'operation.operation_id')
+			->orderBy('created_at', 'desc')->paginate(10);
 
 		$permissions = $this->get_user_permitted_operation();
 
-		return view('maintenance_request_page', compact('list', 'permissions'));
+		$maintenance_staff = DB::connection('mysql_mes')->table('user')
+			->join('user_group as grp', 'user.user_group_id', 'grp.user_group_id')
+			->where('grp.user_role', 'Maintenance Staff')->get();
+
+
+		return view($view, compact('list', 'permissions', 'maintenance_staff'));
+	}
+	
+	public function update_maintenance_request($machine_breakdown_id, Request $request){
+		DB::beginTransaction();
+        try { 
+			$hold_reason = $request->status_update == 'On Hold' ? $request->hold_reason : null;
+			$findings = $request->status_update == 'Done' ? $request->findings : null;
+			$work_done = $request->status_update == 'Done' ? $request->work_done : null;
+
+			$update = [
+				'status' => $request->status_update,
+				'assigned_maintenance_staff' => $request->maintenance_staff,
+				'hold_reason' => $hold_reason,
+				'findings' => $findings,
+				'work_done' => $work_done,
+				'last_modified_by' => Auth::user()->employee_name,
+				'last_modified_at' => Carbon::now()->toDateTimeString()
+			];
+
+			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->update($update);
+			DB::commit();
+            return redirect('/maintenance_request')->with('success', 'Maintenance Request Updated');
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'An error occured. Please try again.');
+        }
 	}
 
 	public function stock_entry(){

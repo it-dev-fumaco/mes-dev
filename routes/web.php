@@ -273,6 +273,9 @@ Route::group(['middleware' => 'auth'], function(){
 
 	// Maintenance Request
 	Route::get('/maintenance_request', 'MainController@maintenance_request');
+	Route::get('/maintenance_request_list', 'MainController@maintenance_request_list');
+	
+	Route::post('/update_maintenance_request/{machine_breakdown_id}', 'MainController@update_maintenance_request');
 
 	// Stock Entry
 	Route::get('/stock_entry', 'MainController@stock_entry');
