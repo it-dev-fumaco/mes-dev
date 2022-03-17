@@ -153,8 +153,7 @@ $(document).ready(function(){
                 $('#for-export').html(result);
                 $("#export-table").table2excel({
                     name: "Worksheet Name",
-                    filename: 'Machine-List',
-                    fileext: ".xls"
+                    filename: 'Machine-List.xls'
                 }); 
 
                 $('#spinner').addClass('d-none');
