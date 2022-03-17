@@ -63,18 +63,18 @@
                                 if($r1->status == 'In Progress'){
                                     $stat_badge="warning";
                                 }else{
-                                    $stat_badge="";
+                                    $stat_badge="dark";
                                 }
                                 if($operation == "3"){
                                     if($planned_date > (($r1->rescheduled_delivery_date == null)? $r1->deli:$r1->rescheduled_delivery_date)){
-                                        $stat_badge="";
+                                        $stat_badge="danger";
                                     }
                                 }
                             }else{
                                 if($r1->status == 'In Progress'){
                                     $stat_badge ="warning";
                                 }else{
-                                    $stat_badge="";
+                                    $stat_badge="dark";
                                 }
                             }
                         @endphp
