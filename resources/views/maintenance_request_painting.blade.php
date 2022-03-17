@@ -21,7 +21,20 @@
             <td class="text-center">{{ $row->reported_by }}</td>
             <td class="text-center">{{ date('M-d-Y h:i A', strtotime($row->date_reported)) }}</td>
             <td class="text-center">{{ $row->assigned_maintenance_staff ? $row->assigned_maintenance_staff : 'Unassigned' }}</td>
-            <td class="text-center">{{ $row->status == '' ? 'Done' : $row->status }}</td>
+            <td class="text-center">
+                @php
+                    if($row->status == 'Pending'){
+                        $status = 'danger';
+                    }else if($row->status == 'In Process'){
+                        $status = 'success';
+                    }else if($row->status == 'On Hold'){
+                        $status = 'secondary';
+                    }else{
+                        $status = 'primary';
+                    }
+                @endphp
+                <span class="badge badge-{{ $status }}" style="font-size: 10pt">{{ $row->status == '' ? 'Done' : $row->status }}</span>
+            </td>
             <td class="text-center">
                 <a href="#" data-toggle="modal" data-target="#{{ $row->machine_breakdown_id }}-Modal" class="machine-details" data-breakdown="{{ $row->machine_breakdown_id }}">
                     <i class="fas fa-edit" style="font-size: 20px; color: #fff; background-color: #000; border-radius: 50%; padding: 5px"></i>
@@ -47,10 +60,12 @@
                                 <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post">
                                     @csrf
                                     <div class="row">
-                                        <div class="col-6">
-                                            <p><b>Series: </b>{{ $row->machine_breakdown_id }}</p>
-                                            <p><b>Machine ID: </b>{{ $row->machine_id }}</p>
+                                        <div class="col-2">
+                                            <center>
+                                                <img src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
+                                            </center>
                                         </div>
+                                        <div class="col-4"></div>
                                         <div class="col-3">
                                             <label class="pl-2">Assigned Maintenance Staff</label>
                                             <select class="form-control" name="maintenance_staff">
@@ -74,7 +89,13 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <br>
                                     <div class="row">
+                                        <div class="col-4">
+                                            <p><b>Series: </b>{{ $row->machine_breakdown_id }}</p>
+                                            <p><b>Machine ID: </b>{{ $row->machine_id }}</p>
+                                            <p><b>Machine Name: </b>{{ $row->machine_name }}</p>
+                                        </div>
                                         <div class="col-4">
                                             <p><b>Category:</b> {{ $row->category }}</p>
                                             <p><b>Corrective Reason:</b> {{ $row->corrective_reason }}</p>
@@ -97,7 +118,7 @@
                                                         <label>Findings</label>
                                                         <textarea class="w-100" id='{{ $row->machine_breakdown_id }}-findings' name="findings" cols="30" rows="3">{{ $row->findings }}</textarea>
                                                     </div>
-                                                    <div class="col">
+                                                    <div class="col" id="{{ $row->machine_breakdown_id }}-work-done-input">
                                                         <label>Work Done</label>
                                                         <textarea class="w-100" id='{{ $row->machine_breakdown_id }}-work-done' name="work_done" cols="30" rows="3">{{ $row->work_done }}</textarea>
                                                     </div>

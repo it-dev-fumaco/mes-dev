@@ -3946,8 +3946,9 @@ class MainController extends Controller
 					});
 			})
 			->where('operation.operation_id', $request->operation)
-			->select('machine_breakdown.*', 'machine.machine_code', 'operation.operation_name', 'operation.operation_id')
-			->orderBy('created_at', 'desc')->paginate(10);
+			->select('machine_breakdown.*', 'machine.image', 'machine.machine_name', 'machine.machine_code', 'operation.operation_name', 'operation.operation_id')
+			->orderByRaw("FIELD(machine_breakdown.status, 'In Process', 'Pending', 'On Hold', 'Done', '')asc")
+			->paginate(10);
 
 		$permissions = $this->get_user_permitted_operation();
 
@@ -3963,7 +3964,7 @@ class MainController extends Controller
 		DB::beginTransaction();
         try { 
 			$hold_reason = $request->status_update == 'On Hold' ? $request->hold_reason : null;
-			$findings = $request->status_update == 'Done' ? $request->findings : null;
+			$findings = in_array($request->status_update, ['Done', 'In Process']) ? $request->findings : null;
 			$work_done = $request->status_update == 'Done' ? $request->work_done : null;
 
 			$update = [

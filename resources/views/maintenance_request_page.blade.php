@@ -395,12 +395,20 @@
           $('#'+machine_breakdown_id+'-hold-reason').prop('required', true);
           $('#'+machine_breakdown_id+'-work-done').prop('required', false);
           $('#'+machine_breakdown_id+'-findings').prop('required', false);
+      }else if($('#'+machine_breakdown_id+'-status').val() == 'In Process'){
+          $('#'+machine_breakdown_id+'-done-container').slideDown();
+          $('#'+machine_breakdown_id+'-hold-container').slideUp();
+          $('#'+machine_breakdown_id+'-findings').prop('required', true);
+          $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
+          $('#'+machine_breakdown_id+'-work-done').prop('required', false);
+          $('#'+machine_breakdown_id+'-work-done-input').addClass('d-none');
       }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
           $('#'+machine_breakdown_id+'-done-container').slideDown();
           $('#'+machine_breakdown_id+'-hold-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
           $('#'+machine_breakdown_id+'-work-done').prop('required', true);
           $('#'+machine_breakdown_id+'-findings').prop('required', true);
+          $('#'+machine_breakdown_id+'-work-done-input').removeClass('d-none');
       }else{
           $('#'+machine_breakdown_id+'-done-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-container').slideUp();
