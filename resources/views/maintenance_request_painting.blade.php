@@ -110,12 +110,12 @@
                                             <div class="col">
                                                 <b>Work Started:</b> {{ $row->work_started ? Carbon\Carbon::parse($row->work_started)->format('M d, Y h:i A') : null }}
                                             </div>
-                                            {{-- <div class="col">   
+                                            <div class="col">   
                                                 <b>Date Resolved:</b> {{ $row->date_resolved ? Carbon\Carbon::parse($row->date_resolved)->format('M d, Y h:i A') : null }}
                                             </div>
                                             <div class="col">
                                                 <b>Work Duration:</b> {{ $duration }}
-                                            </div> --}}
+                                            </div>
                                         </div>
                                         <br>
                                     @endif
