@@ -13,7 +13,7 @@
                                     if($r0->status == 'In Progress'){
                                         $stat_badge="warning";
                                     }else{
-                                        $stat_badge="secondary";
+                                        $stat_badge="dark";
                                     }
                                     if($operation == "3"){
                                         if($planned_date > (($r0->rescheduled_delivery_date == null)? $r0->deli:$r0->rescheduled_delivery_date)){
@@ -24,7 +24,7 @@
                                     if($r0->status == 'In Progress'){
                                         $stat_badge ="warning";
                                     }else{
-                                        $stat_badge="secondary";
+                                        $stat_badge="dark";
                                     }
                                 }             
                             @endphp
