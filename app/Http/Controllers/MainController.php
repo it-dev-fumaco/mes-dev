@@ -3976,6 +3976,14 @@ class MainController extends Controller
 				'last_modified_at' => Carbon::now()->toDateTimeString()
 			];
 
+			if($request->status_update == 'In Process'){
+				$update['work_started'] = Carbon::now()->toDateTimeString();
+			}
+
+			if($request->status_update == 'Done'){
+				$update['date_resolved'] = Carbon::now()->toDateTimeString();
+			}
+
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->update($update);
 			DB::commit();
             return redirect('/maintenance_request')->with('success', $machine_breakdown_id.' Maintenance Request Updated');
