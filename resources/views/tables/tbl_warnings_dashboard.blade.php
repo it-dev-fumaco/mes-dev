@@ -1,3 +1,4 @@
+<input type="text" id="warnings-count" value="{{ count($warnings) }}" class="d-none" readonly>
 <ol class="activity-feed fa-ul">
     @foreach($warnings as $n)
        @php

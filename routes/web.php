@@ -277,6 +277,9 @@ Route::group(['middleware' => 'auth'], function(){
 
 	// Maintenance Request
 	Route::get('/maintenance_request', 'MainController@maintenance_request');
+	Route::get('/maintenance_request_list', 'MainController@maintenance_request_list');
+	
+	Route::post('/update_maintenance_request/{machine_breakdown_id}', 'MainController@update_maintenance_request');
 
 	// Stock Entry
 	Route::get('/stock_entry', 'MainController@stock_entry');
@@ -776,6 +779,9 @@ Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_p
 Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
 Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
 Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
+Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
+Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
 
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');

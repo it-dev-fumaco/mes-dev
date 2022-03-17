@@ -36,6 +36,249 @@ class LinkReportController extends Controller
         $item_classification= DB::connection('mysql_mes')->table('production_order')->join('job_ticket as jt', 'jt.production_order', 'production_order.production_order')->where('jt.workstation', 'Painting')->where('production_order.operation_id',1 )->whereNotNull('production_order.item_classification')->groupBy('production_order.item_classification')->select('production_order.item_classification')->get();       
         return view('link_report.painting_report', compact('item_classification', 'permissions'));
     }
+
+    public function export_job_ticket(Request $request){
+        $start_date = $request->date ? explode(' - ', $request->date)[0] : Carbon::now()->subDays(30);
+        $end_date = $request->date ? explode(' - ', $request->date)[1] : Carbon::now();
+        $status = $request->status;
+        $operation = $request->operation;
+
+        $min_export_date = null;
+        $max_export_date = null;
+
+        $processes = DB::connection('mysql_mes')->table('process')->get();
+        $process = collect($processes)->groupBy('process_id');
+        
+        $operations_q = DB::connection('mysql_mes')->table('operation')->get();
+        $operations = collect($operations_q)->groupBy('operation_id');
+
+        $time_logs_production_orders = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+            ->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+            ->whereBetween('po.created_at', [Carbon::parse($start_date)->startOfDay()->toDateTimeString(), Carbon::parse($end_date)->endOfDay()->toDateTimeString()])
+            ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                $q->where('po.status', $status);
+            })
+            ->when($request->operation and $request->operation != 'All', function($q) use ($operation){
+                $q->where('po.operation_id', $operation);
+            })
+            ->where('po.status', '!=', 'Cancelled')
+            ->where('jt.workstation', '!=', 'Spotwelding')
+            ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.status', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.good', 'logs.reject', 'logs.operator_name');
+
+        if($request->ajax()){ // for export
+            $production_orders = DB::connection('mysql_mes')->table('production_order as po')
+                ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+                ->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+                ->whereBetween('po.created_at', [Carbon::parse($start_date)->startOfDay()->toDateTimeString(), Carbon::parse($end_date)->endOfDay()->toDateTimeString()])
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('po.status', $status);
+                })
+                ->when($request->operation and $request->operation != 'All', function($q) use ($operation){
+                    $q->where('po.operation_id', $operation);
+                })
+                ->where('po.status', '!=', 'Cancelled')
+                ->where('jt.workstation', 'Spotwelding')
+                ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.status', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.good', 'logs.reject', 'logs.operator_name')->union($time_logs_production_orders)
+                ->orderBy('created_at', 'desc')
+                ->limit(999)->get();
+
+            $min_export_date = Carbon::parse(collect($production_orders)->min('created_at'))->format('M d, Y');
+            $max_export_date = Carbon::parse(collect($production_orders)->max('created_at'))->format('M d, Y');
+        }else{ // for UI
+            $production_orders = DB::connection('mysql_mes')->table('production_order as po')
+                ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+                ->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+                ->whereBetween('po.created_at', [Carbon::parse($start_date)->startOfDay()->toDateTimeString(), Carbon::parse($end_date)->endOfDay()->toDateTimeString()])
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('po.status', $status);
+                })
+                ->when($request->operation and $request->operation != 'All', function($q) use ($operation){
+                    $q->where('po.operation_id', $operation);
+                })
+                ->where('po.status', '!=', 'Cancelled')
+                ->where('jt.workstation', 'Spotwelding')
+                ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.status', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.good', 'logs.reject', 'logs.operator_name')->union($time_logs_production_orders)
+                ->orderBy('created_at', 'desc')->paginate(10);
+        }
+
+        $export_arr = [];
+        foreach($production_orders as $po){
+            $process_name = isset($process[$po->process_id]) ? $process[$po->process_id][0]->process_name : null;
+            $operation = isset($operations[$po->operation_id]) ? $operations[$po->operation_id][0]->operation_name : null;
+
+            $export_arr[] = [
+                'created_at' => $po->created_at,
+                'operation' => $operation,
+                'item_code' => $po->item_code,
+                'item_description' => $po->description,
+                'production_order' => $po->production_order,
+                'status' => $po->status,
+                'sales_order' => $po->sales_order,
+                'material_request' => $po->material_request,
+                'customer' => $po->customer,
+                'job_ticket_id' => $po->job_ticket_id,
+                'workstation' => $po->workstation,
+                'process_name' => $process_name,
+                'from' => $po->from_time,
+                'to' => $po->to_time,
+                'good' => $po->good,
+                'reject' => $po->reject,
+                'operator' => $po->operator_name
+            ];
+        }
+
+        if($request->ajax()){
+            return view('reports.export_job_ticket_file', compact('export_arr', 'min_export_date', 'max_export_date'));
+        }
+
+        $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->select('status')->distinct('status')->get();
+        $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
+
+        return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter'));
+    }
+
+    public function export_rejection_logs(Request $request){
+        $start_date = $request->date ? explode(' - ', $request->date)[0] : Carbon::now()->subDays(30);
+        $end_date = $request->date ? explode(' - ', $request->date)[1] : Carbon::now();
+        $status = $request->status;
+        $operation = $request->operation;
+
+        $min_export_date = null;
+        $max_export_date = null;
+
+        $processes = DB::connection('mysql_mes')->table('process')->get();
+        $process = collect($processes)->groupBy('process_id');
+
+        $operations_q = DB::connection('mysql_mes')->table('operation')->get();
+        $operations = collect($operations_q)->groupBy('operation_id');
+
+        $time_logs = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+            ->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+            ->whereBetween('po.created_at', [Carbon::parse($start_date)->startOfDay()->toDateTimeString(), Carbon::parse($end_date)->endOfDay()->toDateTimeString()])
+            ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                $q->where('po.status', $status);
+            })
+            ->when($request->operation and $request->operation != 'All', function($q) use ($operation){
+                $q->where('po.operation_id', $operation);
+            })
+            ->where('po.status', '!=', 'Cancelled')
+            ->where('logs.reject', '>', 0)
+            ->where('jt.workstation', '!=', 'Spotwelding')
+            ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.status', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.operator_name');
+
+        if($request->ajax()){
+            $rejection_logs = DB::connection('mysql_mes')->table('production_order as po')
+                ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+                ->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+                ->whereBetween('po.created_at', [Carbon::parse($start_date)->startOfDay()->toDateTimeString(), Carbon::parse($end_date)->endOfDay()->toDateTimeString()])
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('po.status', $status);
+                })
+                ->when($request->operation and $request->operation != 'All', function($q) use ($operation){
+                    $q->where('po.operation_id', $operation);
+                })
+                ->where('po.status', '!=', 'Cancelled')
+                ->where('logs.reject', '>', 0)
+                ->where('jt.workstation', 'Spotwelding')
+                ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.status', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.operator_name')->union($time_logs)
+                ->orderBy('created_at', 'desc')
+                ->limit(999)->get();
+
+            $min_export_date = Carbon::parse(collect($rejection_logs)->min('created_at'))->format('M d, Y');
+            $max_export_date = Carbon::parse(collect($rejection_logs)->max('created_at'))->format('M d, Y');
+        }else{
+            $rejection_logs = DB::connection('mysql_mes')->table('production_order as po')
+                ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+                ->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+                ->whereBetween('po.created_at', [Carbon::parse($start_date)->startOfDay()->toDateTimeString(), Carbon::parse($end_date)->endOfDay()->toDateTimeString()])
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('po.status', $status);
+                })
+                ->when($request->operation and $request->operation != 'All', function($q) use ($operation){
+                    $q->where('po.operation_id', $operation);
+                })
+                ->where('po.status', '!=', 'Cancelled')
+                ->where('logs.reject', '>', 0)
+                ->where('jt.workstation', 'Spotwelding')
+                ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.status', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.operator_name')->union($time_logs)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+        }
+        
+        $export_arr = [];
+        foreach($rejection_logs as $reject){
+            $process_name = isset($process[$reject->process_id]) ? $process[$reject->process_id][0]->process_name : null;
+            $operation = isset($operations[$reject->operation_id]) ? $operations[$reject->operation_id][0]->operation_name : null;
+
+            $export_arr[] = [
+                'created_at' => $reject->created_at,
+                'operation' => $operation,
+                'item_code' => $reject->item_code,
+                'item_description' => $reject->description,
+                'production_order' => $reject->production_order,
+                'status' => $reject->status,
+                'sales_order' => $reject->sales_order,
+                'material_request' => $reject->material_request,
+                'customer' => $reject->customer,
+                'job_ticket_id' => $reject->job_ticket_id,
+                'workstation' => $reject->workstation,
+                'process_name' => $process_name,
+                'from' => $reject->from_time,
+                'to' => $reject->to_time,
+                'reject' => $reject->reject,
+                'operator' => $reject->operator_name
+            ];
+        }
+
+        if($request->ajax()){
+            return view('reports.export_rejection_logs_file', compact('export_arr', 'min_export_date', 'max_export_date'));
+        }
+
+        $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->select('status')->distinct('status')->get();
+        $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
+
+        return view('reports.export_rejection_logs', compact('export_arr', 'rejection_logs', 'statuses', 'operations_filter'));
+    }
+    
+    public function export_machine_list(Request $request){
+        $status = $request->status;
+        $operation = $request->operation;
+
+        if($request->ajax()){
+            $machine_list = DB::connection('mysql_mes')->table('machine')
+                ->join('operation', 'machine.operation_id', 'operation.operation_id')
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('machine.status', $status);
+                })
+                ->when($request->operation and $request->operation != "All", function ($q) use ($operation){
+                    $q->where('machine.operation_id', $operation);
+                })
+                ->select('machine.machine_code', 'machine.machine_name', 'machine.model', 'machine.operation_id', 'machine.status', 'operation.operation_name')
+                ->limit(999)
+                ->get();
+
+            return view('reports.export_machine_list_file', compact('machine_list'));
+        }else{
+            $machine_list = DB::connection('mysql_mes')->table('machine')
+                ->join('operation', 'machine.operation_id', 'operation.operation_id')
+                ->when($request->status and $request->status != 'All', function ($q) use ($status){
+                    $q->where('machine.status', $status);
+                })
+                ->when($request->operation and $request->operation != "All", function ($q) use ($operation){
+                    $q->where('machine.operation_id', $operation);
+                })
+                ->select('machine.machine_code', 'machine.machine_name', 'machine.model', 'machine.operation_id', 'machine.status', 'operation.operation_name')
+                ->paginate(10);
+        }
+        
+        $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
+        $statuses = DB::connection('mysql_mes')->table('machine')->select('status')->distinct('status')->get();
+
+        return view('reports.export_machine_list', compact('machine_list', 'operations_filter', 'statuses'));
+    }
+
     public function daily_output_report(Request $request){
         $operation= 1;
         $now = Carbon::now();
