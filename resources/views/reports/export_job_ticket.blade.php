@@ -30,14 +30,12 @@
 </div>
 
 <div class="container-fluid bg-white">
-   <div class="row">
-      <div class="col-12 mx-auto">
+   <div class="row" style="margin-top: -90px">
+      <div class="col-12 mx-auto bg-white">
          <div class="row">
-            <div class="col-2">&nbsp;</div>
             <div class="col-10 mx-auto">
                <form action="/export/job_ticket" method="get">
-                  <div class="row">
-                     <div class="col-1"></div>
+                  <div class="row p-3">
                      <div class="col-3 input-group">
                         <input class="form-control" id="daterange" type="text" name="date"/>
                      </div>
@@ -64,8 +62,8 @@
                            Search
                         </button>
                      </div>
-                     <div class="col-1">
-                        <button class="btn btn-primary m-0" id="export-btn" tabindex="0" aria-controls="export-table" type="button">
+                     <div class="col-2">
+                        <button class="btn btn-primary m-0 p-2 w-75" id="export-btn" tabindex="0" aria-controls="export-table" type="button" style="font-size: 14pt">
                            Export&nbsp;
                            <div class="d-none spinner-border spinner-border-sm text-primary" id="spinner" role="status" style="color: #fff !important; font-size: 10px !important">
                               <span class="sr-only">Loading...</span>
