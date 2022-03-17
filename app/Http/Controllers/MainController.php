@@ -3956,7 +3956,6 @@ class MainController extends Controller
 			->join('user_group as grp', 'user.user_group_id', 'grp.user_group_id')
 			->where('grp.user_role', 'Maintenance Staff')->get();
 
-
 		return view($view, compact('list', 'permissions', 'maintenance_staff'));
 	}
 	
@@ -3979,7 +3978,7 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->update($update);
 			DB::commit();
-            return redirect('/maintenance_request')->with('success', 'Maintenance Request Updated');
+            return redirect('/maintenance_request')->with('success', $machine_breakdown_id.' Maintenance Request Updated');
         } catch (Exception $e) {
             DB::rollback();
             return redirect()->back()->with('error', 'An error occured. Please try again.');

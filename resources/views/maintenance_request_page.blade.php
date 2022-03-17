@@ -4,6 +4,11 @@
 ])
 
 @section('content')
+{{-- @if (session('status'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
+                    @endif --}}
 <div class="panel-header" style="margin-top: -50px;">
    <div class="header text-center">
     <div class="row">
@@ -556,4 +561,26 @@
         }
     });
 </script>
+@if (Session::has('success'))
+    <script>
+      $(document).ready(function(){
+        var message = "{{ Session::get('success') }}";
+        showNotification("success", message, "now-ui-icons ui-1_check");
+      
+        function showNotification(color, message, icon){
+          $.notify({
+              icon: icon,
+              message: message
+          },{
+              type: color,
+              timer: 5000,
+              placement: {
+                from: 'top',
+                align: 'center'
+              }
+          });
+        }
+      });
+    </script>
+@endif
 @endsection
