@@ -182,9 +182,8 @@ $(document).ready(function(){
             success: function (result){
                 $('#for-export').html(result);
                 $("#export-table").table2excel({
-                name: "Worksheet Name",
-                filename: $('#file_name').val(),
-                fileext: ".xls"
+                  name: "Worksheet Name",
+                  filename: $('#file_name').val()+'.xls'
                 }); 
 
                 $('#spinner').addClass('d-none');

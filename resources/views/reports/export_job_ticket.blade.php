@@ -184,8 +184,7 @@ $(document).ready(function(){
 				$('#for-export').html(result);
             $("#export-table").table2excel({
                name: "Worksheet Name",
-               filename: $('#file_name').val(),
-               fileext: ".xls"
+               filename: $('#file_name').val()+'.xls'
             }); 
 
             $('#spinner').addClass('d-none');
