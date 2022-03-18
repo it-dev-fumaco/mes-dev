@@ -58,64 +58,61 @@ class TrackingController extends Controller
                 'item' => $this->get_so_item_list($row->sales_order,$row->material_request)
             ];
         }
-        // // $array = collect($production_order_list)->sortBy('item')->reverse()->toArray();
-        // // dd($production_order_list);
-        // // Get current page form url e.x. &page=1
-        // $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        // // Create a new Laravel collection from the array data
-        // $itemCollection = collect($production_order_list);
-        // // Define how many items we want to be visible in each page
-        // $perPage = 10;
-        // // Slice the collection to get the items to display in current page
-        // $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-        // // Create our paginator and pass it to the view
-        // $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-        // // set url path for generted links
-        // $paginatedItems->setPath($request->url());
-
-        // $so_item_list = $paginatedItems;
 
         return view('tables.tbl_item_list_for_tracking', compact('so_item_list', 'production_orders'));
     }
     public function get_so_item_list($sales_order, $material_request){
         if ($sales_order != null) {
             $erp_item = DB::connection('mysql')->table('tabSales Order Item as sotbl')
-                    ->join('tabSales Order as so', 'so.name', 'sotbl.parent')
-                    ->join('tabItem as item', 'item.name', 'sotbl.item_code')
-                    ->where('sotbl.parent', $sales_order)
-                    ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
-                    ->distinct('sotbl.parent')
-                    ->get();
+                ->join('tabSales Order as so', 'so.name', 'sotbl.parent')
+                ->join('tabItem as item', 'item.name', 'sotbl.item_code')
+                ->where('sotbl.parent', $sales_order)
+                ->where('item.item_group', '!=', 'Raw Material')
+                ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                ->distinct('sotbl.parent')->get();
         }else{
             $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
-                    ->join('tabMaterial Request as so', 'so.name', 'sotbl.parent')
-                    ->join('tabItem as item', 'item.name', 'sotbl.item_code')
-                    ->where('sotbl.parent', $material_request)
-                    ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
-                    ->distinct('sotbl.parent')
-                    ->get();
+                ->join('tabMaterial Request as so', 'so.name', 'sotbl.parent')
+                ->join('tabItem as item', 'item.name', 'sotbl.item_code')
+                ->where('sotbl.parent', $material_request)
+                ->where('item.item_group', '!=', 'Raw Material')
+                ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
+                ->distinct('sotbl.parent')->get();
+        }
+    
+        $production_order_list = [];
+        foreach ($erp_item as $row) {
+            $reference = explode('-', $row->sales_order)[0];
+            $po = DB::connection('mysql_mes')->table('production_order')
+                ->where('parent_item_code', $row->item_code)->where('sub_parent_item_code', $row->item_code)->where('item_code', $row->item_code)
+                ->when($reference == 'SO', function($q) use ($row){
+                    return $q->where('sales_order', $row->sales_order);
+                })
+                ->when($reference == 'MREQ', function($q) use ($row){
+                    return $q->where('material_request', $row->sales_order);
+                })->select('production_order', 'bom_no')->first();
+
+            $production_order = $po ? $po->production_order : null;
+            $bom_no = $po ? $po->bom_no : null;
+
+            $production_order_list[] = [
+                'sales_order' => $row->sales_order,
+                'item_code' => $row->item_code,
+                'description' => $row->description,
+                'customer' => $row->customer,
+                'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date,
+                'qty' => $row->qty,
+                'project' => $row->project,
+                'creation' => $row->creation,
+                'erp_reference_no' => $row->name,
+                'production_order' => $production_order,
+                'bom_no' => $bom_no,
+            ];
+
+            // 46844
         }
         
-                    $production_order_list = [];
-                    foreach ($erp_item as $row) {
-                       $production_order_list[] = [
-                        'sales_order' => $row->sales_order,
-                        'item_code' => $row->item_code,
-                        'description' => $row->description,
-                        'customer' => $row->customer,
-                        'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date,
-                        'qty' => $row->qty,
-                        'project' => $row->project,
-                        'creation' => $row->creation,
-                        'erp_reference_no' => $row->name
-                    ];
-            }
-        // dd($production_order_list);
-            return $production_order_list;
-                    
-
+        return $production_order_list;
     }
     public function get_search_information_details(Request $request){
         try {
@@ -144,66 +141,52 @@ class TrackingController extends Controller
                     ];
                 
             }
-            // // dd($production_order_list);
-            // $array = collect($production_order_list)->sortBy('created_at')->reverse()->toArray();
-            // // Get current page form url e.x. &page=1
-            // $currentPage = LengthAwarePaginator::resolveCurrentPage();
-            // // Create a new Laravel collection from the array data
-            // $itemCollection = collect($production_order_list);
-            // // Define how many items we want to be visible in each page
-            // $perPage = 10;
-            // // Slice the collection to get the items to display in current page
-            // $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-            // // Create our paginator and pass it to the view
-            // $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-            // // set url path for generted links
-            // $paginatedItems->setPath($request->url());
-            // $so_item_list = $paginatedItems;
+
             return view('tables.tbl_item_list_for_tracking', compact('so_item_list', 'production_orders'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
     public function get_bom_tracking(Request $request){
-        $guide_id= $request->guideid;
-        $itemcode= $request->itemcode;
-        $delivery_date_tbl= DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $request->erp_reference_id)->first();
-        $change_code=["match" => "" ];
+        $guide_id = $request->guideid;
+        $itemcode = $request->itemcode;
+        $delivery_date_tbl = DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $request->erp_reference_id)->first();
+        $change_code = ["match" => ""];
         if($delivery_date_tbl){
             if($delivery_date_tbl->parent_item_code == $request->itemcode){
-                $change_code=[
+                $change_code = [
                     "match" => "true"
                 ];
             }else{
-                $change_code=[ 
+                $change_code = [ 
                     "match" => "false",
                     "original_item" => $delivery_date_tbl->parent_item_code,
                     'new_item' => $itemcode
                 ];
-                $itemcode= $delivery_date_tbl->parent_item_code;
+
+                $itemcode = $delivery_date_tbl->parent_item_code;
             }
         }
-        $boms = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)->where('docstatus', '<', 2)
-            ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description')
-            ->orderBy('modified', 'desc')->get();
 
-        $bom_first = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)->where('docstatus', '<', 2)
-            ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description', 'docstatus')
+        $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)
+            ->where('docstatus', '<', 2)->where('is_default', 1)
+            ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description')
             ->orderBy('modified', 'desc')->first();
 
-        $default_bom = collect($boms)->where('is_default', 1)->first();
-        $draft_BOM= collect($boms)->where('is_default', 1)->where('docstatus', 0)->first();
-        if (!$bom_first) {
+        if (!$item_bom) {
+            $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)->where('docstatus', '<', 2)
+                ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description', 'docstatus')
+                ->orderBy('modified', 'desc')->first();
+        }
+
+        if (!$item_bom) {
 			return response()->json(['success' => 0, 'message' => 'BOM not found.']);
 		}
-        if($bom_first->is_default == 1 && $bom_first->docstatus == 0){
-            $bom_get= $bom_first->name;
-            $bom=$bom_first;
-        }else{
-            $bom_get= $default_bom->name;
-            $bom=$default_bom;
-        }
-        $production= DB::connection('mysql_mes')->table('production_order AS po')
+
+        $bom_get = $item_bom->name;
+        $bom = $item_bom;
+
+        $production = DB::connection('mysql_mes')->table('production_order AS po')
             ->leftJoin('delivery_date', function($join){
                 $join->on( DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
                 $join->on('po.parent_item_code','=','delivery_date.parent_item_code');
@@ -214,9 +197,9 @@ class TrackingController extends Controller
                         ->orWhere('po.material_request', $guide_id);
             })
             ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
-            ->groupBy('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
             ->first();
-        $parent_productions= DB::connection('mysql_mes')->table('production_order AS po')
+
+         $parent_productions = DB::connection('mysql_mes')->table('production_order AS po')
             ->whereNotIn('po.status', ['Cancelled'])
             ->where(function($q) use ($guide_id) {
                 $q->Where('po.sales_order', $guide_id)
@@ -491,135 +474,124 @@ class TrackingController extends Controller
                 'pain_duration' => $pain_duration,
                 'assem_duration' => $assem_duration,
                 'fab_required' => empty($total_qty_fab) ? '0' : $total_qty_fab->qty_to_manufacture,
-                'fab_produced' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->produced_qty,
-                'uom' =>  empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom,
+                'fab_produced' => empty($total_qty_fab) ? '0' : $total_qty_fab->produced_qty,
+                'uom' => empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom,
                 'fab_badge' => $fab_badge,
                 'assem_badge' => $assem_badge,
                 'pain_badge' => $pain_badge
             ];
+
         if ($bom != null) {
             $boms = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
             $item_codes = $itemcode;
         }else{
             $boms = [];
-            $item_codes="";
+            $item_codes = "";
         }
+      
         return view('tracking_flowchart', compact('boms', 'item_codes','guide_id', 'production','bom', 'materials', 'timeline', 'change_code'));
     }
+
     public function get_bom($bom, $guide_id, $item_code, $parent_item_code){
         try {
             $bom1 = DB::connection('mysql')->table('tabBOM Item as bom')
-            ->join('tabItem as item', 'item.name', 'bom.item_code')
-            ->whereNotIn('item.item_group', ['Raw Material', 'Factory Supplies'])
-            // ->whereIn('item.item_classificati', ['RA - REFLECTOR ASSEMBLY', 'SA - Sub Assembly', 'HO - Housing', 'DI - Diffuser','FA - FRAME ASSEMBLY','FR - FRAME','FPA - FRONT PLATE ASSEMBLY','WA - WIREGUARD ASSEMBLY'])
-            ->whereNotIn('item.item_classification', ['BP - Battery Pack', 'WW - Wall Washer Luminaire', 'WL - Wall Lights'])
-            ->where('bom.docstatus', '<', 2)
-            ->where('bom.parent', $bom)
-            ->select('bom.*', 'item.parts_category')
-            ->orderBy('bom.idx', 'asc')->get();
-            // dd($item_code);
-            $materials = [];
-            foreach ($bom1 as $item) {
-                $default_bom = DB::connection('mysql')->table('tabBOM')
-                ->where('docstatus', '<', 2)
-                ->where('is_default', 1)
-                // ->orderBy('modified', 'desc')
-                ->where('item', $item->item_code)
-                ->first();
-                
-                $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
-                $item_description = ($item_details) ? $item_details->description : '';
-                $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
+                ->join('tabItem as item', 'item.name', 'bom.item_code')
+                ->whereNotIn('item.item_group', ['Raw Material', 'Factory Supplies'])
+                ->whereNotIn('item.item_classification', ['BP - Battery Pack', 'WW - Wall Washer Luminaire', 'WL - Wall Lights'])
+                ->where('bom.docstatus', '<', 2)->where('bom.parent', $bom)->select('bom.item_code', 'bom.bom_no', 'bom.qty', 'bom.uom', 'item.parts_category')
+                ->orderBy('bom.idx', 'asc')->get();
 
-                $production= DB::connection('mysql_mes')->table('production_order AS po')
+            $bom_items = array_column($bom1->toArray(), 'item_code');
+            if(count($bom_items) > 0) {
+                $default_boms = DB::connection('mysql')->table('tabBOM')->where('docstatus', '<', 2)
+                    ->where('is_default', 1)->whereIn('item', $bom_items)->pluck('name', 'item')->toArray();
+
+                $item_descriptions = DB::connection('mysql')->table('tabItem')->whereIn('name', $bom_items)->pluck('description', 'name')->toArray();
+
+                $production_orders = DB::connection('mysql_mes')->table('production_order AS po')
                     ->whereNotIn('po.status', ['Cancelled'])
                     ->where(function($q) use ($guide_id) {
-                            $q->Where('po.sales_order', $guide_id)
-                                ->orWhere('po.material_request', $guide_id);
-                        })
-                    ->where('item_code', $item->item_code)
-                    ->where('sub_parent_item_code', $item_code)
-                    ->where('parent_item_code', $parent_item_code)
-                    ->first(); 
-
-                if (!empty($production)) {
-                    $data1=[];
-                    $data2=[];
-                    $jt_details1 =  DB::connection('mysql_mes')->table('job_ticket')
-                    ->where('production_order', $production->production_order)
-                    ->select('job_ticket_id', 'workstation')
+                        $q->Where('po.sales_order', $guide_id)
+                            ->orWhere('po.material_request', $guide_id);
+                    })
+                    ->whereIn('item_code', $bom_items)->where('sub_parent_item_code', $item_code)->where('parent_item_code', $parent_item_code)
+                    ->select('production_order', 'actual_start_date', 'actual_end_date', 'status', 'produced_qty', 'planned_start_date', 'qty_to_manufacture', 'parts_category', 'item_code')
                     ->get();
+                    
+                $bom_production_orders = array_column($production_orders->toArray(), 'production_order');
+                $production_orders = collect($production_orders)->groupBy('item_code')->toArray();
 
-                    if(count($jt_details1) == 0){
-                        $production_order_no= null;
-                        $planned_start_date=null;
-                        $end_date= null;
-                        $start_date= null;
-                        $duration=null;
-                        $status=null;
-                        $qty_to_manufacture=null;
-                        $produced_qty=null;
-                        $jobtickets_details=[];
-                        $parts_category=null;
-                        $done=null;
-                    }else{
-                        
+                if(count($bom_production_orders) > 0) {
+                    $production_details_jt =  DB::connection('mysql_mes')->table('job_ticket')
+                        ->whereIn('production_order', $bom_production_orders)
+                        ->selectRaw('COUNT(job_ticket_id) as count, production_order')
+                        ->groupBy('production_order')->pluck('count', 'production_order')
+                        ->toArray();
+                    
+                    $erp_prod_details = DB::connection('mysql')->table('tabWork Order')
+                        ->whereIn('name', $bom_production_orders)->pluck('docstatus', 'name')->toArray();
+                }
+
+                $bom_available_stock = DB::connection('mysql_mes')->table('fabrication_inventory')
+                    ->whereIn('item_code', $bom_items)->selectRaw('SUM(balance_qty) as available_stock, item_code')->groupBy('item_code')
+                    ->pluck('available_stock', 'item_code')->toArray();
+            }
+
+            $materials = [];
+            foreach ($bom1 as $item) {
+                $bom_item_code = $item->item_code;
+                $default_bom = array_key_exists($bom_item_code, $default_boms) ? $default_boms[$bom_item_code] : null;
+                $item_description = array_key_exists($bom_item_code, $item_descriptions) ? $item_descriptions[$bom_item_code] : null;
+                $child_bom = ($default_bom) ? $default_bom : $item->bom_no;
+
+                $production = array_key_exists($bom_item_code, $production_orders) ? $production_orders[$bom_item_code][0] : [];
+
+                $production_order_no = null;
+                $planned_start_date = null;
+                $end_date = null;
+                $start_date = null;
+                $duration = null;
+                $status = null;
+                $qty_to_manufacture = null;
+                $produced_qty = null;
+                $jobtickets_details = [];
+                $parts_category = null;
+                $done = null;
+                
+                if (!empty($production)) {
+                    $jt_details1 = array_key_exists($production->production_order, $production_details_jt) ? $production_details_jt[$production->production_order] : 0;
+                    if($jt_details1 > 0){
                         $start_date = $production->actual_start_date;
                         $end_date = $production->actual_end_date;
                         $from_carbon = Carbon::parse($start_date);
                         $to_carbon = Carbon::parse($end_date);
-
                         $duration = $from_carbon->diffInSeconds($to_carbon);
 
-                        $jobtickets_details=DB::connection('mysql_mes')->table('job_ticket as jt')
-                                ->join('process as p','p.process_id', 'jt.process_id')
-                                ->where('jt.production_order', $production->production_order)
-                                ->where('jt.status', 'In Progress')
-                                ->select('p.process_name', 'jt.workstation')
-                                ->distinct('jt.workstation')
-                                ->get();
+                        $jobtickets_details = DB::connection('mysql_mes')->table('job_ticket as jt')
+                            ->join('process as p','p.process_id', 'jt.process_id')->where('jt.production_order', $production->production_order)
+                            ->where('jt.status', 'In Progress')->select('p.process_name', 'jt.workstation')->distinct('jt.workstation')->get();
                         
-                        $stat= $production->status;
-                        $done=$production->produced_qty;
-                    
-                        $production_order_no= $production->production_order;
-                        $planned_start_date= $production->planned_start_date;
-
-    
-                        $status=$stat;
-                        $qty_to_manufacture=$production->qty_to_manufacture;
-                        $produced_qty=$production->produced_qty;
-                        $parts_category = $production->parts_category; 
-                        
-
+                        $status = $production->status;
+                        $done = $production->produced_qty;
+                        $production_order_no = $production->production_order;
+                        $planned_start_date = $production->planned_start_date;
+                        $qty_to_manufacture = $production->qty_to_manufacture;
+                        $produced_qty = $production->produced_qty;
+                        $parts_category = $production->parts_category;     
                     }
-     
-                    $prod_details = DB::connection('mysql')->table('tabWork Order')
-                        ->where('name', $production->production_order)->first();
 
-                    if($prod_details->docstatus == 2 && $status != 'Cancelled'){
+                    $docstatus = array_key_exists($production->production_order, $erp_prod_details) ? $erp_prod_details[$production->production_order] : null;
+
+                    if($docstatus == 2 && $status != 'Cancelled'){
                         $status = 'Unknown Status';
-                    }else if($prod_details->docstatus == 1 && $status == 'Cancelled'){
+                    }else if($docstatus == 1 && $status == 'Cancelled'){
                         $status = 'Unknown Status';
                     }else{
                         $status = $status;
                     }
-                        
-                }else{
-                    $production_order_no= null;
-                    $planned_start_date=null;
-                    $end_date= null;
-                    $start_date= null;
-                    $duration=null;
-                    $status=null;
-                    $qty_to_manufacture=null;
-                    $produced_qty=null;
-                    $jobtickets_details=[];
-                    $parts_category=null;
-                    $done=null;
                 }
 
-                $available_stock = DB::connection('mysql_mes')->table('fabrication_inventory')->where('item_code', $item->item_code)->sum('balance_qty');
+                $available_stock = array_key_exists($bom_item_code, $bom_available_stock) ? $bom_available_stock[$bom_item_code] : 0;
 
                 $materials[] = [
                     'item_code' => $item->item_code,
@@ -636,13 +608,13 @@ class TrackingController extends Controller
                     'status' => ($status == null) ? '': $status,
                     'qty_to_manufacture' => ($status == null) ? '': $qty_to_manufacture,
                     'produced_qty' => $done,
-                    'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
+                    'bom_no'=> $default_bom,
+                    'available_stock' => $available_stock,
                     'current_load' => $jobtickets_details,
                     'child_nodes' => $this->get_bom($child_bom, $guide_id, $item->item_code, $parent_item_code),
-                    'available_stock' => $available_stock
                 ];
             }
-            // dd($materials);
+            
             return $materials;
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
