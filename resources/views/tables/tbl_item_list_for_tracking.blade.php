@@ -44,13 +44,16 @@
           {{$rows['delivery_date']}}
         </td>
         <td class="text-center">
-          <!-- <a href="/get_bom_tracking/{{$r['guide_id']}}/{{$rows['item_code']}}"> -->
+          @if ($rows['production_order'] && $rows['bom_no'] == null)
+          <button class="btn btn-info btn-icon btn-round prod-details-btn" data-jtno="{{ $rows['production_order'] }}">
+            <i class="now-ui-icons ui-1_zoom-bold" style="font-size: 15pt;"></i>
+          </button>
+          @else
           <button class="btn btn-info btn-icon btn-round btn_trackmodal" data-itemcode="{{$rows['item_code']}}" data-guideid="{{$r['guide_id']}}" data-erpreferenceno="{{$rows['erp_reference_no']}}" data-customer="{!! str_limit($rows['customer'], $limit = 50, $end = '...') !!}">
             <i class="now-ui-icons ui-1_zoom-bold" style="font-size: 15pt;"></i>
           </button>
-        <!-- </a> -->
+          @endif
         </td>
-
       </tr>
       @endforeach
       @empty

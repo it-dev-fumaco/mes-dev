@@ -35,8 +35,9 @@
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no">{{ ($production->sales_order == '')? $production->material_request: $production->sales_order }}</span></td>
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust">{{$production->customer}}</span></td>
                 <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"> {{$production->project}}</span></td>
-                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="del-date">{{($production->rescheduled_delivery_date == null)? $production->delivery_date: $production->rescheduled_delivery_date}}</span></td>
-               
+                <td class="text-center" style="border: 1px solid #ABB2B9;">
+                  <span class="del-date">{{($production->rescheduled_delivery_date == null)? $production->delivery_date: $production->rescheduled_delivery_date}}</span>
+                </td>
               </tr>
               <tr style="font-size: 10pt;display:none;">
                 <td style="border: 1px solid #ABB2B9; font-size: 9pt;" class="text-center"><b>ITEM DETAIL(S):</b></td>
@@ -45,50 +46,46 @@
             </table>
           </div>
           @php
-                            $end_date = ($materials['end_date'] == "") ? "" : $materials['end_date'];
-                            $start_date = ($materials['start_date'] == "") ? "Not Started" : $materials['start_date'];
-                            $plan_time = ($materials['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($materials['planned_start_date'])->format('M d, Y');
-                            if($materials['status'] == 'Completed'){
-                                      $colorme= '#2ecc71';
-                                      $stat= '';
-                                      $hideme= '';
-                                      $hide_ongoing_process='none';
-                                    }elseif($materials['status'] == 'In Progress'){
-                                      $stat= '';
-                                      $colorme= '#f5b041 ';
-                                      $hideme= '';
-                                      $hide_ongoing_process='';
-                                    }elseif($materials['status'] == ''){
-                                      $stat= '';
-                                      $colorme= 'white';
-                                      $hideme= 'none';
-                                      $hide_ongoing_process='none';
-                                    }else{
-                                      $stat= 'Pending';
-                                      $colorme= '#d6dbdf';
-                                      $hideme= '';
-                                      $hide_ongoing_process='';
-                                    }
-                            $displayme= ($materials['operation_id']  == "1") ? "none" : "none" ;
-                            $displayasssembly = ($materials['operation_id']  == "1") ? "none" : "" ;
-                            $prod = ($materials['production_order']  == "") ? "No Production Order" : $materials['production_order'] ;
-                            $prod_dash = ($materials['production_order']  == "") ? "" : " - " ;
-                            $parent_item_border= ($materials['operation_id']  == "3") ? "none" : "1px solid #abb2b9";
-                            $parent_radius= ($materials['operation_id']  == "3") ? "none" : ".2em" ;
-
-                        @endphp
-          
+            $end_date = ($materials['end_date'] == "") ? "" : $materials['end_date'];
+            $start_date = ($materials['start_date'] == "") ? "Not Started" : $materials['start_date'];
+            $plan_time = ($materials['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($materials['planned_start_date'])->format('M d, Y');
+            if($materials['status'] == 'Completed'){
+              $colorme= '#2ecc71';
+              $stat= '';
+              $hideme= '';
+              $hide_ongoing_process='none';
+            }elseif($materials['status'] == 'In Progress'){
+              $stat= '';
+              $colorme= '#f5b041 ';
+              $hideme= '';
+              $hide_ongoing_process='';
+            }elseif($materials['status'] == ''){
+              $stat= '';
+              $colorme= 'white';
+              $hideme= 'none';
+              $hide_ongoing_process='none';
+            }else{
+              $stat= 'Pending';
+              $colorme= '#d6dbdf';
+              $hideme= '';
+              $hide_ongoing_process='';
+            }
+            $displayme= ($materials['operation_id']  == "1") ? "none" : "none" ;
+            $displayasssembly = ($materials['operation_id']  == "1") ? "none" : "" ;
+            $prod = ($materials['production_order']  == "") ? "No Production Order" : $materials['production_order'] ;
+            $prod_dash = ($materials['production_order']  == "") ? "" : " - " ;
+            $parent_item_border= ($materials['operation_id']  == "3") ? "none" : "1px solid #abb2b9";
+            $parent_radius= ($materials['operation_id']  == "3") ? "none" : ".2em" ;
+          @endphp
           <div style="width: 100%; overflow: auto; min-height:740px;"  class="col-md-12 my-auto">
             <div class="col-sm-12 my-auto" style="padding-top: 20px;margin-top: 30px;">
-              
               <div class=" col-sm-12 my-auto" > 
                 <ul class="tree ulclass text-center">
-                
                   <li class="liclass text-center">
                     <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:100%;">
                       <div class="row text-center bread justify-content-center" style="padding-top:5px;width:100%;">
                         <div class="col-md-12 bread">
-                        <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}
+                          <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}
                           @if($materials['status'] == 'Unknown Status')
                           <br>
                           <span class="badge badge-danger">{{ $materials['status'] }}</span> @endif
