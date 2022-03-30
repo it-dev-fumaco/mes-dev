@@ -63,10 +63,16 @@ trait GeneralTrait
             'actual_end_time' => $job_ticket_actual_end_date,
             'actual_operation_time' => $operation_time,
         ];
-
-        DB::connection('mysql')->table('tabWork Order Operation')
-            ->where('parent', $job_ticket_detail->production_order)->where('workstation', $job_ticket_detail->workstation)
-            ->where('process', $job_ticket_detail->process_id)->update($production_order_operation_values);
+        
+        if ($job_ticket_detail->bom_operation_id) {
+            DB::connection('mysql')->table('tabWork Order Operation')
+                ->where('bom_operation_id', $job_ticket_detail->bom_operation_id)
+                ->where('parent', $job_ticket_detail->production_order)->update($production_order_operation_values);
+        } else {
+            DB::connection('mysql')->table('tabWork Order Operation')
+                ->where('parent', $job_ticket_detail->production_order)->where('workstation', $job_ticket_detail->workstation)
+                ->where('process', $job_ticket_detail->process_id)->update($production_order_operation_values);
+        }
 
         // get production order produced qty
         $produced_qty = DB::connection('mysql_mes')->table('job_ticket')

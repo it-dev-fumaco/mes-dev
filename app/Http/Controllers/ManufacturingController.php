@@ -1001,7 +1001,7 @@ class ManufacturingController extends Controller
                     return response()->json(['status' => 0, 'message' => 'BOM cannot be updated. Production Order has been partially feedbacked.']);
                 }
             }
-           
+
             $now = Carbon::now();
             if ($request->id) {
                 if ($request->production_order) {
@@ -1020,7 +1020,7 @@ class ManufacturingController extends Controller
                     }
                     // delete production order operation
                     DB::connection('mysql')->table('tabWork Order Operation')
-                        ->where('parent', $request->production_order)->whereNotIn('name', array_filter($request->id))->delete();
+                        ->where('parent', $request->production_order)->whereNotIn('bom_operation_id', array_filter($request->id))->delete();
                     // delete job ticket
                     $removed_process = DB::connection('mysql_mes')->table('job_ticket')
                         ->where('production_order', $request->production_order)
@@ -1060,13 +1060,12 @@ class ManufacturingController extends Controller
                     if ($request->id[$x]) {
                         // update existing bom operation
                         DB::connection('mysql')->table('tabBOM Operation')
-                            ->where('name', $request->id[$x])
-                            ->where('parent', $bom)
+                            ->where('name', $request->id[$x])->where('parent', $bom)
                             ->where(function($q) use ($request, $x) {
                                 $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                             })
                             ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
-                        
+
                         if ($request->production_order) {
                             // check if bom_operation_id exists in production order operation table
                             $existing_production_order_operation = DB::connection('mysql')->table('tabWork Order Operation')
@@ -1183,7 +1182,6 @@ class ManufacturingController extends Controller
                                     $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
                                 }
                             }
-                            
                         }
                     } else {
                         // insert new workstation in bom operation table
