@@ -1541,6 +1541,7 @@ class LinkReportController extends Controller
                 if($po->status != $erp_status or $po->feedback_qty != $erp_produced_qty){
                     $mismatched_production_orders[] = [
                         'created_at' => $po->created_at,
+                        'owner' => $po->created_by,
                         'production_order' => $po->production_order,
                         'mes_status' => $po->status,
                         'mes_feedback_qty' => $po->feedback_qty,
@@ -1569,5 +1570,13 @@ class LinkReportController extends Controller
         $mismatched_production_orders = $paginatedItems;
 
         return view('reports.system_audit_mismatched_po_status', compact('mismatched_production_orders', 'total'));
+    }
+
+    public function feedbacked_po_with_pending_ste(){
+        $erp_po = DB::connection('mysql')->table('tabWork Order')->where('status', 'Completed')->orderBy('creation', 'desc')->pluck('name');
+
+        $ste = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $erp_po)->whereIn('purpose', ['Material Transfer for Manufacture', 'Material Transfer'])->where('docstatus', 0)->select('creation', 'work_order', 'name', 'purpose', 'docstatus')->orderBy('creation', 'desc')->paginate(20);
+
+        return view('reports.system_audit_feedbacked_po_w_pending_ste', compact('ste'));
     }
 }
