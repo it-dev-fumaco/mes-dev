@@ -1,6 +1,6 @@
 @extends('layouts.user_app', [
-  'namePage' => 'Mismatched Feedback Status',
-  'activePage' => 'mismatched_feedback_status',
+  'namePage' => 'Feedbacked Production Orders with Pending STE',
+  'activePage' => 'system_audit_feedbacked_po_w_pending_ste',
 ])
 
 @section('content')
@@ -20,7 +20,7 @@
                       <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
                    </td>
                    <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Mismatched Feedback Status</h3>
+                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Feedbacked Production Orders with Pending STE</h3>
                    </td>
                 </tr>
              </table>
@@ -35,40 +35,38 @@
             <div class="row">
                 <div class="col-10 mx-auto">
                     <div class="container-fluid">
-                        <h6 class="pt-2">Total: <span class="badge badge-primary" style="font-size: 11pt;">{{ $total }}</span> </h6>
+                        <h6 class="pt-2">Total: <span class="badge badge-primary" style="font-size: 11pt;">{{ $ste->total() }}</span> </h6>
                     </div>
                     <table class="table table-striped table-bordered">
                         <thead>
                             <tr>
                                 <th class="text-center">Date Created</th>
                                 <th class="text-center">Production Order</th>
-                                <th class="text-center">MES Status</th>
-                                <th class="text-center">MES Feedback Qty</th>
-                                <th class="text-center">ERP Status</th>
-                                <th class="text-center">ERP Produced Qty</th>
+                                <th class="text-center">Purpose</th>
+                                <th class="text-center">Stock Entry</th>
+                                <th class="text-center">Stock Entry Status</th>
                                 <th class="text-center">Owner</th>
                             </tr>
                         </thead>
-                        @forelse ($mismatched_production_orders as $po)
+                        @forelse ($ste as $po)
                             <tr>
-                                <td class="text-center">{{ \Carbon\Carbon::parse($po['created_at'])->format('M d, Y') }}</td>
-                                <td class="text-center">{{ $po['production_order'] }}</td>
-                                <td class="text-center">{{ $po['mes_status'] }}</td>
-                                <td class="text-center">{{ $po['mes_feedback_qty'] }}</td>
-                                <td class="text-center">{{ $po['erp_status'] }}</td>
-                                <td class="text-center">{{ $po['erp_produced_qty'] }}</td>
-                                <td class="text-center">{{ $po['owner'] }}</td>
+                                <td class="text-center">{{ \Carbon\Carbon::parse($po->creation)->format('M d, Y') }}</td>
+                                <td class="text-center">{{ $po->work_order }}</td>
+                                <td class="text-center">{{ $po->purpose }}</td>
+                                <td class="text-center">{{ $po->name }}</td>
+                                <td class="text-center">{{ $po->docstatus == 0 ? 'Draft' : $po->docstatus }}</td>
+                                <td class="text-center">{{ $po->owner }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan=6 class="text-center">No mismatched feedback status(es)</td>
+                                <td colspan=6 class="text-center">No feedbacked production orders with pending STE</td>
                             </tr>
                         @endforelse
                     </table>
                 </div>
             </div>
             <div class="float-right mt-4">
-                {!! $mismatched_production_orders->appends(request()->query())->links('pagination::bootstrap-4') !!}
+                {!! $ste->appends(request()->query())->links('pagination::bootstrap-4') !!}
             </div>
         </div>
     </div>
@@ -85,28 +83,28 @@
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
 <script>
-$(document).ready(function(){
-    setInterval(updateClock, 1000);
-    function updateClock(){
-        var currentTime = new Date();
-        var currentHours = currentTime.getHours();
-        var currentMinutes = currentTime.getMinutes();
-        var currentSeconds = currentTime.getSeconds();
-        // Pad the minutes and seconds with leading zeros, if required
-        currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-        currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-        // Choose either "AM" or "PM" as appropriate
-        var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-        // Convert the hours component to 12-hour format if needed
-        currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-        // Convert an hours component of "0" to "12"
-        currentHours = (currentHours === 0) ? 12 : currentHours;
-        currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-        // Compose the string for display
-        var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
+    $(document).ready(function(){
+        setInterval(updateClock, 1000);
+        function updateClock(){
+            var currentTime = new Date();
+            var currentHours = currentTime.getHours();
+            var currentMinutes = currentTime.getMinutes();
+            var currentSeconds = currentTime.getSeconds();
+            // Pad the minutes and seconds with leading zeros, if required
+            currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
+            currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
+            // Choose either "AM" or "PM" as appropriate
+            var timeOfDay = (currentHours < 12) ? "AM" : "PM";
+            // Convert the hours component to 12-hour format if needed
+            currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
+            // Convert an hours component of "0" to "12"
+            currentHours = (currentHours === 0) ? 12 : currentHours;
+            currentHours = (currentHours < 10 ? "0" : "") + currentHours;
+            // Compose the string for display
+            var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
 
-        $("#current-time").html(currentTimeString);
-    }
-});
+            $("#current-time").html(currentTimeString);
+        }
+    });
 </script>
 @endsection

@@ -797,5 +797,6 @@ Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_
 Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
 
 Route::get('/audit_report/mismatched_po_status', 'LinkReportController@mismatched_po_status');
+Route::get('/audit_report/feedbacked_po_with_pending_ste', 'LinkReportController@feedbacked_po_with_pending_ste');
 
 Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
