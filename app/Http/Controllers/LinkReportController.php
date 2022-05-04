@@ -1541,6 +1541,7 @@ class LinkReportController extends Controller
                 if($po->status != $erp_status or $po->feedback_qty != $erp_produced_qty){
                     $mismatched_production_orders[] = [
                         'created_at' => $po->created_at,
+                        'owner' => $po->created_by,
                         'production_order' => $po->production_order,
                         'mes_status' => $po->status,
                         'mes_feedback_qty' => $po->feedback_qty,
