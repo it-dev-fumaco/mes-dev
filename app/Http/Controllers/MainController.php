@@ -6802,4 +6802,23 @@ class MainController extends Controller
 			return response()->json(['status' => 0, 'message' => 'Warning! Feedback email notification sending failed.']);
 		}
 	}
+
+	public function checkWorkOrderItemQty() {
+		$query = DB::connection('mysql')->table('tabWork Order as wo')
+			->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
+			->where('wo.status', 'Completed')
+			->where(function($q) {
+				$q->whereRaw('woi.required_qty > woi.transferred_qty')
+					->orWhereRaw('woi.required_qty > woi.consumed_qty');
+			})
+			->select('woi.required_qty', 'woi.transferred_qty', 'woi.consumed_qty', 'wo.name', 'wo.production_item', 'wo.qty', 'wo.material_transferred_for_manufacturing', 'wo.produced_qty', 'wo.creation', 'wo.status', 'woi.item_code')
+			->orderBy('wo.creation', 'desc')
+			->paginate(100);
+
+		$query_grouped = collect($query->items())->groupBy('name');
+
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('query_reports.inaccurate_work_order_item_qty', compact('query', 'query_grouped', 'permissions'));
+    }
 }
