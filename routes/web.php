@@ -794,5 +794,6 @@ Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@p
 Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
 Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
 
+Route::get('/audit_report/mismatched_po_status', 'LinkReportController@mismatched_po_status');
 
 Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');

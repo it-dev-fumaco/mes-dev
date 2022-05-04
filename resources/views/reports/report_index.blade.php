@@ -154,6 +154,22 @@
                             </tbody>
                         </table>
                       </div>
+                      @if (in_array('Production Manager', $user_groups->toArray()))
+                        <div class="col-md-6"  style="margin-top:70px;">
+                            <table style= "width:100%;">
+                                <thead  style="">
+                                    <tr style="">
+                                        <th><span style="font-size:13.5pt;padding-left:30px;">System Audit Report</span> </th>
+                                    </tr>
+                                </thead>
+                                <tbody style=" padding-left:30px; text-align:left;">
+                                    <tr>
+                                        <td><a href="/audit_report/mismatched_po_status" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Status</span></a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                      @endif
                    </div>
                 </div>
             </div>

@@ -26,10 +26,14 @@ class LinkReportController extends Controller
     use GeneralTrait;
     public function index(){
         $permissions = $this->get_user_permitted_operation();
-
-        return view('reports.report_index', compact('permissions'));
-
+        $user_groups = DB::connection('mysql_mes')->table('user')
+            ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+            ->where('user.user_access_id', Auth::user()->user_id)
+            ->pluck('user_group.user_role');
+        
+        return view('reports.report_index', compact('permissions', 'user_groups'));
     }
+
     public function painting_report_page(){
         $permissions = $this->get_user_permitted_operation();
 
@@ -1515,5 +1519,55 @@ class LinkReportController extends Controller
         $total_reject_rate= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
         $reject_rate_for_total_reject= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
         return view('link_report.print_qa_rejection_report', compact('data', "month_column", 'colspan_month', 'total_reject_per_month', 'reject_category_name', 'total_output_per_month', 'reject_rate', 'total_output', 'total_reject', 'total_reject_rate', 'reject_rate_for_total_reject', 'requests'));
+    }
+
+    public function mismatched_po_status(Request $request){
+        $mes_statuses = DB::connection('mysql_mes')->table('production_order')->select('status')->distinct('status')->pluck('status');
+
+        $erp_po = DB::connection('mysql')->table('tabWork Order')->whereIn('status', $mes_statuses)->select('name', 'status', 'produced_qty')->get();
+        $erp_production_orders = collect($erp_po)->map(function ($q){
+            return $q->name;
+        });
+
+        $erp_po = collect($erp_po)->groupBy('name');
+
+        $mes_po = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $erp_production_orders)->where('status', 'Completed')->select('created_at', 'production_order', 'status', 'feedback_qty')->orderBy('created_at', 'desc')->get();
+        
+        $mismatched_production_orders = [];
+        foreach($mes_po as $po){
+            if(isset($erp_po[$po->production_order])){
+                $erp_status = $erp_po[$po->production_order][0]->status == 'In Process' ? 'In Progress' : $erp_po[$po->production_order][0]->status;
+                $erp_produced_qty = $erp_po[$po->production_order][0]->produced_qty * 1;
+                if($po->status != $erp_status or $po->feedback_qty != $erp_produced_qty){
+                    $mismatched_production_orders[] = [
+                        'created_at' => $po->created_at,
+                        'production_order' => $po->production_order,
+                        'mes_status' => $po->status,
+                        'mes_feedback_qty' => $po->feedback_qty,
+                        'erp_status' => $erp_status,
+                        'erp_produced_qty' => $erp_produced_qty 
+                    ];
+                }else{
+                    continue;
+                }
+            }
+        }
+
+        $total = count($mismatched_production_orders);
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        // Create a new Laravel collection from the array data3
+        $itemCollection = collect($mismatched_production_orders);
+        // Define how many items we want to be visible in each page
+        $perPage = 20;
+        // Slice the collection to get the items to display in current page
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
+        // Create our paginator and pass it to the view
+        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        // set url path for generted links
+        $paginatedItems->setPath($request->url());
+        $mismatched_production_orders = $paginatedItems;
+
+        return view('reports.system_audit_mismatched_po_status', compact('mismatched_production_orders', 'total'));
     }
 }
