@@ -41,6 +41,7 @@
                         <thead>
                             <tr>
                                 <th class="text-center">Date Created</th>
+                                <th class="text-center">Owner</th>
                                 <th class="text-center">Production Order</th>
                                 <th class="text-center">MES Status</th>
                                 <th class="text-center">MES Feedback Qty</th>
@@ -51,6 +52,7 @@
                         @forelse ($mismatched_production_orders as $po)
                             <tr>
                                 <td class="text-center">{{ \Carbon\Carbon::parse($po['created_at'])->format('M d, Y') }}</td>
+                                <td class="text-center">{{ $po['owner'] }}</td>
                                 <td class="text-center">{{ $po['production_order'] }}</td>
                                 <td class="text-center">{{ $po['mes_status'] }}</td>
                                 <td class="text-center">{{ $po['mes_feedback_qty'] }}</td>
@@ -59,7 +61,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="text-center">No mismatched feedback status(es)</td>
+                                <td colspan=6 class="text-center">No mismatched feedback status(es)</td>
                             </tr>
                         @endforelse
                     </table>

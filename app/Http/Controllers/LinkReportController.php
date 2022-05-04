@@ -1531,7 +1531,7 @@ class LinkReportController extends Controller
 
         $erp_po = collect($erp_po)->groupBy('name');
 
-        $mes_po = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $erp_production_orders)->where('status', 'Completed')->select('created_at', 'production_order', 'status', 'feedback_qty')->orderBy('created_at', 'desc')->get();
+        $mes_po = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $erp_production_orders)->where('status', 'Completed')->select('created_at', 'created_by',  'production_order', 'status', 'feedback_qty')->orderBy('created_at', 'desc')->get();
         
         $mismatched_production_orders = [];
         foreach($mes_po as $po){
