@@ -6849,4 +6849,18 @@ class MainController extends Controller
 
 		return view('reports.completed_mreq_with_pending_po', compact('query', 'query_grouped', 'permissions'));
 	}
+
+	public function inaccurateProductionTransferredQtyWithWithdrawals() {
+		$query = DB::connection('mysql')->table('tabWork Order as wo')->join('tabStock Entry as ste', 'wo.name', 'ste.work_order')->where('wo.docstatus', 1)
+			->where('ste.docstatus', 1)->where('ste.purpose', ['Material Transfer for Manufacture', 'Material Transfer'])
+			->whereRaw('wo.material_transferred_for_manufacturing != wo.qty')->whereNotIn('wo.status', ['Not Started'])
+			->select('wo.creation', 'wo.name as production_order', 'wo.production_item', 'wo.qty', 'wo.material_transferred_for_manufacturing', 'wo.produced_qty', 'wo.status', 'ste.name as stock_entry', 'ste.purpose')
+			->orderBy('wo.creation', 'desc')->paginate(100);
+
+		$query_grouped = collect($query->items())->groupBy('production_order');
+
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('reports.production_inaccurate_material_transferred', compact('query', 'query_grouped', 'permissions'));
+	}
 }

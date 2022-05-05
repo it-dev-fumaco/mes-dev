@@ -750,6 +750,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/checkWorkOrderItemQty', 'MainController@checkWorkOrderItemQty');
 	Route::get('/completed_so_with_pending_production_order', 'MainController@completedSoWithPendingProduction');
 	Route::get('/completed_mreq_with_pending_production_order', 'MainController@completedMreqWithPendingProduction');
+	Route::get('/production_inaccurate_material_transferred', 'MainController@inaccurateProductionTransferredQtyWithWithdrawals');
+	
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

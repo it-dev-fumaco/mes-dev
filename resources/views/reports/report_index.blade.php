@@ -176,7 +176,10 @@
                                         <td><a href="/completed_so_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Sales Order with Pending Production Order</span></a></td>
                                     </tr>
                                     <tr>
-                                        <td><a href="/completed_so_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Material Request with Pending Production Order</span></a></td>
+                                        <td><a href="/completed_mreq_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Material Request with Pending Production Order</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/production_inaccurate_material_transferred" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Orders with Stock Withdrawals but has incorrect Material Transferred for Manufacturing</span></a></td>
                                     </tr>
                                 </tbody>
                             </table>
