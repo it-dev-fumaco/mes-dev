@@ -6835,4 +6835,18 @@ class MainController extends Controller
 
 		return view('reports.completed_so_with_pending_po', compact('query', 'query_grouped', 'permissions'));
 	}
+
+	public function completedMreqWithPendingProduction() {
+		$query = DB::connection('mysql')->table('tabWork Order as wo')
+			->join('tabMaterial Request as mreq', 'mreq.name', 'wo.material_request')->where('wo.docstatus', 1)->where('mreq.docstatus', 1)
+			->where('mreq.per_ordered', 100)->where('wo.status', '!=', 'Completed')
+			->select('mreq.name', 'mreq.customer', 'wo.name as production_order', 'mreq.status as mreq_status', 'wo.production_item', 'wo.qty', 'wo.status as wo_status', 'wo.creation')
+			->orderBy('wo.creation', 'desc')->paginate(100);
+
+		$query_grouped = collect($query->items())->groupBy('name');
+
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('reports.completed_mreq_with_pending_po', compact('query', 'query_grouped', 'permissions'));
+	}
 }
