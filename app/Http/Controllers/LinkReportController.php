@@ -1579,4 +1579,15 @@ class LinkReportController extends Controller
 
         return view('reports.system_audit_feedbacked_po_w_pending_ste', compact('ste'));
     }
+
+	public function transferred_required_qty_mismatch(){
+		$transferred_required_qty_mismatch = DB::connection('mysql')->table('tabWork Order as wo')
+			->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
+            ->where('wo.status', 'Completed')->whereRaw('woi.transferred_qty < woi.required_qty')
+            ->select('wo.name', 'wo.status', 'woi.item_code', 'woi.required_qty', 'woi.transferred_qty', 'wo.creation', 'wo.owner')
+            ->orderBy('wo.creation', 'desc')
+            ->paginate(20);
+
+        return view('reports.system_audit_transfer_required_mismatch', compact('transferred_required_qty_mismatch'));
+	}
 }
