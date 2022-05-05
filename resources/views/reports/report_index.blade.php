@@ -172,6 +172,9 @@
                                     <tr>
                                         <td><a href="/audit_report/feedbacked_po_with_pending_ste" class="hover-class"><span style="padding-left:30px;line-height:25px;">Feedbacked Production Orders with Pending STE</span></a></td>
                                     </tr>
+                                    <tr>
+                                        <td><a href="/completed_so_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Sales Order with Pending Production Order</span></a></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

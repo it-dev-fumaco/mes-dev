@@ -748,6 +748,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/cancel_production_order_feedback/{stock_entry}', 'ManufacturingController@cancel_production_order_feedback');
 
 	Route::get('/checkWorkOrderItemQty', 'MainController@checkWorkOrderItemQty');
+	Route::get('/completed_so_with_pending_production_order', 'MainController@completedSoWithPendingProduction');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

@@ -6819,6 +6819,20 @@ class MainController extends Controller
 
 		$permissions = $this->get_user_permitted_operation();
 
-		return view('query_reports.inaccurate_work_order_item_qty', compact('query', 'query_grouped', 'permissions'));
+		return view('reports.inaccurate_work_order_item_qty', compact('query', 'query_grouped', 'permissions'));
     }
+
+	public function completedSoWithPendingProduction() {
+		$query = DB::connection('mysql')->table('tabWork Order as wo')
+			->join('tabSales Order as so', 'so.name', 'wo.sales_order_no')->where('wo.docstatus', 1)->where('so.docstatus', 1)
+			->where('so.per_delivered', 100)->where('wo.status', '!=', 'Completed')
+			->select('so.name', 'so.customer', 'wo.name as production_order', 'so.status as so_status', 'wo.production_item', 'wo.qty', 'wo.status as wo_status', 'wo.creation')
+			->orderBy('wo.creation', 'desc')->paginate(100);
+
+		$query_grouped = collect($query->items())->groupBy('name');
+
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('reports.completed_so_with_pending_po', compact('query', 'query_grouped', 'permissions'));
+	}
 }

@@ -23,7 +23,8 @@
                       <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
                    </td>
                    <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Report</h3>
+                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">System Audit Report
+                     </h3>
                    </td>
                 </tr>
              </table>
@@ -39,7 +40,7 @@
             <div class="pull-right font-weight-bold m-2">
                 Total Record(s): <span class="badge badge-primary" style="font-size: 12pt;">{{ $query->total() }}</span>
             </div>
-            <table class="table table-bordered" border="1">
+            <table class="table table-bordered">
                 <thead style="font-size: 7pt;">
                     <th class="text-center font-weight-bold" style="width: 10%;">Created On</th>
                     <th class="text-center font-weight-bold" style="width: 10%;">Prod. Order</th>
