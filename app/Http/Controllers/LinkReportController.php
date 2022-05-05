@@ -1590,4 +1590,13 @@ class LinkReportController extends Controller
 
         return view('reports.system_audit_transfer_required_mismatch', compact('transferred_required_qty_mismatch'));
 	}
+
+    public function overridden_production_orders(){
+        $overridden_job_tickets = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+            ->where('po.status', 'Completed')->where('jt.status', '!=', 'Completed')->where('jt.remarks', 'Override')
+            ->select('po.production_order', 'jt.job_ticket_id', 'jt.status', 'jt.created_by', 'jt.created_at')->orderBy('jt.created_at', 'desc')->paginate(20);
+
+        return view('reports.system_audit_overridden_po', compact('overridden_job_tickets'));
+    }
 }
