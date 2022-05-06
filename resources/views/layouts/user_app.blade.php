@@ -1364,10 +1364,12 @@
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
         $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
+        $('#change-required-qty-btn').addClass('d-none');
       } else {
         $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
         $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
         $('#change-required-qty-btn').removeAttr('readonly');
+        $('#change-required-qty-btn').removeClass('d-none');
       }
 
       $.ajax({
