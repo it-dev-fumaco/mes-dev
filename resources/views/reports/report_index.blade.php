@@ -182,7 +182,7 @@
                                         <td><a href="/production_inaccurate_material_transferred" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Orders with Stock Withdrawals but has incorrect Material Transferred for Manufacturing</span></a></td>
                                     </tr>
                                     <tr>
-                                        <td><a href="/audit_report/po_items_transferred_and_required_qty_is_matched" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Item Required Qty and Transferred Qty</span></a></td>
+                                        <td><a href="/audit_report/transferred_required_qty_mismatch" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Item Required Qty and Transferred Qty</span></a></td>
                                     </tr>
                                     <tr>
                                         <td><a href="/audit_report/overridden_production_orders" class="hover-class"><span style="padding-left:30px;line-height:25px;">Overridden Production Orders</span></a></td>
