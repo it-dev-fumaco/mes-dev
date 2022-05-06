@@ -168,7 +168,13 @@
 							<img src="http://athenaerp.fumaco.local/storage{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
-					<td class="text-justify {{ (!$component['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
+					@php
+						$for_add_item = '';
+						if($details->item_code != $component['item_code']) {
+							$for_add_item = 'for-add-item';
+						}
+					@endphp
+					<td class="text-justify {{ (!$component['is_alternative']) ? $for_add_item : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
 						<div class="d-block">
 							<span class="font-weight-bold item-code">{{ $component['item_code'] }}</span> 
@@ -379,7 +385,13 @@
 						@endif
 						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
-					<td class="text-justify {{ (!$part['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
+					@php
+					$for_add_item_part = '';
+					if($details->item_code != $part['item_code']) {
+						$for_add_item_part = 'for-add-item';
+					}
+				@endphp
+					<td class="text-justify {{ (!$part['is_alternative']) ? $for_add_item_part : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<div class="d-block">
 							<span class="font-weight-bold item-code">{{ $part['item_code'] }}</span> 

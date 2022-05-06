@@ -6994,12 +6994,10 @@ class MainController extends Controller
 					'timelogs_completed_qty' => $timelogs_completed_qty
 				];
 			}
-			
-			
 		}
 
 		$permissions = $this->get_user_permitted_operation();
-		
+
 		return view('reports.job_ticket_vs_time_logs_completed_qty', compact('job_ticket_data', 'job_ticket_query', 'permissions'));
 	}
 }
