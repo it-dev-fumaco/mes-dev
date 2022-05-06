@@ -4724,7 +4724,7 @@ class MainController extends Controller
 						}
 					}
 
-					DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)->where('item_code', $row['item_code'])->update(['consumed_qty' => $qty]);
+					DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)->where('item_code', $row['item_code'])->update(['consumed_qty' => $consumed_qty]);
 
 					$stock_entry_detail[] = [
 						'name' =>  uniqid(),
