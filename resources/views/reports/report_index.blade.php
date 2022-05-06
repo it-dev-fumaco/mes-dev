@@ -187,6 +187,9 @@
                                     <tr>
                                         <td><a href="/audit_report/overridden_production_orders" class="hover-class"><span style="padding-left:30px;line-height:25px;">Overridden Production Orders</span></a></td>
                                     </tr>
+                                    <tr>
+                                        <td><a href="/timelogOutputVsProducedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Timelogs Output vs Produced Qty for In Progress / Completed Production Orders</span></a></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

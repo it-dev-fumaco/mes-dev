@@ -6863,4 +6863,82 @@ class MainController extends Controller
 
 		return view('reports.production_inaccurate_material_transferred', compact('query', 'query_grouped', 'permissions'));
 	}
+
+	public function timelogOutputVsProducedQty() {
+		$production_query = DB::connection('mysql_mes')->table('production_order')
+			->whereIn('status', ['In Process', 'Completed'])->whereRaw('qty_to_manufacture > produced_qty')
+			->select('production_order', 'item_code', 'qty_to_manufacture', 'produced_qty', 'feedback_qty', 'status', 'created_at')
+			->orderBy('created_at', 'desc')
+			->paginate(100);
+
+		$production_orders = array_column($production_query->items(), 'production_order');
+
+		$job_ticket_query = DB::connection('mysql_mes')->table('job_ticket')->whereIn('production_order', $production_orders)
+			->select('production_order', 'workstation', 'process_id', 'status', 'good', 'completed_qty', 'job_ticket_id', 'remarks')->get();
+
+		$job_tickets = array_column($job_ticket_query->toArray(), 'job_ticket_id');
+
+		$job_ticket_query_grouped = collect($job_ticket_query)->groupBy('production_order')->toArray();
+
+		$time_logs_query = DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', $job_tickets)
+			->select('job_ticket_id', 'good', 'machine_code')->get();
+
+		$spotwelding_time_logs_query = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('job_ticket_id', $job_tickets)
+			->select('job_ticket_id', 'good', 'machine_code')->get();
+
+		$spotwelding_time_logs_data = [];
+		foreach ($spotwelding_time_logs_query as $row) {
+			$spotwelding_time_logs_data[$row->job_ticket_id][] = [
+				'good' => $row->good,
+				'machine_code' => $row->machine_code,
+			];
+		}
+
+		$time_logs_data = [];
+		foreach ($time_logs_query as $row) {
+			$time_logs_data[$row->job_ticket_id][] = [
+				'good' => $row->good,
+				'machine_code' => $row->machine_code,
+			];
+		}
+
+		$job_ticket_data = [];
+		foreach ($job_ticket_query as $row) {
+			if($row->workstation == 'Spotwelding') {
+				$time_logs = array_key_exists($row->job_ticket_id, $spotwelding_time_logs_data) ? $spotwelding_time_logs_data[$row->job_ticket_id] : [];
+			} else {
+				$time_logs = array_key_exists($row->job_ticket_id, $time_logs_data) ? $time_logs_data[$row->job_ticket_id] : [];
+			}
+			
+			$job_ticket_data[$row->production_order][] = [
+				'workstation' => $row->workstation,
+				'process_id' => $row->process_id,
+				'good' => $row->good,
+				'completed_qty' => $row->completed_qty,
+				'status' => $row->status,
+				'remarks' => $row->remarks,
+				'time_logs' => $time_logs
+			];
+		}
+
+		$data = [];
+		foreach ($production_query as $row) {
+			$data[] = [
+				'created_at' => $row->created_at,
+				'production_order' => $row->production_order,
+				'item_code' => $row->item_code,
+				'qty_to_manufacture' => $row->qty_to_manufacture,
+				'produced_qty' => $row->produced_qty,
+				'feedback_qty' => $row->feedback_qty,
+				'status' => $row->status,
+				'job_ticket' => array_key_exists($row->production_order, $job_ticket_data) ? $job_ticket_data[$row->production_order] : []
+			];
+		}
+
+		// return $data;
+
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('reports.timelog_output_vs_produced_qty', compact('production_query', 'data', 'permissions'));
+	}
 }
