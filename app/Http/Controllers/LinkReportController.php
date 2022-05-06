@@ -1538,7 +1538,7 @@ class LinkReportController extends Controller
             if(isset($erp_po[$po->production_order])){
                 $erp_status = $erp_po[$po->production_order][0]->status == 'In Process' ? 'In Progress' : $erp_po[$po->production_order][0]->status;
                 $erp_produced_qty = $erp_po[$po->production_order][0]->produced_qty * 1;
-                if($po->status != $erp_status or $po->feedback_qty != $erp_produced_qty){
+                if($po->status != $erp_status){
                     $mismatched_production_orders[] = [
                         'created_at' => $po->created_at,
                         'owner' => $po->created_by,
