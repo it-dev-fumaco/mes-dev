@@ -752,6 +752,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/completed_mreq_with_pending_production_order', 'MainController@completedMreqWithPendingProduction');
 	Route::get('/production_inaccurate_material_transferred', 'MainController@inaccurateProductionTransferredQtyWithWithdrawals');
 	Route::get('/timelogOutputVsProducedQty', 'MainController@timelogOutputVsProducedQty');
+	Route::get('/jobTicketCompletedQtyVsTimelogsCompletedQty', 'MainController@jobTicketCompletedQtyVsTimelogsCompletedQty');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

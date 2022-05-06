@@ -6935,10 +6935,71 @@ class MainController extends Controller
 			];
 		}
 
-		// return $data;
-
 		$permissions = $this->get_user_permitted_operation();
 
 		return view('reports.timelog_output_vs_produced_qty', compact('production_query', 'data', 'permissions'));
+	}
+
+	public function jobTicketCompletedQtyVsTimelogsCompletedQty() {
+		$job_ticket_query = DB::connection('mysql_mes')->table('job_ticket as jt')->join('production_order as po', 'po.production_order', 'jt.production_order')
+			->whereIn('jt.status', ['In Progress', 'Pending'])->whereNotIn('po.status', ['Cancelled'])
+			->select('jt.job_ticket_id', 'jt.production_order', 'jt.workstation', 'jt.good', 'jt.completed_qty', 'jt.status', 'jt.remarks', 'jt.created_at')
+			->orderBy('jt.created_at', 'desc')->get();
+
+		$job_tickets = array_column($job_ticket_query->toArray(), 'job_ticket_id');
+
+		$time_logs_query = DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', $job_tickets)
+			->select('job_ticket_id', 'good', 'machine_code')->get();
+
+		$spotwelding_time_logs_query = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('job_ticket_id', $job_tickets)
+			->selectRaw('SUM(good) as total_good, job_ticket_id')->groupBy('spotwelding_part_id', 'job_ticket_id')->get();
+	
+		$spotwelding_time_logs_data = [];
+		foreach ($spotwelding_time_logs_query as $row) {
+			$spotwelding_time_logs_data[$row->job_ticket_id][] = [
+				'good' => $row->total_good,
+				'machine_code' => null,
+			];
+		}
+
+		$time_logs_data = [];
+		foreach ($time_logs_query as $row) {
+			$time_logs_data[$row->job_ticket_id][] = [
+				'good' => $row->good,
+				'machine_code' => $row->machine_code,
+			];
+		}
+
+		$job_ticket_data = [];
+		foreach ($job_ticket_query as $row) {
+			if($row->workstation == 'Spotwelding') {
+				$time_logs = array_key_exists($row->job_ticket_id, $spotwelding_time_logs_data) ? $spotwelding_time_logs_data[$row->job_ticket_id] : [];
+				$timelogs_completed_qty = collect($time_logs)->min('good');
+			} else {
+				$time_logs = array_key_exists($row->job_ticket_id, $time_logs_data) ? $time_logs_data[$row->job_ticket_id] : [];
+
+				$timelogs_completed_qty = collect($time_logs)->sum('good');
+			}
+
+			if ($timelogs_completed_qty != $row->completed_qty) {
+				$job_ticket_data[] = [
+					'production_order' => $row->production_order,
+					'created_at' => $row->created_at,
+					'workstation' => $row->workstation,
+					'good' => $row->good,
+					'completed_qty' => $row->completed_qty,
+					'status' => $row->status,
+					'remarks' => $row->remarks,
+					'time_logs' => $time_logs,
+					'timelogs_completed_qty' => $timelogs_completed_qty
+				];
+			}
+			
+			
+		}
+
+		$permissions = $this->get_user_permitted_operation();
+		
+		return view('reports.job_ticket_vs_time_logs_completed_qty', compact('job_ticket_data', 'job_ticket_query', 'permissions'));
 	}
 }

@@ -88,7 +88,9 @@
                         </td>
                     </tr> 
                       @empty
-                          
+                          <tr>
+                             <td colspan="7" class="text-center font-weight-bold">No record(s) found.</td>
+                          </tr>
                       @endforelse
                 
                   </tbody>
