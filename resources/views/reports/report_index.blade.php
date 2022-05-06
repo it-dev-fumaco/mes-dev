@@ -190,6 +190,9 @@
                                     <tr>
                                         <td><a href="/timelogOutputVsProducedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Timelogs Output vs Produced Qty for In Progress / Completed Production Orders</span></a></td>
                                     </tr>
+                                    <tr>
+                                        <td><a href="/jobTicketCompletedQtyVsTimelogsCompletedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Job Ticket Completed Qty vs Timelogs Completed Qty for In Progress / Not Started Job Tickets</span></a></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
