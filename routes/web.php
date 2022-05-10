@@ -805,5 +805,6 @@ Route::get('/audit_report/mismatched_po_status', 'LinkReportController@mismatche
 Route::get('/audit_report/feedbacked_po_with_pending_ste', 'LinkReportController@feedbacked_po_with_pending_ste');
 Route::get('/audit_report/transferred_required_qty_mismatch', 'LinkReportController@transferred_required_qty_mismatch');
 Route::get('/audit_report/overridden_production_orders', 'LinkReportController@overridden_production_orders');
+Route::get('/audit_report/stocks_transferred_but_none_in_wip', 'LinkReportController@stocks_transferred_but_none_in_wip');
 
 Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');

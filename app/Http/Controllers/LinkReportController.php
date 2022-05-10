@@ -1599,4 +1599,63 @@ class LinkReportController extends Controller
 
         return view('reports.system_audit_overridden_po', compact('overridden_job_tickets'));
     }
+
+    public function stocks_transferred_but_none_in_wip(Request $request){
+        $warehouses = ['Work In Progress - FI', 'Assembly Warehouse - FI'];
+        $filter_warehouses = ['Work In Progress - FI', 'Assembly Warehouse - FI'];
+        if($request->warehouse){
+            $warehouses = [$request->warehouse];
+        }
+
+        $erp_po = DB::connection('mysql')->table('tabWork Order as wo')
+            ->join('tabWork Order Item as woi', 'woi.parent', 'wo.name')
+            ->when($request->search, function ($q) use ($request){
+                return $q->where('woi.item_code', 'LIKE', '%'.$request->search.'%');
+            })
+            ->where('wo.status', 'In Process')->whereIn('wo.wip_warehouse', $warehouses)
+            ->select('wo.name', 'wo.status', 'wo.wip_warehouse', 'woi.item_code', 'woi.transferred_qty', 'woi.required_qty', 'woi.stock_uom', 'wo.creation', 'wo.owner')
+            ->orderBy('creation', 'desc')->get();
+
+        $item_codes = collect($erp_po)->map(function ($q){
+            return $q->item_code;
+        })->unique();
+
+        // return $po_collection = collect($erp_po)->groupBy('item_code');
+        $po_collection = collect($erp_po)->groupBy('wip_warehouse')->transform(function($item, $k) {
+            return $item->groupBy('item_code');
+        });
+
+        $bin = DB::connection('mysql')->table('tabBin')->whereIn('warehouse', $warehouses)->whereIn('item_code', $item_codes)->select('warehouse', 'item_code', 'actual_qty', 'stock_uom', 'creation', 'owner')->orderBy('creation', 'desc')->get();
+
+        $bin_arr = [];
+        foreach($bin as $b){
+            if(isset($po_collection[$b->warehouse][$b->item_code]) and $b->actual_qty < $po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty')){
+                $bin_arr[] = [
+                    'item_code' => $b->item_code,
+                    'warehouse' => $b->warehouse,
+                    'actual_qty' => $b->actual_qty,
+                    'transferred_qty' => $po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty'),
+                    'uom' => $b->stock_uom,
+                    'production_orders' => $po_collection[$b->warehouse][$b->item_code],
+                    'creation' => Carbon::parse($b->creation)->format('M d, Y'),
+                    'owner' => $b->owner
+                ];
+            }
+        }
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        // Create a new Laravel collection from the array data3
+        $itemCollection = collect($bin_arr);
+        // Define how many items we want to be visible in each page
+        $perPage = 20;
+        // Slice the collection to get the items to display in current page
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
+        // Create our paginator and pass it to the view
+        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        // set url path for generted links
+        $paginatedItems->setPath($request->url());
+        $bin_arr = $paginatedItems;
+
+        return view('reports.system_audit_stocks_transferred_but_none_in_wip', compact('bin_arr', 'filter_warehouses'));
+    }
 }
