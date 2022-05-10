@@ -3095,6 +3095,25 @@ class MainController extends Controller
 			$this->update_job_card_status($job_card_id);
 		}
  
+
+		$count_time_logs = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+			->where('jt.workstation', '!=', 'Spotwelding')
+			->where('logs.job_ticket_id', $workstation->job_ticket_id)->count();
+
+		$count_time_logs += DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+			->where('jt.workstation', 'Spotwelding')->where('logs.job_ticket_id', $workstation->job_ticket_id)->count();
+
+		if ($count_time_logs <= 0) {
+			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $workstation->job_ticket_id)->update(['status' => 'Pending']);
+
+			$count_started_job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $workstation->production_order)->where('status', '!=', 'Pending')->count();
+			if ($count_started_job_ticket <= 0) {
+				DB::connection('mysql_mes')->table('production_order')->where('production_order', $workstation->production_order)->update(['status' => 'Not Started']);
+			}
+		}
+	
     	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
     }
 
