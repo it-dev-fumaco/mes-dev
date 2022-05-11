@@ -1057,6 +1057,8 @@ class ManufacturingController extends Controller
                         $operation = ($operation_query) ? $operation_query->operation_name : null;
                     }
                     // update existing records in bom operation, production order operation and job ticket table
+
+                    $username = Auth::user()->email ? Auth::user()->email : Auth::user()->employee_name;
                     if ($request->id[$x]) {
                         // update existing bom operation
                         DB::connection('mysql')->table('tabBOM Operation')
@@ -1064,7 +1066,7 @@ class ManufacturingController extends Controller
                             ->where(function($q) use ($request, $x) {
                                 $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                             })
-                            ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                            ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => $username]);
 
                         if ($request->production_order) {
                             // check if bom_operation_id exists in production order operation table
@@ -1076,8 +1078,8 @@ class ManufacturingController extends Controller
                                     'name' => 'mes'.uniqid(),
                                     'creation' => $now->toDateTimeString(),
                                     'modified' => $now->toDateTimeString(),
-                                    'modified_by' => Auth::user()->email,
-                                    'owner' => Auth::user()->email,
+                                    'modified_by' => $username,
+                                    'owner' => $username,
                                     'docstatus' => 1,
                                     'parent' => $request->production_order,
                                     'parentfield' => 'operations',
@@ -1109,7 +1111,7 @@ class ManufacturingController extends Controller
                                 ->where(function($q) use ($request, $x) {
                                     $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                                 })
-                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => $username]);
 
                             // check if bom operation id exists in job ticket table filtered by production order
                             $existing_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
@@ -1123,8 +1125,8 @@ class ManufacturingController extends Controller
                                         'process_id' => $request->wprocess[$x],
                                         'idx' => $x + 1,
                                         'bom_operation_id' => $request->id[$x],
-                                        'created_by' => Auth::user()->email,
-                                        'last_modified_by' => Auth::user()->email,
+                                        'created_by' => $username,
+                                        'last_modified_by' => $username,
                                     ]);
 
                                     $logs[] = [
@@ -1147,8 +1149,8 @@ class ManufacturingController extends Controller
                                             'process_id' => $painting_process,
                                             'idx' => $x + $i + 1,
                                             'bom_operation_id' => $request->id[$x],
-                                            'created_by' => Auth::user()->email,
-                                            'last_modified_by' => Auth::user()->email,
+                                            'created_by' => $username,
+                                            'last_modified_by' => $username,
                                         ]);
 
                                         $logs[] = [
@@ -1179,7 +1181,7 @@ class ManufacturingController extends Controller
                                         ]
                                     ];
     
-                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $username]);
                                 }
                             }
                         }
@@ -1190,8 +1192,8 @@ class ManufacturingController extends Controller
                             'name' => $new_bom_operation_id,
                             'creation' => $now->toDateTimeString(),
                             'modified' => $now->toDateTimeString(),
-                            'modified_by' => Auth::user()->email,
-                            'owner' => Auth::user()->email,
+                            'modified_by' => $username,
+                            'owner' => $username,
                             'docstatus' => 1,
                             'parent' => $bom,
                             'parentfield' => 'operations',
@@ -1211,8 +1213,8 @@ class ManufacturingController extends Controller
                                     'name' => 'mes'.uniqid(),
                                     'creation' => $now->toDateTimeString(),
                                     'modified' => $now->toDateTimeString(),
-                                    'modified_by' => Auth::user()->email,
-                                    'owner' => Auth::user()->email,
+                                    'modified_by' => $username,
+                                    'owner' => $username,
                                     'docstatus' => 1,
                                     'parent' => $request->production_order,
                                     'parentfield' => 'operations',
@@ -1244,7 +1246,7 @@ class ManufacturingController extends Controller
                                 ->where(function($q) use ($request, $x) {
                                     $q->where('process', '!=', $request->wprocess[$x])->orWhereNull('process');
                                 })
-                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                                ->update(['process' => $request->wprocess[$x], 'idx' => $x + 1, 'modified' => $now->toDateTimeString(), 'modified_by' => $username]);
 
                             // update existing job ticket
                             $jt_query = DB::connection('mysql_mes')->table('job_ticket')
@@ -1265,7 +1267,7 @@ class ManufacturingController extends Controller
                                         ]
                                     ];
     
-                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                                    $jt_query->update(['process_id' => $request->wprocess[$x], 'idx' => $x + 1, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $username]);
                                 }
                             }
 
@@ -1281,8 +1283,8 @@ class ManufacturingController extends Controller
                                         'process_id' => $request->wprocess[$x],
                                         'idx' => $x + 1,
                                         'bom_operation_id' => $new_bom_operation_id,
-                                        'created_by' => Auth::user()->email,
-                                        'last_modified_by' => Auth::user()->email,
+                                        'created_by' => $username,
+                                        'last_modified_by' => $username,
                                     ]);
 
                                     $logs[] = [
@@ -1306,8 +1308,8 @@ class ManufacturingController extends Controller
                                             'process_id' => $painting_process,
                                             'idx' => $x + $i + 1,
                                             'bom_operation_id' => $new_bom_operation_id,
-                                            'created_by' => Auth::user()->email,
-                                            'last_modified_by' => Auth::user()->email,
+                                            'created_by' => $username,
+                                            'last_modified_by' => $username,
                                         ]);
 
                                         $logs[] = [
@@ -1351,31 +1353,31 @@ class ManufacturingController extends Controller
                 // update status of production order in mes
                 DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $request->production_order)
-                    ->update(['status' => $status, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                    ->update(['status' => $status, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $username]);
                 // set status of production order in erp
                 $status = (in_array($status, ['In Progress', 'Completed'])) ? 'In Process' : $status;
                 // update status of production order in erp
                 DB::connection('mysql')->table('tabWork Order')
                     ->where('name', $request->production_order)
-                    ->update(['status' => $status, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                    ->update(['status' => $status, 'modified' => $now->toDateTimeString(), 'modified_by' => $username]);
 
                 $this->update_production_order_produced_qty($request->production_order);
 
-                $logs[] = ['production_order' => $request->production_order, 'user' => Auth::user()->email];
+                $logs[] = ['production_order' => $request->production_order, 'user' => $username];
 
                 // insert activity logs
                 if (isset($logs[0]['delete']) || isset($logs[0]['update']) || isset($logs[0]['add'])) {
                     DB::connection('mysql_mes')->table('activity_logs')->insert([
                         'action' => 'BOM Update',
                         'message' => json_encode($logs),
-                        'created_by' => Auth::user()->email
+                        'created_by' => $username
                     ]);
                 }
             }
 
             $this->update_job_card($request->production_order);
             // update bom as reviewed
-            DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => Auth::user()->email, 'last_date_reviewed' => $now->toDateTimeString()]);
+            DB::connection('mysql')->table('tabBOM')->where('name', $bom)->update(['is_reviewed' => 1, 'reviewed_by' => $username, 'last_date_reviewed' => $now->toDateTimeString()]);
            
             return response()->json(['status' => 1, 'message' => 'BOM updated and reviewed.']);
         } catch (Exception $e) {
