@@ -5909,7 +5909,7 @@ class MainController extends Controller
 							$st_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 								->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 								->where('ste.purpose', 'Material Transfer for Manufacture')->where('ste.docstatus', 0)
-								->where('ste.production_order', $production_order)->where('sted.item_code', $production_order_item->item_alternative_for)
+								->where('ste.work_order', $production_order)->where('sted.item_code', $production_order_item->item_alternative_for)
 								->pluck('ste.name');
 
 							DB::connection('mysql')->table('tabStock Entry Detail')
