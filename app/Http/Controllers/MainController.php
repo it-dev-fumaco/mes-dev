@@ -2687,6 +2687,11 @@ class MainController extends Controller
     // Operator
     public function operatorpage($id){
         $tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $id)
+		if (strtolower($id) == 'spotwelding') {
+			return redirect('/operator/Spotwelding');
+		}
+   
+		$tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $id)
 			->select('workstation_name', 'workstation_id', 'operation_id')->first();
 
 		$workstation_list = DB::connection('mysql_mes')->table('workstation')
