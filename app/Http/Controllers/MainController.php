@@ -1693,7 +1693,10 @@ class MainController extends Controller
 			})
 			->when($status != 'All' and in_array('Ready for Feedback', $status_array), function($q) use ($status_array){
 				$q->where('production_order.produced_qty', '>', 0)
-					->whereRaw('production_order.produced_qty > feedback_qty');
+					->where(function($q) {
+						$q->whereRaw('production_order.produced_qty > feedback_qty')
+							->orWhereRaw('production_order.qty_to_manufacture > feedback_qty');
+					});
 			})
 			->when($status != 'All' and in_array('Task Queue', $status_array), function($q){
 				$q->whereRaw('production_order.qty_to_manufacture > feedback_qty');
@@ -3098,7 +3101,6 @@ class MainController extends Controller
 
 			$this->update_job_card_status($job_card_id);
 		}
- 
 
 		$count_time_logs = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
