@@ -2686,7 +2686,6 @@ class MainController extends Controller
 	// END PPC STAFF
     // Operator
     public function operatorpage($id){
-        $tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $id)
 		if (strtolower($id) == 'spotwelding') {
 			return redirect('/operator/Spotwelding');
 		}
