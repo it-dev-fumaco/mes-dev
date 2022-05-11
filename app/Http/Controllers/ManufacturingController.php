@@ -2649,7 +2649,11 @@ class ManufacturingController extends Controller
                         // validate qty vs remaining required qty
                         $remaining_required_qty = $alternative_for->required_qty - $alternative_for->transferred_qty;
                         if($remaining_required_qty < $qty){
-                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than ' . $remaining_required_qty . ' for <b>' . $item_code .'</b>.']);
+                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
+                        }
+
+                        if (($remaining_required_qty - $qty) <= 0) {
+                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
                         }
 
                         $st_entries = DB::connection('mysql')->table('tabStock Entry as ste')
