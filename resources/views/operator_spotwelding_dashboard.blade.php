@@ -851,6 +851,13 @@
       var machine_code = $(this).data('machine-code');
       var process_id = $(this).data('process-id');
       var production_order = $('#scan-production-order-step2-modal .production-order').text();
+      var machine_status = $(this).data('status').toLowerCase();
+
+      if (machine_status == 'unavailable') {
+        showNotification("danger", 'Selected machine is currently unavailable. Please select another machine.', "now-ui-icons travel_info");
+        return false;
+      }
+
       $('#scan-production-order-step3-modal input[name="machine_code"]').val(machine_code);
       $('#scan-production-order-step3-modal input[name="production_order"]').val(production_order);
       $('#scan-production-order-step3-modal .production-order').text(production_order);
@@ -963,7 +970,7 @@
               color = '#C0392B';
             }
             
-            col += '<div class="col-md-4 selected-machine" data-machine-code="'+v.machine_code+'" data-process-id="' + v.process_id+'">' +
+            col += '<div class="col-md-4 selected-machine" data-machine-code="'+v.machine_code+'" data-process-id="' + v.process_id+'" data-status="' + v.status + '">' +
               '<div class="card" style="background-color: #1B4F72;">' +
               '<div class="card-body" style="padding-top: 0; padding-bottom: 0;">' +
               '<div class="row" style="border: 0px solid; ">' +
