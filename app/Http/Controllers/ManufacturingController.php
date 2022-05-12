@@ -2063,15 +2063,7 @@ class ManufacturingController extends Controller
                 ];
             }
 
-            // get transferred qty
-            // $transferred_qty = collect($references)->sum('qty');
-
             $available_qty_at_wip = $this->get_actual_qty($item->item_code, $details->wip_warehouse);
-            // $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-            //     ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            //     ->where('ste.work_order', $production_order)->whereNull('sted.t_warehouse')
-            //     ->where('sted.item_code', $item->item_code)->where('purpose', 'Manufacture')
-            //     ->where('ste.docstatus', 1)->sum('qty');
 
             $remaining_available_qty_at_wip = $item->transferred_qty - $item->consumed_qty;
             if($available_qty_at_wip > $remaining_available_qty_at_wip) {
@@ -3548,7 +3540,7 @@ class ManufacturingController extends Controller
                 $docstatus = ($item_status == 'Issued') ? $docstatus : 0;
 
                 if(!$pending_ste){
-                    $remaining_qty = $row->required_qty - $row->transferred_qty;
+                    $remaining_qty = $row->required_qty - ($row->transferred_qty - $row->returned_qty);
 
                     $issued_qty = DB::connection('mysql')->table('tabStock Entry as ste')
                         ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')

@@ -677,7 +677,7 @@ trait GeneralTrait
 
             $consumed_qty = $row->consumed_qty;
 
-            $balance_qty = ($row->transferred_qty - $consumed_qty);
+            $balance_qty = ($row->transferred_qty - $row->returned_qty) - $consumed_qty;
 
             $remaining_required_qty = ($fg_completed_qty - $balance_qty);
 
@@ -714,7 +714,7 @@ trait GeneralTrait
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
                     'required_qty' => $required_qty,
-                    'transferred_qty' => $row->transferred_qty,
+                    'transferred_qty' => $row->transferred_qty - $row->returned_qty,
                     'consumed_qty' => $consumed_qty,
                     'balance_qty' => $balance_qty,
                 ];
@@ -735,7 +735,7 @@ trait GeneralTrait
             if($remaining > 0){
                 $consumed_qty = $row->consumed_qty;
 
-                $balance_qty = ($row->transferred_qty - $consumed_qty);
+                $balance_qty = ($row->transferred_qty - $row->returned_qty) - $consumed_qty;
  
                 $required_qty = ($balance_qty > $remaining) ? $remaining : $balance_qty;
                 $required_qty = $qty_per_item * $required_qty;
