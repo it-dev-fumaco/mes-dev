@@ -681,14 +681,14 @@ trait GeneralTrait
 
             $remaining_required_qty = ($fg_completed_qty - $balance_qty);
 
+            $qty_per_item = $item_required_qty / $qty_to_manufacture;
+            $per_item = $qty_per_item * $fg_completed_qty;
+
             if($balance_qty <= 0 || $fg_completed_qty > $balance_qty){
-                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty);
+                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty, $qty_per_item);
             }else{
                 $alternative_items_qry = [];
             }
-
-            $qty_per_item = $item_required_qty / $qty_to_manufacture;
-            $per_item = $qty_per_item * $fg_completed_qty;
 
             $required_qty = ($balance_qty > $per_item) ? $per_item : $balance_qty;
 
@@ -724,7 +724,7 @@ trait GeneralTrait
         return $arr;
     }
 
-    public function get_alternative_items($production_order, $item_code, $remaining_required_qty){
+    public function get_alternative_items($production_order, $item_code, $remaining_required_qty, $qty_per_item){
         $q = DB::connection('mysql')->table('tabWork Order Item')
 			->where('parent', $production_order)->where('item_alternative_for', $item_code)
             ->orderBy('required_qty', 'asc')->get();
@@ -736,15 +736,17 @@ trait GeneralTrait
                 $consumed_qty = $row->consumed_qty;
 
                 $balance_qty = ($row->transferred_qty - $consumed_qty);
-                    
+ 
                 $required_qty = ($balance_qty > $remaining) ? $remaining : $balance_qty;
+                $required_qty = $qty_per_item * $required_qty;
+
                 $arr[] = [
                     'item_code' => $row->item_code,
                     'required_qty' => $required_qty,
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => $row->transferred_qty,
+                    'transferred_qty' => $row->transferred_qty - $row->returned_qty,
                     'consumed_qty' => $consumed_qty,
                     'balance_qty' => $balance_qty
                 ];
