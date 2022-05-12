@@ -2038,12 +2038,12 @@ class ManufacturingController extends Controller
                     'id' => null,
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
-                    'qty' => ($i->docstatus == 1) ? $i->qty : 0,
-                    'issued_qty' => ($i->docstatus == 1) ? $i->issued_qty : 0,
+                    'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
+                    'issued_qty' => ($i->docstatus == 1) ? ($i->issued_qty - $item->returned_qty) : 0,
                     'status' => ($i->docstatus == 1) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
-                    'requested_qty' => $i->qty,
+                    'requested_qty' => ($i->qty - $item->returned_qty),
                     'remarks' => $i->remarks
                 ];
             }
@@ -2064,16 +2064,16 @@ class ManufacturingController extends Controller
             }
 
             // get transferred qty
-            $transferred_qty = collect($references)->sum('qty');
+            // $transferred_qty = collect($references)->sum('qty');
 
             $available_qty_at_wip = $this->get_actual_qty($item->item_code, $details->wip_warehouse);
-            $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.work_order', $production_order)->whereNull('sted.t_warehouse')
-                ->where('sted.item_code', $item->item_code)->where('purpose', 'Manufacture')
-                ->where('ste.docstatus', 1)->sum('qty');
+            // $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+            //     ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+            //     ->where('ste.work_order', $production_order)->whereNull('sted.t_warehouse')
+            //     ->where('sted.item_code', $item->item_code)->where('purpose', 'Manufacture')
+            //     ->where('ste.docstatus', 1)->sum('qty');
 
-            $remaining_available_qty_at_wip = $transferred_qty - $consumed_qty;
+            $remaining_available_qty_at_wip = $item->transferred_qty - $item->consumed_qty;
             if($available_qty_at_wip > $remaining_available_qty_at_wip) {
                 $available_qty_at_wip = $remaining_available_qty_at_wip;
             }
@@ -2093,7 +2093,7 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $item->source_warehouse,
                     'required_qty' => $item->required_qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => $transferred_qty,
+                    'transferred_qty' => ($item->transferred_qty - $item->returned_qty),
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => $has_production_order->production_order,
                     'available_qty_at_wip' => $available_qty_at_wip,
@@ -2115,7 +2115,7 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $item->source_warehouse,
                     'required_qty' => $item->required_qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => $transferred_qty,
+                    'transferred_qty' => ($item->transferred_qty - $item->returned_qty),
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => null,
                     'available_qty_at_wip' => $available_qty_at_wip,
@@ -2127,7 +2127,7 @@ class ManufacturingController extends Controller
             }
         }
 
-        $required_items = array_merge($components, $parts);
+       $required_items = array_merge($components, $parts);
 
         // get returned / for return items linked with production order (stock entry material transfer)
         $item_returns = DB::connection('mysql')->table('tabStock Entry as ste')
@@ -2652,7 +2652,7 @@ class ManufacturingController extends Controller
                             return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
                         }
 
-                        if (($remaining_required_qty - $qty) <= 0) {
+                        if (($remaining_required_qty) <= 0) {
                             return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
                         }
 
