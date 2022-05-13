@@ -5943,9 +5943,15 @@ class MainController extends Controller
 					}
 				}
 
-				DB::connection('mysql')->table('tabWork Order Item')
-					->where('parent', $production_order)->where('item_code', $request->item_code)
-					->delete();
+				$is_with_alternative_item = DB::connection('mysql')->table('tabWork Order Item')
+					->where('parent', $production_order)->where('item_alternative_for', $production_order_item->item_code)
+					->first();
+
+				if (!$is_with_alternative_item) {
+					DB::connection('mysql')->table('tabWork Order Item')
+						->where('parent', $production_order)->where('item_code', $request->item_code)
+						->delete();
+				}
 			}
 			
 			DB::connection('mysql')->commit();
