@@ -3278,13 +3278,11 @@ class MainController extends Controller
 
 			$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				->where('job_ticket.production_order', '!=', $request->production_order)
 				->where('time_logs.operator_id', $request->operator_id)
 				->where('time_logs.status', 'In Progress')->first();
 
 			$operator_in_progress_spotwelding = DB::connection('mysql_mes')->table('job_ticket')
 				->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-				->where('job_ticket.production_order', '!=', $request->production_order)
 				->where('spotwelding_qty.operator_id', $request->operator_id)
 				->where('spotwelding_qty.status', 'In Progress')->first();
 
