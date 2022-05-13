@@ -253,7 +253,9 @@ class SpotweldingController extends Controller
 	}
 	
 	public function restart_task(Request $request){
-    	$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
+    	$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->where('time_log_id', $request->id)->first();
+			
     	DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->delete();
 
     	$existing = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -263,6 +265,26 @@ class SpotweldingController extends Controller
     		DB::connection('mysql_mes')->table('spotwelding_part')
     			->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->delete();
     	}
+
+		$existing_spotwelding_logs = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->exists();
+		if (!$existing_spotwelding_logs) {
+			DB::connection('mysql_mes')->table('job_ticket')
+    			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->update(['status' => 'Pending']);
+
+			$this->update_job_ticket($spotwelding_qty_det->job_ticket_id);
+
+			$jt = DB::connection('mysql_mes')->table('job_ticket')
+    			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->first();
+
+			if ($jt) {
+				$started_jt = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $jt->production_order)->where('status', '!=', 'Pending')->exists();
+				if (!$started_jt) {
+					DB::connection('mysql_mes')->table('production_order')
+						->where('production_order', $jt->production_order)->update(['status' => 'Not Started']);
+				}
+			}
+		}
+
     	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
     }
 

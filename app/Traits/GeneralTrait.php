@@ -30,6 +30,8 @@ trait GeneralTrait
         $job_ticket_actual_start_date = $logs->min('from_time');
         $job_ticket_actual_end_date = $logs->min('to_time');
 
+        $total_good = $total_good == null ? 0 : $total_good;
+
         // set job ticket status
         if($job_ticket_detail->qty_to_manufacture <= $total_good){
             $job_ticket_status = 'Completed';
