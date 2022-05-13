@@ -3247,6 +3247,10 @@ class MainController extends Controller
     		return response()->json(['success' => 0, 'message' => 'Production Order ' . $production_order . ' not found.']);
     	}
 
+		if ($production_order_details->status == 'Cancelled') {
+    		return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>CANCELLED</b>.']);
+    	}
+
     	$check_prod_workstation_exist = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
     		->where('workstation', $workstation)->first();
     	if (!$check_prod_workstation_exist) {
@@ -3296,6 +3300,10 @@ class MainController extends Controller
 				->where('machine_code', $request->machine_code)->first()->machine_name;
 				
 			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			if ($production_order->status == 'Cancelled') {
+				return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order->production_order . '</b> was <b>CANCELLED</b>.']);
+			}
+
 			$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->first();
 
 			$exploded_production_order = explode('-', $request->production_order);
