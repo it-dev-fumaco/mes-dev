@@ -744,7 +744,7 @@ trait GeneralTrait
                 // get total raw material qty for feedback qty
                 $per_item = $qty_per_item * $remaining_feedback_qty;
                 // check if balance qty <= 0
-                $balance_qty = round(($balance_qty <= 0) ? (float)$row->required_qty : $balance_qty, 5);
+                $balance_qty = round(($row->transferred_qty <= 0) ? (float)$row->required_qty : $balance_qty, 5);
                 // get raw material remaining qty
                 $remaining_required_qty = $per_item - $balance_qty;
 
@@ -761,7 +761,7 @@ trait GeneralTrait
                     'balance_qty' => $balance_qty,
                 ];
             
-                $remaining = $remaining - $balance_qty;
+                $remaining = ($remaining - $balance_qty);
                 $remaining_feedback_qty = $remaining_feedback_qty - round($balance_qty / $qty_per_item);
             }
         }
