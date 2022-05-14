@@ -680,8 +680,7 @@ trait GeneralTrait
             // get raw material qty per piece
             $qty_per_item = $item_required_qty / $qty_to_manufacture;
             // get raw material remaining qty
-            $balance_qty = round(((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty, 5);
-            $balance_qty = round(((float)$balance_qty <= 0) ? (float)$item_required_qty : $balance_qty, 5);
+            $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 5);
             // get total raw material qty for feedback qty
             $per_item = $qty_per_item * $fg_completed_qty;
             // get raw material remaining qty
@@ -741,11 +740,9 @@ trait GeneralTrait
         foreach ($q as $i => $row) {
             if($remaining > 0){
                 // get raw material remaining qty
-                $balance_qty = ((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty;
+                $balance_qty = ((float)$row->required_qty - (float)$row->consumed_qty);
                 // get total raw material qty for feedback qty
                 $per_item = $qty_per_item * $remaining_feedback_qty;
-                // check if balance qty <= 0
-                $balance_qty = round(((float)$row->transferred_qty <= 0) ? (float)$row->required_qty : $balance_qty, 5);
                 // get raw material remaining qty
                 $remaining_required_qty = $per_item - $balance_qty;
 

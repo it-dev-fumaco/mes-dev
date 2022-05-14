@@ -652,7 +652,7 @@
 							</td>
 							<td class="text-center p-2">
 								<span class="d-none production-order">{{ $log->production_order }}</span>
-								<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}">Cancel</button>
+								<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}" {{ ($log->status == 'Cancelled') ? 'disabled' : '' }}>Cancel</button>
 							</td>
 						</tr>
 						@endforeach
