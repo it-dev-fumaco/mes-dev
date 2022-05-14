@@ -1709,7 +1709,7 @@ class MainController extends Controller
 			->when(count($status_array) > 0 and in_array('Completed', $status_array), function($q) use ($mes_completed_production_orders){
 				$q->union($mes_completed_production_orders);
 			})
-			->orderBy('created_at', 'desc')
+			->orderBy('production_order.created_at', 'desc')
 			->paginate(10);
 
 		$filtered_production_orders = array_column($production_orders->items(), 'production_order');
@@ -5694,12 +5694,12 @@ class MainController extends Controller
                     'id' => null,
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
-                    'qty' => ($i->docstatus == 1) ? $i->qty : 0,
-                    'issued_qty' => ($i->docstatus == 1) ? $i->issued_qty : 0,
+                    'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
+                    'issued_qty' => ($i->docstatus == 1) ? ($i->issued_qty - $item->returned_qty) : 0,
                     'status' => ($i->docstatus == 1) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
-                    'requested_qty' => $i->qty,
+                    'requested_qty' => ($i->qty - $item->returned_qty),
                     'remarks' => $i->remarks
                 ];
             }
@@ -5749,7 +5749,7 @@ class MainController extends Controller
                     'source_warehouse' => $item->source_warehouse,
                     'required_qty' => $item->required_qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => $transferred_qty,
+					'transferred_qty' => ($item->transferred_qty - $item->returned_qty),
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => $has_production_order->production_order,
                     'available_qty_at_wip' => $available_qty_at_wip,
@@ -5771,7 +5771,7 @@ class MainController extends Controller
                     'source_warehouse' => $item->source_warehouse,
                     'required_qty' => $item->required_qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => $transferred_qty,
+                    'transferred_qty' => ($item->transferred_qty - $item->returned_qty),
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => null,
                     'available_qty_at_wip' => $available_qty_at_wip,
