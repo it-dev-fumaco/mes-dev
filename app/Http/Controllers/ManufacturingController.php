@@ -2119,7 +2119,7 @@ class ManufacturingController extends Controller
             }
         }
 
-       $required_items = array_merge($components, $parts);
+        $required_items = array_merge($components, $parts);
 
         // get returned / for return items linked with production order (stock entry material transfer)
         $item_returns = DB::connection('mysql')->table('tabStock Entry as ste')
@@ -3703,7 +3703,7 @@ class ManufacturingController extends Controller
                         
                         if ($docstatus == 1) {
                             $production_order_item = [
-                                'transferred_qty' => $row->required_qty
+                                'transferred_qty' => ($row->transferred_qty + $remaining_qty)
                             ];
             
                             DB::connection('mysql')->table('tabWork Order Item')->where('name', $row->name)->update($production_order_item);
@@ -3734,7 +3734,7 @@ class ManufacturingController extends Controller
                 } else {
                     if ($docstatus == 1) {
                         $production_order_item = [
-                            'transferred_qty' => $row->required_qty
+                            'transferred_qty' => ($row->transferred_qty + $remaining_qty)
                         ];
         
                         DB::connection('mysql')->table('tabWork Order Item')->where('name', $row->name)->update($production_order_item);

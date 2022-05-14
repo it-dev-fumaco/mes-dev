@@ -34,7 +34,7 @@
 	<col style="width: 10%;"><!-- Produced -->
 	<col style="width: 10%;"><!-- Feedbacked -->
 	<tr class="text-center">
-		<th>Prod. Order testing</th>
+		<th>Prod. Order</th>
 		<th>Reference No.</th>
 		<th>Customer</th>
 		<th>Project</th>
