@@ -719,7 +719,7 @@ trait GeneralTrait
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
                     'required_qty' => $required_qty,
-                    'transferred_qty' => ((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty,
+                    'transferred_qty' => ((float)$row->transferred_qty - (float)$row->returned_qty),
                     'consumed_qty' => (float)$row->consumed_qty,
                     'balance_qty' => $balance_qty,
                 ];
@@ -756,7 +756,7 @@ trait GeneralTrait
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => ((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty,
+                    'transferred_qty' => ((float)$row->transferred_qty - (float)$row->returned_qty),
                     'consumed_qty' => (float)$row->consumed_qty,
                     'balance_qty' => $balance_qty,
                 ];
