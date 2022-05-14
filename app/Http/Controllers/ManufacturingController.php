@@ -2032,6 +2032,8 @@ class ManufacturingController extends Controller
                 ->selectRaw('qty, s_warehouse, status, issued_qty, name, docstatus, parent, remarks')
                 ->get();
 
+            $transferred_qty = ($item->transferred_qty - $item->returned_qty);
+
             $withdrawals = [];
             foreach ($item_withdrawals as $i) {
                 $withdrawals[] = [
@@ -2039,8 +2041,8 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
                     'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
-                    'issued_qty' => ($i->docstatus == 1) ? ($i->issued_qty - $item->returned_qty) : 0,
-                    'status' => ($i->docstatus == 1) ? 'Issued' : 'For Checking',
+                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? ($i->issued_qty - $item->returned_qty) : 0,
+                    'status' => ($i->docstatus == 1 && $transferred_qty > 0) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
                     'requested_qty' => ($i->qty - $item->returned_qty),
@@ -2054,8 +2056,8 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $i->s_warehouse),
                     'qty' => ($i->docstatus == 1) ? $i->qty : 0,
-                    'issued_qty' => ($i->docstatus == 1) ? $i->issued_qty : 0,
-                    'status' => ($i->docstatus == 1) ? 'Issued' : 'For Checking',
+                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? $i->issued_qty : 0,
+                    'status' => ($i->docstatus == 1 && $transferred_qty > 0) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->parent,
                     'ste_docstatus' => $i->docstatus,
                     'requested_qty' => $i->qty,
@@ -2065,7 +2067,7 @@ class ManufacturingController extends Controller
 
             $available_qty_at_wip = $this->get_actual_qty($item->item_code, $details->wip_warehouse);
 
-            $remaining_available_qty_at_wip = $item->transferred_qty - $item->consumed_qty;
+            $remaining_available_qty_at_wip = $transferred_qty - $item->consumed_qty;
             if($available_qty_at_wip > $remaining_available_qty_at_wip) {
                 $available_qty_at_wip = $remaining_available_qty_at_wip;
             }
@@ -2085,7 +2087,7 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $item->source_warehouse,
                     'required_qty' => $item->required_qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => ($item->transferred_qty - $item->returned_qty),
+                    'transferred_qty' => $transferred_qty,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => $has_production_order->production_order,
                     'available_qty_at_wip' => $available_qty_at_wip,
@@ -2107,7 +2109,7 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $item->source_warehouse,
                     'required_qty' => $item->required_qty,
                     'stock_uom' => $item->stock_uom,
-                    'transferred_qty' => ($item->transferred_qty - $item->returned_qty),
+                    'transferred_qty' => $transferred_qty,
                     'actual_qty' => $this->get_actual_qty($item->item_code, $item->source_warehouse),
                     'production_order' => null,
                     'available_qty_at_wip' => $available_qty_at_wip,
