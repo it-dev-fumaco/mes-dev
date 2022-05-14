@@ -670,29 +670,32 @@ trait GeneralTrait
 
         $arr = [];
         foreach ($production_order_items_qry as $index => $row) {
-            $item_required_qty = $row->required_qty;
+            $item_required_qty = (float)$row->required_qty;
             $item_required_qty += DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $production_order)
                 ->where('item_alternative_for', $row->item_code)
                 ->whereNotNull('item_alternative_for')
                 ->sum('required_qty');
 
-            $consumed_qty = $row->consumed_qty;
-
-            $balance_qty = ($row->transferred_qty - $row->returned_qty) - $consumed_qty;
-
-            $remaining_required_qty = ($fg_completed_qty - $balance_qty);
-
+            // get raw material qty per piece
             $qty_per_item = $item_required_qty / $qty_to_manufacture;
+            // get raw material remaining qty
+            $balance_qty = round(((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty, 5);
+            // get total raw material qty for feedback qty
             $per_item = $qty_per_item * $fg_completed_qty;
+            // get raw material remaining qty
+            $remaining_required_qty = $per_item - $balance_qty;
+            // get remaining feedback qty
+            $remaining_fg_completed_qty = $fg_completed_qty - round($balance_qty / $qty_per_item);
 
-            if($balance_qty <= 0 || $fg_completed_qty > $balance_qty){
-                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty, $qty_per_item);
+            $alternative_items_qry = [];
+            if($balance_qty <= 0 || $remaining_required_qty > 0){
+                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty, $qty_per_item, $remaining_fg_completed_qty);
             }else{
                 $alternative_items_qry = [];
             }
 
-            $required_qty = ($balance_qty > $per_item) ? $per_item : $balance_qty;
+            $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 5);
 
             foreach ($alternative_items_qry as $ai_row) {
                 if ($ai_row['required_qty'] > 0) {
@@ -716,8 +719,8 @@ trait GeneralTrait
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
                     'required_qty' => $required_qty,
-                    'transferred_qty' => $row->transferred_qty - $row->returned_qty,
-                    'consumed_qty' => $consumed_qty,
+                    'transferred_qty' => ((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty,
+                    'consumed_qty' => (float)$row->consumed_qty,
                     'balance_qty' => $balance_qty,
                 ];
             }
@@ -726,21 +729,26 @@ trait GeneralTrait
         return $arr;
     }
 
-    public function get_alternative_items($production_order, $item_code, $remaining_required_qty, $qty_per_item){
+    public function get_alternative_items($production_order, $item_code, $remaining_required_qty, $qty_per_item, $remaining_fg_completed_qty){
         $q = DB::connection('mysql')->table('tabWork Order Item')
 			->where('parent', $production_order)->where('item_alternative_for', $item_code)
             ->orderBy('required_qty', 'asc')->get();
 
         $remaining = $remaining_required_qty;
+        $remaining_feedback_qty = $remaining_fg_completed_qty;
         $arr = [];
-        foreach ($q as $row) {
+        foreach ($q as $i => $row) {
             if($remaining > 0){
-                $consumed_qty = $row->consumed_qty;
+                // get raw material remaining qty
+                $balance_qty = ((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty;
+                // get total raw material qty for feedback qty
+                $per_item = $qty_per_item * $remaining_feedback_qty;
+                // check if balance qty <= 0
+                $balance_qty = round(($balance_qty <= 0) ? (float)$row->required_qty : $balance_qty, 5);
+                // get raw material remaining qty
+                $remaining_required_qty = $per_item - $balance_qty;
 
-                $balance_qty = ($row->transferred_qty - $row->returned_qty) - $consumed_qty;
- 
-                $required_qty = ($balance_qty > $remaining) ? $remaining : $balance_qty;
-                $required_qty = $qty_per_item * $required_qty;
+                $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 5);
 
                 $arr[] = [
                     'item_code' => $row->item_code,
@@ -748,12 +756,13 @@ trait GeneralTrait
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => $row->transferred_qty - $row->returned_qty,
-                    'consumed_qty' => $consumed_qty,
-                    'balance_qty' => $balance_qty
+                    'transferred_qty' => ((float)$row->transferred_qty - (float)$row->returned_qty) - (float)$row->consumed_qty,
+                    'consumed_qty' => (float)$row->consumed_qty,
+                    'balance_qty' => $balance_qty,
                 ];
-
+            
                 $remaining = $remaining - $balance_qty;
+                $remaining_feedback_qty = $remaining_feedback_qty - round($balance_qty / $qty_per_item);
             }
         }
 
