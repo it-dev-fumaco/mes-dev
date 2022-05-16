@@ -5007,6 +5007,10 @@ class MainController extends Controller
 						'status' => $status,
 						'remarks' => $remarks_override
 					];
+
+					if($remarks_override == 'Override') {
+						$production_data_mes['produced_qty'] = $manufactured_qty;
+					}
 				}else{
 					$production_data_mes = [
 						'last_modified_at' => $now->toDateTimeString(),
@@ -5014,6 +5018,10 @@ class MainController extends Controller
 						'feedback_qty' => $manufactured_qty,
 						'remarks' => $remarks_override
 					];
+					
+					if($remarks_override == 'Override') {
+						$production_data_mes['produced_qty'] = $manufactured_qty;
+					}
 				}
 
 				if($remarks_override == 'Override'){
