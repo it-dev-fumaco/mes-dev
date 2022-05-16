@@ -30,6 +30,7 @@ trait GeneralTrait
         $remarks = $job_ticket_detail->remarks;
         if ($job_ticket_detail->remarks == 'overall-spotwelding-reject') {
             $total_reject = $job_ticket_detail->reject;
+            $total_good = $job_ticket_detail->good;
             $remarks = null;
         }
 
