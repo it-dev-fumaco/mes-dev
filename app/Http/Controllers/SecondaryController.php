@@ -5784,7 +5784,7 @@ class SecondaryController extends Controller
                 'from_time' => ($log->from_time) ? Carbon::parse($log->from_time)->format('M-d-Y h:i A') : '--',
                 'to_time' => ($log->to_time) ? Carbon::parse($log->to_time)->format('M-d-Y h:i A') : '--',
                 'completed_qty' => $log->good,
-                'reject' => $log->reject,
+                'reject' => $log->reject ? $log->reject : 0,
                 'duration' => $dur_days .' '. $dur_hours . ' '. $dur_minutes .' '. $dur_seconds,
                 'status' => $log->status,
                 'machine' => $log->machine_code,
@@ -5792,7 +5792,7 @@ class SecondaryController extends Controller
                 'operator_name' => $log->operator_name
             ];
         }
-        $total_rejects = $prod->reject;
+        $total_rejects = $prod->reject ? $prod->reject : 0;
         return view('tables.tbl_spotwelding_production_order_search', compact('logs','task_list', 'total_rejects'));
     }
 
