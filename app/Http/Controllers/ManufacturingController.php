@@ -2630,6 +2630,10 @@ class ManufacturingController extends Controller
 
                 $qty = $request->quantity[$id];
 
+                if($qty <= 0) {
+                    return response()->json(['status' => 0, 'message' => 'Qty for item ' . $item_code . ' should be greater than 0.']);
+                }
+
                 $existing_production_item = DB::connection('mysql')->table('tabWork Order Item')
                     ->where('parent', $request->production_order)->where('item_code', $item_code)->first();
 
