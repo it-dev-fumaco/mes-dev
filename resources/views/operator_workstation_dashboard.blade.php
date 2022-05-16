@@ -544,6 +544,10 @@
     </div>
   </div>
 </div>
+
+<style>
+  [data-notify] { z-index: 9999 !important; }
+</style>
 @endsection
 
 @section('script')

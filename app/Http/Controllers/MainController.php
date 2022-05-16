@@ -3496,21 +3496,21 @@ class MainController extends Controller
 
 		if ($operator_in_progress_task) {
 			if ($operator_in_progress_task->production_order != $request->production_order) {
-				return response()->json(['success' => 0, 'message' => "Operator has in-progress task. <br>Production Order: <b>" . $operator_in_progress_task->production_order . "</b>"]);
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress production order in process '" . $operator_in_progress_task->workstation . "'"]);
 			}
 
 			if ($operator_in_progress_task->machine_code != $request->machine_code) {
-				return response()->json(['success' => 0, 'message' => "Operator has in-progress task in machine <b>" . $operator_in_progress_task->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_task->production_order . "</b>"]);
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress production order in machine <b>" . $operator_in_progress_task->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_task->production_order . "</b>"]);
 			}
 		}
 
 		if ($operator_in_progress_spotwelding) {
 			if ($operator_in_progress_spotwelding->production_order != $request->production_order) {
-				return response()->json(['success' => 0, 'message' => "Operator has in-progress task. <br>Production Order: <b>" . $operator_in_progress_spotwelding->production_order . "</b>"]);
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress production order in process '" . $operator_in_progress_spotwelding->workstation . "'"]);
 			}
 
 			if ($operator_in_progress_spotwelding->machine_code != $request->machine_code) {
-				return response()->json(['success' => 0, 'message' => "Operator has in-progress task in machine <b>" . $operator_in_progress_spotwelding->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_spotwelding->production_order . "</b>"]);
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress production order in machine <b>" . $operator_in_progress_spotwelding->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_spotwelding->production_order . "</b>"]);
 			}
 		}
 
