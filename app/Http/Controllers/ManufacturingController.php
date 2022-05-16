@@ -2209,6 +2209,10 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 2, 'message' => 'Production Order ' . $request->production_order . ' is already Completed.']);
             }
 
+            if($request->qty_to_return <= 0){
+                return response()->json(['status' => 0, 'message' => 'Quantity should be greater than 0']);
+            }
+
             if($request->qty_to_return > $request->qty){
                 return response()->json(['status' => 0, 'message' => 'Quantity cannot be greater than ' . $request->qty]);
             }
