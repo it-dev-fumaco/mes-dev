@@ -3473,12 +3473,11 @@ class MainController extends Controller
 	}
 
 	public function login_operator(Request $request){
-		if($request->operator_id < 3){
+		$machine_details = DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_code)->first();
+		if($machine_details && $machine_details->operation_id < 3){
 			$in_progress_operator_machine = DB::connection('mysql_mes')->table('time_logs')
-			->whereNotNull('operator_id')
-			->where('operator_id', '!=', $request->operator_id)
-			->where('machine_code', $request->machine_code)
-			->where('status', 'In Progress')->exists();
+				->whereNotNull('operator_id')->where('operator_id', '!=', $request->operator_id)
+				->where('machine_code', $machine_details->machine_code)->where('status', 'In Progress')->exists();
 		
 			if ($in_progress_operator_machine) {
 				return response()->json(['success' => 0, 'message' => "Machine is in use by another operator."]);
@@ -3487,23 +3486,32 @@ class MainController extends Controller
 
 		$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
 			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-			->where('job_ticket.production_order', '!=', $request->production_order)
-			// ->where('job_ticket.process_id', '!=', $request->process_id)
 			->where('time_logs.operator_id', $request->operator_id)
 			->where('time_logs.status', 'In Progress')->first();
 
 		$operator_in_progress_spotwelding = DB::connection('mysql_mes')->table('job_ticket')
 			->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-			->where('job_ticket.production_order', '!=', $request->production_order)
 			->where('spotwelding_qty.operator_id', $request->operator_id)
 			->where('spotwelding_qty.status', 'In Progress')->first();
 
 		if ($operator_in_progress_task) {
-			return response()->json(['success' => 0, 'message' => "Operator has in-progress task. " . $operator_in_progress_task->production_order]);
+			if ($operator_in_progress_task->production_order != $request->production_order) {
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress task. <br>Production Order: <b>" . $operator_in_progress_task->production_order . "</b>"]);
+			}
+
+			if ($operator_in_progress_task->machine_code != $request->machine_code) {
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress task in machine <b>" . $operator_in_progress_task->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_task->production_order . "</b>"]);
+			}
 		}
 
 		if ($operator_in_progress_spotwelding) {
-			return response()->json(['success' => 0, 'message' => "Operator has in-progress task. " . $operator_in_progress_spotwelding->production_order]);
+			if ($operator_in_progress_spotwelding->production_order != $request->production_order) {
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress task. <br>Production Order: <b>" . $operator_in_progress_spotwelding->production_order . "</b>"]);
+			}
+
+			if ($operator_in_progress_spotwelding->machine_code != $request->machine_code) {
+				return response()->json(['success' => 0, 'message' => "Operator has in-progress task in machine <b>" . $operator_in_progress_spotwelding->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_spotwelding->production_order . "</b>"]);
+			}
 		}
 
 		$job_ticket = DB::connection('mysql_mes')->table('job_ticket')
@@ -3541,7 +3549,7 @@ class MainController extends Controller
 		$status = $job_ticket_details->status;
 		$machine_code = $request->machine_code;
 
-		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->job_ticket_id)
+		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)
 			->where('operator_id', $operator_id)->first();
 
 		$exploded_production_order = explode('-', $request->production_order);
