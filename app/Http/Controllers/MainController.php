@@ -3302,6 +3302,10 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order->production_order . '</b> was <b>CANCELLED</b>.']);
 			}
 
+			if ($production_order->qty_to_manufacture == $production_order->feedback_qty) {
+				return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order->production_order . '</b> was already <b>COMPLETED</b>.']);
+			}
+
 			$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->first();
 
 			$exploded_production_order = explode('-', $request->production_order);
