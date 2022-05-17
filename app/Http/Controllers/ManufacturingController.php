@@ -2924,6 +2924,7 @@ class ManufacturingController extends Controller
                     'target_address_display' => null,
                     'work_order' => $request->production_order,
                     'purpose' => 'Material Transfer for Manufacture',
+                    'stock_entry_type' => 'Material Transfer for Manufacture',
                     'shipping_address_contact_person' => null,
                     'customer_1' => null,
                     'material_request' => $mes_production_order_details->material_request,
