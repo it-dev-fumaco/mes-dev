@@ -5661,7 +5661,7 @@ class MainController extends Controller
 
 			return view('tables.tbl_pending_material_transfer_for_manufacture', compact('message'));
 		}
-				
+
 		$q = DB::connection('mysql')->table('tabStock Entry as ste')
 			->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
 			->where('ste.work_order', $production_order)->where('purpose', 'Material Transfer for Manufacture')
@@ -5674,7 +5674,7 @@ class MainController extends Controller
             // get item stock based on feedbacked qty for housing and other items with sub assemblies
             $has_production_order = DB::connection('mysql_mes')->table('production_order')
                 ->where('item_code', $row->item_code)->where('parent_item_code', $production_order_details->parent_item_code)
-                ->where('sales_order', $production_order_details->sales_order)
+                ->where('sales_order', $production_order_details->sales_order)->where('status', '!=', 'Cancelled')
                 ->where('material_request', $production_order_details->material_request)
                 ->where('sub_parent_item_code', $production_order_details->item_code)->first();
 				
@@ -5684,7 +5684,7 @@ class MainController extends Controller
 			$available_qty_at_wip = DB::connection('mysql')->table('tabBin')->where('item_code', $row->item_code)
 				->where('warehouse', $row->t_warehouse)->sum('actual_qty');
 
-            if($has_production_order){
+            if($has_production_order && $production_order_details->bom_no != null){
                 $parts[] = [
 					'name' => $row->name,
 					'item_code' => $row->item_code,
@@ -5697,7 +5697,7 @@ class MainController extends Controller
 					'status' => $row->status,
 					'available_qty_at_source' => $available_qty_at_source * 1,
 					'available_qty_at_wip' => $available_qty_at_wip * 1,
-                    'production_order' => $has_production_order->production_order,
+                    'production_order' => $has_production_order,
                 ];
             }else{
                 $components[] = [
@@ -5739,7 +5739,7 @@ class MainController extends Controller
             // get item stock based on feedbacked qty for housing and other items with sub assemblies
             $has_production_order = DB::connection('mysql_mes')->table('production_order')
                 ->where('item_code', $item->item_code)->where('parent_item_code', $production_order_details->parent_item_code)
-                ->where('sales_order', $production_order_details->sales_order)
+                ->where('sales_order', $production_order_details->sales_order)->where('status', '!=', 'Cancelled')
                 ->where('material_request', $production_order_details->material_request)
                 ->where('sub_parent_item_code', $production_order_details->item_code)->first();
 
@@ -5810,7 +5810,7 @@ class MainController extends Controller
 
             $is_alternative = ($item->item_alternative_for && $item->item_alternative_for != 'new_item') ? 1 : 0;
 
-            if($has_production_order){
+            if($has_production_order && $production_order_details->bom_no != null){
                 $tab_parts[] = [
                     'name' => $item->name,
                     'idx' => $item->idx,

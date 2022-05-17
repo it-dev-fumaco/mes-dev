@@ -2042,7 +2042,7 @@ class ManufacturingController extends Controller
             // get item stock based on feedbacked qty for housing and other items with sub assemblies
             $has_production_order = DB::connection('mysql_mes')->table('production_order')
                 ->where('item_code', $item->item_code)->where('parent_item_code', $details->parent_item_code)
-                ->where('sales_order', $details->sales_order)
+                ->where('sales_order', $details->sales_order)->where('status', '!=', 'Cancelled')
                 ->where('material_request', $details->material_request)
                 ->where('sub_parent_item_code', $details->item_code)->first();
 
@@ -2157,7 +2157,7 @@ class ManufacturingController extends Controller
 
             $is_alternative = ($item->item_alternative_for && $item->item_alternative_for != 'new_item') ? 1 : 0;
 
-            if($has_production_order){
+            if($has_production_order && $details->bom_no != null){
                 $parts[] = [
                     'name' => $item->name,
                     'idx' => $item->idx,
