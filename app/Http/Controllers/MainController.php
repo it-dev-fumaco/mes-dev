@@ -4726,6 +4726,37 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Materials unavailable.']);
 			}
 
+			$item_codes = array_column($production_order_items, 'item_code');
+			$stock_reservation = DB::connection('mysql')->table('tabStock Reservation')->whereIn('item_code', $item_codes)
+				->where('warehouse', $production_order_details->wip_warehouse)->where('status', 'Active')
+				->selectRaw('SUM(reserve_qty) as total_reserved_qty, SUM(consumed_qty) as total_consumed_qty, item_code')
+				->groupBy('item_code', 'warehouse')->get();
+
+			$stock_reservation = collect($stock_reservation)->groupBy('item_code')->toArray();
+	
+			$ste_total_issued = DB::table('tabStock Entry Detail')->where('docstatus', 0)->where('status', 'Issued')
+				->whereIn('item_code', $item_codes)->where('s_warehouse', $production_order_details->wip_warehouse)
+				->selectRaw('SUM(qty) as total_issued, item_code')->groupBy('item_code', 's_warehouse')->get();
+
+			$ste_total_issued = collect($ste_total_issued)->groupBy('item_code')->toArray();
+	
+			$at_total_issued = DB::table('tabAthena Transactions as at')
+				->join('tabPacking Slip as ps', 'ps.name', 'at.reference_parent')
+				->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
+				->join('tabDelivery Note as dr', 'ps.delivery_note', 'dr.name')
+				->whereIn('at.reference_type', ['Packing Slip', 'Picking Slip'])
+				->where('dr.docstatus', 0)->where('ps.docstatus', '<', 2)
+				->where('psi.status', 'Issued')->whereIn('at.item_code', $item_codes)
+				->whereIn('psi.item_code', $item_codes)->where('at.source_warehouse', $production_order_details->wip_warehouse)
+				->selectRaw('SUM(at.issued_qty) as total_issued, at.item_code')
+				->groupBy('at.item_code', 'at.source_warehouse')->get();
+	
+			$at_total_issued = collect($at_total_issued)->groupBy('item_code')->toArray();
+
+
+
+
+
 			$stock_entry_detail = [];
 			foreach ($production_order_items as $index => $row) {
 				$bom_material = DB::connection('mysql')->table('tabBOM Item')
@@ -4762,6 +4793,29 @@ class MainController extends Controller
 
 					$actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $row['item_code'])
 						->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
+						
+					$reserved_qty = 0;
+					if (array_key_exists($row['item_code'], $stock_reservation)) {
+						$reserved_qty = $stock_reservation[$row['item_code']][0]->total_reserved_qty;
+					}
+		
+					$consumed_qty = 0;
+					if (array_key_exists($row['item_code'], $stock_reservation)) {
+						$consumed_qty = $stock_reservation[$row['item_code']][0]->total_consumed_qty;
+					}
+		
+					$reserved_qty = $reserved_qty - $consumed_qty;
+		
+					$issued_qty = 0;
+					if (array_key_exists($row['item_code'], $ste_total_issued)) {
+						$issued_qty = $ste_total_issued[$row['item_code']][0]->total_issued;
+					}
+		
+					if (array_key_exists($row['item_code'], $at_total_issued)) {
+						$issued_qty += $at_total_issued[$row['item_code']][0]->total_issued;
+					}
+		
+					$actual_qty = ($actual_qty - $issued_qty) - $reserved_qty;
 
 					if($docstatus == 1){
 						$production_order_details_mes = DB::connection('mysql_mes')->table('production_order')
