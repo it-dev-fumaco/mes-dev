@@ -352,7 +352,6 @@ class SpotweldingController extends Controller
 							'last_modified_by' => Auth::user()->employee_name,
 							'completed_qty' => $total_good,
 							'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0'),
-							'remarks' => 'overall-spotwelding-reject'
 						];
 						
 						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id',$request->id)->update($update_jt);

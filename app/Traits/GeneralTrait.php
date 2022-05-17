@@ -26,12 +26,10 @@ trait GeneralTrait
 
         // get total good, total reject, actual start and end date
         $total_good = ($job_ticket_detail->workstation == 'Spotwelding') ? $total_good_spotwelding->min('total_good') : $logs->sum('good');
-        $total_reject = ($job_ticket_detail->workstation == 'Spotwelding') ? $total_good_spotwelding->min('total_reject') : $logs->sum('reject');
+        $total_reject = ($job_ticket_detail->workstation == 'Spotwelding') ? $job_ticket_detail->reject : $logs->sum('reject');
         $remarks = $job_ticket_detail->remarks;
-        if ($job_ticket_detail->remarks == 'overall-spotwelding-reject') {
-            $total_reject = $job_ticket_detail->reject;
-            $total_good = $job_ticket_detail->good;
-            $remarks = null;
+        if ($job_ticket_detail->workstation == 'Spotwelding') {
+            $total_good = $total_good - $total_reject;
         }
 
         $job_ticket_actual_start_date = $logs->min('from_time');
@@ -55,7 +53,6 @@ trait GeneralTrait
             'status' => $job_ticket_status,
             'actual_start_date' => $job_ticket_actual_start_date,
             'actual_end_date' => $job_ticket_actual_end_date,
-            'remarks' => $remarks
         ];
 
         DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->update($job_ticket_values);
