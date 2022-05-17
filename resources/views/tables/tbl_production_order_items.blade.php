@@ -186,7 +186,7 @@
 						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ is_float($component['available_qty_at_wip']) ? number_format($component['available_qty_at_wip'], 4) : $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
@@ -219,7 +219,7 @@
 						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
-						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ is_float($a['actual_qty']) ? number_format($a['actual_qty'], 4) : $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
@@ -280,7 +280,7 @@
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
-						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ is_float($component['actual_qty']) ? number_format($component['actual_qty'], 4) : $component['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold badge badge-danger" style="font-size: 10pt;">{{ $component['transferred_qty'] * 1 }}</span>
@@ -401,7 +401,7 @@
 						</div>
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ is_float($part['available_qty_at_wip']) ? number_format($part['available_qty_at_wip'], 4) : $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
@@ -434,7 +434,7 @@
 						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
-						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ is_float($a['actual_qty']) ? number_format($a['actual_qty'], 4) : $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
