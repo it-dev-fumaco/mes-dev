@@ -2093,6 +2093,7 @@ class ManufacturingController extends Controller
                 $actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $item->item_code)->where('warehouse', $i->s_warehouse)->sum('actual_qty');
     
                 $actual_qty = ($actual_qty - $issued_qty) - $reserved_qty;
+                $actual_qty = $actual_qty < 0 ? 0 : $actual_qty;
 
                 $withdrawals[] = [
                     'id' => null,
@@ -2133,6 +2134,7 @@ class ManufacturingController extends Controller
                 $actual_qty = DB::connection('mysql')->table('tabBin')->where('item_code', $item->item_code)->where('warehouse', $i->s_warehouse)->sum('actual_qty');
     
                 $actual_qty = ($actual_qty - $issued_qty) - $reserved_qty;
+                $actual_qty = $actual_qty < 0 ? 0 : $actual_qty;
 
                 $withdrawals[] = [
                     'id' => $i->name,
