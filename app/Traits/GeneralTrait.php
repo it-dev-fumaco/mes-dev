@@ -10,7 +10,7 @@ trait GeneralTrait
         // get job ticket detail
         $job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-            ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status')->first();
+            ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no')->first();
 
         if(!$job_ticket_id){
             return 0;
@@ -22,20 +22,32 @@ trait GeneralTrait
         $logs = collect($logs);
 
         $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')->get();
+			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
+            ->where('status', 'Completed')->get();
 
         // get total good, total reject, actual start and end date
-        $total_good = ($job_ticket_detail->workstation == 'Spotwelding') ? $total_good_spotwelding->min('total_good') : $logs->sum('good');
-        $total_reject = ($job_ticket_detail->workstation == 'Spotwelding') ? $job_ticket_detail->reject : $logs->sum('reject');
-        $remarks = $job_ticket_detail->remarks;
         if ($job_ticket_detail->workstation == 'Spotwelding') {
-            $total_good = $total_good - $total_reject;
-        }
+            $bom_parts = DB::connection('mysql')->table('tabBOM Item')->where('parent', $job_ticket_detail->bom_no)->count();
+            $processed_parts = DB::connection('mysql_mes')->table('spotwelding_part')->join('spotwelding_qty', 'spotwelding_qty.spotwelding_part_id', 'spotwelding_part.spotwelding_part_id')
+                ->where('spotwelding_qty.job_ticket_id', $job_ticket_id)->distinct()->pluck('spotwelding_part.part_code');
 
+            if ($bom_parts == count($processed_parts)) {
+                $total_good = $total_good_spotwelding->min('total_good');
+            } else {
+                $total_good = 0;
+            }
+
+            $total_reject = $job_ticket_detail->reject;
+        } else {
+            $total_good = $logs->sum('good');
+            $total_reject = $logs->sum('reject');
+        }
+        
         $job_ticket_actual_start_date = $logs->min('from_time');
         $job_ticket_actual_end_date = $logs->min('to_time');
 
         $total_good = $total_good == null ? 0 : $total_good;
+        $total_good = $total_good < 0 ? 0 : $total_good;
 
         // set job ticket status
         if($job_ticket_detail->qty_to_manufacture <= $total_good){
