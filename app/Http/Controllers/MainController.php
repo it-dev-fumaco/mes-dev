@@ -1550,12 +1550,32 @@ class MainController extends Controller
 		
 		$filtered_production_orders = [];
 		$statuses = [];
+		$inactive_production_orders = [];
 		// Not Started / Cancelled
 		if(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array)){
 			$inactive_status = [in_array('Not Started', $status_array) ? 'Not Started' : '', in_array('Cancelled', $status_array) ? 'Cancelled' : ''];
-			$not_started = DB::connection('mysql_mes')->table('production_order')->whereIn('status', array_filter($inactive_status))->pluck('production_order');
+			// $not_started = DB::connection('mysql_mes')->table('production_order')->whereIn('status', array_filter($inactive_status))->pluck('production_order');
 
-			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($not_started));
+			// $filtered_production_orders = collect($filtered_production_orders)->merge(collect($not_started));
+
+			$inactive_production_orders = DB::connection('mysql_mes')->table('production_order')
+				->leftJoin('delivery_date', function($join)
+				{
+					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+				})
+				->where(function($q) use ($request) {
+					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.sales_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.material_request', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
+				})
+				->whereIn('production_order.status', array_filter($inactive_status))
+				->whereIn('production_order.operation_id', $user_permitted_operation_id)
+				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
+				->orderBy('production_order.created_at', 'desc');
 
 			if(!in_array($status, ['All', 'Production Orders'])){
 				$statuses = array_merge($statuses, $inactive_status);
@@ -1695,7 +1715,7 @@ class MainController extends Controller
 				$q->where('production_order.produced_qty', '>', 0)
 					->where(function($q) {
 						$q->whereRaw('production_order.produced_qty > feedback_qty')
-							->orWhereRaw('production_order.qty_to_manufacture > feedback_qty');
+							->whereRaw('production_order.qty_to_manufacture > feedback_qty');
 					});
 			})
 			->when($status != 'All' and in_array('Task Queue', $status_array), function($q){
@@ -1708,6 +1728,9 @@ class MainController extends Controller
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 			->when(count($status_array) > 0 and in_array('Completed', $status_array), function($q) use ($mes_completed_production_orders){
 				$q->union($mes_completed_production_orders);
+			})
+			->when(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array), function($q) use ($inactive_production_orders){
+				$q->union($inactive_production_orders);
 			})
 			->orderBy('created_at', 'desc')
 			->paginate(10);
@@ -1749,7 +1772,7 @@ class MainController extends Controller
 
 			if (in_array($row->status, ['Completed', 'In Progress'])) {
 				if($prod_status != 'In Progress') {
-					if ($row->feedback_qty < $row->produced_qty) {
+					if ($row->feedback_qty == 0 and $row->produced_qty == $row->qty_to_manufacture) {
 						$prod_status = 'For Feedback';
 					}
 
@@ -1760,7 +1783,7 @@ class MainController extends Controller
 					if ($row->feedback_qty >= $row->qty_to_manufacture) {
 						$prod_status = 'Feedbacked';
 					}else{
-						if (isset(collect($manufacture_entry)[$row->production_order]) && $prod_status != 'On Queue') {
+						if (isset(collect($manufacture_entry)[$row->production_order]) && $prod_status != 'On Queue' && $row->feedback_qty > 0 && $row->feedback_qty < $row->qty_to_manufacture) {
 							$prod_status = 'Partially Feedbacked';
 						}
 					}
