@@ -134,7 +134,7 @@
 							<tr>
 								<td colspan="3">
 									<div class="text-center">
-										<span class="text-center d-block mt-3 mb-3">Current Stock: <b>{{ number_format($actual_qty) }}</b> {{ $production_order_details->stock_uom }}</span>
+										<span class="text-center d-block mt-3 mb-3">Current Stock: <b>{{ number_format($current_stocks) }}</b> {{ $production_order_details->stock_uom }}</span>
 									</div>
 								</td>
 							</tr>

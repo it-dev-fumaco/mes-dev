@@ -6005,9 +6005,12 @@ class MainController extends Controller
         $end_date = ($from_time) ? Carbon::parse($to_time)->format('m-d-Y h:i A') : '--';
         $duration = $dur_days .' '. $dur_hours . ' '. $dur_minutes . ' '. $dur_seconds;
 
+		$item_to_manufacture = DB::connection('mysql')->table('tabBin')->where('item_code', $production_order_details->item_code)->where('warehouse', $production_order_details->fg_warehouse)->first();
+		$current_stocks = $item_to_manufacture ? $item_to_manufacture->actual_qty : 0;
+
         $fast_issuance_warehouse = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->pluck('warehouse')->toArray();
         $is_fast_issuance_user = DB::connection('mysql_mes')->table('fast_issuance_user')->where('user_access_id', Auth::user()->user_id)->exists();
-		return view('tables.tbl_pending_material_transfer_for_manufacture', compact('components', 'parts', 'tab_components', 'tab_parts', 'list', 'url', 'production_order_details', 'actual_qty','feedbacked_logs','required_items', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user'));
+		return view('tables.tbl_pending_material_transfer_for_manufacture', compact('components', 'parts', 'tab_components', 'tab_parts', 'list', 'url', 'production_order_details', 'actual_qty','feedbacked_logs','required_items', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'current_stocks'));
 	}
 
 	public function get_actual_qty($item_code, $warehouse){
