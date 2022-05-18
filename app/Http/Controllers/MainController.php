@@ -4704,6 +4704,16 @@ class MainController extends Controller
 			$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
 				->where('production_order', $production_order)->first();
 
+			$operation_details = DB::connection('mysql_mes')->table('operation')->where('operation_id', $mes_production_order_details->operation_id)->first();
+			if ($operation_details) {
+				if (str_contains(strtolower($operation_details->operation_name), 'assembly')) {
+					$total_feedback_qty = $mes_production_order_details->feedback_qty + $request->fg_completed_qty;
+					if ($total_feedback_qty > $mes_production_order_details->qty_to_manufacture) {
+						return response()->json(['success' => 0, 'message' => '<center>Feedback Qty should not be greater than <b>' . $mes_production_order_details->qty_to_manufacture . '</b>.']);
+					}
+				}
+			}
+
 			$remarks_override = null;
 			if($produced_qty > $mes_production_order_details->produced_qty){
 				$remarks_override = 'Override';
@@ -4756,10 +4766,6 @@ class MainController extends Controller
 				->groupBy('at.item_code', 'at.source_warehouse')->get();
 	
 			$at_total_issued = collect($at_total_issued)->groupBy('item_code')->toArray();
-
-
-
-
 
 			$stock_entry_detail = [];
 			foreach ($production_order_items as $index => $row) {
