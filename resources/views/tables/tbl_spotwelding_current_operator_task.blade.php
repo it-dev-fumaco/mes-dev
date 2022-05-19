@@ -146,21 +146,18 @@
 					</div>
 					<div class="col-md-12 p-0 mt-2" style="font-size: 8pt;">
 						<table class="table table-bordered">
-							<col style="width: 34%;">
-							<col style="width: 10%;">
-							<col style="width: 8%;">
-							<col style="width: 8%;">
-							<col style="width: 20%;">
-							<col style="width: 10%;">
+							<col style="width: 30%;">
+							<col style="width: 15%;">
+							<col style="width: 15%;">
+							<col style="width: 30%;">
 							<col style="width: 10%;">
 							<tbody>
 								<tr>
 									<th class="text-center">PROCESS</th>
 									<th class="text-center">MACHINE</th>
 									<th class="text-center">GOOD</th>
-									<th class="text-center">REJECT</th>
 									<th class="text-center">OPERATOR</th>
-									<th class="text-center" colspan="2">ACTIONS</th>
+									<th class="text-center">ACTIONS</th>
 								</tr>
 								@forelse($logs as $log)
 								<tr style="font-size: 10pt;" class="{{ ($log['status'] == 'In Progress') ? 'blink-bg' : '' }}">
@@ -177,21 +174,11 @@
 										<span class="d-block font-italic" style="font-size: 8pt;">{{ ($log['status'] == 'Completed') ? $log['duration'] : '-' }}</span>
 									</td>
 									<td class="text-center">{{ $log['completed_qty'] }}</td>
-									<td class="text-center">{{ $log['reject'] }}</td>
 									<td class="text-center">{{ $log['operator_name'] }}</td>
 									<td class="text-center p-1">
 										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress' || $log['status'] == 'In Progress') ? 'disabled' : '' }} {{ $continue_btn }}>
 											<i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i>
 											<span class="d-block" style="font-size: 8pt;">Continue</span>
-										</button>
-									</td>
-									<td class="text-center p-1">
-										@php
-											$disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
-										@endphp
-										<button type="button" class="btn btn-block enter-reject-btn rounded-0" data-id="{{ $row['time_log_id'] }}" data-processid={{$row['process_id']}}  data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="1" style="height: 60px; background-color: #C62828;">
-											<i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i>
-											<span class="d-block" style="font-size: 8pt;">Reject</span>
 										</button>
 									</td>
 								</tr>

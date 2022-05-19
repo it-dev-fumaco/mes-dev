@@ -3991,133 +3991,7 @@ class SecondaryController extends Controller
 
         return view('item_status_tracking');
     }
-    public function get_item_status_tracking(Request $request){
-
-        $production_orders = DB::connection('mysql_mes')->table('production_order AS po')
-                ->whereNotIn('status', ['Cancelled'])
-                ->where('parent_item_code', '!=', null)
-                ->select('sales_order', 'material_request', 'parent_item_code')
-                ->groupBy('sales_order','material_request', 'parent_item_code')
-                ->orderBy('created_at', 'desc')
-                ->get();
-                // dd($production_orders);
-        $production_order_list = [];
-
-            foreach ($production_orders as $row) {
-                $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order;
-               
-                    $production_order_list[] = [
-                        'guide_id' => $guide_id,
-                        'item' => $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code)
-                    ];
-                
-            }
-        // $array = collect($production_order_list)->sortBy('item')->reverse()->toArray();
-        // dd($production_order_list);
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($production_order_list);
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $so_item_list = $paginatedItems;
-
-        return view('tables.tbl_item_list_for_tracking', compact('so_item_list'));
-    }
-    public function get_so_item_list($sales_order, $material_request,$parent_item_code){
-        if ($sales_order != null) {
-            $erp_item = DB::connection('mysql')->table('tabSales Order Item as sotbl')
-                    ->join('tabSales Order as so', 'so.name', 'sotbl.parent')
-                    ->join('tabItem as item', 'item.name', 'sotbl.item_code')
-                    ->where('sotbl.item_code', $parent_item_code)
-                    ->where('sotbl.parent', $sales_order)
-                    // ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation')
-                    ->get();
-        }else{
-            $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
-                    ->join('tabMaterial Request as so', 'so.name', 'sotbl.parent')
-                    ->join('tabItem as item', 'item.name', 'sotbl.item_code')
-                    ->where('sotbl.item_code', $parent_item_code)
-                    ->where('sotbl.parent', $material_request)
-                    // ->where('item.item_group', '!=', 'Raw Material')
-                    ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation')
-                    ->get();
-        }
-        
-                    $production_order_list = [];
-                    foreach ($erp_item as $row) {
-                       $production_order_list[] = [
-                        'sales_order' => $row->sales_order,
-                        'item_code' => $row->item_code,
-                        'description' => $row->description,
-                        'customer' => $row->customer,
-                        'delivery_date' => $row->delivery_date,
-                        'qty' => $row->qty,
-                        'project' => $row->project,
-                        'creation' => $row->creation
-                    ];
-            }
-            // dd($parent_item_code);
-            return $production_order_list;
-                    
-
-    }
-    public function get_search_information_details(Request $request){
-        try {
-            $production_orders = DB::connection('mysql_mes')->table('production_order AS po')
-                ->whereNotIn('status', ['Cancelled'])
-                // ->where('parent_item_code', '!=', null)
-                ->where(function($q) use ($request) {
-                    $q->Where('customer', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
-                })
-                ->select('sales_order', 'material_request', 'customer', 'parent_item_code')
-                ->groupBy('sales_order','material_request', 'customer', 'parent_item_code')
-                ->get();
-
-            $production_order_list = [];
-            foreach ($production_orders as $row) {
-                $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order; 
-                $function_function= $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code);
-
-                    $production_order_list[] = [
-                        'guide_id' => $guide_id,
-                        'item' => $this->get_so_item_list($row->sales_order,$row->material_request, $row->parent_item_code)
-                    ];
-                
-            }
-            $array = collect($production_order_list)->sortBy('created_at')->reverse()->toArray();
-            // Get current page form url e.x. &page=1
-            $currentPage = LengthAwarePaginator::resolveCurrentPage();
-            // Create a new Laravel collection from the array data
-            $itemCollection = collect($production_order_list);
-            // Define how many items we want to be visible in each page
-            $perPage = 10;
-            // Slice the collection to get the items to display in current page
-            $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-            // Create our paginator and pass it to the view
-            $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-            // set url path for generted links
-            $paginatedItems->setPath($request->url());
-
-            $so_item_list = $paginatedItems;
-
-            return view('tables.tbl_item_list_for_tracking', compact('so_item_list'));
-        } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
-        }
-    }
+      
 
     public function get_bom_tracking($guide_id, $itemcode){
         $boms = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)->where('docstatus', '<', 2)
@@ -5784,7 +5658,7 @@ class SecondaryController extends Controller
                 'from_time' => ($log->from_time) ? Carbon::parse($log->from_time)->format('M-d-Y h:i A') : '--',
                 'to_time' => ($log->to_time) ? Carbon::parse($log->to_time)->format('M-d-Y h:i A') : '--',
                 'completed_qty' => $log->good,
-                'reject' => $log->reject,
+                'reject' => $log->reject ? $log->reject : 0,
                 'duration' => $dur_days .' '. $dur_hours . ' '. $dur_minutes .' '. $dur_seconds,
                 'status' => $log->status,
                 'machine' => $log->machine_code,
@@ -5792,7 +5666,7 @@ class SecondaryController extends Controller
                 'operator_name' => $log->operator_name
             ];
         }
-        $total_rejects = $prod->reject;
+        $total_rejects = $prod->reject ? $prod->reject : 0;
         return view('tables.tbl_spotwelding_production_order_search', compact('logs','task_list', 'total_rejects'));
     }
 

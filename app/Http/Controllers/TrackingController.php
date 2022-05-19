@@ -30,119 +30,178 @@ class TrackingController extends Controller
         return view('item_status_tracking');
     }
     public function get_item_status_tracking(Request $request){
-
-        $production_orders = DB::connection('mysql_mes')->table('production_order AS po')
-            ->whereNotIn('status', ['Cancelled'])
-            ->where('parent_item_code', '!=', null)
+        $query = DB::connection('mysql_mes')->table('delivery_date as dd')
+            ->join('production_order as po', DB::raw('IFNULL(po.sales_order, po.material_request)'), 'dd.reference_no')
+            ->whereNotIn('po.status', ['Cancelled'])
+            ->where('dd.parent_item_code', '!=', null)
             ->where(function($q) use ($request) {
-                $q->Where('customer', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
+                $q->Where('po.customer', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('po.sales_order', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('po.material_request', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('po.parent_item_code', 'LIKE', '%'.$request->search_string.'%')
+                    ->orWhere('po.project', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->select('sales_order', 'material_request')
-            ->groupBy('sales_order','material_request')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->selectRaw('dd.reference_no, po.customer, dd.parent_item_code, po.project, CAST(dd.delivery_date AS CHAR) as delivery_date, CAST(dd.rescheduled_delivery_date AS CHAR) as rescheduled_delivery_date, dd.erp_reference_id')
+            ->groupBy('dd.reference_no', 'po.customer', 'dd.parent_item_code', 'po.project', 'dd.delivery_date', 'dd.rescheduled_delivery_date', 'dd.erp_reference_id')
+            ->orderBy('po.created_at', 'desc')->paginate(10);
 
         if($request->get_total){
-            return ['div' => '#item-tracking-total', 'total' => number_format($production_orders->total())];
+            return ['div' => '#item-tracking-total', 'total' => number_format($query->total())];
         }
 
-        $so_item_list = [];
-        foreach ($production_orders as $row) {
-            $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order;
-            $so_item_list[] = [
-                'guide_id' => $guide_id,
-                'item' => $this->get_so_item_list($row->sales_order,$row->material_request)
-            ];
-        }
-
-        return view('tables.tbl_item_list_for_tracking', compact('so_item_list', 'production_orders'));
-    }
-    public function get_so_item_list($sales_order, $material_request){
-        if ($sales_order != null) {
-            $erp_item = DB::connection('mysql')->table('tabSales Order Item as sotbl')
-                ->join('tabSales Order as so', 'so.name', 'sotbl.parent')
-                ->join('tabItem as item', 'item.name', 'sotbl.item_code')
-                ->where('sotbl.parent', $sales_order)
-                ->where('item.item_group', '!=', 'Raw Material')
-                ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
-                ->distinct('sotbl.parent')->get();
-        }else{
-            $erp_item = DB::connection('mysql')->table('tabMaterial Request Item as sotbl')
-                ->join('tabMaterial Request as so', 'so.name', 'sotbl.parent')
-                ->join('tabItem as item', 'item.name', 'sotbl.item_code')
-                ->where('sotbl.parent', $material_request)
-                ->where('item.item_group', '!=', 'Raw Material')
-                ->select('sotbl.parent as sales_order', 'sotbl.item_code as item_code', 'sotbl.description as description', 'so.customer as customer', 'so.delivery_date as delivery_date', 'so.project', 'sotbl.qty', 'so.creation', 'sotbl.rescheduled_delivery_date', 'sotbl.name')
-                ->distinct('sotbl.parent')->get();
-        }
+        $erp_reference_ids = array_column($query->items(), 'erp_reference_id');
     
-        $production_order_list = [];
-        foreach ($erp_item as $row) {
-            $reference = explode('-', $row->sales_order)[0];
-            $po = DB::connection('mysql_mes')->table('production_order')
-                ->where('parent_item_code', $row->item_code)->where('sub_parent_item_code', $row->item_code)->where('item_code', $row->item_code)
-                ->when($reference == 'SO', function($q) use ($row){
-                    return $q->where('sales_order', $row->sales_order);
-                })
-                ->when($reference == 'MREQ', function($q) use ($row){
-                    return $q->where('material_request', $row->sales_order);
-                })->select('production_order', 'bom_no')->first();
+        $sales_order_item = DB::connection('mysql')->table('tabSales Order Item')
+            ->whereIn('name', $erp_reference_ids)
+            ->select('description', 'qty', 'name')
+            ->get()->toArray();
 
-            $production_order = $po ? $po->production_order : null;
-            $bom_no = $po ? $po->bom_no : null;
+        $material_request_item = DB::connection('mysql')->table('tabMaterial Request Item')
+            ->whereIn('name', $erp_reference_ids)
+            ->select('description', 'qty', 'name')
+            ->get()->toArray();
+
+        $sales_order_items = collect($sales_order_item)->groupBy('name')->toArray();
+        $material_request_items = collect($material_request_item)->groupBy('name')->toArray();
+
+        $references = array_unique(array_column($query->items(), 'reference_no'));
+        $order_items = array_column($query->items(), 'parent_item_code');
+
+        $production_order_detail = DB::connection('mysql_mes')->table('production_order')
+            ->where(function($q) use ($references) {
+                $q->whereIn('sales_order', $references)
+                    ->orWhere('material_request', $references);
+            })
+            ->whereIn('item_code', $order_items)
+            ->selectRaw('CONCAT(IFNULL(sales_order, material_request), item_code) as id, production_order, bom_no')
+            ->get();
+
+        $production_order_detail = collect($production_order_detail)->groupBy('id')->toArray();
+
+        $production_order_list = [];
+        foreach ($query as $row) {
+            $item_description =  $production_order = $bom_no = null;
+            $qty = 0;
+            $reference_prefix = explode('-', $row->reference_no)[0];
+            if ($reference_prefix == 'SO') {
+                if (array_key_exists($row->erp_reference_id, $sales_order_items)) {
+                    $item_description = $sales_order_items[$row->erp_reference_id][0]->description;
+                    $qty = $sales_order_items[$row->erp_reference_id][0]->qty;
+                }
+            } else {
+                if (array_key_exists($row->erp_reference_id, $material_request_items)) {
+                    $item_description = $material_request_items[$row->erp_reference_id][0]->description;
+                    $qty = $material_request_items[$row->erp_reference_id][0]->qty;
+                }
+            }
+
+            $prod_key = $row->reference_no . $row->parent_item_code;
+            if (array_key_exists($prod_key, $production_order_detail)) {
+                $production_order = $production_order_detail[$prod_key][0]->production_order;
+                $bom_no = $production_order_detail[$prod_key][0]->bom_no;
+            }
 
             $production_order_list[] = [
-                'sales_order' => $row->sales_order,
-                'item_code' => $row->item_code,
-                'description' => $row->description,
+                'reference_no' => $row->reference_no,
+                'item_code' => $row->parent_item_code,
+                'description' => $item_description,
                 'customer' => $row->customer,
-                'delivery_date' => ($row->rescheduled_delivery_date == null)?  $row->delivery_date :$row->rescheduled_delivery_date,
-                'qty' => $row->qty,
+                'delivery_date' => ($row->rescheduled_delivery_date == null) ? $row->delivery_date : $row->rescheduled_delivery_date,
+                'qty' => $qty,
                 'project' => $row->project,
-                'creation' => $row->creation,
-                'erp_reference_no' => $row->name,
+                'erp_reference_no' => $row->erp_reference_id,
                 'production_order' => $production_order,
                 'bom_no' => $bom_no,
             ];
-
-            // 46844
         }
-        
-        return $production_order_list;
+
+        return view('tables.tbl_item_list_for_tracking', compact('query', 'production_order_list'));
     }
+  
     public function get_search_information_details(Request $request){
         try {
-            $production_orders = DB::connection('mysql_mes')->table('production_order AS po')
-                ->whereNotIn('status', ['Cancelled'])
-                ->where('parent_item_code', '!=', null)
+            $query = DB::connection('mysql_mes')->table('delivery_date as dd')
+                ->join('production_order as po', DB::raw('IFNULL(po.sales_order, po.material_request)'), 'dd.reference_no')
+                ->whereNotIn('po.status', ['Cancelled'])
+                ->where('dd.parent_item_code', '!=', null)
                 ->where(function($q) use ($request) {
-                    $q->Where('customer', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('parent_item_code', 'LIKE', '%'.$request->search_string.'%')
-                        ->orWhere('project', 'LIKE', '%'.$request->search_string.'%');
+                    $q->Where('po.customer', 'LIKE', '%'.$request->search_string.'%')
+                        ->orWhere('po.sales_order', 'LIKE', '%'.$request->search_string.'%')
+                        ->orWhere('po.material_request', 'LIKE', '%'.$request->search_string.'%')
+                        ->orWhere('po.parent_item_code', 'LIKE', '%'.$request->search_string.'%')
+                        ->orWhere('po.project', 'LIKE', '%'.$request->search_string.'%');
                 })
-                ->select('sales_order', 'material_request', 'customer')
-                ->groupBy('sales_order','material_request', 'customer')
-                ->paginate(10);
+                ->selectRaw('dd.reference_no, po.customer, dd.parent_item_code, po.project, CAST(dd.delivery_date AS CHAR) as delivery_date, CAST(dd.rescheduled_delivery_date AS CHAR) as rescheduled_delivery_date, dd.erp_reference_id')
+                ->groupBy('dd.reference_no', 'po.customer', 'dd.parent_item_code', 'po.project', 'dd.delivery_date', 'dd.rescheduled_delivery_date', 'dd.erp_reference_id')
+                ->orderBy('po.created_at', 'desc')->paginate(10);
 
-            $so_item_list = [];
-            foreach ($production_orders as $row) {
-                $guide_id = ($row->sales_order == null) ? $row->material_request : $row->sales_order; 
-                $function_function= $this->get_so_item_list($row->sales_order,$row->material_request);
+            $erp_reference_ids = array_column($query->items(), 'erp_reference_id');
 
-                    $so_item_list[] = [
-                        'guide_id' => $guide_id,
-                        'item' => $this->get_so_item_list($row->sales_order,$row->material_request)
-                    ];
-                
+            $sales_order_item = DB::connection('mysql')->table('tabSales Order Item')
+                ->whereIn('name', $erp_reference_ids)
+                ->select('description', 'qty', 'name')
+                ->get()->toArray();
+
+            $material_request_item = DB::connection('mysql')->table('tabMaterial Request Item')
+                ->whereIn('name', $erp_reference_ids)
+                ->select('description', 'qty', 'name')
+                ->get()->toArray();
+
+            $sales_order_items = collect($sales_order_item)->groupBy('name')->toArray();
+            $material_request_items = collect($material_request_item)->groupBy('name')->toArray();
+
+            $references = array_unique(array_column($query->items(), 'reference_no'));
+            $order_items = array_column($query->items(), 'parent_item_code');
+
+            $production_order_detail = DB::connection('mysql_mes')->table('production_order')
+                ->where(function($q) use ($references) {
+                    $q->whereIn('sales_order', $references)
+                        ->orWhere('material_request', $references);
+                })
+                ->whereIn('item_code', $order_items)
+                ->selectRaw('CONCAT(IFNULL(sales_order, material_request), item_code) as id, production_order, bom_no')
+                ->get();
+
+            $production_order_detail = collect($production_order_detail)->groupBy('id')->toArray();
+
+            $production_order_list = [];
+            foreach ($query as $row) {
+                $item_description =  $production_order = $bom_no = null;
+                $qty = 0;
+                $reference_prefix = explode('-', $row->reference_no)[0];
+                if ($reference_prefix == 'SO') {
+                    if (array_key_exists($row->erp_reference_id, $sales_order_items)) {
+                        $item_description = $sales_order_items[$row->erp_reference_id][0]->description;
+                        $qty = $sales_order_items[$row->erp_reference_id][0]->qty;
+                    }
+                } else {
+                    if (array_key_exists($row->erp_reference_id, $material_request_items)) {
+                        $item_description = $material_request_items[$row->erp_reference_id][0]->description;
+                        $qty = $material_request_items[$row->erp_reference_id][0]->qty;
+                    }
+                }
+
+                $prod_key = $row->reference_no . $row->parent_item_code;
+                if (array_key_exists($prod_key, $production_order_detail)) {
+                    $production_order = $production_order_detail[$prod_key][0]->production_order;
+                    $bom_no = $production_order_detail[$prod_key][0]->bom_no;
+                }
+
+                $production_order_list[] = [
+                    'reference_no' => $row->reference_no,
+                    'item_code' => $row->parent_item_code,
+                    'description' => $item_description,
+                    'customer' => $row->customer,
+                    'delivery_date' => ($row->rescheduled_delivery_date == null) ? $row->delivery_date : $row->rescheduled_delivery_date,
+                    'qty' => $qty,
+                    'project' => $row->project,
+                    'erp_reference_no' => $row->erp_reference_id,
+                    'production_order' => $production_order,
+                    'bom_no' => $bom_no,
+                ];
             }
 
-            return view('tables.tbl_item_list_for_tracking', compact('so_item_list', 'production_orders'));
+            return view('tables.tbl_item_list_for_tracking', compact('query', 'production_order_list'));
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }

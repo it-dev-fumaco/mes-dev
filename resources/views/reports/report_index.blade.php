@@ -154,6 +154,52 @@
                             </tbody>
                         </table>
                       </div>
+                      @if (in_array('Production Manager', $user_groups->toArray()))
+                        <div class="col-md-12"  style="margin-top:70px;">
+                            <table style= "width:100%;">
+                                <thead  style="">
+                                    <tr style="">
+                                        <th><span style="font-size:13.5pt;padding-left:30px;">System Audit Report</span> </th>
+                                    </tr>
+                                </thead>
+                                <tbody style=" padding-left:30px; text-align:left;">
+                                    <tr>
+                                        <td><a href="/audit_report/mismatched_po_status" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Status</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/checkWorkOrderItemQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Prod. Orders with Inaccurate Required, Transferred and Consumed Qty</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/audit_report/feedbacked_po_with_pending_ste" class="hover-class"><span style="padding-left:30px;line-height:25px;">Feedbacked Production Orders with Pending STE</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/completed_so_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Sales Order with Pending Production Order</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/completed_mreq_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Material Request with Pending Production Order</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/production_inaccurate_material_transferred" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Orders with Stock Withdrawals but has incorrect Material Transferred for Manufacturing</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/audit_report/transferred_required_qty_mismatch" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Item Required Qty and Transferred Qty</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/audit_report/overridden_production_orders" class="hover-class"><span style="padding-left:30px;line-height:25px;">Overridden Production Orders</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/timelogOutputVsProducedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Timelogs Output vs Produced Qty for In Progress / Completed Production Orders</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/jobTicketCompletedQtyVsTimelogsCompletedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Job Ticket Completed Qty vs Timelogs Completed Qty for In Progress / Not Started Job Tickets</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/audit_report/stocks_transferred_but_none_in_wip" class="hover-class"><span style="padding-left:30px;line-height:25px;">Stocks Transferred but No Available in Assembly/Work in Progress</span></a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                      @endif
                    </div>
                 </div>
             </div>

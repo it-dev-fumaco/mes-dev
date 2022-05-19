@@ -19,43 +19,27 @@
       <th colspan="2" class="text-center"><b>Actions</b></th>
     </thead>
     <tbody>
-      @forelse($so_item_list as $r)
-       @foreach($r['item'] as $rows)
+      @forelse($production_order_list as $row)
       <tr>
-        <td class="text-center" style="font-weight: bold; font-size: 15pt;">
-          {{$rows['sales_order']}}
-        </td>
+        <td class="text-center" style="font-weight: bold; font-size: 15pt;">{{ $row['reference_no'] }}</td>
+        <td class="text-center">{{ $row['customer'] }}</td>
+        <td class="text-center">{{ $row['item_code'] }}</td>
+        <td class="text-center">{!! str_limit($row['description'], $limit = 100, $end = '...') !!}</td>
+        <td class="text-center">{{ number_format($row['qty']) }}</td>
+        <td class="text-center">{{ $row['project'] }}</td>
+        <td class="text-center">{{ $row['delivery_date'] }}</td>
         <td class="text-center">
-          {{$rows['customer']}}
-        </td>
-        <td class="text-center">
-          {{$rows['item_code']}}
-        </td>
-        <td class="text-center">
-          {!! str_limit($rows['description'], $limit = 100, $end = '...') !!}
-        </td>
-        <td class="text-center">
-          {{ number_format($rows['qty']) }} 
-        </td>
-        <td class="text-center">
-          {{$rows['project']}}
-        </td>
-        <td class="text-center">
-          {{$rows['delivery_date']}}
-        </td>
-        <td class="text-center">
-          @if ($rows['production_order'] && $rows['bom_no'] == null)
-          <button class="btn btn-info btn-icon btn-round prod-details-btn" data-jtno="{{ $rows['production_order'] }}">
+          @if ($row['production_order'] && $row['bom_no'] == null)
+          <button class="btn btn-info btn-icon btn-round prod-details-btn" data-jtno="{{ $row['production_order'] }}">
             <i class="now-ui-icons ui-1_zoom-bold" style="font-size: 15pt;"></i>
           </button>
           @else
-          <button class="btn btn-info btn-icon btn-round btn_trackmodal" data-itemcode="{{$rows['item_code']}}" data-guideid="{{$r['guide_id']}}" data-erpreferenceno="{{$rows['erp_reference_no']}}" data-customer="{!! str_limit($rows['customer'], $limit = 50, $end = '...') !!}">
+          <button class="btn btn-info btn-icon btn-round btn_trackmodal" data-itemcode="{{$row['item_code']}}" data-guideid="{{$row['reference_no']}}" data-erpreferenceno="{{$row['erp_reference_no']}}" data-customer="{!! str_limit($row['customer'], $limit = 50, $end = '...') !!}">
             <i class="now-ui-icons ui-1_zoom-bold" style="font-size: 15pt;"></i>
           </button>
           @endif
         </td>
       </tr>
-      @endforeach
       @empty
       <tr>
         <td class="text-center" colspan="9">No Production Order(s) found.</td>
@@ -64,9 +48,8 @@
     </tbody>
   </table>
   </div>
-  
   <center>
     <div class="col-md-12 text-center tbl_item_list_pagination" id="tbl_item_list_pagination">
-     {{ $production_orders->links() }}
+     {{ $query->links() }}
     </div>
   </center>

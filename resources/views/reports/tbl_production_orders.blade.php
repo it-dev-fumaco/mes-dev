@@ -95,7 +95,9 @@
                 @if($r['status'] == 'Feedbacked')
                 <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
                 @else
+                @if(!in_array($r['status'], ['Cancelled', 'Feedbacked']))
                 <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedback</a>
+                @endif
                 @endif
                 @if(in_array($r['status'], ['Partially Feedbacked', 'Feedbacked']))
                   <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['production_order'] }}" href="#">Print Transfer Slip</a>

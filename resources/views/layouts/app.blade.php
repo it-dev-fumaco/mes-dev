@@ -139,6 +139,8 @@
       font-weight: bolder;
       font-size: 18pt;
     }
+
+    [data-notify] { z-index: 9999 !important; }
   </style>
 
   <!--   Core JS Files   -->

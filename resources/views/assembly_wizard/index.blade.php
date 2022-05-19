@@ -833,6 +833,7 @@
                if (bom.length > 0) {
                   $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
                }
+               window.location.hash = '#next';
             },
             error: function(jqXHR, textStatus, errorThrown) {
                if(jqXHR.status == 401) {
@@ -944,6 +945,8 @@
          $('#parts-production-tbl tbody').append(row);
    
          $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+
+         window.location.hash = '#next';
       });
 
       $(document).on('click', '#submit-bom-review-btn', function(){
@@ -1083,6 +1086,7 @@
                if (production_order.length > 0) {
                   $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
                }
+               window.location.hash = '#next';
             },
             error: function(jqXHR, textStatus, errorThrown) {
                if(jqXHR.status == 401) {
@@ -1132,6 +1136,8 @@
                $('#planning-summary-div').html(data);
 
                $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               
+               window.location.hash = '#next';
             },
             error: function(jqXHR, textStatus, errorThrown) {
                if(jqXHR.status == 401) {

@@ -156,7 +156,7 @@
               <span class="navbar-toggler-bar bar3"></span>
             </button>
           </div>
-          <a class="navbar-brand" href="#">MES</a>
+          <a class="navbar-brand" href="#" id="next">MES</a>
         </div>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-bar navbar-kebab"></span>
@@ -784,6 +784,8 @@
     box-shadow: none;
     margin-bottom: 15px;
   }
+
+  [data-notify] { z-index: 9999 !important; }
   </style>
 
   <div class="modal fade" id="view-bundle-modal" tabindex="-1" role="dialog">
@@ -1364,10 +1366,12 @@
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
         $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
+        $('#change-required-qty-btn').addClass('d-none');
       } else {
         $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
         $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
         $('#change-required-qty-btn').removeAttr('readonly');
+        $('#change-required-qty-btn').removeClass('d-none');
       }
 
       $.ajax({

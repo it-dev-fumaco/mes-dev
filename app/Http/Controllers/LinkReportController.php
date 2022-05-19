@@ -26,10 +26,14 @@ class LinkReportController extends Controller
     use GeneralTrait;
     public function index(){
         $permissions = $this->get_user_permitted_operation();
-
-        return view('reports.report_index', compact('permissions'));
-
+        $user_groups = DB::connection('mysql_mes')->table('user')
+            ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+            ->where('user.user_access_id', Auth::user()->user_id)
+            ->pluck('user_group.user_role');
+        
+        return view('reports.report_index', compact('permissions', 'user_groups'));
     }
+
     public function painting_report_page(){
         $permissions = $this->get_user_permitted_operation();
 
@@ -1515,5 +1519,143 @@ class LinkReportController extends Controller
         $total_reject_rate= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
         $reject_rate_for_total_reject= ($total_output == 0)? 0 :round($total_reject/ (($total_output == 0) ? 1: $total_output), 4);
         return view('link_report.print_qa_rejection_report', compact('data', "month_column", 'colspan_month', 'total_reject_per_month', 'reject_category_name', 'total_output_per_month', 'reject_rate', 'total_output', 'total_reject', 'total_reject_rate', 'reject_rate_for_total_reject', 'requests'));
+    }
+
+    public function mismatched_po_status(Request $request){
+        $mes_statuses = DB::connection('mysql_mes')->table('production_order')->select('status')->distinct('status')->pluck('status');
+
+        $erp_po = DB::connection('mysql')->table('tabWork Order')->whereIn('status', $mes_statuses)->select('name', 'status', 'produced_qty')->get();
+        $erp_production_orders = collect($erp_po)->map(function ($q){
+            return $q->name;
+        });
+
+        $erp_po = collect($erp_po)->groupBy('name');
+
+        $mes_po = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $erp_production_orders)->where('status', 'Completed')->select('created_at', 'created_by',  'production_order', 'status', 'feedback_qty')->orderBy('created_at', 'desc')->get();
+        
+        $mismatched_production_orders = [];
+        foreach($mes_po as $po){
+            if(isset($erp_po[$po->production_order])){
+                $erp_status = $erp_po[$po->production_order][0]->status == 'In Process' ? 'In Progress' : $erp_po[$po->production_order][0]->status;
+                $erp_produced_qty = $erp_po[$po->production_order][0]->produced_qty * 1;
+                if($po->status != $erp_status){
+                    $mismatched_production_orders[] = [
+                        'created_at' => $po->created_at,
+                        'owner' => $po->created_by,
+                        'production_order' => $po->production_order,
+                        'mes_status' => $po->status,
+                        'mes_feedback_qty' => $po->feedback_qty,
+                        'erp_status' => $erp_status,
+                        'erp_produced_qty' => $erp_produced_qty 
+                    ];
+                }else{
+                    continue;
+                }
+            }
+        }
+
+        $total = count($mismatched_production_orders);
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        // Create a new Laravel collection from the array data3
+        $itemCollection = collect($mismatched_production_orders);
+        // Define how many items we want to be visible in each page
+        $perPage = 20;
+        // Slice the collection to get the items to display in current page
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
+        // Create our paginator and pass it to the view
+        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        // set url path for generted links
+        $paginatedItems->setPath($request->url());
+        $mismatched_production_orders = $paginatedItems;
+
+        return view('reports.system_audit_mismatched_po_status', compact('mismatched_production_orders', 'total'));
+    }
+
+    public function feedbacked_po_with_pending_ste(){
+        $erp_po = DB::connection('mysql')->table('tabWork Order')->where('status', 'Completed')->orderBy('creation', 'desc')->pluck('name');
+        
+        $ste = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $erp_po)->whereIn('purpose', ['Material Transfer for Manufacture', 'Material Transfer'])->where('docstatus', 0)->select('creation', 'owner', 'work_order', 'name', 'purpose', 'docstatus')->orderBy('creation', 'desc')->paginate(20);
+
+        return view('reports.system_audit_feedbacked_po_w_pending_ste', compact('ste'));
+    }
+
+	public function transferred_required_qty_mismatch(){
+		$transferred_required_qty_mismatch = DB::connection('mysql')->table('tabWork Order as wo')
+			->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
+            ->where('wo.status', 'Completed')->whereRaw('woi.transferred_qty < woi.required_qty')
+            ->select('wo.name', 'wo.status', 'woi.item_code', 'woi.required_qty', 'woi.transferred_qty', 'wo.creation', 'wo.owner')
+            ->orderBy('wo.creation', 'desc')
+            ->paginate(20);
+
+        return view('reports.system_audit_transfer_required_mismatch', compact('transferred_required_qty_mismatch'));
+	}
+
+    public function overridden_production_orders(){
+        $overridden_job_tickets = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+            ->where('po.status', 'Completed')->where('jt.status', '!=', 'Completed')->where('jt.remarks', 'Override')
+            ->select('po.production_order', 'jt.job_ticket_id', 'jt.status', 'jt.created_by', 'jt.created_at')->orderBy('jt.created_at', 'desc')->paginate(20);
+
+        return view('reports.system_audit_overridden_po', compact('overridden_job_tickets'));
+    }
+
+    public function stocks_transferred_but_none_in_wip(Request $request){
+        $warehouses = ['Work In Progress - FI', 'Assembly Warehouse - FI'];
+        $filter_warehouses = ['Work In Progress - FI', 'Assembly Warehouse - FI'];
+        if($request->warehouse){
+            $warehouses = [$request->warehouse];
+        }
+
+        $erp_po = DB::connection('mysql')->table('tabWork Order as wo')
+            ->join('tabWork Order Item as woi', 'woi.parent', 'wo.name')
+            ->when($request->search, function ($q) use ($request){
+                return $q->where('woi.item_code', 'LIKE', '%'.$request->search.'%');
+            })
+            ->where('wo.status', 'In Process')->whereIn('wo.wip_warehouse', $warehouses)
+            ->select('wo.name', 'wo.status', 'wo.wip_warehouse', 'woi.item_code', 'woi.transferred_qty', 'woi.required_qty', 'woi.stock_uom', 'wo.creation', 'wo.owner')
+            ->orderBy('creation', 'desc')->get();
+
+        $item_codes = collect($erp_po)->map(function ($q){
+            return $q->item_code;
+        })->unique();
+
+        // return $po_collection = collect($erp_po)->groupBy('item_code');
+        $po_collection = collect($erp_po)->groupBy('wip_warehouse')->transform(function($item, $k) {
+            return $item->groupBy('item_code');
+        });
+
+        $bin = DB::connection('mysql')->table('tabBin')->whereIn('warehouse', $warehouses)->whereIn('item_code', $item_codes)->select('warehouse', 'item_code', 'actual_qty', 'stock_uom', 'creation', 'owner')->orderBy('creation', 'desc')->get();
+
+        $bin_arr = [];
+        foreach($bin as $b){
+            if(isset($po_collection[$b->warehouse][$b->item_code]) and $b->actual_qty < $po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty')){
+                $bin_arr[] = [
+                    'item_code' => $b->item_code,
+                    'warehouse' => $b->warehouse,
+                    'actual_qty' => $b->actual_qty,
+                    'transferred_qty' => $po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty'),
+                    'uom' => $b->stock_uom,
+                    'production_orders' => $po_collection[$b->warehouse][$b->item_code],
+                    'creation' => Carbon::parse($b->creation)->format('M d, Y'),
+                    'owner' => $b->owner
+                ];
+            }
+        }
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        // Create a new Laravel collection from the array data3
+        $itemCollection = collect($bin_arr);
+        // Define how many items we want to be visible in each page
+        $perPage = 20;
+        // Slice the collection to get the items to display in current page
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
+        // Create our paginator and pass it to the view
+        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        // set url path for generted links
+        $paginatedItems->setPath($request->url());
+        $bin_arr = $paginatedItems;
+
+        return view('reports.system_audit_stocks_transferred_but_none_in_wip', compact('bin_arr', 'filter_warehouses'));
     }
 }

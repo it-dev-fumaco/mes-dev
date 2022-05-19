@@ -10,7 +10,7 @@ trait GeneralTrait
         // get job ticket detail
         $job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-            ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status')->first();
+            ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no')->first();
 
         if(!$job_ticket_id){
             return 0;
@@ -22,13 +22,37 @@ trait GeneralTrait
         $logs = collect($logs);
 
         $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good')->groupBy('spotwelding_part_id')->get();
+			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
+            ->where('status', 'Completed')->get();
 
         // get total good, total reject, actual start and end date
-        $total_good = ($job_ticket_detail->workstation == 'Spotwelding') ? $total_good_spotwelding->min('total_good') : $logs->sum('good');
-        $total_reject = ($job_ticket_detail->workstation == 'Spotwelding') ? $job_ticket_detail->reject : $logs->sum('reject');
+        if ($job_ticket_detail->workstation == 'Spotwelding') {
+            $total_reject = $job_ticket_detail->reject;
+
+            $bom_parts = DB::connection('mysql')->table('tabBOM Item')->where('parent', $job_ticket_detail->bom_no)->count();
+            $processed_parts = DB::connection('mysql_mes')->table('spotwelding_part')->join('spotwelding_qty', 'spotwelding_qty.spotwelding_part_id', 'spotwelding_part.spotwelding_part_id')
+                ->where('spotwelding_qty.job_ticket_id', $job_ticket_id)->distinct()->pluck('spotwelding_part.part_code');
+
+            if ($bom_parts == count($processed_parts)) {
+                $total_good = $total_good_spotwelding->min('total_good');
+                if ($total_good == $job_ticket_detail->qty_to_manufacture) {
+                    $total_good = $total_good_spotwelding->max('total_good');
+                }
+
+                $total_good = $total_good - $total_reject;
+            } else {
+                $total_good = 0;
+            }
+        } else {
+            $total_good = $logs->sum('good');
+            $total_reject = $logs->sum('reject');
+        }
+        
         $job_ticket_actual_start_date = $logs->min('from_time');
         $job_ticket_actual_end_date = $logs->min('to_time');
+
+        $total_good = $total_good == null ? 0 : $total_good;
+        $total_good = $total_good < 0 ? 0 : $total_good;
 
         // set job ticket status
         if($job_ticket_detail->qty_to_manufacture <= $total_good){
@@ -45,7 +69,7 @@ trait GeneralTrait
             'reject' => $total_reject,
             'status' => $job_ticket_status,
             'actual_start_date' => $job_ticket_actual_start_date,
-            'actual_end_date' => $job_ticket_actual_end_date
+            'actual_end_date' => $job_ticket_actual_end_date,
         ];
 
         DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->update($job_ticket_values);
@@ -668,29 +692,32 @@ trait GeneralTrait
 
         $arr = [];
         foreach ($production_order_items_qry as $index => $row) {
-            $item_required_qty = $row->required_qty;
+            $item_required_qty = (float)$row->required_qty;
             $item_required_qty += DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $production_order)
                 ->where('item_alternative_for', $row->item_code)
                 ->whereNotNull('item_alternative_for')
                 ->sum('required_qty');
 
-            $consumed_qty = $row->consumed_qty;
+            // get raw material qty per piece
+            $qty_per_item = $item_required_qty / $qty_to_manufacture;
+            // get raw material remaining qty
+            $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 4);
+            // get total raw material qty for feedback qty
+            $per_item = $qty_per_item * $fg_completed_qty;
+            // get raw material remaining qty
+            $remaining_required_qty = $per_item - $balance_qty;
+            // get remaining feedback qty
+            $remaining_fg_completed_qty = $fg_completed_qty - round(($balance_qty / $qty_per_item), 4);
 
-            $balance_qty = ($row->transferred_qty - $consumed_qty);
-
-            $remaining_required_qty = ($fg_completed_qty - $balance_qty);
-
-            if($balance_qty <= 0 || $fg_completed_qty > $balance_qty){
-                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty);
+            $alternative_items_qry = [];
+            if($balance_qty <= 0 || $remaining_required_qty > 0){
+                $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_required_qty, $qty_per_item, $remaining_fg_completed_qty);
             }else{
                 $alternative_items_qry = [];
             }
 
-            $qty_per_item = $item_required_qty / $qty_to_manufacture;
-            $per_item = $qty_per_item * $fg_completed_qty;
-
-            $required_qty = ($balance_qty > $per_item) ? $per_item : $balance_qty;
+            $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 4);
 
             foreach ($alternative_items_qry as $ai_row) {
                 if ($ai_row['required_qty'] > 0) {
@@ -714,95 +741,48 @@ trait GeneralTrait
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
                     'required_qty' => $required_qty,
-                    'transferred_qty' => $row->transferred_qty,
-                    'consumed_qty' => $consumed_qty,
+                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 4),
+                    'consumed_qty' => round((float)$row->consumed_qty, 4),
                     'balance_qty' => $balance_qty,
                 ];
             }
         }
 
         return $arr;
-
-        // $production_order_items = [];
-        // foreach ($production_order_items_qry as $index => $row) {
-        //     $required_qty = $row->required_qty;
-        //     $required_qty += DB::connection('mysql')->table('tabWork Order Item')
-        //         ->where('parent', $production_order)
-        //         ->where('item_alternative_for', $row->item_code)
-        //         ->whereNotNull('item_alternative_for')
-        //         ->sum('required_qty');
-
-        //     $consumed_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-        //         ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-        //         ->where('ste.production_order', $production_order)->whereNull('sted.t_warehouse')
-        //         ->where('sted.item_code', $row->item_code)->where('purpose', 'Manufacture')
-        //         ->where('ste.docstatus', 1)->sum('qty');
-            
-        //     $remaining_required_qty = ($row->transferred_qty - $consumed_qty);
-            
-        //     $qty_per_item = $required_qty / $qty_to_manufacture;
-        //     $total_rm_qty = $qty_per_item * $fg_completed_qty;
-        //     $rm_qty = $total_rm_qty;
-        //     if($total_rm_qty > $remaining_required_qty){
-        //         $rm_qty = $remaining_required_qty;
-        //         $remaining_rm_qty = $total_rm_qty - $rm_qty; 
-        //         $alternative_items_qry = $this->get_alternative_items($production_order, $row->item_code, $remaining_rm_qty);
-        //         $alternative_items = [];
-        //         foreach ($alternative_items_qry as $ai_row) {
-        //             if ($ai_row['required_qty'] > 0) {
-        //                 $production_order_items[] = [
-        //                     'item_code' => $ai_row['item_code'],
-        //                     'item_name' => $ai_row['item_name'],
-        //                     'description' => $ai_row['description'],
-        //                     'stock_uom' => $ai_row['stock_uom'],
-        //                     'required_qty' => $ai_row['required_qty'],
-        //                     'transferred_qty' => $ai_row['transferred_qty'],
-        //                 ];
-        //             }
-        //         }
-        //     }
-
-        //     if($rm_qty > 0){
-        //         $production_order_items[] = [
-        //             'item_code' => $row->item_code,
-        //             'item_name' => $row->item_name,
-        //             'description' => $row->description,
-        //             'stock_uom' => $row->stock_uom,
-        //             'required_qty' => $rm_qty,
-        //             'transferred_qty' => $row->transferred_qty,
-        //         ];
-        //     }
-        // }
-
-        // return $production_order_items;
     }
 
-    public function get_alternative_items($production_order, $item_code, $remaining_required_qty){
+    public function get_alternative_items($production_order, $item_code, $remaining_required_qty, $qty_per_item, $remaining_fg_completed_qty){
         $q = DB::connection('mysql')->table('tabWork Order Item')
 			->where('parent', $production_order)->where('item_alternative_for', $item_code)
             ->orderBy('required_qty', 'asc')->get();
 
         $remaining = $remaining_required_qty;
+        $remaining_feedback_qty = $remaining_fg_completed_qty;
         $arr = [];
-        foreach ($q as $row) {
+        foreach ($q as $i => $row) {
             if($remaining > 0){
-                $consumed_qty = $row->consumed_qty;
+                // get raw material remaining qty
+                $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 4);
+                // get total raw material qty for feedback qty
+                $per_item = $qty_per_item * $remaining_feedback_qty;
+                // get raw material remaining qty
+                $remaining_required_qty = $per_item - $balance_qty;
 
-                $balance_qty = ($row->transferred_qty - $consumed_qty);
-                    
-                $required_qty = ($balance_qty > $remaining) ? $remaining : $balance_qty;
+                $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 4);
+
                 $arr[] = [
                     'item_code' => $row->item_code,
                     'required_qty' => $required_qty,
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => $row->transferred_qty,
-                    'consumed_qty' => $consumed_qty,
-                    'balance_qty' => $balance_qty
+                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 4),
+                    'consumed_qty' => round((float)$row->consumed_qty, 4),
+                    'balance_qty' => $balance_qty,
                 ];
-
-                $remaining = $remaining - $balance_qty;
+            
+                $remaining = ($remaining - $balance_qty);
+                $remaining_feedback_qty = $remaining_feedback_qty - round(($balance_qty / $qty_per_item), 4);
             }
         }
 

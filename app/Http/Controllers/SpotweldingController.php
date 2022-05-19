@@ -93,7 +93,10 @@ class SpotweldingController extends Controller
 	    	$total_good = DB::connection('mysql_mes')->table('spotwelding_qty')
 	    		->where('spotwelding_part_id', $spotwelding_part_id)->sum('good');
 
-			$balance_qty = $request->qty_to_manufacture - $total_good;
+			$total_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->sum('reject');
+
+			$balance_qty = ($request->qty_to_manufacture - $total_good) - $total_reject;
+			$balance_qty = $balance_qty <= 0 ? ($total_good - $total_reject) : 0;
 	    	if ($balance_qty <= 0) {
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
@@ -253,7 +256,9 @@ class SpotweldingController extends Controller
 	}
 	
 	public function restart_task(Request $request){
-    	$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
+    	$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->where('time_log_id', $request->id)->first();
+			
     	DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->delete();
 
     	$existing = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -263,94 +268,120 @@ class SpotweldingController extends Controller
     		DB::connection('mysql_mes')->table('spotwelding_part')
     			->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->delete();
     	}
+
+		$existing_spotwelding_logs = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->exists();
+		if (!$existing_spotwelding_logs) {
+			DB::connection('mysql_mes')->table('job_ticket')
+    			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->update(['status' => 'Pending']);
+
+			$this->update_job_ticket($spotwelding_qty_det->job_ticket_id);
+
+			$jt = DB::connection('mysql_mes')->table('job_ticket')
+    			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->first();
+
+			if ($jt) {
+				$started_jt = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $jt->production_order)->where('status', '!=', 'Pending')->exists();
+				if (!$started_jt) {
+					DB::connection('mysql_mes')->table('production_order')
+						->where('production_order', $jt->production_order)->update(['status' => 'Not Started']);
+				}
+			}
+		}
+
     	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
     }
 
    	public function update_task_reject(Request $request){
-   		// return $request->all();
 		try {
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 			}
-			$now = Carbon::now();
-			// dd($time_log);
-			
+			$now = Carbon::now();			
 			if ($request->per_row_reject == 1) {
 				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
-				$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
-				
-	            $update = [
-	                'last_modified_at' => $now->toDateTimeString(),
-	                'last_modified_by' => Auth::user()->employee_name,
-	                'good' => $good_qty_after_transaction,
-	                'reject' => $request->rejected_qty,
-				];
 
-				if($request->reject_list){
-                    $reject_values = [];
-                    foreach ($request->reject_list as $i => $value) {
-                        $reject_values[] = [
-                            'job_ticket_id' => $time_log->job_ticket_id,
-                            'timelog_id' => $request->id,
-                            'reject_list_id' => $request->reject_list [$i],
-							'reject_value' => '-',
-							'created_by' => Auth::user()->employee_name,
-							'created_at' => $now->toDateTimeString(),
-                        ];
-                    }
-                    DB::connection('mysql_mes')->table('spotwelding_reject')->insert($reject_values);
-                }
+				if ($time_log) {
+					$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
 
+					$spotwelding_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->first();
+					if ($spotwelding_log) {
+						$update = [
+							'last_modified_at' => $now->toDateTimeString(),
+							'last_modified_by' => Auth::user()->employee_name,
+							'good' => $good_qty_after_transaction,
+							'reject' => $spotwelding_log->reject + $request->rejected_qty,
+						];
+	
+						DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $spotwelding_log->time_log_id)->update($update);
+					}
 
-				DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->update($update);
-				
-				$this->update_job_ticket($time_log->job_ticket_id); 
+					if($request->reject_list){
+						$reject_values = [];
+						foreach ($request->reject_list as $i => $value) {
+							$reject_values[] = [
+								'job_ticket_id' => $time_log->job_ticket_id,
+								'timelog_id' => $request->id,
+								'reject_list_id' => $request->reject_list [$i],
+								'reject_value' => '-',
+								'created_by' => Auth::user()->employee_name,
+								'created_at' => $now->toDateTimeString(),
+							];
+						}
+						
+						DB::connection('mysql_mes')->table('spotwelding_reject')->insert($reject_values);
+					}
+
+					$this->update_job_ticket($time_log->job_ticket_id);
+				}
 			}else{
 				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->first();
-				$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
+				if ($time_log) {
+					$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
+					if ($job_ticket) {
+						$total_good = $request->good - $request->rejected_qty;
+						$insert = [
+							'reference_id' => $request->id,
+							'reference_type' => 'Spotwelding',
+							'qa_inspection_type' => 'Reject Confirmation',
+							'rejected_qty' => $request->rejected_qty,
+							'total_qty' => $total_good,
+							'status' => 'For Confirmation',
+							'created_by' => Auth::user()->employee_name,
+							'created_at' => $now->toDateTimeString(),
+						];
+		
+						$update_jt = [
+							'last_modified_at' => $now->toDateTimeString(),
+							'last_modified_by' => Auth::user()->employee_name,
+							'completed_qty' => $total_good,
+							'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0'),
+						];
+						
+						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id',$request->id)->update($update_jt);
 
-				$total_good=$request->good - $request->rejected_qty;
-	            $insert = [
-					'reference_id' => $request->id,
-					'reference_type' => 'Spotwelding',
-					'qa_inspection_type' => 'Reject Confirmation',
-					'rejected_qty' => $request->rejected_qty,
-					'total_qty' => $total_good,
-					'status' => 'For Confirmation',
-					'created_by' => Auth::user()->employee_name,
-					'created_at' => $now->toDateTimeString(),
-				];
+						$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+						
+						if($request->reject_list){
+							$reject_values = [];
+							foreach ($request->reject_list as $i => $value) {
+								$reject_values[] = [
+									'job_ticket_id' => $request->id,
+									'qa_id' => $qa_id,
+									'reject_list_id' => $request->reject_list [$i],
+									'reject_value' => '-'
+								];
+							}
+							DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
+						}
+		
+					}
 
-				$update_jt = [
-	                'last_modified_at' => $now->toDateTimeString(),
-	                'last_modified_by' => Auth::user()->employee_name,
-					'completed_qty' => $total_good,
-					'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0')
-				];
-				
-				DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id',$request->id)->update($update_jt);
-				$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
-				
-				if($request->reject_list){
-                    $reject_values = [];
-                    foreach ($request->reject_list as $i => $value) {
-                        $reject_values[] = [
-                            'job_ticket_id' => $request->id,
-                            'qa_id' => $qa_id,
-                            'reject_list_id' => $request->reject_list [$i],
-                            'reject_value' => '-'
-                        ];
-                    }
-                    DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
-                }
-
-				
-				$this->update_job_ticket($time_log->job_ticket_id);
+					$this->update_job_ticket($time_log->job_ticket_id);
+				}
 			}
 
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
-
             return response()->json(["error" => $e->getMessage()]);
         }
 	}
@@ -615,7 +646,7 @@ class SpotweldingController extends Controller
 			];
 		}
 
-		$total_rejects = $job_ticket_details->reject;
+		$total_rejects = $job_ticket_details->reject ? $job_ticket_details->reject : 0;
 
     	return view('tables.tbl_spotwelding_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator', 'helpers', 'count_helpers', 'bom_parts', 'logs', 'total_rejects'));
 	}
@@ -712,15 +743,23 @@ class SpotweldingController extends Controller
     	return 'Pending';
     }
     public function get_spotwelding_part_remaining_qty(Request $request){
-    	$completed_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
-    		->where('job_ticket_id', $request->job_ticket_id)
-    		->where('spotwelding_part_id', $request->spotwelding_part_id)
+    	$spotwelding_completed_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
+    		->where('job_ticket_id', $request->job_ticket_id)->where('spotwelding_part_id', $request->spotwelding_part_id)
 			->where('status', 'Completed')->sum('good');
 			
-		$jt_spot= DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->select('reject')->first();
+		$jt_spotwelding_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->select('good', 'reject')->first();
+		$jt_good = $jt_reject = 0;
+		if ($jt_spotwelding_reject) {
+			$jt_reject = $jt_spotwelding_reject->reject;
+			$jt_good = $jt_spotwelding_reject->good;
+		}
 
-		$reject=(($request->qty_to_manufacture) == $request->qty_to_manufacture)? 0: $jt_spot->reject;
-    	return ($request->qty_to_manufacture - $completed_qty) - $reject;
+		$reject_qty_replacement = $spotwelding_completed_qty - $request->qty_to_manufacture;
+		$remaining_reject = $jt_reject - $reject_qty_replacement;
+
+		$required_qty = $request->qty_to_manufacture < $spotwelding_completed_qty ? $request->qty_to_manufacture : $spotwelding_completed_qty;
+	
+		return ($required_qty - $jt_good);
     }
 
     public function update_production_order_operation($production_order){

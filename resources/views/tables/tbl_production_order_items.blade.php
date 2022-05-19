@@ -34,7 +34,7 @@
 	<col style="width: 10%;"><!-- Produced -->
 	<col style="width: 10%;"><!-- Feedbacked -->
 	<tr class="text-center">
-		<th>Prod. Order testing</th>
+		<th>Prod. Order</th>
 		<th>Reference No.</th>
 		<th>Customer</th>
 		<th>Project</th>
@@ -168,7 +168,13 @@
 							<img src="http://athenaerp.fumaco.local/storage{{ $img }}" class="img-thumbnail" width="100">
 						</a>
 					</td>
-					<td class="text-justify {{ (!$component['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
+					@php
+						$for_add_item = '';
+						if($details->item_code != $component['item_code']) {
+							$for_add_item = 'for-add-item';
+						}
+					@endphp
+					<td class="text-justify {{ (!$component['is_alternative']) ? $for_add_item : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $component['item_name'] }}</span>
 						<div class="d-block">
 							<span class="font-weight-bold item-code">{{ $component['item_code'] }}</span> 
@@ -180,7 +186,7 @@
 						<span class="d-none item-classification">{{ $component['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $component['description'] !!}</span>
 
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $component['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ floor($component['available_qty_at_wip']) != $component['available_qty_at_wip'] ? number_format($component['available_qty_at_wip'], 4) : $component['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $component['required_qty'] * 1 }}</span>
@@ -213,7 +219,7 @@
 						<span class="d-none required-qty">{{ $component['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
-						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ (floor($a['actual_qty']) != $a['actual_qty'] * 1) ? number_format($a['actual_qty'], 4) : $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
@@ -252,7 +258,7 @@
 							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}"> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }} {{ $no_bom }}>
@@ -274,7 +280,7 @@
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $component['source_warehouse'] }}</span>
-						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $component['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ (floor($component['actual_qty']) != $component['actual_qty'] * 1) ? number_format($component['actual_qty'], 4) : $component['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold badge badge-danger" style="font-size: 10pt;">{{ $component['transferred_qty'] * 1 }}</span>
@@ -379,7 +385,13 @@
 						@endif
 						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
 					</td>
-					<td class="text-justify {{ (!$part['is_alternative']) ? 'for-add-item' : null }}" {!! $rowspan !!}>
+					@php
+					$for_add_item_part = '';
+					if($details->item_code != $part['item_code']) {
+						$for_add_item_part = 'for-add-item';
+					}
+				@endphp
+					<td class="text-justify {{ (!$part['is_alternative']) ? $for_add_item_part : null }}" {!! $rowspan !!}>
 						<span class="item-name d-none">{{ $part['item_name'] }}</span>
 						<div class="d-block">
 							<span class="font-weight-bold item-code">{{ $part['item_code'] }}</span> 
@@ -389,7 +401,7 @@
 						</div>
 						<span class="d-none item-classification">{{ $part['item_classification'] }}</span>
 						<span class="d-block item-description" style="font-size: 8pt;">{!! $part['description'] !!}</span>
-						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ $part['available_qty_at_wip'] * 1 }}</span>
+						<span class="mt-2 {{ $wwhb }}" style="font-size: 9pt;">Balanced Qty: {{ floor($part['available_qty_at_wip']) != $part['available_qty_at_wip'] ? number_format($part['available_qty_at_wip'], 4) : $part['available_qty_at_wip'] * 1 }}</span>
 					</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<span class="d-block font-weight-bold required-qty" style="font-size: 10pt;">{{ $part['required_qty'] * 1 }}</span>
@@ -422,7 +434,7 @@
 						<span class="d-none required-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-block source-warehouse" style="font-size: 9pt;">{{ $a['source_warehouse'] }}</span>
 						<span class="d-none target-warehouse">{{ $details->wip_warehouse }}</span>
-						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ $a['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb }}" style="font-size: 9pt;">Current Qty: {{ (floor($a['actual_qty']) != $a['actual_qty'] * 1) ? number_format($a['actual_qty'], 4) : $a['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold qty {{ $twhb }}" style="font-size: 10pt;">{{ $transferred_issued_qty * 1 }}</span>
@@ -461,7 +473,7 @@
 							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}"> 
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $change_cancel_btn }}> 
 								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }} {{ $no_bom }}>
@@ -483,7 +495,7 @@
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="d-block" style="font-size: 9pt;">{{ $part['source_warehouse'] }}</span>
-						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ $part['actual_qty'] * 1 }}</span>
+						<span class="font-weight-bold {{ $swhb_1 }}" style="font-size: 9pt;">Current Qty: {{ (floor($part['actual_qty']) != $part['actual_qty'] * 1) ? number_format($part['actual_qty'], 4) : $part['actual_qty'] * 1 }}</span>
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="font-weight-bold badge badge-danger" style="font-size: 10pt;">{{ $part['transferred_qty'] * 1 }}</span>
@@ -640,7 +652,7 @@
 							</td>
 							<td class="text-center p-2">
 								<span class="d-none production-order">{{ $log->production_order }}</span>
-								<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}">Cancel</button>
+								<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}" {{ ($log->status == 'Cancelled') ? 'disabled' : '' }}>Cancel</button>
 							</td>
 						</tr>
 						@endforeach

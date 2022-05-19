@@ -1788,6 +1788,7 @@ $(document).ready(function(){
 
   $(document).on('change', '#sel-workstation', function(){
     var workstation = $(this).val();
+    $('#add-operation-btn').attr('disabled', true);
     $('#sel-process').empty();
     if (workstation) {
       $.ajax({
@@ -1801,6 +1802,10 @@ $(document).ready(function(){
             });
 
             $('#sel-process').append(opt);
+          }
+
+          if ($('#sel-process option').length > 0) {
+            $('#add-operation-btn').removeAttr('disabled');
           }
         }
       });
