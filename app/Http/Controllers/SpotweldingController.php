@@ -93,7 +93,10 @@ class SpotweldingController extends Controller
 	    	$total_good = DB::connection('mysql_mes')->table('spotwelding_qty')
 	    		->where('spotwelding_part_id', $spotwelding_part_id)->sum('good');
 
-			$balance_qty = $request->qty_to_manufacture - $total_good;
+			$total_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->sum('reject');
+
+			$balance_qty = ($request->qty_to_manufacture - $total_good) - $total_reject;
+			$balance_qty = $balance_qty <= 0 ? ($total_good - $total_reject) : 0;
 	    	if ($balance_qty <= 0) {
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
@@ -740,15 +743,23 @@ class SpotweldingController extends Controller
     	return 'Pending';
     }
     public function get_spotwelding_part_remaining_qty(Request $request){
-    	$completed_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
-    		->where('job_ticket_id', $request->job_ticket_id)
-    		->where('spotwelding_part_id', $request->spotwelding_part_id)
+    	$spotwelding_completed_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
+    		->where('job_ticket_id', $request->job_ticket_id)->where('spotwelding_part_id', $request->spotwelding_part_id)
 			->where('status', 'Completed')->sum('good');
 			
-		$jt_spot= DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->select('reject')->first();
+		$jt_spotwelding_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->select('good', 'reject')->first();
+		$jt_good = $jt_reject = 0;
+		if ($jt_spotwelding_reject) {
+			$jt_reject = $jt_spotwelding_reject->reject;
+			$jt_good = $jt_spotwelding_reject->good;
+		}
 
-		$reject=(($request->qty_to_manufacture) == $request->qty_to_manufacture)? 0: $jt_spot->reject;
-    	return ($request->qty_to_manufacture - $completed_qty) - $reject;
+		$reject_qty_replacement = $spotwelding_completed_qty - $request->qty_to_manufacture;
+		$remaining_reject = $jt_reject - $reject_qty_replacement;
+
+		$required_qty = $request->qty_to_manufacture < $spotwelding_completed_qty ? $request->qty_to_manufacture : $spotwelding_completed_qty;
+	
+		return ($required_qty - $jt_good);
     }
 
     public function update_production_order_operation($production_order){

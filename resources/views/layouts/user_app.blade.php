@@ -784,6 +784,8 @@
     box-shadow: none;
     margin-bottom: 15px;
   }
+
+  [data-notify] { z-index: 9999 !important; }
   </style>
 
   <div class="modal fade" id="view-bundle-modal" tabindex="-1" role="dialog">

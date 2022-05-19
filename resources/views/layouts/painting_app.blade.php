@@ -289,6 +289,7 @@
   </div>
   @include('modals.item_track_modal')
   <style type="text/css">
+  [data-notify] { z-index: 9999 !important; }
     .qc_passed{
       background-image: url("{{ asset('img/chk.png') }}");
       background-size: 28%;

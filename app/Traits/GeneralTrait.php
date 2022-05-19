@@ -27,17 +27,22 @@ trait GeneralTrait
 
         // get total good, total reject, actual start and end date
         if ($job_ticket_detail->workstation == 'Spotwelding') {
+            $total_reject = $job_ticket_detail->reject;
+
             $bom_parts = DB::connection('mysql')->table('tabBOM Item')->where('parent', $job_ticket_detail->bom_no)->count();
             $processed_parts = DB::connection('mysql_mes')->table('spotwelding_part')->join('spotwelding_qty', 'spotwelding_qty.spotwelding_part_id', 'spotwelding_part.spotwelding_part_id')
                 ->where('spotwelding_qty.job_ticket_id', $job_ticket_id)->distinct()->pluck('spotwelding_part.part_code');
 
             if ($bom_parts == count($processed_parts)) {
                 $total_good = $total_good_spotwelding->min('total_good');
+                if ($total_good == $job_ticket_detail->qty_to_manufacture) {
+                    $total_good = $total_good_spotwelding->max('total_good');
+                }
+
+                $total_good = $total_good - $total_reject;
             } else {
                 $total_good = 0;
             }
-
-            $total_reject = $job_ticket_detail->reject;
         } else {
             $total_good = $logs->sum('good');
             $total_reject = $logs->sum('reject');
