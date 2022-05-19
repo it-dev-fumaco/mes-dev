@@ -4086,7 +4086,7 @@ class MainController extends Controller
 		DB::beginTransaction();
         try { 
 			$hold_reason = $request->status_update == 'On Hold' ? $request->hold_reason : null;
-			$findings = in_array($request->status_update, ['Done', 'In Process']) ? $request->findings : null;
+			$findings = in_array($request->status_update, ['On Hold', 'In Process', 'Done']) ? $request->findings : null;
 			$work_done = $request->status_update == 'Done' ? $request->work_done : null;
 
 			$update = [

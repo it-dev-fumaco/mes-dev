@@ -137,24 +137,21 @@
                                     </div>
                                     <div class="row"> 
                                         <div class="container">
+                                            <div class="hid" id="{{ $row->machine_breakdown_id }}-findings-container">
+                                                <label>Findings</label>
+                                                <textarea class="w-100 char-count" data-machine-id="{{ $row->machine_breakdown_id }}" id='{{ $row->machine_breakdown_id }}-findings' name="findings" cols="30" rows="3">{{ $row->findings }}</textarea>
+                                            </div>
                                             <div class="hid" id="{{ $row->machine_breakdown_id }}-hold-container">
                                                 <label>Reason for Hold</label>
-                                                <textarea class="w-100" id="{{ $row->machine_breakdown_id }}-hold-reason" name="hold_reason" cols="30" rows="3">{{ $row->hold_reason }}</textarea>
+                                                <textarea class="w-100 char-count" data-machine-id="{{ $row->machine_breakdown_id }}" id="{{ $row->machine_breakdown_id }}-hold-reason" name="hold_reason" cols="30" rows="3">{{ $row->hold_reason }}</textarea>
                                             </div>
-                                            <div class="hid" id="{{ $row->machine_breakdown_id }}-done-container">
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label>Findings</label>
-                                                        <textarea class="w-100" id='{{ $row->machine_breakdown_id }}-findings' name="findings" cols="30" rows="3">{{ $row->findings }}</textarea>
-                                                    </div>
-                                                    <div class="col" id="{{ $row->machine_breakdown_id }}-work-done-input">
-                                                        <label>Work Done</label>
-                                                        <textarea class="w-100" id='{{ $row->machine_breakdown_id }}-work-done' name="work_done" cols="30" rows="3">{{ $row->work_done }}</textarea>
-                                                    </div>
-                                                </div>
+                                            <div class="hid" id="{{ $row->machine_breakdown_id }}-work-done-container">
+                                                <label>Work Done</label>
+                                                <textarea class="w-100 char-count" data-machine-id="{{ $row->machine_breakdown_id }}" id='{{ $row->machine_breakdown_id }}-work-done' name="work_done" cols="30" rows="3">{{ $row->work_done }}</textarea>
                                             </div>
+                                            <small class="d-none" id="{{ $row->machine_breakdown_id }}-info" style="color: red">Only 255 characters are allowed.</small>
                                             <br>
-                                            <button type="submit" class="btn btn-primary float-right">Submit</button>
+                                            <button type="submit" class="btn btn-primary float-right" id="{{ $row->machine_breakdown_id }}-submit-btn">Submit</button>
                                         </div>
                                     </div>
                                 </form>
@@ -185,4 +182,13 @@
 </div>
 <script>
     $('.hid').slideUp();
+
+    $('.char-count').keyup(function(){
+        enable_submit($(this).data('machine-id'));
+        if(parseInt($(this).val().length) > 255){
+            $(this).css('border', '1px solid red');
+        }else{
+            $(this).css('border', '1px solid #8F8F9D');
+        }
+    });
 </script>

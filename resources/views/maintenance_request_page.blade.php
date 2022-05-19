@@ -196,6 +196,9 @@
 @endsection
 @section('style')
 <style>
+    textarea:focus, input:focus{
+      outline: none;
+    }
     .ui-autocomplete {
       position: absolute;
       z-index: 2150000000 !important;
@@ -386,6 +389,7 @@
 <script>
     $(document).on('click', '.machine-details', function(e){
       status_check($(this).data('breakdown'));
+      enable_submit($(this).data('breakdown'));
     });
 
     // tabs
@@ -395,32 +399,47 @@
 
     function status_check(machine_breakdown_id){
       if($('#'+machine_breakdown_id+'-status').val() == 'On Hold'){
+          $('#'+machine_breakdown_id+'-findings-container').slideDown();
           $('#'+machine_breakdown_id+'-hold-container').slideDown();
-          $('#'+machine_breakdown_id+'-done-container').slideUp();
+          $('#'+machine_breakdown_id+'-work-done-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-reason').prop('required', true);
           $('#'+machine_breakdown_id+'-work-done').prop('required', false);
           $('#'+machine_breakdown_id+'-findings').prop('required', false);
       }else if($('#'+machine_breakdown_id+'-status').val() == 'In Process'){
-          $('#'+machine_breakdown_id+'-done-container').slideDown();
+          $('#'+machine_breakdown_id+'-findings-container').slideDown();
+          $('#'+machine_breakdown_id+'-work-done-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-container').slideUp();
           $('#'+machine_breakdown_id+'-findings').prop('required', true);
           $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
           $('#'+machine_breakdown_id+'-work-done').prop('required', false);
-          $('#'+machine_breakdown_id+'-work-done-input').addClass('d-none');
       }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
-          $('#'+machine_breakdown_id+'-done-container').slideDown();
+          $('#'+machine_breakdown_id+'-work-done-container').slideDown();
+          $('#'+machine_breakdown_id+'-findings-container').slideDown();
           $('#'+machine_breakdown_id+'-hold-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
           $('#'+machine_breakdown_id+'-work-done').prop('required', true);
           $('#'+machine_breakdown_id+'-findings').prop('required', true);
-          $('#'+machine_breakdown_id+'-work-done-input').removeClass('d-none');
       }else{
-          $('#'+machine_breakdown_id+'-done-container').slideUp();
+          $('#'+machine_breakdown_id+'-work-done-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-container').slideUp();
+          $('#'+machine_breakdown_id+'-findings-container').slideUp();
           $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
           $('#'+machine_breakdown_id+'-work-done').prop('required', false);
           $('#'+machine_breakdown_id+'-findings').prop('required', false);
       }
+    }
+
+    function enable_submit(machine_breakdown_id){
+        var findings = parseInt($('#'+machine_breakdown_id+'-findings').val().length);
+        var work_done = parseInt($('#'+machine_breakdown_id+'-work-done').val().length);
+        var hold_reason = parseInt($('#'+machine_breakdown_id+'-hold-reason').val().length);
+        if(findings > 255 || work_done > 255 || hold_reason > 255){
+            $('#'+machine_breakdown_id+'-submit-btn').prop('disabled', true);
+            $('#'+machine_breakdown_id+'-info').removeClass('d-none');
+        }else{
+            $('#'+machine_breakdown_id+'-submit-btn').prop('disabled', false);
+            $('#'+machine_breakdown_id+'-info').addClass('d-none');
+        }
     }
 
     // search
