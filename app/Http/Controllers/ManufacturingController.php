@@ -2709,9 +2709,31 @@ class ManufacturingController extends Controller
             $mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $request->production_order)->first();
 
+            $item_alts = collect($request->item_as)->map(function ($q){
+                if($q != 'new_item'){
+                    return $q;
+                }
+            });
+
+            $item_alts = $item_alts->filter(function ($q){
+                return !is_null($q);
+            });
+
+            $main_item_uoms = [];
+            $main_item_uom = [];
+            if(count($item_alts) > 0){
+                $main_item_oums = DB::connection('mysql')->table('tabItem')->whereIn('name', $item_alts)->select('name', 'stock_uom')->get();
+                $main_item_uom = collect($main_item_oums)->groupBy('name');
+            }
+
             $stock_entry_data = [];
             foreach ($request->item_code as $id => $item_code) {
                 $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item_code)->first();
+
+                // Check if item alternatives and the main item has the same UOM
+                if(isset($main_item_uom[$request->item_as[$id]]) and $main_item_uom[$request->item_as[$id]][0]->stock_uom != $item_details->stock_uom){
+                    return response()->json(['status' => 0, 'message' => 'Cannot add '.$item_code.' as an alternative for '.$request->item_as[$id].'. UOM does not match.']);
+                }
 
                 $qty = $request->quantity[$id];
 
