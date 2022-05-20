@@ -11,9 +11,8 @@
 	<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 		<col style="width: 5%;">
 		<col style="width: 8%;">
-		<col style="width: 22%;">
+		<col style="width: 32%;">
 		<col style="width: 15%;">
-		<col style="width: 10%;">
 		<col style="width: 10%;">
 		<col style="width: 10%;">
 		<col style="width: 10%;">

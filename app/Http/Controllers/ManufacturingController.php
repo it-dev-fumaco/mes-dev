@@ -4896,7 +4896,7 @@ class ManufacturingController extends Controller
             if(!Auth::user()) {
                 return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
             }
-            
+
             $now = Carbon::now();
             $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry')
                 ->where('name', $stock_entry)->where('docstatus', 1)->where('purpose', 'Manufacture')->first();
@@ -4910,6 +4910,7 @@ class ManufacturingController extends Controller
             if(!$production_order_detail){
                 return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $stock_entry . '</b> not found.']);
             }
+
             // get production order reference order no
             if(!$production_order_detail->material_request){
                 $sales_order = ($production_order_detail->sales_order) ? $production_order_detail->sales_order : $production_order_detail->sales_order_no;
@@ -5000,6 +5001,9 @@ class ManufacturingController extends Controller
 
             // get production order remaining feedbacked qty 
             $remaining_feedbacked_qty = $production_order_detail->produced_qty - $stock_entry_detail->fg_completed_qty;
+
+            $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+                ->where('production_order', $stock_entry_detail->work_order)->min('completed_qty');
             // update production order produced qty and status in ERP
             DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $stock_entry_detail->work_order)->update(['produced_qty' => $remaining_feedbacked_qty, 'modified' => $now->toDateTimeString(),
@@ -5008,7 +5012,7 @@ class ManufacturingController extends Controller
             DB::connection('mysql_mes')->beginTransaction();
             // update production order feedbacked qty  in MES
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->work_order)
-                ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'produced_qty' => $produced_qty]);
             
              // update feedback logs as cancelled in MES
             DB::connection('mysql_mes')->table('feedbacked_logs')

@@ -103,28 +103,28 @@
 	<ul class="nav nav-tabs mt-2 font-weight-bold" role="tablist">
 		@if(count($components) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ $tab1 }}" data-toggle="tab" href="#w1" role="tab" aria-controls="home" aria-selected="true">
+			<a class="nav-link {{ $tab1 }}" data-toggle="tab" href="#wtpoi1" role="tab" aria-controls="home" aria-selected="true">
 				<span class="badge badge-info mr-2">{{ count($components) }}</span> Component(s) 
 			</a>
 		</li>
 		@endif
 		@if(count($parts) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ $tab2 }}"  data-toggle="tab" href="#w2" role="tab" aria-controls="profile" aria-selected="false">
+			<a class="nav-link {{ $tab2 }}"  data-toggle="tab" href="#wtpoi2" role="tab" aria-controls="profile" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($parts) }}</span>	Part(s) 
 			</a>
 		</li>
 		@endif
 		@if(count($items_return) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ $tab3 }}" data-toggle="tab" href="#w3" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="nav-link {{ $tab3 }}" data-toggle="tab" href="#wtpoi3" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($items_return) }}</span> Item Return(s)
 			</a> 
 		</li>
 		@endif
 		@if(count($feedbacked_logs) > 0)
 		<li class="nav-item">
-			<a class="nav-link" data-toggle="tab" href="#w4" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="nav-link" data-toggle="tab" href="#wtpoi4" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($feedbacked_logs) }}</span> Feedbacked Log(s)
 			</a> 
 		</li>
@@ -132,7 +132,7 @@
 	</ul>
 
 	<div class="tab-content bg-light" style="border: 1px solid #f2f3f4;">
-		<div class="tab-pane {{ $tab1 }}" id="w1" role="tabpanel" aria-labelledby="w1-tab">
+		<div class="tab-pane {{ $tab1 }}" id="wtpoi1" role="tabpanel" aria-labelledby="w1-tab">
 			@if(count($components) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 3%;"><!-- No. -->
@@ -336,7 +336,7 @@
 			<h5 class="text-center m-4">No withdrawal slip(s) created for item component(s).</h5>
 			@endif
 		</div>
-		<div class="tab-pane {{ $tab2 }}" id="w2" role="tabpanel" aria-labelledby="w2-tab">
+		<div class="tab-pane {{ $tab2 }}" id="wtpoi2" role="tabpanel" aria-labelledby="w2-tab">
 			@if(count($parts) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;"><!-- No. -->
@@ -551,7 +551,7 @@
 			<h5 class="text-center m-4">No withdrawal slip(s) created for item component(s).</h5>
 			@endif
 		</div>
-		<div class="tab-pane {{ $tab3 }}" id="w3" role="tabpanel" aria-labelledby="w3-tab">
+		<div class="tab-pane {{ $tab3 }}" id="wtpoi3" role="tabpanel" aria-labelledby="w3-tab">
 			@if(count($items_return) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 5%;">
@@ -610,7 +610,7 @@
 			<h5 class="text-center m-4">No record(s) found.</h5>
 			@endif
 		</div>
-		<div class="tab-pane" id="w4" role="tabpanel" aria-labelledby="w4-tab">
+		<div class="tab-pane" id="wtpoi4" role="tabpanel" aria-labelledby="w4-tab">
 			@if(count($feedbacked_logs) > 0)
 			<div class="row m-0">
 				<div class="col-md-10 offset-md-1">
