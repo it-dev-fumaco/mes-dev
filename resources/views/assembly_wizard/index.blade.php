@@ -799,10 +799,9 @@
       });
 
       // get part
-      var a1 = 0;
       $('#get-parts').click(function(){
          $('.so-details-div').html($('#so-details-tbl').html());
-         a1++;
+
          var bom = [];
          var idx = [];
          var qty = [];
@@ -819,35 +818,33 @@
             delivery_date.push($(this).find('.delivery-date').eq(0).text());
          });
 
-         if(a1 == 1){
-            $.ajax({
-               url: "/assembly/get_parts",
-               type:"GET",
-               data: {so: so, bom: bom, idx: idx, qty: qty, item_reference_id: item_reference_id, delivery_date: delivery_date},
-               success:function(data){
-                  if(data.message) {
-                     showNotification("danger", data.message, "now-ui-icons travel_info");
-                     return false;
-                  }
+         $.ajax({
+            url: "/assembly/get_parts",
+            type:"GET",
+            data: {so: so, bom: bom, idx: idx, qty: qty, item_reference_id: item_reference_id, delivery_date: delivery_date},
+            success:function(data){
+               if(data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
 
-                  $('#parts-list-div').html(data);
+               $('#parts-list-div').html(data);
 
-                  if (bom.length > 0) {
-                     $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-                  }
-                  window.location.hash = '#next';
-               },
-               error: function(jqXHR, textStatus, errorThrown) {
-                  if(jqXHR.status == 401) {
-                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-                  }
-                  
-                  console.log(jqXHR);
-                  console.log(textStatus);
-                  console.log(errorThrown);
-               },
-            });
-         }
+               if (bom.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
+               window.location.hash = '#next';
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       $(document).on("click", ".review-bom-row", function(e){
@@ -880,10 +877,8 @@
          $('#review-bom-modal #bom-idx').text($(this).data('idx'));
       });
 
-      var a2 = 0;
       $('.get-parts-prodorder').click(function(e){
          e.preventDefault();
-         a2++;
          var unreviewed_bom = $('#parts-list').find('.unchecked').length;
          if (unreviewed_bom > 0) {
             showNotification("info", 'Please review all BOM first.', "now-ui-icons travel_info");
@@ -949,9 +944,7 @@
 
          $('#parts-production-tbl tbody').append(row);
    
-         if(a2 == 1){
-            $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-         }
+         $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
 
          window.location.hash = '#next';
       });
@@ -1068,11 +1061,9 @@
          $('.nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
       });
 
-      var a3 = 0;
       $('#get-req-items').click(function(){
          var production_order = [];
          var parent_code = [];
-         a3++;
          $("#parts-production-tbl > tbody > tr").each(function () {
             str = $.trim($(this).find('.btn').eq(1).text());
             if (str.indexOf('PROM-') > -1) {
@@ -1080,42 +1071,39 @@
             }
          });
 
-         if(a3 == 1){
-            $.ajax({
-               url: "/assembly/get_production_req_items",
-               type:"GET",
-               data: {production_orders: production_order},
-               success:function(data){
-                  if (data.message) {
-                     showNotification("danger", data.message, "now-ui-icons travel_info");
-                     return false;
-                  }
+         $.ajax({
+            url: "/assembly/get_production_req_items",
+            type:"GET",
+            data: {production_orders: production_order},
+            success:function(data){
+               if (data.message) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                  return false;
+               }
 
-                  $('#material-planning-div').html(data);
+               $('#material-planning-div').html(data);
 
-                  if (production_order.length > 0) {
-                     $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-                  }
-                  window.location.hash = '#next';
-               },
-               error: function(jqXHR, textStatus, errorThrown) {
-                  if(jqXHR.status == 401) {
-                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-                  }
-                  
-                  console.log(jqXHR);
-                  console.log(textStatus);
-                  console.log(errorThrown);
-               },
-            });
-         }
+               if (production_order.length > 0) {
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               }
+               window.location.hash = '#next';
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       
-      var a4 = 0;
+
       $('.finish-btn').click(function(e){
          e.preventDefault();
-         a4++;
          var order_details = $('#last-tab').find('.text-center span').eq(0).text();
          var notif = '<div class="alert alert-success" role="alert">' +
             '<span class="d-none">'+order_details+'</span>' +
@@ -1135,34 +1123,32 @@
             }         
          });
 
-         if(a4 == 1){
-            $.ajax({
-               url: "/production_planning_summary",
-               type:"GET",
-               data: {production_orders: production_orders},
-               success:function(data){
-                  if (data.message) {
-                     showNotification('danger', data.message, "now-ui-icons travel_info");
-                     return false;
-                  }
+         $.ajax({
+            url: "/production_planning_summary",
+            type:"GET",
+            data: {production_orders: production_orders},
+            success:function(data){
+               if (data.message) {
+                  showNotification('danger', data.message, "now-ui-icons travel_info");
+                  return false;
+               }
 
-                  $('#planning-summary-div').html(data);
+               $('#planning-summary-div').html(data);
 
-                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-                  
-                  window.location.hash = '#next';
-               },
-               error: function(jqXHR, textStatus, errorThrown) {
-                  if(jqXHR.status == 401) {
-                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-                  }
-                  
-                  console.log(jqXHR);
-                  console.log(textStatus);
-                  console.log(errorThrown);
-               },
-            });
-         }
+               $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+               
+               window.location.hash = '#next';
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       
