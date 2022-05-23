@@ -95,8 +95,8 @@ class SpotweldingController extends Controller
 
 			$total_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->sum('reject');
 
-			$balance_qty = ($request->qty_to_manufacture - $total_good) - $total_reject;
-			$balance_qty = $balance_qty <= 0 ? ($total_good - $total_reject) : 0;
+			$balance_qty = ((float)$request->qty_to_manufacture - $total_good) - $total_reject;
+			// return $balance_qty = $balance_qty <= 0 ? ($total_good - $total_reject) : 0;
 	    	if ($balance_qty <= 0) {
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
@@ -754,10 +754,10 @@ class SpotweldingController extends Controller
 			$jt_good = $jt_spotwelding_reject->good;
 		}
 
-		$reject_qty_replacement = $spotwelding_completed_qty - $request->qty_to_manufacture;
+		$reject_qty_replacement = $spotwelding_completed_qty - (float)$request->qty_to_manufacture;
 		$remaining_reject = $jt_reject - $reject_qty_replacement;
 
-		$required_qty = $request->qty_to_manufacture < $spotwelding_completed_qty ? $request->qty_to_manufacture : $spotwelding_completed_qty;
+		$required_qty = (float)$request->qty_to_manufacture < $spotwelding_completed_qty ? $spotwelding_completed_qty : $request->qty_to_manufacture;
 	
 		return ($required_qty - $jt_good);
     }
