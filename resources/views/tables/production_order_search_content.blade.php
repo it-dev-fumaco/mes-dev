@@ -212,13 +212,20 @@
 														</tr>
 														@endforeach
 													@else
-														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
-														<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
-														<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
-														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+													@if ($b['remarks'] == 'Override')
+													<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
+													<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ $b['completed_qty'] }}</b></td>
+													<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
+													<td class="text-center font-weight-bold text-uppercase" style="border: 1px solid #ABB2B9;" colspan="4">{{ $b['remarks'] }}</td>
+													@else
+													<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
+													<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
+													<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
+													<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+													<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+													<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+													<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+													@endif
 													</tr>
 													@endif
 												</tr>

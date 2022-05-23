@@ -372,6 +372,7 @@ class MainController extends Controller
 				$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
 			}) // get delivery date from delivery_date table
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')->first();
+
 		if (!$details) {
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
 		}
@@ -385,7 +386,7 @@ class MainController extends Controller
 			}else{
 				$task_status = 'Late';
 			}
-		}else{
+		} else {
 			$task_status = '--';
 		}
 
@@ -406,41 +407,41 @@ class MainController extends Controller
 			'status' => $task_status,
 			'owner' => $owner,
 			'production_order_status' => $this->production_status_with_stockentry($details->production_order, $details->status, $details->qty_to_manufacture,$details->feedback_qty, $details->produced_qty),
-			'created_at' =>  Carbon::parse($details->created_at)->format('m-d-Y h:i A')
+			'created_at' => Carbon::parse($details->created_at)->format('m-d-Y h:i A')
 		];
-		$process_arr = DB::connection('mysql_mes')->table('job_ticket')
-			->where('production_order', $details->production_order)
-			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject')
+
+		$process_arr = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $details->production_order)
+			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject', 'remarks')
 			->get();
 
 		$operation_list = [];
 		foreach ($process_arr as $row) {
 			$operations_arr = [];
 			if($row->workstation == "Spotwelding"){
-				  $operations =  DB::connection('mysql_mes')->table('spotwelding_qty as qpart')
-                  ->where('qpart.job_ticket_id',  $row->job_ticket_id)->get();
-				  $total_rejects =$row->reject;
-				  $min_count= collect($operations)->min('from_time');
-				  $max_count=collect($operations)->max('to_time');
-				  $status = collect($operations)->where('status', 'In Progress');
-				  $operations_arr[] = [
-					'machine_code' => "",
-					'operator_name' => "",
+				$operations =  DB::connection('mysql_mes')->table('spotwelding_qty')
+					->where('job_ticket_id',  $row->job_ticket_id)->get();
+
+				$total_rejects = $row->reject;
+				$min_count= collect($operations)->min('from_time');
+				$max_count= collect($operations)->max('to_time');
+				$status = collect($operations)->where('status', 'In Progress');
+
+				$operations_arr[] = [
+					'machine_code' => null,
+					'operator_name' => null,
 					'from_time' => $min_count,
 					'to_time' => ($row->status == "In Progress") ? '' : $max_count,
 					'status' => (count($status) == 0 )? 'Not started': "In Progress",
-					'qa_inspection_status' => "",
+					'qa_inspection_status' => null,
 					'good' => $row->completed_qty,
 					'reject' => $total_rejects,
-					'remarks' => "",
+					'remarks' => null,
 				];
 			}else{
 				$operations = DB::connection('mysql_mes')->table('job_ticket AS jt')
-				->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
-				->where('time_logs.job_ticket_id', $row->job_ticket_id)
-				->where('workstation','!=', 'Spotwelding')
-				->select('jt.*', 'time_logs.*')
-				->orderBy('idx', 'asc')->get();
+					->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
+					->where('time_logs.job_ticket_id', $row->job_ticket_id)->where('workstation','!=', 'Spotwelding')
+					->select('jt.*', 'time_logs.*')->orderBy('idx', 'asc')->get();
 
 				foreach ($operations as $d) {
 					$reference_type = ($d->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
@@ -486,6 +487,7 @@ class MainController extends Controller
 					];
 				}
 			}
+
 			$operation_list[] = [
 				'production_order' => $jtno,
 				'workstation' => $row->workstation,
@@ -494,24 +496,33 @@ class MainController extends Controller
 				'count_good' => (count($operations_arr) <= 1) ? '' : "Total: ".collect($operations_arr)->sum('good'),
 				'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
 				'operations' => $operations_arr,
+				'remarks' => $row->remarks,
+				'completed_qty' => $row->completed_qty,
 				'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
 			];
 		}
+
 		$processes = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $details->production_order)
 			->distinct()->pluck('job_ticket_id');
+
 		$totals = [
 			'produced_qty' => $details->produced_qty,
 			'total_good' => collect($process_arr)->min('completed_qty'),
 			'total_reject' => collect($process_arr)->sum('reject'),
 			'balance_qty' => $details->qty_to_manufacture - $details->produced_qty,
 		];
-		$datas=[];
-		$tab_name=$details->item_classification;
-		$production_order_no=$jtno;
-		$po=DB::connection('mysql_mes')->table('production_order')->where('sales_order',$details->sales_order)->where('material_request',$details->material_request)->where('parent_item_code', $details->parent_item_code)->where('sub_parent_item_code', $details->item_code)->whereNotIn('production_order', [$details->production_order])->get();
+
+		$datas = [];
+		$tab_name = $details->item_classification;
+		$production_order_no = $jtno;
+		$po = DB::connection('mysql_mes')->table('production_order')->where('sales_order',$details->sales_order)
+			->where('material_request',$details->material_request)->where('parent_item_code', $details->parent_item_code)
+			->where('sub_parent_item_code', $details->item_code)->whereNotIn('production_order', [$details->production_order])
+			->get();
+
 		if(count($po) > 0){
 			foreach($po as $rowss){
-				$data[]=[
+				$data[] = [
 					'production_order' => $rowss->production_order,
 					'item_classification' => $rowss->item_classification,
 					'item_code' => $rowss->item_code,
@@ -531,31 +542,31 @@ class MainController extends Controller
 					'material_status' => $this->material_status_stockentry($rowss->production_order, $rowss->status, $rowss->qty_to_manufacture,$rowss->feedback_qty, $rowss->produced_qty)
 				];
 			}
-			$tab[]=[
+
+			$tab[] = [
 				'tab' => substr($details->item_code, 0, 2).'-Parts',
 				'data' => $data
-
 			];
 		}
 
-		$reference= ($details->sales_order == null)? $details->material_request: $details->sales_order;
-		$tbl_reference= ($details->sales_order == null)? "tabMaterial Request Item": "tabSales Order Item";
-		$get_delivery_date=DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $details->item_code)->first();
-		$notifications=['match' => 'false'];
-		if(!empty($get_delivery_date)){
-            $erp_sales_order=DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->select('item_code')->first();
+		$reference = ($details->sales_order == null) ? $details->material_request : $details->sales_order;
+		$tbl_reference = ($details->sales_order == null) ? "tabMaterial Request Item" : "tabSales Order Item";
+		$get_delivery_date = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference)->where('parent_item_code',  $details->item_code)->first();
+		$notifications = ['match' => 'false'];
+		if(!empty($get_delivery_date)) {
+            $erp_sales_order = DB::connection('mysql')->table($tbl_reference)->where('name', $get_delivery_date->erp_reference_id)->select('item_code')->first();
             if(!empty($erp_sales_order)){
                 if($erp_sales_order->item_code != $details->parent_item_code){
 					$notifications= [
 						"match"=> 'true',	
 						'message' => 'Parent item code was change from <b>'.$details->parent_item_code.'</b> to <b>'.$erp_sales_order->item_code.'</b>',
 					];
-                    }
-                }
+				}
 			}
-		$success=1;
+		}
 
-		// Session::put('op_list', $operation_list);
+		$success = 1;
+
 		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no'));
 	}
 
