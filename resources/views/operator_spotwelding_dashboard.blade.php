@@ -853,10 +853,10 @@
       var production_order = $('#scan-production-order-step2-modal .production-order').text();
       var machine_status = $(this).data('status').toLowerCase();
 
-      if (machine_status == 'unavailable') {
-        showNotification("danger", 'Selected machine is currently unavailable. Please select another machine.', "now-ui-icons travel_info");
-        return false;
-      }
+      // if (machine_status == 'unavailable') {
+      //   showNotification("danger", 'Selected machine is currently unavailable. Please select another machine.', "now-ui-icons travel_info");
+      //   return false;
+      // }
 
       $('#scan-production-order-step3-modal input[name="machine_code"]').val(machine_code);
       $('#scan-production-order-step3-modal input[name="production_order"]').val(production_order);

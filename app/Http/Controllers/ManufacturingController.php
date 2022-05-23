@@ -3288,9 +3288,9 @@ class ManufacturingController extends Controller
                 return response()->json(['success' => 0, 'message' => $reference_name . ' was CANCELLED']);
             }
 
-            if ($per_status >= 100) {
-                return response()->json(['success' => 0, 'message' => $reference_name . ' was already COMPLETED']);
-            }
+            // if ($per_status >= 100) {
+            //     return response()->json(['success' => 0, 'message' => $reference_name . ' was already COMPLETED']);
+            // }
 
             $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
             if (!$item) {

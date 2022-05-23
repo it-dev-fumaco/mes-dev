@@ -1131,7 +1131,7 @@
 <script type="text/javascript">
   warnings_dashboard();
   function notif_dashboard(el){
-    setInterval(function() {
+    // setInterval(function() {
       $.ajax({
         url:"/get_tbl_notif_dashboard",
         type:"GET",
@@ -1139,11 +1139,11 @@
           $(el).html(data);
         }
       });
-    }, 5000);
+    // }, 5000);
   }
 
   function warnings_dashboard(){
-    setInterval(function() {
+    // setInterval(function() {
       $.ajax({
         url:"/get_tbl_warnings_dashboard",
         type:"GET",
@@ -1152,7 +1152,7 @@
           $('#warnings-badge').text($('#warnings-count').val());
         }
       });
-    }, 5000);
+    // }, 5000);
   }
 
   $.ajaxSetup({

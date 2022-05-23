@@ -153,7 +153,7 @@
 						</div>
 					</div>
 				</div>
-				@endif
+		
 			</div>
 			<div class="container-fluid tab-pane" id="w11" role="tabpanel" aria-labelledby="w1-tab">
 				@if(count($tab_components) > 0)
@@ -707,6 +707,7 @@
 		
 	</div>
 </div>
+@endif
 <style>
 	.create-feedback-tab .active{
 		background-color: #F96332 !important;

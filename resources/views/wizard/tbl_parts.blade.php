@@ -69,7 +69,9 @@
     </tr>
     @empty
     <tr>
-      <td colspan="9" class="text-center">No Item(s) Found.</td>
+      <td colspan="9" class="text-center font-weight-bold text-danger" style="font-size: 15pt;">
+          No Item(s) Found.<br> Please specify operations in BOM for this item; check BOM in ERP.
+      </td>
     </tr>
     @endforelse
   </tbody>
