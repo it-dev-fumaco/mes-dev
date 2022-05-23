@@ -3367,8 +3367,8 @@ class MainController extends Controller
 						$q->where('sted.status', 'Issued')
 							->orWhere('ste.docstatus', 1);
 					})
-					->where('ste.docstatus', '<', 2)->exists();
-					
+					->exists();
+
 				if(!$is_transferred){
 					return response()->json(['success' => 0, 'message' => 'No available materials.']);
 				}
