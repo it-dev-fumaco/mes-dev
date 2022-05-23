@@ -5021,7 +5021,7 @@ class ManufacturingController extends Controller
             DB::connection('mysql_mes')->beginTransaction();
             // update production order feedbacked qty  in MES
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->work_order)
-                ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email]);
+                ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'produced_qty' => $produced_qty]);
             
              // update feedback logs as cancelled in MES
             DB::connection('mysql_mes')->table('feedbacked_logs')
