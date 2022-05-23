@@ -5000,6 +5000,19 @@ class ManufacturingController extends Controller
 
             // get production order remaining feedbacked qty 
             $remaining_feedbacked_qty = $production_order_detail->produced_qty - $stock_entry_detail->fg_completed_qty;
+
+            if ($remaining_feedbacked_qty <= 0) {
+                $jtstatus = 'Pending';
+            } else {
+                $jtstatus = 'In Progress';
+            }
+
+            DB::connection('mysql_mes')->table('job_ticket')
+                ->where('production_order', $stock_entry_detail->work_order)->where('remarks', 'Override')
+                ->update(['completed_qty' => $remaining_feedbacked_qty, 'remarks' => null, 'status' => $jtstatus]);
+
+            $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
+                ->where('production_order', $stock_entry_detail->work_order)->min('completed_qty');
             // update production order produced qty and status in ERP
             DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $stock_entry_detail->work_order)->update(['produced_qty' => $remaining_feedbacked_qty, 'modified' => $now->toDateTimeString(),
