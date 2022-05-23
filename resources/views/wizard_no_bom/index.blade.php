@@ -295,40 +295,44 @@
       });
 
       // get part
+      var a1 = 0;
       $('#get-parts').click(function(){
          $('.so-details-div').html($('#so-details-tbl').html());
-
+         a1++;
          var production_order = [];
          $('.production-order-no').each(function(){
             production_order.push($.trim($(this).text()));
          });
 
-         $.ajax({
-            url: "/assembly/get_production_req_items?no_bom=1",
-            type:"GET",
-            data: {production_orders: production_order},
-            success:function(data){
-               if (data.message) {
-                  showNotification("danger", data.message, "now-ui-icons travel_info");
-                  return false;
-               }
+         if(a1 == 1){
+            $.ajax({
+               url: "/assembly/get_production_req_items?no_bom=1",
+               type:"GET",
+               data: {production_orders: production_order},
+               success:function(data){
+                  if (data.message) {
+                     showNotification("danger", data.message, "now-ui-icons travel_info");
+                     return false;
+                  }
 
-               $('#material-planning-div').html(data);
+                  $('#material-planning-div').html(data);
 
-               if (production_order.length > 0) {
-                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-               }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-               if(jqXHR.status == 401) {
-                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-               }
-               
-               console.log(jqXHR);
-               console.log(textStatus);
-               console.log(errorThrown);
-            },
-         });
+                  if (production_order.length > 0) {
+                     $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  }
+                  window.location.hash = '#next';
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+               },
+            });
+         }
       });
 
       $(document).on('click', '.view-production-process', function(){
@@ -441,9 +445,10 @@
          }
       });
 
+      var a2 = 0;
       $('.get-parts-prodorder').click(function(e){
          e.preventDefault();
-
+         a2++;
          if ($('.create-ste-btn').length > 0) {
             showNotification("danger", 'Please create withdrawal slips for all production orders.', "now-ui-icons travel_info");
             return false;
@@ -454,44 +459,49 @@
             production_order.push($.trim($(this).text()));
          });
 
-         $.ajax({
-            url: "/view_operations_wizard",
-            type:"GET",
-            data: {production_orders: production_order},
-            success:function(data){
-               if (data.message) {
-                  showNotification("danger", data.message, "now-ui-icons travel_info");
-                  return false;
-               }
+         if(a2 == 1){
+            $.ajax({
+               url: "/view_operations_wizard",
+               type:"GET",
+               data: {production_orders: production_order},
+               success:function(data){
+                  if (data.message) {
+                     showNotification("danger", data.message, "now-ui-icons travel_info");
+                     return false;
+                  }
 
-               $('#view-operations-div').html(data);
+                  $('#view-operations-div').html(data);
 
-               if (production_order.length > 0) {
-                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-               }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-               if(jqXHR.status == 401) {
-                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-               }
-               
-               console.log(jqXHR);
-               console.log(textStatus);
-               console.log(errorThrown);
-            },
-         });
+                  if (production_order.length > 0) {
+                     $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  }
+                  window.location.hash = '#next';
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+               },
+            });
+         }
       });
 
       $('.prev-btn').click(function(){         
          $('.nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
       });
 
+      var a3 = 0;
       $('.finish-btn').click(function(e){
          if ($('.pprocess').length > 0) {
             showNotification('danger', 'Please update workstation / process for all production orders.', "now-ui-icons travel_info");
             return false;
          }
 
+         a3++;
          e.preventDefault();
          var order_details = $('#last-tab').find('.text-center span').eq(0).text();
          var notif = '<div class="alert alert-success" role="alert">' +
@@ -512,30 +522,33 @@
             }         
          });
 
-         $.ajax({
-            url: "/production_planning_summary",
-            type:"GET",
-            data: {production_orders: production_orders},
-            success:function(data){
-               if (data.message) {
-                  showNotification('danger', data.message, "now-ui-icons travel_info");
-                  return false;
-               }
+         if(a3 == 1){
+            $.ajax({
+               url: "/production_planning_summary",
+               type:"GET",
+               data: {production_orders: production_orders},
+               success:function(data){
+                  if (data.message) {
+                     showNotification('danger', data.message, "now-ui-icons travel_info");
+                     return false;
+                  }
 
-               $('#planning-summary-div').html(data);
+                  $('#planning-summary-div').html(data);
 
-               $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-               if(jqXHR.status == 401) {
-                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-               }
-               
-               console.log(jqXHR);
-               console.log(textStatus);
-               console.log(errorThrown);
-            },
-         });
+                  $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  window.location.hash = '#next';
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+                  
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+               },
+            });
+         }
       });
 
       $(document).on('click', '#print-withdrawal-slip-btn', function(e){
