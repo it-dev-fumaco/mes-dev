@@ -95,8 +95,7 @@ class SpotweldingController extends Controller
 
 			$total_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->sum('reject');
 
-			$balance_qty = ((float)$request->qty_to_manufacture - $total_good) - $total_reject;
-			// return $balance_qty = $balance_qty <= 0 ? ($total_good - $total_reject) : 0;
+			$balance_qty = ((float)$request->qty_to_manufacture - $total_good) + $total_reject;
 	    	if ($balance_qty <= 0) {
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
