@@ -109,10 +109,6 @@ class PaintingOperatorController extends Controller
 			return response()->json(['success' => 2, 'message' => 'Task not scheduled for today.']);
 		}
 
-		if ($task_qry->status == 'Completed') {
-			return response()->json(['success' => 0, 'message' => 'Task already completed.']);
-		}
-
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')
 			->where('production_order', $production_order)->first();
 
