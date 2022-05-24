@@ -1848,7 +1848,7 @@ class MainController extends Controller
 			];
 		}
 		$total_production_orders = $production_orders->total();
-		
+
 		return view('reports.tbl_production_orders', compact('production_order_list', 'total_production_orders', 'production_orders'));
 	}
 
@@ -5070,12 +5070,15 @@ class MainController extends Controller
 				}
 
 				$produced_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
+
+				$work_order_status = $remarks_override == 'Override' ? 'In Progress' : $production_order_details->status;
+				$work_order_status = ($produced_qty == $production_order_details->qty) ? 'Completed' : $work_order_status;
 			
 				$production_data = [
 					'modified' => $now->toDateTimeString(),
 					'modified_by' => Auth::user()->email,
 					'produced_qty' => $produced_qty,
-					'status' => ($produced_qty == $production_order_details->qty) ? 'Completed' : $production_order_details->status
+					'status' => $work_order_status
 				];
 
 				DB::connection('mysql')->table('tabWork Order')->where('name', $production_order)->update($production_data);
@@ -5119,6 +5122,7 @@ class MainController extends Controller
 					
 					if($remarks_override == 'Override') {
 						$production_data_mes['produced_qty'] = $manufactured_qty;
+						$production_data_mes['status'] = 'In Progress';
 					}
 				}
 

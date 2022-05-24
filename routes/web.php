@@ -33,6 +33,8 @@ Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
 Route::get('/get_scheduled_for_painting', 'PaintingOperatorController@get_scheduled_for_painting');
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/testing', 'MainController@testing');
+
 	Route::get('/allowed_warehouse_for_fast_issuance', 'InventoryController@getAllowedWarehouseFastIssuance');
 	Route::post('/save_allowed_warehouse_for_fast_issuance', 'InventoryController@saveAllowedWarehouseFastIssuance');
 	Route::post('/delete_allowed_warehouse_for_fast_issuance', 'InventoryController@deleteAllowedWarehouseFastIssuance');
