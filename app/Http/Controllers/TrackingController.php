@@ -70,7 +70,7 @@ class TrackingController extends Controller
         $production_order_detail = DB::connection('mysql_mes')->table('production_order')
             ->where(function($q) use ($references) {
                 $q->whereIn('sales_order', $references)
-                    ->orWhere('material_request', $references);
+                    ->orWhereIn('material_request', $references);
             })
             ->whereIn('item_code', $order_items)
             ->selectRaw('CONCAT(IFNULL(sales_order, material_request), item_code) as id, production_order, bom_no')
@@ -156,7 +156,7 @@ class TrackingController extends Controller
             $production_order_detail = DB::connection('mysql_mes')->table('production_order')
                 ->where(function($q) use ($references) {
                     $q->whereIn('sales_order', $references)
-                        ->orWhere('material_request', $references);
+                        ->orWhereIn('material_request', $references);
                 })
                 ->whereIn('item_code', $order_items)
                 ->selectRaw('CONCAT(IFNULL(sales_order, material_request), item_code) as id, production_order, bom_no')
