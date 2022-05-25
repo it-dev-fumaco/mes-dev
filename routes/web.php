@@ -369,6 +369,7 @@ Route::get('/get_tasks_for_inspection/{workstation}/{production_order}', 'MainCo
 //production_scheduling_PATRICK
 
 Route::get('/production_scheduling_tbl', 'SecondaryController@tbl_production_scheduling');
+Route::post('/reset_operator_time_log', 'MainController@reset_operator_time_log');
 
 //fabrication_calendar
 Route::group(['middleware' => 'auth'], function(){

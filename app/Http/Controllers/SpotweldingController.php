@@ -95,8 +95,7 @@ class SpotweldingController extends Controller
 
 			$total_reject = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->job_ticket_id)->sum('reject');
 
-			$balance_qty = ($request->qty_to_manufacture - $total_good) - $total_reject;
-			$balance_qty = $balance_qty <= 0 ? ($total_good - $total_reject) : 0;
+			$balance_qty = ((float)$request->qty_to_manufacture - $total_good) + $total_reject;
 	    	if ($balance_qty <= 0) {
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
@@ -742,8 +741,9 @@ class SpotweldingController extends Controller
 
     	return 'Pending';
     }
-    public function get_spotwelding_part_remaining_qty(Request $request){
-    	$job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
+    
+	public function get_spotwelding_part_remaining_qty(Request $request){
+		$job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
             ->where('job_ticket_id', $request->job_ticket_id)
 			->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no')->first();
@@ -756,6 +756,14 @@ class SpotweldingController extends Controller
 		if ($bom_parts == count($processed_parts)) {
 			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
 				->where('job_ticket_id', $request->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
+				->groupBy('spotwelding_part_id')->get();
+
+			$spotwelding_completed_qty = $total_good_spotwelding->min('total_good');
+		} else {
+			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
+				->where('job_ticket_id', $request->job_ticket_id)
+				->where('spotwelding_part_id', $request->spotwelding_part_id)
+				->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
 				->groupBy('spotwelding_part_id')->get();
 
 			$spotwelding_completed_qty = $total_good_spotwelding->min('total_good');

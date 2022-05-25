@@ -60,7 +60,7 @@ trait GeneralTrait
         }else if(count($logs) > 0){
             $job_ticket_status = 'In Progress';
         }else{
-            $job_ticket_status = $job_ticket_detail->status;
+            $job_ticket_status = 'Pending';
         }
         // update job ticket details
         $job_ticket_values = [
@@ -108,7 +108,15 @@ trait GeneralTrait
         }else if(count($logs) > 0){
             $production_order_status = 'In Progress';
         }else{
-            $production_order_status = $job_ticket_detail->production_order_status;
+            $production_order_status = 'Not Started';
+        }
+
+        // get job ticket actual start and end time 
+        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
+        $not_pending_jt = collect($production_order_logs)->where('status', '!=', 'Pending')->count();
+
+        if ($not_pending_jt > 0) {
+            $production_order_status = 'In Progress';
         }
         // update production order status and produced qty
 		DB::connection('mysql_mes')->table('production_order')
@@ -120,8 +128,6 @@ trait GeneralTrait
             DB::connection('mysql')->table('tabWork Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
         }
 
-        // get job ticket actual start and end time 
-        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
         $actual_start_date = collect($production_order_logs)->min('actual_start_date');
         $actual_end_date = collect($production_order_logs)->max('actual_end_date');
 

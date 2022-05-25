@@ -859,6 +859,46 @@
      </div>
   </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="reset-log-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="/reset_operator_time_log" method="POST" autocomplete="off" id="reset-time-log-form">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header p-3">
+          <h5 class="modal-title">Reset Log</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body p-2">
+          <input type="hidden" id="job-ticket-id-reset-log" name="job_ticket_id" required>
+          <input type="hidden" id="time-log-id-reset-log" name="timelog_id" required>
+          <p class="text-center font-weight-bold">Reset operator time log?</p>
+          <dl class="row m-0">
+            <dt class="col-sm-4">Production Order</dt>
+            <dd class="col-sm-8" id="production-order-reset-log">-</dd>
+            <dt class="col-sm-4">Workstation</dt>
+            <dd class="col-sm-8" id="workstation-reset-log">-</dd>
+            <dt class="col-sm-4">Process</dt>
+            <dd class="col-sm-8" id="process-reset-log">-</dd>
+            <dt class="col-sm-4">Start Time</dt>
+            <dd class="col-sm-8" id="start-time-reset-log">-</dd>
+            <dt class="col-sm-4">End Time</dt>
+            <dd class="col-sm-8" id="end-time-reset-log">-</dd>
+            <dt class="col-sm-4">Operator</dt>
+            <dd class="col-sm-8" id="operator-reset-log">-</dd>
+          </dl>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
     
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
@@ -880,7 +920,57 @@
   @yield('script')
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
-   $(document).ready(function(){
+  $(document).ready(function(){
+    $(document).on('click', '.reset-time-log-btn', function(e) {
+      e.preventDefault();
+
+      var $row = $(this).parent();
+
+      $('#production-order-reset-log').text($row.find('span').eq(0).text());
+      $('#workstation-reset-log').text($row.find('span').eq(1).text());
+      $('#process-reset-log').text($row.find('span').eq(2).text());
+      $('#start-time-reset-log').text($row.find('span').eq(3).text());
+      $('#end-time-reset-log').text($row.find('span').eq(4).text());
+      $('#operator-reset-log').text($row.find('span').eq(5).text());
+
+      $('#job-ticket-id-reset-log').val($(this).data('jobticket'));
+      $('#time-log-id-reset-log').val($(this).data('timelog'));
+         
+      $('#reset-log-modal').modal('show');
+    });
+
+    $(document).on('submit', '#reset-time-log-form', function(e) {
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+
+            $('#process-bc').empty();
+            $('#jt-details-tbl tbody').empty();
+            $.ajax({
+              url:"/get_jt_details/" + data.id,
+              type:"GET",
+              success:function(response){
+                if (response.success < 1) {
+                  showNotification("danger", response.message, "now-ui-icons travel_info");
+                }else{
+                  $('#production-search-content').html(response);
+                }
+              }
+            });
+
+            $('#reset-log-modal').modal('hide');
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+    
     $(document).on('click', '.issue-now-btn', function(e){
       e.preventDefault();
 
