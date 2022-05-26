@@ -1567,28 +1567,19 @@ class MainController extends Controller
 		// Not Started / Cancelled
 		if(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array)){
 			$inactive_status = [in_array('Not Started', $status_array) ? 'Not Started' : '', in_array('Cancelled', $status_array) ? 'Cancelled' : ''];
-			// $not_started = DB::connection('mysql_mes')->table('production_order')->whereIn('status', array_filter($inactive_status))->pluck('production_order');
-
-			// $filtered_production_orders = collect($filtered_production_orders)->merge(collect($not_started));
-
 			$inactive_production_orders = DB::connection('mysql_mes')->table('production_order')
-				->leftJoin('delivery_date', function($join)
-				{
-					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
-					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
-				})
 				->where(function($q) use ($request) {
-					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.sales_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.material_request', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
+					$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('customer', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
-				->whereIn('production_order.status', array_filter($inactive_status))
-				->whereIn('production_order.operation_id', $user_permitted_operation_id)
-				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
-				->orderBy('production_order.created_at', 'desc');
+				->whereIn('status', array_filter($inactive_status))
+				->whereIn('operation_id', $user_permitted_operation_id)
+				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
+				->orderBy('created_at', 'desc');
 
 			if(!in_array($status, ['All', 'Production Orders'])){
 				$statuses = array_merge($statuses, $inactive_status);
@@ -1679,24 +1670,19 @@ class MainController extends Controller
 		$mes_completed_production_orders = [];
 		if(in_array('Completed', $status_array)){
 			$mes_completed_production_orders = DB::connection('mysql_mes')->table('production_order')
-				->leftJoin('delivery_date', function($join)
-				{
-					$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
-					$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
-				})
 				->where(function($q) use ($request) {
-					$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.sales_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.material_request', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
+					$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('customer', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
-				->where('production_order.status', 'Completed')
+				->where('status', 'Completed')
 				->whereRaw('feedback_qty >= qty_to_manufacture')
-				->whereIn('production_order.operation_id', $user_permitted_operation_id)
-				->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
-				->orderBy('production_order.created_at', 'desc');
+				->whereIn('operation_id', $user_permitted_operation_id)
+				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
+				->orderBy('created_at', 'desc');
 
 			if(!in_array($status, ['All', 'Production Orders'])){
 				array_push($statuses, 'Completed');
@@ -1705,50 +1691,56 @@ class MainController extends Controller
 		// Completed
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
-			->leftJoin('delivery_date', function($join)
-			{
-				$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
-				$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
-			})
 			->where(function($q) use ($request) {
-				$q->where('production_order.production_order', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('production_order.customer', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('production_order.sales_order', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('production_order.material_request', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('production_order.item_code', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('production_order.bom_no', 'LIKE', '%'.$request->search_string.'%');
+				$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('customer', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
 			})
 			->when($statuses, function ($q) use ($statuses){
-				$q->whereIn('production_order.status', $statuses);
+				$q->whereIn('status', $statuses);
 			})
 			->when(count($status_array) > 0, function($q) use ($filtered_production_orders){
-				$q->whereIn('production_order.production_order', $filtered_production_orders);
+				$q->whereIn('production_order', $filtered_production_orders);
 			})
 			->when($status != 'All' and in_array('Ready for Feedback', $status_array), function($q) use ($status_array){
-				$q->where('production_order.produced_qty', '>', 0)
+				$q->where('produced_qty', '>', 0)
 					->where(function($q) {
-						$q->whereRaw('production_order.produced_qty > feedback_qty')
-							->whereRaw('production_order.qty_to_manufacture > feedback_qty');
+						$q->whereRaw('produced_qty > feedback_qty')
+							->whereRaw('qty_to_manufacture > feedback_qty');
 					});
 			})
 			->when($status != 'All' and in_array('Task Queue', $status_array), function($q){
-				$q->whereRaw('production_order.qty_to_manufacture > feedback_qty');
+				$q->whereRaw('qty_to_manufacture > feedback_qty');
 			})
 			->when($status != 'All' and !in_array('Cancelled', $status_array), function($q){
-				$q->where('production_order.status', '!=', 'Cancelled');
+				$q->where('status', '!=', 'Cancelled');
 			})
-			->whereIn('production_order.operation_id', $user_permitted_operation_id)
-			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
+			->whereIn('operation_id', $user_permitted_operation_id)
 			->when(count($status_array) > 0 and in_array('Completed', $status_array), function($q) use ($mes_completed_production_orders){
 				$q->union($mes_completed_production_orders);
 			})
 			->when(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array), function($q) use ($inactive_production_orders){
 				$q->union($inactive_production_orders);
 			})
+			->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 			->orderBy('created_at', 'desc')
 			->paginate(10);
 
 		$filtered_production_orders = array_column($production_orders->items(), 'production_order');
+
+		$filtered_parent_item_codes = array_column($production_orders->items(), 'parent_item_code');
+		$filtered_reference_nos = array_column($production_orders->items(), 'reference_no');
+		$delivery_dates = DB::connection('mysql_mes')->table('delivery_date')
+			->whereIn('parent_item_code', $filtered_parent_item_codes)
+			->where(function($q) use ($filtered_reference_nos) {
+				$q->whereIn('reference_no', $filtered_reference_nos)
+					->orWhereIn('reference_no', $filtered_reference_nos);
+			})
+			->select(DB::raw('CONCAT(reference_no, parent_item_code) as id'), 'rescheduled_delivery_date')
+			->pluck('rescheduled_delivery_date', 'id')->toArray();
 
 		$prod_details = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $filtered_production_orders)->select('name', 'material_transferred_for_manufacturing', 'docstatus')->get();
 		$work_order_details = collect($prod_details)->groupBy('name');
@@ -1820,6 +1812,7 @@ class MainController extends Controller
 			$owner = ucwords(str_replace('.', ' ', $owner[0]));
 
 			$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+			$rescheduled_delivery_date = array_key_exists($reference_no.$row->parent_item_code, $delivery_dates) ? $delivery_dates[$reference_no.$row->parent_item_code] : null;
 			$production_order_list[] = [
 				'production_order' => $row->production_order,
 				'production_order_status' => $row->status,
@@ -1832,7 +1825,7 @@ class MainController extends Controller
 				'operation_id' => $row->operation_id,
 				'stock_uom' => $row->stock_uom,
 				'reference_no' => $reference_no,
-				'delivery_date' => ($row->rescheduled_delivery_date == null) ?  $row->delivery_date : $row->rescheduled_delivery_date, // new delivery from delivery table
+				'delivery_date' => ($rescheduled_delivery_date == null) ?  $row->delivery_date : $rescheduled_delivery_date, // new delivery from delivery table
 				'customer' => $row->customer,
 				'bom' => $row->bom_no,
 				'status' => $prod_status,
@@ -1849,6 +1842,7 @@ class MainController extends Controller
 				'created_at' =>  Carbon::parse($row->created_at)->format('m-d-Y h:i A')
 			];
 		}
+
 		$total_production_orders = $production_orders->total();
 
 		return view('reports.tbl_production_orders', compact('production_order_list', 'total_production_orders', 'production_orders'));
