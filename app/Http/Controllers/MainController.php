@@ -4703,6 +4703,13 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
 			}
 
+			// check if production order has job ticket
+			$jts = DB::connection('mysql_mes')->table('job_ticket')
+				->where('production_order', $production_order)->exists();
+			if (!$jts) {
+				return response()->json(['success' => 0, 'message' => '<center>Cannot create feedback. <br> Production order has no workstation / process.</center>']);
+			}
+
 			$existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
 				->where('work_order', $production_order)
 				->where('purpose', 'Material Transfer for Manufacture')
