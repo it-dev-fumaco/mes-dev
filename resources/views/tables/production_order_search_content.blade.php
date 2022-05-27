@@ -222,7 +222,7 @@
 													<span class="d-none">{{ $from_time }}</span>
 													<span class="d-none">{{ $to_time }}</span>
 													<span class="d-none">{{ $operator_name }}</span>
-													<button class="btn btn-sm reset-time-log-btn" type="button" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">Reset</button>
+													<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
 													@else
 													-
 													@endif

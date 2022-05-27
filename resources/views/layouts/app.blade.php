@@ -142,24 +142,17 @@
       @csrf
       <div class="modal-content">
         <div class="modal-header p-3">
-          <h5 class="modal-title">Reset Log</h5>
+          <h5 class="modal-title">Reset Time Log</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body p-2">
           <div class="row m-0">
-            <div class="col-md-6">
+            <div class="col-md-6 pt-3">
               <input type="hidden" id="job-ticket-id-reset-log" name="job_ticket_id" required>
               <input type="hidden" id="time-log-id-reset-log" name="timelog_id" required>
-              <p class="text-center mt-5 font-weight-bold">Reset operator time log?</p>
-              <dl class="row m-0">
-                <dt class="col-sm-4">Production Order</dt>
-                <dd class="col-sm-8" id="production-order-reset-log">-</dd>
-                <dt class="col-sm-4">Workstation</dt>
-                <dd class="col-sm-8" id="workstation-reset-log">-</dd>
-                <dt class="col-sm-4">Process</dt>
-                <dd class="col-sm-8" id="process-reset-log">-</dd>
+              <dl class="row mt-5">
                 <dt class="col-sm-4">Start Time</dt>
                 <dd class="col-sm-8" id="start-time-reset-log">-</dd>
                 <dt class="col-sm-4">End Time</dt>
@@ -167,6 +160,9 @@
                 <dt class="col-sm-4">Operator</dt>
                 <dd class="col-sm-8" id="operator-reset-log">-</dd>
               </dl>
+              <p class="text-center font-weight-bold mt-5 pt-1">
+                Operator time log will reset for <br><span id="workstation-reset-log"></span> (<span id="process-reset-log"></span>) in <span id="production-order-reset-log"></span>
+              </p>
             </div>
             <div class="col-md-6">
               <div class="form-group text-center">
