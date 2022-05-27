@@ -6,10 +6,10 @@
         <th class="text-center p-1">Warehouse</th>
         <th class="text-center p-1">Actual Qty</th>
     </tr>
-    @forelse($inventory_stock as $row)
+    @forelse($stocks as $row)
     <tr>
-        <td class="text-center p-1">{{ $row->warehouse }}</td>
-        <td class="text-center p-1">{{ $row->actual_qty * 1 }}</td>
+        <td class="text-center p-1">{{ $row['warehouse'] }}</td>
+        <td class="text-center p-1">{{ $row['available_qty'] }}</td>
     </tr>
     @empty
     <tr>

@@ -4883,7 +4883,69 @@ class ManufacturingController extends Controller
     public function get_available_warehouse_qty($item_code){
         $inventory_stock = DB::connection('mysql')->table('tabBin')->where('item_code', $item_code)->where('actual_qty', '>', 0)->get();
 
-        return view('tables.tbl_item_inventory', compact('inventory_stock'));
+        $s_warehouses = array_column($inventory_stock->toArray(), 'warehouse');
+
+        $stock_reservation = DB::connection('mysql')->table('tabStock Reservation')->where('item_code', $item_code)
+            ->whereIn('warehouse', $s_warehouses)->where('status', 'Active')
+            ->selectRaw('SUM(reserve_qty) as total_reserved_qty, SUM(consumed_qty) as total_consumed_qty, CONCAT(item_code, "-", warehouse) as item')
+            ->groupBy('item_code', 'warehouse')->get();
+        $stock_reservation = collect($stock_reservation)->groupBy('item')->toArray();
+
+        $ste_total_issued = DB::table('tabStock Entry Detail')->where('docstatus', 0)->where('status', 'Issued')
+            ->where('item_code', $item_code)->whereIn('s_warehouse', $s_warehouses)
+            ->selectRaw('SUM(qty) as total_issued, CONCAT(item_code, "-", s_warehouse) as item')
+            ->groupBy('item_code', 's_warehouse')->get();
+        $ste_total_issued = collect($ste_total_issued)->groupBy('item')->toArray();
+
+        $at_total_issued = DB::table('tabAthena Transactions as at')
+            ->join('tabPacking Slip as ps', 'ps.name', 'at.reference_parent')
+            ->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
+            ->join('tabDelivery Note as dr', 'ps.delivery_note', 'dr.name')
+            ->whereIn('at.reference_type', ['Packing Slip', 'Picking Slip'])
+            ->where('dr.docstatus', 0)->where('ps.docstatus', '<', 2)
+            ->where('psi.status', 'Issued')->where('at.item_code', $item_code)
+            ->where('psi.item_code', $item_code)->whereIn('at.source_warehouse', $s_warehouses)
+            ->selectRaw('SUM(at.issued_qty) as total_issued, CONCAT(at.item_code, "-", at.source_warehouse) as item')
+            ->groupBy('at.item_code', 'at.source_warehouse')
+            ->get();
+
+        $at_total_issued = collect($at_total_issued)->groupBy('item')->toArray();
+
+        $stocks = [];
+        foreach ($inventory_stock as $row) {
+            $reserved_qty = 0;
+            if (array_key_exists($item_code . '-' . $row->warehouse, $stock_reservation)) {
+                $reserved_qty = $stock_reservation[$item_code . '-' . $row->warehouse][0]->total_reserved_qty;
+            }
+    
+            $consumed_qty = 0;
+            if (array_key_exists($item_code . '-' . $row->warehouse, $stock_reservation)) {
+                $consumed_qty = $stock_reservation[$item_code . '-' . $row->warehouse][0]->total_consumed_qty;
+            }
+    
+            $reserved_qty = $reserved_qty - $consumed_qty;
+    
+            $issued_qty = 0;
+            if (array_key_exists($item_code . '-' . $row->warehouse, $ste_total_issued)) {
+                $issued_qty = $ste_total_issued[$item_code . '-' . $row->warehouse][0]->total_issued;
+            }
+    
+            if (array_key_exists($item_code . '-' . $row->warehouse, $at_total_issued)) {
+                $issued_qty += $at_total_issued[$item_code . '-' . $row->warehouse][0]->total_issued;
+            }
+    
+            $actual_qty = $row->actual_qty;
+    
+            $available_qty = $actual_qty - ($issued_qty + $reserved_qty);
+            $available_qty = $available_qty < 0 ? 0 : $available_qty;
+
+            $stocks[] = [
+                'warehouse' => $row->warehouse,
+                'available_qty' => $available_qty
+            ];
+        }
+
+        return view('tables.tbl_item_inventory', compact('stocks'));
     }
 
     public function get_reason_for_cancellation(){
