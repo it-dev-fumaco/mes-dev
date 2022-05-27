@@ -2508,7 +2508,7 @@ class ManufacturingController extends Controller
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
             ->where('ste.purpose', 'Material Transfer for Manufacture')
             ->where('ste.work_order', $production_order)
-            ->where('ste.docstatus', 1)
+            ->where('ste.docstatus', 1)->whereNotIn('sted.s_warehouse', ['Fabrication - FI', 'Spotwelding Warehouse - FI'])
             ->selectRaw('sted.item_code, sted.s_warehouse, sted.t_warehouse, GROUP_CONCAT(DISTINCT ste.name) as ste_names, SUM(sted.qty) as qty')
             ->groupBy('sted.item_code', 'sted.s_warehouse', 'sted.t_warehouse')->get();
 
