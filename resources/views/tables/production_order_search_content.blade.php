@@ -222,9 +222,11 @@
 													<span class="d-none">{{ $from_time }}</span>
 													<span class="d-none">{{ $to_time }}</span>
 													<span class="d-none">{{ $operator_name }}</span>
-													<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+													<span class="d-none">{{ $c['good'] }}</span>
+													<img src="{{ asset('/img/edit.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+													<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
 													@else
-													-
+													<img src="{{ asset('/img/edit.png') }}" width="20" style="cursor: not-allowed;">
 													@endif
 												</td>
 												@endif
@@ -239,7 +241,9 @@
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@if ($item_details['feedback_qty'] <= 0)
-												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+												<td class="text-center" style="border: 1px solid #ABB2B9;">
+													<img src="{{ asset('/img/edit.png') }}" width="20" style="cursor: not-allowed;">
+												</td>
 												@endif
 											</tr>
 											@endif

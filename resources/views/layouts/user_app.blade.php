@@ -895,6 +895,51 @@
     </form>
   </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="edit-log-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="/edit_operator_time_log" method="POST" autocomplete="off" id="edit-time-log-form">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header p-3">
+          <h5 class="modal-title">Edit Time Log</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body p-2">
+          <input type="hidden" id="job-ticket-id-edit-log" name="job_ticket_id" required>
+          <input type="hidden" id="time-log-id-edit-log" name="timelog_id" required>
+          <dl class="row m-0">
+            <dt class="col-sm-4">Production Order</dt>
+            <dd class="col-sm-8" id="production-order-edit-log">-</dd>
+            <dt class="col-sm-4">Workstation</dt>
+            <dd class="col-sm-8" id="workstation-edit-log">-</dd>
+            <dt class="col-sm-4">Process</dt>
+            <dd class="col-sm-8" id="process-edit-log">-</dd>
+            <dt class="col-sm-4">Good Qty</dt>
+            <dd class="col-sm-8" id="good-qty-edit-log">-</dd>
+            <dt class="col-sm-4">Operator</dt>
+            <dd class="col-sm-8" id="operator-edit-log">-</dd>
+          </dl>
+          <div class="row mt-2">
+            <div class="col-md-8 offset-md-2">
+              <div class="form-group text-center">
+                <label for="new-good-qty-edit-log" class="font-weight-bold">New Good Qty</label>
+                <input type="text" class="form-control" id="new-good-qty-edit-log" name="qty" value="0" style="text-align: center; font-size: 16pt;">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
     
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
@@ -917,6 +962,60 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
   $(document).ready(function(){
+    $(document).on('click', '.edit-time-log-btn', function(e) {
+      e.preventDefault();
+
+      var $row = $(this).parent();
+
+      $('#production-order-edit-log').text($row.find('span').eq(0).text());
+      $('#workstation-edit-log').text($row.find('span').eq(1).text());
+      $('#process-edit-log').text($row.find('span').eq(2).text());
+      $('#start-time-edit-log').text($row.find('span').eq(3).text());
+      $('#end-time-edit-log').text($row.find('span').eq(4).text());
+      $('#operator-edit-log').text($row.find('span').eq(5).text());
+
+      var qty = $row.find('span').eq(6).text();
+      $('#good-qty-edit-log').text(qty);
+      $('#new-good-qty-edit-log').val(qty);
+
+      $('#job-ticket-id-edit-log').val($(this).data('jobticket'));
+      $('#time-log-id-edit-log').val($(this).data('timelog'));
+         
+      $('#edit-log-modal').modal('show');
+    });
+
+    $(document).on('submit', '#edit-time-log-form', function(e) {
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+
+            $('#process-bc').empty();
+            $('#jt-details-tbl tbody').empty();
+            $.ajax({
+              url:"/get_jt_details/" + data.id,
+              type:"GET",
+              success:function(response){
+                if (response.success < 1) {
+                  showNotification("danger", response.message, "now-ui-icons travel_info");
+                }else{
+                  $('#production-search-content').html(response);
+                }
+              }
+            });
+
+            $('#edit-log-modal').modal('hide');
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+
     $(document).on('click', '.reset-time-log-btn', function(e) {
       e.preventDefault();
 

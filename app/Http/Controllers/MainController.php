@@ -7334,4 +7334,76 @@ class MainController extends Controller
 			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
 		}
 	}
+
+	public function edit_operator_time_log(Request $request) {
+		$job_ticket_id = $request->job_ticket_id;
+		$timelog_id = $request->timelog_id;
+		$qty = (float)$request->qty;
+
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+		try {
+			if ($qty <= 0) {
+				return response()->json(['status' => 0, 'message' => 'Qty cannot be less than 0.']);
+			}
+
+			$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->first();
+			if (!$job_ticket_details) {
+				return response()->json(['status' => 0, 'message' => 'Job ticket not found.']);
+			}
+		
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->first();
+			if (!$production_order_details) {
+				return response()->json(['status' => 0, 'message' => 'Production Order not found.']);
+			}
+
+			if ($production_order_details->feedback_qty > 0) {
+				return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been partially / fully feedbacked.']);
+			}
+
+			if ($request->is_operator) {
+				$is_authorized = DB::connection('mysql_mes')->table('user')->where('user_access_id', $request->authorized_staff)->first();
+				if (!$is_authorized) {
+					return response()->json(['status' => 0, 'message' => 'User not authorized.']);
+				}
+				$authorized_user = $is_authorized->employee_name;
+			} else {
+				$authorized_user = Auth::user()->employee_name;
+			}
+
+			$timelog_table = ($job_ticket_details->workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
+
+			$time_log_details = DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->first();
+
+			$timelogs_good = DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', '!=', $timelog_id)->sum('good');
+			$remaining_to_be_completed = $production_order_details->qty_to_manufacture - $timelogs_good;
+			if ($time_log_details) {
+				if ($qty > $remaining_to_be_completed) {
+					return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than ' . $remaining_to_be_completed]);
+				}
+			}
+
+			// insert activity logs
+			DB::connection('mysql_mes')->table('activity_logs')->insert([
+				'action' => 'Timelog Good Qty Update',
+				'message' => 'Good qty for ' . $job_ticket_details->workstation . ' timelogs for ' . $job_ticket_details->production_order . ' has been updated from ' . $time_log_details->good . ' to ' . $qty . ' by ' . $authorized_user,
+				'created_at' => Carbon::now()->toDateTimeString(),
+				'created_by' => $authorized_user
+			]);
+
+			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->update(['good' => $qty]);
+
+			$this->update_job_ticket($job_ticket_id);
+
+			DB::connection('mysql_mes')->commit();
+			DB::connection('mysql')->commit();
+
+			return response()->json(['status' => 1, 'message' => 'Time logs has been updated.', 'id' => $job_ticket_details->production_order]);
+		} catch (Exception $e) {
+			DB::connection('mysql_mes')->rollback();
+			DB::connection('mysql')->rollback();
+
+			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
+		}
+	}
 }
