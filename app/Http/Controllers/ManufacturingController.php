@@ -2757,8 +2757,8 @@ class ManufacturingController extends Controller
                         
                         // validate qty vs remaining required qty
                         $remaining_required_qty = $alternative_for->required_qty - ($alternative_for->transferred_qty - $alternative_for->returned_qty);
-                        if($remaining_required_qty < $qty){
-                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
+                        if($remaining_required_qty <= $qty){
+                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
                         }
 
                         if (($remaining_required_qty) <= 0) {
@@ -3288,9 +3288,9 @@ class ManufacturingController extends Controller
                 return response()->json(['success' => 0, 'message' => $reference_name . ' was CANCELLED']);
             }
 
-            if ($per_status >= 100) {
-                return response()->json(['success' => 0, 'message' => $reference_name . ' was already COMPLETED']);
-            }
+            // if ($per_status >= 100) {
+            //     return response()->json(['success' => 0, 'message' => $reference_name . ' was already COMPLETED']);
+            // }
 
             $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
             if (!$item) {
@@ -5063,6 +5063,15 @@ class ManufacturingController extends Controller
 
             // get production order remaining feedbacked qty 
             $remaining_feedbacked_qty = $production_order_detail->produced_qty - $stock_entry_detail->fg_completed_qty;
+            if ($remaining_feedbacked_qty <= 0) {
+                $jtstatus = 'Pending';
+            } else {
+                $jtstatus = 'In Progress';
+            }
+
+            DB::connection('mysql_mes')->table('job_ticket')
+                ->where('production_order', $stock_entry_detail->work_order)->where('remarks', 'Override')
+                ->update(['completed_qty' => $remaining_feedbacked_qty, 'remarks' => null, 'status' => $jtstatus]);
 
             $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
                 ->where('production_order', $stock_entry_detail->work_order)->min('completed_qty');
