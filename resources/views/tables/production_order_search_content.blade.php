@@ -242,7 +242,7 @@
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@if ($item_details['feedback_qty'] <= 0)
 												<td class="text-center" style="border: 1px solid #ABB2B9;">
-													<img src="{{ asset('/img/edit.png') }}" width="20" style="cursor: not-allowed;">
+													<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
 												</td>
 												@endif
 											</tr>
