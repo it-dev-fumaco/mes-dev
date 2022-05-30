@@ -60,7 +60,7 @@ trait GeneralTrait
         }else if(count($logs) > 0){
             $job_ticket_status = 'In Progress';
         }else{
-            $job_ticket_status = $job_ticket_detail->status;
+            $job_ticket_status = 'Pending';
         }
         // update job ticket details
         $job_ticket_values = [
@@ -108,7 +108,15 @@ trait GeneralTrait
         }else if(count($logs) > 0){
             $production_order_status = 'In Progress';
         }else{
-            $production_order_status = $job_ticket_detail->production_order_status;
+            $production_order_status = 'Not Started';
+        }
+
+        // get job ticket actual start and end time 
+        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
+        $not_pending_jt = collect($production_order_logs)->where('status', '!=', 'Pending')->count();
+
+        if ($not_pending_jt > 0 && $production_order_status != 'Completed') {
+            $production_order_status = 'In Progress';
         }
         // update production order status and produced qty
 		DB::connection('mysql_mes')->table('production_order')
@@ -120,8 +128,6 @@ trait GeneralTrait
             DB::connection('mysql')->table('tabWork Order')->where('name', $job_ticket_detail->production_order)->update(['status' => $production_order_status]);
         }
 
-        // get job ticket actual start and end time 
-        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $job_ticket_detail->production_order)->get();
         $actual_start_date = collect($production_order_logs)->min('actual_start_date');
         $actual_end_date = collect($production_order_logs)->max('actual_end_date');
 
@@ -163,7 +169,14 @@ trait GeneralTrait
         }else if(count($logs) > 0){
             $production_order_status = 'In Progress';
         }else{
-            $production_order_status = $production_order_details->status;
+            $production_order_status = "Not Started";
+        }
+        // get job ticket actual start and end time 
+        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->get();
+        $not_pending_jt = collect($production_order_logs)->where('status', '!=', 'Pending')->count();
+ 
+        if ($not_pending_jt > 0 && $production_order_status != 'Completed') {
+            $production_order_status = 'In Progress';
         }
         // update production order status and produced qty
         DB::connection('mysql_mes')->table('production_order')
@@ -175,9 +188,6 @@ trait GeneralTrait
             ->where('name', $production_order)
             ->update(['status' => $production_order_status]);
 
-        // get job ticket actual start and end time 
-        $production_order_logs = DB::connection('mysql_mes')->table('job_ticket')
-            ->where('production_order', $production_order)->get();
         $actual_start_date = collect($production_order_logs)->min('actual_start_date');
         $actual_end_date = collect($production_order_logs)->max('actual_end_date');
 
@@ -702,13 +712,13 @@ trait GeneralTrait
             // get raw material qty per piece
             $qty_per_item = $item_required_qty / $qty_to_manufacture;
             // get raw material remaining qty
-            $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 4);
+            $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 8);
             // get total raw material qty for feedback qty
             $per_item = $qty_per_item * $fg_completed_qty;
             // get raw material remaining qty
             $remaining_required_qty = $per_item - $balance_qty;
             // get remaining feedback qty
-            $remaining_fg_completed_qty = $fg_completed_qty - round(($balance_qty / $qty_per_item), 4);
+            $remaining_fg_completed_qty = $fg_completed_qty - round(($balance_qty / $qty_per_item), 8);
 
             $alternative_items_qry = [];
             if($balance_qty <= 0 || $remaining_required_qty > 0){
@@ -717,7 +727,7 @@ trait GeneralTrait
                 $alternative_items_qry = [];
             }
 
-            $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 4);
+            $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 8);
 
             foreach ($alternative_items_qry as $ai_row) {
                 if ($ai_row['required_qty'] > 0) {
@@ -741,8 +751,8 @@ trait GeneralTrait
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
                     'required_qty' => $required_qty,
-                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 4),
-                    'consumed_qty' => round((float)$row->consumed_qty, 4),
+                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 8),
+                    'consumed_qty' => round((float)$row->consumed_qty, 8),
                     'balance_qty' => $balance_qty,
                 ];
             }
@@ -762,13 +772,13 @@ trait GeneralTrait
         foreach ($q as $i => $row) {
             if($remaining > 0){
                 // get raw material remaining qty
-                $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 4);
+                $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 8);
                 // get total raw material qty for feedback qty
                 $per_item = $qty_per_item * $remaining_feedback_qty;
                 // get raw material remaining qty
                 $remaining_required_qty = $per_item - $balance_qty;
 
-                $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 4);
+                $required_qty = round(($balance_qty > $per_item) ? $per_item : $balance_qty, 8);
 
                 $arr[] = [
                     'item_code' => $row->item_code,
@@ -776,13 +786,13 @@ trait GeneralTrait
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 4),
-                    'consumed_qty' => round((float)$row->consumed_qty, 4),
+                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 8),
+                    'consumed_qty' => round((float)$row->consumed_qty, 8),
                     'balance_qty' => $balance_qty,
                 ];
             
                 $remaining = ($remaining - $balance_qty);
-                $remaining_feedback_qty = $remaining_feedback_qty - round(($balance_qty / $qty_per_item), 4);
+                $remaining_feedback_qty = $remaining_feedback_qty - round(($balance_qty / $qty_per_item), 8);
             }
         }
 

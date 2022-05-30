@@ -68,28 +68,28 @@
 			</li>
 			@if(count($tab_components) > 0)
 				<li class="nav-item create-feedback-tab">
-					<a class="nav-link" data-toggle="tab" href="#w11" role="tab" aria-controls="home" aria-selected="true">
+					<a class="nav-link" data-toggle="tab" href="#wpmtfm1" role="tab" aria-controls="home" aria-selected="true">
 						<span class="badge badge-info mr-2">{{ count($tab_components) }}</span> Component(s) 
 					</a>
 				</li>
 			@endif
 			@if(count($tab_parts) > 0)
 				<li class="nav-item create-feedback-tab">
-					<a class="nav-link"  data-toggle="tab" href="#w22" role="tab" aria-controls="profile" aria-selected="false">
+					<a class="nav-link"  data-toggle="tab" href="#wpmtfm2" role="tab" aria-controls="profile" aria-selected="false">
 						<span class="badge badge-info mr-2">{{ count($tab_parts) }}</span>	Part(s) 
 					</a>
 				</li>
 			@endif
 			@if(count($items_return) > 0)
 				<li class="nav-item create-feedback-tab">
-					<a class="nav-link" data-toggle="tab" href="#w33" role="tab" aria-controls="messages" aria-selected="false">
+					<a class="nav-link" data-toggle="tab" href="#wpmtfm3" role="tab" aria-controls="messages" aria-selected="false">
 						<span class="badge badge-info mr-2">{{ count($items_return) }}</span> Item Return(s)
 					</a> 
 				</li>
 			@endif
 			@if(count($feedbacked_logs) > 0)
 				<li class="nav-item create-feedback-tab">
-					<a class="nav-link" data-toggle="tab" href="#w4" role="tab" aria-controls="messages" aria-selected="false">
+					<a class="nav-link" data-toggle="tab" href="#wpmtfm4" role="tab" aria-controls="messages" aria-selected="false">
 						<span class="badge badge-info mr-2">{{ count($feedbacked_logs) }}</span> Feedbacked Log(s)
 					</a> 
 				</li>
@@ -155,7 +155,7 @@
 				</div>
 		
 			</div>
-			<div class="container-fluid tab-pane" id="w11" role="tabpanel" aria-labelledby="w1-tab">
+			<div class="container-fluid tab-pane" id="wpmtfm1" role="tabpanel" aria-labelledby="w1-tab">
 				@if(count($tab_components) > 0)
 				<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 					<col style="width: 3%;"><!-- No. -->
@@ -360,7 +360,7 @@
 					</div>
 				@endif
 			</div>
-			<div class="container-fluid tab-pane" id="w22" role="tabpanel" aria-labelledby="w2-tab">
+			<div class="container-fluid tab-pane" id="wpmtfm2" role="tabpanel" aria-labelledby="w2-tab">
 				@if(count($tab_parts) > 0)
 				<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 					<col style="width: 3%;"><!-- No. -->
@@ -576,7 +576,7 @@
 					</div>
 				@endif
 			</div>
-			<div class="container-fluid tab-pane" id="w33" role="tabpanel" aria-labelledby="w3-tab">
+			<div class="container-fluid tab-pane" id="wpmtfm3" role="tabpanel" aria-labelledby="w3-tab">
 				@if(count($items_return) > 0)
 				<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 					<col style="width: 5%;">
@@ -642,7 +642,7 @@
 					</div>
 				@endif
 			</div>
-			<div class="container-fluid tab-pane" id="w4" role="tabpanel" aria-labelledby="w4-tab">
+			<div class="container-fluid tab-pane" id="wpmtfm4" role="tabpanel" aria-labelledby="w4-tab">
 				@if(count($feedbacked_logs) > 0)
 				<div class="row m-0">
 					<div class="col-md-10 offset-md-1">
@@ -684,7 +684,7 @@
 								</td>
 								<td class="text-center p-2">
 									<span class="d-none production-order">{{ $log->production_order }}</span>
-									<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}">Cancel</button>
+									<button class="btn btn-danger m-0 cancel-production-order-feedback-btn" data-stock-entry="{{ $log->ste_no }}" {{ ($log->status == 'Cancelled') ? 'disabled' : '' }}>Cancel</button>
 								</td>
 							</tr>
 							@endforeach

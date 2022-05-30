@@ -33,6 +33,8 @@ Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
 Route::get('/get_scheduled_for_painting', 'PaintingOperatorController@get_scheduled_for_painting');
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/testing', 'MainController@testing');
+
 	Route::get('/allowed_warehouse_for_fast_issuance', 'InventoryController@getAllowedWarehouseFastIssuance');
 	Route::post('/save_allowed_warehouse_for_fast_issuance', 'InventoryController@saveAllowedWarehouseFastIssuance');
 	Route::post('/delete_allowed_warehouse_for_fast_issuance', 'InventoryController@deleteAllowedWarehouseFastIssuance');
@@ -367,6 +369,9 @@ Route::get('/get_tasks_for_inspection/{workstation}/{production_order}', 'MainCo
 //production_scheduling_PATRICK
 
 Route::get('/production_scheduling_tbl', 'SecondaryController@tbl_production_scheduling');
+Route::post('/reset_operator_time_log', 'MainController@reset_operator_time_log');
+Route::post('/edit_operator_time_log', 'MainController@edit_operator_time_log');
+
 
 //fabrication_calendar
 Route::group(['middleware' => 'auth'], function(){
