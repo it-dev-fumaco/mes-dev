@@ -226,7 +226,7 @@
 													<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
 													<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
 													@else
-													<img src="{{ asset('/img/edit.png') }}" width="20" style="cursor: not-allowed;">
+													<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
 													@endif
 												</td>
 												@endif
