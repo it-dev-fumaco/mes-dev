@@ -223,7 +223,7 @@
 													<span class="d-none">{{ $to_time }}</span>
 													<span class="d-none">{{ $operator_name }}</span>
 													<span class="d-none">{{ $c['good'] }}</span>
-													<img src="{{ asset('/img/edit.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+													<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
 													<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
 													@else
 													<img src="{{ asset('/img/edit.png') }}" width="20" style="cursor: not-allowed;">
