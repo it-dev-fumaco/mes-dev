@@ -6117,6 +6117,19 @@ class MainController extends Controller
 				}
 			}
 
+			$production_order_item = DB::connection('mysql')->table('tabWork Order Item')
+				->where('parent', $production_order)->where('name', $request->production_order_item_id)
+				->first();
+
+			if ($production_order_item) {
+				// delete returned item
+				if ($production_order_item->transferred_qty > 0 && ($production_order_item->transferred_qty - $production_order_item->returned_qty) <= 0) {
+					DB::connection('mysql')->table('tabWork Order Item')
+						->where('parent', $production_order)->where('name', $production_order_item->name)
+						->delete();
+				}
+			}
+
 			// get all submitted stock entries based on item code production order
 			$submitted_pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
 				->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
@@ -6126,10 +6139,6 @@ class MainController extends Controller
 
 			if($submitted_pending_stock_entries <= 0){
 				// delete production order item
-				$production_order_item = DB::connection('mysql')->table('tabWork Order Item')
-					->where('parent', $production_order)->where('name', $request->production_order_item_id)
-					->first();
-
 				if($production_order_item){
 					if($production_order_item->item_alternative_for){
 						$item_code_with_alternative = DB::connection('mysql')->table('tabWork Order Item')

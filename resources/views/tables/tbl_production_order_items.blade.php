@@ -226,7 +226,7 @@
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
 					</td>
 					<td class="border-top-0 text-center">
-						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ ($a['remarks'] == 'Fast Issued') ? $a['remarks'] : $a['status'] }}</span>
+						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ ($a['remarks'] == 'Fast Issued' && $a['status'] != 'For Checking') ? $a['remarks'] : $a['status'] }}</span>
 						@if (in_array($a['source_warehouse'], $fast_issuance_warehouse) && ($component['required_qty'] * 1) <= ($a['actual_qty'] * 1) && $is_fast_issuance_user && !$a['ste_docstatus'])
 						<button type="button" class="btn btn-primary btn-sm issue-now-btn" data-id="{{ $a['id'] }}" data-production-order="{{ $details->production_order }}"><span style="font-size: 7pt;">Issue Now</span></button>
 						@else
@@ -255,11 +255,11 @@
 					</td>
 					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
+							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $change_cancel_btn }}> 
-								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }} {{ $no_bom }}>
 							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
@@ -441,7 +441,7 @@
 						<span class="d-block stock-uom" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
 					</td>
 					<td class="border-top-0 text-center">
-						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ ($a['remarks'] == 'Fast Issued') ? $a['remarks'] : $a['status'] }}</span>
+						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ ($a['remarks'] == 'Fast Issued' && $a['status'] != 'For Checking') ? $a['remarks'] : $a['status'] }}</span>
 						@if (in_array($a['source_warehouse'], $fast_issuance_warehouse) && ($part['required_qty'] * 1) <= ($a['actual_qty'] * 1) && $is_fast_issuance_user && !$a['ste_docstatus'])
 						<button type="button" class="btn btn-primary btn-sm issue-now-btn" data-id="{{ $a['id'] }}" data-production-order="{{ $details->production_order }}"><span style="font-size: 7pt;">Issue Now</span></button>
 						@else
@@ -470,7 +470,7 @@
 					</td>
 					<td class="border-top-0 text-center">
 						@php
-							$change_cancel_btn = ($a['ste_docstatus'] == 1) ? 'disabled' : null;
+							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
 						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $change_cancel_btn }}> 
