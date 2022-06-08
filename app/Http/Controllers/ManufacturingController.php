@@ -2574,27 +2574,39 @@ class ManufacturingController extends Controller
 			$now = Carbon::now();
             $production_order_details = DB::connection('mysql')->table('tabWork Order')->where('name', $request->production_order)->first();
 
-            // get stock entry transferred qty
-            $ste_transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
-                ->where('sted.item_code', $request->old_item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
-                ->sum('qty');
+            $is_valid = false;
+            $production_order_item_detail = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $request->production_order)
+                ->where('name', $request->production_order_item_id)->first();
 
-            if($request->old_item_code != $request->item_code){
-                // get production order item transferred qty
-                $transferred_qty = DB::connection('mysql')->table('tabWork Order Item')
-                    ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)->sum('transferred_qty');
-
-                if($transferred_qty > 0){
-                    return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
-                }
-
-                if($ste_transferred_qty > 0){
-                    return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
+            if ($production_order_item_detail) {
+                if ($production_order_item_detail->transferred_qty > 0 && ($production_order_item_detail->transferred_qty - $production_order_item_detail->returned_qty) <= 0) {
+                    $is_valid = true;
                 }
             }
 
+            if (!$is_valid) {
+                 // get stock entry transferred qty
+                $ste_transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
+                    ->where('sted.item_code', $request->old_item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->sum('qty');
+
+                if($request->old_item_code != $request->item_code){
+                    // get production order item transferred qty
+                    $transferred_qty = DB::connection('mysql')->table('tabWork Order Item')
+                        ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)->sum('transferred_qty');
+
+                    if($transferred_qty > 0){
+                        return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
+                    }
+
+                    if($ste_transferred_qty > 0){
+                        return response()->json(['status' => 0, 'message' => 'Item has been already issued. Click "Add Item" button below to add items for issue.']);
+                    }
+                }
+            }
+           
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
             if(!$item_details){
                 return response()->json(['status' => 0, 'message' => 'Item <b>'. $request->item_code.'</b> not found.']);
