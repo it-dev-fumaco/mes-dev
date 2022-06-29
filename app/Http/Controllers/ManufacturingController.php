@@ -5517,17 +5517,19 @@ class ManufacturingController extends Controller
                 $this->submit_stock_entry($steDetails->parent_se);
             }
 
-            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $steDetails->work_order)->where('item_code', $steDetails->item_code)->get();
-            foreach ($production_order_items as $row) {
-                // get item code transferred_qty
-                $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                    ->where('ste.work_order', $steDetails->work_order)->where('ste.purpose', 'Material Transfer for Manufacture')
-                    ->where('ste.docstatus', 1)->where('sted.item_code', $steDetails->item_code)->sum('sted.qty');
+            // get item code transferred_qty
+            $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.work_order', $steDetails->work_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->where('ste.docstatus', 1)->where('sted.item_code', $steDetails->item_code)->sum('sted.qty');
 
-                DB::connection('mysql')->table('tabWork Order Item')
-                    ->where('name', $row->name)->update(['transferred_qty' => $transferred_qty]);
+            if ($transferred_qty <= 0) {
+                return response()->json(['status' => 0, 'message' => 'Unable to issue items. Please try again.']);
             }
+
+            DB::connection('mysql')->table('tabWork Order Item')
+                ->where('parent', $steDetails->work_order)->where('item_code', $steDetails->item_code)
+                ->update(['transferred_qty' => $transferred_qty]);
 
             DB::commit();
 
