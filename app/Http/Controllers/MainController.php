@@ -3512,10 +3512,12 @@ class MainController extends Controller
 			$in_progress_operator_machine = DB::connection('mysql_mes')->table('time_logs')
 				->whereNotNull('operator_id')->where('operator_id', '!=', $request->operator_id)
 				->where('machine_code', $machine_details->machine_code)->where('status', 'In Progress')->exists();
-		
-			if ($in_progress_operator_machine) {
-				return response()->json(['success' => 0, 'message' => "Machine is in use by another operator."]);
-			}
+
+			if($request->process_id != '102') {
+				if ($in_progress_operator_machine) {
+					return response()->json(['success' => 0, 'message' => "Machine is in use by another operator."]);
+				}
+			}			
 		}
 
 		$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')

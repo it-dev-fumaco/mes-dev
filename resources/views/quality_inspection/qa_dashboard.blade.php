@@ -305,7 +305,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                  <div class="form-group margin-top">
+                                                  {{-- <div class="form-group margin-top">
                                                       <label style="color: black;">Item Code</label>
                                                       <select class="form-control text-center sel6 " name="item_code" id="item_code">
                                                           <option value=""> Select Item Code</option>
@@ -332,7 +332,7 @@
                                                           <option value="{{$cust}}">{{$cust}}</option>
                                                           @endforeach
                                                         </select>
-                                                   </div>
+                                                   </div> --}}
                                                    
                                                    <div class="form-group margin-top">
                                                       <label style="color: black;">Process</label>
@@ -419,7 +419,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                  <div class="form-group margin-top">
+                                                  {{-- <div class="form-group margin-top">
                                                       <label style="color: black;">Item Code</label>
                                                       <select class="form-control text-center sel3 " name="item_code_painting" id="item_code_painting">
                                                           <option value=""> Select Item Code</option>
@@ -447,7 +447,7 @@
                                                           @endforeach
                                                         </select>
                                                    </div>
-                                                   
+                                                    --}}
                                                    <div class="form-group margin-top">
                                                       <label style="color: black;">Process</label>
                                                       <select class="form-control text-center sel3 " name="process_painting" id="process_painting">
@@ -533,7 +533,7 @@
                                                         @endforeach
                                                       </select>
                                                  </div>
-                                                <div class="form-group margin-top">
+                                                {{-- <div class="form-group margin-top">
                                                     <label style="color: black;">Item Code</label>
                                                     <select class="form-control text-center sel4 " name="item_code_assem" id="item_code_assem">
                                                         <option value=""> Select Item Code</option>
@@ -561,7 +561,7 @@
                                                         @endforeach
                                                       </select>
                                                  </div>
-                                                 
+                                                  --}}
                                                  <div class="form-group margin-top">
                                                     <label style="color: black;">Process</label>
                                                     <select class="form-control text-center sel4 " name="process_assem" id="process_assem">

@@ -446,11 +446,17 @@ class QualityInspectionController extends Controller
             ->join('departments', 'users.department_id', '=', 'departments.department_id')
             ->where('user_id', Auth::user()->user_id)->first();
 
-        $production_order_query = DB::connection('mysql_mes')->table('production_order')->get();
+        // $production_order_query = DB::connection('mysql_mes')->table('production_order')->get();
       
-        $item_code = array_unique(array_column($production_order_query->toArray(), 'item_code'));
-        $customer = array_unique(array_column($production_order_query->toArray(), 'customer'));
-        $production_order = array_unique(array_column($production_order_query->toArray(), 'production_order'));
+        // $item_code = array_unique(array_column($production_order_query->toArray(), 'item_code'));
+        // $customer = array_unique(array_column($production_order_query->toArray(), 'customer'));
+        // $production_order = array_unique(array_column($production_order_query->toArray(), 'production_order'));
+
+        $production_order_query = [];
+      
+        $item_code = array_unique(array_column($production_order_query, 'item_code'));
+        $customer = array_unique(array_column($production_order_query, 'customer'));
+        $production_order = array_unique(array_column($production_order_query, 'production_order'));
 
         $workstations = DB::connection('mysql_mes')->table('workstation')
             ->select('operation_id', 'workstation_name','workstation_id')->get();
