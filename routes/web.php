@@ -651,6 +651,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_painting_open_production_orders/{reference_type}', 'PaintingController@get_open_production_orders');
 	Route::get('/get_painting_for_feedback_production', 'PaintingController@get_for_feedback_production');
 	Route::get('/get_painting_cancelled_production_orders', 'PaintingController@get_cancelled_production_orders');
+	Route::post('/sync_production_order_items/{production_order}', 'ManufacturingController@sync_production_order_items');
 });
 
 //operator_checklist

@@ -2272,7 +2272,12 @@ class ManufacturingController extends Controller
         $fast_issuance_warehouse = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->pluck('warehouse')->toArray();
         $is_fast_issuance_user = DB::connection('mysql_mes')->table('fast_issuance_user')->where('user_access_id', Auth::user()->user_id)->exists();
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user'));
+        $ste_transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+            ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
+            ->where('ste.docstatus', 1)->sum('sted.qty');
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty'));
     }
 
     public function create_material_transfer_for_return(Request $request){
@@ -5817,6 +5822,33 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabWork Order Item')
                     ->where('parent', $production_order)
                     ->where('item_code', $row->item_code)->update(['transferred_qty' => $transferred_qty]);
+        }
+    }
+
+    public function sync_production_order_items($production_order) {
+        DB::connection('mysql')->beginTransaction();
+        try {
+            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')
+                ->where('parent', $production_order)->select('name', 'item_code', 'transferred_qty', 'parent')->get();
+
+            foreach ($production_order_items as $row) {
+                // get item code transferred_qty
+                $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.work_order', $row->parent)->where('ste.purpose', 'Material Transfer for Manufacture')
+                    ->where('ste.docstatus', 1)->where('sted.item_code', $row->item_code)->sum('sted.qty');
+
+                DB::connection('mysql')->table('tabWork Order Item')
+                    ->where('name', $row->name)->update(['transferred_qty' => $transferred_qty]);
+            }
+
+            DB::connection('mysql')->commit();
+            
+            return response()->json(['status' => 1, 'message' => 'Production Order Item for <b>' . $production_order . '</b> has been updated.']);
+        } catch (Exception $e) {
+            DB::connection('mysql')->rollback();
+
+            return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
         }
     }
 }

@@ -1233,6 +1233,30 @@
       });
     });
 
+    $(document).on('click', '.sync-production-order-items-btn', function(e){
+      e.preventDefault();
+      var production_order = $(this).data('production-order');
+      $.ajax({
+        url:"/sync_production_order_items/" + production_order,
+        type:"POST",
+        success:function(data){
+          if(data.status == 2){
+            showNotification("info", data.message, "now-ui-icons travel_info");
+          }else if(data.status == 1){
+            get_production_order_items(production_order);
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $('#view-bundle-components-btn').click(function(e){
       e.preventDefault();
       var item_code = $('#sel-item').val();
