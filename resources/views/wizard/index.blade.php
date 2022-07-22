@@ -114,7 +114,7 @@
                      <div class="row">
                         <div class="col-md-10 offset-md-1">
                            <div class="pull-right">
-                              <button class="btn btn-lg btn-primary prev-btn">Previous</button>
+                              <button class="btn btn-lg btn-primary prev-btn" data-target='a1'>Previous</button>
                               <button class="btn btn-lg btn-primary get-parts-prodorder">Next</button>
                            </div>
                         </div>
@@ -155,7 +155,7 @@
                      <div class="row">
                         <div class="col-md-10 offset-md-1">
                            <div class="pull-right">
-                              <button class="btn btn-lg btn-primary prev-btn" id="create-prod-prev-btn">Previous</button>
+                              <button class="btn btn-lg btn-primary prev-btn" id="create-prod-prev-btn" data-target='a2'>Previous</button>
                               <button class="btn btn-lg btn-primary" id="get-req-items">Next</button>
                            </div>
                         </div>
@@ -177,7 +177,7 @@
                      <div class="row">
                         <div class="col-md-10 offset-md-1">
                            <div class="pull-right">
-                              <button class="btn btn-lg btn-primary prev-btn">Previous</button>
+                              <button class="btn btn-lg btn-primary prev-btn" data-target='a3'>Previous</button>
                               <button class="btn btn-lg btn-primary finish-btn">Finish</button>
                            </div>
                         </div>
@@ -199,7 +199,7 @@
                      <div class="row">
                         <div class="col-md-10 offset-md-1">
                            <div class="pull-right">
-                              <button class="btn btn-lg btn-primary prev-btn">Previous</button>
+                              <button class="btn btn-lg btn-primary prev-btn" data-target='a4'>Previous</button>
                               <button class="btn btn-lg btn-primary close-wizard-btn">Close</button>
                            </div>
                         </div>
@@ -783,6 +783,25 @@
 
       $('.prev-btn').click(function(){         
          $('.nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
+         var target = $(this).data('target');
+
+         switch(target){
+            case 'a1':
+               a1 = 0;
+               break;
+            case 'a2':
+               a2 = 0;
+               break;
+            case 'a3':
+               a3 = 0;
+               break;
+            case 'a4':
+               a4 = 0;
+               break;
+            default:
+         }
+
+         window.location.hash = '#next';
       });
 
       var a3 = 0;
@@ -820,6 +839,8 @@
 
                   if (production_order.length > 0) {
                      $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  }else{
+                     a3 = 0;
                   }
                   window.location.hash = '#next';
                },
@@ -871,6 +892,8 @@
 
                   if (bom.length > 0) {
                      $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  }else{
+                     a1 = 0;
                   }
                   window.location.hash = '#next';
                },

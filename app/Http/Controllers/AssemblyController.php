@@ -406,7 +406,9 @@ class AssemblyController extends Controller
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
-            $items = DB::connection('mysql')->table('tabWork Order Item')->whereIn('parent', $request->production_orders)
+            $production_orders = $request->production_orders ? $request->production_orders : [];
+
+            $items = DB::connection('mysql')->table('tabWork Order Item')->whereIn('parent', $production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
             $req_items = [];

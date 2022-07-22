@@ -206,7 +206,9 @@ class ManufacturingController extends Controller
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
-            $items = DB::table('tabWork Order Item')->whereIn('parent', $request->production_orders)
+            $production_orders = $request->production_orders ? $request->production_orders : [];
+
+            $items = DB::table('tabWork Order Item')->whereIn('parent', $production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
             $req_items = [];
