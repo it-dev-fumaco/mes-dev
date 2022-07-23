@@ -24,6 +24,7 @@ use App\Traits\GeneralTrait;
 class LinkReportController extends Controller
 {
     use GeneralTrait;
+    // /report_index
     public function index(){
         $permissions = $this->get_user_permitted_operation();
         $user_groups = DB::connection('mysql_mes')->table('user')
@@ -140,6 +141,63 @@ class LinkReportController extends Controller
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
 
         return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter'));
+    }
+
+    public function weekly_rejection_report($operation_id){
+        $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
+        if(!$operation){
+            return redirect()->back()->with('error', 'Operation not found.');
+        }
+
+        $start_date = Carbon::now()->subDays(7)->startOfDay()->toDateTimeString();
+        $end_date = Carbon::now()->endOfDay()->toDateTimeString();
+
+        $time_logs = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+            ->join('reject_reason as r', 'jt.job_ticket_id', 'r.job_ticket_id')
+            ->join('reject_list as l', 'l.reject_list_id', 'r.reject_list_id')
+            ->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+            ->whereBetween('po.created_at', [$start_date, $end_date])
+            ->where('po.operation_id', $operation_id)
+            ->where('po.status', '!=', 'Cancelled')
+            ->where('logs.reject', '>', 0)
+            ->where('jt.workstation', '!=', 'Spotwelding')
+            ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.good', 'logs.status', 'logs.operator_name', 'l.reject_reason');
+
+        $rejection_logs = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+            ->join('reject_reason as r', 'jt.job_ticket_id', 'r.job_ticket_id')
+            ->join('reject_list as l', 'l.reject_list_id', 'r.reject_list_id')
+            ->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
+            ->whereBetween('po.created_at', [$start_date, $end_date])
+            ->where('po.operation_id', $operation_id)
+            ->where('po.status', '!=', 'Cancelled')
+            ->where('logs.reject', '>', 0)
+            ->where('jt.workstation', 'Spotwelding')
+            ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.good', 'logs.status', 'logs.operator_name', 'l.reject_reason')->union($time_logs)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        $reject_arr = [];
+        foreach($rejection_logs as $reject){
+            $reject_arr[] = [
+                'production_order' => $reject->production_order,
+                'job_ticket_id' => $reject->job_ticket_id,
+                'sales_order' => $reject->sales_order,
+                'customer' => $reject->customer,
+                'material_request' => $reject->material_request,
+                'workstation' => $reject->workstation,
+                'from_time' => $reject->from_time,
+                'to_time' => $reject->to_time,
+                'good' => $reject->good,
+                'reject' => $reject->reject,
+                'operator_name' => $reject->operator_name,
+                'status' => $reject->status,
+                'reject_reason' => $reject->reject_reason
+            ];
+        }
+
+        return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'operation'));
     }
 
     public function export_rejection_logs(Request $request){

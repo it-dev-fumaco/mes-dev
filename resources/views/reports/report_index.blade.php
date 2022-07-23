@@ -53,6 +53,9 @@
                                 <tr>
                                     <td><a href="/link_fabrication_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/weekly_rejection_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Weekly Rejection Report  </span></a></td>
+                                </tr>
                                {{-- <tr>
                                     <td><a href="/link_production_schedule_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Schedule Report  </span></a></td>
                                 </tr> --}}
@@ -75,13 +78,13 @@
                                 </tr>
                                 <tr>
                                     <td><a href="/link_painting_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
-
                                 </tr>
                                 <tr>
                                     <td><a href="/link_painting_report/4" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Powder Coat Consumption Report </span></a></td>
-
                                 </tr>
-                                
+                                <tr>
+                                    <td><a href="/weekly_rejection_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Weekly Rejection Report  </span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>
@@ -99,7 +102,9 @@
                                 <tr>
                                     <td><a href="/link_assembly_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
-                                
+                                <tr>
+                                    <td><a href="/weekly_rejection_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Weekly Rejection Report  </span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>

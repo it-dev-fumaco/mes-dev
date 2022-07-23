@@ -796,6 +796,8 @@ Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
 
+Route::get('/weekly_rejection_report/{operation_id}', 'LinkReportController@weekly_rejection_report');
+
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
 
