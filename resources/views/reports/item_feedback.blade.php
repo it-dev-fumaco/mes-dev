@@ -115,6 +115,48 @@
                         
                       </div>
                     </div>
+                    <div class="row pb-0 pr-3 pl-3">
+                      <div id="accordion" class="pt-0 w-100">
+                        <div class="card pt-0 w-100">
+                          <div class="card-header p-0 w-100" id="headingOne">
+                            <button class="btn p-0" id="filter-btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="color: #979797; background-color: #fff; box-shadow: none;">
+                              <i class="now-ui-icons ui-1_simple-add"></i> &nbsp; Advanced Filter
+                            </button>
+                          </div>
+                      
+                          <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                            <div class="card-body">
+                              <div class="row">
+                                <div class="col-3">
+                                  <label>Owner</label>
+                                  <select id="owner-selection" class="form-control" data-div="#production-orders-div">
+                                    <option value="" selected disabled>Select Owner</option>
+                                    <option value="">Select All</option>
+                                    @foreach ($owners as $owner)
+                                        <option value="{{ $owner['email'] }}">{{ $owner['name'] }}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="col-3">
+                                  <label>Target Warehouse</label>
+                                  <select id="target-warehouse" class="form-control" data-div="#production-orders-div">
+                                    <option value="" selected disabled>Select Target Warehouse</option>
+                                    <option value="">Select All</option>
+                                    @foreach ($target_warehouses as $warehouse)
+                                        <option value="{{ $warehouse }}">{{ $warehouse }}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div id='feedback-date-filter' class="col-3 d-none">
+                                  <label>Feedback Date</label>
+                                  <input type="text" name="daterange" id="feedback-date" class="form-control date-range" placeholder="Select Date" value="" data-div="#production-orders-div" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div class="row">
                       <div class="col-12" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
                     </div>
@@ -1057,6 +1099,10 @@
     background-color: #3498db;
   }
 
+  #filter-btn:hover, #filter-btn:focus, #filter-btn:active{
+    outline: none;
+  }
+
 </style>
 
 <iframe src="#" id="iframe-print" style="display: none;"></iframe>
@@ -1501,19 +1547,89 @@ $(document).ready(function(){
       $('#current-status').val(status);
     }
 
+    if(status != 'All' && status.indexOf('Completed') != -1){
+      $('#feedback-date-filter').removeClass('d-none');
+    }else{
+      $('#feedback-date-filter').addClass('d-none');
+    }
+
     query = $('.search-filter').val();
 
     get_production_order_list(status ? status : 'All', '#production-orders-div', 0, 1, query);
   });
-  
+
+  // production order list filters
+  $('.date-range').daterangepicker({
+    autoUpdateInput: false,
+    autoApply: true,
+    locale: {
+      cancelLabel: 'Clear'
+    },
+    opens: 'left'
+  });
+
+  $('.date-range').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+
+    var status = $('#current-status').val();
+    var div = $(this).data('div');
+
+    get_production_order_list(status ? status : 'All', div, 0, 1, $('.search-filter').val());
+  });
+
+  $('.date-range').on('cancel.daterangepicker', function(ev, picker) {
+    $(this).val('');
+
+    var status = $('#current-status').val();
+    var div = $(this).data('div');
+
+    get_production_order_list(status ? status : 'All', div, 0, 1, $('.search-filter').val());
+  });
+
+  $('#owner-selection').change(function (){
+    var status = $('#current-status').val();
+    var div = $(this).data('div');
+
+    get_production_order_list(status ? status : 'All', div, 0, 1, $('.search-filter').val());
+  });
+
+  $('#target-warehouse').change(function (){
+    var status = $('#current-status').val();
+    var div = $(this).data('div');
+
+    get_production_order_list(status ? status : 'All', div, 0, 1, $('.search-filter').val());
+  });
+  // production order list filters
+
   function get_production_order_list(status, div, get_total, page, query){
     $('#loader-wrapper').removeAttr('hidden');
 
+    var owner = '';
+    var target_warehouse = '';
+    var feedback_date = '';
+
     status = status ? status : 'All';
+
+    // if advanced filter is enabled/open
+    // if($('#collapseOne').hasClass('show')){
+      owner = $('#owner-selection').val();
+      target_warehouse = $('#target-warehouse').val();
+
+      if(status != 'All' && status.indexOf('Completed') != -1){
+        feedback_date = $('#feedback-date').val();
+      }
+    // }
+    
     $.ajax({
       url: "/production_order_list/" + status + "?page=" + page,
       type:"GET",
-      data: {search_string: query, get_total: get_total},
+      data: {
+        search_string: query,
+        get_total: get_total,
+        owner: owner,
+        target_warehouse: target_warehouse,
+        feedback_dates: feedback_date
+      },
       success:function(data){
         $('#loader-wrapper').attr('hidden', true);
         $(div).html(data);

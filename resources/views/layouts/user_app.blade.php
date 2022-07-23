@@ -18,6 +18,9 @@
   <link href="{{ asset('/css/now-ui-dashboard.css?v=1.3.0') }}" rel="stylesheet" />
   {{--  <!-- CSS Just for demo purpose, don't include it in your project -->  --}}
   <link href="{{ asset('/css/demo.css') }}" rel="stylesheet" />
+  {{-- Daterangepicker --}}
+  <link href="{{ asset('/css/daterangepicker.css') }}" rel="stylesheet" />
+  {{-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /> --}}
 </head>
 <style>
   @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
@@ -960,6 +963,9 @@
   <script src="{{ asset('/js/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
   @yield('script')
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
+  {{-- Daterangepicker --}}
+  <script src="{{ asset('/js/moment.min.js') }}"></script>
+  <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
 <script>
   $(document).ready(function(){
     $(document).on('click', '.edit-time-log-btn', function(e) {
