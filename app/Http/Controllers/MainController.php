@@ -1342,8 +1342,14 @@ class MainController extends Controller
 		return response()->json($data);
 	}
 
+	// /item_feedback
 	public function itemFeedback(){
 		$permissions = $this->get_user_permitted_operation();
+
+		$owners = $this->get_production_order_filters()['owners'];
+
+		$target_warehouses = $this->get_production_order_filters()['target_warehouses'];
+		$target_warehouses = collect($target_warehouses)->pluck('fg_warehouse');
 
     	// manual create production form
     	$item_list = [];
@@ -1358,7 +1364,7 @@ class MainController extends Controller
 
         $mreq_list = [];
 
-		return view('reports.item_feedback', compact('item_list', 'warehouse_list', 'so_list', 'mreq_list', 'parent_code_list', 'sub_parent_code_list', 'permissions'));
+		return view('reports.item_feedback', compact('item_list', 'owners', 'target_warehouses', 'warehouse_list', 'so_list', 'mreq_list', 'parent_code_list', 'sub_parent_code_list', 'permissions'));
 	}
 
 	public function get_parent_code($reference_type, $reference_no, Request $request){
@@ -1540,6 +1546,28 @@ class MainController extends Controller
 		return response()->json($details);
 	}
 
+	private function get_production_order_filters(){
+		$owners = DB::connection('mysql_mes')->table('production_order')->select('created_by')->distinct('created_by')->orderBy('created_by', 'asc')->get();
+		$owners = collect($owners)->map(function ($q){
+			$owner = explode('@', $q->created_by);
+			$owner = ucwords(str_replace('.', ' ', $owner[0]));
+
+			if($owner){
+				return ['email' => $q->created_by, 'name' => $owner];
+			}
+		})->unique()->filter();
+
+		$target_warehouses = DB::connection('mysql_mes')->table('production_order')->select('fg_warehouse')->distinct('fg_warehouse')->orderBy('fg_warehouse', 'asc')->get();
+
+		$filters = [
+			'owners' => $owners,
+			'target_warehouses' => $target_warehouses
+		];
+
+		return $filters;
+	}
+
+	// /production_order_list/{status}
 	public function get_production_order_list(Request $request, $status){
 		$status = count(array_filter(explode(',', $status))) == 6 ? 'All' : $status;
 
@@ -1578,6 +1606,12 @@ class MainController extends Controller
 				})
 				->whereIn('status', array_filter($inactive_status))
 				->whereIn('operation_id', $user_permitted_operation_id)
+				->when($request->owner, function ($q) use ($request){
+					$q->where('created_by', $request->owner);
+				})
+				->when($request->target_warehouse, function ($q) use ($request){
+					$q->where('fg_warehouse', $request->target_warehouse);
+				})
 				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 				->orderBy('created_at', 'desc');
 
@@ -1667,6 +1701,10 @@ class MainController extends Controller
 		// Awaiting Feedback
 
 		// Completed
+		$filter_dates = $request->feedback_dates ? explode(' - ', $request->feedback_dates) : [];
+		$start_date = isset($filter_dates[0]) ? Carbon::parse($filter_dates[0])->startOfDay()->toDateTimeString() : Carbon::now()->startOfDay()->toDateTimeString();
+		$end_date = isset($filter_dates[1]) ? Carbon::parse($filter_dates[1])->endOfDay()->toDateTimeString() : Carbon::now()->endOfDay()->toDateTimeString();
+
 		$mes_completed_production_orders = [];
 		if(in_array('Completed', $status_array)){
 			$mes_completed_production_orders = DB::connection('mysql_mes')->table('production_order')
@@ -1681,6 +1719,15 @@ class MainController extends Controller
 				->where('status', 'Completed')
 				->whereRaw('feedback_qty >= qty_to_manufacture')
 				->whereIn('operation_id', $user_permitted_operation_id)
+				->when($filter_dates, function ($q) use ($start_date, $end_date){
+					$q->whereBetween('last_modified_at', [$start_date, $end_date]);
+				})
+				->when($request->owner, function ($q) use ($request){
+					$q->where('created_by', $request->owner);
+				})
+				->when($request->target_warehouse, function ($q) use ($request){
+					$q->where('fg_warehouse', $request->target_warehouse);
+				})
 				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 				->orderBy('created_at', 'desc');
 
@@ -1724,6 +1771,12 @@ class MainController extends Controller
 			})
 			->when(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array), function($q) use ($inactive_production_orders){
 				$q->union($inactive_production_orders);
+			})
+			->when($request->owner, function ($q) use ($request){
+				$q->where('created_by', $request->owner);
+			})
+			->when($request->target_warehouse, function ($q) use ($request){
+				$q->where('fg_warehouse', $request->target_warehouse);
 			})
 			->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 			->orderBy('created_at', 'desc')
