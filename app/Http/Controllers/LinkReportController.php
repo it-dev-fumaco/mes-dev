@@ -42,6 +42,53 @@ class LinkReportController extends Controller
         return view('link_report.painting_report', compact('item_classification', 'permissions'));
     }
 
+    public function machine_breakdown_history(){
+        $machines = DB::connection('mysql_mes')->table('machine')
+            ->join('operation', 'operation.operation_id', 'machine.operation_id')
+            ->paginate(10);
+
+        $machine_codes = collect($machines->items())->pluck('machine_code');
+
+        $machine_breakdown = DB::connection('mysql_mes')->table('machine_breakdown')->whereIn('machine_id', $machine_codes)->orderBy('created_at', 'desc')->get();
+        $machine_breakdown = collect($machine_breakdown)->groupBy('machine_id');
+
+        $machine_arr = [];
+        foreach($machines as $machine){
+            $breakdown_arr = [];
+
+            if(isset($machine_breakdown[$machine->machine_code])){
+                foreach($machine_breakdown[$machine->machine_code] as $breakdown){
+                    $breakdown_arr[] = [
+                        'date_reproted' => $breakdown->date_reported,
+                        'breakdown_reason' => $breakdown->breakdown_reason,
+                        'category' => $breakdown->category,
+                        'findings' => $breakdown->findings,
+                        'work_started' => $breakdown->work_started,
+                        'work_done' => $breakdown->work_done,
+                        'hold_reason' => $breakdown->hold_reason,
+                        'staff' => $breakdown->assigned_maintenance_staff,
+                        'type' => $breakdown->type,
+                        'remarks' => $breakdown->remarks,
+                        'status' => $breakdown->status,
+                        'date_resolved' => $breakdown->date_resolved,
+                        'created_by' => $breakdown->created_by
+                    ];
+                }
+            }
+
+            $machine_arr[] = [
+                'machine_code' => $machine->machine_code,
+                'machine_name' => $machine->machine_name,
+                'model' => $machine->model,
+                'status' => $machine->status,
+                'operation' => $machine->operation_name,
+                'breakdown_history' => $breakdown_arr
+            ];
+        }
+
+        return view('reports.machine_breakdown_history', compact('machines', 'machine_arr'));
+    }
+
     public function export_job_ticket(Request $request){
         $start_date = $request->date ? explode(' - ', $request->date)[0] : Carbon::now()->subDays(30);
         $end_date = $request->date ? explode(' - ', $request->date)[1] : Carbon::now();
