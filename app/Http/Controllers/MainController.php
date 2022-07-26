@@ -364,6 +364,7 @@ class MainController extends Controller
 		return $data;
 	}
 
+	// /get_jt_details/{jtno}
 	public function getTimesheetDetails($jtno){
 		$tab=[];
 		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $jtno)
@@ -567,9 +568,12 @@ class MainController extends Controller
 			}
 		}
 
+		$job_tickets = collect($process_arr)->pluck('job_ticket_id');
+		$activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('action', 'Reset Time Log')->whereIn('reference', $job_tickets)->orderBy('created_at', 'desc')->get();
+
 		$success = 1;
 
-		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no'));
+		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
@@ -3158,6 +3162,7 @@ class MainController extends Controller
     	return view('tables.production_actions_content', compact('details'));
     }
 
+	// /restart_task
     public function restart_task(Request $request){
 		// insert logs
 		$workstation = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -4435,6 +4440,7 @@ class MainController extends Controller
 			->get();
 	}
 
+	// /get_tbl_notif_dashboard
 	public function get_tbl_notif_dashboard(){
 		$notifications = $this->getNotifications();
 		$notifications = collect($notifications)->where('type', '!=', 'Machine Breakdown');
@@ -4751,6 +4757,7 @@ class MainController extends Controller
     	return response()->json(['message' => 'User has been deleted.']);
     }
 
+	// /create_stock_entry/{production_order}
     public function create_stock_entry(Request $request, $production_order){
 		DB::connection('mysql')->beginTransaction();
 		try {
@@ -5747,6 +5754,7 @@ class MainController extends Controller
 			->orderBy('process_name', 'asc')->get();
 	}
 
+	// /get_pending_material_transfer_for_manufacture/{production_order}
 	public function get_pending_material_transfer_for_manufacture($production_order, Request $request){
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')
             ->join('delivery_date', function ($join) {
@@ -7342,6 +7350,7 @@ class MainController extends Controller
 		return view('reports.job_ticket_vs_time_logs_completed_qty', compact('job_ticket_data', 'job_ticket_query', 'permissions'));
 	}
 	
+	// /reset_operator_time_log
 	public function reset_operator_time_log(Request $request) {
 		$job_ticket_id = $request->job_ticket_id;
 		$timelog_id = $request->timelog_id;
@@ -7386,6 +7395,16 @@ class MainController extends Controller
 			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->delete();
 
 			$this->update_job_ticket($job_ticket_id);
+
+			$activity_logs = [
+				'action' => 'Reset Time Log',
+				'message' => 'Reset time logs for job ticket '.$request->job_ticket_id.' of '.$job_ticket_details->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+				'reference' => $request->job_ticket_id,
+				'created_at' => Carbon::now()->toDateTimeString(),
+				'created_by' => Auth::user()->email
+			];
+	
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
 
 			DB::connection('mysql_mes')->commit();
 			DB::connection('mysql')->commit();

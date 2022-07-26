@@ -32,6 +32,7 @@
                   <div class="form-group col-md-3">
                      <label>Requested Quantity</label>
                      <input type="text" class="form-control" name="requested_quantity" placeholder="Quantity" required>
+                     <input type="text" class="form-control d-none" name="old_requested_quantity" required>
                   </div>
                   <div class="form-group col-md-3">
                      <label>Stock UOM</label>

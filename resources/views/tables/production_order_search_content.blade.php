@@ -343,6 +343,20 @@
 			@endforeach
       	</div>
 	</div>
+	@if (count($activity_logs) > 0)
+		<div class="col-12 p-0">
+			<p>Activity Logs</p>
+			<ul>
+				@foreach ($activity_logs as $log)
+					<li>
+						<span style="font-size: 9pt;" class="text-muted">{{ Carbon\Carbon::parse($log->created_at)->format('M d, Y h:i:s a') }}</span><br>
+						<span style="font-size: 9pt;"><b>{{ $log->action }}</b></span><br>
+						<span style="font-size: 9pt;">{{ $log->message ? explode(' at ', $log->message)[0] : null }}</span><br><br>
+					</li>
+				@endforeach
+			</ul>
+		</div>
+	@endif
 </div>
 <style type="text/css">
 	.details-panes {

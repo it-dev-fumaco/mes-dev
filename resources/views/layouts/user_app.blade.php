@@ -1573,6 +1573,7 @@
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
       $('#change-required-item-modal input[name="requested_quantity"]').val(requested_qty);
+      $('#change-required-item-modal input[name="old_requested_quantity"]').val(requested_qty);
 
       $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);

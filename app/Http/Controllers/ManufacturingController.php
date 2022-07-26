@@ -2279,7 +2279,9 @@ class ManufacturingController extends Controller
             ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
             ->where('ste.docstatus', 1)->sum('sted.qty');
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty'));
+        $activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('reference', $production_order)->where('action', '!=', 'Reset Time Log')->orderBy('created_at', 'desc')->get();
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs'));
     }
 
     public function create_material_transfer_for_return(Request $request){
@@ -2570,6 +2572,7 @@ class ManufacturingController extends Controller
             ->distinct('warehouse')->orderBy('warehouse', 'asc')->pluck('warehouse');
     }
 
+    // update_ste_detail
     // function to submit change / replacement of item code
     public function update_ste_detail(Request $request){
         DB::connection('mysql')->beginTransaction();
@@ -2673,7 +2676,35 @@ class ManufacturingController extends Controller
                 ->where('parent', $request->production_order)->where('item_code', $request->old_item_code)
                 ->update($production_order_item);
 
+            $reference = null;
+            $message = null;
+            if($request->old_item_code != $request->item_code){
+                $reference = 'Changed Code';
+                $message = 'Changed item code from '.$request->old_item_code.' to '.$request->item_code.' from '.$request->source_warehouse;
+            }else if($production_order_item_detail->source_warehouse != $request->source_warehouse){
+                $reference = 'Changed Source Warehouse';
+                $message = 'Changed source warehouse of '.$request->item_code.' from '.$production_order_item_detail->source_warehouse.' to '.$request->source_warehouse;
+            }else if($request->old_requested_quantity != $request->requested_quantity){
+                $reference = 'Changed Requested Qty';
+                $message = 'Changed requested qty of '.$request->item_code.' from '.$request->old_requested_quantity.' '.$production_order_item_detail->stock_uom.' to '.$request->requested_quantity.' '.$production_order_item_detail->stock_uom;
+            }
+
+            $message = $message.' for '.$request->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString();
+
+            $activity_logs = [
+                'action' => $reference,
+                'message' => $message,
+                'reference' => $request->production_order,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ];
+
+            if($reference && $message){
+                DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
+            }
+            
             DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
 
             return response()->json(['status' => 1, 'message' => 'Stock entry item has been changed.']);
         } catch (Exception $e) {
@@ -2682,6 +2713,7 @@ class ManufacturingController extends Controller
         }
     }
 
+    // /update_production_order_item_required_qty
     public function update_production_order_item_required_qty(Request $request){
         if(!Auth::user()) {
             return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
@@ -2689,7 +2721,7 @@ class ManufacturingController extends Controller
 
         $production_order_item = DB::connection('mysql')->table('tabWork Order Item as poi')
             ->join('tabWork Order as po', 'poi.parent', 'po.name')->where('poi.name', $request->production_order_item_id)
-            ->select('poi.item_code', 'po.status', 'po.name as production_order', 'po.produced_qty', 'po.qty')->first();
+            ->select('poi.item_code', 'po.status', 'po.name as production_order', 'po.produced_qty', 'po.qty', 'poi.stock_uom')->first();
 
         if (!$production_order_item) {
             return response()->json(['status' => 0, 'message' => 'Record not found.']);
@@ -2710,6 +2742,18 @@ class ManufacturingController extends Controller
         }
 
         DB::connection('mysql')->table('tabWork Order Item')->where('name', $request->production_order_item_id)->update(['required_qty' => $request->qty]);
+
+        $activity_logs = [
+            'action' => 'Changed Required Qty',
+            'message' => 'Changed required qty of '.$production_order_item->item_code.' from '.$request->required_qty.' '.$production_order_item->stock_uom.' to '.$request->qty.' '.$production_order_item->stock_uom.' for '.$production_order_item->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+            'reference' => $production_order_item->production_order,
+            'created_at' => Carbon::now()->toDateTimeString(),
+            'created_by' => Auth::user()->email
+        ];
+
+        if($request->required_qty != $request->qty){
+            DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
+        }
 
         return response()->json(['status' => 1, 'message' => 'Required qty has been updated.', 'production_order' => $production_order_item->production_order]);
     }
@@ -2769,6 +2813,8 @@ class ManufacturingController extends Controller
 
                 if(!$existing_production_item){
                     // get remaining required qty if item is an alternative
+                    $message = 'Added '.$request->quantity[$id].' '.$item_details->stock_uom.' of '.$item_details->item_code.' from '.$request->source_warehouse[$id].' for '.$request->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString();
+                    $reference = 'New Item';
                     if($request->item_as[$id] != 'new_item'){
                         $alternative_for = DB::connection('mysql')->table('tabWork Order Item')
                             ->where('parent', $request->production_order)->where('item_code', $request->item_as[$id])
@@ -2796,6 +2842,9 @@ class ManufacturingController extends Controller
                         DB::connection('mysql')->table('tabWork Order Item')
                             ->where('parent', $request->production_order)->where('item_code', $alternative_for->item_code)
                             ->update(['required_qty' => ($alternative_for->required_qty - $qty)]);
+
+                        $message = 'Added '.$request->quantity[$id].' '.$item_details->stock_uom.' of '.$item_details->item_code.' as an alternative for '.$alternative_for->item_code.' from '.$request->source_warehouse[$id].' for '.$request->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString();
+                        $reference = 'Item Alternative';
                     }
 
                     // insert items to production order item table in erp
@@ -2824,6 +2873,16 @@ class ManufacturingController extends Controller
                     ];
 
                     DB::connection('mysql')->table('tabWork Order Item')->insert($production_order_item);
+
+                    $activity_logs = [
+                        'action' => $reference,
+                        'message' => $message,
+                        'reference' => $request->production_order,
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'created_by' => Auth::user()->email
+                    ];
+
+                    DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
                 }else{
                     // update required_qty for additional 
                     $production_order_item = [
@@ -2995,7 +3054,6 @@ class ManufacturingController extends Controller
             }
 
             DB::connection('mysql')->commit();
-
             return response()->json(['status' => 1, 'message' => 'Stock Entry has been created.']);
         } catch (Exception $e) {
             DB::connection('mysql')->rollback();
@@ -3633,6 +3691,7 @@ class ManufacturingController extends Controller
         }
     }
 
+    // /generate_stock_entry/{production_order}
     public function generate_stock_entry($production_order, Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
@@ -3649,6 +3708,7 @@ class ManufacturingController extends Controller
             $production_order_items = DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $production_order)->orderBy('idx', 'asc')->get();
 
+            $remaining_qty = 0;
             foreach ($production_order_items as $index => $row) {
                 if($request->s_warehouses){
                     $source_warehouse = $request->s_warehouses[$index];
@@ -3676,6 +3736,7 @@ class ManufacturingController extends Controller
                 $docstatus = ($actual_qty >= $row->required_qty) ? 1 : 0;
                 $docstatus = ($item_status == 'Issued') ? $docstatus : 0;
 
+                $reference = null;
                 if(!$pending_ste){
                     $remaining_qty = $row->required_qty - ($row->transferred_qty - $row->returned_qty);
 
@@ -3694,6 +3755,8 @@ class ManufacturingController extends Controller
                         $new_id = (($latest_ste) ? $latest_ste_exploded[1] : 0) + 1;
                         $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
                         $new_id = 'STEP-'.$new_id;
+                        
+                        $reference = $new_id;
 
                         $bom_material = DB::connection('mysql')->table('tabBOM Item')
                             ->where('parent', $mes_production_order_details->bom_no)
@@ -3897,8 +3960,21 @@ class ManufacturingController extends Controller
                         }
                         $this->create_stock_ledger_entry($pending_ste->name);
                         $this->create_gl_entry($pending_ste->name);
+
+                        $remaining_qty = $mes_production_order_details->qty_to_manufacture;
+                        $reference = $pending_ste->name;
                     }
                 }
+
+                $activity_logs = [
+                    'action' => 'Created Withdrawal Slip',
+                    'message' => 'Created withdrawal slip '.$reference.' for '.$remaining_qty.' '.$row->stock_uom.' of '.$row->item_code.' for '.$production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                    'reference' => $reference,
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'created_by' => Auth::user()->email
+                ];
+        
+                DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
             }
 
             DB::connection('mysql')->commit();

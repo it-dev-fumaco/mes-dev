@@ -131,6 +131,13 @@
 			</a> 
 		</li>
 		@endif
+		@if (count($activity_logs) > 0)
+		<li class="nav-item create-feedback-tab">
+			<a class="nav-link" data-toggle="tab" href="#wtpoi5" role="tab" aria-controls="messages" aria-selected="false">
+				<span class="badge badge-info mr-2">{{ count($activity_logs) }}</span> Activity Log(s)
+			</a> 
+		</li>
+		@endif
 	</ul>
 
 	<div class="tab-content bg-light" style="border: 1px solid #f2f3f4;">
@@ -665,6 +672,22 @@
 			<h5 class="text-center m-4">No record(s) found.</h5>
 			@endif
 		</div>
+
+		<!-- Activity Logs -->
+		<div class="tab-pane" id="wtpoi5" role="tabpanel" aria-labelledby="w5-tab">
+			<div class="col-12 p-2" style="max-height: 500px; overflow:auto;">
+				<ul>
+					@foreach ($activity_logs as $log)
+						<li>
+							<span style="font-size: 8pt;" class="text-muted">{{ Carbon\Carbon::parse($log->created_at)->format('M d, Y h:i:s a') }}</span><br>
+							<span style="font-size: 8pt;"><b>{{ $log->action }}</b></span><br>
+							<span style="font-size: 8pt;">{{ $log->message ? explode(' at ', $log->message)[0] : null }}</span><br><br>
+						</li>
+					@endforeach
+				</ul>
+			</div>
+		</div>
+		<!-- Activity Logs -->
 	</div>
 		
 	@if($details->feedback_qty < $details->qty_to_manufacture)
