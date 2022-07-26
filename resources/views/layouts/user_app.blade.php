@@ -131,6 +131,12 @@
             </li>
             @endif
           @endisset
+          <li class="{{ $activePage == 'maintenance_machine_list' ? 'active' : null }}">
+            <a href="/maintenance_machine_list">
+              <i class="now-ui-icons design_bullet-list-67"></i>
+              <p>Machine List</p>
+            </a>
+          </li>
           <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
             <a href="/report_index">
               <i class="now-ui-icons files_single-copy-04"></i>

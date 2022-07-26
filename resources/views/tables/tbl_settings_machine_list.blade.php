@@ -16,13 +16,13 @@
                                 <tbody style="font-size:13px;">
                                   @forelse($data as $index => $row)
                                     <tr>
-                                    <td>{{ $row->machine_id }}</td>
+                                    <td class="text-center">{{ $row->machine_id }}</td>
                                     <td class="text-left">{{ $row->machine_code }}</td>
                                     <td class="text-left">
                                         {{ $row->machine_name }}
                                     </td>
                                     <td class="text-left">{{ $row->status }}</td>
-                                    <td>
+                                    <td class="text-center">
                                         <a href="#" class="hover-icon"  data-toggle="modal">
                                           <button type='button' class='btn btn-default btn-edit-machine' data-machineid="{{ $row->machine_id }}" data-machinecode="{{ $row->machine_code }}" data-machinename="{{ $row->machine_name }}" data-status="{{ $row->status }}" data-referencekey="{{ $row->reference_key }}" data-type="{{ $row->type}}" data-model="{{$row->model}}" data-image="{{ $row->image }}"><i class='now-ui-icons design-2_ruler-pencil'></i></button>
                                         </a>

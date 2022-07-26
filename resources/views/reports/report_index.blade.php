@@ -122,11 +122,6 @@
                                 <tr>
                                     <td><a href="/link_qa_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Report </span></a></td>
                                 </tr>
-                                @if (in_array('Maintenance', $permissions['permitted_modules']))
-                                    <tr>
-                                        <td><a href="/machine_breakdown_history" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Machine Breakdown History </span></a></td>
-                                    </tr>
-                                @endif
                             </tbody>
                         </table>
                       </div>

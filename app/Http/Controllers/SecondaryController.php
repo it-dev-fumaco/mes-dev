@@ -573,6 +573,10 @@ class SecondaryController extends Controller
         return 'MR-' . sprintf('%05d', intval($number) + 1);
     }
 
+    public function maintenanceMachineList(){
+        return view('maintenance_machine_list');
+    }
+
     public function machineBreakdownSave(Request $request){
         try {
             $now = Carbon::now();
@@ -1046,6 +1050,7 @@ class SecondaryController extends Controller
         return view('machine_list', compact('machine_list'));
     }
 
+    // /save_machine
     public function insert_machine(Request $request){
         if (DB::connection('mysql_mes')
         ->table('machine')
@@ -1054,50 +1059,55 @@ class SecondaryController extends Controller
 
         }else{
 
-        $requestko = $request->all();
+            $requestko = $request->all();
 
-        if($request->hasFile('machineImage')){
-            $file = $request->file('machineImage');
+            if($request->hasFile('machineImage')){
+                $file = $request->file('machineImage');
 
-            //get filename with extension
-            $filenamewithextension = $file->getClientOriginalName();
-            //get filename without extension
-            $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
-            //get file extension
-            $extension = $file->getClientOriginalExtension();
-            //filename to store
-            $filenametostore = $request->machine_code.'.'.$extension;
-            // Storage::put('public/employees/'. $filenametostore, fopen($file, 'r+'));
-            Storage::put('public/machine/'. $filenametostore, fopen($file, 'r+'));
-            //Resize image here
-            $thumbnailpath = public_path('storage/machine/'.$filenametostore);
-            $img = Image::make($thumbnailpath)->resize(500, 350, function($constraint) {
-                $constraint->aspectRatio();
-            });
-            $img->save($thumbnailpath);
+                //get filename with extension
+                $filenamewithextension = $file->getClientOriginalName();
+                //get filename without extension
+                $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
+                //get file extension
+                $extension = $file->getClientOriginalExtension();
+                //filename to store
+                $filenametostore = $request->machine_code.'.'.$extension;
+                // Storage::put('public/employees/'. $filenametostore, fopen($file, 'r+'));
+                Storage::put('public/machine/'. $filenametostore, fopen($file, 'r+'));
+                //Resize image here
+                $thumbnailpath = public_path('storage/machine/'.$filenametostore);
+                $img = Image::make($thumbnailpath)->resize(500, 350, function($constraint) {
+                    $constraint->aspectRatio();
+                });
+                $img->save($thumbnailpath);
 
-            $image_path = '/storage/machine/'.$filenametostore;
+                $image_path = '/storage/machine/'.$filenametostore;
+            }
+            else{
+                $image_path = null;
+            }
+            // dd($requestko);
+
+            $machine = new Machine;
+            $machine->reference_key = $request->machine_id;
+            $machine->machine_code = $request->machine_code;
+            $machine->machine_name  = $request->machine_name;
+            $machine->status = $request->status;
+            $machine->type = $request->type;
+            $machine->model = $request->model;
+            $machine->image = $image_path;
+            $machine->created_by = Auth::user()->employee_name;
+            $machine->created_at = null;
+            $machine->last_modified_by = Auth::user()->employee_name;
+            $machine->last_modified_at = null;
+            $machine->save();
         }
-        else{
-            $image_path = null;
-        }
-        // dd($requestko);
 
-        $machine = new Machine;
-        $machine->reference_key = $request->machine_id;
-        $machine->machine_code = $request->machine_code;
-        $machine->machine_name  = $request->machine_name;
-        $machine->status = $request->status;
-        $machine->type = $request->type;
-        $machine->model = $request->model;
-        $machine->image = $image_path;
-        $machine->created_by = Auth::user()->employee_name;
-        $machine->created_at = null;
-        $machine->last_modified_by = Auth::user()->employee_name;
-        $machine->last_modified_at = null;
-        $machine->save();
-    }
-        return response()->json(['success' => 1, 'message' => 'Machine Successfully Added']);
+        if($request->ajax()){
+            return response()->json(['success' => 1, 'message' => 'Machine Successfully Added']);
+        }else{
+            return redirect()->back()->with('success', 'Machine Successfully Added');
+        }
 
     }
     public function update_machine(Request $request){
@@ -1223,24 +1233,23 @@ class SecondaryController extends Controller
     }
     public function get_machine_profile($id){
         $machine_list= DB::connection('mysql_mes')
-                ->table('machine')
-                ->where('machine_id', $id)
-                ->first();
+            ->table('machine')
+            ->where('machine_id', $id)
+            ->first();
 
         $machine_process= DB::connection('mysql_mes')
-                ->table('machine AS m')
-                ->join('workstation_machine AS wm', 'wm.machine_code','m.machine_code')
-                ->where('wm.machine_code', $machine_list->machine_code)
-                ->select('wm.workstation','wm.workstation_machine_id')
-                ->first();
+            ->table('machine AS m')
+            ->join('workstation_machine AS wm', 'wm.machine_code','m.machine_code')
+            ->where('wm.machine_code', $machine_list->machine_code)
+            ->select('wm.workstation','wm.workstation_machine_id')
+            ->first();
 
-            $process_list=DB::connection('mysql_mes')
-                ->table('process_assignment AS pm')
-                ->join('process AS p', 'p.process_id', 'pm.process_id')
-                ->where('pm.machine_id', $machine_list->machine_id)
-                ->select('pm.*', 'p.process_name')
-                ->get();
-          
+        $process_list=DB::connection('mysql_mes')
+            ->table('process_assignment AS pm')
+            ->join('process AS p', 'p.process_id', 'pm.process_id')
+            ->where('pm.machine_id', $machine_list->machine_id)
+            ->select('pm.*', 'p.process_name')
+            ->get();
 
         return view('machine_profile', compact('machine_list', 'process_list'));
     }
@@ -1352,6 +1361,7 @@ class SecondaryController extends Controller
             }
             return ($number) + 1;
         }
+
     public function insert_machineToworkstation(Request $request){
         $machine_nametbl = DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->machine_id)->select('machine_name', 'machine_code')->first();
         $now = Carbon::now();
@@ -1805,6 +1815,7 @@ class SecondaryController extends Controller
         return response()->json(['success' => 1, 'message' => 'Task Updated']);
     }
     
+    // /settings_module
     public function settings_module(){
         $permissions = $this->get_user_permitted_operation();
 
@@ -5212,6 +5223,8 @@ class SecondaryController extends Controller
 
 
     }
+
+    // /get_tbl_setting_machine_list
     public function get_tbl_setting_machine_list(Request $request){
         $machine_list = DB::connection('mysql_mes')->table('machine')
             ->where(function($q) use ($request) {
