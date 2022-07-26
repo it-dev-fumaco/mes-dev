@@ -190,14 +190,14 @@ class LinkReportController extends Controller
         return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter'));
     }
 
-    public function weekly_rejection_report($operation_id){
+    public function weekly_rejection_report(Request $request, $operation_id){
         $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
         if(!$operation){
             return redirect()->back()->with('error', 'Operation not found.');
         }
 
-        $start_date = Carbon::now()->subDays(7)->startOfDay()->toDateTimeString();
-        $end_date = Carbon::now()->endOfDay()->toDateTimeString();
+        $start_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[0]) : Carbon::now()->subDays(7))->startOfDay()->toDateTimeString();
+        $end_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[1]) : Carbon::now())->endOfDay()->toDateTimeString();
 
         $time_logs = DB::connection('mysql_mes')->table('production_order as po')
             ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')

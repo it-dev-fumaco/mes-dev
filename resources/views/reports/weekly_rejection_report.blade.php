@@ -32,7 +32,32 @@
 <div class="container-fluid bg-white">
     <div class="row" style="margin-top: -90px">
         <div class="col-12 mx-auto bg-white">
-            <h5 class="p-2">{{ Carbon\Carbon::now()->subDays(7)->format('F d, Y').' to '.Carbon\Carbon::now()->format('F d, Y') }}</h5>
+            @php
+                $link = 0;
+                switch($operation){
+                    case 'Fabrication':
+                        $link = 1;
+                        break;
+                    case 'Painting':
+                        $link = 2;
+                        break;
+                    case 'Wiring and Assembly':
+                        $link = 3;
+                        break;
+                    default:
+                        break;
+                }
+            @endphp
+            <form action="/weekly_rejection_report/{{ $link }}">
+                <div class="row">
+                    <div class="col-3 offset-8">
+                        <input type="text" class='form-control m-2' id="daterange" name='date' value="01/01/2018 - 01/15/2018" />
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
+                    </div>
+                </div>
+            </form>
             <table class="table table-bordered">
                 <tr>
                     <th>production_order</th>
@@ -109,6 +134,16 @@ $(document).ready(function(){
 
         $("#current-time").html(currentTimeString);
     }
+
+    var start_date = "{{ request('date') ? date('m/d/Y', strtotime(explode(' - ', request('date'))[0])) : null }}";
+    var end_date = "{{ request('date') ? date('m/d/Y', strtotime(explode(' - ', request('date'))[1])) : null }}";
+
+    $('#daterange').daterangepicker({
+        opens: 'left',
+        placeholder: 'Select Date Range',
+        startDate: start_date ? start_date : moment().subtract(7, 'days'),
+        endDate: end_date ? end_date : moment(),
+    });
 });
 </script>
 @endsection
