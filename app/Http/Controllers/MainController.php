@@ -1699,7 +1699,7 @@ class MainController extends Controller
 			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($jt_production_orders));
 
 			if(!in_array($status, ['All', 'Production Orders'])){
-				$statuses = array_merge($statuses, ['In Progress', 'Completed']);
+				$statuses = array_merge($statuses, ['In Progress', 'Completed', 'Ready for Feedback', 'Partially Feedbacked']);
 			}
 		}
 		// Awaiting Feedback
@@ -1720,7 +1720,7 @@ class MainController extends Controller
 						->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
 						->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
-				->where('status', 'Completed')
+				->whereIn('status', ['Completed', 'Feedbacked'])
 				->whereRaw('feedback_qty >= qty_to_manufacture')
 				->whereIn('operation_id', $user_permitted_operation_id)
 				->when($filter_dates, function ($q) use ($start_date, $end_date){
@@ -1736,7 +1736,8 @@ class MainController extends Controller
 				->orderBy('created_at', 'desc');
 
 			if(!in_array($status, ['All', 'Production Orders'])){
-				array_push($statuses, 'Completed');
+				// array_push($statuses, 'Completed');
+				$statuses = array_merge($statuses, ['Completed', 'Feedbacked']);
 			}
 		}
 		// Completed
@@ -1832,7 +1833,7 @@ class MainController extends Controller
 				}
 			}
 
-			if (in_array($row->status, ['Completed', 'In Progress'])) {
+			if (in_array($row->status, ['Completed', 'In Progress', 'Ready for Feedback', 'Partially Feedbacked', 'Feedbacked'])) {
 				if($prod_status != 'In Progress') {
 					if ($row->feedback_qty == 0 and $row->produced_qty == $row->qty_to_manufacture) {
 						$prod_status = 'For Feedback';
@@ -5163,35 +5164,18 @@ class MainController extends Controller
 				DB::connection('mysql_mes')->beginTransaction();
 				
 				$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
-				$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
-		
-				if($status == 'Completed'){
-					$production_data_mes = [
-						'last_modified_at' => $now->toDateTimeString(),
-						'last_modified_by' => Auth::user()->email,
-						'feedback_qty' => $manufactured_qty,
-						'status' => $status,
-						'remarks' => $remarks_override
-					];
 
-					if($remarks_override == 'Override') {
-						$production_data_mes['produced_qty'] = $manufactured_qty;
-					}
-				}else{
-					$production_data_mes = [
-						'last_modified_at' => $now->toDateTimeString(),
-						'last_modified_by' => Auth::user()->email,
-						'feedback_qty' => $manufactured_qty,
-						'remarks' => $remarks_override
-					];
-					
-					if($remarks_override == 'Override') {
-						$production_data_mes['produced_qty'] = $manufactured_qty;
-						$production_data_mes['status'] = 'In Progress';
-					}
-				}
-
+				$production_data_mes = [
+					'last_modified_at' => $now->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email,
+					'feedback_qty' => $manufactured_qty,
+					'status' => $manufactured_qty >= $production_order_details->qty ? 'Feedbacked' : 'Partially Feedbacked',
+					'remarks' => $remarks_override
+				];
+				
 				if($remarks_override == 'Override'){
+					$production_data_mes['produced_qty'] = $manufactured_qty;
+
 					$job_ticket_mes = [
 						'completed_qty' => $manufactured_qty,
 						'remarks' => $remarks_override,

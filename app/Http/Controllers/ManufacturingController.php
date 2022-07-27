@@ -5047,6 +5047,7 @@ class ManufacturingController extends Controller
 		  return DB::connection('mysql_mes')->table('reason_for_cancellation_po')->orderBy('reason_for_cancellation', 'asc')->get();
     }
     
+    // /cancel_production_order_feedback/{stock_entry}
     public function cancel_production_order_feedback($stock_entry){
         DB::connection('mysql')->beginTransaction();
         try {
@@ -5063,6 +5064,7 @@ class ManufacturingController extends Controller
             }
             // get production order details
             $production_order_detail = DB::connection('mysql')->table('tabWork Order')->where('name', $stock_entry_detail->work_order)->first();
+
             // check if production order exists
             if(!$production_order_detail){
                 return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $stock_entry . '</b> not found.']);
@@ -5164,12 +5166,17 @@ class ManufacturingController extends Controller
                 $jtstatus = 'In Progress';
             }
 
-            DB::connection('mysql_mes')->table('job_ticket')
-                ->where('production_order', $stock_entry_detail->work_order)->where('remarks', 'Override')
-                ->update(['completed_qty' => $remaining_feedbacked_qty, 'remarks' => null, 'status' => $jtstatus]);
+            DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $stock_entry_detail->work_order)->where('remarks', 'Override')
+                ->update([
+                    'completed_qty' => $remaining_feedbacked_qty,
+                    'remarks' => null,
+                    'status' => $jtstatus,
+                    'remarks' => $remaining_feedbacked_qty > 0 ? "Override" : null
+                ]);
 
             $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
                 ->where('production_order', $stock_entry_detail->work_order)->min('completed_qty');
+
             // update production order produced qty and status in ERP
             DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $stock_entry_detail->work_order)->update(['produced_qty' => $remaining_feedbacked_qty, 'modified' => $now->toDateTimeString(),
@@ -5177,8 +5184,19 @@ class ManufacturingController extends Controller
 
             DB::connection('mysql_mes')->beginTransaction();
             // update production order feedbacked qty  in MES
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->work_order)
-                ->update(['feedback_qty' => $remaining_feedbacked_qty, 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'produced_qty' => $produced_qty]);
+            if($produced_qty > 0){
+                $po_status = $remaining_feedbacked_qty > 0 ? 'Partially Feedbacked' : 'Ready for Feedback';
+            }else{
+                $po_status = 'Not Started';
+            }
+
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $stock_entry_detail->work_order)->update([
+                'feedback_qty' => $remaining_feedbacked_qty,
+                'produced_qty' => $produced_qty,
+                'status' => $po_status,
+                'last_modified_at' => $now->toDateTimeString(),
+                'last_modified_by' => Auth::user()->email
+            ]);
             
              // update feedback logs as cancelled in MES
             DB::connection('mysql_mes')->table('feedbacked_logs')

@@ -8049,6 +8049,8 @@ class SecondaryController extends Controller
 
         return response()->json(['success' => 1,'message' => 'Email Transaction Recipient successfully deleted.']);
     }
+
+    // /get_feedback_logs/{prod}
     public function get_feedbacked_log($prod){
         $feedbacked_log= DB::connection('mysql_mes')->table('feedbacked_logs')->where('production_order', $prod)->get();
 
