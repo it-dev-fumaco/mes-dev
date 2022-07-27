@@ -840,6 +840,7 @@
                   if (production_order.length > 0) {
                      $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
                   }else{
+                     showNotification("danger", 'No Item(s) Found.', "now-ui-icons travel_info");
                      a3 = 0;
                   }
                   window.location.hash = '#next';
@@ -848,7 +849,7 @@
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                   }
-                  
+                  a3 = 0;
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
@@ -893,6 +894,7 @@
                   if (bom.length > 0) {
                      $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
                   }else{
+                     showNotification("danger", 'No Item(s) Found.', "now-ui-icons travel_info");
                      a1 = 0;
                   }
                   window.location.hash = '#next';
@@ -901,7 +903,7 @@
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                   }
-                  
+                  a1 = 0;
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
@@ -953,7 +955,7 @@
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                   }
-                  
+                  a4 = 0;
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
@@ -1049,6 +1051,9 @@
    
          if(a2 == 1){
             $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+         }else{
+            showNotification("danger", 'No Item(s) Found.', "now-ui-icons travel_info");
+            a2 = 0;
          }
          window.location.hash = '#next';
       });

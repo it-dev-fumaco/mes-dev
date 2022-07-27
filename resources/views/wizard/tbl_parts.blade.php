@@ -28,6 +28,9 @@
         <span class="actual-qty" style="display: none">{{ $item['available_stock'] }}</span>
         <span class="sub-parent-item" style="display: none;">{{ $item['sub_parent_item'] }}</span>
         <span class="qty" style="display: none;">{{ $qty }}</span>
+        @isset($item['available_qty'])
+          <span class="available-qty" style="display: none;">{{ $item['available_qty'] }}</span>
+        @endisset
         <span class="planned-start-date" style="display: none;">{{ $item['planned_start_date'] }}</span>
         <span class="wip-warehouse" style="display: none;">{{ $item['wip_warehouse'] }}</span>
         <span class="fg-warehouse" style="display: none;">{{ $item['fg_warehouse'] }}</span>

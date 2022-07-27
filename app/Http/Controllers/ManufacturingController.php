@@ -4465,13 +4465,13 @@ class ManufacturingController extends Controller
         return view('wizard.tbl_select_available_scrap', compact('available_scrap', 'item_cm', 'production_order_details'));
     }
 
+    // /production_planning_summary
     public function production_planning_summary(Request $request){
         if(!Auth::user()) {
             return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
         }
 
-        $production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $request->production_orders)
-            ->where('docstatus', 1)->where('company', 'FUMACO Inc.')->orderBy('name', 'asc')->get();
+        $production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $request->production_orders)->where('docstatus', 1)->where('company', 'FUMACO Inc.')->orderBy('name', 'asc')->get();
 
         $production_order_list = [];
         foreach ($production_orders as $prod) {

@@ -834,6 +834,9 @@
 
                   if (bom.length > 0) {
                      $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  }else{
+                     showNotification("danger", 'No Item(s) Found.', "now-ui-icons travel_info");
+                     a1 = 0;
                   }
                   window.location.hash = '#next';
                },
@@ -841,7 +844,7 @@
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                   }
-                  
+                  a1 = 0;
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
@@ -912,14 +915,7 @@
 
             var disable_sel = (prod_order) ? 'disabled' : null;
 
-            var btn;
-            if (prod_order) {
-               btn = '<button type="button" class="btn btn-success prod-order"><i class="now-ui-icons ui-1_check"></i> ' + $(this).find('.production-order').eq(0).text() + '</button>';
-            }else{
-               // btn = '<button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>';
-
-               btn = '<div class="btn-group"><button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button><button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 15px; font-size: 9pt;"><span class="sr-only">Toggle Dropdown</span></button><div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div>';
-            }
+            var disabled = parseInt($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : null;
 
             var actual_qty = $(this).find('.actual-qty').eq(0).text();
             if(actual_qty > 0){
@@ -935,13 +931,19 @@
                '<td class="text-center" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
                '<td class="text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
                '<td class="text-center">' +
-                  '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;" ' + disable_sel + '></div>' +
+                  '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"></div>' +
                '</td>' +
                '<td class="text-center">' +
-                  '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" ' +disable_sel + ' value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
+                  '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
                // '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg source" '+disable_sel+'>' + s_wh + '</select></div></td>' +
-               '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target" ' + disable_sel + '>' + t_wh + '</select></div></td>' +
-               '<td class="text-center">'+btn+'</td>' +
+               '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + t_wh + '</select></div></td>' +
+               '<td class="text-center">' +
+                  '<div class="btn-group">' +
+                     '<button type="button" class="btn btn-primary create-production-btn" ' + disabled + ' >' +
+                        '<i class="now-ui-icons ui-1_simple-add"></i> Production Order' +
+                     '</button>' +
+                  '</div>' +
+                  '</td>' +
                '</tr>';
 
             n++;
@@ -951,6 +953,9 @@
    
          if(a2 == 1){
             $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+         }else{
+            showNotification("danger", 'No Item(s) Found.', "now-ui-icons travel_info");
+            a2 = 0;
          }
 
          window.location.hash = '#next';
@@ -1095,6 +1100,9 @@
 
                   if (production_order.length > 0) {
                      $('.nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+                  }else{
+                     showNotification("danger", 'No Item(s) Found.', "now-ui-icons travel_info");
+                     a3 = 0;
                   }
                   window.location.hash = '#next';
                },
@@ -1102,7 +1110,7 @@
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                   }
-                  
+                  a3 = 0;
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
@@ -1139,7 +1147,10 @@
             $.ajax({
                url: "/production_planning_summary",
                type:"GET",
-               data: {production_orders: production_orders},
+               data: {
+                  production_orders: production_orders,
+                  order_id: order_details.split(' ')[3]
+               },
                success:function(data){
                   if (data.message) {
                      showNotification('danger', data.message, "now-ui-icons travel_info");
@@ -1156,7 +1167,7 @@
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
                   }
-                  
+                  a4 = 0;
                   console.log(jqXHR);
                   console.log(textStatus);
                   console.log(errorThrown);
