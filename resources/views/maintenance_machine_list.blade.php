@@ -36,7 +36,7 @@
 </div>
 <div class="content" style="margin-top: -110px;">
     <div class="row p-0">
-        <div class="col-12 p-0" style="background-color: #F7F7F9; margin-top: 60px;">
+        <div class="col-8 mx-auto p-0" style="background-color: #F7F7F9; margin-top: 60px;">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-3 offset-7">
