@@ -2281,57 +2281,7 @@ class ManufacturingController extends Controller
 
         $activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('reference', $production_order)->where('action', '!=', 'Reset Time Log')->orderBy('created_at', 'desc')->get();
 
-        // collect item codes
-        $required_item_codes = collect($required_items)->sortBy('item_code')->pluck('item_code');
-        
-        // get item codes and qty from submitted withdrawal slips
-        $item_codes_with_submitted_ste = DB::connection('mysql')->table('tabStock Entry as ste')
-            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
-            ->where('ste.docstatus', 1)
-            ->selectRaw('sted.item_code, sum(sted.issued_qty) as qty')->groupBy('sted.item_code')->get();
-
-        // get qty of returned items
-        $item_codes_with_submitted_returns = DB::connection('mysql')->table('tabStock Entry as ste')
-            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
-            ->where('ste.docstatus', 1)->selectRaw('sted.item_code, sum(sted.issued_qty) as qty')->groupBy('sted.item_code')->get();
-        $returns = collect($item_codes_with_submitted_returns)->groupBy('item_code');
-
-        // deduct returned qty from the transferred qty per item
-        $required_items_grouped = collect($required_items)->groupBy('item_code');
-        $item_codes_with_issued_ste = [];
-        foreach($item_codes_with_submitted_ste as $stes){
-            $req_qty = isset($required_items_grouped[$stes->item_code]) ? $required_items_grouped[$stes->item_code][0]['required_qty'] : 0;
-            $returned_qty = isset($returns[$stes->item_code]) ? $returns[$stes->item_code][0]->qty : 0;
-            $diff = $stes->qty - $returned_qty;
-            if($diff > 0 && $req_qty == $diff){
-                array_push($item_codes_with_issued_ste, $stes->item_code);
-            }
-        }
-
-        // deduct total returned qty from the total transferred qty
-        $ste_transferred_qty = (float)$ste_transferred_qty - (float)collect($item_codes_with_submitted_returns)->sum('qty');
-
-        $diff1 = array_diff($required_item_codes->toArray(), $item_codes_with_issued_ste);
-        $diff2 = array_diff($item_codes_with_issued_ste, $required_item_codes->toArray());
-        $all_items_has_transferred_qty = count(array_merge($diff1, $diff2)) <= 0 ? 1 : 0;
-
-        $checker = 1;
-        $qty_checker = collect($required_items)->map(function ($q){
-            return $q['transferred_qty'] == $q['required_qty'] ? 1 : 0;
-        })->min();
-
-        if($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1){
-            $ste_transferred = (float)number_format($ste_transferred_qty, 10);
-            $mes_transferred = (float)number_format(collect($required_items)->sum('transferred_qty'), 10);
-
-            if($ste_transferred != $mes_transferred || $qty_checker == 0){
-                $checker = 0;
-            }
-        }
-
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty'));
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs'));
     }
 
     public function create_material_transfer_for_return(Request $request){
@@ -2557,7 +2507,6 @@ class ManufacturingController extends Controller
         }
     }
 
-    // /get_items_for_return/{production_order}
     public function get_items_for_return($production_order, Request $request){
         $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
         if (!$details) {
@@ -5972,7 +5921,6 @@ class ManufacturingController extends Controller
         }
     }
 
-    // /sync_production_order_items/{production_order}
     public function sync_production_order_items($production_order) {
         DB::connection('mysql')->beginTransaction();
         try {
