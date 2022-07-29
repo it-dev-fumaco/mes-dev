@@ -1779,6 +1779,7 @@ class ManufacturingController extends Controller
         }
     }
 
+    // /cancel_production_order
     public function cancel_production_order(Request $request){
         DB::connection('mysql')->beginTransaction();
         try {
@@ -5594,6 +5595,7 @@ class ManufacturingController extends Controller
         return view('wizard_no_bom.add_operations', compact('production_orders'));
     }
 
+    // /submit_withdrawal_slip
     public function submit_withdrawal_slip(Request $request){
         DB::beginTransaction();
         
@@ -5678,12 +5680,9 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Unable to issue items. Please try again.']);
             }
 
-            DB::connection('mysql')->table('tabWork Order Item')
-                ->where('parent', $steDetails->work_order)->where('item_code', $steDetails->item_code)
-                ->update(['transferred_qty' => $transferred_qty]);
+            $this->update_production_order_items($steDetails->work_order);
 
             DB::commit();
-
             return response()->json(['status' => 1, 'message' => 'Item <b>' . $steDetails->item_code . '</b> has been issued.']);
         } catch (Exception $e) {
             DB::rollback();
