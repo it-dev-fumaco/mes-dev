@@ -4889,9 +4889,7 @@ class MainController extends Controller
 						$qty = round($qty);
 					}
 
-					$consumed_qty = $row['consumed_qty'];
-
-					$remaining_transferred_qty = $row['transferred_qty'] - $consumed_qty;
+					$remaining_transferred_qty = $row['transferred_qty'] - $row['consumed_qty'];
 
 					if(number_format($remaining_transferred_qty, 5, '.', '') < number_format($qty, 5, '.', '')){
 						return response()->json(['success' => 0, 'message' => 'Insufficient transferred qty for ' . $row['item_code'] . ' in ' . $production_order_details->wip_warehouse]);
@@ -4905,12 +4903,9 @@ class MainController extends Controller
 						->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
 						
 					$reserved_qty = 0;
-					if (array_key_exists($row['item_code'], $stock_reservation)) {
-						$reserved_qty = $stock_reservation[$row['item_code']][0]->total_reserved_qty;
-					}
-		
 					$consumed_qty = 0;
-					if (array_key_exists($row['item_code'], $stock_reservation)) {
+					if (array_key_exists($row['item_code'], $stock_reservation) || isset($stock_reservation[$row['item_code']])) {
+						$reserved_qty = $stock_reservation[$row['item_code']][0]->total_reserved_qty;
 						$consumed_qty = $stock_reservation[$row['item_code']][0]->total_consumed_qty;
 					}
 		
