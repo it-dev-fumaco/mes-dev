@@ -38,6 +38,7 @@ class MainController extends Controller
 		return view('login');
 	}
 
+	// /operator_dashboard/{machine}/{workstation}/{production_order}
 	public function operatorDashboard($machine, $workstation, $job_ticket_id){
 		if(!Auth::user()){
 			return redirect('/operator/' . $workstation);
@@ -658,7 +659,10 @@ class MainController extends Controller
 		return response()->json($data);
 	}
 
+	// /end_task
 	public function endTask(Request $request){
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
         try {
 			if(!Auth::user()) {
 				return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
@@ -745,9 +749,23 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert completed processes log in activity logs
 
-			$this->update_job_ticket($current_task->job_ticket_id);
-            return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+			$update_job_ticket = $this->update_job_ticket($current_task->job_ticket_id);
+
+			if($update_job_ticket == 1){
+				DB::connection('mysql')->commit();
+				DB::connection('mysql_mes')->commit();
+
+				return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+			}else{
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
         } catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
             return response()->json(["error" => $e->getMessage()]);
         }
     }
@@ -3633,6 +3651,7 @@ class MainController extends Controller
         }
 	}
 
+	// /get_current_operator_task_details/{operator_id}
 	public function get_current_operator_task_details(Request $request, $operator_id){
 		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $request->job_ticket_id)->first();

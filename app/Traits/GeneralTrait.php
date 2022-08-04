@@ -12,7 +12,7 @@ trait GeneralTrait
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
             ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no')->first();
 
-        if(!$job_ticket_id){
+        if(!$job_ticket_id || !$job_ticket_detail){
             return 0;
         }
 
