@@ -542,7 +542,7 @@ trait GeneralTrait
         }
 
         if($feedback_qty > 0){
-            $status = 'Partial Feedbacked';
+            $status = 'Partially Feedbacked';
         }
 
         if($manufacture <= $feedback_qty){
@@ -680,7 +680,7 @@ trait GeneralTrait
             $status = 'Ready For Feedback';
         }
         if($feedback_qty > 0){
-            $status = 'Partial Feedbacked';
+            $status = 'Partially Feedbacked';
 
         }
         if($manufacture <= $feedback_qty){

@@ -40,7 +40,7 @@
 										case "Ready For Feedback":
 											$badge_color ="info";
 											break;
-										case "Partial Feedbacked":
+										case "Partially Feedbacked":
 										case "Feedbacked":
 											$badge_color ="success";
 											break;
@@ -320,7 +320,7 @@
 														$stat_badge ="danger";
 													}else if($rows['material_status'] == "Ready For Feedback"){
 														$stat_badge ="info";
-													}else if($rows['material_status'] == "Partial Feedbacked"){
+													}else if($rows['material_status'] == "Partially Feedbacked"){
 														$stat_badge ="success";
 													}else if($rows['material_status'] == "Feedbacked"){
 														$stat_badge ="success";
