@@ -20,7 +20,7 @@
                       <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
                    </td>
                    <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 14pt;">Weekly Rejection Report - {{ $operation }}</h3>
+                      <h3 class="title text-left p-0 ml-3" style="margin: auto 14pt;">{{ $operation }} Rejection Report</h3>
                    </td>
                 </tr>
              </table>
@@ -33,7 +33,6 @@
     <div class="row" style="margin-top: -90px">
         <div class="col-12 mx-auto bg-white">
             @php
-                $link = 0;
                 switch($operation){
                     case 'Fabrication':
                         $link = 1;
@@ -45,13 +44,25 @@
                         $link = 3;
                         break;
                     default:
+                        $link = 0;
                         break;
                 }
             @endphp
             <form action="/weekly_rejection_report/{{ $link }}">
                 <div class="row">
-                    <div class="col-3 offset-8">
-                        <input type="text" class='form-control m-2' id="daterange" name='date' value="01/01/2018 - 01/15/2018" />
+                    <div class="col-8">
+                        @php
+                            $start = \Carbon\Carbon::now()->subDays(7);
+                            $end = \Carbon\Carbon::now();
+                            if(request()->has('date')){
+                                $start = \Carbon\Carbon::parse(explode(' - ', request('date'))[0]);
+                                $end = isset(explode(' - ', request('date'))[1]) ? \Carbon\Carbon::parse(explode(' - ', request('date'))[1]) : null;
+                            }
+                        @endphp
+                        <h5 class="pt-3"><b>Period: {{ $start->startOfDay()->format('F d, Y').' - '.$end->endOfDay()->format('F d, Y') }} ({{ $end->diffInDays($start) }} day/s)</b></h5>
+                    </div>
+                    <div class="col-3">
+                        <input type="text" class='form-control m-2' id="daterange" name='date' />
                     </div>
                     <div class="col-1">
                         <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
@@ -60,35 +71,31 @@
             </form>
             <table class="table table-bordered">
                 <tr>
-                    <th>Production Order</th>
-                    <th>SO No</th>
-                    <th>Customer</th>
-                    <th>MREQ</th>
-                    <th>Workstation</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Good</th>
-                    <th>Reject</th>
-                    <th>Reason</th>
-                    <th>Operator</th>
-                    <th>Status</th>
-                  
+                    <th class="text-center">Production Order</th>
+                    <th class="text-center">Reference Order</th>
+                    <th class="text-center">Customer</th>
+                    <th class="text-center">Workstation</th>
+                    <th class="text-center">Start</th>
+                    <th class="text-center">End</th>
+                    <th class="text-center">Good</th>
+                    <th class="text-center">Reject</th>
+                    <th class="text-center">Reason</th>
+                    <th class="text-center">Operator</th>
+                    <th class="text-center">Status</th>
                 </tr>
                 @forelse($reject_arr as $reject)
                     <tr>
-                        <td>{{ $reject['production_order'] }}</td>
-                        <td>{{ $reject['sales_order'] }}</td>
-                        <td>{{ $reject['customer'] }}</td>
-                        <td>{{ $reject['material_request']}}</td>
-                        <td>{{ $reject['workstation'] }}</td>
-                        <td>{{ $reject['from_time'] }}</td>
-                        <td>{{ $reject['to_time'] }}</td>
-                        <td>{{ $reject['good'] }}</td>
-                        <td>{{ $reject['reject'] }}</td>
-                        <td>{{ $reject['reject_reason'] }}</td>
-                        <td>{{ $reject['operator_name'] }}</td>
-                        <td>{{ $reject['status'] }}</td>
-                       
+                        <td class="reject-font-size">{{ $reject['production_order'] }}</td>
+                        <td class="reject-font-size">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
+                        <td class="reject-font-size">{{ $reject['customer'] }}</td>
+                        <td class="reject-font-size">{{ $reject['workstation'] }}</td>
+                        <td class="reject-font-size">{{ $reject['from_time'] }}</td>
+                        <td class="reject-font-size">{{ $reject['to_time'] }}</td>
+                        <td class="reject-font-size">{{ $reject['good'] }}</td>
+                        <td class="reject-font-size">{{ $reject['reject'] }}</td>
+                        <td class="reject-font-size">{{ $reject['reject_reason'] }}</td>
+                        <td class="reject-font-size">{{ $reject['operator_name'] }}</td>
+                        <td class="reject-font-size">{{ $reject['status'] }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -102,6 +109,11 @@
         </div>
     </div>
 </div>
+<style>
+    .reject-font-size{
+        font-size: 10pt;
+    }
+</style>
 @endsection
 @section('script')
 <script type="text/javascript" src="{{ asset('js/daterange/moment.min.js') }}"></script>
@@ -138,7 +150,7 @@ $(document).ready(function(){
     }
 
     var start_date = "{{ request('date') ? date('m/d/Y', strtotime(explode(' - ', request('date'))[0])) : null }}";
-    var end_date = "{{ request('date') ? date('m/d/Y', strtotime(explode(' - ', request('date'))[1])) : null }}";
+    var end_date = "{{ isset(explode(' - ', request('date'))[1]) ? date('m/d/Y', strtotime(explode(' - ', request('date'))[1])) : null }}";
 
     $('#daterange').daterangepicker({
         opens: 'left',

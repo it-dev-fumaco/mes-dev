@@ -143,6 +143,7 @@ class LinkReportController extends Controller
         return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter'));
     }
 
+    // /weekly_rejection_report/{operation_id}
     public function weekly_rejection_report(Request $request, $operation_id){
         $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
         if(!$operation){
