@@ -12,15 +12,15 @@
                 <tr>
                    <td style="width: 30%; border-right: 5px solid white;">
                       <div class="pull-right title mr-3">
-                         <span class="d-block m-0 p-0" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-                         <span class="d-block m-0 p-0" style="font-size: 10pt;">{{ date('l') }}</span>
+                         <span class="d-block m-0 p-0" style="font-size: 12pt;">{{ date('M-d-Y') }}</span>
+                         <span class="d-block m-0 p-0" style="font-size: 9pt;">{{ date('l') }}</span>
                       </div>
                    </td>
                    <td style="width: 20%; border-right: 5px solid white;">
                       <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
                    </td>
                    <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Weekly Rejection Report - {{ $operation }}</h3>
+                      <h3 class="title text-left p-0 ml-3" style="margin: auto 14pt;">Weekly Rejection Report - {{ $operation }}</h3>
                    </td>
                 </tr>
              </table>
@@ -60,18 +60,19 @@
             </form>
             <table class="table table-bordered">
                 <tr>
-                    <th>production_order</th>
-                    <th>sales_order</th>
-                    <th>customer</th>
-                    <th>material_request</th>
-                    <th>workstation</th>
-                    <th>from_time</th>
-                    <th>to_time</th>
-                    <th>good</th>
-                    <th>reject</th>
-                    <th>operator_name</th>
-                    <th>status</th>
-                    <th>reject_reason</th>
+                    <th>Production Order</th>
+                    <th>SO No</th>
+                    <th>Customer</th>
+                    <th>MREQ</th>
+                    <th>Workstation</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Good</th>
+                    <th>Reject</th>
+                    <th>Reason</th>
+                    <th>Operator</th>
+                    <th>Status</th>
+                  
                 </tr>
                 @forelse($reject_arr as $reject)
                     <tr>
@@ -84,9 +85,10 @@
                         <td>{{ $reject['to_time'] }}</td>
                         <td>{{ $reject['good'] }}</td>
                         <td>{{ $reject['reject'] }}</td>
+                        <td>{{ $reject['reject_reason'] }}</td>
                         <td>{{ $reject['operator_name'] }}</td>
                         <td>{{ $reject['status'] }}</td>
-                        <td>{{ $reject['reject_reason'] }}</td>
+                       
                     </tr>
                 @empty
                     <tr>
