@@ -1779,9 +1779,138 @@ class ManufacturingController extends Controller
         }
     }
 
+    // /close_production_order
+    public function close_production_order(Request $request){
+        DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            } // *PROM-47219
+
+            $now = Carbon::now();
+
+            // check for task in progress
+            $task_in_progress = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+                ->where('production_order', $request->production_order)
+                ->where('time_logs.status', 'In Progress')->count();
+
+            if ($task_in_progress > 0) {
+                return response()->json(['success' => 0, 'message' => 'Cannot close production order with on-going task by operator. ' . $request->production_order]);
+            }
+
+            DB::connection('mysql')->table('tabWork Order')
+                ->where('name', $request->production_order)->where('docstatus', 1)->where('status', '!=', 'Completed')
+                ->update([
+                    'status' => 'Stopped',
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->email
+                ]);
+
+            DB::connection('mysql_mes')->table('production_order')
+                ->where('production_order', $request->production_order)
+                ->update([
+                    'status' => 'Closed',
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'last_modified_by' => Auth::user()->email,
+                ]);
+
+            DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Production Order Closed',
+                'message' => 'Production Order '.$request->production_order.' has been closed by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                'reference' => $request->production_order,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
+
+            DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Production Order <b>' . $request->production_order . '</b> has been closed.']);
+        } catch (Exception $e) {
+            DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'There was a problem creating transaction.']);
+        }
+    }
+
+    // re-open production order
+    public function reopen_production_order(Request $request){
+        DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if(!Auth::user()) {
+                return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+            } // *PROM-47219
+
+            $now = Carbon::now();
+
+            $production_order = DB::connection('mysql_mes')->table('production_order')->where('status', 'Closed')->where('production_order', $request->production_order)->first();
+            $work_order_details = DB::connection('mysql')->table('tabWork Order')->where('status', 'Stopped')->where('name', $request->production_order)->first();
+            if(!$production_order || !$work_order_details){
+                return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
+            }
+
+            $in_progress_job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->where('status', '!=', 'Pending')->get();
+
+            $mes_status = $erp_status = 'Not Started';
+            // EPR Status
+            if($work_order_details->material_transferred_for_manufacturing > 0 || $work_order_details->produced_qty > 0){
+                $erp_status = 'In Process';
+            }
+
+            // MES Status
+            if($production_order->produced_qty > 0 && $production_order->produced_qty < $production_order->qty_to_manufacture || count($in_progress_job_ticket) > 0){
+                $mes_status = 'In Progress';
+            }
+
+            if($production_order->feedback_qty == 0 && $production_order->produced_qty == $production_order->qty_to_manufacture){
+                $mes_status = 'Ready for Feedback';
+            }
+
+            if($production_order->feedback_qty > 0 && $production_order->feedback_qty < $production_order->qty_to_manufacture){
+                $mes_status = 'Partially Feedbacked';
+            }
+
+            DB::connection('mysql')->table('tabWork Order')
+                ->where('name', $request->production_order)
+                ->where('docstatus', 1)->where('status', '!=', 'Completed')
+                ->update([
+                    'status' => $erp_status,
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->email
+                ]);
+
+            DB::connection('mysql_mes')->table('production_order')
+                ->where('production_order', $request->production_order)
+                ->update([
+                    'status' => $mes_status,
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'last_modified_by' => Auth::user()->email,
+                ]);
+
+            DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Production Order Re-opened',
+                'message' => 'Production Order '.$request->production_order.' has been re-opened by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                'reference' => $request->production_order,
+                'created_at' => $now->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
+
+            DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Production Order <b>' . $request->production_order . '</b> has been re-opened.']);
+        } catch (Exception $e) {
+            DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'There was a problem creating transaction.']);
+        }
+    }
+
     // /cancel_production_order
     public function cancel_production_order(Request $request){
         DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
         try {
             if(!Auth::user()) {
                 return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
@@ -1817,12 +1946,12 @@ class ManufacturingController extends Controller
                 ->where('time_logs.status', 'In Progress')->count();
 
             if ($task_in_progress > 0) {
-                return response()->json(['success' => 0, 'message' => 'Cannot cancel production order with on-going task by operator.' . $request->production_order]);
+                return response()->json(['success' => 0, 'message' => 'Cannot cancel production order with on-going task by operator. ' . $request->production_order]);
             }
             // get sum total of feedback qty in production order
             $feedbacked_qty = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('feedback_qty');
             if($feedbacked_qty > 0){
-                return response()->json(['success' => 0, 'message' => 'Cannot cancel' . $request->production_order . '. Production Order has been partially feedbacked.']);
+                return response()->json(['success' => 0, 'message' => 'Cannot cancel ' . $request->production_order . '. Production Order has been partially feedbacked.']);
             }
             // get pending material transfer for manufacture stock entries of production order
             $pending_withdrawal_slips = DB::connection('mysql')->table('tabStock Entry')
@@ -1969,21 +2098,35 @@ class ManufacturingController extends Controller
             DB::connection('mysql')->table('tabWork Order')
                 ->where('name', $request->production_order)
                 ->where('docstatus', 1)->where('status', '!=', 'Completed')
-                ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email, 'material_transferred_for_manufacturing' => 0]);
+                ->update([
+                    'docstatus' => 2,
+                    'status' => 'Cancelled',
+                    'modified' => $now->toDateTimeString(),
+                    'modified_by' => Auth::user()->email,
+                    'material_transferred_for_manufacturing' => 0
+                ]);
 
             DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $request->production_order)
-                ->update(['status' => 'Cancelled', 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => Auth::user()->email, 'remarks' => $request->reason_for_cancellation]);
+                ->update([
+                    'status' => 'Cancelled',
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'last_modified_by' => Auth::user()->email,
+                    'remarks' => $request->reason_for_cancellation
+                ]);
 
             DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
 
             return response()->json(['success' => 1, 'message' => 'Production Order <b>' . $request->production_order . '</b> and its pending withdrawal request has been cancelled.']);
         } catch (Exception $e) {
             DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
             return response()->json(['success' => 0, 'message' => 'There was a problem creating transaction.']);
         }
     }
 
+    // /get_production_order_items/{production_order}
     public function get_production_order_items($production_order){
         $details = DB::connection('mysql_mes')->table('production_order')
             ->leftJoin('delivery_date', function($join)
@@ -1994,7 +2137,7 @@ class ManufacturingController extends Controller
             ->where('production_order.production_order', $production_order)
             ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
             ->first();
-            
+
         if (!$details) {
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
         }

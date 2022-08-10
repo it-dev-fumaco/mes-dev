@@ -458,7 +458,68 @@
       </form>
     </div>
   </div>
+
+  <!-- Modal Close Production Order -->
+  <div class="modal fade" id="close-production-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <form action="/cancel_production_order?close_production_order=1" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal Title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" name="id">
+                <input type="hidden" name="production_order">
+                <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-12" id="items-for-return-table-for-close"></div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
   
+  <!-- Modal Reopen Production Order -->
+  <div class="modal fade" id="re-open-production-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <form action="/reopen_production_order" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal Title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" name="id">
+                <input type="hidden" name="production_order">
+                <p style="font-size: 14pt;" class="text-center m-0">Re-open Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-12" id="items-for-return-table-for-close"></div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="modal fade" id="item-tracking-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 95%;">
@@ -1298,6 +1359,7 @@
       type:"GET",
       success:function(data){
         $('#items-for-return-table').html(data);
+        $('#items-for-return-table-for-close').html(data);
       },
       error : function(data) {
         console.log(data.responseText);
@@ -1305,6 +1367,78 @@
     });
   }
 
+  // Close production Modal and Submit
+  $(document).on('click', '.close-production-btn', function(e){
+    e.preventDefault();
+    var production_order = $(this).data('production-order');
+
+    $('#close-production-modal input[name="production_order"]').val(production_order);
+    $('#close-production-modal .modal-title').text('Close Production Order');
+    $('#close-production-modal span').eq(1).text(production_order);
+    // get_items_for_return(production_order);
+    $('#close-production-modal').modal('show');
+  });
+
+  $('#close-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/close_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#close-production-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+  // Close production Modal and Submit
+
+  // Re-open production Modal and Submit
+  $(document).on('click', '.re-open-production-btn', function(e){
+    e.preventDefault();
+    var production_order = $(this).data('production-order');
+
+    $('#re-open-production-modal input[name="production_order"]').val(production_order);
+    $('#re-open-production-modal .modal-title').text('Re-open Production Order');
+    $('#re-open-production-modal span').eq(1).text(production_order);
+    $('#re-open-production-modal').modal('show');
+  });
+
+  $('#re-open-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/reopen_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#re-open-production-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+  // Re-open production Modal and Submit
+
+  // Cancellation Modal and Submit
   $(document).on('click', '.cancel-production-btn', function(e){
     e.preventDefault();
     var production_order = $(this).data('production-order');
@@ -1339,6 +1473,7 @@
       }
     });
   });
+  // Cancellation Modal and Submit
   
   function get_reason_for_cancellation(){
     $('#cancel-production-modal select[name="reason_for_cancellation"]').empty();

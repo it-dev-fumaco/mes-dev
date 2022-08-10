@@ -574,7 +574,7 @@ class MainController extends Controller
 
 		$success = 1;
 
-		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs'));
+		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
@@ -1591,7 +1591,7 @@ class MainController extends Controller
 
 	// /production_order_list/{status}
 	public function get_production_order_list(Request $request, $status){
-		$status = count(array_filter(explode(',', $status))) == 6 ? 'All' : $status;
+		$status = count(array_filter(explode(',', $status))) == 7 ? 'All' : $status;
 
 		$status_array = !in_array($status, ['All', 'Production Orders']) ? array_filter(explode(',', $status)) : [];
 		if(in_array('Awaiting Feedback', $status_array)){
@@ -1614,9 +1614,14 @@ class MainController extends Controller
 		$filtered_production_orders = [];
 		$statuses = [];
 		$inactive_production_orders = [];
-		// Not Started / Cancelled
-		if(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array)){
-			$inactive_status = [in_array('Not Started', $status_array) ? 'Not Started' : '', in_array('Cancelled', $status_array) ? 'Cancelled' : ''];
+		$inactive_statuses = ['Not Started', 'Cancelled', 'Closed'];
+		// Not Started / Cancelled / Closed
+		if(!empty(array_intersect($inactive_statuses, $status_array))){
+			$inactive_status = [
+				in_array('Not Started', $status_array) ? 'Not Started' : '',
+				in_array('Cancelled', $status_array) ? 'Cancelled' : '',
+				in_array('Closed', $status_array) ? 'Closed' : ''
+			];
 			$inactive_production_orders = DB::connection('mysql_mes')->table('production_order')
 				->where(function($q) use ($request) {
 					$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1641,7 +1646,7 @@ class MainController extends Controller
 				$statuses = array_merge($statuses, $inactive_status);
 			}
 		}
-		// Not Started / Cancelled
+		// Not Started / Cancelled / Closed
 
 		// In Progress
 		$in_progress_production_orders = [];
@@ -1792,7 +1797,7 @@ class MainController extends Controller
 			->when(count($status_array) > 0 and in_array('Completed', $status_array), function($q) use ($mes_completed_production_orders){
 				$q->union($mes_completed_production_orders);
 			})
-			->when(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array), function($q) use ($inactive_production_orders){
+			->when(!empty(array_intersect($inactive_statuses, $status_array)), function($q) use ($inactive_production_orders){
 				$q->union($inactive_production_orders);
 			})
 			->when($request->owner, function ($q) use ($request){
@@ -1871,7 +1876,7 @@ class MainController extends Controller
 				}
 			}
 
-			if($row->status == 'Cancelled'){
+			if($row->status == 'Cancelled' || $row->status == 'Closed'){
 				$prod_status = $row->status;
 			}
 
@@ -2258,7 +2263,7 @@ class MainController extends Controller
                 $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
-			->whereNotIn('production_order.status', ['Stopped', 'Cancelled'])->where('production_order.feedback_qty',0)
+			->whereNotIn('production_order.status', ['Stopped', 'Cancelled', 'Closed'])->where('production_order.feedback_qty',0)
 			->where('production_order.is_scheduled', 0)->where("production_order.operation_id", $operation_id)
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 			->orderBy('production_order.sales_order', 'desc')->orderBy('production_order.material_request', 'desc')->get();
@@ -2615,7 +2620,7 @@ class MainController extends Controller
                     $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
                     $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
                 })
-    		->whereNotIn('production_order.status', ['Cancelled'])->where('production_order.is_scheduled', 1)
+    		->whereNotIn('production_order.status', ['Cancelled', 'Closed'])->where('production_order.is_scheduled', 1)
 			->whereDate('production_order.planned_start_date', $schedule_date)
 			->where("production_order.operation_id", $operation_id)
 			->whereRaw('production_order.qty_to_manufacture > production_order.feedback_qty')
@@ -3354,8 +3359,8 @@ class MainController extends Controller
     		return response()->json(['success' => 0, 'message' => 'Production Order ' . $production_order . ' not found.']);
     	}
 
-		if ($production_order_details->status == 'Cancelled') {
-    		return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>CANCELLED</b>.']);
+		if (in_array($production_order_details->status, ['Cancelled', 'Closed'])) {
+    		return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>'.strtoupper($production_order_details->status).'</b>.']);
     	}
 
     	$check_prod_workstation_exist = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
@@ -5151,7 +5156,8 @@ class MainController extends Controller
 
 				$produced_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
 
-				$work_order_status = $remarks_override == 'Override' ? 'In Progress' : $production_order_details->status;
+				// $work_order_status = $remarks_override == 'Override' ? 'In Progress' : $production_order_details->status;
+				$work_order_status = $remarks_override == 'Override' ? 'In Process' : $production_order_details->status;
 				$work_order_status = ($produced_qty == $production_order_details->qty) ? 'Completed' : $work_order_status;
 			
 				$production_data = [
