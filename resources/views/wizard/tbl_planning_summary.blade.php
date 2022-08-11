@@ -35,7 +35,7 @@
 			</td>
 			@if ($has_unplanned > 0)
 			<td class="text-center">
-				<span class="d-block font-weight-bold" style="font-size: 11pt;">{{ number_format($prod['unplanned_qty']) }}</span>
+				<span class="d-block font-weight-bold" style="font-size: 11pt;">{{ $prod['unplanned_qty'] > 0 ? number_format($prod['unplanned_qty']) : 0 }}</span>
 				<span class="d-block">{{ $prod['stock_uom'] }}</span>
 			</td>
 			@endif
