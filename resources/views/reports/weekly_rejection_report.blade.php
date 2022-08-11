@@ -70,38 +70,42 @@
                 </div>
             </form>
             <table class="table table-bordered">
-                <tr>
-                    <th class="text-center">Production Order</th>
-                    <th class="text-center">Reference Order</th>
-                    <th class="text-center">Customer</th>
-                    <th class="text-center">Workstation</th>
-                    <th class="text-center">Start</th>
-                    <th class="text-center">End</th>
-                    <th class="text-center">Good</th>
-                    <th class="text-center">Reject</th>
-                    <th class="text-center">Reason</th>
-                    <th class="text-center">Operator</th>
-                    <th class="text-center">Status</th>
-                </tr>
-                @forelse($reject_arr as $reject)
+                <thead class="text-white bg-secondary reject-font-size">
                     <tr>
-                        <td class="reject-font-size">{{ $reject['production_order'] }}</td>
-                        <td class="reject-font-size">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
-                        <td class="reject-font-size">{{ $reject['customer'] }}</td>
-                        <td class="reject-font-size">{{ $reject['workstation'] }}</td>
-                        <td class="reject-font-size">{{ $reject['from_time'] }}</td>
-                        <td class="reject-font-size">{{ $reject['to_time'] }}</td>
-                        <td class="reject-font-size">{{ $reject['good'] }}</td>
-                        <td class="reject-font-size">{{ $reject['reject'] }}</td>
-                        <td class="reject-font-size">{{ $reject['reject_reason'] }}</td>
-                        <td class="reject-font-size">{{ $reject['operator_name'] }}</td>
-                        <td class="reject-font-size">{{ $reject['status'] }}</td>
+                        <th class="text-center">Production Order</th>
+                        <th class="text-center">Reference Order</th>
+                        <th class="text-center">Customer</th>
+                        <th class="text-center">Workstation</th>
+                        <th class="text-center">Start</th>
+                        <th class="text-center">End</th>
+                        <th class="text-center">Good</th>
+                        <th class="text-center">Reject</th>
+                        <th class="text-center">Reason</th>
+                        <th class="text-center">Operator</th>
+                        <th class="text-center">Status</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="12" class="text-center">No result(s) found.</td>
-                    </tr>
-                @endforelse
+                </thead>
+                <tbody>
+                    @forelse($reject_arr as $reject)
+                        <tr>
+                            <td class="reject-font-size text-center">{{ $reject['production_order'] }}</td>
+                            <td class="reject-font-size text-center">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
+                            <td class="reject-font-size">{{ $reject['customer'] }}</td>
+                            <td class="reject-font-size text-center">{{ $reject['workstation'] }}</td>
+                            <td class="reject-font-size">{{ $reject['from_time'] }}</td>
+                            <td class="reject-font-size">{{ $reject['to_time'] }}</td>
+                            <td class="reject-font-size text-center">{{ $reject['good'] }}</td>
+                            <td class="reject-font-size text-center">{{ $reject['reject'] }}</td>
+                            <td class="reject-font-size">{{ $reject['reject_reason'] }}</td>
+                            <td class="reject-font-size text-center">{{ $reject['operator_name'] }}</td>
+                            <td class="reject-font-size text-center">{{ $reject['status'] }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="12" class="text-center">No result(s) found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
             <div class="float-right mt-4">
                 {!! $rejection_logs->appends(request()->query())->links('pagination::bootstrap-4') !!}
@@ -111,7 +115,7 @@
 </div>
 <style>
     .reject-font-size{
-        font-size: 10pt;
+        font-size: 9pt;
     }
 </style>
 @endsection
