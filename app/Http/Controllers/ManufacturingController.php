@@ -200,6 +200,7 @@ class ManufacturingController extends Controller
         }
     }
 
+    // /get_production_req_items
     public function get_production_req_items(Request $request){
         try {
             if(!Auth::user()) {
@@ -305,6 +306,7 @@ class ManufacturingController extends Controller
         }
     }
 
+    // /get_parts
     public function get_parts(Request $request){
         try {
             if(!Auth::user()) {
@@ -4665,20 +4667,63 @@ class ManufacturingController extends Controller
             return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
         }
 
-        $production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('name', $request->production_orders)->where('docstatus', 1)->where('company', 'FUMACO Inc.')->orderBy('name', 'asc')->get();
+        $production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $request->production_orders)->whereNotIn('status', ['Cancelled', 'Closed'])->orderBy('production_order', 'asc')->get();
+
+        $parent_item_code = [];
+        $sub_parent_bom_array = [];
+        foreach($production_orders as $q){
+            if($q->parent_item_code == $q->sub_parent_item_code){
+                $parent_item_code[] = $q->parent_item_code;
+                $sub_parent_bom_array[$q->item_code] = [$q->bom_no];
+            }
+        }
+
+        // get bom of parent item codes
+        $parent_bom = DB::connection('mysql')->table('tabBOM')->whereIn('item', $parent_item_code)->where('is_default', 1)->where('is_active', 1)->where('docstatus', 1)->select('item', 'name', 'quantity')->get();
+        $parent_bom = collect($parent_bom)->groupBy('item');
+
+        // get bom of sub parent item codes
+        $bom_array = collect($production_orders)->pluck('bom_no');
+        $bom_conversion = DB::connection('mysql')->table('tabBOM Item')->whereIn('bom_no', $bom_array)->whereIn('parent', $sub_parent_bom_array)->get();
+        $bom_qty_conversion = [];
+        foreach($bom_conversion as $bom){
+            $bom_qty_conversion[$bom->parent][$bom->bom_no] = ['qty' => $bom->qty]; 
+        }
+
+        $sales_order = collect($production_orders)->pluck('sales_order')->unique();
+        $sales_order_items = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $sales_order)->get();
+        $sales_order_item = collect($sales_order_items)->groupBy('item_code');
+
+        $planned_production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('sales_order', $sales_order)->whereNotIn('status', ['Cancelled', 'Closed'])->selectRaw('item_code, SUM(qty_to_manufacture) as qty')->groupBy('item_code')->get();
+        $planned_production_orders_qty = collect($planned_production_orders)->groupBy('item_code');
 
         $production_order_list = [];
         foreach ($production_orders as $prod) {
+            $sub_parent_bom = isset($sub_parent_bom_array[$prod->sub_parent_item_code]) ? $sub_parent_bom_array[$prod->sub_parent_item_code][0] : null;
+
+            if($prod->parent_item_code == $prod->sub_parent_item_code){ // if sub parent
+                $conversion_qty = isset($parent_bom[$prod->parent_item_code]) ? $parent_bom[$prod->parent_item_code][0]->quantity * 1 : 0;
+            }else{
+                $conversion_qty = isset($bom_qty_conversion[$sub_parent_bom][$prod->bom_no]) ? $bom_qty_conversion[$sub_parent_bom][$prod->bom_no]['qty'] * 1 : 0;
+            }
+
+            $so_order_qty = isset($sales_order_item[$prod->parent_item_code]) ? $sales_order_item[$prod->parent_item_code][0]->qty * 1 : 0;
+
+            $total_planned = isset($planned_production_orders_qty[$prod->item_code]) ? $planned_production_orders_qty[$prod->item_code][0]->qty : 0;
+
             $production_order_list[] = [
-                'production_order' => $prod->name,
+                'production_order' => $prod->production_order,
                 'parent_code' => $prod->parent_item_code,
-                'item_code' => $prod->production_item,
+                'sub_parent_code' => $prod->sub_parent_item_code,
+                'sub_parent_bom' => $sub_parent_bom,
+                'item_code' => $prod->item_code,
                 'description' => $prod->description,
                 'bom_no' => $prod->bom_no,
-                'qty' => $prod->qty,
+                'qty' => $prod->qty_to_manufacture,
+                'unplanned_qty' => ($so_order_qty * $conversion_qty) - $total_planned,
                 'stock_uom' => $prod->stock_uom,
                 'planned_start_date' => $prod->planned_start_date,
-                'is_scheduled' => $prod->scheduled
+                'is_scheduled' => $prod->is_scheduled
             ];
         }
 
