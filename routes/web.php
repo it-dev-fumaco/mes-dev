@@ -168,6 +168,7 @@ route::get('/get_machine_list','SecondaryController@get_machine_list_data');
 route::get('/goto_machine_profile/{id}','SecondaryController@get_machine_profile');
 route::get('/workstation_list','SecondaryController@get_workstation_list');
 route::get('/get_tbl_machine_profile','SecondaryController@machine_profile_tbl');
+route::get('/maintenance_machine_list','SecondaryController@maintenanceMachineList');
 route::get('/workstation_profile/{id}','SecondaryController@workstation_profile');
 route::post('/save_workstation_machine','SecondaryController@insert_machineToworkstation');
 route::post('/delete_workstation_machine','SecondaryController@delete_machineToworkstation');
@@ -253,6 +254,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/create_stock_entry', 'ManufacturingController@create_stock_entry');
 
 	Route::post('/cancel_production_order', 'ManufacturingController@cancel_production_order');
+	Route::post('/close_production_order', 'ManufacturingController@close_production_order');
+	Route::post('/reopen_production_order', 'ManufacturingController@reopen_production_order');
 	Route::get('/get_reason_for_cancellation', 'ManufacturingController@get_reason_for_cancellation');
 	
 
@@ -795,6 +798,8 @@ Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+
+Route::get('/weekly_rejection_report/{operation_id}', 'LinkReportController@weekly_rejection_report');
 
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');

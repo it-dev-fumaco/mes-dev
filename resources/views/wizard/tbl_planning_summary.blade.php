@@ -1,5 +1,6 @@
 @php
 	$has_scheduled = collect($production_order_list)->sum('is_scheduled');
+	$has_unplanned = collect($production_order_list)->pluck('unplanned_qty')->max();
 @endphp
 
 <table class="table table-hover table-bordered" style="font-size: 8pt;" id="summary-tbl">
@@ -15,6 +16,9 @@
 		<th class="text-center"><b>Production Order</b></th>
 		<th class="text-center"><b>Item Code</b></th>
 		<th class="text-center"><b>Planned Qty</b></th>
+		@if ($has_unplanned > 0)
+		<th class="text-center"><b>Unplanned Qty</b></th>
+		@endif
 		@if($has_scheduled > 0)
 		<th class="text-center"><b>Planned Start Date</b></th>
 		@endif
@@ -29,6 +33,12 @@
 				<span class="d-block font-weight-bold" style="font-size: 11pt;">{{ number_format($prod['qty']) }}</span>
 				<span class="d-block">{{ $prod['stock_uom'] }}</span>
 			</td>
+			@if ($has_unplanned > 0)
+			<td class="text-center">
+				<span class="d-block font-weight-bold" style="font-size: 11pt;">{{ number_format($prod['unplanned_qty']) }}</span>
+				<span class="d-block">{{ $prod['stock_uom'] }}</span>
+			</td>
+			@endif
 			@if($has_scheduled > 0)
 			<td class="text-center font-weight-bold">{{ ($prod['is_scheduled'] == 1) ? date('Y-m-d', strtotime($prod['planned_start_date'])) : 'Unscheduled' }}</td>
 			@endif

@@ -18,6 +18,9 @@
   <link href="{{ asset('/css/now-ui-dashboard.css?v=1.3.0') }}" rel="stylesheet" />
   {{--  <!-- CSS Just for demo purpose, don't include it in your project -->  --}}
   <link href="{{ asset('/css/demo.css') }}" rel="stylesheet" />
+  {{-- Daterangepicker --}}
+  <link href="{{ asset('/css/daterangepicker.css') }}" rel="stylesheet" />
+  {{-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /> --}}
 </head>
 <style>
   @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
@@ -128,6 +131,12 @@
             </li>
             @endif
           @endisset
+          <li class="{{ $activePage == 'maintenance_machine_list' ? 'active' : null }}">
+            <a href="/maintenance_machine_list">
+              <i class="now-ui-icons design_bullet-list-67"></i>
+              <p>Machine List</p>
+            </a>
+          </li>
           <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
             <a href="/report_index">
               <i class="now-ui-icons files_single-copy-04"></i>
@@ -449,7 +458,68 @@
       </form>
     </div>
   </div>
+
+  <!-- Modal Close Production Order -->
+  <div class="modal fade" id="close-production-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <form action="/cancel_production_order?close_production_order=1" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal Title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" name="id">
+                <input type="hidden" name="production_order">
+                <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-12" id="items-for-return-table-for-close"></div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
   
+  <!-- Modal Reopen Production Order -->
+  <div class="modal fade" id="re-open-production-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <form action="/reopen_production_order" method="POST">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal Title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" name="id">
+                <input type="hidden" name="production_order">
+                <p style="font-size: 14pt;" class="text-center m-0">Re-open Production Order <b><span></span></b>?</p>
+              </div>
+              <div class="col-md-12" id="items-for-return-table-for-close"></div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 5px 10px;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="modal fade" id="item-tracking-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 95%;">
@@ -960,6 +1030,9 @@
   <script src="{{ asset('/js/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
   @yield('script')
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
+  {{-- Daterangepicker --}}
+  <script src="{{ asset('/js/moment.min.js') }}"></script>
+  <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
 <script>
   $(document).ready(function(){
     $(document).on('click', '.edit-time-log-btn', function(e) {
@@ -1286,6 +1359,7 @@
       type:"GET",
       success:function(data){
         $('#items-for-return-table').html(data);
+        $('#items-for-return-table-for-close').html(data);
       },
       error : function(data) {
         console.log(data.responseText);
@@ -1293,6 +1367,78 @@
     });
   }
 
+  // Close production Modal and Submit
+  $(document).on('click', '.close-production-btn', function(e){
+    e.preventDefault();
+    var production_order = $(this).data('production-order');
+
+    $('#close-production-modal input[name="production_order"]').val(production_order);
+    $('#close-production-modal .modal-title').text('Close Production Order');
+    $('#close-production-modal span').eq(1).text(production_order);
+    // get_items_for_return(production_order);
+    $('#close-production-modal').modal('show');
+  });
+
+  $('#close-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/close_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#close-production-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+  // Close production Modal and Submit
+
+  // Re-open production Modal and Submit
+  $(document).on('click', '.re-open-production-btn', function(e){
+    e.preventDefault();
+    var production_order = $(this).data('production-order');
+
+    $('#re-open-production-modal input[name="production_order"]').val(production_order);
+    $('#re-open-production-modal .modal-title').text('Re-open Production Order');
+    $('#re-open-production-modal span').eq(1).text(production_order);
+    $('#re-open-production-modal').modal('show');
+  });
+
+  $('#re-open-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/reopen_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#re-open-production-modal').modal('hide');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    });
+  });
+  // Re-open production Modal and Submit
+
+  // Cancellation Modal and Submit
   $(document).on('click', '.cancel-production-btn', function(e){
     e.preventDefault();
     var production_order = $(this).data('production-order');
@@ -1327,6 +1473,7 @@
       }
     });
   });
+  // Cancellation Modal and Submit
   
   function get_reason_for_cancellation(){
     $('#cancel-production-modal select[name="reason_for_cancellation"]').empty();
@@ -1567,6 +1714,7 @@
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
       $('#change-required-item-modal input[name="requested_quantity"]').val(requested_qty);
+      $('#change-required-item-modal input[name="old_requested_quantity"]').val(requested_qty);
 
       $('#change-required-item-modal input[name="required_qty"]').val(required_qty);
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);

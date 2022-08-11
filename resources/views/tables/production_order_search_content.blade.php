@@ -28,22 +28,26 @@
 					<div class="col-md-12">
 						<div class="row">
 							<div class="col-md-12">
-								@php	
-								if($item_details['production_order_status'] == "Material For Issue"){
-									$badge_color ="danger";
-								}else if($item_details['production_order_status'] == "Material Issued"){
-									$badge_color ="primary";
-								}else if($item_details['production_order_status'] == "Cancelled"){
-									$badge_color ="danger";
-								}else if($item_details['production_order_status'] == "Ready For Feedback"){
-									$badge_color ="info";
-								}else if($item_details['production_order_status'] == "Partial Feedbacked"){
-									$badge_color ="success";
-								}else if($item_details['production_order_status'] == "Feedbacked"){
-									$badge_color ="success";
-								}else{
-									$badge_color ="warning";
-								}
+								@php
+									switch ($item_details['production_order_status']) {
+										case "Cancelled":
+										case "Material For Issue":
+											$badge_color ="danger";
+											break;
+										case "Material Issued":
+											$badge_color ="primary";
+											break;
+										case "Ready For Feedback":
+											$badge_color ="info";
+											break;
+										case "Partially Feedbacked":
+										case "Feedbacked":
+											$badge_color ="success";
+											break;
+										default:
+											$badge_color ="warning";
+											break;
+									}
 								@endphp
 								<span class="badge badge-{{$badge_color}}  pull-right" style="margin-top:-50px;text-align: center;font-size:13px;color:white; font-size:18px;">{{ $item_details['production_order_status'] }}</span>
 								<div class="container">
@@ -223,8 +227,13 @@
 													<span class="d-none">{{ $to_time }}</span>
 													<span class="d-none">{{ $operator_name }}</span>
 													<span class="d-none">{{ $c['good'] }}</span>
-													<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
-													<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+													@if (in_array($details->status, ['Cancelled', 'Closed']))
+														<img src="{{ asset('/img/edit-new-icon.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
+														<img src="{{ asset('/img/reset.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
+													@else
+														<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+														<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+													@endif
 													@else
 													<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
 													@endif
@@ -311,7 +320,7 @@
 														$stat_badge ="danger";
 													}else if($rows['material_status'] == "Ready For Feedback"){
 														$stat_badge ="info";
-													}else if($rows['material_status'] == "Partial Feedbacked"){
+													}else if($rows['material_status'] == "Partially Feedbacked"){
 														$stat_badge ="success";
 													}else if($rows['material_status'] == "Feedbacked"){
 														$stat_badge ="success";
@@ -343,6 +352,20 @@
 			@endforeach
       	</div>
 	</div>
+	@if (count($activity_logs) > 0)
+		<div class="col-12 p-0">
+			<p>Activity Logs</p>
+			<ul>
+				@foreach ($activity_logs as $log)
+					<li>
+						<span style="font-size: 9pt;" class="text-muted">{{ Carbon\Carbon::parse($log->created_at)->format('M d, Y h:i:s a') }}</span><br>
+						<span style="font-size: 9pt;"><b>{{ $log->action }}</b></span><br>
+						<span style="font-size: 9pt;">{{ $log->message ? explode(' at ', $log->message)[0] : null }}</span><br><br>
+					</li>
+				@endforeach
+			</ul>
+		</div>
+	@endif
 </div>
 <style type="text/css">
 	.details-panes {

@@ -38,6 +38,7 @@ class MainController extends Controller
 		return view('login');
 	}
 
+	// /operator_dashboard/{machine}/{workstation}/{production_order}
 	public function operatorDashboard($machine, $workstation, $job_ticket_id){
 		if(!Auth::user()){
 			return redirect('/operator/' . $workstation);
@@ -364,6 +365,7 @@ class MainController extends Controller
 		return $data;
 	}
 
+	// /get_jt_details/{jtno}
 	public function getTimesheetDetails($jtno){
 		$tab=[];
 		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $jtno)
@@ -567,9 +569,12 @@ class MainController extends Controller
 			}
 		}
 
+		$job_tickets = collect($process_arr)->pluck('job_ticket_id');
+		$activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('action', 'Reset Time Log')->whereIn('reference', $job_tickets)->orderBy('created_at', 'desc')->get();
+
 		$success = 1;
 
-		return view('tables.production_order_search_content', compact('process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no'));
+		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
@@ -654,7 +659,10 @@ class MainController extends Controller
 		return response()->json($data);
 	}
 
+	// /end_task
 	public function endTask(Request $request){
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
         try {
 			if(!Auth::user()) {
 				return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
@@ -741,9 +749,23 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert completed processes log in activity logs
 
-			$this->update_job_ticket($current_task->job_ticket_id);
-            return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+			$update_job_ticket = $this->update_job_ticket($current_task->job_ticket_id);
+
+			if($update_job_ticket == 1){
+				DB::connection('mysql')->commit();
+				DB::connection('mysql_mes')->commit();
+
+				return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+			}else{
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
         } catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
             return response()->json(["error" => $e->getMessage()]);
         }
     }
@@ -1342,8 +1364,14 @@ class MainController extends Controller
 		return response()->json($data);
 	}
 
+	// /item_feedback
 	public function itemFeedback(){
 		$permissions = $this->get_user_permitted_operation();
+
+		$owners = $this->get_production_order_filters()['owners'];
+
+		$target_warehouses = $this->get_production_order_filters()['target_warehouses'];
+		$target_warehouses = collect($target_warehouses)->pluck('fg_warehouse');
 
     	// manual create production form
     	$item_list = [];
@@ -1358,7 +1386,7 @@ class MainController extends Controller
 
         $mreq_list = [];
 
-		return view('reports.item_feedback', compact('item_list', 'warehouse_list', 'so_list', 'mreq_list', 'parent_code_list', 'sub_parent_code_list', 'permissions'));
+		return view('reports.item_feedback', compact('item_list', 'owners', 'target_warehouses', 'warehouse_list', 'so_list', 'mreq_list', 'parent_code_list', 'sub_parent_code_list', 'permissions'));
 	}
 
 	public function get_parent_code($reference_type, $reference_no, Request $request){
@@ -1540,8 +1568,30 @@ class MainController extends Controller
 		return response()->json($details);
 	}
 
+	private function get_production_order_filters(){
+		$owners = DB::connection('mysql_mes')->table('production_order')->select('created_by')->distinct('created_by')->orderBy('created_by', 'asc')->get();
+		$owners = collect($owners)->map(function ($q){
+			$owner = explode('@', $q->created_by);
+			$owner = ucwords(str_replace('.', ' ', $owner[0]));
+
+			if($owner){
+				return ['email' => $q->created_by, 'name' => $owner];
+			}
+		})->unique()->filter();
+
+		$target_warehouses = DB::connection('mysql_mes')->table('production_order')->select('fg_warehouse')->distinct('fg_warehouse')->orderBy('fg_warehouse', 'asc')->get();
+
+		$filters = [
+			'owners' => $owners,
+			'target_warehouses' => $target_warehouses
+		];
+
+		return $filters;
+	}
+
+	// /production_order_list/{status}
 	public function get_production_order_list(Request $request, $status){
-		$status = count(array_filter(explode(',', $status))) == 6 ? 'All' : $status;
+		$status = count(array_filter(explode(',', $status))) == 7 ? 'All' : $status;
 
 		$status_array = !in_array($status, ['All', 'Production Orders']) ? array_filter(explode(',', $status)) : [];
 		if(in_array('Awaiting Feedback', $status_array)){
@@ -1564,9 +1614,14 @@ class MainController extends Controller
 		$filtered_production_orders = [];
 		$statuses = [];
 		$inactive_production_orders = [];
-		// Not Started / Cancelled
-		if(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array)){
-			$inactive_status = [in_array('Not Started', $status_array) ? 'Not Started' : '', in_array('Cancelled', $status_array) ? 'Cancelled' : ''];
+		$inactive_statuses = ['Not Started', 'Cancelled', 'Closed'];
+		// Not Started / Cancelled / Closed
+		if(!empty(array_intersect($inactive_statuses, $status_array))){
+			$inactive_status = [
+				in_array('Not Started', $status_array) ? 'Not Started' : '',
+				in_array('Cancelled', $status_array) ? 'Cancelled' : '',
+				in_array('Closed', $status_array) ? 'Closed' : ''
+			];
 			$inactive_production_orders = DB::connection('mysql_mes')->table('production_order')
 				->where(function($q) use ($request) {
 					$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
@@ -1578,6 +1633,12 @@ class MainController extends Controller
 				})
 				->whereIn('status', array_filter($inactive_status))
 				->whereIn('operation_id', $user_permitted_operation_id)
+				->when($request->owner, function ($q) use ($request){
+					$q->where('created_by', $request->owner);
+				})
+				->when($request->target_warehouse, function ($q) use ($request){
+					$q->where('fg_warehouse', $request->target_warehouse);
+				})
 				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 				->orderBy('created_at', 'desc');
 
@@ -1585,7 +1646,7 @@ class MainController extends Controller
 				$statuses = array_merge($statuses, $inactive_status);
 			}
 		}
-		// Not Started / Cancelled
+		// Not Started / Cancelled / Closed
 
 		// In Progress
 		$in_progress_production_orders = [];
@@ -1661,12 +1722,16 @@ class MainController extends Controller
 			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($jt_production_orders));
 
 			if(!in_array($status, ['All', 'Production Orders'])){
-				$statuses = array_merge($statuses, ['In Progress', 'Completed']);
+				$statuses = array_merge($statuses, ['In Progress', 'Completed', 'Ready for Feedback', 'Partially Feedbacked']);
 			}
 		}
 		// Awaiting Feedback
 
 		// Completed
+		$filter_dates = $request->feedback_dates ? explode(' - ', $request->feedback_dates) : [];
+		$start_date = isset($filter_dates[0]) ? Carbon::parse($filter_dates[0])->startOfDay()->toDateTimeString() : Carbon::now()->startOfDay()->toDateTimeString();
+		$end_date = isset($filter_dates[1]) ? Carbon::parse($filter_dates[1])->endOfDay()->toDateTimeString() : Carbon::now()->endOfDay()->toDateTimeString();
+
 		$mes_completed_production_orders = [];
 		if(in_array('Completed', $status_array)){
 			$mes_completed_production_orders = DB::connection('mysql_mes')->table('production_order')
@@ -1678,14 +1743,24 @@ class MainController extends Controller
 						->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
 						->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
-				->where('status', 'Completed')
+				->whereIn('status', ['Completed', 'Feedbacked'])
 				->whereRaw('feedback_qty >= qty_to_manufacture')
 				->whereIn('operation_id', $user_permitted_operation_id)
+				->when($filter_dates, function ($q) use ($start_date, $end_date){
+					$q->whereBetween('last_modified_at', [$start_date, $end_date]);
+				})
+				->when($request->owner, function ($q) use ($request){
+					$q->where('created_by', $request->owner);
+				})
+				->when($request->target_warehouse, function ($q) use ($request){
+					$q->where('fg_warehouse', $request->target_warehouse);
+				})
 				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 				->orderBy('created_at', 'desc');
 
 			if(!in_array($status, ['All', 'Production Orders'])){
-				array_push($statuses, 'Completed');
+				// array_push($statuses, 'Completed');
+				$statuses = array_merge($statuses, ['Completed', 'Feedbacked']);
 			}
 		}
 		// Completed
@@ -1722,8 +1797,14 @@ class MainController extends Controller
 			->when(count($status_array) > 0 and in_array('Completed', $status_array), function($q) use ($mes_completed_production_orders){
 				$q->union($mes_completed_production_orders);
 			})
-			->when(in_array('Not Started', $status_array) or in_array('Cancelled', $status_array), function($q) use ($inactive_production_orders){
+			->when(!empty(array_intersect($inactive_statuses, $status_array)), function($q) use ($inactive_production_orders){
 				$q->union($inactive_production_orders);
+			})
+			->when($request->owner, function ($q) use ($request){
+				$q->where('created_by', $request->owner);
+			})
+			->when($request->target_warehouse, function ($q) use ($request){
+				$q->where('fg_warehouse', $request->target_warehouse);
 			})
 			->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 			->orderBy('created_at', 'desc')
@@ -1775,7 +1856,7 @@ class MainController extends Controller
 				}
 			}
 
-			if (in_array($row->status, ['Completed', 'In Progress'])) {
+			if (in_array($row->status, ['Completed', 'In Progress', 'Ready for Feedback', 'Partially Feedbacked', 'Feedbacked'])) {
 				if($prod_status != 'In Progress') {
 					if ($row->feedback_qty == 0 and $row->produced_qty == $row->qty_to_manufacture) {
 						$prod_status = 'For Feedback';
@@ -1795,7 +1876,7 @@ class MainController extends Controller
 				}
 			}
 
-			if($row->status == 'Cancelled'){
+			if($row->status == 'Cancelled' || $row->status == 'Closed'){
 				$prod_status = $row->status;
 			}
 
@@ -2137,6 +2218,7 @@ class MainController extends Controller
 		DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($values);
 	}
 
+	// /production_schedule/{id}
 	public function production_schedule_module($operation_id){
 		if (!Auth::check()) {
 			return redirect('/login');
@@ -2182,10 +2264,12 @@ class MainController extends Controller
                 $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
-			->whereNotIn('production_order.status', ['Stopped', 'Cancelled'])->where('production_order.feedback_qty',0)
+			->whereNotIn('production_order.status', ['Stopped', 'Cancelled', 'Closed'])->where('production_order.feedback_qty',0)
 			->where('production_order.is_scheduled', 0)->where("production_order.operation_id", $operation_id)
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 			->orderBy('production_order.sales_order', 'desc')->orderBy('production_order.material_request', 'desc')->get();
+
+		$unscheduled_prod = collect($unscheduled_prod)->unique('production_order');
 
     	$unscheduled = [];
     	foreach ($unscheduled_prod as $row) {
@@ -2539,7 +2623,7 @@ class MainController extends Controller
                     $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
                     $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
                 })
-    		->whereNotIn('production_order.status', ['Cancelled'])->where('production_order.is_scheduled', 1)
+    		->whereNotIn('production_order.status', ['Cancelled', 'Closed'])->where('production_order.is_scheduled', 1)
 			->whereDate('production_order.planned_start_date', $schedule_date)
 			->where("production_order.operation_id", $operation_id)
 			->whereRaw('production_order.qty_to_manufacture > production_order.feedback_qty')
@@ -3105,6 +3189,7 @@ class MainController extends Controller
     	return view('tables.production_actions_content', compact('details'));
     }
 
+	// /restart_task
     public function restart_task(Request $request){
 		// insert logs
 		$workstation = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -3277,8 +3362,8 @@ class MainController extends Controller
     		return response()->json(['success' => 0, 'message' => 'Production Order ' . $production_order . ' not found.']);
     	}
 
-		if ($production_order_details->status == 'Cancelled') {
-    		return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>CANCELLED</b>.']);
+		if (in_array($production_order_details->status, ['Cancelled', 'Closed'])) {
+    		return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>'.strtoupper($production_order_details->status).'</b>.']);
     	}
 
     	$check_prod_workstation_exist = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
@@ -3574,6 +3659,7 @@ class MainController extends Controller
         }
 	}
 
+	// /get_current_operator_task_details/{operator_id}
 	public function get_current_operator_task_details(Request $request, $operator_id){
 		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $request->job_ticket_id)->first();
@@ -4382,6 +4468,7 @@ class MainController extends Controller
 			->get();
 	}
 
+	// /get_tbl_notif_dashboard
 	public function get_tbl_notif_dashboard(){
 		$notifications = $this->getNotifications();
 		$notifications = collect($notifications)->where('type', '!=', 'Machine Breakdown');
@@ -4698,6 +4785,7 @@ class MainController extends Controller
     	return response()->json(['message' => 'User has been deleted.']);
     }
 
+	// /create_stock_entry/{production_order}
     public function create_stock_entry(Request $request, $production_order){
 		DB::connection('mysql')->beginTransaction();
 		try {
@@ -4828,9 +4916,7 @@ class MainController extends Controller
 						$qty = round($qty);
 					}
 
-					$consumed_qty = $row['consumed_qty'];
-
-					$remaining_transferred_qty = $row['transferred_qty'] - $consumed_qty;
+					$remaining_transferred_qty = $row['transferred_qty'] - $row['consumed_qty'];
 
 					if(number_format($remaining_transferred_qty, 5, '.', '') < number_format($qty, 5, '.', '')){
 						return response()->json(['success' => 0, 'message' => 'Insufficient transferred qty for ' . $row['item_code'] . ' in ' . $production_order_details->wip_warehouse]);
@@ -4844,12 +4930,9 @@ class MainController extends Controller
 						->where('warehouse', $production_order_details->wip_warehouse)->sum('actual_qty');
 						
 					$reserved_qty = 0;
-					if (array_key_exists($row['item_code'], $stock_reservation)) {
-						$reserved_qty = $stock_reservation[$row['item_code']][0]->total_reserved_qty;
-					}
-		
 					$consumed_qty = 0;
-					if (array_key_exists($row['item_code'], $stock_reservation)) {
+					if (array_key_exists($row['item_code'], $stock_reservation) || isset($stock_reservation[$row['item_code']])) {
+						$reserved_qty = $stock_reservation[$row['item_code']][0]->total_reserved_qty;
 						$consumed_qty = $stock_reservation[$row['item_code']][0]->total_consumed_qty;
 					}
 		
@@ -5076,7 +5159,8 @@ class MainController extends Controller
 
 				$produced_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
 
-				$work_order_status = $remarks_override == 'Override' ? 'In Progress' : $production_order_details->status;
+				// $work_order_status = $remarks_override == 'Override' ? 'In Progress' : $production_order_details->status;
+				$work_order_status = $remarks_override == 'Override' ? 'In Process' : $production_order_details->status;
 				$work_order_status = ($produced_qty == $production_order_details->qty) ? 'Completed' : $work_order_status;
 			
 				$production_data = [
@@ -5103,35 +5187,18 @@ class MainController extends Controller
 				DB::connection('mysql_mes')->beginTransaction();
 				
 				$manufactured_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
-				$status = ($manufactured_qty == $production_order_details->qty) ? 'Completed' : $mes_production_order_details->status;
-		
-				if($status == 'Completed'){
-					$production_data_mes = [
-						'last_modified_at' => $now->toDateTimeString(),
-						'last_modified_by' => Auth::user()->email,
-						'feedback_qty' => $manufactured_qty,
-						'status' => $status,
-						'remarks' => $remarks_override
-					];
 
-					if($remarks_override == 'Override') {
-						$production_data_mes['produced_qty'] = $manufactured_qty;
-					}
-				}else{
-					$production_data_mes = [
-						'last_modified_at' => $now->toDateTimeString(),
-						'last_modified_by' => Auth::user()->email,
-						'feedback_qty' => $manufactured_qty,
-						'remarks' => $remarks_override
-					];
-					
-					if($remarks_override == 'Override') {
-						$production_data_mes['produced_qty'] = $manufactured_qty;
-						$production_data_mes['status'] = 'In Progress';
-					}
-				}
-
+				$production_data_mes = [
+					'last_modified_at' => $now->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email,
+					'feedback_qty' => $manufactured_qty,
+					'status' => $manufactured_qty >= $production_order_details->qty ? 'Feedbacked' : 'Partially Feedbacked',
+					'remarks' => $remarks_override
+				];
+				
 				if($remarks_override == 'Override'){
+					$production_data_mes['produced_qty'] = $manufactured_qty;
+
 					$job_ticket_mes = [
 						'completed_qty' => $manufactured_qty,
 						'remarks' => $remarks_override,
@@ -5694,6 +5761,7 @@ class MainController extends Controller
 			->orderBy('process_name', 'asc')->get();
 	}
 
+	// /get_pending_material_transfer_for_manufacture/{production_order}
 	public function get_pending_material_transfer_for_manufacture($production_order, Request $request){
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')
             ->join('delivery_date', function ($join) {
@@ -7289,6 +7357,7 @@ class MainController extends Controller
 		return view('reports.job_ticket_vs_time_logs_completed_qty', compact('job_ticket_data', 'job_ticket_query', 'permissions'));
 	}
 	
+	// /reset_operator_time_log
 	public function reset_operator_time_log(Request $request) {
 		$job_ticket_id = $request->job_ticket_id;
 		$timelog_id = $request->timelog_id;
@@ -7333,6 +7402,16 @@ class MainController extends Controller
 			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->delete();
 
 			$this->update_job_ticket($job_ticket_id);
+
+			$activity_logs = [
+				'action' => 'Reset Time Log',
+				'message' => 'Reset time logs for job ticket '.$request->job_ticket_id.' of '.$job_ticket_details->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+				'reference' => $request->job_ticket_id,
+				'created_at' => Carbon::now()->toDateTimeString(),
+				'created_by' => Auth::user()->email
+			];
+	
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
 
 			DB::connection('mysql_mes')->commit();
 			DB::connection('mysql')->commit();

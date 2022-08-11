@@ -148,11 +148,18 @@ class AssemblyController extends Controller
         return [];
     }
 
+    // /assembly/get_parts
     public function get_parts(Request $request){
         try {
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
+
+            $existing_po_from_so = DB::connection('mysql_mes')->table('production_order')->whereIn('sales_order', $request->so)->whereIn('bom_no', $request->bom)->where('status', '!=', 'Cancelled')->selectRaw('sales_order as id, bom_no, sum(qty_to_manufacture) as qty')->groupBy('id', 'bom_no')->get();
+
+            $existing_po_from_mreq = DB::connection('mysql_mes')->table('production_order')->whereIn('material_request', $request->so)->whereIn('bom_no', $request->bom)->where('status', '!=', 'Cancelled')->selectRaw('material_request as id, bom_no, sum(qty_to_manufacture) as qty')->groupBy('id', 'bom_no')->get();
+
+            $existing_po = collect($existing_po_from_so)->merge($existing_po_from_mreq)->groupBy('id');
 
             $parts = [];
             foreach ($request->bom as $idx => $bom) {
@@ -213,6 +220,9 @@ class AssemblyController extends Controller
                             $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $existing_prod1->name)->first()->source_warehouse;
                         }
 
+                        $available_qty = ($parent_part['qty'] * $request->qty[$idx]) - (isset($existing_po[$reference_no]) ? $existing_po[$reference_no][0]->qty : 0);
+                        $available_qty = $available_qty > 0 ? $available_qty : 0;
+
                         $parts[] = [
                             'item_reference_id' => $item_reference_id,
                             'delivery_date' => $delivery_date,
@@ -225,6 +235,7 @@ class AssemblyController extends Controller
                             'bom' => $parent_default_bom->name,
                             'bom_reviewed' => $parent_default_bom->is_reviewed,
                             'planned_qty' => $parent_part['qty'] * $request->qty[$idx],
+                            'available_qty' => $available_qty,
                             'reference_no' => $reference_no,
                             'planned_start_date' => ($existing_prod1) ? $planned_start_date1 : null,
                             'production_order' => ($existing_prod1) ? $existing_prod1->name : null,
@@ -235,7 +246,7 @@ class AssemblyController extends Controller
                             'wip_warehouse' => ($existing_prod1) ? $existing_prod1->wip_warehouse : null,
                             'fg_warehouse' => ($existing_prod1) ? $existing_prod1->fg_warehouse : null,
                             'available_stock' => $available_stock_parent,
-                            'cycle_time' => $this->compute_item_cycle_time($parent_part['item_code'], $parent_part['qty'] * $request->qty[$idx]),
+                            'cycle_time' => $this->compute_item_cycle_time($parent_part['item_code'], $available_qty),
                             'operation_name' => $parent_part['operation_name']
                         ];
                         
@@ -266,6 +277,20 @@ class AssemblyController extends Controller
                                 $planned_start_date2 = Carbon::parse($existing_prod2->planned_start_date)->format('Y-m-d');
                                 $s_warehouse = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $existing_prod2->name)->first()->source_warehouse;
                             }
+
+                            $child_bom_no = $child_part['bom_no'];
+                            $child_existing_po_qty = DB::connection('mysql_mes')->table('production_order')
+                                ->when($reference_pref == 'SO', function ($query) use ($reference_no){
+                                    return $query->where('sales_order', $reference_no);
+                                })
+                                ->when($reference_pref == 'MREQ', function ($query) use ($reference_no){
+                                    return $query->where('material_request', $reference_no);
+                                })
+                                ->where('bom_no', $child_default_bom->name)->where('status', '!=', 'Cancelled')->where('item_code', $child_part['item_code'])
+                                ->sum('qty_to_manufacture');
+                            
+                            $child_available_qty = ($child_part['qty'] * $request->qty[$idx]) - $child_existing_po_qty;
+                            $child_available_qty = $child_available_qty > 0 ? $child_available_qty : 0;
                     
                             $parts[] = [
                                 'item_reference_id' => $item_reference_id,
@@ -279,6 +304,7 @@ class AssemblyController extends Controller
                                 'bom' => $child_default_bom->name,
                                 'bom_reviewed' => $child_default_bom->is_reviewed,
                                 'planned_qty' => $child_part['qty'] * $request->qty[$idx],
+                                'available_qty' => $child_available_qty,
                                 'reference_no' => $reference_no,
                                 'planned_start_date' => ($existing_prod2) ? $planned_start_date2 : null,
                                 'production_order' => ($existing_prod2) ? $existing_prod2->name : null,
@@ -289,7 +315,7 @@ class AssemblyController extends Controller
                                 'wip_warehouse' => ($existing_prod2) ? $existing_prod2->wip_warehouse : null,
                                 'fg_warehouse' => ($existing_prod2) ? $existing_prod2->fg_warehouse : null,
                                 'available_stock' => $available_stock_child,
-                                'cycle_time' => $this->compute_item_cycle_time($child_part['item_code'], $child_part['qty'] * $request->qty[$idx]),
+                                'cycle_time' => $this->compute_item_cycle_time($child_part['item_code'], $child_available_qty),
                                 'operation_name' => $child_part['operation_name']
                             ];
                         }
@@ -322,6 +348,20 @@ class AssemblyController extends Controller
                                         ->where('parent', $existing_prod3->name)->first()->source_warehouse;
                                 }
 
+                                $child2_bom_no = $child_part2['bom_no'];
+                                $child2_existing_po_qty = DB::connection('mysql_mes')->table('production_order')
+                                    ->when($reference_pref == 'SO', function ($query) use ($reference_no){
+                                        return $query->where('sales_order', $reference_no);
+                                    })
+                                    ->when($reference_pref == 'MREQ', function ($query) use ($reference_no){
+                                        return $query->where('material_request', $reference_no);
+                                    })
+                                    ->where('bom_no', $child_default_bom->name)->where('status', '!=', 'Cancelled')->where('item_code', $child_part2['item_code'])
+                                    ->sum('qty_to_manufacture');
+                                
+                                $child2_available_qty = ($child_part2['qty'] * $request->qty[$idx]) - $child2_existing_po_qty;
+                                $child2_available_qty = $child2_available_qty > 0 ? $child2_available_qty : 0;
+
                                 $parts[] = [
                                     'item_reference_id' => $item_reference_id,
                                     'delivery_date' => $delivery_date,
@@ -334,6 +374,7 @@ class AssemblyController extends Controller
                                     'bom' => $child_default_bom->name,
                                     'bom_reviewed' => $child_default_bom->is_reviewed,
                                     'planned_qty' => $child_part2['qty'] * $request->qty[$idx],
+                                    'available_qty' => $child2_available_qty,
                                     'reference_no' => $request->so[$idx],
                                     'planned_start_date' => ($existing_prod3) ? $planned_start_date3 : null,
                                     'production_order' => ($existing_prod3) ? $existing_prod3->name : null,
@@ -344,7 +385,7 @@ class AssemblyController extends Controller
                                     'wip_warehouse' => ($existing_prod3) ? $existing_prod3->wip_warehouse : null,
                                     'fg_warehouse' => ($existing_prod3) ? $existing_prod3->fg_warehouse : null,
                                     'available_stock' => $available_stock_child1,
-                                    'cycle_time' => $this->compute_item_cycle_time($child_part2['item_code'], $child_part2['qty'] * $request->qty[$idx]),
+                                    'cycle_time' => $this->compute_item_cycle_time($child_part2['item_code'], $child2_available_qty),
                                     'operation_name' => $child_part2['operation_name']
                                 ];
                             }
@@ -400,13 +441,16 @@ class AssemblyController extends Controller
         }
     }
 
+    // /assembly/get_production_req_items
     public function get_production_req_items(Request $request){
         try {
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
-            $items = DB::connection('mysql')->table('tabWork Order Item')->whereIn('parent', $request->production_orders)
+            $production_orders = $request->production_orders ? $request->production_orders : [];
+
+            $items = DB::connection('mysql')->table('tabWork Order Item')->whereIn('parent', $production_orders)
                 ->orderBy('parent', 'asc')->orderBy('idx', 'asc')->get();
 
             $req_items = [];
