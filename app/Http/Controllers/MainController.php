@@ -2218,6 +2218,7 @@ class MainController extends Controller
 		DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($values);
 	}
 
+	// /production_schedule/{id}
 	public function production_schedule_module($operation_id){
 		if (!Auth::check()) {
 			return redirect('/login');
@@ -2267,6 +2268,8 @@ class MainController extends Controller
 			->where('production_order.is_scheduled', 0)->where("production_order.operation_id", $operation_id)
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 			->orderBy('production_order.sales_order', 'desc')->orderBy('production_order.material_request', 'desc')->get();
+
+		$unscheduled_prod = collect($unscheduled_prod)->unique('production_order');
 
     	$unscheduled = [];
     	foreach ($unscheduled_prod as $row) {
