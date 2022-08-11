@@ -4669,6 +4669,9 @@ class ManufacturingController extends Controller
 
         $production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $request->production_orders)->whereNotIn('status', ['Cancelled', 'Closed'])->orderBy('production_order', 'asc')->get();
 
+        $production_item_codes = collect($production_orders)->pluck('item_code')->unique();
+        $sub_parent_item_codes = collect($production_orders)->pluck('sub_parent_item_code')->unique();
+
         $parent_item_code = [];
         $sub_parent_bom_array = [];
         foreach($production_orders as $q){
@@ -4677,18 +4680,22 @@ class ManufacturingController extends Controller
                 $sub_parent_bom_array[$q->item_code] = [$q->bom_no];
             }
         }
-
         // get bom of parent item codes
         $parent_bom = DB::connection('mysql')->table('tabBOM')->whereIn('item', $parent_item_code)->where('is_default', 1)->where('is_active', 1)->where('docstatus', 1)->select('item', 'name', 'quantity')->get();
-        $parent_bom = collect($parent_bom)->groupBy('item');
+        $parent_bom_array = collect($parent_bom)->pluck('name');
 
         // get bom of sub parent item codes
         $bom_array = collect($production_orders)->pluck('bom_no');
-        $bom_conversion = DB::connection('mysql')->table('tabBOM Item')->whereIn('bom_no', $bom_array)->whereIn('parent', $sub_parent_bom_array)->get();
-        $bom_qty_conversion = [];
-        foreach($bom_conversion as $bom){
-            $bom_qty_conversion[$bom->parent][$bom->bom_no] = ['qty' => $bom->qty]; 
-        }
+        $sub_parent_bom = DB::connection('mysql')->table('tabBOM Item')
+            ->whereIn('item_code', $sub_parent_item_codes)->whereIn('parent', $parent_bom_array)
+            ->orWhereIn('bom_no', $bom_array)->whereIn('parent', $sub_parent_bom_array)
+            ->select('item_code', 'qty', 'parent', 'bom_no')->get();
+
+        $production_item_bom = DB::connection('mysql')->table('tabBOM Item')
+            ->whereIn('item_code', $production_item_codes)->whereIn('parent', collect($sub_parent_bom)->pluck('bom_no'))
+            ->select('item_code', 'qty', 'parent', 'bom_no')->get();
+
+        $bom_reference = collect($sub_parent_bom)->merge($production_item_bom)->groupBy('item_code');
 
         $sales_order = collect($production_orders)->pluck('sales_order')->unique();
         $sales_order_items = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $sales_order)->get();
@@ -4699,13 +4706,7 @@ class ManufacturingController extends Controller
 
         $production_order_list = [];
         foreach ($production_orders as $prod) {
-            $sub_parent_bom = isset($sub_parent_bom_array[$prod->sub_parent_item_code]) ? $sub_parent_bom_array[$prod->sub_parent_item_code][0] : null;
-
-            if($prod->parent_item_code == $prod->sub_parent_item_code){ // if sub parent
-                $conversion_qty = isset($parent_bom[$prod->parent_item_code]) ? $parent_bom[$prod->parent_item_code][0]->quantity * 1 : 0;
-            }else{
-                $conversion_qty = isset($bom_qty_conversion[$sub_parent_bom][$prod->bom_no]) ? $bom_qty_conversion[$sub_parent_bom][$prod->bom_no]['qty'] * 1 : 0;
-            }
+            $conversion_qty = isset($bom_reference[$prod->item_code]) ? $bom_reference[$prod->item_code][0]->qty * 1 : 0;
 
             $so_order_qty = isset($sales_order_item[$prod->parent_item_code]) ? $sales_order_item[$prod->parent_item_code][0]->qty * 1 : 0;
 
@@ -4715,7 +4716,6 @@ class ManufacturingController extends Controller
                 'production_order' => $prod->production_order,
                 'parent_code' => $prod->parent_item_code,
                 'sub_parent_code' => $prod->sub_parent_item_code,
-                'sub_parent_bom' => $sub_parent_bom,
                 'item_code' => $prod->item_code,
                 'description' => $prod->description,
                 'bom_no' => $prod->bom_no,
