@@ -43,6 +43,7 @@ class LinkReportController extends Controller
     }
 
     public function export_job_ticket(Request $request){
+        $permissions = $this->get_user_permitted_operation();
         $start_date = $request->date ? explode(' - ', $request->date)[0] : Carbon::now()->subDays(30);
         $end_date = $request->date ? explode(' - ', $request->date)[1] : Carbon::now();
         $status = $request->status;
@@ -140,11 +141,12 @@ class LinkReportController extends Controller
         $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->select('status')->distinct('status')->get();
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
 
-        return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter'));
+        return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter', 'permissions'));
     }
 
     // /weekly_rejection_report/{operation_id}
     public function weekly_rejection_report(Request $request, $operation_id){
+        $permissions = $this->get_user_permitted_operation();
         $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
         if(!$operation){
             return redirect()->back()->with('error', 'Operation not found.');
@@ -198,10 +200,11 @@ class LinkReportController extends Controller
             ];
         }
 
-        return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'operation'));
+        return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'operation', 'permissions'));
     }
 
     public function export_rejection_logs(Request $request){
+        $permissions = $this->get_user_permitted_operation();
         $start_date = $request->date ? explode(' - ', $request->date)[0] : Carbon::now()->subDays(30);
         $end_date = $request->date ? explode(' - ', $request->date)[1] : Carbon::now();
         $status = $request->status;
@@ -302,12 +305,13 @@ class LinkReportController extends Controller
         $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->select('status')->distinct('status')->get();
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
 
-        return view('reports.export_rejection_logs', compact('export_arr', 'rejection_logs', 'statuses', 'operations_filter'));
+        return view('reports.export_rejection_logs', compact('export_arr', 'rejection_logs', 'statuses', 'operations_filter', 'permissions'));
     }
     
     public function export_machine_list(Request $request){
         $status = $request->status;
         $operation = $request->operation;
+        $permissions = $this->get_user_permitted_operation();
 
         if($request->ajax()){
             $machine_list = DB::connection('mysql_mes')->table('machine')
@@ -339,7 +343,7 @@ class LinkReportController extends Controller
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
         $statuses = DB::connection('mysql_mes')->table('machine')->select('status')->distinct('status')->get();
 
-        return view('reports.export_machine_list', compact('machine_list', 'operations_filter', 'statuses'));
+        return view('reports.export_machine_list', compact('machine_list', 'operations_filter', 'statuses', 'permissions'));
     }
 
     public function daily_output_report(Request $request){
@@ -1581,6 +1585,7 @@ class LinkReportController extends Controller
     }
 
     public function mismatched_po_status(Request $request){
+        $permissions = $this->get_user_permitted_operation();
         $mes_statuses = DB::connection('mysql_mes')->table('production_order')->select('status')->distinct('status')->pluck('status');
 
         $erp_po = DB::connection('mysql')->table('tabWork Order')->whereIn('status', $mes_statuses)->select('name', 'status', 'produced_qty')->get();
@@ -1628,18 +1633,20 @@ class LinkReportController extends Controller
         $paginatedItems->setPath($request->url());
         $mismatched_production_orders = $paginatedItems;
 
-        return view('reports.system_audit_mismatched_po_status', compact('mismatched_production_orders', 'total'));
+        return view('reports.system_audit_mismatched_po_status', compact('mismatched_production_orders', 'total', 'permissions'));
     }
 
     public function feedbacked_po_with_pending_ste(){
+        $permissions = $this->get_user_permitted_operation();
         $erp_po = DB::connection('mysql')->table('tabWork Order')->where('status', 'Completed')->orderBy('creation', 'desc')->pluck('name');
         
         $ste = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $erp_po)->whereIn('purpose', ['Material Transfer for Manufacture', 'Material Transfer'])->where('docstatus', 0)->select('creation', 'owner', 'work_order', 'name', 'purpose', 'docstatus')->orderBy('creation', 'desc')->paginate(20);
 
-        return view('reports.system_audit_feedbacked_po_w_pending_ste', compact('ste'));
+        return view('reports.system_audit_feedbacked_po_w_pending_ste', compact('ste', 'permissions'));
     }
 
 	public function transferred_required_qty_mismatch(){
+        $permissions = $this->get_user_permitted_operation();
 		$transferred_required_qty_mismatch = DB::connection('mysql')->table('tabWork Order as wo')
 			->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
             ->where('wo.status', 'Completed')->whereRaw('woi.transferred_qty < woi.required_qty')
@@ -1647,19 +1654,21 @@ class LinkReportController extends Controller
             ->orderBy('wo.creation', 'desc')
             ->paginate(20);
 
-        return view('reports.system_audit_transfer_required_mismatch', compact('transferred_required_qty_mismatch'));
+        return view('reports.system_audit_transfer_required_mismatch', compact('transferred_required_qty_mismatch', 'permissions'));
 	}
 
     public function overridden_production_orders(){
+        $permissions = $this->get_user_permitted_operation();
         $overridden_job_tickets = DB::connection('mysql_mes')->table('production_order as po')
             ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
             ->where('po.status', 'Completed')->where('jt.status', '!=', 'Completed')->where('jt.remarks', 'Override')
             ->select('po.production_order', 'jt.job_ticket_id', 'jt.status', 'jt.created_by', 'jt.created_at')->orderBy('jt.created_at', 'desc')->paginate(20);
 
-        return view('reports.system_audit_overridden_po', compact('overridden_job_tickets'));
+        return view('reports.system_audit_overridden_po', compact('overridden_job_tickets', 'permissions'));
     }
 
     public function stocks_transferred_but_none_in_wip(Request $request){
+        $permissions = $this->get_user_permitted_operation();
         $warehouses = ['Work In Progress - FI', 'Assembly Warehouse - FI'];
         $filter_warehouses = ['Work In Progress - FI', 'Assembly Warehouse - FI'];
         if($request->warehouse){
@@ -1715,6 +1724,6 @@ class LinkReportController extends Controller
         $paginatedItems->setPath($request->url());
         $bin_arr = $paginatedItems;
 
-        return view('reports.system_audit_stocks_transferred_but_none_in_wip', compact('bin_arr', 'filter_warehouses'));
+        return view('reports.system_audit_stocks_transferred_but_none_in_wip', compact('bin_arr', 'filter_warehouses', 'permissions'));
     }
 }

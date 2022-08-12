@@ -574,7 +574,8 @@ class SecondaryController extends Controller
     }
 
     public function maintenanceMachineList(){
-        return view('maintenance_machine_list');
+        $permissions = $this->get_user_permitted_operation();
+        return view('maintenance_machine_list', compact('permissions'));
     }
 
     public function machineBreakdownSave(Request $request){
