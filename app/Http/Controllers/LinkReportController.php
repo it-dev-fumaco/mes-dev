@@ -152,34 +152,55 @@ class LinkReportController extends Controller
             return redirect()->back()->with('error', 'Operation not found.');
         }
 
-        $start_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[0]) : Carbon::now()->subDays(7))->startOfDay()->toDateTimeString();
-        $end_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[1]) : Carbon::now())->endOfDay()->toDateTimeString();
+        $start_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[0]) : Carbon::now()->subDays(7))->startOfDay()->format('Y-m-d');
+        $end_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[1]) : Carbon::now())->endOfDay()->format('Y-m-d');
 
-        $time_logs = DB::connection('mysql_mes')->table('production_order as po')
-            ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
-            ->join('reject_reason as r', 'jt.job_ticket_id', 'r.job_ticket_id')
-            ->join('reject_list as l', 'l.reject_list_id', 'r.reject_list_id')
-            ->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
-            ->whereBetween('po.created_at', [$start_date, $end_date])
-            ->where('po.operation_id', $operation_id)
-            ->where('po.status', '!=', 'Cancelled')
-            ->where('logs.reject', '>', 0)
-            ->where('jt.workstation', '!=', 'Spotwelding')
-            ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.good', 'logs.status', 'logs.operator_name', 'l.reject_reason');
+        $rejection_logs = DB::connection('mysql_mes')->select("
+            SELECT
+                jt.job_ticket_id,
+                po.production_order,
+                po.sales_order,
+                po.customer,
+                po.material_request,
+                po.status as po_status,
+                po.operation_id,
+                jt.workstation,
+                tl.from_time,
+                tl.to_time,
+                tl.good,
+                tl.reject,
+                tl.operator_name,
+                tl.status,
+                rl.reject_reason
+            FROM
+                mes.time_logs AS tl
+                    JOIN
+                mes.job_ticket AS jt ON tl.job_ticket_id = jt.job_ticket_id
+                    JOIN
+                mes.reject_reason AS rr ON rr.job_ticket_id = jt.job_ticket_id
+                    JOIN
+                mes.reject_list AS rl ON rl.reject_list_id = rr.reject_list_id
+                    JOIN
+                mes.production_order AS po ON po.production_order = jt.production_order
+            WHERE
+                from_time BETWEEN '".$start_date."' AND '".$end_date."'
+            AND jt.workstation != 'Spotwelding'
+            AND tl.reject > 0
+            order by from_time asc;
+        ");
 
-        $rejection_logs = DB::connection('mysql_mes')->table('production_order as po')
-            ->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
-            ->join('reject_reason as r', 'jt.job_ticket_id', 'r.job_ticket_id')
-            ->join('reject_list as l', 'l.reject_list_id', 'r.reject_list_id')
-            ->join('spotwelding_qty as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')
-            ->whereBetween('po.created_at', [$start_date, $end_date])
-            ->where('po.operation_id', $operation_id)
-            ->where('po.status', '!=', 'Cancelled')
-            ->where('logs.reject', '>', 0)
-            ->where('jt.workstation', 'Spotwelding')
-            ->select('po.created_at', 'po.item_code', 'po.description', 'po.production_order', 'po.sales_order', 'po.material_request', 'po.customer', 'po.operation_id', 'jt.job_ticket_id', 'jt.workstation', 'jt.process_id', 'logs.from_time', 'logs.to_time', 'logs.reject', 'logs.good', 'logs.status', 'logs.operator_name', 'l.reject_reason')->union($time_logs)
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+		// Create a new Laravel collection from the array data
+		$itemCollection = collect($rejection_logs);
+		// Define how many items we want to be visible in each page
+		$perPage = 10;
+		// Slice the collection to get the items to display in current page
+		$currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
+		// Create our paginator and pass it to the view
+		$paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+		// set url path for generted links
+		$paginatedItems->setPath($request->url());
+		$rejection_logs = $paginatedItems;
 
         $reject_arr = [];
         foreach($rejection_logs as $reject){
