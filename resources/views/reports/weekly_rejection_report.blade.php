@@ -47,58 +47,70 @@
                         $link = 0;
                         break;
                 }
+
+                $start = \Carbon\Carbon::now()->subDays(7);
+                $end = \Carbon\Carbon::now();
+                if(request()->has('date')){
+                    $start = \Carbon\Carbon::parse(explode(' - ', request('date'))[0]);
+                    $end = isset(explode(' - ', request('date'))[1]) ? \Carbon\Carbon::parse(explode(' - ', request('date'))[1]) : null;
+                }
             @endphp
             <form action="/weekly_rejection_report/{{ $link }}">
                 <div class="row">
-                    <div class="col-8">
-                        @php
-                            $start = \Carbon\Carbon::now()->subDays(7);
-                            $end = \Carbon\Carbon::now();
-                            if(request()->has('date')){
-                                $start = \Carbon\Carbon::parse(explode(' - ', request('date'))[0]);
-                                $end = isset(explode(' - ', request('date'))[1]) ? \Carbon\Carbon::parse(explode(' - ', request('date'))[1]) : null;
-                            }
-                        @endphp
-                        <h5 class="pt-3"><b>Period: {{ $start->startOfDay()->format('F d, Y').' - '.$end->endOfDay()->format('F d, Y') }} ({{ $end->diffInDays($start) }} day/s)</b></h5>
+                    <div class="p-1 mt-1 mb-1 col-3">
+                        <small class="ml-3 d-block">Period:</small>
+                        <span class="d-block font-weight-bold text-center">{{ $start->startOfDay()->format('F d, Y').' - '.$end->endOfDay()->format('F d, Y') }} ({{ $end->diffInDays($start) }} day/s)</span>
                     </div>
-                    <div class="col-3">
-                        <input type="text" class='form-control m-2' id="daterange" name='date' />
+                    <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #27AE60;">
+                        <small class="d-block" style="font-size: 8pt;">Total Good</small>
+                        <h5 class="d-block font-weight-bold m-0">{{ number_format($total_good) }}</h5>
                     </div>
-                    <div class="col-1">
-                        <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
+                    <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #F40305;">
+                        <small class="d-block" style="font-size: 8pt;">Total Reject</small>
+                        <h5 class="d-block font-weight-bold m-0">{{ number_format($total_reject) }}</h5>
+                    </div>
+                    <div class="p-1 mt-1 mb-1 col-3">
+                        <div class="row">
+                            <div class="col-8">
+                                <input type="text" class='form-control m-2' id="daterange" name='date' />
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
             <table class="table table-bordered">
                 <thead class="text-white bg-secondary reject-font-size">
                     <tr>
-                        <th class="text-center">Production Order</th>
-                        <th class="text-center">Reference Order</th>
-                        <th class="text-center">Customer</th>
-                        <th class="text-center">Workstation</th>
-                        <th class="text-center">Start</th>
-                        <th class="text-center">End</th>
-                        <th class="text-center">Good</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Reason</th>
-                        <th class="text-center">Operator</th>
-                        <th class="text-center">Status</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Production Order</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Reference Order</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Customer</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Workstation</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Start</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">End</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Good</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Reject</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Reason</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Operator</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($reject_arr as $reject)
                         <tr>
-                            <td class="reject-font-size text-center">{{ $reject['production_order'] }}</td>
-                            <td class="reject-font-size text-center">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
-                            <td class="reject-font-size">{{ $reject['customer'] }}</td>
-                            <td class="reject-font-size text-center">{{ $reject['workstation'] }}</td>
-                            <td class="reject-font-size">{{ $reject['from_time'] }}</td>
-                            <td class="reject-font-size">{{ $reject['to_time'] }}</td>
-                            <td class="reject-font-size text-center">{{ $reject['good'] }}</td>
-                            <td class="reject-font-size text-center">{{ $reject['reject'] }}</td>
-                            <td class="reject-font-size">{{ $reject['reject_reason'] }}</td>
-                            <td class="reject-font-size text-center">{{ $reject['operator_name'] }}</td>
-                            <td class="reject-font-size text-center">{{ $reject['status'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['production_order'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['customer'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['workstation'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['from_time'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['to_time'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['good'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['reject'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['reject_reason'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['operator_name'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -115,7 +127,7 @@
 </div>
 <style>
     .reject-font-size{
-        font-size: 9pt;
+        font-size: 9pt !important;
     }
 </style>
 @endsection

@@ -189,6 +189,9 @@ class LinkReportController extends Controller
             order by from_time asc;
         ");
 
+        $total_good = collect($rejection_logs)->sum('good');
+        $total_reject = collect($rejection_logs)->sum('reject');
+
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
 		// Create a new Laravel collection from the array data
 		$itemCollection = collect($rejection_logs);
@@ -221,7 +224,8 @@ class LinkReportController extends Controller
             ];
         }
 
-        return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'operation', 'permissions'));
+
+        return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'operation', 'permissions', 'total_good', 'total_reject'));
     }
 
     public function export_rejection_logs(Request $request){
