@@ -24,6 +24,7 @@ trait GeneralTrait
         $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
 			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
             ->where('status', 'Completed')->get();
+        $current_process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_detail->process_id)->pluck('process_name')->first();
 
         // get total good, total reject, actual start and end date
         if ($job_ticket_detail->workstation == 'Spotwelding') {
@@ -46,10 +47,6 @@ trait GeneralTrait
         } else {
             $total_good = $logs->sum('good');
             $total_reject = $logs->sum('reject');
-
-            if($job_ticket_detail->workstation == 'Painting'){
-                $total_good = $logs->where('to_time', '!=', '') ? $logs->where('to_time', '!=', '')->sum('good') : 0;
-            }
         }
         
         $job_ticket_actual_start_date = $logs->min('from_time');
@@ -59,8 +56,17 @@ trait GeneralTrait
         $total_good = $total_good < 0 ? 0 : $total_good;
 
         // set job ticket status
-        if($job_ticket_detail->qty_to_manufacture <= $total_good){
+        if($job_ticket_detail->qty_to_manufacture <= $total_good && $current_process != 'Loading'){
             $job_ticket_status = 'Completed';
+
+            if($job_ticket_detail->workstation == 'Painting' && $current_process == 'Unloading'){
+                $loading_jt = DB::connection('mysql_mes')->table('job_ticket')
+                    ->join('process', 'process.process_id', 'job_ticket.process_id')
+                    ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
+                    ->first();
+                
+                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => 'Completed']);
+            }
         }else if(count($logs) > 0){
             $job_ticket_status = 'In Progress';
         }else{

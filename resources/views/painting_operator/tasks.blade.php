@@ -42,37 +42,48 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-12">
-              <ul class="nav nav-tabs" role="tablist" style="font-size: 10pt; font-weight: bold;">
-                <li class="nav-item">
-                  <a class="nav-link active" id="current-production-order-tab" data-toggle="tab" href="#current-tab" role="tab">Current Job Ticket</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" id="production-queue-tab" data-toggle="tab" href="#production-queue" role="tab">Painting Schedule</a>
-                </li>
-              </ul>
+              <div class="row">
+                <div class="col-6">
+                  <ul class="nav nav-tabs" role="tablist" style="font-size: 10pt; font-weight: bold;">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="current-production-order-tab" data-toggle="tab" href="#current-tab" role="tab">Current Job Ticket</a>
+                    </li>
+                    @if ($process_name == 'Loading')
+                      <li class="nav-item">
+                        <a class="nav-link" id="production-queue-tab" data-toggle="tab" href="#production-queue" role="tab">Painting Schedule</a>
+                      </li>
+                    @endif
+                  </ul>
+                </div>
+                <div class="col-6">
+                  <div class="row pt-0">
+                    <div class="col-6 {{ $process_name == 'Unloading' ? 'offset-6' : null }}">
+                      <button type="button" class="btn btn-block" style="background-color: #6a1b9a; display: flex; justify-content: center; align-items: center;" id="machine-breakdown-modal-btn">
+                        <i class="now-ui-icons ui-2_settings-90" style="font-size: 11pt;"></i>&nbsp;<span style="font-size: 8pt;">Maintenance Request</span>
+                      </button>
+                    </div>
+                    @if ($process_name == 'Loading')
+                      <div class="col-6">
+                        <button class="btn btn-danger btn-block start-new-task" style="display: flex; justify-content: center; align-items: center;">
+                          <i class="now-ui-icons media-1_button-play" style="font-size: 11pt;"></i>&nbsp;<span style="font-size: 8pt;">Start New</span>
+                        </button>
+                      </div>
+                    @endif
+                </div>
+                </div>
+              </div>
+              
               <div class="tab-content" style="min-height: 480px;">
                 <div class="tab-pane active" id="current-tab" role="tabpanel">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-3 offset-6">
-                                <button type="button" class="btn btn-block sub-btn" style="background-color: #6a1b9a;" id="machine-breakdown-modal-btn">
-                                    <i class="now-ui-icons ui-2_settings-90" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Maintenance Request</span>
-                                </button>
-                            </div>
-                            <div class="col-3">
-                                <button class="btn btn-danger btn-block sub-btn start-new-task">
-                                    <i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Start New</span>
-                                </button>
-                            </div>
-                        </div>
+                  <div id="row-tbl"></div>
+                </div>
+                @if ($process_name == 'Loading')
+                  <div class="tab-pane" id="production-queue" role="tabpanel">
+                    <div class="table-responsive">  
+                      <div id="assigned-tasks-table"></div>
                     </div>
-                    <div id="row-tbl"></div>
-                </div>
-                <div class="tab-pane" id="production-queue" role="tabpanel">
-                  <div class="table-responsive">  
-                    <div id="assigned-tasks-table"></div>
                   </div>
-                </div>
+                @endif
               </div>
             </div>
           </div>
@@ -520,7 +531,8 @@
             type:"GET",
             success:function(data){
                 if(data.success == 0){
-                    $('#row-tbl').html(data);showNotification("danger", data.message, "now-ui-icons travel_info");
+                    // $('#row-tbl').html(data);
+                    showNotification("danger", data.message, "now-ui-icons travel_info");
                 }else{
                     var reference = data.details.sales_order ? data.details.sales_order : data.details.material_request;
                     $('#reference').text(reference);
@@ -545,7 +557,8 @@
                 }
             }, 
             error: function(jqXHR, textStatus, errorThrown) {
-                $('#row-tbl').html(data);showNotification("danger", data.message, "now-ui-icons travel_info");
+                // $('#row-tbl').html(data);
+                showNotification("danger", data.message, "now-ui-icons travel_info");
                 console.log(jqXHR);
                 console.log(textStatus);
                 console.log(errorThrown);
@@ -655,9 +668,10 @@
     }
 
     get_task();
+    setInterval(get_task, 5000);
     function get_task(){
       $.ajax({
-        url:"/operator/Painting/Loading/{{ $machine_code }}",
+        url:"/operator/Painting/{{ $process_name }}/{{ $machine_code }}",
         type:"GET",
         success:function(data){
           $('#row-tbl').html(data);
@@ -673,9 +687,9 @@
     $(document).on('click', '.end-task-btn', function(e){
       e.preventDefault();
       var max_qty = $(this).data('balance-qty');
-      var production_order = '{{-- $production_order --}}';
+      var production_order = $(this).data('production-order');
       $('#end-task-modal .timelog-id').val($(this).data('timelog-id'));
-      $('#end-task-modal .process-name').text('{{-- $process_details->process_name --}}');
+      $('#end-task-modal .process-name').text($(this).data('process-name'));
       $('#end-task-modal .max-qty').text(max_qty);
       $('#end-task-modal .production-order').text(production_order);
       $('#end-task-modal .production-order-input').val(production_order);
@@ -1077,7 +1091,7 @@ $('#end-task-frm').submit(function(e){
           if (category == 'Start Up') {
             location.reload();
           }else{
-            window.location.href="/painting/logout/{{-- $process_details->process_name --}}";
+            window.location.href="/painting/logout/{{ $process_name }}";
           }
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
@@ -1098,7 +1112,7 @@ $('#end-task-frm').submit(function(e){
 
     $('#logout_click').click(function(e){
       e.preventDefault();
-      window.location.href = "/painting/logout/{{-- $process_details->process_name --}}";
+      window.location.href = "/painting/logout/{{ $process_name }}";
     });
 
     $('#restart-task-frm').submit(function(e){
@@ -1142,17 +1156,19 @@ $('#end-task-frm').submit(function(e){
       });
     });
 
-    get_scheduled_for_painting();
-    setInterval(get_scheduled_for_painting, 5000);
-    function get_scheduled_for_painting(){
-      $.ajax({
-        url:"/get_scheduled_for_painting",
-        type:"GET",
-        success:function(data){
-          $('#assigned-tasks-table').html(data);
-        }
-      });  
-    }
+    @if ($process_name == 'Loading')
+      get_scheduled_for_painting();
+      setInterval(get_scheduled_for_painting, 5000);
+      function get_scheduled_for_painting(){
+        $.ajax({
+          url:"/get_scheduled_for_painting",
+          type:"GET",
+          success:function(data){
+            $('#assigned-tasks-table').html(data);
+          }
+        });  
+      }
+    @endif
 
     $('#view-painting-schedule-btn').click(function(e){
       e.preventDefault();

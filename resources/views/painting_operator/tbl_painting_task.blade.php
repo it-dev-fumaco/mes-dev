@@ -1,48 +1,81 @@
-<div class="container-fluid">
+<div class="container-fluid p-0">
     @forelse ($painting_processes as $painting)
+      @php
+        $unloaded_qty = isset($unloading_qty[$painting->production_order]) ? $unloading_qty[$painting->production_order][0]->completed_qty : 0;
+        $balance = $painting->good - $unloaded_qty;
+      @endphp
         <div class="card">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-6" style="font-size: 10pt;">
-                        <b>{{ $painting->production_order }}</b> <br>
+                <div class="row p-0">
+                    <div class="col-4" style="font-size: 8pt;">
+                      <div class="waves-effect waves z-depth-4 d-flex flex-row justify-content-start align-items-center">
+                        <div class="spinner-grow" style="background-color: #F57F17">
+                          <span class="sr-only">Loading...</span>
+                        </div>&nbsp;<b>{{ $painting->production_order }}</b>
+                      </div>
+                      <div class="text-justify">
                         <span><b>{{ $painting->item_code }}</b> - {{ $painting->description }}</span>
-                        <div class="row">
-                            <div class="col-6">
-                                <span>Qty to manufacture: {{ $painting->qty_to_manufacture }}</span>
-                            </div>
-                            <div class="col-6">
-                                <span>Currently in progress: <b>{{ $painting->good }}</b></span>
-                            </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-6">
+                          <span>To produce: {{ $painting->qty_to_manufacture }}</span>
                         </div>
+                        @if ($unloaded_qty > 0)
+                          <div class="col-6">
+                            <span class="badge badge-primary" style="font-size: 9pt;">Unloaded: <b>{{ $unloaded_qty }}</b></span>
+                          </div>
+                        @endif
+                      </div>
                     </div>
-                    <div class="col-6 d-flex flex-row justify-content-start align-items-center">
+                    <div class="col-2 d-flex flex-row justify-content-start align-items-center" style="font-size: 10pt;">
+                      <div class="container text-center">
+                        <h6 class="mt-2">In Progress</h6>
+                        <h2 class="font-weight-bold">{{ $balance }}</h2>
+                      </div>
+                    </div>
+                    <div class="col-6 p-0 d-flex flex-row justify-content-start align-items-center">
                         @php
-                            $disable_restart = ($painting->status != 'In Progress') ? 'disabled' : '';
+                            $disable_restart = $unloaded_qty > 0 ? 'disabled' : '';
+                            $col = $process_name == 'Loading' ? 'col-4' : 'col-3';
                         @endphp
-                        <div class="col-4 p-0">
+                        <div class="{{ $col }} p-0">
                             <button type="button" class="btn btn-block btn-danger sub-btn restart-task-btn" style="background-color: #00838f;" data-timelog-id="{{ $painting->time_log_id }}" {{ $disable_restart }}>
                                 <i class="now-ui-icons loader_refresh" style="padding: 3px;"></i>
                                 <br><span style="font-size: 8pt;">Restart</span>
                             </button>
                         </div>
 
-                        <div class="col-4 p-0">
+                        <div class="{{ $col }} p-0">
                             <button type="button" class="btn btn-block sub-btn quality-inspection-btn" data-timelog-id="{{ $painting->time_log_id }}" data-production-order="{{ $painting->production_order }}" data-processid="{{ $painting->process_id }}" data-inspection-type="Random Inspection" style="background-color: #f57f17;">
                               <i class="now-ui-icons ui-1_check" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Quality Check</span>
                             </button>
                         </div>
 
-                        <div class="col-4 p-0">
+                        <div class="{{ $col }} p-0">
                             <button type="button" class="btn btn-block btn-danger sub-btn" id="enter-reject-btn" data-process-name="Loading" data-production-order="{{ $painting->production_order }}" data-timelog-id="{{ $painting->time_log_id }}" data-good="{{ $painting->good }}">
                                 <i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Enter Reject</span>
                               </button>
                         </div>
+
+                        @if ($process_name == 'Unloading')
+                          <div class="col-3 p-0">
+                            <button type="button" class="btn btn-block btn-warning end-task-btn" style="width: 130px !important; height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $balance }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
+                              <div class="waves-effect waves z-depth-4">
+                                <div class="spinner-grow">
+                                  <span class="sr-only">Loading...</span>
+                                </div> <br>
+                                <span class="text-center font-weight-bold" style="color: #273746; font-size: 8pt;">In Progress</span>
+                              </div>
+                            </button>
+                          </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     @empty
-        <div class="row">
+        @if ($process_name == 'Loading')
+          <div class="row">
             <div class="card" style="min-height: 500px;">
                 <div class="card-body">
                     <div class="row">
@@ -59,7 +92,20 @@
                     </div>
                 </div>
             </div>
-        </div>
+          </div>
+        @else
+          <div class="row">
+            <div class="card">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-12 p-5 text-center">
+                    No In Progress Task(s)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> 
+        @endif
     @endforelse
 </div>
 

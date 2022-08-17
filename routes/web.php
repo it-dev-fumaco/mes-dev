@@ -28,8 +28,8 @@ Route::post('/submit_quality_inspection', 'QualityInspectionController@submit_qu
 Route::get('/iii', 'ProductionFloorController@com');
 
 // Route::get('/operator/Painting/{process_name}', 'PaintingOperatorController@index');
-Route::get('/operator/Painting/Loading/login', 'PaintingOperatorController@loading_login');
-Route::get('/operator/Painting/Loading/index', 'PaintingOperatorController@loading_index');
+Route::get('/operator/Painting/login', 'PaintingOperatorController@loading_login');
+Route::get('/operator/Painting/{process_name}/index', 'PaintingOperatorController@painting_index');
 Route::get('/get_production_order_details/{production_order}/{process_id}', 'PaintingOperatorController@get_production_order_details');
 Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
