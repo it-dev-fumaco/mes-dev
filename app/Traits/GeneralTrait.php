@@ -46,6 +46,10 @@ trait GeneralTrait
         } else {
             $total_good = $logs->sum('good');
             $total_reject = $logs->sum('reject');
+
+            if($job_ticket_detail->workstation == 'Painting'){
+                $total_good = $logs->where('to_time', '!=', '') ? $logs->where('to_time', '!=', '')->sum('good') : 0;
+            }
         }
         
         $job_ticket_actual_start_date = $logs->min('from_time');
