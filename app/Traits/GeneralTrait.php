@@ -58,15 +58,6 @@ trait GeneralTrait
         // set job ticket status
         if($job_ticket_detail->qty_to_manufacture <= $total_good && $current_process != 'Loading'){
             $job_ticket_status = 'Completed';
-
-            if($job_ticket_detail->workstation == 'Painting' && $current_process == 'Unloading'){
-                $loading_jt = DB::connection('mysql_mes')->table('job_ticket')
-                    ->join('process', 'process.process_id', 'job_ticket.process_id')
-                    ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
-                    ->first();
-                
-                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => 'Completed']);
-            }
         }else if(count($logs) > 0){
             $job_ticket_status = 'In Progress';
         }else{
@@ -77,11 +68,26 @@ trait GeneralTrait
             'completed_qty' => $total_good,
             'good' => $total_good,
             'reject' => $total_reject,
-            'status' => $job_ticket_status,
             'actual_start_date' => $job_ticket_actual_start_date,
             'actual_end_date' => $job_ticket_actual_end_date,
         ];
+        
+        if($job_ticket_detail->workstation == 'Painting' && $current_process == 'Unloading'){
+            $loading_jt = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('process', 'process.process_id', 'job_ticket.process_id')
+                ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
+                ->first();
 
+            $loaded_qty = $loading_jt ? $loading_jt->completed_qty : 0;
+            if($total_good == $loaded_qty && $job_ticket_detail->qty_to_manufacture > $total_good){
+                $job_ticket_status = 'Pending';
+            }
+
+            DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => $job_ticket_status]);
+        }
+
+        $job_ticket_values['status'] = $job_ticket_status;
+        
         DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->update($job_ticket_values);
 
         // update production order operation in ERP

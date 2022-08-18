@@ -1,6 +1,7 @@
 @extends('painting_operator.app', [
     'namePage' => 'Painting',
     'activePage' => 'painting_task',
+    'process' => $process_name
 ])
 @section('content')
 <div class="panel-header">
@@ -23,12 +24,14 @@
             <td style="width: 43%;">
               <h5 class="card-title" style="font-size: 12pt; margin: 0;">
                 <span class="dot" style="background-color: {{ $machine_details->status == 'Available' ? '#28B463' : '#717D7E' }};"></span>
-                <span style="font-size: 12pt;">{{ $machine_details->machine_name }} [{{ $machine_details->machine_code }}]</span>
+                <span style="font-size: 12pt;"><b>{{ $process_name }}</b> [{{ $machine_details->machine_code }}]</span>
               </h5>
             </td>
           </tr>
           <tr>
-            <td>Operator: @if(Auth::user()){{ Auth::user()->employee_name }}@endif</td>
+            <td>
+              <span style="font-size: 8pt;">Operator: @if(Auth::user()){{ Auth::user()->employee_name }}@endif</span>
+            </td>
           </tr>
         </table>
       </div>
@@ -48,11 +51,6 @@
                     <li class="nav-item">
                       <a class="nav-link active" id="current-production-order-tab" data-toggle="tab" href="#current-tab" role="tab">Current Job Ticket</a>
                     </li>
-                    @if ($process_name == 'Loading')
-                      <li class="nav-item">
-                        <a class="nav-link" id="production-queue-tab" data-toggle="tab" href="#production-queue" role="tab">Painting Schedule</a>
-                      </li>
-                    @endif
                   </ul>
                 </div>
                 <div class="col-6">

@@ -70,7 +70,7 @@
                 </a>
               </li>
               @endif
-              <li class="nav-item active">
+              <li class="nav-item active {{ $process == 'Unloading' ? 'd-none' : null }}">
                 <a class="nav-link" href="#" id="view-painting-schedule-btn">
                   <i class="now-ui-icons design_bullet-list-67"></i>Schedule
                   <p>
