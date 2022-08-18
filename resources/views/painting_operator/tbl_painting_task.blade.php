@@ -3,6 +3,7 @@
       @php
         $unloaded_qty = isset($unloading_qty[$painting->production_order]) ? $unloading_qty[$painting->production_order][0]->completed_qty : 0;
         $balance = $painting->good - $unloaded_qty;
+        $balance = $balance > 0 ? $balance : 0;
       @endphp
         <div class="card">
             <div class="card-body">

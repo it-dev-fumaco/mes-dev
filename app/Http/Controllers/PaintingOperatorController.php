@@ -101,7 +101,7 @@ class PaintingOperatorController extends Controller
 	}
 
 	public function loading_login(Request $request){
-		$process_name = $request->process;
+		$process_name = $request->process ? $request->process : 'Loading';
 		return view('painting_operator.loading_login', compact('process_name'));
 	}
 
@@ -219,6 +219,8 @@ class PaintingOperatorController extends Controller
 			->join('time_logs as tl', 'tl.job_ticket_id', 'job_ticket.job_ticket_id')
 			->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
 			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')
+
+			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')
 			->select('job_ticket.production_order', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good', 'po.qty_to_manufacture')
 			->get();
 
@@ -408,7 +410,7 @@ class PaintingOperatorController extends Controller
 					'operator_id' => $operator->user_id,
 					'operator_name' => $operator->employee_name,
 					'operator_nickname' => $operator->nick_name,
-					'status' => 'In Progress',
+					'status' => $production_order->qty_to_manufacture == $request->qty ? 'Completed' : 'In Progress',
 					'created_by' => $operator->employee_name,
 					'created_at' => $now->toDateTimeString(),
 				];
@@ -418,8 +420,6 @@ class PaintingOperatorController extends Controller
 				}
 
 				DB::connection('mysql_mes')->table('time_logs')->insert($values);
-
-				// $this->update_job_ticket($request->job_ticket_id);
 			}else{
 				if($production_order->qty_to_manufacture < $in_progress_time_log->good + $request->qty){
 					return response()->json(['success' => 0, 'message' => 'Requested Qty exceeds Qty to manufacture']);
