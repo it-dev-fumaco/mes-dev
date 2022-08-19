@@ -101,8 +101,24 @@ class PaintingOperatorController extends Controller
 	}
 
 	public function loading_login(Request $request, $process){
-		// $process = $request->process ? $request->process : 'Loading';
-		return view('painting_operator.loading_login', compact('process'));
+		$machine_code = 'M00200';
+
+		if(Auth::user()){
+			return redirect('/operator/Painting/'.$process);
+		}
+
+		$machine_details = DB::connection('mysql_mes')->table('machine')->where('machine_code', $machine_code)->first();
+
+		$process_details = DB::connection('mysql_mes')->table('process')->where('process_name', 'Loading')->first();
+
+		$machine_status = $this->get_machine_status();
+
+		$painting_process = DB::connection('mysql_mes')->table('process_assignment')
+			->join('workstation', 'process_assignment.workstation_id', 'workstation.workstation_id')
+			->join('process', 'process.process_id', 'process_assignment.process_id')->where('workstation.workstation_name', 'Painting')
+			->orderBy('process.process_id', 'asc')->pluck('process.process_name');
+
+		return view('painting_operator.loading_login', compact('process', 'machine_status', 'process_details', 'painting_process'));
 	}
 
 	public function get_production_order_details($production_order, $process_id){
@@ -253,7 +269,10 @@ class PaintingOperatorController extends Controller
 			$tl_array[$tl->production_order][$tl->status][$tl->process_name] = $tl->good;
 		}
 
-		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'time_logs_unloading', 'tl_array'));
+		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->get();
+		$qa_check = collect($qa)->groupBy('reference_id');
+
+		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'time_logs_unloading', 'tl_array', 'qa_check'));
 	}
 
 	// /reject_painting
@@ -490,48 +509,38 @@ class PaintingOperatorController extends Controller
 				->where('process_name', 'Unloading')->where('job_ticket.production_order', $request->production_order)
 				->first();
 
-			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->first();
+			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->sum('good');
 
 			$loaded_qty = $current_task->good;
-			$unloaded_qty = $unloading_time_log ? $unloading_time_log->good + $request->completed_qty : $request->completed_qty;
+			$unloaded_qty = $unloading_time_log + $request->completed_qty;
 			if($loaded_qty == $unloaded_qty || $unloaded_qty == $production_order_details->qty_to_manufacture){
 				$status =  'Completed';
 			}else{
 				$status = 'In Progress';
 			}
 
-			$update = [
-				'last_modified_at' => $now->toDateTimeString(),
-				'last_modified_by' => Auth::user()->employee_name,
+			$values = [
+				'job_ticket_id' => $unloading_jt->job_ticket_id,
+				'to_time' => $now->toDateTimeString(),
+				'machine_code' => $machine_code,
+				'good' => $request->completed_qty,
+				'machine_name' => $machine_name,
+				'operator_id' => $operator->user_id,
+				'operator_name' => $operator->employee_name,
+				'operator_nickname' => $operator->nick_name,
 				'status' => $status,
+				'created_by' => $operator->employee_name,
+				'created_at' => $now->toDateTimeString(),
 			];
-			
-			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 
-			if($unloading_time_log){
-				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_time_log->time_log_id)->update([
-					'to_time' => $now->toDateTimeString(),
-					'last_modified_by' => $operator->employee_name,
-					'last_modified_at' => Carbon::now()->toDateTimeString(),
-					'good' => $unloaded_qty,
-					'status' => $status
-				]);
-			}else{
-				$values = [
-					'job_ticket_id' => $unloading_jt->job_ticket_id,
-					'to_time' => $now->toDateTimeString(),
-					'machine_code' => $machine_code,
-					'good' => $unloaded_qty,
-					'machine_name' => $machine_name,
-					'operator_id' => $operator->user_id,
-					'operator_name' => $operator->employee_name,
-					'operator_nickname' => $operator->nick_name,
+			DB::connection('mysql_mes')->table('time_logs')->insert($values);
+			
+			if($status == 'Completed'){ // update time logs if jt is completed
+				DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', [$loading_jt->job_ticket_id, $unloading_jt->job_ticket_id])->update([
+					'last_modified_at' => $now->toDateTimeString(),
+					'last_modified_by' => Auth::user()->employee_name,
 					'status' => $status,
-					'created_by' => $operator->employee_name,
-					'created_at' => $now->toDateTimeString(),
-				];
-	
-				DB::connection('mysql_mes')->table('time_logs')->insert($values);
+				]);
 			}
 
 			$this->update_job_ticket($current_task->job_ticket_id);
@@ -711,6 +720,7 @@ class PaintingOperatorController extends Controller
 	public function insert_machine_logs(Request $request){
     	$now = Carbon::now();
     	$operator = DB::connection('mysql_essex')->table('users')->where('user_id', $request->operator_id)->first();
+
     	if ($operator) {
     		$data = [
 	    		'operation_date' => $now->toDateTimeString(),

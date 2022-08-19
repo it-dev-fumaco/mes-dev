@@ -47,21 +47,17 @@
             <div class="col-md-12">
               <div class="row">
                 <div class="col-6">
-                  <ul class="nav nav-tabs" role="tablist" style="font-size: 10pt; font-weight: bold;">
-                    <li class="nav-item">
-                      <a class="nav-link active" id="current-production-order-tab" data-toggle="tab" href="#current-tab" role="tab">Current Job Ticket</a>
-                    </li>
-                  </ul>
+                  <h5 class="pt-3">Current Job Ticket(s)</h5>
                 </div>
                 <div class="col-6">
                   <div class="row pt-0">
-                    <div class="col-6 {{ $process_name == 'Unloading' ? 'offset-6' : null }}">
+                    {{-- <div class="col-6 {{ $process_name == 'Unloading' ? 'offset-6' : null }}">
                       <button type="button" class="btn btn-block" style="background-color: #6a1b9a; display: flex; justify-content: center; align-items: center;" id="machine-breakdown-modal-btn">
                         <i class="now-ui-icons ui-2_settings-90" style="font-size: 11pt;"></i>&nbsp;<span style="font-size: 8pt;">Maintenance Request</span>
                       </button>
-                    </div>
+                    </div> --}}
                     @if ($process_name == 'Loading')
-                      <div class="col-6">
+                      <div class="offset-6 col-6">
                         <button class="btn btn-danger btn-block start-new-task" style="display: flex; justify-content: center; align-items: center;">
                           <i class="now-ui-icons media-1_button-play" style="font-size: 11pt;"></i>&nbsp;<span style="font-size: 8pt;">Start New</span>
                         </button>
@@ -261,7 +257,164 @@
       </form>
    </div>
 </div>
-
+<div class="modal fade" id="scan-jt-for-qc-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-md" role="document">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #f57f17;">
+           <h5 class="modal-title">Quality Inspection [<b>Painting</b>]</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+           <input type="hidden" id="workstation" value="Painting">
+        </div>
+        <div class="modal-body" style="min-height: 480px;">
+           <div class="row">
+              <div class="col-md-12">
+                 <div class="row" id="enter-production-order">
+                    <div class="col-md-10 offset-md-1">
+                       <h6 class="text-center">Scan your Job Ticket</h6>
+                       <div class="row">
+                          <div class="col-md-10">
+                             <div class="form-group">
+                                <div class="input-group">
+                                   <div class="input-group-prepend">
+                                      <div class="input-group-text">PROM-</div>
+                                   </div>
+                                   <input type="text" class="form-control" id="production-order-qc" style="font-size: 15pt;" required>
+                                </div>
+                             </div>
+                          </div>
+                          <div class="col-md-2" style="padding: 0; margin-top: -15px;">
+                             <center>
+                                <img src="{{ asset('img/tap.gif') }}" width="260" height="60" id="toggle-jt-numpad-qc">
+                             </center>
+                          </div>
+                       </div>
+                      
+                       <div id="jt-numpad-qc" style="display: none;">
+                       <div class="text-center">
+                          <div class="row1">
+                             <span class="numpad num">1</span>
+                             <span class="numpad num">2</span>
+                             <span class="numpad num">3</span>
+                          </div>
+                          <div class="row1">
+                             <span class="numpad num">4</span>
+                             <span class="numpad num">5</span>
+                             <span class="numpad num">6</span>
+                          </div>
+                          <div class="row1">
+                             <span class="numpad num">7</span>
+                             <span class="numpad num">8</span>
+                             <span class="numpad num">9</span>
+                          </div>
+                          <div class="row1">
+                             <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
+                             <span class="numpad num">0</span>
+                             <span class="numpad" onclick="document.getElementById('production-order-qc').value='';">Clear</span>
+                          </div>
+                       </div>
+                       <div class="row">
+                          <div class="col-md-10 offset-md-1">
+                             <button type="button" class="btn btn-block btn-primary btn-lg" id="submit-enter-production-order-qc">SUBMIT</button>
+                          </div>
+                       </div>
+                       </div>
+                       <div id="jt-scan-img-qc">
+                          <center>
+                             <img src="{{ asset('img/scan-barcode.png') }}" width="220" height="240" style="margin: 40px 10px 10px 10px;">
+                          </center>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+     </div>
+  </div>
+</div>
+<div class="modal fade" id="chemical-records-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+           <h5 class="modal-title">&nbsp;
+             Painting Chemical Records
+           </h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <div id="chemical-records-div"></div>
+        </div>
+     </div>
+  </div>
+</div>
+<div class="modal fade" id="water-discharged-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+           <h5 class="modal-title">&nbsp;
+             Water Discharge Monitoring
+           </h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <div id="water_discharged_div"></div>
+        </div>
+     </div>
+  </div>
+</div>
+<div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document" style="min-width: 90%;">
+     <div class="modal-content">
+       <div class="modal-header text-white" style="background-color: #0277BD;">
+         <h5 class="modal-title font-weight-bold">Modal Title</h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div class="modal-body" style="min-height: 600px;">
+         <div id="production-search-content-modal2"></div>
+       </div>
+     </div>
+   </div>
+ </div>
+ <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog" role="document" style="min-width: 90%;">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #f57f17;">
+           <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+           <input type="hidden" id="workstation" value="Painting">
+        </div>
+        <div class="modal-body" style="min-height: 480px;">
+           <div class="row" id="tasks-for-inspection-tbl" style="margin-top: 10px;"></div>
+        </div>
+     </div>
+  </div>
+</div>
+<div class="modal fade" id="powder-record-modal" tabindex="-1" role="dialog">
+   <div class="modal-dialog" style="min-width: 98%;" role="document">
+      <div class="modal-content">
+         <div class="modal-header text-white" style="background-color: #0277BD;">
+            <h5 class="modal-title">&nbsp;
+              POWDER COAT - INVENTORY UPDATE
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <div id="powder_record_div"></div>
+         </div>
+      </div>
+   </div>
+</div>
 
 @include('painting_operator.modal_view_schedule')
 @include('painting_operator.modal_view_production_order_details')
@@ -1451,5 +1604,978 @@ $('#end-task-frm').submit(function(e){
     }
   });
 
+</script>
+
+<script>
+  <script type="text/javascript">
+  $(document).on('click', '#view-chemical-records-btn', function(event){
+      $.ajax({
+        url:"/get_chemical_records_modal_details",
+        type:"GET",
+        success:function(response){
+          $('#chemical-records-div').html(response);
+          
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        },
+      }); 
+       $('#chemical-records-modal').modal('show');
+       
+    });
+
+</script>
+<script type="text/javascript">
+  $('#view-water-Monitoring-btn').click(function(e){
+      e.preventDefault();
+      $.ajax({
+        url:"/get_water_discharged_modal_details",
+        type:"GET",
+        success:function(response){
+          // $('#operating_hrs').val(data.operating_hrs);
+          // $('#w_previous').val(data.previous_date);
+          $('#water_discharged_div').html(response);
+          
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        },
+      }); 
+       $('#water-discharged-modal').modal('show');
+       // $('#sidebar-wrapper').modal('hide');
+       // $(this).find('[autofocus]').focus();
+    });
+
+
+</script>
+<script type="text/javascript">
+  $(document).on('click', '#view-chemical-records-btn', function(event){
+      $.ajax({
+        url:"/get_chemical_records_modal_details",
+        type:"GET",
+        success:function(response){
+          $('#chemical-records-div').html(response);
+          
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        },
+      }); 
+       $('#chemical-records-modal').modal('show');
+       
+    });
+
+  $(document).on('focus', '#water_discharge_monitoring_frm input[type=text]', function() {
+      if($(this).data('edit') > 0){
+        active_input = $(this).attr('id');
+      }else{
+        active_input = null;
+      }
+    });
+
+    $(document).on('click', '#water_discharge_monitoring_frm .num', function() {
+      $("#" + active_input).focus();
+      var input = $('#water_discharge_monitoring_frm #' + active_input);
+      var x = input.val();
+      var y = $(this).text();
+  
+      if (x == 0) {
+        x = '';
+      }
+      
+      input.val(x + y);
+    });
+
+    $(document).on('click', '#water_discharge_monitoring_frm .clear', function() {
+      $("#" + active_input).focus();
+      var input = $('#water_discharge_monitoring_frm #' + active_input);
+      input.val(0);
+    });
+
+    $(document).on('click', '#water_discharge_monitoring_frm .del', function() {
+      $("#" + active_input).focus();
+      var input = $('#water_discharge_monitoring_frm #' + active_input);
+      var x = input.val();
+ 
+      input.val(x.substring(0, x.length - 1));
+  
+      if (input.val().length == 0) {
+        input.val(0);
+      }
+    });
+
+
+</script>
+<script type="text/javascript">
+  $(document).on('click', '#water-discharged-modal .toggle-manual-input', function(e){
+      $('#water-discharged-modal img').slideToggle();
+      $('#water-discharged-modal .manual').slideToggle();
+    });
+</script>
+<script type="text/javascript">
+     $(document).on('click', '#water_discharge_monitoring_frm .numm', function() {
+
+        var valpre = $('#present_input').val();
+        var valprev = $('#previous_input').val();
+        if (valpre == 0 || valpre =="") {
+          $("#incoming_water_discharged").val(0);
+        }
+        var diff = valpre - valprev;
+         $("#incoming_water_discharged").val(diff);
+    });
+
+</script>
+
+<script type="text/javascript">
+  $(document).on('submit', '#water_discharge_monitoring_frm', function(e){
+      e.preventDefault();
+     
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+           $('#water-discharged-modal').modal('hide');
+           $('#water_discharge_monitoring_frm').trigger("reset");
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+      });
+    });
+</script>
+<script type="text/javascript">
+      function showNotification(color, message, icon){
+      $.notify({
+        icon: icon,
+        message: message
+      },{
+        type: color,
+        timer: 3000,
+        placement: {
+          from: 'top',
+          align: 'center'
+        }
+      });
+    }
+</script>
+<script type="text/javascript">
+  $(document).on('focus', '#painting_chemical_records_frm input[type=text]', function() {
+      if($(this).data('edit') > 0){
+        active_input = $(this).attr('id');
+      }else{
+        active_input = null;
+      }
+    });
+
+    $(document).on('click', '#painting_chemical_records_frm .num', function() {
+      $("#" + active_input).focus();
+      var input = $('#painting_chemical_records_frm #' + active_input);
+      var x = input.val();
+      var y = $(this).text();
+  
+      if (x == '0' && y != '.') {
+        x = '';
+      }
+
+      if((x.indexOf(".") > -1) && y == "."){
+        return false;
+      }
+
+      if (x == '0' && y == '.') {
+        x = '0';
+      }
+      
+      input.val(x + y);
+      var c_point = input.val();
+
+      var chemtype = $("#" + active_input).attr('data-chemtype');
+      if (chemtype == "freealkali") {
+        if (c_point > 7.5) {
+            if ($('#degreasing_type').val() > 0) {
+              $('#stat_degreasing').text('Good');
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" Water (L)");
+            }else{
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" Water (L)");
+              $("#degreasing_type_input").val("Water (L)");
+              $('#stat_degreasing').text('');
+              document.getElementById('degreasing_type').disabled = false;
+            }
+        }else if(c_point < 6.5){
+          if ($('#degreasing_type').val() > 0) {
+              $('#stat_degreasing').text('Good');
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" FC-43490 (KG)");
+          }else{
+            $("#degreasing_add").text("Add");
+            $("#degreasing_type_label").text(" FC-43490 (KG)");
+            $("#degreasing_type_input").val("FC-43490 (KG)");
+            $('#stat_degreasing').text('');
+            document.getElementById('degreasing_type').disabled = false; 
+          }
+        }else{
+            $("#degreasing_add").text("Increase/Decrease");
+            $("#degreasing_type_label").text(" Point");
+            $('#stat_degreasing').text('Good');
+            $("#degreasing_type").val("0");
+            $("#degreasing_type_input").val("");
+            document.getElementById('degreasing_type').disabled = true;
+        }
+      }else if(chemtype == "PB3100R"){
+        if (c_point > 20) {
+          if ($('#replenshing_type').val() > 0) {
+            $('#stat_replenshing').text('Good');
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" Water (L)");
+          }else{
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" Water (L)");
+            $("#replenshing_type_input").val("Water (L)");
+            $('#stat_replenshing').text('');
+            document.getElementById('replenshing_type').disabled = false; 
+          }
+
+        }else if( c_point < 16 ){
+          if ($('#replenshing_type').val() > 0) {
+            $('#stat_replenshing').text('Good');
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" PB-3100R (KG)");
+          }else{
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" PB-3100R (KG)");
+            $("#replenshing_type_input").val("PB-3100R (KG)");
+            $('#stat_replenshing').text('');
+             document.getElementById('replenshing_type').disabled = false; 
+          }
+        }else{
+          $("#replenshing_add").text("Increase/Decrease");
+          $("#replenshing_type_label").text(" Point");
+          $('#stat_replenshing').text('Good');
+          document.getElementById('replenshing_type').disabled = true;
+          $("#replenshing_type_input").val("");
+          $("#replenshing_type").val("0");
+        }
+
+      }else if(chemtype == "AC-131"){
+        if (c_point < 6) {
+          if ($('#accelerator_type').val() > 0) {
+            $('#stat_accelerator').text('Good');
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" AC-131 (KG)");
+          }else{
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" AC-131 (KG)");
+            $("#accelerator_type_input").val("AC-131 (KG)");
+            $('#stat_accelerator').text('');
+            document.getElementById('accelerator_type').disabled = false; 
+          }
+
+        }else if( c_point > 9.0 ){
+          if ($('#accelerator_type').val() > 0) {
+            $('#stat_accelerator').text('Good');
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" Water (L)");
+          }else{
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" Water (L)");
+            $("#accelerator_type_input").val("Water (L)");
+            $('#stat_accelerator').text('');
+             document.getElementById('accelerator_type').disabled = false; 
+          }
+          
+        }else{
+          $("#accelerator_add").text("Increase/Decrease");
+          $("#accelerator_type_label").text(" Point");
+          $('#stat_accelerator').text('Good');
+          document.getElementById('accelerator_type').disabled = true;
+          $("#accelerator_type_input").val("");
+          $("#accelerator_type").val("0");
+        }
+      }else{
+        if (chemtype == "degreasing_type_val") {
+          if (c_point > 0) {
+            $('#stat_degreasing').text('Good');
+          }else{
+            $('#stat_degreasing').text('');
+          }
+        }else if (chemtype == "replenshing_type_val") {
+          if (c_point > 0) {
+            $('#stat_replenshing').text('Good');
+          }else{
+            $('#stat_replenshing').text('');
+          }
+        }else if (chemtype == "accelerator_type_val") {
+          if (c_point > 0) {
+            $('#stat_accelerator').text('Good');
+          }else{
+            $('#stat_accelerator').text('');
+          }
+        }
+      }
+      console.log(chemtype);
+      console.log('#' + active_input);
+      console.log(c_point);
+      
+    });
+
+    $(document).on('click', '#painting_chemical_records_frm .decimal', function() {
+      $("#" + active_input).focus();
+      var input = $('#painting_chemical_records_frm #' + active_input);
+      var x = input.val();
+      var y = $(this).text();
+  
+      if (x == '0' && y != '.') {
+        x = '';
+      }
+
+      if((x.indexOf(".") > -1) && y == "."){
+        return false;
+      }
+
+      if (x == '0' && y == '.') {
+        x = '0';
+      }
+      
+      input.val(x + y);
+      var c_point = input.val();
+
+      var chemtype = $("#" + active_input).attr('data-chemtype');
+      if (chemtype == "freealkali") {
+        if (c_point > 7.5) {
+            if ($('#degreasing_type').val() > 0) {
+              $('#stat_degreasing').text('Good');
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" Water (L)");
+            }else{
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" Water (L)");
+              $("#degreasing_type_input").val("Water (L)");
+              $('#stat_degreasing').text('');
+              document.getElementById('degreasing_type').disabled = false;
+            }
+        }else if(c_point < 6.5){
+          if ($('#degreasing_type').val() > 0) {
+              $('#stat_degreasing').text('Good');
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" FC-43490 (KG)");
+          }else{
+            $("#degreasing_add").text("Add");
+            $("#degreasing_type_label").text(" FC-43490 (KG)");
+            $("#degreasing_type_input").val("FC-43490 (KG)");
+            $('#stat_degreasing').text('');
+            document.getElementById('degreasing_type').disabled = false; 
+          }
+        }else{
+            $("#degreasing_add").text("Increase/Decrease");
+            $("#degreasing_type_label").text(" Point");
+            $('#stat_degreasing').text('Good');
+            $("#degreasing_type").val("0");
+            $("#degreasing_type_input").val("");
+            document.getElementById('degreasing_type').disabled = true;
+        }
+      }else if(chemtype == "PB3100R"){
+        if (c_point > 20) {
+          if ($('#replenshing_type').val() > 0) {
+            $('#stat_replenshing').text('Good');
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" Water (L)");
+          }else{
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" Water (L)");
+            $("#replenshing_type_input").val("Water (L)");
+            $('#stat_replenshing').text('');
+            document.getElementById('replenshing_type').disabled = false; 
+          }
+
+        }else if( c_point < 16 ){
+          if ($('#replenshing_type').val() > 0) {
+            $('#stat_replenshing').text('Good');
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" PB-3100R (KG)");
+          }else{
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" PB-3100R (KG)");
+            $("#replenshing_type_input").val("PB-3100R (KG)");
+            $('#stat_replenshing').text('');
+             document.getElementById('replenshing_type').disabled = false; 
+          }
+        }else{
+          $("#replenshing_add").text("Increase/Decrease");
+          $("#replenshing_type_label").text(" Point");
+          $('#stat_replenshing').text('Good');
+          document.getElementById('replenshing_type').disabled = true;
+          $("#replenshing_type_input").val("");
+          $("#replenshing_type").val("0");
+        }
+
+      }else if(chemtype == "AC-131"){
+        if (c_point < 6) {
+          if ($('#accelerator_type').val() > 0) {
+            $('#stat_accelerator').text('Good');
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" AC-131 (KG)");
+          }else{
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" AC-131 (KG)");
+            $("#accelerator_type_input").val("AC-131 (KG)");
+            $('#stat_accelerator').text('');
+            document.getElementById('accelerator_type').disabled = false; 
+          }
+
+        }else if( c_point > 9.0 ){
+          if ($('#accelerator_type').val() > 0) {
+            $('#stat_accelerator').text('Good');
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" Water (L)");
+          }else{
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" Water (L)");
+            $("#accelerator_type_input").val("Water (L)");
+            $('#stat_accelerator').text('');
+             document.getElementById('accelerator_type').disabled = false; 
+          }
+          
+        }else{
+          $("#accelerator_add").text("Increase/Decrease");
+          $("#accelerator_type_label").text(" Point");
+          $('#stat_accelerator').text('Good');
+          document.getElementById('accelerator_type').disabled = true;
+          $("#accelerator_type_input").val("");
+          $("#accelerator_type").val("0");
+        }
+      }else{
+        if (chemtype == "degreasing_type_val") {
+          if (c_point > 0) {
+            $('#stat_degreasing').text('Good');
+          }else{
+            $('#stat_degreasing').text('');
+          }
+        }else if (chemtype == "replenshing_type_val") {
+          if (c_point > 0) {
+            $('#stat_replenshing').text('Good');
+          }else{
+            $('#stat_replenshing').text('');
+          }
+        }else if (chemtype == "accelerator_type_val") {
+          if (c_point > 0) {
+            $('#stat_accelerator').text('Good');
+          }else{
+            $('#stat_accelerator').text('');
+          }
+        }
+      }
+
+    });
+
+    $(document).on('click', '#painting_chemical_records_frm .del', function() {
+      $("#" + active_input).focus();
+      var input = $('#painting_chemical_records_frm #' + active_input);
+      var x = input.val();
+ 
+      input.val(x.substring(0, x.length - 1));
+  
+      if (input.val().length == 0) {
+        input.val(0);
+      }
+
+      var c_point = input.val();
+
+      var chemtype = $("#" + active_input).attr('data-chemtype');
+      if (chemtype == "freealkali") {
+        if (c_point > 7.5) {
+            if ($('#degreasing_type').val() > 0) {
+              $('#stat_degreasing').text('Good');
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" Water (L)");
+            }else{
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" Water (L)");
+              $("#degreasing_type_input").val("Water (L)");
+              $('#stat_degreasing').text('');
+              document.getElementById('degreasing_type').disabled = false;
+            }
+        }else if(c_point < 6.5){
+          if ($('#degreasing_type').val() > 0) {
+              $('#stat_degreasing').text('Good');
+              $("#degreasing_add").text("Add");
+              $("#degreasing_type_label").text(" FC-43490 (KG)");
+          }else{
+            $("#degreasing_add").text("Add");
+            $("#degreasing_type_label").text(" FC-43490 (KG)");
+            $("#degreasing_type_input").val("FC-43490 (KG)");
+            $('#stat_degreasing').text('');
+            document.getElementById('degreasing_type').disabled = false; 
+          }
+        }else{
+            $("#degreasing_add").text("Increase/Decrease");
+            $("#degreasing_type_label").text(" Point");
+            $('#stat_degreasing').text('Good');
+            $("#degreasing_type").val("0");
+            $("#degreasing_type_input").val("");
+            document.getElementById('degreasing_type').disabled = true;
+        }
+      }else if(chemtype == "PB3100R"){
+        if (c_point > 20) {
+          if ($('#replenshing_type').val() > 0) {
+            $('#stat_replenshing').text('Good');
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" Water (L)");
+          }else{
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" Water (L)");
+            $("#replenshing_type_input").val("Water (L)");
+            $('#stat_replenshing').text('');
+            document.getElementById('replenshing_type').disabled = false; 
+          }
+
+        }else if( c_point < 16 ){
+          if ($('#replenshing_type').val() > 0) {
+            $('#stat_replenshing').text('Good');
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" PB-3100R (KG)");
+          }else{
+            $("#replenshing_add").text("Add");
+            $("#replenshing_type_label").text(" PB-3100R (KG)");
+            $("#replenshing_type_input").val("PB-3100R (KG)");
+            $('#stat_replenshing').text('');
+             document.getElementById('replenshing_type').disabled = false; 
+          }
+        }else{
+          $("#replenshing_add").text("Increase/Decrease");
+          $("#replenshing_type_label").text(" Point");
+          $('#stat_replenshing').text('Good');
+          document.getElementById('replenshing_type').disabled = true;
+          $("#replenshing_type_input").val("");
+          $("#replenshing_type").val("0");
+        }
+
+      }else if(chemtype == "AC-131"){
+        if (c_point < 6) {
+          if ($('#accelerator_type').val() > 0) {
+            $('#stat_accelerator').text('Good');
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" AC-131 (KG)");
+          }else{
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" AC-131 (KG)");
+            $("#accelerator_type_input").val("AC-131 (KG)");
+            $('#stat_accelerator').text('');
+            document.getElementById('accelerator_type').disabled = false; 
+          }
+
+        }else if( c_point > 9.0 ){
+          if ($('#accelerator_type').val() > 0) {
+            $('#stat_accelerator').text('Good');
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" Water (L)");
+          }else{
+            $("#accelerator_add").text("Add");
+            $("#accelerator_type_label").text(" Water (L)");
+            $("#accelerator_type_input").val("Water (L)");
+            $('#stat_accelerator').text('');
+             document.getElementById('accelerator_type').disabled = false; 
+          }
+          
+        }else{
+          $("#accelerator_add").text("Increase/Decrease");
+          $("#accelerator_type_label").text(" Point");
+          $('#stat_accelerator').text('Good');
+          document.getElementById('accelerator_type').disabled = true;
+          $("#accelerator_type_input").val("");
+          $("#accelerator_type").val("0");
+        }
+      }else{
+        if (chemtype == "degreasing_type_val") {
+          if (c_point > 0) {
+            $('#stat_degreasing').text('Good');
+          }else{
+            $('#stat_degreasing').text('');
+          }
+        }else if (chemtype == "replenshing_type_val") {
+          if (c_point > 0) {
+            $('#stat_replenshing').text('Good');
+          }else{
+            $('#stat_replenshing').text('');
+          }
+        }else if (chemtype == "accelerator_type_val") {
+          if (c_point > 0) {
+            $('#stat_accelerator').text('Good');
+          }else{
+            $('#stat_accelerator').text('');
+          }
+        }
+      }
+
+    });
+    $(document).on('change','#present_input', function(){
+      // var valpre = $(this).val();
+      // var valprev = $('#previous_input').val();
+      // var diff = valpre - valprev;
+      // alert(diff);
+      //  $("#incoming_water_discharged").val(diff);
+      console.log('hi');
+    });
+    $(document).on('click', '#painting_chemical_records_frm .next-tab', function(e){
+      e.preventDefault();
+
+      var stat = $('#stat_accelerator').text();
+      if( stat != 'Good'){
+        showNotification("danger", 'Before to proceed in submission of form please checked if all status is Good.', "now-ui-icons travel_info");
+        return false;
+      }
+
+    });
+
+</script>
+<script type="text/javascript">
+  $(document).on('click', '#chemical-records-modal .toggle-manual-input', function(e){
+      $('#chemical-records-modal img').slideToggle();
+      $('#chemical-records-modal .manual').slideToggle();
+    });
+</script>
+<script type="text/javascript">
+  $(document).on('submit', '#painting_chemical_records_frm', function(e){
+      e.preventDefault();
+     
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+           $('#chemical-records-modal').modal('hide');
+           $('#painting_chemical_records_frm').trigger("reset");
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+      });
+    });
+</script>
+<script type="text/javascript">
+  $(document).on('click', '#view-powder-Monitoring-btn', function(event){
+      $.ajax({
+        url:"/get_powder_records_modal_details",
+        type:"GET",
+        success:function(response){
+          $('#powder_record_div').html(response);
+          
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        },
+      }); 
+      $('#item_desc_div').hide();
+       $('#powder-record-modal').modal('show');
+       
+    });
+
+</script>
+
+<script type="text/javascript">
+  $(document).on('focus', '#powder_coating_monitoring_frm input[type=text]', function() {
+      if($(this).data('edit') > 0){
+        active_input = $(this).attr('id');
+      }else{
+        active_input = null;
+      }
+    });
+    $(document).on('click', '#powder_coating_monitoring_frm .decimal', function() {
+      $("#" + active_input).focus();
+      var input = $('#powder_coating_monitoring_frm #' + active_input);
+      var x = input.val();
+      var y = $(this).text();
+      
+      if (x == '0' && y != '.') {
+        x = '';
+      }
+
+      if((x.indexOf(".") > -1) && y == "."){
+        return false;
+      }
+
+      if (x == '0' && y == '.') {
+        x = '0';
+      }
+      var cons= input.attr('data-vali');
+      if(cons =="consumption"){
+        var cons= input.attr('data-id');
+        var balance = $('#powder_coating_monitoring_frm #current' + cons).val();
+        var consume= x + y;
+        var consump = balance - consume;
+        
+        if(consump < 0){
+          showNotification("danger", 'Consumed Qty must be less than Current Qty', "now-ui-icons travel_info");
+        }else{
+          $('#powder_coating_monitoring_frm #bal' + cons).val(consump);
+        }
+      }
+
+      
+      input.val(x + y);
+    });
+    $(document).on('click', '#powder_coating_monitoring_frm .numm', function() {
+      $("#" + active_input).focus();
+      var input = $('#powder_coating_monitoring_frm #' + active_input);
+      var x = input.val();
+      var y = $(this).text();
+      // if (x == 0) {
+      //   x = '';
+      // }
+      if (x == '0' && y != '.') {
+        x = '';
+      }
+
+      if((x.indexOf(".") > -1) && y == "."){
+        return false;
+      }
+
+      if (x == '0' && y == '.') {
+        x = '0';
+      }
+      var cons= input.attr('data-vali');
+      if(cons =="consumption"){
+        var cons= input.attr('data-id');
+        var balance = $('#powder_coating_monitoring_frm #current' + cons).val();
+        var consume= x + y;
+        var consump = balance - consume;
+        
+        if(consump < 0){
+          $('#powder_coating_monitoring_frm #bal' + cons).val("0");
+          showNotification("danger", 'Consumed Qty must be less than Current Qty', "now-ui-icons travel_info");
+        }else{
+          $('#powder_coating_monitoring_frm #bal' + cons).val(consump);
+        }
+      }
+      input.val(x + y);
+
+    });
+
+    $(document).on('click', '#powder_coating_monitoring_frm .clear', function() {
+      $("#" + active_input).focus();
+      var input = $('#powder_coating_monitoring_frm #' + active_input);
+      var x = input.val();
+      var cons= input.attr('data-vali');
+      console.log(x);
+      if(cons =="consumption"){
+        var cons= input.attr('data-id');
+        var balance = $('#powder_coating_monitoring_frm #current' + cons).val();
+        var consume= x;
+        var consump = balance - consume;
+        
+        if(consump < 0){
+          $('#powder_coating_monitoring_frm #bal' + cons).val("0");
+          showNotification("danger", 'Consumed Qty must be less than Current Qty', "now-ui-icons travel_info");
+        }else{
+          $('#powder_coating_monitoring_frm #bal' + cons).val(consump);
+        }
+      }
+      input.val(0);
+    });
+
+    $(document).on('click', '#powder_coating_monitoring_frm .del', function() {
+      $("#" + active_input).focus();
+      var input = $('#powder_coating_monitoring_frm #' + active_input);
+      var x = input.val();
+ 
+      input.val(x.substring(0, x.length - 1));
+  
+      if (input.val().length == 0) {
+        input.val(0);
+      }
+      
+      var cons= input.attr('data-vali');
+      console.log(x);
+      if(cons =="consumption"){
+        var cons= input.attr('data-id');
+        var balance = $('#powder_coating_monitoring_frm #current' + cons).val();
+        var consume= x.substring(0, x.length - 1);
+        var consump = balance - consume;
+        
+        if(consump < 0){
+          $('#powder_coating_monitoring_frm #bal' + cons).val("0");
+          showNotification("danger", 'Consumed Qty must be less than Current Qty', "now-ui-icons travel_info");
+        }else{
+          $('#powder_coating_monitoring_frm #bal' + cons).val(consump);
+        }
+      }
+    });
+    
+</script>
+<script type="text/javascript">
+  $(document).on('click', '#powder-record-modal .toggle-manual-input', function(e){
+      $('#powder-record-modal img').slideToggle();
+      $('#powder-record-modal .manual').slideToggle();
+    });
+</script>
+<script type="text/javascript">
+     $(document).on('click', '#powder_coating_monitoring_frm .numm', function() {
+
+        var valpre = $('#present_input_qty').val();
+        // var valprev = $('#previous_input').val();
+        // if (valpre == 0 || valpre =="") {
+        //   $("#incoming_powder").val(0);
+        // }
+        // var diff = valpre - valprev;
+        //  $("#incoming_powder").val(diff);
+        $("#incoming_powder").val(valpre);
+
+    });
+
+</script>
+
+<script type="text/javascript">
+ 
+    $(document).on('change','.item_code_selection', function(){
+      var valpre = $(this).val();
+    if(valpre == "none"){
+
+    }else{
+        $.ajax({
+          url:"/get_pwder_coat_desc/"+ valpre,
+          type:"GET",
+          success:function(data){
+            
+            $('#item_desc_label').html(data.item_desc);
+            $('#item_label').html(data.item);
+            $('#item_desc_div').show();
+          }
+        });
+    }
+     
+    });
+</script>
+<script>
+ $(document).on('submit', '#powder_coating_monitoring_frm', function(e){
+      e.preventDefault();
+     
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#powder-record-modal').modal('hide');
+           $('#powder_coating_monitoring_frm').trigger("reset");
+
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+      });
+    });
+
+    function get_itemcode_painting(){
+        $.ajax({
+          url: "/get_item_code_stock_adjustment_entries_painting",
+          method: "GET",
+          success: function(data) {
+          $('#itemcode_line_painting').html(data);
+            
+          },
+          error: function(data) {
+          alert(data);
+          }
+        });
+    }
+    $(document).on('click', '.btn-stock-adjust-entry-painting', function(){
+        get_itemcode_painting();
+        $('#balance_qty_id_painting').val("");
+        $('#item_description_input_painting').val("");
+        $('#actual_qty_id_painting').text(0);
+        $('#planned_qty_id_painting').text(0);
+        $('#add-stock-entries-adjustment-painting').modal('show');
+        $('#item_desc_div_painting').hide();
+        $('#entry_type_div_painting').hide();
+    });
+    $('#add-stock-entries-adjustment-painting-frm').submit(function(e){
+      e.preventDefault();
+      var item_code = $('#itemcode_line').val();
+      
+      if(item_code == "default"){
+        showNotification("danger", "Pls Select Item code", "now-ui-icons travel_info");
+      }else{
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-stock-entries-adjustment-painting-frm').trigger("reset");
+            $('#balance_qty_id_painting').val("");
+            $('#item_description_input_painting').val("");
+            $('#actual_qty_id_painting').text('0');
+            $('#planned_qty_id_painting').text('0');
+            $('#add-stock-entries-adjustment-painting').modal('hide');
+            $('#item_desc_div_painting').hide();
+            $('#entry_type_div_painting').hide();
+            tbl_painting_stock_list();
+            powder_coat_Chart();
+            // inventory_history_list();
+
+                // $('#edit-worktation-frm').trigger("reset");
+                // workstation_list();
+
+          } 
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      }); 
+      }
+    });
+    $(document).on('click', '#tbl_painting_stock_pagination a', function(event){
+         event.preventDefault();
+         var page = $(this).attr('href').split('page=')[1];
+         var filter_contents = "inventory_painting";
+         var filter_content = "stock-list-painting";
+		     var query = $('#inv-search-box').val();
+	    	 var filters = 'q=' + query + '&' + $('#' + filter_contents).serialize();
+         tbl_painting_stock_list(page, filters);
+    });
+    $(document).on('click', '#tbl_painting_consumed_pagination a', function(event){
+         event.preventDefault();
+         var page = $(this).attr('href').split('page=')[1];
+         var filter_contents = "consumed_list_powder";
+         var filter_content = "powderconsume-list-painting";
+		     var query = $('#inv-search-box').val();
+	    	 var filters = 'q=' + query + '&' + $('#' + filter_contents).serialize();
+         tbl_powder_consumed_list(page, filters);
+    });
 </script>
 @endsection

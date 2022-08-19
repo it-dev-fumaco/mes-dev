@@ -1,11 +1,22 @@
 <div class="container-fluid p-0">
     @forelse ($painting_processes as $painting)
       @php
-        $unloaded_qty = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
+        // $unloaded_qty = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
+        $unloaded_completed = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
+        $unloaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Unloading']) ? $tl_array[$painting->production_order]['In Progress']['Unloading'] : 0;
+
+        $loaded_completed = isset($tl_array[$painting->production_order]['Completed']['Loading']) ? $tl_array[$painting->production_order]['Completed']['Loading'] : 0;
+        $loaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Loading']) ? $tl_array[$painting->production_order]['In Progress']['Loading'] : 0;
+
+        $total_unloaded = $unloaded_completed + $unloaded_in_progress;
+        $total_loaded = $loaded_completed + $loaded_in_progress;
+
+        $balance = $total_loaded - $total_unloaded;
+        $balance = $balance > 0 ? $balance : 0;
       @endphp
         <div class="card">
             <div class="card-body">
-                <div class="row p-0">
+                <div class="row p-2">
                     <div class="col-5" style="font-size: 8pt;">
                       <div class="waves-effect waves z-depth-4 d-flex flex-row justify-content-start align-items-center">
                         <div class="spinner-grow {{ $painting->status == 'Completed' ? 'd-none' : null }}" style="background-color: #F57F17">
@@ -22,13 +33,13 @@
                         @if ($process_name == 'Loading')
                           @if ($unloaded_qty > 0)
                             <div class="col-4">
-                              <span class="badge badge-primary" style="font-size: 9pt;">Unloaded: <b>{{ $unloaded_qty }}</b></span>
+                              <span class="badge badge-primary" style="font-size: 9pt;">Unloaded: <b>{{ $total_unloaded }}</b></span>
                             </div>
                           @endif
                         @else
                           @if ($painting->good > 0 && $painting->status != 'Completed')
                             <div class="col-4">
-                              <span class="badge badge-primary" style="font-size: 9pt;">In Progress: <b>{{ $painting->good }}</b></span>
+                              <span class="badge badge-primary" style="font-size: 9pt;">In Progress: <b>{{ $balance }}</b></span>
                             </div>
                           @endif
                         @endif
@@ -38,8 +49,10 @@
                           </div>
                         @endif
                       </div>
+                      <div class="qc_passed p-0 {{ !isset($qa_check[$painting->time_log_id]) ? 'd-none' : null }}" style="margin-top: 10px; width: 40px; height: 40px;"></div>
+
                     </div>
-                    <div class="col-2 d-flex flex-row justify-content-start align-items-center" style="font-size: 10pt;">
+                    <div class="col-2 p-0 d-flex flex-row justify-content-start align-items-center" style="font-size: 10pt;">
                       <div class="container text-center">
                         <h6 class="mt-2">
                           @if ($process_name == 'Loading')
@@ -49,7 +62,7 @@
                           @endif
                         </h6>
                         <h2 class="font-weight-bold">
-                          {{ $process_name == 'Loading' ? $painting->good : $unloaded_qty }}
+                          {{ $process_name == 'Loading' ? $painting->good : $total_unloaded }}
                         </h2>
                       </div>
                     </div>
@@ -78,7 +91,7 @@
                         </div>
 
                         <div class="col-4 p-0">
-                            <button type="button" class="btn btn-block btn-danger sub-btn" id="enter-reject-btn" data-process-name="Loading" data-production-order="{{ $painting->production_order }}" data-timelog-id="{{ $painting->time_log_id }}" data-good="{{ $painting->good }}">
+                            <button type="button" class="btn btn-block btn-danger sub-btn" id="enter-reject-btn" data-process-name="Loading" data-production-order="{{ $painting->production_order }}" data-timelog-id="{{ $painting->time_log_id }}" data-good="{{ $balance }}">
                               <i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Enter Reject</span>
                             </button>
                         </div>
@@ -86,7 +99,7 @@
                         @if ($process_name == 'Unloading')
                           <div class="col-4 p-0">
                             @if ($painting->status == 'In Progress')
-                              <button type="button" class="btn btn-block btn-warning end-task-btn" style="width: 140px !important; height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $painting->good }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
+                              <button type="button" class="btn btn-block btn-warning end-task-btn sub-btn" style="height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $balance }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
                                 <div class="waves-effect waves z-depth-4">
                                   <div class="spinner-grow">
                                     <span class="sr-only">Loading...</span>
@@ -109,7 +122,7 @@
     @empty
         @if ($process_name == 'Loading')
           <div class="row">
-            <div class="card" style="min-height: 500px;">
+            <div class="cards w-100" style="min-height: 500px;">
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
@@ -170,16 +183,16 @@
     }
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
-    background-size: 28%;
+    background-size: 100%;
     background-repeat: no-repeat;
-    background-position: center; 
+    background-position: left; 
   }
 
   .qc_failed{
     background-image: url("{{ asset('img/x.png') }}");
-    background-size: 20%;
+    background-size: 100%;
     background-repeat: no-repeat;
-    background-position: center; 
+    background-position: left; 
   }
   
   .tap_here {

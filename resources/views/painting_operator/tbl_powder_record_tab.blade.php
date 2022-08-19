@@ -146,6 +146,7 @@
                       <div class="text-center numpad-div manual col-md-12" style="display: none;">
                         <div class="row1">
                            <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '1';">1</span>
+                           {{-- <span class="numpad num-test">1</span> --}}
                            <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '2';">2</span>
                            <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '3';">3</span>
                         </div>
@@ -307,6 +308,11 @@
   });
 </script>
 <script>
+
+   // $('.num-test').click(function (){
+   //    var num = $(this).text();
+   //    $('#inspected-by').val( $('#inspected-by').val() + (num) );
+   // });
 
     $('#powder-record-modal .next-tab').click(function(){
       

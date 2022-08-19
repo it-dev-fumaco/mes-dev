@@ -246,10 +246,12 @@
 												<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
+												@if ($b['workstation'] != 'Painting')
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+												@endif
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
-												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
+												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@if ($item_details['feedback_qty'] <= 0)
 												<td class="text-center" style="border: 1px solid #ABB2B9;">
 													<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">

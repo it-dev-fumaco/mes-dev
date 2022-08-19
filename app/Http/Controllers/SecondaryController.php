@@ -7138,7 +7138,7 @@ class SecondaryController extends Controller
         ->where('item.item_classification', ['PA - Paints'])
         ->where('item.item_name','like', '%powder%')
         ->orderBy('item.modified', 'desc')
-        ->select('item.name', 'item.item_name', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name')
         ->get();
 
             foreach($item_list as $row)
@@ -7270,7 +7270,7 @@ class SecondaryController extends Controller
         ->where('item.item_classification', ['PA - Paints'])
         ->where('item.item_name','like', '%powder%')
         ->orderBy('item.modified', 'desc')
-        ->select('item.name', 'item.item_name', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name')
         ->get();
 
         $output="<option value='default'>Select Item Code</option>";
