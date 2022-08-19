@@ -201,9 +201,7 @@ class QualityInspectionController extends Controller
                             ];
                         }
 
-                        return $reject_values;
-
-                        // DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
+                        DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
                     }
                     
                     $this->update_job_ticket($job_ticket_details->job_ticket_id);
