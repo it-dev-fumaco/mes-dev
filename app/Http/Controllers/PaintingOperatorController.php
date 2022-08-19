@@ -489,7 +489,7 @@ class PaintingOperatorController extends Controller
 
 			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->first();
 
-			$loaded_qty = $current_task->good - $current_task->reject;
+			$loaded_qty = $current_task->good;
 			$unloaded_qty = $unloading_time_log ? $unloading_time_log->good + $request->completed_qty : $request->completed_qty;
 			if($loaded_qty == $unloaded_qty || $unloaded_qty == $production_order_details->qty_to_manufacture){
 				$status =  'Completed';
@@ -531,6 +531,7 @@ class PaintingOperatorController extends Controller
 				DB::connection('mysql_mes')->table('time_logs')->insert($values);
 			}
 
+			$this->update_job_ticket($current_task->job_ticket_id);
 			$this->update_job_ticket($unloading_jt->job_ticket_id);
 			// get completed qty in painting workstation
 			$painting_completed_qty = DB::connection('mysql_mes')->table('job_ticket')
