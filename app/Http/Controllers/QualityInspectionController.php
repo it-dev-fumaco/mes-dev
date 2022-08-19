@@ -123,7 +123,6 @@ class QualityInspectionController extends Controller
                             ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
                             ->where('time_logs.time_log_id', $request->time_log_id)->first();
                     }
-                        
                     $production_order = $job_ticket_details->production_order;
                     $workstation = $job_ticket_details->workstation;
 
@@ -352,7 +351,7 @@ class QualityInspectionController extends Controller
                         }
                     }
                 }
-                // DB::connection('mysql_mes')->commit();
+                DB::connection('mysql_mes')->commit();
                 return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
             }
         } catch (Exception $e) {

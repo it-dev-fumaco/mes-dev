@@ -51,11 +51,6 @@
                 </div>
                 <div class="col-6">
                   <div class="row pt-0">
-                    {{-- <div class="col-6 {{ $process_name == 'Unloading' ? 'offset-6' : null }}">
-                      <button type="button" class="btn btn-block" style="background-color: #6a1b9a; display: flex; justify-content: center; align-items: center;" id="machine-breakdown-modal-btn">
-                        <i class="now-ui-icons ui-2_settings-90" style="font-size: 11pt;"></i>&nbsp;<span style="font-size: 8pt;">Maintenance Request</span>
-                      </button>
-                    </div> --}}
                     @if ($process_name == 'Loading')
                       <div class="offset-6 col-6">
                         <button class="btn btn-danger btn-block start-new-task" style="display: flex; justify-content: center; align-items: center;">
@@ -1012,14 +1007,14 @@
             reject_id += $(this).val() + ',';
             reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
           });
-  
+
           var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
           var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
           var reason = '';
           $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
             reason += $(this).data('reject-reason') + ', ';
           });
-  
+
           if(checklist_category){
             if(parseInt(tab_pane_id.find('input[name="qty_checked"]').eq(0).val()) > 0){
               if(reject_qty <= 0){
@@ -1062,6 +1057,12 @@
         
         $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().next().find('.custom-tabs-1').tab('show');
         $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeAttr('active');
+      });
+
+      $(document).on('change', '.select-all-checklist-per-tab', function(e){
+        e.preventDefault();
+        var selector = '.' + $(this).attr('id');
+        $(selector).not(this).prop('checked', this.checked);
       });
   
       $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
@@ -1608,7 +1609,6 @@ $('#end-task-frm').submit(function(e){
 
 </script>
 
-<script>
   <script type="text/javascript">
   $(document).on('click', '#view-chemical-records-btn', function(event){
       $.ajax({

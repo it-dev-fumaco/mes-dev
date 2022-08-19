@@ -61,7 +61,15 @@
                           @endif
                         </h6>
                         <h2 class="font-weight-bold">
-                          {{ $process_name == 'Loading' ? $painting->good : $total_unloaded }}
+                          @if ($process_name == 'Loading')
+                              {{ $painting->good }}
+                          @else
+                              @if ($painting->status == 'Completed')
+                                {{ isset($unloaded_per_time_log_id[$painting->time_log_id]) ? $unloaded_per_time_log_id[$painting->time_log_id][0]->good : 0 }}
+                              @else
+                                  {{ $total_unloaded }}
+                              @endif
+                          @endif
                         </h2>
                       </div>
                     </div>

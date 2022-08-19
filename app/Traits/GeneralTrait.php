@@ -72,22 +72,44 @@ trait GeneralTrait
             'actual_end_date' => $job_ticket_actual_end_date,
         ];
         
-        if($job_ticket_detail->workstation == 'Painting' && $current_process == 'Unloading'){
-            $loading_jt = DB::connection('mysql_mes')->table('job_ticket')
-                ->join('process', 'process.process_id', 'job_ticket.process_id')
-                ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
-                ->first();
+        if($job_ticket_detail->workstation == 'Painting'){
+            if($current_process == 'Unloading'){
+                $loading_jt = DB::connection('mysql_mes')->table('job_ticket')
+                    ->join('process', 'process.process_id', 'job_ticket.process_id')
+                    ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
+                    ->first();
 
-            $loaded_qty = $loading_jt ? $loading_jt->completed_qty : 0;
-            if($total_good == $loaded_qty && $job_ticket_detail->qty_to_manufacture > $total_good){
-                $job_ticket_status = 'Pending';
+                $loaded_qty = $loading_jt ? $loading_jt->completed_qty : 0;
+                if($total_good == $loaded_qty && $job_ticket_detail->qty_to_manufacture > $total_good){
+                    $job_ticket_status = 'Pending';
+                }
+
+                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => $job_ticket_status]);
+            }else{ // Loading
+                $total_loading = DB::connection('mysql_mes')->table('job_ticket')
+                    ->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+                    ->join('process', 'process.process_id', 'job_ticket.process_id')
+                    ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
+                    ->selectRaw('job_ticket.job_ticket_id, SUM(time_logs.good) as good')
+                    ->groupBy('job_ticket.job_ticket_id')->first();
+
+                $total_unloading = DB::connection('mysql_mes')->table('job_ticket')
+                    ->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+                    ->join('process', 'process.process_id', 'job_ticket.process_id')
+                    ->where('process_name', 'Unloading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
+                    ->where('time_logs.status', 'Completed')
+                    ->selectRaw('job_ticket.job_ticket_id, SUM(time_logs.good) as good')
+                    ->groupBy('job_ticket.job_ticket_id')->first();
+
+                if($total_loading && $total_unloading){
+                    if($total_loading->good == $total_unloading->good && $job_ticket_detail->qty_to_manufacture <= $total_good){
+                        $job_ticket_status = 'Completed';
+                    }
+                }
             }
-
-            DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => $job_ticket_status]);
         }
 
         $job_ticket_values['status'] = $job_ticket_status;
-        
         DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->update($job_ticket_values);
 
         // update production order operation in ERP

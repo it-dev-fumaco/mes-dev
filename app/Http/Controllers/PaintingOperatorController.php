@@ -257,6 +257,18 @@ class PaintingOperatorController extends Controller
 			})
 			->get();
 
+		$unloaded_per_time_log_id = [];
+		if($process_name == 'Unloading'){
+			$unloaded_per_time_log_id = DB::connection('mysql_mes')->table('job_ticket')
+				->join('process', 'process.process_id', 'job_ticket.process_id')
+				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+				->whereIn('process.process_name', ['Loading', 'Unloading'])->whereIn('job_ticket.production_order', collect($painting_processes)->pluck('production_order'))
+				->selectRaw('job_ticket.production_order, process.process_name, time_logs.time_log_id, time_logs.status, SUM(time_logs.good) as good')
+				->groupBy('job_ticket.production_order', 'process.process_name', 'time_logs.time_log_id', 'time_logs.status')->get();
+
+			$unloaded_per_time_log_id = collect($unloaded_per_time_log_id)->groupBy('time_log_id');
+		}
+
 		$time_logs_unloading = DB::connection('mysql_mes')->table('job_ticket')
 			->join('process', 'process.process_id', 'job_ticket.process_id')
 			->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -272,7 +284,7 @@ class PaintingOperatorController extends Controller
 		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->get();
 		$qa_check = collect($qa)->groupBy('reference_id');
 
-		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'time_logs_unloading', 'tl_array', 'qa_check'));
+		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'time_logs_unloading', 'tl_array', 'qa_check', 'unloaded_per_time_log_id'));
 	}
 
 	// /reject_painting
