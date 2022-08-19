@@ -1004,15 +1004,19 @@
           }
   
           $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            reject_id += $(this).val() + ',';
-            reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
+            if($.isNumeric($(this).val())){
+              reject_id += $(this).val() + ',';
+              reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
+            }
           });
 
           var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
           var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
           var reason = '';
           $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            reason += $(this).data('reject-reason') + ', ';
+            if($.isNumeric($(this).val())){
+              reason += $(this).data('reject-reason') + ', ';
+            }
           });
 
           if(checklist_category){
