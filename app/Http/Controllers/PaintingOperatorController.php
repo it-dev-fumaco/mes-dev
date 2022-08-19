@@ -101,8 +101,8 @@ class PaintingOperatorController extends Controller
 	}
 
 	public function loading_login(Request $request){
-		$process_name = $request->process ? $request->process : 'Loading';
-		return view('painting_operator.loading_login', compact('process_name'));
+		$process = $request->process ? $request->process : 'Loading';
+		return view('painting_operator.loading_login', compact('process'));
 	}
 
 	public function get_production_order_details($production_order, $process_id){
@@ -216,12 +216,13 @@ class PaintingOperatorController extends Controller
 		$completed_painting = [];
 		if($process_name == 'Unloading'){
 			$completed_painting = DB::connection('mysql_mes')->table('job_ticket')
-			->join('process', 'job_ticket.process_id', 'process.process_id')
-			->join('production_order as po', 'po.production_order', 'job_ticket.production_order')
-			->join('time_logs as tl', 'tl.job_ticket_id', 'job_ticket.job_ticket_id')
-			->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
-			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
-			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)->select('job_ticket.production_order', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good', 'po.qty_to_manufacture');
+				->join('process', 'job_ticket.process_id', 'process.process_id')
+				->join('production_order as po', 'po.production_order', 'job_ticket.production_order')
+				->join('time_logs as tl', 'tl.job_ticket_id', 'job_ticket.job_ticket_id')
+				->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
+				->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
+				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
+				->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good', 'po.qty_to_manufacture', 'tl.reject');
 		}
 		
 		$painting_processes = DB::connection('mysql_mes')->table('job_ticket')
@@ -229,21 +230,27 @@ class PaintingOperatorController extends Controller
 			->join('production_order as po', 'po.production_order', 'job_ticket.production_order')
 			->join('time_logs as tl', 'tl.job_ticket_id', 'job_ticket.job_ticket_id')
 			->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
-			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')
-			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')
-			->select('job_ticket.production_order', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good', 'po.qty_to_manufacture')
+			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
+			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
+			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
 			->when($process_name == 'Unloading', function ($q) use ($completed_painting){
 				return $q->union($completed_painting);
 			})
 			->get();
 
-		$unloading_qty = DB::connection('mysql_mes')->table('job_ticket')
+		$time_logs_unloading = DB::connection('mysql_mes')->table('job_ticket')
 			->join('process', 'process.process_id', 'job_ticket.process_id')
-			->where('process_name', 'Unloading')->whereIn('job_ticket.production_order', collect($painting_processes)->pluck('production_order'))
-			->get();
-		$unloading_qty = collect($unloading_qty)->groupBy('production_order');
+			->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+			->whereIn('process.process_name', ['Loading', 'Unloading'])->whereIn('job_ticket.production_order', collect($painting_processes)->pluck('production_order'))
+			->selectRaw('job_ticket.production_order, process.process_name, time_logs.status, SUM(time_logs.good) as good')
+			->groupBy('job_ticket.production_order', 'process.process_name', 'time_logs.status')->get();
 
-		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'unloading_qty'));
+		$tl_array = [];
+		foreach($time_logs_unloading as $tl){
+			$tl_array[$tl->production_order][$tl->status][$tl->process_name] = $tl->good;
+		}
+
+		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'time_logs_unloading', 'tl_array'));
 	}
 
 	// /reject_painting
@@ -408,45 +415,26 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Production Order '.$request->production_order.' not found.']);
 			}
 
-			$in_progress_time_log = DB::connection('mysql_mes')->table('time_logs')
-				->where('job_ticket_id', $request->job_ticket_id)
-				->where('operator_id', Auth::user()->user_id)
-				->whereIn('status', ['In Progress', 'Pending'])->first();
-			
-			if (!$in_progress_time_log) {
-				$values = [
-					'job_ticket_id' => $request->job_ticket_id,
-					'from_time' => $now->toDateTimeString(),
-					'machine_code' => $request->machine_code,
-					'good' => $request->qty,
-					'machine_name' => $machine_name,
-					'operator_id' => $operator->user_id,
-					'operator_name' => $operator->employee_name,
-					'operator_nickname' => $operator->nick_name,
-					'status' => $production_order->qty_to_manufacture == $request->qty ? 'Completed' : 'In Progress',
-					'created_by' => $operator->employee_name,
-					'created_at' => $now->toDateTimeString(),
-				];
+			$values = [
+				'job_ticket_id' => $request->job_ticket_id,
+				'from_time' => $now->toDateTimeString(),
+				'machine_code' => $request->machine_code,
+				'good' => $request->qty,
+				'machine_name' => $machine_name,
+				'operator_id' => $operator->user_id,
+				'operator_name' => $operator->employee_name,
+				'operator_nickname' => $operator->nick_name,
+				'status' => 'In Progress',
+				'created_by' => $operator->employee_name,
+				'created_at' => $now->toDateTimeString(),
+			];
 
-				if ($production_order->status == 'Not Started') {
-					DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
-				}
-
-				DB::connection('mysql_mes')->table('time_logs')->insert($values);
-			}else{
-				if($production_order->qty_to_manufacture < $in_progress_time_log->good + $request->qty){
-					return response()->json(['success' => 0, 'message' => 'Requested Qty exceeds Qty to manufacture']);
-				}
-
-				$values = [
-					'good' => $in_progress_time_log->good + $request->qty,
-					'last_modified_by' => $operator->employee_name,
-					'last_modified_at' => $now->toDateTimeString(),
-					'status' => 'In Progress'
-				];
-
-				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $in_progress_time_log->time_log_id)->update($values);
+			if ($production_order->status == 'Not Started') {
+				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
+
+			DB::connection('mysql_mes')->table('time_logs')->insert($values);
+
 			$this->update_job_ticket($request->job_ticket_id);
 
 			DB::connection('mysql')->commit();
@@ -499,12 +487,12 @@ class PaintingOperatorController extends Controller
 				->where('process_name', 'Unloading')->where('job_ticket.production_order', $request->production_order)
 				->first();
 
-			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->first();
+			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->first();
 
 			$loaded_qty = $current_task->good - $current_task->reject;
 			$unloaded_qty = $unloading_time_log ? $unloading_time_log->good + $request->completed_qty : $request->completed_qty;
-			if($loaded_qty == $unloaded_qty){
-				$status = $unloaded_qty == $production_order_details->qty_to_manufacture ? 'Completed' : 'Pending';
+			if($loaded_qty == $unloaded_qty || $unloaded_qty == $production_order_details->qty_to_manufacture){
+				$status =  'Completed';
 			}else{
 				$status = 'In Progress';
 			}
@@ -519,6 +507,7 @@ class PaintingOperatorController extends Controller
 
 			if($unloading_time_log){
 				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_time_log->time_log_id)->update([
+					'to_time' => $now->toDateTimeString(),
 					'last_modified_by' => $operator->employee_name,
 					'last_modified_at' => Carbon::now()->toDateTimeString(),
 					'good' => $unloaded_qty,

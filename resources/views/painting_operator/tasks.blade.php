@@ -1155,8 +1155,6 @@ $('#end-task-frm').submit(function(e){
     });
 
     @if ($process_name == 'Loading')
-      get_scheduled_for_painting();
-      setInterval(get_scheduled_for_painting, 5000);
       function get_scheduled_for_painting(){
         $.ajax({
           url:"/get_scheduled_for_painting",

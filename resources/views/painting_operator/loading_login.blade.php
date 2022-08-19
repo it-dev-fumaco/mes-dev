@@ -347,7 +347,7 @@
 
         var data = {  
             operator_id: operator_id,
-            process_name: '{{ $process_name }}',
+            process_name: '{{ $process }}',
             _token: '{{ csrf_token() }}'
         }
 

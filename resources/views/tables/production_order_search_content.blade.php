@@ -161,13 +161,13 @@
 										<tbody style="font-size: 9pt;">
 											@foreach ($operation_list as $b)
 											@php
-											if($b['workstation'] == "Spotwelding"){
-												$spotclass= "spotclass";
-												$icon = '<span style="font-size:15px;">&nbsp; >></span>';
-											}else{
-												$spotclass= "";
-												$icon="";
-											}
+												if($b['workstation'] == "Spotwelding"){
+													$spotclass= "spotclass";
+													$icon = '<span style="font-size:15px;">&nbsp; >></span>';
+												}else{
+													$spotclass= "";
+													$icon="";
+												}
 											@endphp
 											<tr>
 												<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
@@ -176,7 +176,7 @@
 													</span>
 													<br><span style="font-size:9px;"><i>{{ $b['cycle_time'] }}</i></span>
 												</td>
-												@if (count($b['operations']) > 0)
+												@if (count($b['operations']) > 0 )
 												<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
 													<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
 														<b>{{ $b['process'] }}</b>
@@ -190,6 +190,7 @@
 													$from_time = ($c['from_time']) ? $c['from_time'] : '-';
 													$to_time = ($c['to_time']) ? $c['to_time'] : '-';
 													$inprogress_class = ($c['status'] == 'In Progress') ? 'active-process' : '';
+													
 													if($b['process'] == "Housing and Frame Welding"){
 														$qc_status = '';
 													}else{
@@ -200,8 +201,8 @@
 												<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['good']) }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['reject']) }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
-												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $from_time }}</td>
-												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $to_time }}</td>
+												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
+												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 													<span class="hvrlink-plan">{{ $operator_name }}</span>
 													@if($b['workstation'] != "Spotwelding")
@@ -247,8 +248,8 @@
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
+												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
 												@if ($item_details['feedback_qty'] <= 0)
 												<td class="text-center" style="border: 1px solid #ABB2B9;">
 													<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
