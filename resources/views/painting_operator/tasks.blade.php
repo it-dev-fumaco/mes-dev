@@ -91,8 +91,8 @@
 <div class="modal fade" id="search-jt-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Scan Job Ticket</h5>
+            <div class="modal-header text-white" style="background-color:#011F3D;">
+                <h5 class="modal-title" id="exampleModalLabel">Scan / Enter Job Ticket</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -148,7 +148,7 @@
 <div class="modal fade" id="selected-jt-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header text-white" style="background-color: #011F3D;">
                 <h5 class="modal-title text-placeholder font-weight-bold" id="production-order"></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -157,20 +157,12 @@
             <div class="modal-body">
                 <div class="container-fluid" id="production-order-container">
                     <div class="row d-flex flex-row justify-content-start align-items-center">
-                        <div class="col-11 mx-auto">
-                          <div class="form-group">
-                            <div class="input-group">
-                                <input type="text" class="form-control input-placeholder qty-grp" id="qty" style="font-size: 10pt; border: 1px solid #6C757D" value="" placeholder='Enter Qty' required>
-                            </div>
-                            <span class="font-weight-bold d-none">Max: <span id="max"></span></span>
-                            <small class="font-italic font-weight-bold empty-qty-warning d-none" style="color: red">Please enter qty</small>
-                          </div>
-                        </div>
+                       
                         <div class="col-11 mx-auto text-left">
-                            <span style="font-size: 11pt; display: block;"><span class="text-placeholder" id="reference"></span> - <span class="text-placeholder" id="classification"></span></span>
+                            <span class="font-weight-bold d-block text-center" style="font-size: 11pt; display: block;"><span class="text-placeholder" id="reference"></span> - <span class="text-placeholder" id="classification"></span></span>
                             <span style="font-size: 10pt; color: #707B7C; display: block;">Customer</span>
-                            <span style="font-size: 11pt; display: block;"><span class="text-placeholder" id="customer-name"></span></span>
-                            <span style="font-size: 10pt; color: #707B7C; display: block;">Item Description</span>
+                            <span style="font-size: 11pt; display: block;"><span class="text-placeholder font-weight-bold" id="customer-name"></span></span>
+                            <span style="font-size: 10pt; color: #707B7C; display: block; margin-top: 8px;">Item Description</span>
                             <span class="text-justify" style="font-size: 10pt; display: block;">
                                 <b><span class="text-placeholder" id="item-code"></span></b> - <span class="text-placeholder" id="item-description"></span>
                             </span>
@@ -181,6 +173,16 @@
                                 <span class="text-placeholder" id="process-id"></span>
                                 <span id="machine-code">{{ $machine_details->machine_code }}</span>
                             </div>
+                        </div>
+                        
+                        <div class="col-8 mx-auto">
+                          <div class="form-group" style="margin-top: 20px;">
+                            <div class="input-group">
+                                <input type="text" class="form-control input-placeholder qty-grp rounded" id="qty" style="font-size: 16pt; border: 1px solid #6C757D; text-align: center; font-weight: bold;" value="" placeholder='Enter Qty' required>
+                            </div>
+                            <span class="font-weight-bold d-none">Max: <span id="max"></span></span>
+                            <small class="font-italic font-weight-bold empty-qty-warning d-none" style="color: red">Please enter qty</small>
+                          </div>
                         </div>
                         <div class="col-12 mt-2 mx-auto">
                             <div id="qty-numpad">

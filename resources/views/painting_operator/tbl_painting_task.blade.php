@@ -13,21 +13,21 @@
         $balance = $loaded_in_progress - $unloaded_in_progress;
         $balance = $balance > 0 ? $balance : 0;
       @endphp
-        <div class="card">
-            <div class="card-body">
-                <div class="row p-2">
-                    <div class="col-5" style="font-size: 8pt;">
+        <div class="card m-1">
+            <div class="card-body p-0 m-0">
+                <div class="row p-1 m-0">
+                    <div class="col-5 p-2" style="font-size: 8pt;">
                       <div class="waves-effect waves z-depth-4 d-flex flex-row justify-content-start align-items-center">
                         <div class="spinner-grow {{ $painting->status == 'Completed' ? 'd-none' : null }}" style="background-color: #F57F17">
                           <span class="sr-only">Loading...</span>
-                        </div>&nbsp;<b>{{ $painting->production_order }}</b>
+                        </div>&nbsp;<span style="font-size: 9pt;" class="font-weight-bold">{{ $painting->production_order }}</span>
                       </div>
                       <div class="text-justify">
                         <span><b>{{ $painting->item_code }}</b> - {{ $painting->description }}</span>
                       </div>
-                      <div class="row">
+                      <div class="row mt-2">
                         <div class="col-4">
-                          <span>To produce: {{ $painting->qty_to_manufacture }}</span>
+                          <span>To produce: <b>{{ $painting->qty_to_manufacture }}</b></span>
                         </div>
                         @if ($process_name == 'Loading')
                           @if ($total_unloaded > 0)
@@ -65,7 +65,7 @@
                         </h2>
                       </div>
                     </div>
-                    <div class="col-5 p-0 d-flex flex-row justify-content-start align-items-center">
+                    <div class="col-5 p-2 d-flex flex-row justify-content-start align-items-center">
                         @php
                             $disable_restart = '';
                             if(isset($time_logs_unloading[$painting->production_order])){
@@ -98,7 +98,7 @@
                         @if ($process_name == 'Unloading')
                           <div class="col-4 p-0">
                             @if ($painting->status == 'In Progress')
-                              <button type="button" class="btn btn-block btn-warning end-task-btn sub-btn" style="height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $balance }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
+                              <button type="button" class="btn btn-block btn-warning end-task-btn sub-btn m-0" style="height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $balance }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
                                 <div class="waves-effect waves z-depth-4">
                                   <div class="spinner-grow">
                                     <span class="sr-only">Loading...</span>
