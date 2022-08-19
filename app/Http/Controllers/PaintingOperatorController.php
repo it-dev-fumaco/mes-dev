@@ -100,8 +100,8 @@ class PaintingOperatorController extends Controller
         return view('painting_operator.index', compact('process_details', 'machine_status', 'painting_process', 'breaktime_data'));
 	}
 
-	public function loading_login(Request $request){
-		$process = $request->process ? $request->process : 'Loading';
+	public function loading_login(Request $request, $process){
+		// $process = $request->process ? $request->process : 'Loading';
 		return view('painting_operator.loading_login', compact('process'));
 	}
 
@@ -158,8 +158,10 @@ class PaintingOperatorController extends Controller
 		if (!$painting_machine) {
 			return response()->json(['success' => 0, 'message' => 'Machine for Painting not found.']);
 		}
+
+		$process = $request->process_name ? $request->process_name : 'Loading';
 		
-		$url = '/operator/Painting/' . $request->process_name.'/index';// . '/' . $painting_machine->machine_code  . '/' . $request->production_order;
+		$url = '/operator/Painting/' . $request->process_name;// . '/' . $painting_machine->machine_code  . '/' . $request->production_order;
 
 		// attempt to do the login
         if ($user) {
@@ -177,8 +179,9 @@ class PaintingOperatorController extends Controller
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
 		if(!Auth::user()){
-			// return redirect('/operator/Painting/login');
-			return redirect()->action("PaintingOperatorController@loading_login", ['process' => $process_name]);
+			// return 1;
+			return redirect('/operator/Painting/'.$process_name.'/login');
+			// return redirect()->action("PaintingOperatorController@loading_login", ['process' => $process_name]);
 		}
 
 		$machine_code = 'M00200';
@@ -727,7 +730,7 @@ class PaintingOperatorController extends Controller
 	
 	public function logout($process_name){
         Auth::guard('web')->logout();
-        $route = '/operator/Painting/' . $process_name .'/index';
+        $route = '/operator/Painting/' . $process_name;
         return redirect($route);
 	}
 
