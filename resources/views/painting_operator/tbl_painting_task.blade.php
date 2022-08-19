@@ -1,7 +1,6 @@
 <div class="container-fluid p-0">
     @forelse ($painting_processes as $painting)
       @php
-        // $unloaded_qty = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
         $unloaded_completed = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
         $unloaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Unloading']) ? $tl_array[$painting->production_order]['In Progress']['Unloading'] : 0;
 
@@ -11,7 +10,7 @@
         $total_unloaded = $unloaded_completed + $unloaded_in_progress;
         $total_loaded = $loaded_completed + $loaded_in_progress;
 
-        $balance = $total_loaded - $total_unloaded;
+        $balance = $loaded_in_progress - $unloaded_in_progress;
         $balance = $balance > 0 ? $balance : 0;
       @endphp
         <div class="card">
@@ -31,7 +30,7 @@
                           <span>To produce: {{ $painting->qty_to_manufacture }}</span>
                         </div>
                         @if ($process_name == 'Loading')
-                          @if ($unloaded_qty > 0)
+                          @if ($total_unloaded > 0)
                             <div class="col-4">
                               <span class="badge badge-primary" style="font-size: 9pt;">Unloaded: <b>{{ $total_unloaded }}</b></span>
                             </div>
