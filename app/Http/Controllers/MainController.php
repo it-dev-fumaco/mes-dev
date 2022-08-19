@@ -7496,4 +7496,202 @@ class MainController extends Controller
 			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
 		}
 	}
+
+	public function viewOverrideForm($production_order) {
+		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)
+			->leftJoin('delivery_date', function($join){
+				$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+				$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+			}) // get delivery date from delivery_date table
+			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')->first();
+
+		if (!$production_order_details) {
+			return response()->json(['message' => 'Production Order <b>' . $production_order . '</b> not found.', 'status' => 1]);
+		}
+
+		$production_order_operations = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
+			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject', 'remarks')
+			->get();
+
+		$operator_logs = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+			->where('jt.workstation', '!=', 'Spotwelding')
+			->where('jt.production_order', $production_order)->get();
+
+		$operator_logs = collect($operator_logs)->groupBy('job_ticket_id')->toArray();
+
+		$spotwelding_operator_logs = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('spotwelding_qty as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+			->where('jt.workstation', 'Spotwelding')
+			->where('jt.production_order', $production_order)->get();
+
+		$spotwelding_operator_logs = collect($spotwelding_operator_logs)->groupBy('job_ticket_id')->toArray();
+
+		$workstation_names = collect($production_order_operations)->pluck('workstation');
+		$workstation_ids = DB::connection('mysql_mes')->table('workstation')->whereIn('workstation_name', $workstation_names)->pluck('workstation_id');
+		$process_ids = collect($production_order_operations)->pluck('process_id');
+
+		$machine_list = DB::connection('mysql_mes')->table('process_assignment')
+				->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
+				->whereIn('process_assignment.workstation_id', $workstation_ids)
+				->whereIn('process_assignment.process_id', $process_ids)
+				->select('machine.*', 'process_assignment.process_id')->get();
+
+		$machine_per_process = collect($machine_list)->groupBy('process_id')->toArray();
+
+		$operators = DB::connection('mysql_essex')->table('users')->orderBy('employee_name', 'asc')->pluck('employee_name', 'user_id');
+		
+		return view('override_production_form', compact('production_order_operations', 'production_order_details', 'machine_per_process', 'operators', 'operator_logs', 'spotwelding_operator_logs'));
+	}
+
+	public function updateOverrideProduction(Request $request) {
+		$data = $request->all();
+		
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+		try {
+			$now = Carbon::now();
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $data['production_order'])->first();
+			if (!$production_order_details) {
+				return response()->json(['status' => 0, 'message' => 'Production order <b>' . $data['production_order'] . '</b> not found.']);
+			}
+			// get workstations
+			$job_ticket_ids = array_keys($data['job_ticket']);
+			$workstations = DB::connection('mysql_mes')->table('job_ticket')->whereIn('job_ticket_id', $job_ticket_ids)->pluck('workstation', 'job_ticket_id')->toArray();
+
+			// timelogs data
+			$timelogs = $spotwelding_logs = [];
+			foreach ($data['job_ticket'] as $job_ticket_id => $value) {
+				$workstation = array_key_exists($job_ticket_id, $workstations) ? $workstations[$job_ticket_id] : null;
+				if ($workstation) {
+					if (isset($value['has_time_logs']) && $value['has_time_logs']) {
+						unset($value['has_time_logs']);
+						// get employee names
+						$employee_ids = array_column($value, 'operator');
+						$employee_names = DB::connection('mysql_essex')->table('users')->whereIn('user_id', $employee_ids)->pluck('employee_name', 'user_id')->toArray();
+						// get machine names
+						$machine_codes = array_column($value, 'machine');
+						$machine_names = DB::connection('mysql_mes')->table('machine')->whereIn('machine_code', $machine_codes)->pluck('machine_name', 'machine_code')->toArray();
+
+						foreach ($value as $time_log_id => $tl) {
+							if (Carbon::parse($tl['start_time'])->gt(Carbon::parse($tl['end_time']))) {
+								return response()->json(['status' => 0, 'message' => 'Start time cannot be greater than End time for <b>' . $workstation . '</b>.']);
+							}
+
+							$machine_name = array_key_exists($tl['machine'], $machine_names) ? $machine_names[$tl['machine']] : null;
+							$employee_name = array_key_exists($tl['operator'], $employee_names) ? $employee_names[$tl['operator']] : null;
+							$seconds = Carbon::parse($tl['end_time'])->diffInSeconds(Carbon::parse($tl['start_time']));
+							$cycle_time_in_seconds = $seconds > 0 ? $seconds / $tl['good'] : 0;
+							$duration = $seconds / 3600;
+							
+							$table_update = ($workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
+								
+							DB::connection('mysql_mes')->table($table_update)->where('time_log_id', $time_log_id)->update([
+								'from_time' => Carbon::parse($tl['start_time'])->toDateTimeString(),
+								'to_time' => Carbon::parse($tl['end_time'])->toDateTimeString(),
+								'duration' => $duration,
+								'good' => $tl['good'],
+								'reject' => $tl['reject'],
+								'machine_code' => $tl['machine'],
+								'machine_name' => $machine_name,
+								'operator_id' => $tl['operator'],
+								'operator_name' => $employee_name,
+								'status' => 'Completed',
+								'cycle_time_in_seconds' => $cycle_time_in_seconds,
+								'created_by' => Auth::user()->employee_name,
+								'created_at' => $now->toDateTimeString(),
+							]);
+						}
+					} else {
+						if ($production_order_details->qty_to_manufacture < $value['good']) {
+							return response()->json(['status' => 0, 'message' => 'Good qty for <b>' . $workstation . '</b> cannot be greater than <b>' . $production_order_details->qty_to_manufacture . '</b>']);
+						}
+
+						if (Carbon::parse($value['start_time'])->gt(Carbon::parse($value['end_time']))) {
+							return response()->json(['status' => 0, 'message' => 'Start time cannot be greater than End time for <b>' . $workstation . '</b>.']);
+						}
+						// get employee names
+						$employee_ids = array_column($data['job_ticket'], 'operator');
+						$employee_names = DB::connection('mysql_essex')->table('users')->whereIn('user_id', $employee_ids)->pluck('employee_name', 'user_id')->toArray();
+						// get machine names
+						$machine_codes = array_column($data['job_ticket'], 'machine');
+						$machine_names = DB::connection('mysql_mes')->table('machine')->whereIn('machine_code', $machine_codes)->pluck('machine_name', 'machine_code')->toArray();
+
+						$employee_name = array_key_exists($value['operator'], $employee_names) ? $employee_names[$value['operator']] : null;
+						$machine_name = array_key_exists($value['machine'], $machine_names) ? $machine_names[$value['machine']] : null;
+						$seconds = Carbon::parse($value['end_time'])->diffInSeconds(Carbon::parse($value['start_time']));
+						$cycle_time_in_seconds = $seconds > 0 ? $seconds / $value['good'] : 0;
+						$duration = $seconds / 3600;
+						
+						if ($workstation != 'Spotwelding') {
+							$timelogs[] = [
+								'job_ticket_id' => $job_ticket_id,
+								'from_time' => Carbon::parse($value['start_time'])->toDateTimeString(),
+								'to_time' => Carbon::parse($value['end_time'])->toDateTimeString(),
+								'duration' => $duration,
+								'good' => $value['good'],
+								'reject' => $value['reject'],
+								'machine_code' => $value['machine'],
+								'machine_name' => $machine_name,
+								'operator_id' => $value['operator'],
+								'operator_name' => $employee_name,
+								'status' => 'Completed',
+								'cycle_time_in_seconds' => $cycle_time_in_seconds,
+								'created_by' => Auth::user()->employee_name,
+								'created_at' => $now->toDateTimeString(),
+							];
+						} else {
+							$spotwelding_logs[] = [
+								'job_ticket_id' => $job_ticket_id,
+								'from_time' => Carbon::parse($value['start_time'])->toDateTimeString(),
+								'to_time' => Carbon::parse($value['end_time'])->toDateTimeString(),
+								'duration' => $duration,
+								'good' => $value['good'],
+								'reject' => $value['reject'],
+								'machine_code' => $value['machine'],
+								'machine_name' => $machine_name,
+								'operator_id' => $value['operator'],
+								'operator_name' => $employee_name,
+								'status' => 'Completed',
+								'cycle_time_in_seconds' => $cycle_time_in_seconds,
+								'created_by' => Auth::user()->employee_name,
+								'created_at' => $now->toDateTimeString(),
+							];
+						}
+					}
+				}
+			}
+
+			if (count($timelogs) > 0) {
+				DB::connection('mysql_mes')->table('time_logs')->insert($timelogs);
+			}
+			
+			if (count($spotwelding_logs) > 0) {
+				DB::connection('mysql_mes')->table('spotwelding_qty')->insert($spotwelding_logs);
+			}
+
+			foreach($job_ticket_ids as $jtid) {
+				$this->update_job_ticket($jtid);
+			}
+
+			$jt_exceeding_production = DB::connection('mysql_mes')->table('job_ticket as jt')
+				->join('process as p', 'p.process_id', 'jt.process_id')
+				->where('production_order', $production_order_details->production_order)
+				->where('jt.completed_qty', '>', $production_order_details->qty_to_manufacture)->first();
+
+			if ($jt_exceeding_production) {
+				return response()->json(['status' => 0, 'message' => 'Good qty for <b>' . $jt_exceeding_production->workstation . '['. $jt_exceeding_production->process_name.']</b> cannot be greater than <b>' . $production_order_details->qty_to_manufacture . '</b>']);
+			}
+			
+			DB::connection('mysql_mes')->commit();
+			DB::connection('mysql')->commit();
+
+			return response()->json(['status' => 1, 'message' => 'Production order <b>' . $production_order_details->production_order .'</b> has been overriden.', 'production_order' => $production_order_details->production_order]);
+		} catch (Exception $e) {
+			DB::connection('mysql_mes')->rollback();
+			DB::connection('mysql')->rollback();
+
+			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
+		}
+	}
 }

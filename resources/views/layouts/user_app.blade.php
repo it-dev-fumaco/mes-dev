@@ -1010,7 +1010,23 @@
     </form>
   </div>
 </div>
-    
+
+<!-- Modal -->
+<div class="modal fade" id="override-production-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
+    <div class="modal-content">
+      <div class="modal-header p-3">
+        <h5 class="modal-title">Feedback Override <span id="override-production-order-text" class="font-weight-bold"></span></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-2">
+        <div id="override-production-div"></div>
+      </div>
+    </div>
+  </div>
+</div>
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
   <script src="{{ asset('js/core/jquery.min.js') }}"></script>
@@ -1035,6 +1051,48 @@
   <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
 <script>
   $(document).ready(function(){
+    $(document).on('click', '.override-production-btn', function(e) {
+      e.preventDefault();
+      var production_order = $(this).data('production-order');
+
+      $('#override-production-order-text').text(production_order);
+
+      $.ajax({
+        url:"/view_override_form/" + production_order,
+        type:"GET",
+        success:function(response){
+          if (response.status) {
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+          }else{
+            $('#override-production-modal').modal('show');
+            $('#override-production-div').html(response);
+          }
+        }
+      });
+    });
+
+    $(document).on('submit', '#override-production-order-form', function(e){
+      e.preventDefault();
+
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if(data.status){
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#submit-feedback-btn').removeAttr('disabled');
+            $('#confirm-feedback-production-modal input[name="production_order"]').val(data.production_order);
+            get_pending_material_transfer_for_manufacture(data.production_order);
+            $('#override-production-modal').modal('hide');
+            $('#confirm-feedback-production-modal').modal('show');
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+
     $(document).on('click', '.edit-time-log-btn', function(e) {
       e.preventDefault();
 

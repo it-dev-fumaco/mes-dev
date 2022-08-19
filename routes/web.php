@@ -203,6 +203,9 @@ Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'Seco
 
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/view_override_form/{production_order}', 'MainController@viewOverrideForm');
+	Route::post('/update_override_production_form', 'MainController@updateOverrideProduction');
+	
 	Route::get('/send_feedback_email', 'MainController@sendFeedbackEmail');
 	
 	Route::get('/planning_wizard/no_bom', 'ManufacturingController@wizardNoBom');
