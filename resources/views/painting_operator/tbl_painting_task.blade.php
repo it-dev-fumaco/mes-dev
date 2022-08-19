@@ -1,17 +1,17 @@
 <div class="container-fluid p-0">
     @forelse ($painting_processes as $painting)
       @php
-        // $unloaded_completed = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
-        // $unloaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Unloading']) ? $tl_array[$painting->production_order]['In Progress']['Unloading'] : 0;
+        $unloaded_completed = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
+        $unloaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Unloading']) ? $tl_array[$painting->production_order]['In Progress']['Unloading'] : 0;
 
-        // $loaded_completed = isset($tl_array[$painting->production_order]['Completed']['Loading']) ? $tl_array[$painting->production_order]['Completed']['Loading'] : 0;
-        // $loaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Loading']) ? $tl_array[$painting->production_order]['In Progress']['Loading'] : 0;
+        $loaded_completed = isset($tl_array[$painting->production_order]['Completed']['Loading']) ? $tl_array[$painting->production_order]['Completed']['Loading'] : 0;
+        $loaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Loading']) ? $tl_array[$painting->production_order]['In Progress']['Loading'] : 0;
 
-        $unloaded_completed = isset($qty_array[$painting->production_order]['Completed']['Unloading']) ? collect($qty_array[$painting->production_order]['Completed']['Unloading'])->sum('good') : 0;
-        $unloaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->sum('good') : 0;
+        // $unloaded_completed = isset($qty_array[$painting->production_order]['Completed']['Unloading']) ? collect($qty_array[$painting->production_order]['Completed']['Unloading'])->sum('good') : 0;
+        // $unloaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->sum('good') : 0;
 
-        $loaded_completed = isset($qty_array[$painting->production_order]['Completed']['Loading']) ? collect($qty_array[$painting->production_order]['Completed']['Loading'])->sum('good') : 0;
-        $loaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Loading']) ? collect($qty_array[$painting->production_order]['In Progress']['Loading'])->sum('good') : 0;
+        // $loaded_completed = isset($qty_array[$painting->production_order]['Completed']['Loading']) ? collect($qty_array[$painting->production_order]['Completed']['Loading'])->sum('good') : 0;
+        // $loaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Loading']) ? collect($qty_array[$painting->production_order]['In Progress']['Loading'])->sum('good') : 0;
 
         $total_unloaded = $unloaded_completed + $unloaded_in_progress;
         $total_loaded = $loaded_completed + $loaded_in_progress;
