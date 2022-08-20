@@ -151,10 +151,10 @@ class PaintingOperatorController extends Controller
 			->selectRaw('sales_order, material_request, qty_to_manufacture, job_ticket.completed_qty, production_order.production_order, production_order.classification, customer, item_code, description, notes, job_ticket.job_ticket_id, job_ticket.process_id')
 			->first();
 
-		$time_logs_qty = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $production_orders->job_ticket_id)->pluck('good')->first();
-		$time_logs_qty = $time_logs_qty ? $time_logs_qty : 0;
+		$loaded_qry = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $production_orders->job_ticket_id)->get();
+		$loaded_qty = $loaded_qry ? collect($loaded_qry)->sum('good') : 0;
 
-		$qty = $production_orders->qty_to_manufacture - $time_logs_qty;
+		$qty = $production_orders->qty_to_manufacture - $loaded_qty;
 
 		if (!$production_order_details) {
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
@@ -257,34 +257,27 @@ class PaintingOperatorController extends Controller
 			})
 			->get();
 
-		$unloaded_per_time_log_id = [];
-		if($process_name == 'Unloading'){
-			$unloaded_per_time_log_id = DB::connection('mysql_mes')->table('job_ticket')
-				->join('process', 'process.process_id', 'job_ticket.process_id')
-				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
-				->whereIn('process.process_name', ['Loading', 'Unloading'])->whereIn('job_ticket.production_order', collect($painting_processes)->pluck('production_order'))
-				->selectRaw('job_ticket.production_order, process.process_name, time_logs.time_log_id, time_logs.status, SUM(time_logs.good) as good')
-				->groupBy('job_ticket.production_order', 'process.process_name', 'time_logs.time_log_id', 'time_logs.status')->get();
-
-			$unloaded_per_time_log_id = collect($unloaded_per_time_log_id)->groupBy('time_log_id');
-		}
-
-		$time_logs_unloading = DB::connection('mysql_mes')->table('job_ticket')
+		$qty_array = [];
+		$unloaded_qry = DB::connection('mysql_mes')->table('job_ticket')
 			->join('process', 'process.process_id', 'job_ticket.process_id')
 			->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
 			->whereIn('process.process_name', ['Loading', 'Unloading'])->whereIn('job_ticket.production_order', collect($painting_processes)->pluck('production_order'))
-			->selectRaw('job_ticket.production_order, process.process_name, time_logs.status, SUM(time_logs.good) as good')
-			->groupBy('job_ticket.production_order', 'process.process_name', 'time_logs.status')->get();
+			->selectRaw('job_ticket.production_order, process.process_name, time_logs.time_log_id, time_logs.status, time_logs.reference_time_log, SUM(time_logs.good) as good')
+			->groupBy('job_ticket.production_order', 'process.process_name', 'time_logs.time_log_id', 'time_logs.status', 'time_logs.reference_time_log')->get();
 
-		$tl_array = [];
-		foreach($time_logs_unloading as $tl){
-			$tl_array[$tl->production_order][$tl->status][$tl->process_name] = $tl->good;
+		$unloaded_per_time_log_id = collect($unloaded_qry)->groupBy('time_log_id');
+		foreach($unloaded_qry as $tl){
+			$qty_array[$tl->production_order][$tl->status][$tl->process_name][$tl->time_log_id] = [
+				'time_log_id' => $tl->time_log_id,
+				'reference_time_log' => $tl->reference_time_log,
+				'good' => $tl->good
+			];
 		}
 
-		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->get();
+		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->where('qa_inspection_type', 'Random Inspection')->where('status', 'QC Passed')->get();
 		$qa_check = collect($qa)->groupBy('reference_id');
 
-		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'time_logs_unloading', 'tl_array', 'qa_check', 'unloaded_per_time_log_id'));
+		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'qa_check', 'unloaded_per_time_log_id', 'qty_array'));
 	}
 
 	// /reject_painting
@@ -533,6 +526,7 @@ class PaintingOperatorController extends Controller
 
 			$values = [
 				'job_ticket_id' => $unloading_jt->job_ticket_id,
+				'reference_time_log' => $current_task->time_log_id,
 				'to_time' => $now->toDateTimeString(),
 				'machine_code' => $machine_code,
 				'good' => $request->completed_qty,
@@ -548,11 +542,20 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 			
 			if($status == 'Completed'){ // update time logs if jt is completed
-				DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', [$loading_jt->job_ticket_id, $unloading_jt->job_ticket_id])->update([
-					'last_modified_at' => $now->toDateTimeString(),
-					'last_modified_by' => Auth::user()->employee_name,
-					'status' => $status,
-				]);
+				$completed_jts = [
+					$unloaded_qty == $production_order_details->qty_to_manufacture ? $loading_jt->job_ticket_id : null,
+					$unloading_jt->job_ticket_id
+				];
+				$completed_jts = array_filter($completed_jts);
+
+				DB::connection('mysql_mes')->table('time_logs')
+					->whereIn('job_ticket_id', $completed_jts)
+					->orWhere('time_log_id', $current_task->time_log_id)
+					->update([
+						'last_modified_at' => $now->toDateTimeString(),
+						'last_modified_by' => Auth::user()->employee_name,
+						'status' => $status,
+					]);
 			}
 
 			$this->update_job_ticket($current_task->job_ticket_id);

@@ -1,23 +1,17 @@
 <div class="container-fluid p-0">
     @forelse ($painting_processes as $painting)
       @php
-        $unloaded_completed = isset($tl_array[$painting->production_order]['Completed']['Unloading']) ? $tl_array[$painting->production_order]['Completed']['Unloading'] : 0;
-        $unloaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Unloading']) ? $tl_array[$painting->production_order]['In Progress']['Unloading'] : 0;
+        $unloaded_completed = isset($qty_array[$painting->production_order]['Completed']['Unloading']) ? collect($qty_array[$painting->production_order]['Completed']['Unloading'])->sum('good') : 0;
+        $unloaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->sum('good') : 0;
+        $unloaded_in_progress_per_loaded_time_log = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->where('reference_time_log', $painting->time_log_id)->sum('good') : 0;
 
-        $loaded_completed = isset($tl_array[$painting->production_order]['Completed']['Loading']) ? $tl_array[$painting->production_order]['Completed']['Loading'] : 0;
-        $loaded_in_progress = isset($tl_array[$painting->production_order]['In Progress']['Loading']) ? $tl_array[$painting->production_order]['In Progress']['Loading'] : 0;
-
-        // $unloaded_completed = isset($qty_array[$painting->production_order]['Completed']['Unloading']) ? collect($qty_array[$painting->production_order]['Completed']['Unloading'])->sum('good') : 0;
-        // $unloaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->sum('good') : 0;
-
-        // $loaded_completed = isset($qty_array[$painting->production_order]['Completed']['Loading']) ? collect($qty_array[$painting->production_order]['Completed']['Loading'])->sum('good') : 0;
-        // $loaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Loading']) ? collect($qty_array[$painting->production_order]['In Progress']['Loading'])->sum('good') : 0;
+        $loaded_completed = isset($qty_array[$painting->production_order]['Completed']['Loading']) ? collect($qty_array[$painting->production_order]['Completed']['Loading'])->sum('good') : 0;
+        $loaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Loading']) ? collect($qty_array[$painting->production_order]['In Progress']['Loading'])->sum('good') : 0;
 
         $total_unloaded = $unloaded_completed + $unloaded_in_progress;
         $total_loaded = $loaded_completed + $loaded_in_progress;
 
-        $balance = $loaded_in_progress - $unloaded_in_progress;
-        $balance = $balance > 0 ? $balance : 0;
+        $balance = $total_loaded - $total_unloaded;
       @endphp
         <div class="card m-1">
             <div class="card-body p-0 m-0">
@@ -44,7 +38,7 @@
                         @else
                           @if ($painting->good > 0 && $painting->status != 'Completed')
                             <div class="col-4">
-                              <span class="badge badge-primary" style="font-size: 9pt;">In Progress: <b>{{ $balance }}</b></span>
+                              <span class="badge badge-primary" style="font-size: 9pt;">In Progress: <b>{{ $painting->good - $unloaded_in_progress_per_loaded_time_log }}</b></span>
                             </div>
                           @endif
                         @endif
@@ -68,7 +62,7 @@
                         </h6>
                         <h2 class="font-weight-bold">
                           @if ($process_name == 'Loading')
-                              {{ $painting->good }}
+                              {{ $painting->good - $unloaded_in_progress_per_loaded_time_log }}
                           @else
                               @if ($painting->status == 'Completed')
                                 {{ isset($unloaded_per_time_log_id[$painting->time_log_id]) ? $unloaded_per_time_log_id[$painting->time_log_id][0]->good : 0 }}
@@ -81,12 +75,10 @@
                     </div>
                     <div class="col-5 p-2 d-flex flex-row justify-content-start align-items-center">
                         @php
-                            $disable_restart = '';
-                            if(isset($time_logs_unloading[$painting->production_order])){
-                              if($time_logs_unloading[$painting->production_order][0]->good > 0){
-                                $disable_restart = 'disabled';
-                              }
-                            }
+                          $disable_restart = '';
+                          if($unloaded_in_progress_per_loaded_time_log > 0){
+                            $disable_restart = 'disabled';
+                          }
                         @endphp
                         @if ($process_name == 'Loading')
                           <div class="col-4 p-0">
@@ -112,7 +104,7 @@
                         @if ($process_name == 'Unloading')
                           <div class="col-4 p-0">
                             @if ($painting->status == 'In Progress')
-                              <button type="button" class="btn btn-block btn-warning end-task-btn sub-btn m-0" style="height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $balance }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
+                              <button type="button" class="btn btn-block btn-warning end-task-btn sub-btn m-0" style="height: 90px;" data-timelog-id="{{ $painting->time_log_id }}" data-balance-qty="{{ $painting->good - $unloaded_in_progress_per_loaded_time_log }}" data-processid="{{ $painting->process_id }}" data-process-name="{{ $process_name }}" data-production-order="{{ $painting->production_order }}">
                                 <div class="waves-effect waves z-depth-4">
                                   <div class="spinner-grow">
                                     <span class="sr-only">Loading...</span>
