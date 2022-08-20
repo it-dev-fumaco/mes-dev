@@ -514,10 +514,12 @@ class PaintingOperatorController extends Controller
 				->where('process_name', 'Unloading')->where('job_ticket.production_order', $request->production_order)
 				->first();
 
-			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->sum('good');
+			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->get();//->sum('good');
+			// $total_unloading_qty = collect($unloading_time_log)->sum('good');
+			$total_unloading_qty_per_loading_time_log = collect($unloading_time_log)->where('reference_time_log', $current_task->time_log_id)->sum('good');
 
 			$loaded_qty = $current_task->good;
-			$unloaded_qty = $unloading_time_log + $request->completed_qty;
+			$unloaded_qty = $total_unloading_qty_per_loading_time_log + $request->completed_qty;
 			if($loaded_qty == $unloaded_qty || $unloaded_qty == $production_order_details->qty_to_manufacture){
 				$status =  'Completed';
 			}else{
@@ -549,13 +551,19 @@ class PaintingOperatorController extends Controller
 				$completed_jts = array_filter($completed_jts);
 
 				DB::connection('mysql_mes')->table('time_logs')
-					->whereIn('job_ticket_id', $completed_jts)
+					->when($unloaded_qty >= $production_order_details->qty_to_manufacture, function ($q) use ($completed_jts){
+						$q->whereIn('job_ticket_id', $completed_jts);
+					})
+					->when($unloaded_qty < $production_order_details->qty_to_manufacture, function ($q) use ($current_task, $unloading_jt){
+						$q->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('reference_time_log', $current_task->time_log_id);
+					})
 					->orWhere('time_log_id', $current_task->time_log_id)
 					->update([
 						'last_modified_at' => $now->toDateTimeString(),
 						'last_modified_by' => Auth::user()->employee_name,
 						'status' => $status,
 					]);
+				
 			}
 
 			$this->update_job_ticket($current_task->job_ticket_id);
