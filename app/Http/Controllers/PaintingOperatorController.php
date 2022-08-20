@@ -244,6 +244,7 @@ class PaintingOperatorController extends Controller
 				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
 			})
 			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
+			->orderByRaw("FIELD(job_ticket.status , 'In Progress', 'Completed') ASC")
 			->get();
 
 		$qty_array = [];
