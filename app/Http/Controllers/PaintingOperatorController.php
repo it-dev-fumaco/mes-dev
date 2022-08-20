@@ -274,7 +274,7 @@ class PaintingOperatorController extends Controller
 			];
 		}
 
-		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->where('qa_inspection_type', 'Random Inspection')->where('status', 'QC Passed')->get();
+		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->where('reference_type', 'Time Logs')->where('qa_inspection_type', 'Random Inspection')->where('status', 'QC Passed')->get();
 		$qa_check = collect($qa)->groupBy('reference_id');
 
 		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'qa_check', 'unloaded_per_time_log_id', 'qty_array'));
