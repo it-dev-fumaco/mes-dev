@@ -231,18 +231,6 @@ class PaintingOperatorController extends Controller
 		$scheduled_painting_production_orders = DB::connection('mysql_mes')->table('job_ticket')
 			->where('workstation', 'Painting')->whereBetween('job_ticket.planned_start_date', [$start, $end])
 			->distinct()->pluck('production_order');
-
-		$completed_painting = [];
-		if($process_name == 'Unloading'){
-			$completed_painting = DB::connection('mysql_mes')->table('job_ticket')
-				->join('process', 'job_ticket.process_id', 'process.process_id')
-				->join('production_order as po', 'po.production_order', 'job_ticket.production_order')
-				->join('time_logs as tl', 'tl.job_ticket_id', 'job_ticket.job_ticket_id')
-				->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
-				->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
-				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
-				->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good', 'po.qty_to_manufacture', 'tl.reject');
-		}
 		
 		$painting_processes = DB::connection('mysql_mes')->table('job_ticket')
 			->join('process', 'job_ticket.process_id', 'process.process_id')
@@ -251,10 +239,11 @@ class PaintingOperatorController extends Controller
 			->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
 			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
 			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
-			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
-			->when($process_name == 'Unloading', function ($q) use ($completed_painting){
-				return $q->union($completed_painting);
+			->when($process_name == 'Unloading', function ($q) use ($loading_process, $start, $scheduled_painting_production_orders){
+				return $q->orWhere('job_ticket.workstation', 'Painting')->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
+				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
 			})
+			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
 			->get();
 
 		$qty_array = [];
