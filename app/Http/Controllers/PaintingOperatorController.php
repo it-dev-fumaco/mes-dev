@@ -130,7 +130,7 @@ class PaintingOperatorController extends Controller
 		}
 
 		if(!$task_qry->planned_start_date || $task_qry->planned_start_date > $now->format('Y-m-d H:i:s')){
-			return response()->json(['success' => 2, 'message' => 'Task not scheduled for today.']);
+			return response()->json(['success' => 0, 'message' => 'Task not scheduled for today.']);
 		}
 
 		$unloading_jt = DB::connection('mysql_mes')->table('job_ticket')
