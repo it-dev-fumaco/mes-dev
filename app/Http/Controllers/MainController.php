@@ -7399,6 +7399,20 @@ class MainController extends Controller
 
 			$timelog_table = ($job_ticket_details->workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
 
+			$process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->first();
+
+			if($job_ticket_details->workstation == 'Painting' && $process && $process->process_name == 'Unloading'){
+				$unloading_detail = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->first();
+
+				if($unloading_detail){ // update loading time log after resetting unloading
+					DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_detail->reference_time_log)->update([
+						'last_modified_at' => Carbon::now()->toDateTimeString(),
+						'last_modified_by' => $authorized_user,
+						'status' => 'In Progress'
+					]);
+				}
+			}
+
 			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->delete();
 
 			$this->update_job_ticket($job_ticket_id);

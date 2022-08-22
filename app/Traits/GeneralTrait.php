@@ -79,12 +79,16 @@ trait GeneralTrait
                     ->where('process_name', 'Loading')->where('job_ticket.production_order', $job_ticket_detail->production_order)
                     ->first();
 
+                $loading_tl = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $loading_jt->job_ticket_id)->get();
+
                 $loaded_qty = $loading_jt ? $loading_jt->completed_qty : 0;
                 if($total_good == $loaded_qty && $job_ticket_detail->qty_to_manufacture > $total_good){
                     $job_ticket_status = 'Pending';
                 }
 
-                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => $job_ticket_status]);
+                $loading_jt_status = in_array('In Progress', collect($loading_tl)->pluck('status')->toArray()) ? 'In Progress' : $job_ticket_status;
+
+                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $loading_jt->job_ticket_id)->update(['status' => $loading_jt_status]);
             }else{ // Loading
                 $total_loading = DB::connection('mysql_mes')->table('job_ticket')
                     ->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
