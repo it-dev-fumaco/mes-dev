@@ -244,7 +244,7 @@ class PaintingOperatorController extends Controller
 				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
 			})
 			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
-			->orderByRaw("FIELD(job_ticket.status , 'In Progress', 'Completed') ASC")
+			->orderByRaw("FIELD(job_ticket.status , 'In Progress', 'Completed') ASC")->orderBy('tl.created_at', 'desc')
 			->get();
 
 		$qty_array = [];
@@ -416,6 +416,10 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
 			}
 
+			if(!Auth::user()){
+				return response()->json(['success' => 0, 'message' => 'You are logged out. Please refresh the page.']);
+			}
+
 			$operator = DB::connection('mysql_essex')->table('users')->where('user_id', Auth::user()->user_id)->first();
 			if (!$operator) {
 				return response()->json(['success' => 0, 'message' => 'Operator not found.']);
@@ -474,6 +478,10 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Task not found.']);
 			}
 
+			if(!Auth::user()){
+				return response()->json(['success' => 0, 'message' => 'You are logged out. Please refresh the page.']);
+			}
+
 			$operator = DB::connection('mysql_essex')->table('users')->where('user_id', Auth::user()->user_id)->first();
 			if(!$operator){
 				return response()->json(['success' => 0, 'message' => 'User not found']);
@@ -494,27 +502,11 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
 			}
 
-			$loading_jt = DB::connection('mysql_mes')->table('job_ticket')
-				->join('process', 'process.process_id', 'job_ticket.process_id')
-				->where('process_name', 'Loading')->where('job_ticket.production_order', $request->production_order)
-				->first();
-
+			// Unloading Time Log
 			$unloading_jt = DB::connection('mysql_mes')->table('job_ticket')
 				->join('process', 'process.process_id', 'job_ticket.process_id')
 				->where('process_name', 'Unloading')->where('job_ticket.production_order', $request->production_order)
 				->first();
-
-			$unloading_time_log = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('status', '!=', 'Completed')->get();//->sum('good');
-			// $total_unloading_qty = collect($unloading_time_log)->sum('good');
-			$total_unloading_qty_per_loading_time_log = collect($unloading_time_log)->where('reference_time_log', $current_task->time_log_id)->sum('good');
-
-			$loaded_qty = $current_task->good;
-			$unloaded_qty = $total_unloading_qty_per_loading_time_log + $request->completed_qty;
-			if($loaded_qty == $unloaded_qty || $unloaded_qty == $production_order_details->qty_to_manufacture){
-				$status =  'Completed';
-			}else{
-				$status = 'In Progress';
-			}
 
 			$values = [
 				'job_ticket_id' => $unloading_jt->job_ticket_id,
@@ -526,35 +518,20 @@ class PaintingOperatorController extends Controller
 				'operator_id' => $operator->user_id,
 				'operator_name' => $operator->employee_name,
 				'operator_nickname' => $operator->nick_name,
-				'status' => $status,
+				'status' => 'Completed',
 				'created_by' => $operator->employee_name,
 				'created_at' => $now->toDateTimeString(),
 			];
 
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
-			
-			if($status == 'Completed'){ // update time logs if jt is completed
-				$completed_jts = [
-					$unloaded_qty == $production_order_details->qty_to_manufacture ? $loading_jt->job_ticket_id : null,
-					$unloading_jt->job_ticket_id
-				];
-				$completed_jts = array_filter($completed_jts);
 
-				DB::connection('mysql_mes')->table('time_logs')
-					->when($unloaded_qty >= $production_order_details->qty_to_manufacture, function ($q) use ($completed_jts){
-						$q->whereIn('job_ticket_id', $completed_jts);
-					})
-					->when($unloaded_qty < $production_order_details->qty_to_manufacture, function ($q) use ($current_task, $unloading_jt){
-						$q->where('job_ticket_id', $unloading_jt->job_ticket_id)->where('reference_time_log', $current_task->time_log_id);
-					})
-					->orWhere('time_log_id', $current_task->time_log_id)
-					->update([
-						'last_modified_at' => $now->toDateTimeString(),
-						'last_modified_by' => Auth::user()->employee_name,
-						'status' => $status,
-					]);
-				
-			}
+			// Loading Time Log
+			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $current_task->time_log_id)->update([
+				'last_modified_at' => $now->toDateTimeString(),
+				'last_modified_by' => $operator->employee_name,
+				'good' => $request->completed_qty,
+				'status' => 'Completed'
+			]);
 
 			$this->update_job_ticket($current_task->job_ticket_id);
 			$this->update_job_ticket($unloading_jt->job_ticket_id);
