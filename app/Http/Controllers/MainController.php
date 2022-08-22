@@ -992,9 +992,9 @@ class MainController extends Controller
 		$permissions = $this->get_user_permitted_operation();
 
 		$user_details = DB::connection('mysql_essex')->table('users')
-                    ->join('designation', 'users.designation_id', '=', 'designation.des_id')
-                    ->join('departments', 'users.department_id', '=', 'departments.department_id')
-                    ->where('user_id', Auth::user()->user_id)->first();
+			->join('designation', 'users.designation_id', '=', 'designation.des_id')
+			->join('departments', 'users.department_id', '=', 'departments.department_id')
+			->where('user_id', Auth::user()->user_id)->first();
 
 		$timesheet = DB::connection('mysql_mes')->table('job_ticket')->select('job_ticket_id')->get();
 
