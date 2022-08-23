@@ -32,205 +32,46 @@
 <div class="content" style="margin-top: -100px; min-height: 10px;">
 
 <div class="row" style="margin-top: -265px;">
-  @foreach($breaktime_data as $r => $row)
-  <div class="col-md-12" id="{{$r}}{{$row['div_id']}}" style="display:none; margin-top:-30px;margin-bottom:10px;">
-    <div class="alert alert-primary text-center" role="alert">
-      <span class="d-none"></span>
-      <div class="container">
-        <div class="alert-icon" style="color:black;">
-          <i class="now-ui-icons ui-2_time-alarm" style="padding-right:5px;font-size:30px;"></i><span style="font-size:18pt;"> <b>{{$row['break_type']}} :</b></span> 
-                <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
-        </div>
-      </div>
-    </div>
-  </div>
-  @endforeach
-  <div class="col-md-6" style="margin-top: 20px;">
-    <div style="margin-top:-25px; padding-bottom:25px;">
-      <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
-      <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process_details->process_name }} Area</h2>
-      <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
-        <span style="font-size: 17pt;"><b>Machine Status</b></span>
-      </h5>
-      <center>
-      <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};">
-        <i class="now-ui-icons media-1_button-power"></i>
-        <span style="padding: 3px;">{{ ($machine_status == 'Start Up') ? 'Unavailable' : 'Available' }}</span>
-      </button></center>
-    </div>
-    
-    
-  </div>
-  <div class="col-md-6">
-    <div class="card" style="min-height: 500px;">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-12">
-            <h5 class="text-black mt-1 text-center text-uppercase">
-              Enter Biometric ID
-            </h5>
-            <div id="jt-scan-img">
-              <center>
-                <img src="{{ asset('img/tap.gif') }}" width="330" height="250" id="toggle-jt-numpad" style="margin: -15px 10px 50px 10px;">
-              </center>
+    <div class="col-md-12">
+        <div class="card" style="min-height: 500px;">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-10 border border-secondary">
+                        Painting - Loading
+                    </div>
+                    <div class="col-2 border border-secondary">
+                        <button class="btn btn-primary w-100">Start</button>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="col-md-10 offset-md-1" style="display: none;" id="jt-numpad">
-            <div class="form-group">
-              <div class="input-group">
-                 <input type="text" class="form-control" id="bio-id" style="font-size: 15pt;" required>
-              </div>
-            </div>
-            <div id="user-id-numpad">
-              <div class="text-center">
-                <div class="row1">
-                  <span class="numpad num">1</span>
-                  <span class="numpad num">2</span>
-                  <span class="numpad num">3</span>
-                </div>
-                <div class="row1">
-                  <span class="numpad num">4</span>
-                  <span class="numpad num">5</span>
-                  <span class="numpad num">6</span>
-                </div>
-                <div class="row1">
-                  <span class="numpad num">7</span>
-                  <span class="numpad num">8</span>
-                  <span class="numpad num">9</span>
-                </div>
-                <div class="row1">
-                  <span class="numpad" onclick="document.getElementById('bio-id').value=document.getElementById('bio-id').value.slice(0, -1);"><</span>
-                  <span class="numpad num">0</span>
-                  <span class="numpad" onclick="document.getElementById('bio-id').value='';">Clear</span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-10 offset-md-1">
-                  <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-user-id-btn">SUBMIT</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-@foreach($breaktime_data as $r => $row)
-  <input type="hidden" class="breaktime_input" value="{{$row['break_type']}}" data-timein="{{$row['time_in']}}" data-timeout="{{$row['time_out']}}" data-type="{{$row['break_type']}}" data-divid="{{$r}}{{$row['div_id']}}">
-@endforeach
-<!-- Modal -->
-<div class="modal fade" id="machine-enter-operator-id-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document">
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title text-center">Modal Title</h5>
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-               </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                     <h6 class="text-center">Enter Biometric ID</h6>
-                     <form action="#" method="POST" autocomplete="off">
-                        @csrf
-                        <div class="row">
-                           <div class="col-md-10 offset-md-1">
-                              <div class="form-group">
-                                <input type="hidden" id="machine-status" name="category">
-                                 <input type="text" class="form-control" name="operator_id" id="machine-user-id" style="font-size: 15pt; text-align: center;" required>
-                              </div>
-                           </div>
+            <div class="card-body">
+                @foreach ($process as $painting)
+                    <div class="card p-2">
+                        <div class="card-header p-0">
+                            <div class="input-group border border-secondary">
+                                <div class="input-group-prepend mr-2">
+                                    <input type="checkbox" name="production_orders[]" class="d-inline form-control" checked>
+                                </div>
+                                <span class="d-inline mr-2">{{ $painting->production_order }}</span> <span class="badge badge-secondary p-1">{{ $painting->status }}</span>
+                            </div>
                         </div>
-                        <div class="text-center numpad-div">
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '1';">1</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '2';">2</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '3';">3</span>
-                           </div>
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '4';">4</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '5';">5</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '6';">6</span>
-                           </div>
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '7';">7</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '8';">8</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '9';">9</span>
-                           </div>
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value.slice(0, -1);"><</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '0';">0</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value='';">Clear</span>
-                           </div>
+                        <div class="card-body p-0">
+                            <div class="container-fluid border border-secondary">
+                                <span>Customer: Customer</span> <br>
+                                <span>Reference: Customer</span> <br>
+                                <span><b>{{ $painting->item_code }}</b></span> - <span>{{ strip_tags($painting->description) }}</span>
+                            </div>
+                            <div class="container-fluid border border-secondary">
+                                <span><b>Good: {{ $painting->completed_qty ? $painting->completed_qty : 0 }}</b></span>
+                                <span><b>Reject: {{ $painting->reject ? $painting->reject : 0 }}</b></span>
+                            </div>
                         </div>
-                        <div class="row">
-                           <div class="col-md-10 offset-md-1">
-                              <button type="submit" class="btn btn-block btn-primary btn-lg">LOGIN</button>
-                           </div>
-                        </div>
-                     </form>
-                  </div>
-               </div>
+                    </div>    
+                @endforeach
             </div>
-         </div>
-   </div>
-</div>
-<div class="modal fade" id="chemical-records-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-         <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">&nbsp;
-              Painting Chemical Records
-            </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <div id="chemical-records-div"></div>
-         </div>
-      </div>
-   </div>
-</div>
-<div class="modal fade" id="water-discharged-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-         <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">&nbsp;
-              Water Discharge Monitoring
-            </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <div id="water_discharged_div"></div>
-         </div>
-      </div>
-   </div>
-</div>
-<div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
         </div>
-        <div class="modal-body" style="min-height: 600px;">
-          <div id="production-search-content-modal2"></div>
-        </div>
-      </div>
     </div>
-  </div>
-
-@include('painting_operator.modal_view_production_order_details')
-@include('painting_operator.modal_view_schedule')
-
+</div>
 <style type="text/css">
     @-webkit-keyframes blinker_break {
       from { background-color: #fa764b; }
@@ -963,11 +804,13 @@
     });
 
 
-    $('#submit-user-id-btn').click(function(e){
+    $('#submit-job-ticket-btn').click(function(e){
       e.preventDefault();
 
-      var production_order = $('#bio-id').val();
-      var process_id = {{ $process_details->process_id }};
+      var production_order = 'PROM-'+$('#job-ticket-id').val();
+      var process_id = '';//{{-- $process_details->process_id --}};
+
+      get_production_order_details(production_order, process_id);
     });
 
     function get_production_order_details(production_order, process_id){
@@ -991,7 +834,7 @@
             $('#enter-operator-id-modal .pending-qty').text(pending_qty);
             $('#enter-operator-id-modal .completed-qty').text(data.details.completed_qty);
 
-            $('#enter-operator-id-modal .modal-title').text('{{ $process_details->process_name }} Process');
+            $('#enter-operator-id-modal .modal-title').text('{{-- $process_details->process_name --}} Process');
             $('#enter-operator-id-modal').modal('show');
           }
         }, 
@@ -1005,7 +848,7 @@
 
     $('#enter-operator-id-modal form').submit(function(e){
       e.preventDefault();
-      var process_name = '{{ $process_details->process_name }}';
+      var process_name = '{{-- $process_details->process_name --}}';
       var operator_id = $('#user-id').val();
       var production_order = $('#enter-operator-id-modal .production-order').text();
 
@@ -1038,8 +881,8 @@
 
     $('#machine-power-btn').click(function(e){
       e.preventDefault();
-      $('#machine-enter-operator-id-modal .modal-title').text('{{ $machine_status }} Machine');
-      $('#machine-status').val('{{ $machine_status }}');
+      $('#machine-enter-operator-id-modal .modal-title').text('{{-- $machine_status --}} Machine');
+      $('#machine-status').val('{{-- $machine_status --}}');
       $('#machine-enter-operator-id-modal').modal('show');
     });
 
@@ -1223,7 +1066,7 @@
 
         return false;
       }else{
-        var process_id = {{ $process_details->process_id }};
+        var process_id = '';//{{-- $process_details->process_id --}};
   
         get_production_order_details(cardData, process_id);
       }

@@ -70,7 +70,7 @@
                 </a>
               </li>
               @endif
-              <li class="nav-item active">
+              <li class="nav-item active {{ $process == 'Unloading' ? 'd-none' : null }}">
                 <a class="nav-link" href="#" id="view-painting-schedule-btn">
                   <i class="now-ui-icons design_bullet-list-67"></i>Schedule
                   <p>
@@ -101,7 +101,9 @@
                   <a class="dropdown-item"  id="view-chemical-records-btn" href="#">Painting Chemical Records</a>
                   <a class="dropdown-item"  id="view-water-Monitoring-btn" href="#">Water Discharged Monitoring</a>
                   <a class="dropdown-item"  id="view-powder-Monitoring-btn" href="#">Powder Coating Monitoring</a>
-
+                  @if (Auth::user())
+                    <a class="dropdown-item"  id="machine-breakdown-modal-btn" href="#">Maintenance Request</a>
+                  @endif
                 </div>
               </li>
               <li class="nav-item active">

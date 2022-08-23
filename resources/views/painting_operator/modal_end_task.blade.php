@@ -10,10 +10,13 @@
                   <span aria-hidden="true">&times;</span>
                </button>
             </div>
-            <input type="hidden" name="id" class="timelog-id">
-            <input type="hidden" name="balance_qty" class="balance-qty">
-            <input type="hidden" name="production_order" class="production-order-input">
-            <input type="hidden" name="workstation" class="workstation-input">
+            <div class="d-none"><!-- hidden values -->
+               <input type="text" name="id" class="timelog-id">
+               <input type="text" name="balance_qty" class="balance-qty">
+               <input type="text" name="production_order" class="production-order-input">
+               <input type="text" name="workstation" class="workstation-input">
+            </div>
+            
             <div class="modal-body">
                <div class="row">
                   <div class="col-md-6">

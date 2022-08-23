@@ -29,34 +29,23 @@
 </div>
 @include('painting_operator.modal_enter_operator_id')
 @include('modals.search_productionorder')
+@include('painting_operator.modal_view_schedule')
 <div class="content" style="margin-top: -100px; min-height: 10px;">
 
 <div class="row" style="margin-top: -265px;">
-  @foreach($breaktime_data as $r => $row)
-  <div class="col-md-12" id="{{$r}}{{$row['div_id']}}" style="display:none; margin-top:-30px;margin-bottom:10px;">
-    <div class="alert alert-primary text-center" role="alert">
-      <span class="d-none"></span>
-      <div class="container">
-        <div class="alert-icon" style="color:black;">
-          <i class="now-ui-icons ui-2_time-alarm" style="padding-right:5px;font-size:30px;"></i><span style="font-size:18pt;"> <b>{{$row['break_type']}} :</b></span> 
-                <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
-        </div>
-      </div>
-    </div>
-  </div>
-  @endforeach
   <div class="col-md-6" style="margin-top: 20px;">
     <div style="margin-top:-25px; padding-bottom:25px;">
       <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
-      <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process_details->process_name }} Area</h2>
+      <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process }} Area</h2>
       <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
         <span style="font-size: 17pt;"><b>Machine Status</b></span>
       </h5>
       <center>
-      <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};">
+      <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};" data-status="{{ $machine_status }}">
         <i class="now-ui-icons media-1_button-power"></i>
         <span style="padding: 3px;">{{ ($machine_status == 'Start Up') ? 'Unavailable' : 'Available' }}</span>
-      </button></center>
+      </button>
+    </center>
     </div>
     
     
@@ -66,170 +55,302 @@
       <div class="card-body">
         <div class="row">
           <div class="col-md-12">
-            <h5 class="text-black mt-1 text-center text-uppercase">
+            <h5 class="text-black mt-1 text-center text-uppercase font-weight-bold">
               Enter Biometric ID
             </h5>
-            <div id="jt-scan-img">
+            <div id="bio-scan-img" style="display: none;">
               <center>
-                <img src="{{ asset('img/tap.gif') }}" width="330" height="250" id="toggle-jt-numpad" style="margin: -15px 10px 50px 10px;">
+                <img src="{{ asset('img/tap.gif') }}" width="330" height="250" id="toggle-bio-numpad" style="margin: -15px 10px 50px 10px;">
               </center>
             </div>
           </div>
-          <div class="col-md-10 offset-md-1" style="display: none;" id="jt-numpad">
-            <div class="form-group">
-              <div class="input-group">
-                 <input type="text" class="form-control" id="bio-id" style="font-size: 15pt;" required>
-              </div>
-            </div>
-            <div id="user-id-numpad">
-              <div class="text-center">
-                <div class="row1">
-                  <span class="numpad num">1</span>
-                  <span class="numpad num">2</span>
-                  <span class="numpad num">3</span>
+          <div class="col-md-10 offset-md-1" id="bio-numpad">
+            <form action="" method="post" id="login-form">
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" name="user_id" class="form-control" id="bio-id" style="font-size: 15pt;" required>
+                    </div>
+                    </div>
+                    <div id="bio-numpad">
+                    <div class="text-center">
+                        <div class="row1">
+                            <span class="numpad num">1</span>
+                            <span class="numpad num">2</span>
+                            <span class="numpad num">3</span>
+                        </div>
+                        <div class="row1">
+                            <span class="numpad num">4</span>
+                            <span class="numpad num">5</span>
+                            <span class="numpad num">6</span>
+                        </div>
+                        <div class="row1">
+                            <span class="numpad num">7</span>
+                            <span class="numpad num">8</span>
+                            <span class="numpad num">9</span>
+                        </div>
+                        <div class="row1">
+                            <span class="numpad" onclick="document.getElementById('bio-id').value=document.getElementById('bio-id').value.slice(0, -1);"><</span>
+                            <span class="numpad num">0</span>
+                            <span class="numpad" onclick="document.getElementById('bio-id').value='';">Clear</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-10 offset-md-1">
+                        <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-bio-btn">SUBMIT</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="row1">
-                  <span class="numpad num">4</span>
-                  <span class="numpad num">5</span>
-                  <span class="numpad num">6</span>
-                </div>
-                <div class="row1">
-                  <span class="numpad num">7</span>
-                  <span class="numpad num">8</span>
-                  <span class="numpad num">9</span>
-                </div>
-                <div class="row1">
-                  <span class="numpad" onclick="document.getElementById('bio-id').value=document.getElementById('bio-id').value.slice(0, -1);"><</span>
-                  <span class="numpad num">0</span>
-                  <span class="numpad" onclick="document.getElementById('bio-id').value='';">Clear</span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-10 offset-md-1">
-                  <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-user-id-btn">SUBMIT</button>
-                </div>
-              </div>
-            </div>
-          </div>
+            </form>
+        </div>
         </div>
       </div>
     </div>
   </div>
 
-</div>
-@foreach($breaktime_data as $r => $row)
-  <input type="hidden" class="breaktime_input" value="{{$row['break_type']}}" data-timein="{{$row['time_in']}}" data-timeout="{{$row['time_out']}}" data-type="{{$row['break_type']}}" data-divid="{{$r}}{{$row['div_id']}}">
-@endforeach
+  @if(isset($painting_process))
+    <div class="col-md-12" style="margin-top: 20px;">
+      <center>
+      <table style="width: 100%; display: block; overflow-x: auto; white-space: nowrap; margin:0 auto;" class="">
+        <tr style="width: 100%;" class="text-center d-md-flex justify-content-center"> 
+          @foreach ($painting_process as $processes)
+          <td class="">
+            <a href="/operator/Painting/{{ $processes }}" class="custom-a ">
+              <div class="card " style="width: 300px; height: 80px; margin: 5px; font-size: 14pt;">
+                <div style="white-space: normal; margin: 20px auto;" class=""><b>{{ $processes }}</b></div>
+              </div>
+            </a>
+          </td>
+          @endforeach
+        </tr>
+      </table>
+      </center>
+    </div>
+    @endif
 <!-- Modal -->
-<div class="modal fade" id="machine-enter-operator-id-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document">
-         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-               <h5 class="modal-title text-center">Modal Title</h5>
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-               </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                     <h6 class="text-center">Enter Biometric ID</h6>
-                     <form action="#" method="POST" autocomplete="off">
-                        @csrf
-                        <div class="row">
-                           <div class="col-md-10 offset-md-1">
+<div class="modal fade" id="machine-power-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-md" role="document">
+     <form action="/insert_machine_logs" method="POST" id="machine-power-frm">
+        @csrf
+        <div class="modal-content">
+           <div class="modal-header">
+              <h5 class="modal-title">- Machine</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">&times;</span>
+              </button>
+           </div>
+           <div class="modal-body">
+              <div class="row">
+                 <div class="col-md-12">
+                       <div class="row" style="margin-top: -1%;">
+                          <div class="col-sm-12 text-center">
+                             {{-- <input type="hidden" name="operator_id" value=""> --}}
+                             <input type="hidden" name="category" id="category-machine">
+                            <span id="confirm-text" style="font-size: 12pt;">Confirm machine -.</span>
+                            <form action="" method="post" id="login-form">
                               <div class="form-group">
-                                <input type="hidden" id="machine-status" name="category">
-                                 <input type="text" class="form-control" name="operator_id" id="machine-user-id" style="font-size: 15pt; text-align: center;" required>
+                                  <div class="input-group">
+                                      <input type="text" name="operator_id" class="form-control" id="machine-bio-id" style="font-size: 15pt;" required>
+                                  </div>
+                                  </div>
+                                  <div id="machine-bio-numpad">
+                                  <div class="text-center">
+                                      <div class="row1">
+                                          <span class="numpad num">1</span>
+                                          <span class="numpad num">2</span>
+                                          <span class="numpad num">3</span>
+                                      </div>
+                                      <div class="row1">
+                                          <span class="numpad num">4</span>
+                                          <span class="numpad num">5</span>
+                                          <span class="numpad num">6</span>
+                                      </div>
+                                      <div class="row1">
+                                          <span class="numpad num">7</span>
+                                          <span class="numpad num">8</span>
+                                          <span class="numpad num">9</span>
+                                      </div>
+                                      <div class="row1">
+                                          <span class="numpad" onclick="document.getElementById('machine-bio-id').value=document.getElementById('machine-bio-id').value.slice(0, -1);"><</span>
+                                          <span class="numpad num">0</span>
+                                          <span class="numpad" onclick="document.getElementById('machine-bio-id').value='';">Clear</span>
+                                      </div>
+                                  </div>
                               </div>
-                           </div>
-                        </div>
-                        <div class="text-center numpad-div">
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '1';">1</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '2';">2</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '3';">3</span>
-                           </div>
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '4';">4</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '5';">5</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '6';">6</span>
-                           </div>
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '7';">7</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '8';">8</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '9';">9</span>
-                           </div>
-                           <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value.slice(0, -1);"><</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value=document.getElementById('machine-user-id').value + '0';">0</span>
-                              <span class="numpad" onclick="document.getElementById('machine-user-id').value='';">Clear</span>
-                           </div>
-                        </div>
-                        <div class="row">
-                           <div class="col-md-10 offset-md-1">
-                              <button type="submit" class="btn btn-block btn-primary btn-lg">LOGIN</button>
-                           </div>
-                        </div>
-                     </form>
-                  </div>
-               </div>
-            </div>
-         </div>
-   </div>
+                            </form>
+                          </div>               
+                       </div>
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding-top: -100px;">Cancel</button>
+              &nbsp;
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
+
+<div class="modal fade" id="scan-jt-for-qc-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-md" role="document">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #f57f17;">
+           <h5 class="modal-title">Quality Inspection [<b>Painting</b>]</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+           <input type="hidden" id="workstation" value="Painting">
+        </div>
+        <div class="modal-body" style="min-height: 480px;">
+           <div class="row">
+              <div class="col-md-12">
+                 <div class="row" id="enter-production-order">
+                    <div class="col-md-10 offset-md-1">
+                       <h6 class="text-center">Scan your Job Ticket</h6>
+                       <div class="row">
+                          <div class="col-md-10">
+                             <div class="form-group">
+                                <div class="input-group">
+                                   <div class="input-group-prepend">
+                                      <div class="input-group-text">PROM-</div>
+                                   </div>
+                                   <input type="text" class="form-control" id="production-order-qc" style="font-size: 15pt;" required>
+                                </div>
+                             </div>
+                          </div>
+                          <div class="col-md-2" style="padding: 0; margin-top: -15px;">
+                             <center>
+                                <img src="{{ asset('img/tap.gif') }}" width="260" height="60" id="toggle-jt-numpad-qc">
+                             </center>
+                          </div>
+                       </div>
+                      
+                       <div id="jt-numpad-qc" style="display: none;">
+                       <div class="text-center">
+                          <div class="row1">
+                             <span class="numpad num">1</span>
+                             <span class="numpad num">2</span>
+                             <span class="numpad num">3</span>
+                          </div>
+                          <div class="row1">
+                             <span class="numpad num">4</span>
+                             <span class="numpad num">5</span>
+                             <span class="numpad num">6</span>
+                          </div>
+                          <div class="row1">
+                             <span class="numpad num">7</span>
+                             <span class="numpad num">8</span>
+                             <span class="numpad num">9</span>
+                          </div>
+                          <div class="row1">
+                             <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
+                             <span class="numpad num">0</span>
+                             <span class="numpad" onclick="document.getElementById('production-order-qc').value='';">Clear</span>
+                          </div>
+                       </div>
+                       <div class="row">
+                          <div class="col-md-10 offset-md-1">
+                             <button type="button" class="btn btn-block btn-primary btn-lg" id="submit-enter-production-order-qc">SUBMIT</button>
+                          </div>
+                       </div>
+                       </div>
+                       <div id="jt-scan-img-qc">
+                          <center>
+                             <img src="{{ asset('img/scan-barcode.png') }}" width="220" height="240" style="margin: 40px 10px 10px 10px;">
+                          </center>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+     </div>
+  </div>
 </div>
 <div class="modal fade" id="chemical-records-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-         <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">&nbsp;
-              Painting Chemical Records
-            </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <div id="chemical-records-div"></div>
-         </div>
-      </div>
-   </div>
+  <div class="modal-dialog modal-lg" role="document">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+           <h5 class="modal-title">&nbsp;
+             Painting Chemical Records
+           </h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <div id="chemical-records-div"></div>
+        </div>
+     </div>
+  </div>
 </div>
 <div class="modal fade" id="water-discharged-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog modal-lg" role="document">
+  <div class="modal-dialog modal-lg" role="document">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+           <h5 class="modal-title">&nbsp;
+             Water Discharge Monitoring
+           </h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <div id="water_discharged_div"></div>
+        </div>
+     </div>
+  </div>
+</div>
+<div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document" style="min-width: 90%;">
+     <div class="modal-content">
+       <div class="modal-header text-white" style="background-color: #0277BD;">
+         <h5 class="modal-title font-weight-bold">Modal Title</h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div class="modal-body" style="min-height: 600px;">
+         <div id="production-search-content-modal2"></div>
+       </div>
+     </div>
+   </div>
+ </div>
+ <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog" role="document" style="min-width: 90%;">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #f57f17;">
+           <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+           <input type="hidden" id="workstation" value="Painting">
+        </div>
+        <div class="modal-body" style="min-height: 480px;">
+           <div class="row" id="tasks-for-inspection-tbl" style="margin-top: 10px;"></div>
+        </div>
+     </div>
+  </div>
+</div>
+<div class="modal fade" id="powder-record-modal" tabindex="-1" role="dialog">
+   <div class="modal-dialog" style="min-width: 98%;" role="document">
       <div class="modal-content">
          <div class="modal-header text-white" style="background-color: #0277BD;">
             <h5 class="modal-title">&nbsp;
-              Water Discharge Monitoring
+              POWDER COAT - INVENTORY UPDATE
             </h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">&times;</span>
             </button>
          </div>
          <div class="modal-body">
-            <div id="water_discharged_div"></div>
+            <div id="powder_record_div"></div>
          </div>
       </div>
    </div>
 </div>
-<div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="min-height: 600px;">
-          <div id="production-search-content-modal2"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-@include('painting_operator.modal_view_production_order_details')
-@include('painting_operator.modal_view_schedule')
+</div>
 
 <style type="text/css">
     @-webkit-keyframes blinker_break {
@@ -451,664 +572,65 @@
   margin-bottom: 15px;
   }
 </style>
-@include('quality_inspection.modal_inspection')
-
-<div class="modal fade" id="scan-jt-for-qc-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog modal-md" role="document">
-     <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #f57f17;">
-           <h5 class="modal-title">Quality Inspection [<b>Painting</b>]</h5>
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-           </button>
-           <input type="hidden" id="workstation" value="Painting">
-        </div>
-        <div class="modal-body" style="min-height: 480px;">
-           <div class="row">
-              <div class="col-md-12">
-                 <div class="row" id="enter-production-order">
-                    <div class="col-md-10 offset-md-1">
-                       <h6 class="text-center">Scan your Job Ticket</h6>
-                       <div class="row">
-                          <div class="col-md-10">
-                             <div class="form-group">
-                                <div class="input-group">
-                                   <div class="input-group-prepend">
-                                      <div class="input-group-text">PROM-</div>
-                                   </div>
-                                   <input type="text" class="form-control" id="production-order-qc" style="font-size: 15pt;" required>
-                                </div>
-                             </div>
-                          </div>
-                          <div class="col-md-2" style="padding: 0; margin-top: -15px;">
-                             <center>
-                                <img src="{{ asset('img/tap.gif') }}" width="260" height="60" id="toggle-jt-numpad-qc">
-                             </center>
-                          </div>
-                       </div>
-                      
-                       <div id="jt-numpad-qc" style="display: none;">
-                       <div class="text-center">
-                          <div class="row1">
-                             <span class="numpad num">1</span>
-                             <span class="numpad num">2</span>
-                             <span class="numpad num">3</span>
-                          </div>
-                          <div class="row1">
-                             <span class="numpad num">4</span>
-                             <span class="numpad num">5</span>
-                             <span class="numpad num">6</span>
-                          </div>
-                          <div class="row1">
-                             <span class="numpad num">7</span>
-                             <span class="numpad num">8</span>
-                             <span class="numpad num">9</span>
-                          </div>
-                          <div class="row1">
-                             <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
-                             <span class="numpad num">0</span>
-                             <span class="numpad" onclick="document.getElementById('production-order-qc').value='';">Clear</span>
-                          </div>
-                       </div>
-                       <div class="row">
-                          <div class="col-md-10 offset-md-1">
-                             <button type="button" class="btn btn-block btn-primary btn-lg" id="submit-enter-production-order-qc">SUBMIT</button>
-                          </div>
-                       </div>
-                       </div>
-                       <div id="jt-scan-img-qc">
-                          <center>
-                             <img src="{{ asset('img/scan-barcode.png') }}" width="220" height="240" style="margin: 40px 10px 10px 10px;">
-                          </center>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </div>
-     </div>
-  </div>
-</div>
-
-<div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog" role="document" style="min-width: 90%;">
-     <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #f57f17;">
-           <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-           </button>
-           <input type="hidden" id="workstation" value="Painting">
-        </div>
-        <div class="modal-body" style="min-height: 480px;">
-           <div class="row" id="tasks-for-inspection-tbl" style="margin-top: 10px;"></div>
-        </div>
-     </div>
-  </div>
-</div>
-
-<div class="modal fade" id="confirm-sample-size-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-white" style="background-color: #f57f17;;">
-        <h5 class="modal-title" id="modal-title ">Sample Size</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="col-md-12">
-            <input type="hidden" id="sample-size-tab-id">
-            <h5 class="text-center" style="margin: 0;">Recommended Sample Size: <span class="sample-size font-weight-bold">0</span></h5>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary btn-lg" id="confirm-sample-size-btn">OK</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="modal fade" id="powder-record-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" style="min-width: 98%;" role="document">
-      <div class="modal-content">
-         <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">&nbsp;
-              POWDER COAT - INVENTORY UPDATE
-            </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <div id="powder_record_div"></div>
-         </div>
-      </div>
-   </div>
-</div>
-
 @endsection
 
 @section('script')
 <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
-  $(document).ready(function(){
-    var workstation = "Painting";
-    var active_input = null;
-    
-    $.ajaxSetup({
-      headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-      }
-    });
-
-    $(document).on('click', '.reject-confirmation-btn', function(e){
-      e.preventDefault();
-      
-      var inspection_type = $(this).data('inspection-type');
-      var workstation = $(this).data('workstation');
-      var production_order = $(this).data('production-order');
-      var process_id = $(this).data('process-id');
-      var qa_id = $(this).data('qaid');
-
-      $.ajax({
-        url:"/get_reject_confirmation_checklist/" + production_order + "/" + workstation + "/" + process_id + "/" + qa_id + "?page=operator",
-        type:"GET",
-        success:function(data){
-          $('#quality-inspection-div').html(data);
-          $('#quality-inspection-modal .qc-type').text(inspection_type);
-          $('#quality-inspection-modal .qc-workstation').text('[' + workstation + ']');
-          $('#quality-inspection-modal').modal('show');
-        }
-      });
-    });
-
-    $(document).on('click', '#reject-confirmation-frm .next-tab', function() {
-      $('#reject-confirmation-frm .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-  });
-
-  $(document).on('click', '#reject-confirmation-frm .prev-tab', function() {
-    $('#reject-confirmation-frm .nav-tabs li > .active').parent().prev().find('a[data-toggle="tab"]').tab('show');
-  });
-
-  $(document).on('submit', '#reject-confirmation-frm', function(e){
-      e.preventDefault();
-      $.ajax({
-        url: $(this).attr('action'),
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#quality-inspection-modal').modal('hide');
-            get_tasks_for_inspection(data.details.workstation, data.details.production_order)
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-      });
-    });
-
-    $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
-      if($(this).data('edit') > 0){
-        active_input = $(this).attr('id');
-      }else{
-        active_input = null;
-      }
-    });
-
-    $(document).on('click', '#quality-inspection-frm .num', function() {
-      $("#" + active_input).focus();
-      var input = $('#quality-inspection-frm #' + active_input);
-      var x = input.val();
-      var y = $(this).text();
-  
-      if (x == '0' && y != '.') {
-        x = '';
-      }
-
-      if((x.indexOf(".") > -1) && y == "."){
-        return false;
-      }
-
-      if (x == '0' && y == '.') {
-        x = '0';
-      }
-      
-      input.val(x + y);
-    });
-
-    $(document).on('click', '#quality-inspection-frm .clear', function() {
-      $("#" + active_input).focus();
-      var input = $('#quality-inspection-frm #' + active_input);
-      input.val(0);
-    });
-
-    $(document).on('click', '#quality-inspection-frm .del', function() {
-      $("#" + active_input).focus();
-      var input = $('#quality-inspection-frm #' + active_input);
-      var x = input.val();
- 
-      input.val(x.substring(0, x.length - 1));
-  
-      if (input.val().length == 0) {
-        input.val(0);
-      }
-    });
-
-    $('#quality-check-modal-btn').click(function(e){
-      e.preventDefault();
-      $('#scan-jt-for-qc-modal').modal('show');
-    });
-
-    $(document).on('click', '#scan-jt-for-qc-modal .num', function(e){
-      e.preventDefault();
-      var num = $(this).text();
-      var current = $('#scan-jt-for-qc-modal input[type="text"]').val();
-      var new_input = current + num;
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
-         
-      $('#scan-jt-for-qc-modal input[type="text"]').val(new_input);
-    });
-
-    $('#toggle-jt-numpad-qc').click(function(e){
-      e.preventDefault();
-      $('#scan-jt-for-qc-modal #jt-numpad-qc').slideToggle();
-      $('#scan-jt-for-qc-modal #jt-scan-img-qc').slideToggle();
-    });
-
-    $('#submit-enter-production-order-qc').click(function(e){
-      e.preventDefault();
-      var production_order = 'PROM-' + $('#production-order-qc').val();
-      get_tasks_for_inspection(workstation, production_order);
-    });
-
-    function get_tasks_for_inspection(workstation, production_order){
-      $.ajax({
-        url:"/get_tasks_for_inspection/" + workstation +"/" + production_order,
-        type:"GET",
-        success:function(data){
-          if(data.success == 0){
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-            return false;
-          }
-
-          $('#select-process-for-inspection-modal').modal('show');
-          $('#select-process-for-inspection-modal .production-order').text(production_order);
-          $('#tasks-for-inspection-tbl').html(data);
-        }
-      });
+    var now = new Date(<?php echo time() * 1000 ?>);
+    function startInterval(){  
+        setInterval('showTime();', 1000);
     }
 
-    $(document).on('click', '.quality-inspection-btn', function(e){
-      e.preventDefault();
-
-      $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-
-      var production_order = $(this).data('production-order');
-      var process_id = $(this).data('processid');
-      var workstation = $(this).data('workstation');
-      var inspection_type = $(this).data('inspection-type');
-
-      var data = {
-        time_log_id: $(this).data('timelog-id'),
-        inspection_type: inspection_type
-      }
-      $.ajax({
-        url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
-        type:"GET",
-        data: data,
-        success:function(response){
-          active_input = null;
-          $('#quality-inspection-div').html(response);
-          $('#quality-inspection-modal .qc-type').text(inspection_type);
-          $('#quality-inspection-modal').modal('show');
-        }, error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        },
-      });
-    });
-
-    $(document).on('click', '#quality-inspection-frm .next-tab', function(e){
-      e.preventDefault();
-            
-      var tab_id = $(this).data('tab-id');
-      var tab_qty_reject = parseInt($('#' + tab_id + '-qty-reject').val());
-      var tab_qty_checked = parseInt($('#' + tab_id + '-qty-checked').val());
-      var tab_qty = parseInt($('#' + tab_id + '-qty').val());
-      var tab_reject_level = parseInt($('#' + tab_id + ' .reject-level').text());
-
-      if(tab_qty_checked <= 0){
-        showNotification("danger", 'Please enter quantity checked.', "now-ui-icons travel_info");
-        return false;
-      }
-
-      var checklist_unchecked = $('#' + tab_id + ' input:checkbox:not(:checked)').length;
-      if(checklist_unchecked > 0){
-        if(tab_qty_reject <= 0){
-          showNotification("danger", 'Please enter quantity reject.', "now-ui-icons travel_info");
-          return false;
+    function showTime() {
+        manilaTime = new Date();
+        var clock = document.getElementById('qwe');
+        if(clock){
+            clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
         }
 
-        if(tab_qty_reject > tab_qty_checked){
-          showNotification("danger", 'Reject quantity cannot be greater than quantity checked.', "now-ui-icons travel_info");
-          return false;
-        }
-      }else{
-        $('#' + tab_id + '-qty-reject').val(0);
-      }
-
-      if(tab_qty_checked > tab_qty){
-        showNotification("danger", 'Quantity checked cannot be greater than '+ tab_qty +'.', "now-ui-icons travel_info");
-        return false;
-      }
-
-      var sample_size = $('#' + tab_id + ' .sample-size').text();
-      if(sample_size != $('#' + tab_id + '-qty-checked').val()){
-        if($('#' + tab_id + '-validated-sample-size').val() == 0){
-          $('#confirm-sample-size-modal .sample-size').text(sample_size);
-          $('#sample-size-tab-id').val(tab_id);
-          $('#confirm-sample-size-modal').modal('show');
-          return false;
-        }
-      }
-
-      var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-      if(next_tab_id != 'tablast'){
-        if(tab_qty_reject > tab_reject_level){
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-        }else{
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-        }
-      }
-      
-      var no_rej = '';
-      var table = '<table style="width: 100%; font-size: 10pt;" border="1">' + 
-        '<col style="width:30%;"><col style="width:20%;"><col style="width:50%;">' +
-        '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Inspection</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject(s)</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th></tr>';
-      
-      var reject_id = '';
-      var reject_values = '';
-      var qty_checked = 0;
-      var qty_reject = 0;
-      $('#quality-inspection-modal .custom-tabs-1').each(function(){
-        var tab_pane_id = $('#' + $(this).attr('id') + '-inspection');
-        var q = tab_pane_id.find('input[name="qty_checked"]').eq(0).val();
-        var r = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-        if(q){
-          qty_checked = qty_checked + parseInt(q);
-          qty_reject = qty_reject + parseInt(r);
-        }
-
-        $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-          if($.isNumeric($(this).val())){
-            reject_id += $(this).val() + ',';
-            reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
-          }
-        });
-
-        var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
-        var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-        var reason = '';
-        $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-          if($.isNumeric($(this).val())){
-            reason += $(this).data('reject-reason') + ', ';
-          }
-        });
-
-        if(checklist_category){
-          if(parseInt(tab_pane_id.find('input[name="qty_checked"]').eq(0).val()) > 0){
-            if(reject_qty <= 0){
-              reason = 'No Reject';
-              no_rej += '<br>' + tab_pane_id.find('.chklist-cat').text();
+        var timeformat = manilaTime.toTimeString();
+        $('.breaktime_input').each(function() {
+            var div_id= "#" + $(this).data('divid');
+            if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
+                $(div_id).show();
+                $(div_id).addClass("blink_break");
             }else{
-              table += '<tr>' + 
-                '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">' + checklist_category + '</div></td>' +
-                '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + reject_qty + '</td>' +
-                '<td style="border: 1px solid #ABB2B9; padding: 2px;">' + 
-                '<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px;">' + reason + '</div></td>' +
-                '</tr>';
+                $(div_id).hide();
+                $("#div_id").removeClass("blink_break");
             }
-          }
-        }
-
-        $('#qa-result-div-1').html(no_rej);
-      });
-
-      table += '</table>';
-
-      $('#rejection-types-input').val(reject_id);
-      $('#rejection-values-input').val(reject_values);
-      $('#final-qty-checked').text(qty_checked);
-
-      $('#total-rejects-input').val(qty_reject);
-      $('#total-checked-input').val(qty_checked);
-
-      if(qty_reject > 0){
-        $('#quality-inspection-frm .reject-details-tr').removeAttr('hidden');
-        $('#qc-status').addClass('text-danger').removeClass('text-success').text('QC Failed');
-        $('#qa-result-div').html(table);
-      }else{
-        $('#quality-inspection-frm .reject-details-tr').attr('hidden', true);
-        $('#qc-status').addClass('text-success').removeClass('text-danger').text('QC Passed');
-        $('#qa-result-div').empty();
-      }
-
-      active_input = null;
-      
-      $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().next().find('.custom-tabs-1').tab('show');
-      $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeAttr('active');
-    });
-
-    $(document).on('submit', '#quality-inspection-frm', function(e){
-      e.preventDefault();
-
-      $('#quality-inspection-frm button[type="submit"]').attr('disabled', true);
-     
-      $.ajax({
-        url: $(this).attr('action'),
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#quality-inspection-modal').modal('hide');
-            get_tasks_for_inspection(data.details.workstation, data.details.production_order)
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-            $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-      });
-    });
-
-    $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
-      $('#quality-inspection-modal img').slideToggle();
-      $('#quality-inspection-modal .manual').slideToggle();
-    });
-
-    $('#confirm-sample-size-btn').click(function(e){
-      e.preventDefault();
-      var tab_id = $('#sample-size-tab-id').val();
-      $('#' + tab_id + '-validated-sample-size').val(1);
-      $('#' + tab_id + '-next-btn').trigger('click');
-      $('#confirm-sample-size-modal').modal('hide');
-    });
-
-    $(document).on('click', '#quality-inspection-frm .prev-tab', function() {
-      active_input = null;
-
-      var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-      if(next_tab_id != 'tablast'){
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-      }else{
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-      }
-
-      $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().prev().find('.custom-tabs-1').tab('show');
-    });
-
-
-    $('#submit-user-id-btn').click(function(e){
-      e.preventDefault();
-
-      var production_order = $('#bio-id').val();
-      var process_id = {{ $process_details->process_id }};
-    });
-
-    function get_production_order_details(production_order, process_id){
-      $.ajax({
-        url:"/get_production_order_details/" + production_order + "/" + process_id,
-        type:"GET",
-        success:function(data){
-          if(data.success == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            var reference_no = (data.details.sales_order) ? data.details.sales_order : data.details.material_request;
-            var pending_qty = parseInt(data.details.qty_to_manufacture) - parseInt(data.details.completed_qty);
-            $('#enter-operator-id-modal .production-order').text(data.details.production_order);
-            $('#enter-operator-id-modal .customer-name').text(data.details.customer);
-            $('#enter-operator-id-modal .reference-no').text(reference_no);
-            $('#enter-operator-id-modal .item-code').text(data.details.item_code);
-            $('#enter-operator-id-modal .item-description').text(data.details.description);
-            $('#enter-operator-id-modal .required-qty').text(data.details.qty_to_manufacture);
-            $('#enter-operator-id-modal .pending-qty').text(pending_qty);
-            $('#enter-operator-id-modal .completed-qty').text(data.details.completed_qty);
-
-            $('#enter-operator-id-modal .modal-title').text('{{ $process_details->process_name }} Process');
-            $('#enter-operator-id-modal').modal('show');
-          }
-        }, 
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
+        });
     }
 
-    $('#enter-operator-id-modal form').submit(function(e){
-      e.preventDefault();
-      var process_name = '{{ $process_details->process_name }}';
-      var operator_id = $('#user-id').val();
-      var production_order = $('#enter-operator-id-modal .production-order').text();
+    $('#login-form').submit(function(e){
+        e.preventDefault();
+        var operator_id = $('#bio-id').val();
 
-      var data = {  
-        operator_id: operator_id, 
-        process_name: process_name, 
-        _token: '{{ csrf_token() }}',
-        production_order: production_order
-      }
-
-      $.ajax({
-        url:"/painting/login",
-        type:"post",
-        data: data,
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", 'Logging in. Please wait..', "now-ui-icons ui-1_check");
-            window.location.href = data.url;
-          }
-        }, 
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+        var data = {  
+            operator_id: operator_id,
+            process_name: '{{ $process }}',
+            _token: '{{ csrf_token() }}'
         }
-      });
-    });
 
-    $('#machine-power-btn').click(function(e){
-      e.preventDefault();
-      $('#machine-enter-operator-id-modal .modal-title').text('{{ $machine_status }} Machine');
-      $('#machine-status').val('{{ $machine_status }}');
-      $('#machine-enter-operator-id-modal').modal('show');
+        $.ajax({
+            url:"/painting/login",
+            type:"post",
+            data: data,
+            success:function(data){
+                if (data.success < 1) {
+                    showNotification("danger", data.message, "now-ui-icons travel_info");
+                }else{
+                    showNotification("success", 'Logging in. Please wait..', "now-ui-icons ui-1_check");
+                    window.location.href = data.url;
+                }
+            }, 
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+            }
+        });
     });
-
-    $('#machine-enter-operator-id-modal form').submit(function(e){
-      e.preventDefault();
-      console.log($(this).serialize());
-
-      $.ajax({
-        url:"/insert_machine_logs",
-        type:"post",
-        data: $(this).serialize(),
-        success:function(data){
-          $('#machine-enter-operator-id-modal').modal('hide');
-          location.reload();
-        }, 
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
-
-    $('#view-painting-schedule-btn').click(function(e){
-      e.preventDefault();
-      $.ajax({
-        url:"/get_scheduled_for_painting",
-        type:"GET",
-        success:function(data){
-          $('#view-scheduled-task-tbl').html(data);
-          $('#view-scheduled-task-modal').modal('show');
-        }
-      });  
-    });
-    
-    $(document).on('click', 'a', function(e){
-      e.preventDefault();
-      location.assign($(this).attr('href'));
-    });
-
-    $('#toggle-jt-numpad').click(function(e){
-      e.preventDefault();
-      $('#jt-numpad').slideToggle();
-      $('#jt-scan-img').slideToggle();
-    });
-
-    $(document).on('click', '#job-ticket-numpad .num', function(e){
-      e.preventDefault();
-      var num = $(this).text();
-      var current = $('#job-ticket-id').val();
-      var new_input = current + num;
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
-         
-      $('#job-ticket-id').val(new_input);
-    });
-    
-    function format(input, format, sep) {
-      var output = "";
-      var idx = 0;
-      for (var i = 0; i < format.length && idx < input.length; i++) {
-          output += input.substr(idx, format[i]);
-          if (idx + format[i] < input.length) output += sep;
-          idx += format[i];
-      }
-  
-      output += input.substr(idx);
-  
-      return output;
-    }
 
     $('#jt-search-btn').click(function(e){
       e.preventDefault();
@@ -1129,8 +651,8 @@
     $('#jt-search-frm').submit(function(e){
       e.preventDefault();
       var jtno = "PROM-"+$('#jt-no-search').val();
-      $('#jt-workstations-modal .modal-title').text(jtno + " [" + workstation + "]");
-      getJtDetails(jtno);
+      $('#jt-workstations-modal2 .modal-title').text(jtno + " [Painting]");
+      getJtDetails2(jtno);
     });
 
     function getJtDetails(jtno){
@@ -1207,73 +729,200 @@
       $(this).find('[autofocus]').focus();
     });
 
-    // Parses raw scan into name and ID number
-    var rfidParser = function (rawData) {
-      // console.log(rawData, rawData.length);
-      if (rawData.length < 4) return null;
-      else return rawData;
-    };
 
-    // Called on a good scan (company card recognized)
-    var goodScan = function (cardData) {
-      if($('#jt-search-modal').is(':visible') == true){
-        $('#jt-search-modal #jt-no-search').val(cardData.substring(5));
-        $('#jt-workstations-modal .modal-title').text(cardData + " [" + workstation + "]");
-        getJtDetails(cardData);
-
-        return false;
-      }else{
-        var process_id = {{ $process_details->process_id }};
-  
-        get_production_order_details(cardData, process_id);
-      }
-    };
-
-    // Called on a bad scan (company card not recognized)
-    var badScan = function() {
-      console.log("Bad Scan.");
-    };
-
-    // Initialize the plugin.
-    $.rfidscan({
-      parser: rfidParser,
-      success: goodScan,
-      error: badScan
+    $(document).on('click', '#machine-power-btn', function(e){
+      e.preventDefault();
+      var status = $(this).data('status');
+      $('#machine-power-modal .modal-title').text(status + ' Machine');
+      $('#machine-power-modal .modal-body #confirm-text').text('Confirm machine ' + status);
+      $('#machine-power-modal #category-machine').val(status);
+      $('#machine-power-modal').modal('show');
     });
 
-    $('.modal').on('hidden.bs.modal', function(){
-      var frm = $(this).find('form')[0];
-      if (frm) frm.reset();
+    $('#machine-power-frm').submit(function(e){
+      e.preventDefault();
+
+      var category = $('#category-machine').val();
+
+      $.ajax({
+        url:"/insert_machine_logs",
+        type:"post",
+        data: $(this).serialize(),
+        success:function(data){
+          if (category == 'Start Up') {
+            location.reload();
+          }else{
+            window.location.href="/painting/logout/{{ $process }}";
+          }
+        }, 
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
     });
 
 
-  });
-</script>
-<script>
-  var now = new Date(<?php echo time() * 1000 ?>);
-  function startInterval(){  
-    setInterval('showTime();', 1000);
-  }
+    $('#quality-check-modal-btn').click(function(e){
+      e.preventDefault();
+      $('#scan-jt-for-qc-modal').modal('show');
+    });
 
-  function showTime() {
-    manilaTime = new Date();
-    var clock = document.getElementById('qwe');
-    if(clock){
-      clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
+    $(document).on('click', '#scan-jt-for-qc-modal .num', function(e){
+      e.preventDefault();
+      var num = $(this).text();
+      var current = $('#scan-jt-for-qc-modal input[type="text"]').val();
+      var new_input = current + num;
+      new_input = format(new_input.replace(/-/g, ""), [5], "-");
+         
+      $('#scan-jt-for-qc-modal input[type="text"]').val(new_input);
+    });
+
+    $('#toggle-jt-numpad-qc').click(function(e){
+      e.preventDefault();
+      $('#scan-jt-for-qc-modal #jt-numpad-qc').slideToggle();
+      $('#scan-jt-for-qc-modal #jt-scan-img-qc').slideToggle();
+    });
+
+    $('#submit-enter-production-order-qc').click(function(e){
+      e.preventDefault();
+      var production_order = 'PROM-' + $('#production-order-qc').val();
+      get_tasks_for_inspection(workstation, production_order);
+    });
+
+    function get_tasks_for_inspection(workstation, production_order){
+      $.ajax({
+        url:"/get_tasks_for_inspection/" + workstation +"/" + production_order,
+        type:"GET",
+        success:function(data){
+          if(data.success == 0){
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+            return false;
+          }
+
+          $('#select-process-for-inspection-modal').modal('show');
+          $('#select-process-for-inspection-modal .production-order').text(production_order);
+          $('#tasks-for-inspection-tbl').html(data);
+        }
+      });
     }
-    var timeformat = manilaTime.toTimeString();
-    $('.breaktime_input').each(function() {
-      var div_id= "#" + $(this).data('divid');
-      if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
-        $(div_id).show();
-        $(div_id).addClass("blink_break");
-      }else{
-        $(div_id).hide();
-        $("#div_id").removeClass("blink_break");
 
+    $(document).on('click', '.quality-inspection-btn', function(e){
+      e.preventDefault();
+
+      $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
+
+      var production_order = $(this).data('production-order');
+      var process_id = $(this).data('processid');
+      var workstation = $(this).data('workstation');
+      var inspection_type = $(this).data('inspection-type');
+
+      var data = {
+        time_log_id: $(this).data('timelog-id'),
+        inspection_type: inspection_type
       }
+      $.ajax({
+        url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
+        type:"GET",
+        data: data,
+        success:function(response){
+          active_input = null;
+          $('#quality-inspection-div').html(response);
+          $('#quality-inspection-modal .qc-type').text(inspection_type);
+          $('#quality-inspection-modal').modal('show');
+        }, error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        },
+      });
     });
-  }
+
+    $('#view-painting-schedule-btn').click(function(e){
+      e.preventDefault();
+      $.ajax({
+        url:"/get_scheduled_for_painting",
+        type:"GET",
+        success:function(data){
+          $('#view-scheduled-task-tbl').html(data);
+          $('#view-scheduled-task-modal').modal('show');
+        }
+      });  
+    });
+
+    $('#toggle-bio-numpad').click(function(e){
+        e.preventDefault();
+        $('#bio-numpad').slideToggle();
+        $('#bio-scan-img').slideToggle();
+    });
+
+    $(document).on('click', '#bio-numpad .num', function(e){
+        e.preventDefault();
+        var num = $(this).text();
+        var current = $('#bio-id').val();
+        var new_input = current + num;
+        new_input = format(new_input.replace(/-/g, ""), [5], "-");
+            
+        $('#bio-id').val(new_input);
+    });
+
+    $(document).on('click', '#machine-bio-numpad .num', function(e){
+        e.preventDefault();
+        var num = $(this).text();
+        var current = $('#machine-bio-id').val();
+        var new_input = current + num;
+        new_input = format(new_input.replace(/-/g, ""), [5], "-");
+            
+        $('#machine-bio-id').val(new_input);
+    });
+
+    $(document).on('click', '#view-chemical-records-btn', function(event){
+      $.ajax({
+        url:"/get_chemical_records_modal_details",
+        type:"GET",
+        success:function(response){
+          $('#chemical-records-div').html(response);
+          
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        },
+      }); 
+       $('#chemical-records-modal').modal('show');
+       
+    });
+
+    function format(input, format, sep) {
+        var output = "";
+        var idx = 0;
+        for (var i = 0; i < format.length && idx < input.length; i++) {
+            output += input.substr(idx, format[i]);
+            if (idx + format[i] < input.length) output += sep;
+            idx += format[i];
+        }
+    
+        output += input.substr(idx);
+    
+        return output;
+    }
+
+    startInterval();
+    function showNotification(color, message, icon){
+        $.notify({
+            icon: icon,
+            message: message
+        },{
+            type: color,
+            timer: 3000,
+            placement: {
+                from: 'top',
+                align: 'center'
+            }
+        });
+    }
 </script>
 <script type="text/javascript">
   $(document).on('click', '#view-chemical-records-btn', function(event){
@@ -2143,6 +1792,89 @@
             }
       });
     });
-    
+
+    function get_itemcode_painting(){
+        $.ajax({
+          url: "/get_item_code_stock_adjustment_entries_painting",
+          method: "GET",
+          success: function(data) {
+          $('#itemcode_line_painting').html(data);
+            
+          },
+          error: function(data) {
+          alert(data);
+          }
+        });
+    }
+    $(document).on('click', '.btn-stock-adjust-entry-painting', function(){
+        get_itemcode_painting();
+        $('#balance_qty_id_painting').val("");
+        $('#item_description_input_painting').val("");
+        $('#actual_qty_id_painting').text(0);
+        $('#planned_qty_id_painting').text(0);
+        $('#add-stock-entries-adjustment-painting').modal('show');
+        $('#item_desc_div_painting').hide();
+        $('#entry_type_div_painting').hide();
+    });
+    $('#add-stock-entries-adjustment-painting-frm').submit(function(e){
+      e.preventDefault();
+      var item_code = $('#itemcode_line').val();
+      
+      if(item_code == "default"){
+        showNotification("danger", "Pls Select Item code", "now-ui-icons travel_info");
+      }else{
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-stock-entries-adjustment-painting-frm').trigger("reset");
+            $('#balance_qty_id_painting').val("");
+            $('#item_description_input_painting').val("");
+            $('#actual_qty_id_painting').text('0');
+            $('#planned_qty_id_painting').text('0');
+            $('#add-stock-entries-adjustment-painting').modal('hide');
+            $('#item_desc_div_painting').hide();
+            $('#entry_type_div_painting').hide();
+            tbl_painting_stock_list();
+            powder_coat_Chart();
+            // inventory_history_list();
+
+                // $('#edit-worktation-frm').trigger("reset");
+                // workstation_list();
+
+          } 
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      }); 
+      }
+    });
+    $(document).on('click', '#tbl_painting_stock_pagination a', function(event){
+         event.preventDefault();
+         var page = $(this).attr('href').split('page=')[1];
+         var filter_contents = "inventory_painting";
+         var filter_content = "stock-list-painting";
+		     var query = $('#inv-search-box').val();
+	    	 var filters = 'q=' + query + '&' + $('#' + filter_contents).serialize();
+         tbl_painting_stock_list(page, filters);
+    });
+    $(document).on('click', '#tbl_painting_consumed_pagination a', function(event){
+         event.preventDefault();
+         var page = $(this).attr('href').split('page=')[1];
+         var filter_contents = "consumed_list_powder";
+         var filter_content = "powderconsume-list-painting";
+		     var query = $('#inv-search-box').val();
+	    	 var filters = 'q=' + query + '&' + $('#' + filter_contents).serialize();
+         tbl_powder_consumed_list(page, filters);
+    });
 </script>
 @endsection

@@ -74,25 +74,6 @@
                   
                   <div class="col-md-4" style="padding: 7px 5px 6px 12px;">
                      <div class="row" style="padding: 7px 5px 6px 12px;">
-                       {{--<div class="col-md-4">
-                           <div class="form-group text-center">
-                              <label for="">Previous</label>
-                              <input type="text" class="form-control form-control-lg qty-input qty-powder" name="previous_inputs" data-edit="0" value="" id="previous_input" readonly>
-                           </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                           <div class="form-group text-center">
-                              <label for="">Consumed Ty</label>
-                              <input type="text" class="form-control form-control-lg qty-input qty-powder" name="present_inputs" data-edit="1" id="present_input_qty" value="0" required>
-                           </div>
-                        </div>
-                        <div class="col-md-4">
-                           <div class="form-group text-center">
-                              <label for="">Available Qty</label>
-                              <input type="text" class="form-control form-control-lg qty-input qty-powder" name="availbale_qty" data-edit="0" id="availbale_qty" value="0" readonly>
-                           </div>
-                        </div>--}}
                         <style>
                            .qty-input{
                               font-size: 20pt; text-align: center; font-weight: bolder;
@@ -307,7 +288,6 @@
   });
 </script>
 <script>
-
     $('#powder-record-modal .next-tab').click(function(){
       
       var item = $('.item_code_selection').val();
@@ -334,8 +314,6 @@
         $('.nav-tabs > .active').next('li').find('a').trigger('click');
 
       }
-
-  
 });
 </script>
 <script type="text/javascript">

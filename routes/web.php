@@ -27,7 +27,8 @@ Route::post('/submit_quality_inspection', 'QualityInspectionController@submit_qu
 
 Route::get('/iii', 'ProductionFloorController@com');
 
-Route::get('/operator/Painting/{process_name}', 'PaintingOperatorController@index');
+Route::get('/operator/Painting/{process_name}', 'PaintingOperatorController@painting_index');
+Route::get('/operator/Painting/{process_name}/login', 'PaintingOperatorController@loading_login');
 Route::get('/get_production_order_details/{production_order}/{process_id}', 'PaintingOperatorController@get_production_order_details');
 Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
@@ -49,7 +50,9 @@ Route::group(['middleware' => 'auth'], function(){
 
 	Route::post('/add_ste_items', 'ManufacturingController@add_ste_items');
 
-	Route::get('/operator/Painting/{process_name}/{machine_code}/{production_order}', 'PaintingOperatorController@operator_task');
+	// Route::get('/operator/Painting/{process_name}/{machine_code}/{production_order}', 'PaintingOperatorController@operator_task');
+	Route::get('/operator/Painting/{process_name}/{machine_code}', 'PaintingOperatorController@operator_task');
+	Route::get('/get_painting_task/{process}/{operator_id}', 'PaintingOperatorController@get_painting_in_progress');
 	Route::get('/get_task/{production_order}/{process_id}/{operator_id}', 'PaintingOperatorController@get_task');
 	Route::post('/start_painting', 'PaintingOperatorController@start_task');
 	Route::post('/end_painting', 'PaintingOperatorController@end_task');
@@ -200,6 +203,9 @@ Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'Seco
 
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/view_override_form/{production_order}', 'MainController@viewOverrideForm');
+	Route::post('/update_override_production_form', 'MainController@updateOverrideProduction');
+	
 	Route::get('/send_feedback_email', 'MainController@sendFeedbackEmail');
 	
 	Route::get('/planning_wizard/no_bom', 'ManufacturingController@wizardNoBom');

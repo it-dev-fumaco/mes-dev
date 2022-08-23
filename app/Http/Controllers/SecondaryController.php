@@ -2905,6 +2905,7 @@ class SecondaryController extends Controller
 
     }
 
+    // /get_painting_production_order_list/{date}
     public function get_production_order_list(Request $request, $schedule_date){
         if($request->operation == 1){
             $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
@@ -2946,6 +2947,24 @@ class SecondaryController extends Controller
             $orders = $orders_1->get();
         }
 
+        $time_log_array = [];
+        if($request->operation == 2){
+            $time_log_qry = DB::connection('mysql_mes')->table('job_ticket')
+                ->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
+                ->join('process', 'process.process_id', 'job_ticket.process_id')
+                ->whereIn('job_ticket.production_order', collect($orders)->pluck('production_order'))
+                ->orderBy('time_logs.created_at', 'desc')
+                ->get();
+
+            foreach($time_log_qry as $tl){
+                $time_log_array[$tl->production_order][$tl->process_name][] = [
+                    'from_time' => $tl->from_time,
+                    'to_time' => $tl->to_time,
+                    'operator' => $tl->operator_name
+                ];
+            }
+        }
+        
         $result = [];
         foreach($orders as $row){
             $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
@@ -2956,6 +2975,24 @@ class SecondaryController extends Controller
             if(!empty($qa_table)){
                 $qa_em= DB::connection('mysql_essex')->table('users')->where('user_id', $qa_table->qa_staff_id)
                     ->select('employee_name')->first();
+            }
+
+            $loading_time = $loading_operator = null;
+            $loading_qty = 0;
+            if(isset($time_log_array[$row->production_order]['Loading'])){
+                $loading_time =  collect($time_log_array[$row->production_order]['Loading'])->min('from_time');
+                $loading_time = Carbon::parse($loading_time)->format('M-d-Y h:i A');
+    
+                $loading_operator = $time_log_array[$row->production_order]['Loading'][0]['operator'];
+            }
+            
+            $unloading_time = $unloading_operator = null;
+            $unloading_qty = 0;
+            if(isset($time_log_array[$row->production_order]['Unloading'])){
+                $unloading_time = collect($time_log_array[$row->production_order]['Unloading'])->max('to_time');
+                $unloading_time = Carbon::parse($unloading_time)->format('M-d-Y h:i A');
+
+                $unloading_operator = $time_log_array[$row->production_order]['Unloading'][0]['operator'];
             }
 
             $helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $row->time_log_id)->distinct()->pluck('operator_name');
@@ -2977,6 +3014,11 @@ class SecondaryController extends Controller
                 'production_order' => $row->production_order,
                 'job_ticket_id' => $row->job_ticket_id,
                 'timelogs_id' => $row->time_log_id,
+                'qty_to_manufacture' => $row->qty_to_manufacture,
+                'loading_time' => $loading_time,
+                'loading_operator' => $loading_operator,
+                'unloading_time' => $unloading_time,
+                'unloading_operator' => $unloading_operator,
                 'qty_accepted' => $row->qty_to_manufacture,
                 'workstation_id' =>  $row->workstation_id,
                 'helpers' => $helpers
@@ -2984,8 +3026,9 @@ class SecondaryController extends Controller
         }
 
         $current_date = $schedule_date;
+        $operation = $request->operation;
         
-        return view('tables.tbl_production_order_list_maindashboard', compact('result', 'current_date'));
+        return view('tables.tbl_production_order_list_maindashboard', compact('result', 'current_date', 'operation'));
     }
 
     public function qa_monitoring_summary(Request $request, $schedule_date){
@@ -7138,7 +7181,7 @@ class SecondaryController extends Controller
         ->where('item.item_classification', ['PA - Paints'])
         ->where('item.item_name','like', '%powder%')
         ->orderBy('item.modified', 'desc')
-        ->select('item.name', 'item.item_name', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name')
         ->get();
 
             foreach($item_list as $row)
@@ -7270,7 +7313,7 @@ class SecondaryController extends Controller
         ->where('item.item_classification', ['PA - Paints'])
         ->where('item.item_name','like', '%powder%')
         ->orderBy('item.modified', 'desc')
-        ->select('item.name', 'item.item_name', 'item.default_warehouse')
+        ->select('item.name', 'item.item_name')
         ->get();
 
         $output="<option value='default'>Select Item Code</option>";

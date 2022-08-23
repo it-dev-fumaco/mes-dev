@@ -123,6 +123,9 @@
                     <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Close Production</a>
                   @endif
                 @endif
+                @if(!in_array($r['status'], ['Cancelled', 'Feedbacked', 'Completed', 'Closed', 'Partially Feedbacked']))
+                <a class="dropdown-item override-production-btn" href="#" data-production-order="{{ $r['production_order'] }}">Override Production</a>
+                @endif
               </div>
             </div>
           </td>
