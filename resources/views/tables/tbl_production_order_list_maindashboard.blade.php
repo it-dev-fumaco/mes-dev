@@ -44,7 +44,7 @@
               <td class="text-center p-0"><a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn text-dark">{{ $row['production_order'] }}</a></td>
               @if ($operation == 2)
                 <td class="text-center p-0">
-                  <span class="d-block">{{ $row['qty_to_manufacture'] }}</span>
+                  <span class="d-block font-weight-bold" style="font-size: 11pt !important;">{{ $row['qty_to_manufacture'] }}</span>
                 </td>
                 <td class="text-center">
                   <span>{{ $row['loading_time'] }}</span><br>
