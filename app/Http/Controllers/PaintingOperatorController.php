@@ -505,6 +505,10 @@ class PaintingOperatorController extends Controller
 				->where('process_name', 'Unloading')->where('job_ticket.production_order', $request->production_order)
 				->first();
 
+			if(!$unloading_jt){
+				return response()->json(['success' => 0, 'message' => 'Unloading task not found for Production Order '.$request->production_order.'.']);
+			}
+
 			$values = [
 				'job_ticket_id' => $unloading_jt->job_ticket_id,
 				'reference_time_log' => $current_task->time_log_id,

@@ -78,9 +78,6 @@
           <div class="col-md-10 offset-md-1" style="display: none;" id="jt-numpad">
             <div class="form-group">
               <div class="input-group">
-                 {{-- <div class="input-group-prepend">
-                    <div class="input-group-text">PROM-</div>
-                 </div> --}}
                  <input type="text" class="form-control" id="bio-id" style="font-size: 15pt;" required>
               </div>
             </div>
@@ -118,25 +115,6 @@
       </div>
     </div>
   </div>
-    {{-- @if(isset($painting_process))
-    <div class="col-md-12" style="margin-top: 20px;">
-      <center>
-      <table style="width: 100%; display: block; overflow-x: auto; white-space: nowrap; margin:0 auto;" class="">
-        <tr style="width: 100%;" class="text-center d-md-flex justify-content-center"> 
-          @foreach ($painting_process as $process)
-          <td class="">
-            <a href="/operator/Painting/{{ $process }}" class="custom-a ">
-              <div class="card " style="width: 300px; height: 80px; margin: 5px; font-size: 14pt;">
-                <div style="white-space: normal; margin: 20px auto;" class=""><b>{{ $process }}</b></div>
-              </div>
-            </a>
-          </td>
-          @endforeach
-        </tr>
-      </table>
-      </center>
-    </div>
-    @endif --}}
 
 </div>
 @foreach($breaktime_data as $r => $row)
@@ -990,8 +968,6 @@
 
       var production_order = $('#bio-id').val();
       var process_id = {{ $process_details->process_id }};
-
-      // get_production_order_details(production_order, process_id);
     });
 
     function get_production_order_details(production_order, process_id){
