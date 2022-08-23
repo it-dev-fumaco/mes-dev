@@ -177,7 +177,7 @@ class PaintingOperatorController extends Controller
 
 		$process = $request->process_name ? $request->process_name : 'Loading';
 		
-		$url = '/operator/Painting/' . $request->process_name;// . '/' . $painting_machine->machine_code  . '/' . $request->production_order;
+		$url = '/operator/Painting/' . $process;
 
 		// attempt to do the login
         if ($user) {
@@ -195,9 +195,7 @@ class PaintingOperatorController extends Controller
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
 		if(!Auth::user()){
-			// return 1;
 			return redirect('/operator/Painting/'.$process_name.'/login');
-			// return redirect()->action("PaintingOperatorController@loading_login", ['process' => $process_name]);
 		}
 
 		$machine_code = 'M00200';
@@ -211,7 +209,6 @@ class PaintingOperatorController extends Controller
 		return view('painting_operator.tasks', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'machine_code'));
 	}
 
-	// /operator/Painting/{process_name}/{machine_code}/{production_order} - old
 	// /operator/Painting/{process_name}/{machine_code} - revised
 	public function operator_task(Request $request, $process_name, $machine_code){
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
