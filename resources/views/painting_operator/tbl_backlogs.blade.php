@@ -18,55 +18,65 @@
     @php
         $i = 1;
         $processes = ['Loading', 'Unloading'];
+
+        $production_orders = array_keys($backlogs->toArray());
     @endphp
-    @forelse($previously_scheduled_production_orders as $row)
+    @forelse($production_orders as $production_order)
     @php
-        $planned_start_date = isset($backlogs_arr[$row->production_order]['Loading']) ? Carbon\Carbon::parse($backlogs_arr[$row->production_order]['Loading']['planned_date'])->format('M-d-Y') : null;
-        $unloaded_qty = isset($backlogs_arr[$row->production_order]['Unloading']) ? $backlogs_arr[$row->production_order]['Unloading']['completed_qty'] : 0;
+        if(!isset($backlogs[$production_order])){
+            continue;
+        }
+
+        $production_details = collect($backlogs[$production_order])->first();
+        $production_orders_grouped_by_process_name = collect($backlogs[$production_order])->groupBy('process_name');
+
+        $unloaded_qry = isset($production_orders_grouped_by_process_name['Unloading']) ? collect($production_orders_grouped_by_process_name['Unloading'])->first() : [];
+        $unloaded_qty = $unloaded_qry ? $unloaded_qry->completed_qty : 0;
     @endphp
     <tbody style="font-size: 8pt;">
        <tr>
             <td class="text-center align-middle">
                 <div class="container">
                     <span class="pull-right badge badge-primary" style="font-size: 9pt;">{{ $i++ }}</span>
-                    <h6 class="view-prod-details-btn">{{ $row->production_order }}</h6>
+                    <h6 class="view-prod-details-btn">{{ $production_order }}</h6>
                 </div>
                 <div class="container">
-                    {{ $planned_start_date }}
+                    {{ Carbon\Carbon::parse($production_details->planned_start_date)->format('M-d-Y') }}
                 </div>
             </td>
             <td class="text-center">
-                <b>{{ $row->sales_order ? $row->sales_order : $row->material_request }}</b><br>
-                {{ $row->customer }}
+                <b>{{ $production_details->sales_order ? $production_details->sales_order : $production_details->material_request }}</b><br>
+                {{ $production_details->customer }}
                 </td>
-            <td class="align-top"><b>{{ $row->item_code }}</b><br>{{ $row->description }}</td>
-            <td class="text-center" style="font-size: 12pt;"><b>{{ $row->qty_to_manufacture }}</b></td>
+            <td class="align-top"><b>{{ $production_details->item_code }}</b><br>{{ $production_details->description }}</td>
+            <td class="text-center" style="font-size: 12pt;"><b>{{ $production_details->qty_to_manufacture }}</b></td>
             @foreach($processes as $process)
-                @if (isset($backlogs_arr[$row->production_order][$process]))
+                @php
+                    $process_details = isset($production_orders_grouped_by_process_name[$process]) ? collect($production_orders_grouped_by_process_name[$process])->first() : [];
+                @endphp
+                @if ($process_details)
                     @php
-                        $process_arr = $backlogs_arr[$row->production_order][$process];
-
-                        $status = $process_arr['status'];
                         $qty = $status_color = null;   
                         
-                        switch ($process_arr['status']) {
+                        switch ($process_details->process_status) {
                             case 'In Progress':
                                 $status_color = '#F5B041';
                                 break;
+                            case 'Not Started':
                             case 'Pending':
                                 $status_color = '#ABB2B9';
                                 break;
                             case 'Completed':
                                 $status_color = '#2ECC71';
-                                $qty = '<br><span style="font-size: 10pt;">( '.$process_arr['completed_qty'].' )</span>';
+                                $qty = '<br><span style="font-size: 10pt;">( '.$process_details->process_status.' )</span>';
                                 break;
                             default:
-                                $qty = '';
-                                $status_color = '';
+                                $qty = null;
+                                $status_color = null;
                                 break;
                         }
                     @endphp 
-                    <td class="text-center text-white" style="background-color: {{ $status_color }}">{{ $status }} {!! $qty !!}</td>
+                    <td class="text-center text-white" style="background-color: {{ $status_color }}">{{ $process_details->process_status }} {!! $qty !!}</td>
                 @else
                     <td class="text-center text-white" style="background-color: #ABB2B9;">Pending</td>
                 @endif
@@ -76,7 +86,7 @@
                     {{ $unloaded_qty }}
                 </span> <br>
                 <span style="font-size: 8pt;">
-                    Balance: {{ $row->qty_to_manufacture - $unloaded_qty }}
+                    Balance: {{ $production_details->qty_to_manufacture - $unloaded_qty }}
                 </span>
             </td>
         </tr>

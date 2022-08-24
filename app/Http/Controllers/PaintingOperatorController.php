@@ -240,7 +240,7 @@ class PaintingOperatorController extends Controller
 				return $q->orWhere('job_ticket.workstation', 'Painting')->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
 				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
 			})
-			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
+			->select('job_ticket.production_order', 'job_ticket.planned_start_date', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
 			->orderByRaw("FIELD(job_ticket.status , 'In Progress', 'Completed') ASC")->orderBy('tl.created_at', 'desc')
 			->get();
 
@@ -802,27 +802,14 @@ class PaintingOperatorController extends Controller
 		$previously_scheduled_production_orders = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('production_order as po', 'po.production_order', 'jt.production_order')
 			->join('process', 'process.process_id', 'jt.process_id')
-			->where('process.process_name', 'Unloading')
-			->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', '<', $start)->whereRaw('po.qty_to_manufacture > jt.completed_qty')->whereNotIn('po.status', ['Cancelled', 'Closed'])->orderBy('po.created_at', 'desc')
+			->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', '<', $start)->whereRaw('po.qty_to_manufacture > jt.completed_qty')->whereNotIn('po.status', ['Cancelled', 'Closed'])
+			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.customer', 'po.item_code', 'po.description', 'po.qty_to_manufacture', 'jt.planned_start_date', 'jt.status as process_status', 'jt.completed_qty')
+			->orderByRaw("FIELD(process.process_name , 'Loading', 'Unloading') ASC")->orderBy('po.created_at', 'desc')
 			->get();
 
-		$backlogs = DB::connection('mysql_mes')->table('job_ticket as jt')
-			->join('process', 'process.process_id', 'jt.process_id')
-			->whereIn('jt.production_order', collect($previously_scheduled_production_orders)->pluck('production_order'))->where('jt.workstation', 'Painting')->whereNotIn('jt.status', ['Cancelled', 'Closed'])
-			->select('jt.production_order', 'jt.job_ticket_id', 'jt.completed_qty as jt_completed', 'jt.planned_start_date', 'jt.status', 'process.process_name')
-			->get();
+		$backlogs = collect($previously_scheduled_production_orders)->groupBy('production_order');
 
-		$backlogs_arr = [];
-		foreach($backlogs as $bl){
-			$backlogs_arr[$bl->production_order][$bl->process_name] = [
-				'job_ticket_id' => $bl->job_ticket_id,
-				'planned_date' => $bl->planned_start_date,
-				'status' => $bl->status,
-				'completed_qty' => collect($backlogs)->where('process_name', $bl->process_name)->sum('completed_qty')
-			];
-		}
-
-		return view('painting_operator.tbl_backlogs', compact('previously_scheduled_production_orders', 'backlogs_arr'));
+		return view('painting_operator.tbl_backlogs', compact('previously_scheduled_production_orders', 'backlogs'));
 	}
 
 	public function restart_task(Request $request){

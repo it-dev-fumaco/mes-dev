@@ -841,14 +841,26 @@
 
     $('#view-painting-schedule-btn').click(function(e){
       e.preventDefault();
-      $.ajax({
-        url:"/get_scheduled_for_painting",
-        type:"GET",
-        success:function(data){
-          $('#view-scheduled-task-tbl').html(data);
-          $('#view-scheduled-task-modal').modal('show');
-        }
-      });  
+      $.when(
+        $.ajax({
+          url:"/get_scheduled_for_painting",
+          type:"GET",
+          success:function(data){
+            scheduled = data;
+          }
+        }),
+        $.ajax({
+          url:"/get_painting_backlogs",
+          type:"GET",
+          success:function(data){
+            backlog = data;
+          }
+        })
+      ).then(function(){
+        $('#view-scheduled-task-tbl').html(scheduled);
+        $('#backlogs-tbl').html(backlog);
+        $('#view-scheduled-task-modal').modal('show');
+      }); 
     });
 
     $('#toggle-bio-numpad').click(function(e){

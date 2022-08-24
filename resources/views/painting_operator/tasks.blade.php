@@ -1350,7 +1350,6 @@ $('#end-task-frm').submit(function(e){
         $('#backlogs-tbl').html(backlog);
         $('#view-scheduled-task-modal').modal('show');
       });
-      
     });
 
     $(document).on('click', '.view-prod-details-btn', function(e){

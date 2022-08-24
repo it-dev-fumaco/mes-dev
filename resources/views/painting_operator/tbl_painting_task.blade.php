@@ -48,8 +48,14 @@
                           </div>
                         @endif
                       </div>
-                      <div class="qc_passed p-0 {{ !isset($qa_check[$painting->time_log_id]) ? 'd-none' : null }}" style="margin-top: 10px; width: 40px; height: 40px;"></div>
-
+                      @if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($painting->planned_start_date)->startOfDay())
+                      <div class="row mt-1">
+                        <div class="col-12">
+                          <span>Planned start date: <b>{{ Carbon\Carbon::parse($painting->planned_start_date)->format('M-d-Y') }}</b></span> <br>
+                        </div>
+                      </div>
+                      @endif
+                        <div class="qc_passed p-0 {{ !isset($qa_check[$painting->time_log_id]) ? 'd-none' : null }}" style="margin-top: 10px; width: 40px; height: 40px;"></div>
                     </div>
                     <div class="col-2 p-0 d-flex flex-row justify-content-start align-items-center" style="font-size: 10pt;">
                       <div class="container text-center">
