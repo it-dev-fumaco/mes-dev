@@ -1,12 +1,11 @@
 <table style="width: 100%;">
-    <col style="width: 15%;">
-    <col style="width: 15%;">
-    <col style="width: 20%;">
-    <col style="width: 10%;">
-    <col style="width: 10%;">
-    <col style="width: 10%;">
-    <col style="width: 10%;">
-    <col style="width: 10%;">
+   <col style="width: 15%;">
+   <col style="width: 15%;">
+   <col style="width: 20%;">
+   <col style="width: 10%;">
+   <col style="width: 12%;">
+   <col style="width: 12%;">
+   <col style="width: 16%;">
     <thead class="text-primary" style="font-size: 8pt; text-transform: uppercase;">
        <th class="text-center"><b>Production Order</b></th>
        <th class="text-center"><b>Customer</b></th>
@@ -15,7 +14,6 @@
        <th class="text-center"><b>Loading</b></th>
        <th class="text-center"><b>Unloading</b></th>
        <th class="text-center"><b>Completed</b></th>
-       <th class="text-center"><b>Balance</b></th>
     </thead>
     @php
         $i = 1;
@@ -50,8 +48,14 @@
             @endphp 
           <td class="text-center text-white" style="background-color: {{ $status_color }};">{{ $process->status }} {!! $qty !!}</td>
           @endforeach
-          <td class="text-center font-weight-bold" style="font-size: 12pt;">{{ $row['completed_qty'] }}</td>
-          <td class="text-center font-weight-bold" style="font-size: 12pt;">{{ $row['balance_qty'] }}</td>
+          <td class="text-center font-weight-bold">
+            <span style="font-size: 12pt;">
+                {{ $row['completed_qty'] }}
+            </span> <br>
+            <span style="font-size: 8pt;">
+                Balance: {{ $row['balance_qty'] }}
+            </span>
+        </td>
        </tr>
     </tbody>
     @empty
