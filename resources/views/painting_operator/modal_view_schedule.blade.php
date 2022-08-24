@@ -11,11 +11,34 @@
           <div class="modal-body">
             <div class="row">
               <div class="col-md-12">
-                <div class="row" style="margin-top: -1%;">
-                  <div class="col-md-12">
-                    <div id="view-scheduled-task-tbl"></div>
-                  </div>               
-                </div>
+                <!-- Nav tabs -->
+                  <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" data-toggle="tab" href="#current">Scheduled Today</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" data-toggle="tab" href="#backlogs">Backlogs</a>
+                    </li>
+                  </ul>
+                  
+                  <!-- Tab panes -->
+                  <div class="tab-content"> 
+                    <div id="current" class="container tab-pane active" style="padding: 8px 0 0 0;">
+                      <div class="row" style="margin-top: -1%;">
+                        <div class="col-md-12">
+                          <div id="view-scheduled-task-tbl"></div>
+                        </div>               
+                      </div>
+                    </div>
+
+                    <div id="backlogs" class="container tab-pane" style="padding: 8px 0 0 0;">
+                      <div class="row" style="margin-top: -1%;">
+                        <div class="col-md-12">
+                          <div id="backlogs-tbl"></div>
+                        </div>               
+                      </div>
+                    </div>
+                  </div>
               </div>
             </div>
           </div>

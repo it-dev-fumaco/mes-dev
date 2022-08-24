@@ -96,7 +96,7 @@
                         </div>
 
                         <div class="col-4 p-0">
-                            <button type="button" class="btn btn-block btn-danger sub-btn" id="enter-reject-btn" data-process-name="Loading" data-production-order="{{ $painting->production_order }}" data-timelog-id="{{ $painting->time_log_id }}" data-good="{{ $painting->good }}">
+                            <button type="button" class="btn btn-block btn-danger sub-btn" id="enter-reject-btn" data-process-name="Loading" data-production-order="{{ $painting->production_order }}" data-timelog-id="{{ $painting->time_log_id }}" data-good="{{ $painting->good }}" data-status="{{ $painting->status }}">
                               <i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Enter Reject</span>
                             </button>
                         </div>

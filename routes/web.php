@@ -33,6 +33,7 @@ Route::get('/get_production_order_details/{production_order}/{process_id}', 'Pai
 Route::post('/painting/login', 'PaintingOperatorController@login_operator');
 Route::post('/insert_machine_logs', 'PaintingOperatorController@insert_machine_logs');
 Route::get('/get_scheduled_for_painting', 'PaintingOperatorController@get_scheduled_for_painting');
+Route::get('/get_painting_backlogs', 'PaintingOperatorController@backlogs');
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/testing', 'MainController@testing');
 

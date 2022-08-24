@@ -234,11 +234,11 @@ class PaintingOperatorController extends Controller
 			->join('production_order as po', 'po.production_order', 'job_ticket.production_order')
 			->join('time_logs as tl', 'tl.job_ticket_id', 'job_ticket.job_ticket_id')
 			->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
-			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
-			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
+			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
+			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
 			->when($process_name == 'Unloading', function ($q) use ($loading_process, $start, $scheduled_painting_production_orders){
-				return $q->orWhere('job_ticket.workstation', 'Painting')->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
-				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
+				return $q->orWhere('job_ticket.workstation', 'Painting')->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
+				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
 			})
 			->select('job_ticket.production_order', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
 			->orderByRaw("FIELD(job_ticket.status , 'In Progress', 'Completed') ASC")->orderBy('tl.created_at', 'desc')
@@ -269,6 +269,7 @@ class PaintingOperatorController extends Controller
 
 	// /reject_painting
 	public function reject_task(Request $request){
+		DB::connection('mysql')->beginTransaction();
 		DB::connection('mysql_mes')->beginTransaction();
 		try {
 			if(empty($request->reject_list)){
@@ -321,14 +322,25 @@ class PaintingOperatorController extends Controller
 
 				DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
+				if($request->process_name == 'Unloading' && $request->status == 'Completed'){
+					$unloading_tl = DB::connection('mysql_mes')->table('time_logs')->where('reference_time_log', $request->id)->first();
+
+					if($unloading_tl){
+						DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_tl->time_log_id)->update($update);
+
+						$this->update_job_ticket($unloading_tl->job_ticket_id);
+					}
+				}
 			}else{
-				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
+				DB::connection('mysql_mes')->table('time_logs')->where('reference_time_log', $request->id)->delete();
 			}
 
 			$this->update_job_ticket($job_ticket_id);
+			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
+			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
             return response()->json(["error" => $e->getMessage()]);
         }
@@ -736,7 +748,7 @@ class PaintingOperatorController extends Controller
 	}
 
 	// /get_scheduled_for_painting
-	public function get_scheduled_for_painting(){
+	public function get_scheduled_for_painting(Request $request){
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
@@ -747,7 +759,7 @@ class PaintingOperatorController extends Controller
 
 		$scheduled = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('production_order', $scheduled_painting_production_orders)
-			->where('status', '!=', 'Cancelled')->select('production_order.*')->get();
+			->whereNotIn('status', ['Cancelled', 'Closed'])->select('production_order.*')->get();
 
 		$scheduled_arr = [];
 		foreach ($scheduled as $i => $row) {
@@ -781,6 +793,36 @@ class PaintingOperatorController extends Controller
 		$scheduled_arr = collect($scheduled_arr)->sortBy('sequence')->toArray();
 
 		return view('painting_operator.tbl_scheduled_task', compact('scheduled_arr'));
+	}
+
+	public function backlogs(){
+		$start = Carbon::now()->startOfDay()->toDateTimeString();
+		$end = Carbon::now()->endOfDay()->toDateTimeString();
+		
+		$previously_scheduled_production_orders = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('production_order as po', 'po.production_order', 'jt.production_order')
+			->join('process', 'process.process_id', 'jt.process_id')
+			->where('process.process_name', 'Unloading')
+			->where('jt.workstation', 'Painting')->whereDate('jt.planned_start_date', '<', $start)->whereRaw('po.qty_to_manufacture > jt.completed_qty')->whereNotIn('po.status', ['Cancelled', 'Closed'])->orderBy('po.created_at', 'desc')
+			->get();
+
+		$backlogs = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('process', 'process.process_id', 'jt.process_id')
+			->whereIn('jt.production_order', collect($previously_scheduled_production_orders)->pluck('production_order'))->where('jt.workstation', 'Painting')->whereNotIn('jt.status', ['Cancelled', 'Closed'])
+			->select('jt.production_order', 'jt.job_ticket_id', 'jt.completed_qty as jt_completed', 'jt.planned_start_date', 'jt.status', 'process.process_name')
+			->get();
+
+		$backlogs_arr = [];
+		foreach($backlogs as $bl){
+			$backlogs_arr[$bl->production_order][$bl->process_name] = [
+				'job_ticket_id' => $bl->job_ticket_id,
+				'planned_date' => $bl->planned_start_date,
+				'status' => $bl->status,
+				'completed_qty' => collect($backlogs)->where('process_name', $bl->process_name)->sum('completed_qty')
+			];
+		}
+
+		return view('painting_operator.tbl_backlogs', compact('previously_scheduled_production_orders', 'backlogs_arr'));
 	}
 
 	public function restart_task(Request $request){

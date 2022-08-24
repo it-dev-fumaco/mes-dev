@@ -1328,14 +1328,29 @@ $('#end-task-frm').submit(function(e){
 
     $('#view-painting-schedule-btn').click(function(e){
       e.preventDefault();
-      $.ajax({
-        url:"/get_scheduled_for_painting",
-        type:"GET",
-        success:function(data){
-          $('#view-scheduled-task-tbl').html(data);
-          $('#view-scheduled-task-modal').modal('show');
-        }
-      });  
+      var scheduled;
+      var backlog;
+      $.when(
+        $.ajax({
+          url:"/get_scheduled_for_painting",
+          type:"GET",
+          success:function(data){
+            scheduled = data;
+          }
+        }),
+        $.ajax({
+          url:"/get_painting_backlogs",
+          type:"GET",
+          success:function(data){
+            backlog = data;
+          }
+        })
+      ).then(function(){
+        $('#view-scheduled-task-tbl').html(scheduled);
+        $('#backlogs-tbl').html(backlog);
+        $('#view-scheduled-task-modal').modal('show');
+      });
+      
     });
 
     $(document).on('click', '.view-prod-details-btn', function(e){
@@ -1386,6 +1401,8 @@ $('#end-task-frm').submit(function(e){
       });
   
       $('#enter-reject-modal .process-id-input').val('{{ $process_details->process_id }}');
+      $('#enter-reject-modal .process-name-input').val('{{ $process_name }}');
+      $('#enter-reject-modal .status-input').val($(this).data('status'));
       $('#enter-reject-modal').modal('show');
     });
 
