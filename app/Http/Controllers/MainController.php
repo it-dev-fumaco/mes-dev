@@ -164,11 +164,6 @@ class MainController extends Controller
 
 	public function loginUserId(Request $request){
 		try {
-			$essex_connection = $this->check_essex_connection();
-			if($essex_connection['response'] <= 0){
-				return response()->json(['success' => 0, 'message' => $essex_connection['message']]);
-			}
-
 			// check if user exist in user table in MES
 			$mes_user = DB::connection('mysql_mes')->table('user')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
@@ -218,11 +213,6 @@ class MainController extends Controller
 	}
 
 	public function loginOperatorId(Request $request){
-		$essex_connection = $this->check_essex_connection();
-		if($essex_connection['response'] <= 0){
-			return response()->json(['success' => 0, 'message' => $essex_connection['message']]);
-		}
-		
 		// validate the info, create rules for the inputs
     	$rules = array(
 		    'operator_id' => 'required'

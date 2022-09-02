@@ -617,20 +617,6 @@ trait GeneralTrait
             ->whereIn('shift_id', $shift_id)->sum('breaktime_in_mins');
     }
 
-    public function check_essex_connection(){
-        if ($latency = \Ping::execute('https://10.0.0.5/')) {
-            return [
-                'response' => 1,
-                'message' => 'Connected to ESSEX.'
-            ];
-        }
-
-        return [
-            'response' => 0,
-            'message' => 'No connection.'
-        ];
-    }
-
     public function update_production_order_transferred_qty($production_order){
         DB::connection('mysql')->beginTransaction();
         try {
