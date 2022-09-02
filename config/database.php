@@ -59,11 +59,11 @@ return [
         // ERP Connection
         'mysql' => [
             'driver' => 'mysql',
-            'host' => env('DB_HOST_ERP', '127.0.0.1'),
-            'port' => env('DB_PORT_ERP', '127.0.0.1'),
-            'database' => env('DB_DATABASE_ERP', '127.0.0.1'),
-            'username' => env('DB_USERNAME_ERP', '127.0.0.1'),
-            'password' => env('DB_PASSWORD_ERP', '127.0.0.1'),
+            'host' => env('DB_HOST_ERP', ''),
+            'port' => env('DB_PORT_ERP', ''),
+            'database' => env('DB_DATABASE_ERP', ''),
+            'username' => env('DB_USERNAME_ERP', ''),
+            'password' => env('DB_PASSWORD_ERP', ''),
             'unix_socket' => '',
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
@@ -75,11 +75,11 @@ return [
 
         'mysql_mes' => [
             'driver' => 'mysql',
-            'host' => env('DB_HOST_MES', '127.0.0.1'),
-            'port' => env('DB_PORT_MES', '127.0.0.1'),
-            'database' => env('DB_DATABASE_MES', '127.0.0.1'),
-            'username' => env('DB_USERNAME_MES', '127.0.0.1'),
-            'password' => env('DB_PASSWORD_MES', '127.0.0.1'),
+            'host' => env('DB_HOST_MES', ''),
+            'port' => env('DB_PORT_MES', ''),
+            'database' => env('DB_DATABASE_MES', ''),
+            'username' => env('DB_USERNAME_MES', ''),
+            'password' => env('DB_PASSWORD_MES', ''),
             'unix_socket' => '',
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
