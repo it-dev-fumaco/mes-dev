@@ -3391,26 +3391,28 @@ class MainController extends Controller
 	    		return response()->json(['success' => 0, 'message' => 'Operator not found.']);
 	    	}
 
-			$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
-				->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				->where('time_logs.operator_id', $request->operator_id)
-				->where('time_logs.status', 'In Progress')->first();
+			$machine_details = DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_code)->first();
+			if($machine_details && $machine_details->operation_id < 3){
+				$operator_in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
+					->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+					->where('time_logs.operator_id', $request->operator_id)
+					->where('time_logs.status', 'In Progress')->first();
 
-			$operator_in_progress_spotwelding = DB::connection('mysql_mes')->table('job_ticket')
-				->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-				->where('spotwelding_qty.operator_id', $request->operator_id)
-				->where('spotwelding_qty.status', 'In Progress')->first();
+				$operator_in_progress_spotwelding = DB::connection('mysql_mes')->table('job_ticket')
+					->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+					->where('spotwelding_qty.operator_id', $request->operator_id)
+					->where('spotwelding_qty.status', 'In Progress')->first();
 
-			if ($operator_in_progress_task) {
-				return response()->json(['success' => 0, 'message' => "Operator has in-progress task. " . $operator_in_progress_task->production_order]);
+				if ($operator_in_progress_task) {
+					return response()->json(['success' => 0, 'message' => "Operator has in-progress task. " . $operator_in_progress_task->production_order]);
+				}
+
+				if ($operator_in_progress_spotwelding) {
+					return response()->json(['success' => 0, 'message' => "Operator has in-progress task. " . $operator_in_progress_spotwelding->production_order]);
+				}
 			}
 
-			if ($operator_in_progress_spotwelding) {
-				return response()->json(['success' => 0, 'message' => "Operator has in-progress task. " . $operator_in_progress_spotwelding->production_order]);
-			}
-
-	    	$machine_name = DB::connection('mysql_mes')->table('machine')
-				->where('machine_code', $request->machine_code)->first()->machine_name;
+	    	$machine_name = $machine_details->machine_name;
 				
 			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 			if ($production_order->status == 'Cancelled') {
@@ -3615,7 +3617,7 @@ class MainController extends Controller
 			->where('spotwelding_qty.operator_id', $request->operator_id)
 			->where('spotwelding_qty.status', 'In Progress')->first();
 
-		if ($operator_in_progress_task) {
+			if ($operator_in_progress_task && $machine_details->operation_id < 3) {
 			if ($operator_in_progress_task->production_order != $request->production_order) {
 				return response()->json(['success' => 0, 'message' => "Operator has in-progress production order in process '" . $operator_in_progress_task->workstation . "'"]);
 			}
