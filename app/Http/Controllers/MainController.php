@@ -6370,7 +6370,7 @@ class MainController extends Controller
 		// get scheduled production order against $scheduled_date
 		$q = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
 			->join('production_order as po', 'aca.production_order', 'po.production_order')
-			->whereNotIn('po.status', ['Cancelled'])
+			->whereNotIn('po.status', ['Cancelled', 'Feedbacked', 'Completed'])
 			->whereDate('scheduled_date', $schedule_date)->where('machine_code', $conveyor)
 			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'po.status', 'po.project')
 			->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
@@ -6378,7 +6378,7 @@ class MainController extends Controller
 		// get scheduled production order before $scheduled_date
 		$q = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
 			->join('production_order as po', 'aca.production_order', 'po.production_order')
-			->whereNotIn('po.status', ['Cancelled', 'Completed'])
+			->whereNotIn('po.status', ['Cancelled', 'Completed', 'Feedbacked'])
 			->whereDate('scheduled_date', '<', $schedule_date)->where('machine_code', $conveyor)
 			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'po.status', 'po.project')
 			->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc')
