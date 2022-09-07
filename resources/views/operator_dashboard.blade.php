@@ -1239,6 +1239,12 @@
 
     });
 
+    $(document).on('change', '.select-all-checklist-per-tab', function(e){
+      e.preventDefault();
+      var selector = '.' + $(this).attr('id');
+      $(selector).not(this).prop('checked', this.checked);
+    });
+
     $('#restart-task-frm').submit(function(e){
       e.preventDefault();
       $.ajax({
