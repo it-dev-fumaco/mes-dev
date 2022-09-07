@@ -175,12 +175,8 @@ class QualityInspectionController extends Controller
                         'reject' => $request->total_rejects,
                     ];
                     
-                    if ($request->workstation == 'Spotwelding') {
-                        // comment
-                        // DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->time_log_id)->update($update);
-                    }else{
-                        DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->time_log_id)->update($update);
-                    }
+                    $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
+                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request->time_log_id)->update($update);
                     
                     $qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
 
@@ -260,12 +256,8 @@ class QualityInspectionController extends Controller
                         'reject' => $request->rejected_qty,
                     ];
                     
-                    if ($request->workstation == 'Spotwelding') {
-                        // commetn
-                        // DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->time_log_id)->update($update);
-                    }else{
-                        DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->time_log_id)->update($update);
-                    }
+                    $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
+                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request->time_log_id)->update($update);
 
                     $this->update_job_ticket($job_ticket_details->job_ticket_id);
 

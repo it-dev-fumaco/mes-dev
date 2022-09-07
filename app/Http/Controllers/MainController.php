@@ -3195,6 +3195,18 @@ class MainController extends Controller
 		$workstation = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('time_logs as logs', 'jt.job_ticket_id', 'logs.job_ticket_id')->where('logs.time_log_id', $request->id)->first();
 
+		if(!$workstation){
+			return response()->json(['success' => 0, 'message' => 'Task not found.']);
+		}
+
+		$reference_type = ($workstation->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
+		$reference_id = ($workstation->workstation == 'Spotwelding') ? $workstation->job_ticket_id : $workstation->time_log_id;
+		$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
+
+		if($qa_inspection_status != 'Pending'){
+			return response()->json(['success' => 0, 'message' => 'Cannot restart QA Inspected tasks.']);
+		}
+
 		$activity_logs = [
 			'action' => 'Restarted Process',
 			'message' => $workstation->workstation.' process has been restarted for '.$workstation->workstation.' by '.$workstation->operator_name,
@@ -3476,9 +3488,9 @@ class MainController extends Controller
 			$job_card = DB::connection('mysql')->table('tabJob Card')->where('work_order', $request->production_order)
 				->where('workstation', $job_ticket_details->workstation)->where('docstatus', 0)->first();
 			if ($job_card) {
-				$employee = DB::connection()->table('tabEmployee')->where('employee_name', $operator->employee_name)->first();
+				$employee = DB::connection('mysql')->table('tabEmployee')->where('employee_name', $operator->employee_name)->first();
 				$employee_id = ($employee) ? $employee->name : null;
-				$max_idx = DB::connection()->table('tabJob Card Time Log')->where('parent', $job_card->name)->max('idx');
+				$max_idx = DB::connection('mysql')->table('tabJob Card Time Log')->where('parent', $job_card->name)->max('idx');
 				$job_card_time_log = [
 					'name' => 'mes' . uniqid(),
 					'creation' => $now->toDateTimeString(),
@@ -4046,21 +4058,11 @@ class MainController extends Controller
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject', 'qa_id','job_ticket.workstation','job_ticket.process_id', 'job_ticket.production_order')
 				->orderBy('idx', 'asc')->get();
 
-			$inspected = DB::connection('mysql_mes')->table('job_ticket')
-				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
-				->join('quality_inspection', 'time_logs.time_log_id', 'quality_inspection.reference_id')
-				->where('production_order', $production_order)
-				->where('workstation', $workstation)
-				->whereIn('time_logs.status', ['In Progress', 'Completed'])
-				->where('quality_inspection.reference_type', 'Time Logs')
-				->pluck('time_logs.time_log_id');
-
 			$task_random_inspection = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
 				->where('production_order', $production_order)
 				->where('workstation', $workstation)
 				->whereIn('time_logs.status', ['In Progress', 'Completed'])
-				->whereNotIn('time_logs.time_log_id', $inspected)
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
 		}else{
@@ -4074,21 +4076,11 @@ class MainController extends Controller
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject', 'qa_id','job_ticket.workstation','job_ticket.process_id', 'job_ticket.production_order')
 				->orderBy('idx', 'asc')->get();
 
-			$inspected = DB::connection('mysql_mes')->table('job_ticket')
-				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
-				->join('quality_inspection', 'spotwelding_qty.job_ticket_id', 'quality_inspection.reference_id')
-				->where('production_order', $production_order)
-				->where('workstation', $workstation)
-				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
-				->where('quality_inspection.reference_type', 'Spotwelding')
-				->pluck('job_ticket.job_ticket_id');
-
 			$task_random_inspection = DB::connection('mysql_mes')->table('job_ticket')
 				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
 				->where('production_order', $production_order)
 				->where('workstation', $workstation)
 				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
-				->whereNotIn('job_ticket.job_ticket_id', $inspected)
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
 		}

@@ -477,6 +477,12 @@
     var workstation = "{{ $workstation_name }}";
 
     var active_input = null;
+
+      $(document).on('change', '.select-all-checklist-per-tab', function(e){
+        e.preventDefault();
+        var selector = '.' + $(this).attr('id');
+        $(selector).not(this).prop('checked', this.checked);
+      });
       
       $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
         if($(this).data('edit') > 0){

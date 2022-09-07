@@ -804,6 +804,12 @@
       location.assign($(this).attr('href'));
     });
 
+    $(document).on('change', '.select-all-checklist-per-tab', function(e){
+      e.preventDefault();
+      var selector = '.' + $(this).attr('id');
+      $(selector).not(this).prop('checked', this.checked);
+    });
+
     $(document).on('click', '.add-helper-btn', function(e){
           e.preventDefault();
           var time_log_id = $(this).data('timelog-id');
@@ -1183,8 +1189,10 @@
 
     $(document).on('click', '.start-task-btn', function(e){
       e.preventDefault();
+      $(this).prop('disabled', true);
       var count_selected_parts = $('#select-part-div .selected-part').length;
       if (count_selected_parts <= 1) {
+        $(this).removeProp('disabled');
         showNotification("danger", 'Please select parts.', "now-ui-icons travel_info");
         return false;
       }
@@ -1219,6 +1227,7 @@
         type:"POST",
         data: data,
         success:function(response){
+          $(this).removeProp('disabled');
           if (response.success > 0) {
             get_current_job_ticket_tasks();
             showNotification("success", response.message, "now-ui-icons ui-1_check");
@@ -1227,6 +1236,7 @@
           }
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
+          $(this).removeProp('disabled');
           console.log(jqXHR);
           console.log(textStatus);
           console.log(errorThrown);
