@@ -4076,11 +4076,36 @@ class MainController extends Controller
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
 
-			$task_time_log_id_array = collect($task_random_inspection)->pluck('time_log_id');
+			$qa_logs = DB::connection('mysql_mes')->table('quality_inspection as q')
+				->join('time_logs as t', 'q.reference_id', 't.time_log_id')
+				->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+				->where('j.production_order', $production_order)->where('j.workstation', $workstation)
+				->where('q.reference_type', 'Time Logs')->where('q.status', '!=', 'For Confirmation')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id')
+				->orderBy('q.qa_inspection_date', 'desc')->get();
 
-			$quantity_inspected = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->whereIn('reference_id', $task_time_log_id_array)->selectRaw('reference_id, SUM(actual_qty_checked) as qty')->groupBy('reference_id')->get();
+			$qa_staff_names = collect($qa_logs)->pluck('qa_staff_id')->unique();
 
-			$quantity_inspected = collect($quantity_inspected)->groupBy('reference_id');
+			$qa_staff_names = DB::connection('mysql_essex')->table('users')
+				->whereIn('user_id', $qa_staff_names)->pluck('employee_name', 'user_id')->toArray();
+
+			$qa_inspection_logs = [];
+			foreach ($qa_logs as $r) {
+				$qa_inspection_logs[] = [
+					'process' => $r->process,
+					'qa_inspection_type' => $r->qa_inspection_type,
+					'actual_qty_checked' => number_format($r->actual_qty_checked),
+					'status' => $r->status,
+					'qa_staff' => array_key_exists($r->qa_staff_id, $qa_staff_names) ? $qa_staff_names[$r->qa_staff_id] : null,
+					'qa_inspection_date' => Carbon::parse($r->qa_inspection_date)->format('M. d, Y h:i A')
+				];
+			}
+
+			$qa_inspected_qty_per_timelog = collect($qa_logs)->groupBy('reference_id');
+			$qa_qty_per_timelog = [];
+			foreach ($qa_inspected_qty_per_timelog as $reference_id => $values) {
+				$qa_qty_per_timelog[$reference_id] = collect($values)->sum('actual_qty_checked');
+			}
 		}else{
 			$task_reject_confirmation = DB::connection('mysql_mes')->table('job_ticket')
 				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -4100,14 +4125,39 @@ class MainController extends Controller
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
 
-			$task_time_log_id_array = collect($task_random_inspection)->pluck('time_log_id');
+			$qa_logs = DB::connection('mysql_mes')->table('quality_inspection as q')
+				->join('spotwelding_qty as t', 'q.reference_id', 't.time_log_id')
+				->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+				->where('j.production_order', $production_order)->where('j.workstation', $workstation)
+				->where('q.reference_type', 'Spotwelding')->where('q.status', '!=', 'For Confirmation')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id')
+				->orderBy('q.qa_inspection_date', 'desc')->get();
 
-			$quantity_inspected = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->whereIn('reference_id', $task_time_log_id_array)->selectRaw('reference_id, SUM(actual_qty_checked) as qty')->groupBy('reference_id')->get();
+			$qa_staff_names = collect($qa_logs)->pluck('qa_staff_id')->unique();
 
-			$quantity_inspected = collect($quantity_inspected)->groupBy('reference_id');
+			$qa_staff_names = DB::connection('mysql_essex')->table('users')
+				->whereIn('user_id', $qa_staff_names)->pluck('employee_name', 'user_id')->toArray();
+
+			$qa_inspection_logs = [];
+			foreach ($qa_logs as $r) {
+				$qa_inspection_logs[] = [
+					'process' => $r->process,
+					'qa_inspection_type' => $r->qa_inspection_type,
+					'actual_qty_checked' => number_format($r->actual_qty_checked),
+					'status' => $r->status,
+					'qa_staff' => array_key_exists($r->qa_staff_id, $qa_staff_names) ? $qa_staff_names[$r->qa_staff_id] : null,
+					'qa_inspection_date' => Carbon::parse($r->qa_inspection_date)->format('M. d, Y h:i A')
+				];
+			}
+
+			$qa_inspected_qty_per_timelog = collect($qa_logs)->groupBy('reference_id');
+			$qa_qty_per_timelog = [];
+			foreach ($qa_inspected_qty_per_timelog as $reference_id => $values) {
+				$qa_qty_per_timelog[$reference_id] = collect($values)->sum('actual_qty_checked');
+			}
 		}
 
-		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order', 'quantity_inspected'));
+		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order', 'qa_qty_per_timelog', 'qa_inspection_logs'));
 	}
 
 	public function maintenance_request(Request $request){
