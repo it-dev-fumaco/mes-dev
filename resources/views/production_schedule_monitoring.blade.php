@@ -215,7 +215,7 @@
                               <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ $row->production_order }} [{{ $row->sales_order }}{{ $row->material_request }}]</span>
                               <span class="d-block mt-1">{{ $row->item_code }} [{{ $row->qty_to_manufacture }} {{ $row->stock_uom }}]</span>
                               <span class="d-block" style="font-size: 9pt;">{{ strtok($row->description, ',') }}</span>
-                              <span class="d-block mt-1 font-weight-bold" style="font-size: 8pt;">{{ ($row->classification) }}</span>
+                              <span class="d-block mt-1 font-weight-bold text-white" style="font-size: 8pt;">{{ ($row->classification) }}</span>
                             </div>
                           </div>
                           @endforeach
@@ -252,7 +252,7 @@
                                   <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ $row->production_order }} [{{ $row->sales_order }}{{ $row->material_request }}]</span>
                                   <span class="d-block mt-1">{{ $row->item_code }} [{{ $row->qty_to_manufacture }} {{ $row->stock_uom }}]</span>
                                   <span class="d-block" style="font-size: 9pt;">{{ strtok($row->description, ',') }}</span>
-                                  <span class="d-block mt-1 font-weight-bold" style="font-size: 8pt;">{{ ($row->classification) }}</span>
+                                  <span class="d-block mt-1 font-weight-bold text-white" style="font-size: 8pt;">{{ ($row->classification) }}</span>
                                 </div>
                               </div>
                               @endforeach

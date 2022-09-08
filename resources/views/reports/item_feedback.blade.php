@@ -1846,8 +1846,7 @@ $(document).ready(function(){
           $('#manual-production-modal input[name="customer"]').val(response.customer);
           $('#manual-production-modal input[name="project"]').val(response.project);
           $('#manual-production-modal input[name="delivery_date"]').val(response.delivery_date);
-          var classification = (response.purpose) ? response.purpose : response.sales_type;
-          classification = (classification != 'Sample') ? 'Customer Order' : 'Sample';
+          var classification = (response.custom_purpose) ? response.custom_purpose : response.sales_type;
           $('#manual-production-modal input[name="classification"]').val(classification);
         }
       }

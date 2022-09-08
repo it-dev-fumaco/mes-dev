@@ -1451,7 +1451,7 @@ class ManufacturingController extends Controller
                     $customer = ($so_details) ? $so_details->customer : null;
                     $delivery_date = ($so_details) ? $so_details->delivery_date : null;
                     $project = ($so_details) ? $so_details->project : null;
-                    $classification = ($so_details) ? ($so_details->sales_type == 'Sample') ? 'Sample' : 'Customer Order' : null;
+                    $classification = 'Customer Order';
                 }else{
                     $mr_details = DB::connection('mysql')->table('tabMaterial Request')->where('name', $request->reference_no)->first();
                     $sales_order = null;
@@ -1459,7 +1459,7 @@ class ManufacturingController extends Controller
                     $customer = ($mr_details) ? $mr_details->customer : null;
                     $delivery_date = ($mr_details) ? $mr_details->delivery_date : null;
                     $project = ($mr_details) ? $mr_details->project : null;
-                    $classification = 'Customer Order';
+                    $classification = ($mr_details) ? $mr_details->custom_purpose : null;
                 }
             }
 
@@ -2164,13 +2164,13 @@ class ManufacturingController extends Controller
             ->groupBy('item_code', 'warehouse')->get();
         $stock_reservation = collect($stock_reservation)->groupBy('item')->toArray();
 
-        $ste_total_issued = DB::table('tabStock Entry Detail')->where('docstatus', 0)->where('status', 'Issued')
+        $ste_total_issued = DB::connection('mysql')->table('tabStock Entry Detail')->where('docstatus', 0)->where('status', 'Issued')
             ->whereIn('item_code', $item_codes)->whereIn('s_warehouse', $s_warehouses)
             ->selectRaw('SUM(qty) as total_issued, CONCAT(item_code, "-", s_warehouse) as item')
             ->groupBy('item_code', 's_warehouse')->get();
         $ste_total_issued = collect($ste_total_issued)->groupBy('item')->toArray();
 
-        $at_total_issued = DB::table('tabAthena Transactions as at')
+        $at_total_issued = DB::connection('mysql')->table('tabAthena Transactions as at')
             ->join('tabPacking Slip as ps', 'ps.name', 'at.reference_parent')
             ->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
             ->join('tabDelivery Note as dr', 'ps.delivery_note', 'dr.name')

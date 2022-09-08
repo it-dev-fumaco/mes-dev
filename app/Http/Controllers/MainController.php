@@ -2882,13 +2882,33 @@ class MainController extends Controller
     }
 
     public function current_data_operator($workstation){
-		$now = Carbon::now();
+		$now = Carbon::now()->startOfDay()->toDateTimeString();
         $tasks = DB::connection('mysql_mes')->table('job_ticket AS jt')
-        	->join('production_order AS po', 'jt.production_order', 'po.production_order')
-			->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled'])
+			->join('production_order AS po', 'jt.production_order', 'po.production_order')
+			->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+			->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled', 'Closed'])
 			->whereDate('po.planned_start_date', $now)
-			->distinct('po.production_order')->select('po.production_order', 'po.status', 'jt.status as jt_status', 'po.qty_to_manufacture')
+			->select('po.production_order', 'po.status', 'jt.status as jt_status', 'po.qty_to_manufacture', 'tl.status as tl_status', 'po.planned_start_date')
 			->get();
+
+		$pending_tasks = DB::connection('mysql_mes')->table('job_ticket AS jt')
+			->join('production_order AS po', 'jt.production_order', 'po.production_order')
+			->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('jt.status', 'Pending')
+			->whereDate('po.planned_start_date', $now)
+			->select('po.production_order', 'po.status', 'jt.status as jt_status', 'po.qty_to_manufacture', 'jt.completed_qty', 'po.planned_start_date')
+			->get();
+
+		$pending_qty = collect($pending_tasks)->map(function ($q){
+			$pending_qty = $q->qty_to_manufacture - $q->completed_qty;
+			$pending_qty = $pending_qty > 0 ? $pending_qty : 0;
+
+			$arr = [
+				'production_order' => $q->production_order,
+				'qty' => $pending_qty
+			];
+
+			return $arr;
+		});
 
 		$production_orders = array_column($tasks->toArray(), 'production_order');
 		$rejects = DB::connection('mysql_mes')->table('job_ticket AS jt')
@@ -2896,8 +2916,8 @@ class MainController extends Controller
 			->where('jt.workstation', $workstation)->whereIn('jt.production_order', $production_orders)
 			->sum('t.reject');
 			
-		$pending = collect($tasks)->where('status', 'Not Started')->sum('qty_to_manufacture');
-		$inprogress = collect($tasks)->where('status', 'In Progress')->where('jt_status', 'In Progress')->sum('qty_to_manufacture');
+		$pending = $pending_qty->sum('qty');
+		$inprogress = collect($tasks)->where('tl_status', 'In Progress')->sum('qty_to_manufacture');
 		$completed = collect($tasks)->where('jt_status', 'Completed')->sum('qty_to_manufacture');
 
         $data = [
@@ -2916,7 +2936,7 @@ class MainController extends Controller
         	if ($status == 'Pending') {
 	    		$job_ticket_qry = DB::connection('mysql_mes')->table('job_ticket')
 	    			->join('production_order', 'job_ticket.production_order', 'production_order.production_order')
-	    			->where('job_ticket.workstation', $workstation)->whereNotIn('production_order.status', ['Cancelled'])
+	    			->where('job_ticket.workstation', $workstation)->whereNotIn('production_order.status', ['Cancelled', 'Closed'])
 					->where('job_ticket.status', 'Pending')->whereDate('production_order.planned_start_date', $now)
 	    			->select('production_order.customer', 'production_order.qty_to_manufacture', 'produced_qty', 'production_order.production_order', 'production_order.item_code', 'job_ticket.status', 'job_ticket.workstation', DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'))
 	                ->orderBy('production_order.order_no', 'asc')->orderBy('production_order.planned_start_date', 'asc')->get();
@@ -2956,7 +2976,7 @@ class MainController extends Controller
     			}, function ($query) {
     				return $query->join('time_logs AS t', 'jt.job_ticket_id', 't.job_ticket_id');;
     			})
-            	->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled'])
+            	->where('jt.workstation', $workstation)->whereNotIn('po.status', ['Cancelled', 'Closed'])
                 ->when($status != 'Rejects', function ($query) use ($status) {
     				return $query->where('t.status', $status);
     			}, function ($query) {
@@ -4055,6 +4075,12 @@ class MainController extends Controller
 				->whereIn('time_logs.status', ['In Progress', 'Completed'])
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
+
+			$task_time_log_id_array = collect($task_random_inspection)->pluck('time_log_id');
+
+			$quantity_inspected = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->whereIn('reference_id', $task_time_log_id_array)->selectRaw('reference_id, SUM(actual_qty_checked) as qty')->groupBy('reference_id')->get();
+
+			$quantity_inspected = collect($quantity_inspected)->groupBy('reference_id');
 		}else{
 			$task_reject_confirmation = DB::connection('mysql_mes')->table('job_ticket')
 				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -4073,9 +4099,15 @@ class MainController extends Controller
 				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
+
+			$task_time_log_id_array = collect($task_random_inspection)->pluck('time_log_id');
+
+			$quantity_inspected = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->whereIn('reference_id', $task_time_log_id_array)->selectRaw('reference_id, SUM(actual_qty_checked) as qty')->groupBy('reference_id')->get();
+
+			$quantity_inspected = collect($quantity_inspected)->groupBy('reference_id');
 		}
 
-		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order'));
+		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order', 'quantity_inspected'));
 	}
 
 	public function maintenance_request(Request $request){
@@ -7031,7 +7063,7 @@ class MainController extends Controller
 					return $query->where('aca.scheduled_date', $request->scheduled_date);
 				})
 				->whereIn('aca.machine_code', array_keys($machine_list))
-				->whereNotIn('po.status', ['Completed', 'Cancelled'])
+				->whereNotIn('po.status', ['Completed', 'Cancelled', 'Closed'])
 				->where('jt.status', 'Pending')
 				->select('aca.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as pending_qty'))
 				->get();
@@ -7044,7 +7076,7 @@ class MainController extends Controller
 					return $query->where('jt.planned_start_date', $request->scheduled_date);
 				})
 				->whereIn('m.machine_code', array_keys($machine_list))
-				->whereNotIn('po.status', ['Completed', 'Cancelled'])
+				->whereNotIn('po.status', ['Completed', 'Cancelled', 'Closed'])
 				->where('jt.status', 'Pending')
 				->select('m.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as pending_qty'))
 				->get();
