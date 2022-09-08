@@ -44,17 +44,17 @@
   </div>
 </div>
 <table class="table table-striped text-center" id="monitoring-table">
-    <col style="width: 7%;">
-    <col style="width: 7%;">
-    <col style="width: 7%;">
-    <col style="width: 16%;">
-    <col style="width: 26%;">
-    <col style="width: 6%;">
-    <col style="width: 6%;">
-    <col style="width: 6%;">
-    <col style="width: 6%;">
-    <col style="width: 6%;">
-    <col style="width: 9%;">
+    <col style="width: 7%;"><!-- Prod. Order -->
+    <col style="width: 7%;"><!-- Planned Start -->
+    <col style="width: 7%;"><!-- Delivery Date -->
+    <col style="width: 16%;"><!-- Customer -->
+    <col style="width: 26%;"><!-- Item Description -->
+    <col style="width: 6%;"><!-- Qty -->
+    <col style="width: 6%;"><!-- Produced -->
+    <col style="width: 6%;"><!-- Feedbacked -->
+    <col style="width: 6%;"><!-- Balance -->
+    <col style="width: 6%;"><!-- Reject -->
+    <col style="width: 9%;"><!-- Action -->
     <thead class="text-primary" style="font-size: 7pt;">
       <th class="text-center font-weight-bold">Prod. Order</th>
       <th class="text-center font-weight-bold">Planned Start</th>
@@ -120,6 +120,11 @@
               <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $row['production_order'] }}">Create Feedback</a>
               <a class="dropdown-item addnotes" href="#" data-production-order="{{ $row['production_order'] }}" data-notes="{{ $row['notes'] }}">Add Notes</a>
               <a class="dropdown-item view-process-qty-btn" href="#" data-production-order="{{ $row['production_order'] }}">View Process</a>
+              @if ($row['status'] == 'Closed')
+                <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Re-open Production</a>
+              @else
+                <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Close Production</a>
+              @endif
             </div>
           </div>
         </td>
