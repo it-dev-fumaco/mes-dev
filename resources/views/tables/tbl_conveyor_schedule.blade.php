@@ -53,7 +53,7 @@
 									<span class="d-block font-weight-bold">{{ $r['reference_no'] }}</span>
 									<span class="d-block">{{ $r['customer'] }}</span>
 									<span class="d-block">Project: {{ $r['project'] }}</span>
-									<span class="d-block mt-1 font-weight-bold">{{ $r['classification'] }}</span>
+									<span class="d-block mt-1 font-weight-bold text-primary">{{ $r['classification'] }}</span>
 								</td>
 								<td class="text-justify">
 									<span class="font-weight-bold">{{ $r['item_code'] }}</span> - 

@@ -7031,7 +7031,7 @@ class MainController extends Controller
 					return $query->where('aca.scheduled_date', $request->scheduled_date);
 				})
 				->whereIn('aca.machine_code', array_keys($machine_list))
-				->whereNotIn('po.status', ['Completed', 'Cancelled'])
+				->whereNotIn('po.status', ['Completed', 'Cancelled', 'Closed'])
 				->where('jt.status', 'Pending')
 				->select('aca.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as pending_qty'))
 				->get();
@@ -7044,7 +7044,7 @@ class MainController extends Controller
 					return $query->where('jt.planned_start_date', $request->scheduled_date);
 				})
 				->whereIn('m.machine_code', array_keys($machine_list))
-				->whereNotIn('po.status', ['Completed', 'Cancelled'])
+				->whereNotIn('po.status', ['Completed', 'Cancelled', 'Closed'])
 				->where('jt.status', 'Pending')
 				->select('m.machine_code', DB::raw('(po.qty_to_manufacture - jt.completed_qty) as pending_qty'))
 				->get();
