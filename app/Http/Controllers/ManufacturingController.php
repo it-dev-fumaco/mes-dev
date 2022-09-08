@@ -2336,7 +2336,8 @@ class ManufacturingController extends Controller
                     'status' => $has_production_order->status,
                     'references' => $references,
                     'is_alternative' => $is_alternative,
-                    'item_alternative_for' => $item->item_alternative_for
+                    'item_alternative_for' => $item->item_alternative_for,
+                    'planned_start_date' => $has_production_order->planned_start_date ? Carbon::parse($has_production_order->planned_start_date)->format('M. d, Y') : 'Unscheduled'
                 ];
             }else{
                 $components[] = [
@@ -2358,7 +2359,8 @@ class ManufacturingController extends Controller
                     'status' => null,
                     'references' => $references,
                     'is_alternative' => $is_alternative,
-                    'item_alternative_for' => $item->item_alternative_for
+                    'item_alternative_for' => $item->item_alternative_for,
+                    'planned_start_date' => null
                 ];
             }
         }
