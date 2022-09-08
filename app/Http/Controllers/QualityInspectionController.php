@@ -760,12 +760,17 @@ class QualityInspectionController extends Controller
             return response()->json(['success' => 0, 'message' => 'Reject Reason not found.']);
         }
 
-        $checklist = DB::connection('mysql_mes')->table('qa_checklist')
-            ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
-            // ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
-            // ->orderBy('reject_list.reject_category_id', 'desc')
-            ->get();
+        if ($workstation_details->operation_id == 3) {
+            $checklist = DB::connection('mysql_mes')->table('reject_list')
+                ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
+                ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
+                ->where('operation.operation_name', 'like', '%Assembly%')->orderBy('reject_list.reject_reason', 'asc')->get();
+        } else {
+            $checklist = DB::connection('mysql_mes')->table('qa_checklist')
+                ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
+                ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
+                ->orderBy('reject_list.reject_reason', 'asc')->get();
+        }
 
         $view = ($request->page != 'operator') ? 'quality_inspection.tbl_reject_confirmation_checklist' : 'quality_inspection.tbl_reject_confirmation_operator';
 
