@@ -148,3 +148,27 @@
       z-index: 10;
     }
   </style>
+
+<script>
+  $(document).ready(function (){
+    $('#production-order-count').text('{{ count($production_orders) }}');
+    $('#qty-to-manufacture-count').text('{{ number_format(collect($production_orders)->sum("qty_to_manufacture")) }}');
+    var pending = 0;
+    get_pending();
+    function get_pending(){
+      var target = document.querySelector('#pending_count');
+      var observer = new MutationObserver(function(mutations) {
+        pending = parseInt($('#pending_count').text());
+        total_po = {{ count($production_orders) }};
+        total = total_po - pending;
+        total = parseInt(total) > 0 ? total : 0;
+        total.toLocaleString('en-US', {maximumFractionDigits: 2});
+        $('#backlogged-production-order-count').text(total);
+      });
+      // configuration of the observer:
+      var config = { childList: true};
+      // pass in the target node, as well as the observer options
+      observer.observe(target, config);
+    }
+  });
+</script>

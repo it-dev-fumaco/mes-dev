@@ -46,7 +46,7 @@
                   $header = 'Schedule Date: ' . $date_format;
                 }
               @endphp
-              <ul class="nav nav-tabs font-weight-bold" role="tablist">
+              <ul class="nav nav-tabs font-weight-bold w-50" role="tablist">
                 <li class="nav-item">
                   <a class="nav-link active" id="tab1" data-toggle="tab" href="#tab1-1" role="tab" aria-controls="tab1" aria-selected="true">{{ $header }}</a>
                 </li>
@@ -61,34 +61,21 @@
                   <div class="row mt-2">
                     <div class="col-md-12">
                       <div class="row">
-                        <div class="col-md-4 offset-md-8" style="margin-top: -62px;">
-                          <table class="text-center m-0" style="width: 100%;" id="totals-table">
-                            <tr>
-                              <td class="align-top p-0" style="width: 25%;">
-                                <span class="font-weight-bold" id="pending_count" style="font-size: 18pt;">0</span>
-                                <span class="d-block" style="font-size: 8pt;">Production Order</span>
-                                {{--  <span class="font-weight-bold" style="font-size: 8pt;" id="pending_qty">0</span>
-                                <span style="font-size: 8pt;">unit(s)</span>  --}}
-                              </td>
-                              <td class="align-top p-0" style="width: 25%;">
-                                <span class="d-block font-weight-bold p-0" id="inprogress_count" style="font-size: 18pt;">0</span>
-                                <span class="d-block" style="font-size: 8pt;">In Progress</span>
-                                {{--  <span class="font-weight-bold" style="font-size: 8pt;" id="inprogress_qty">0</span>
-                                <span style="font-size: 8pt;">unit(s)</span>  --}}
-                              </td>
-                              <td class="align-top p-0" style="width: 25%;">
-                                <span class="d-block font-weight-bold" id="reject_count" style="font-size: 18pt;">0</span>
-                                <span class="d-block" style="font-size: 8pt;">Rejects</span>
-                              </td>
-                              <td class="align-top p-0" style="width: 25%;">
-                                <span class="d-block font-weight-bold" id="completed_count" style="font-size: 18pt;">0</span>
-                                <span class="d-block" style="font-size: 8pt;">Ready For Transfer</span>
-                                {{--  <span class="font-weight-bold" style="font-size: 8pt;" id="totransfer_qty">0</span>
-                                <span style="font-size: 8pt;">unit(s)</span>  --}}
-                              </td>
-                            </tr>
-                          </table>
-                        </div>
+                        <div class="col-md-6 offset-md-6" style="margin-top: -62px;">
+                          <div class="row pt-1 pb-2">
+                            <div class="col-4 p-1 text-center" style="border-left: solid 10px #27AE60 !important">
+                              <span class="font-weight-bold" id="backlogged-production-order-count" style="font-size: 18pt;">0</span>
+                              <span class="d-block" style="font-size: 8pt;">Backlogged Production Order(s)</span>
+                            </div>
+                            <div class="col-4 p-1 text-center" style="border-left: solid 10px #007BFF !important">
+                              <span class="font-weight-bold" id="pending_count" style="font-size: 18pt;">0</span>
+                              <span class="d-block" style="font-size: 8pt;">Scheduled Production Order(s)</span>
+                            </div>
+                            <div class="col-4 p-1 text-center" style="border-left: solid 10px #F96332 !important">
+                              <span class="d-block font-weight-bold" id="qty-to-manufacture-count" style="font-size: 18pt;">0</span>
+                                <span class="d-block" style="font-size: 8pt;">Total Quantity to Manufacture</span>
+                            </div>
+                          </div>
                       </div>
                       <div class="card p-0" style="background-color: #0277BD;">
                         <div class="card-body pb-0">
