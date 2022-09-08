@@ -477,6 +477,12 @@
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
                 <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
+                <div class="col-8 mx-auto mt-2 text-center" style="border-left: solid 10px #17A2B8; display: flex; justify-content: center; align-items: center; min-height: 50px;">
+                  <div class="text-center">
+                    Pending Stock Withdrawals For Issue will be cancelled <br>
+                    <small>Note: Once Closed, Production Order can still be Re-opened</small>
+                  </div>
+                </div>
               </div>
               <div class="col-md-12" id="items-for-return-table-for-close"></div>
             </div>
