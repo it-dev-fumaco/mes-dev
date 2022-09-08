@@ -29,17 +29,17 @@
     <div class="col-md-12">
         <ul class="nav nav-tabs" role="tablist" style="margin-top: 8px;">
             <li class="nav-item font-weight-bold">
-               <span class="nav-link active" id="first-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Random Inspection <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_random_inspection) }}</span></span>
+               <span class="nav-link active" id="first-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-1" role="tab" aria-controls="tab1" aria-selected="true">Random Inspection <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_random_inspection) }}</span></span>
             </li>
             <li class="nav-item font-weight-bold">
-               <span class="nav-link" id="second-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Reject Confirmation <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_reject_confirmation) }}<span></span>
+               <span class="nav-link" id="second-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-2" role="tab" aria-controls="tab2" aria-selected="false">Reject Confirmation <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_reject_confirmation) }}<span></span>
             </li>
             <li class="nav-item font-weight-bold">
-                <span class="nav-link" id="third-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size: 10pt;">{{ count($qa_inspection_logs) }}<span></span>
+                <span class="nav-link" id="third-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size: 10pt;">{{ count($qa_inspection_logs) }}<span></span>
              </li>
         </ul>
         <div class="tab-content" style="min-height: 300px;">
-            <div class="tab-pane active" id="tab1" role="tabpanel" aria-labelledby="first-tab">
+            <div class="tab-pane active" id="tab{{ $existing_production_order->production_order }}-1" role="tabpanel" aria-labelledby="first-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12" style="margin: 8px;">
                         <h5 class="title text-center" style="margin: 0;">Select Task for Random Inspection</h5>
@@ -86,7 +86,7 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="second-tab">
+            <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-2" role="tabpanel" aria-labelledby="second-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12" style="margin: 8px;">
                         <h5 class="title text-center" style="margin: 0;">Select Task for Reject Confirmation</h5>
@@ -127,7 +127,7 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-pane" id="tab3" role="tabpanel" aria-labelledby="third-tab">
+            <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-3" role="tabpanel" aria-labelledby="third-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12" style="margin: 8px;">
                         <h5 class="title text-center" style="margin: 0;">QA Inspection Log(s)</h5>
