@@ -13,25 +13,30 @@
 			<div class="col-md-12 p-1">
 				<div class="table-responsive pr-1 pl-1" style="max-height: 580px;">
 					<table class="table table-bordered table-condensed">
+						<col style="width: 8%;">
 						<col style="width: 15%;">
+						<col style="width: 22%;">
 						<col style="width: 25%;">
-						<col style="width: 30%;">
 						<col style="width: 10%;">
 						<col style="width: 10%;">
 						<col style="width: 10%;">
 						<thead class="text-uppercase font-weight-bold" style="font-size: 9pt;">
 							<tr>
-							<td class="text-center">Prod. Order</td>
-							<td class="text-center">Customer</td>
-							<td class="text-center">Item Details</td>
-							<td class="text-center">Qty</td>
-							<td class="text-center">Good</td>
-							<td class="text-center">Bal.</td>
-						</tr>
+								<td class="text-center">Priority</td>
+								<td class="text-center">Prod. Order</td>
+								<td class="text-center">Customer</td>
+								<td class="text-center">Item Details</td>
+								<td class="text-center">Qty</td>
+								<td class="text-center">Good</td>
+								<td class="text-center">Bal.</td>
+							</tr>
 						</thead>
 						<tbody style="font-size: 8pt;">
 							@forelse ($row['production_orders'] as $r)
 							<tr>
+								<td class="text-center align-middle">
+									<h4 class="m-0 font-weight-bold">{{ $r['order_no'] }}</h4>
+								</td>
 								<td class="text-center font-weight-bold">
 									@php
 										if($r['status'] == 'Not Started'){
@@ -48,6 +53,7 @@
 									<span class="d-block font-weight-bold">{{ $r['reference_no'] }}</span>
 									<span class="d-block">{{ $r['customer'] }}</span>
 									<span class="d-block">Project: {{ $r['project'] }}</span>
+									<span class="d-block mt-1 font-weight-bold">{{ $r['classification'] }}</span>
 								</td>
 								<td class="text-justify">
 									<span class="font-weight-bold">{{ $r['item_code'] }}</span> - 
