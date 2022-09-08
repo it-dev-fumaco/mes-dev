@@ -114,16 +114,19 @@
           <div class="btn-group m-0">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action </button>
             <div class="dropdown-menu">
+              <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $row['production_order'] }}" data-item-code="{{ $row['item_code'] }}">View Materials</a>
               @if ($row['parent_item_code'] == $row['item_code'])
               <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $row['production_order'] }}">Reschedule Delivery Date</a>
               @endif
               <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $row['production_order'] }}">Create Feedback</a>
               <a class="dropdown-item addnotes" href="#" data-production-order="{{ $row['production_order'] }}" data-notes="{{ $row['notes'] }}">Add Notes</a>
               <a class="dropdown-item view-process-qty-btn" href="#" data-production-order="{{ $row['production_order'] }}">View Process</a>
-              @if ($row['status'] == 'Closed')
-                <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Re-open Production</a>
-              @else
-                <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Close Production</a>
+              @if (!in_array($row['status'], ['Cancelled', 'Feedbacked']))
+                @if ($row['status'] == 'Closed')
+                  <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Re-open Production</a>
+                @else
+                  <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Close Production</a>
+                @endif
               @endif
             </div>
           </div>
