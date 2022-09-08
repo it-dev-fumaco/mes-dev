@@ -56,7 +56,7 @@
     <col style="width: 6%;"><!-- Reject -->
     <col style="width: 9%;"><!-- Action -->
     <thead class="text-primary" style="font-size: 7pt;">
-      <th class="text-center font-weight-bold">Prod. Order</th>
+      <th class="text-center font-weight-bold">Prod. Order {{ count($production_orders) }}</th>
       <th class="text-center font-weight-bold">Planned Start</th>
       <th class="text-center font-weight-bold">Delivery Date</th>
       <th class="text-center font-weight-bold">Customer</th>
@@ -148,3 +148,30 @@
       z-index: 10;
     }
   </style>
+
+  <script>
+    $(document).ready(function (){
+      $('#production-order-count').text('{{ count($production_orders) }}');
+      $('#qty-to-manufacture-count').text('{{ number_format(collect($production_orders)->sum("qty_to_manufacture")) }}');
+
+      var pending = 0;
+      get_pending();
+      function get_pending(){
+        var target = document.querySelector('#pending_count');
+        var observer = new MutationObserver(function(mutations) {
+          pending = parseInt($('#pending_count').text());
+          total_po = {{ count($production_orders) }};
+
+          total = total_po - pending;
+          total.toLocaleString('en-US', {maximumFractionDigits: 2});
+
+          $('#backlogged-production-order-count').text(total);
+        });
+        // configuration of the observer:
+        var config = { childList: true};
+        // pass in the target node, as well as the observer options
+        observer.observe(target, config);
+      }
+      
+    });
+  </script>
