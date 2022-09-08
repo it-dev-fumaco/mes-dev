@@ -43,7 +43,7 @@
     </table>
   </div>
 </div>
-<table class="table table-striped text-center" id="monitoring-table">
+<table class="table table-striped text-center sticky-header" id="monitoring-table">
     <col style="width: 7%;"><!-- Prod. Order -->
     <col style="width: 7%;"><!-- Planned Start -->
     <col style="width: 7%;"><!-- Delivery Date -->
@@ -139,3 +139,12 @@
       @endforelse
     </tbody>
   </table>
+
+  <style>
+    .sticky-header th{
+      position: sticky;
+      top: 0;
+      background-color: #fff !important;
+      z-index: 10;
+    }
+  </style>

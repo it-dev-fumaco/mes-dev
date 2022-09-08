@@ -94,7 +94,7 @@
                         <div class="card-body pb-0">
                           <div class="row" style="margin-top: -15px;">
                             <div class="col-md-8" style="padding: 5px 5px 5px 12px;">
-                              <h5 class="text-white font-weight-bold text-left m-2 pl-3" style="font-size: 13pt;">Filter Data</h5>
+                              <h5 class="text-white font-weight-bold text-left m-2 pl-3" style="font-size: 13pt;">Filter</h5>
                             </div>
                             <div class="col-md-4 m-0" style="padding: 5px;">
                               <table style="width: 100%;">
