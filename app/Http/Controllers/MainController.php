@@ -4075,6 +4075,12 @@ class MainController extends Controller
 				->whereIn('time_logs.status', ['In Progress', 'Completed'])
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
+
+			$task_time_log_id_array = collect($task_random_inspection)->pluck('time_log_id');
+
+			$quantity_inspected = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->whereIn('reference_id', $task_time_log_id_array)->selectRaw('reference_id, SUM(actual_qty_checked) as qty')->groupBy('reference_id')->get();
+
+			$quantity_inspected = collect($quantity_inspected)->groupBy('reference_id');
 		}else{
 			$task_reject_confirmation = DB::connection('mysql_mes')->table('job_ticket')
 				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -4093,9 +4099,15 @@ class MainController extends Controller
 				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
 				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id')
 				->orderBy('idx', 'asc')->get();
+
+			$task_time_log_id_array = collect($task_random_inspection)->pluck('time_log_id');
+
+			$quantity_inspected = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->whereIn('reference_id', $task_time_log_id_array)->selectRaw('reference_id, SUM(actual_qty_checked) as qty')->groupBy('reference_id')->get();
+
+			$quantity_inspected = collect($quantity_inspected)->groupBy('reference_id');
 		}
 
-		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order'));
+		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order', 'quantity_inspected'));
 	}
 
 	public function maintenance_request(Request $request){

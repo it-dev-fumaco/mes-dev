@@ -47,8 +47,9 @@
                                 <thead class="text-primary" style="font-size: 7pt;">
                                     <th class="text-center"><b>PROCESS</b></th>
                                     <th class="text-center"><b>BATCH DATE</b></th>
-                                    <th class="text-center"><b>COMPLETED QTY</b></th>
                                     <th class="text-center"><b>OPERATOR</b></th>
+                                    <th class="text-center"><b>COMPLETED QTY</b></th>
+                                    <th class="text-center"><b>INSPECTED QTY</b></th>
                                     <th class="text-center"><b>STATUS</b></th>
                                     <th class="text-center"><b>ACTIONS</b></th>
                                 </thead>
@@ -57,8 +58,13 @@
                                     <tr>
                                         <td><b>{{ $row->process }}</b></td>
                                         <td><b>{{ date('M-d-Y h:i A', strtotime($row->from_time)) }}</b></td>
-                                        <td><b>{{ $row->completed_qty }}</b></td>
                                         <td><b>{{ $row->operator_name }}</b></td>
+                                        <td><b>{{ $row->completed_qty }}</b></td>
+                                        <td>
+                                            <span class="font-weight-bold" style="font-size: 18pt !important;">
+                                                {{ isset($quantity_inspected[$row->time_log_id]) ? $quantity_inspected[$row->time_log_id][0]->qty : 0 }}
+                                            </span>
+                                        </td>
                                         <td><b>{{ $row->status }}</b></td>
                                         <td class="text-center">
                                             <button type='button' class='btn btn-primary btn-lg quality-inspection-btn' data-timelog-id="{{ $row->time_log_id }}" data-inspection-type="Random Inspection" data-workstation="{{ $row->workstation }}" data-processid="{{ $row->process_id }}" data-production-order="{{ $existing_production_order->production_order }}">
