@@ -119,7 +119,7 @@
                   <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
                   @if ($r['status'] == 'Closed')
                     <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Re-open Production</a>
-                    @else
+                  @else
                     <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Close Production</a>
                   @endif
                 @endif

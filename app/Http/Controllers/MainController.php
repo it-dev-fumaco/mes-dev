@@ -6715,7 +6715,8 @@ class MainController extends Controller
 					'balance_qty' => ($row->qty_to_manufacture - $row->feedback_qty),
 					'notes' => $row->notes,
 					'rejects' => $rejects,
-					'is_backlog' => $is_backlog
+					'is_backlog' => $is_backlog,
+					'status' => $row->status
 				];
 			}
 
