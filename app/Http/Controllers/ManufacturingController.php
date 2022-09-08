@@ -1788,7 +1788,7 @@ class ManufacturingController extends Controller
         try {
             if(!Auth::user()) {
                 return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
-            } // *PROM-47219
+            }
 
             $now = Carbon::now();
 
@@ -1800,6 +1800,15 @@ class ManufacturingController extends Controller
 
             if ($task_in_progress > 0) {
                 return response()->json(['success' => 0, 'message' => 'Cannot close production order with on-going task by operator. ' . $request->production_order]);
+            }
+
+            $stock_entries = DB::connection('mysql')->table('tabStock Entry')->where('work_order', $request->production_order)->where('docstatus', 0)->orWhere('item_status', 'For Checking')->where('work_order', $request->production_order)->get();
+
+            if($stock_entries){
+                $draft_stes = collect($stock_entries)->pluck('name');
+
+                DB::connection('mysql')->table('tabStock Entry')->whereIn('name', $draft_stes)->delete();
+                DB::connection('mysql')->table('tabStock Entry Detail')->whereIn('parent', $draft_stes)->delete();
             }
 
             DB::connection('mysql')->table('tabWork Order')
