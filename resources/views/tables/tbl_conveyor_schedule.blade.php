@@ -13,16 +13,16 @@
 			<div class="col-md-12 p-1">
 				<div class="table-responsive pr-1 pl-1" style="max-height: 580px;">
 					<table class="table table-bordered table-condensed">
-						<col style="width: 8%;">
+						<col style="width: 5%;">
 						<col style="width: 15%;">
-						<col style="width: 22%;">
+						<col style="width: 25%;">
 						<col style="width: 25%;">
 						<col style="width: 10%;">
 						<col style="width: 10%;">
 						<col style="width: 10%;">
 						<thead class="text-uppercase font-weight-bold" style="font-size: 9pt;">
 							<tr>
-								<td class="text-center">Priority</td>
+								<td class="text-center">No.</td>
 								<td class="text-center">Prod. Order</td>
 								<td class="text-center">Customer</td>
 								<td class="text-center">Item Details</td>
