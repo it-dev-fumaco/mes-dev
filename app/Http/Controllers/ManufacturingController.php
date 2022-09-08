@@ -1451,7 +1451,7 @@ class ManufacturingController extends Controller
                     $customer = ($so_details) ? $so_details->customer : null;
                     $delivery_date = ($so_details) ? $so_details->delivery_date : null;
                     $project = ($so_details) ? $so_details->project : null;
-                    $classification = ($so_details) ? ($so_details->sales_type == 'Sample') ? 'Sample' : 'Customer Order' : null;
+                    $classification = 'Customer Order';
                 }else{
                     $mr_details = DB::connection('mysql')->table('tabMaterial Request')->where('name', $request->reference_no)->first();
                     $sales_order = null;
@@ -1459,7 +1459,7 @@ class ManufacturingController extends Controller
                     $customer = ($mr_details) ? $mr_details->customer : null;
                     $delivery_date = ($mr_details) ? $mr_details->delivery_date : null;
                     $project = ($mr_details) ? $mr_details->project : null;
-                    $classification = 'Customer Order';
+                    $classification = ($mr_details) ? $mr_details->custom_purpose : null;
                 }
             }
 
