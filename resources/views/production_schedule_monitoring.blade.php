@@ -76,6 +76,7 @@
                                 <span class="d-block" style="font-size: 8pt;">Total Quantity to Manufacture</span>
                             </div>
                           </div>
+                        </div>
                       </div>
                       <div class="card p-0" style="background-color: #0277BD;">
                         <div class="card-body pb-0">
