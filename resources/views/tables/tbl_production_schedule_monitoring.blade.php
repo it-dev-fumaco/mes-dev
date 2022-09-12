@@ -70,10 +70,22 @@
     </thead>
     <tbody style="font-size: 9pt;">
       @forelse($production_orders as $row)
+      @php
+          if($row['status'] == 'Completed'){
+            $badge = 'badge-success';
+            $text = 'Completed';
+          }else if($row['is_backlog']){
+            $badge = 'badge-danger';
+            $text = 'Backlog';
+          }else{
+            $badge = 'd-none';
+            $text = null;
+          }
+      @endphp
       <tr class="tbl-row" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['reference_no'] }}" data-parent-item="{{ $row['parent_item_code'] }}">
         <td class="text-center p-0">
           <a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn font-weight-bold text-dark d-block">{{ $row['production_order'] }}</a>
-          <span class="badge {{ ($row['is_backlog']) ? 'badge-danger' : 'd-none' }}" style="font-size: 9pt;">Backlog</span>
+          <span class="badge {{ $badge }}" style="font-size: 9pt;">{{ $text }}</span>
         </td>
         <td class="text-center p-0">
           <span class="d-block font-weight-bold">{{ date('M-d-Y', strtotime($row['planned_start_date'])) }}</span>
@@ -161,7 +173,7 @@
         pending = parseInt($('#pending_count').text());
         total_po = {{ count($production_orders) }};
         total = total_po - pending;
-        total = parseInt(total) > 0 ? total : 0;
+        total = total > 0 ? total : 0;
         total.toLocaleString('en-US', {maximumFractionDigits: 2});
         $('#backlogged-production-order-count').text(total);
       });

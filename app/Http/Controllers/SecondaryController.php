@@ -3205,9 +3205,9 @@ class SecondaryController extends Controller
 
         // pending production orders scheduled today
         $pending_production_orders = DB::connection('mysql_mes')->table('production_order')
-            ->where('planned_start_date', $schedule_date)
+            ->whereDate('planned_start_date', $schedule_date)
             ->whereIn('operation_id', $user_permitted_operations)
-            ->where('status', 'Not Started')->get();
+            ->whereIn('status', ['Not Started', 'In Progress'])->get();
 
         $pending_production_count = count($pending_production_orders);
         $pending_qty_count = collect($pending_production_orders)->sum('qty_to_manufacture');
