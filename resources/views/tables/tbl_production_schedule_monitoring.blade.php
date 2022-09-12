@@ -175,6 +175,7 @@
         total = total_po - pending;
         total = total > 0 ? total : 0;
         total.toLocaleString('en-US', {maximumFractionDigits: 2});
+        console.log(total);
         $('#backlogged-production-order-count').text(total);
       });
       // configuration of the observer:
