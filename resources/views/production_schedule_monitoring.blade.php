@@ -66,6 +66,7 @@
                             <div class="col-4 p-1 text-center" style="border-left: solid 10px #27AE60 !important">
                               <span class="font-weight-bold" id="backlogged-production-order-count" style="font-size: 18pt;">0</span>
                               <span class="d-block" style="font-size: 8pt;">Backlogged Production Order(s)</span>
+                              <span class="d-none" id="production-order-count"></span>
                             </div>
                             <div class="col-4 p-1 text-center" style="border-left: solid 10px #007BFF !important">
                               <span class="font-weight-bold" id="pending_count" style="font-size: 18pt;">0</span>
@@ -839,6 +840,11 @@
           $('#pending_qty').text(data.pending_qty);
           $('#inprogress_qty').text(data.inProgress_qty);
           $('#totransfer_qty').text(data.completed_qty);
+
+          var total_po = parseInt($('#production-order-count').text());
+          var total = (total_po - data.pending) > 0 ? total_po - data.pending : 0;
+          console.log(total);
+          $('#backlogged-production-order-count').text(total);
         }
       });
     }
