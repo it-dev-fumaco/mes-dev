@@ -46,39 +46,45 @@
                   $header = 'Schedule Date: ' . $date_format;
                 }
               @endphp
-              <ul class="nav nav-tabs font-weight-bold w-50" role="tablist">
-                <li class="nav-item">
-                  <a class="nav-link active" id="tab1" data-toggle="tab" href="#tab1-1" role="tab" aria-controls="tab1" aria-selected="true">{{ $header }}</a>
-                </li>
-                @if ($operation_details->operation_name != 'Painting')
-                <li class="nav-item">
-                  <a class="nav-link" id="tab2" data-toggle="tab" href="#tab2-2" role="tab" aria-controls="tab2" aria-selected="false">Machine Schedule</a>
-                </li>
-                @endif
-              </ul>
+              <div class="row">
+                <div class="col-6">
+                  <ul class="nav nav-tabs font-weight-bold" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="tab1" data-toggle="tab" href="#tab1-1" role="tab" aria-controls="tab1" aria-selected="true">{{ $header }}</a>
+                    </li>
+                    @if ($operation_details->operation_name != 'Painting')
+                    <li class="nav-item">
+                      <a class="nav-link" id="tab2" data-toggle="tab" href="#tab2-2" role="tab" aria-controls="tab2" aria-selected="false">Machine Schedule</a>
+                    </li>
+                    @endif
+                  </ul>
+                </div>
+                <div class="col-6">
+                  <div class="row">
+                    <div class="col-12" style="margin-top: -12px;">
+                      <div class="row pt-1 pb-2">
+                        <div class="col-4 p-1 text-center" style="border-left: solid 10px #27AE60 !important">
+                          <span class="font-weight-bold" id="backlogged-production-order-count" style="font-size: 18pt;">0</span>
+                          <span class="d-block" style="font-size: 8pt;">Backlogged Production Order(s)</span>
+                          <span class="d-none" id="production-order-count"></span>
+                        </div>
+                        <div class="col-4 p-1 text-center" style="border-left: solid 10px #007BFF !important">
+                          <span class="font-weight-bold" id="pending_count" style="font-size: 18pt;">0</span>
+                          <span class="d-block" style="font-size: 8pt;">Scheduled Production Order(s)</span>
+                        </div>
+                        <div class="col-4 p-1 text-center" style="border-left: solid 10px #F96332 !important">
+                          <span class="d-block font-weight-bold" id="qty-to-manufacture-count" style="font-size: 18pt;">0</span>
+                            <span class="d-block" style="font-size: 8pt;">Total Quantity to Manufacture</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="tab-content">
                 <div class="tab-pane active" id="tab1-1" role="tabpanel" aria-labelledby="tab1">
                   <div class="row mt-2">
                     <div class="col-md-12">
-                      <div class="row">
-                        <div class="col-md-6 offset-md-6" style="margin-top: -62px;">
-                          <div class="row pt-1 pb-2">
-                            <div class="col-4 p-1 text-center" style="border-left: solid 10px #27AE60 !important">
-                              <span class="font-weight-bold" id="backlogged-production-order-count" style="font-size: 18pt;">0</span>
-                              <span class="d-block" style="font-size: 8pt;">Backlogged Production Order(s)</span>
-                              <span class="d-none" id="production-order-count"></span>
-                            </div>
-                            <div class="col-4 p-1 text-center" style="border-left: solid 10px #007BFF !important">
-                              <span class="font-weight-bold" id="pending_count" style="font-size: 18pt;">0</span>
-                              <span class="d-block" style="font-size: 8pt;">Scheduled Production Order(s)</span>
-                            </div>
-                            <div class="col-4 p-1 text-center" style="border-left: solid 10px #F96332 !important">
-                              <span class="d-block font-weight-bold" id="qty-to-manufacture-count" style="font-size: 18pt;">0</span>
-                                <span class="d-block" style="font-size: 8pt;">Total Quantity to Manufacture</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                       <div class="card p-0" style="background-color: #0277BD;">
                         <div class="card-body pb-0">
                           <div class="row" style="margin-top: -15px;">
@@ -115,26 +121,6 @@
                 <div class="tab-pane" id="tab2-2" role="tabpanel" aria-labelledby="tab2">
                   @if ($operation_details->operation_name == 'Fabrication')
                   <div class="row mt-2 mb-0 mr-0 ml-0 p-0">
-                    <div class="col-md-6 offset-md-6 p-0" style="margin-top: -50px;">
-                      <div class="d-flex flex-row justify-content-end p-0">
-                        <div class="p-2">
-                          <span class="dot bg-secondary" style="margin-left: 12px;"></span>
-                          <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Not Started</span>
-                        </div>
-                        <div class="p-2">
-                          <span class="dot bg-warning" style="margin-left: 12px;"></span>
-                          <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">In Progress</span>
-                        </div>
-                        <div class="p-2">
-                          <span class="dot bg-success" style="margin-left: 12px;"></span>
-                          <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Completed</span>
-                        </div>
-                        <div class="p-2">
-                          <span class="dot bg-danger" style="margin-left: 12px;"></span>
-                          <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Late</span>
-                        </div>
-                      </div>
-                    </div>
                     <div class="col-md-2 p-2">
                       <div class="card m-0" style="background-color:#D5D8DC; min-height: 780px;">
                         <div class="card-header p-2">
@@ -163,22 +149,6 @@
                   @endif
 
                   @if (strpos($operation_details->operation_name, 'Assembly'))
-                  <div class="col-md-6 offset-md-6 p-0" style="margin-top: -50px;">
-                    <div class="d-flex flex-row justify-content-end p-0">
-                      <div class="p-2">
-                        <span class="dot bg-secondary" style="background-color:#717D7E; margin-left: 12px;"></span>
-                        <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Not Started</span>
-                      </div>
-                      <div class="p-2">
-                        <span class="dot bg-warning" style="background-color:#EB984E; margin-left: 12px;"></span>
-                      <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">In Progress</span>
-                      </div>
-                      <div class="p-2">
-                        <span class="dot bg-success" style="background-color:#58d68d; margin-left: 12px;"></span>
-                      <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Completed</span>
-                      </div>
-                    </div>
-                  </div>
                   <div class="row mt-2 mb-0 mr-0 ml-0 p-0">
                     <div class="col-md-2 p-2">
                       <div class="card m-0" style="background-color:#D5D8DC; min-height: 800px;">
