@@ -129,7 +129,7 @@ class QualityInspectionController extends Controller
                     if ($request->workstation == 'Spotwelding') {
                         $insert = [
                             'reference_type' => 'Spotwelding',
-                            'reference_id' => $job_ticket_details->job_ticket_id,
+                            'reference_id' => $request->time_log_id,
                             'qa_inspection_type' => $request->inspection_type,
                             'qa_inspection_date' => $now->toDateTimeString(),
                             'qa_staff_id' => $request->inspected_by,
