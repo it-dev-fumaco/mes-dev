@@ -165,5 +165,6 @@
   $(document).ready(function (){
     $('#production-order-count').text('{{ count($production_orders) }}');
     $('#qty-to-manufacture-count').text('{{ number_format(collect($production_orders)->sum("qty_to_manufacture")) }}');
+    $('#backlogged-production-order-count').text('{{ $backlogs }}');
   });
 </script>

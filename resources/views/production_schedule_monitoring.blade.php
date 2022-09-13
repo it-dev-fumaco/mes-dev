@@ -840,11 +840,6 @@
           $('#pending_qty').text(data.pending_qty);
           $('#inprogress_qty').text(data.inProgress_qty);
           $('#totransfer_qty').text(data.completed_qty);
-
-          var total_po = parseInt($('#production-order-count').text());
-          var total = (total_po - data.pending) > 0 ? total_po - data.pending : 0;
-          console.log(total);
-          $('#backlogged-production-order-count').text(total);
         }
       });
     }
