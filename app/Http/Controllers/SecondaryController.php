@@ -3151,15 +3151,15 @@ class SecondaryController extends Controller
     
     public function count_current_production_order($schedule_date){
         $production_orders = DB::connection('mysql_mes')->table('production_order')
-            ->where('planned_start_date', $schedule_date)->where('status', '!=', 'Cancelled')
+            ->where('planned_start_date', $schedule_date)->whereNotIn('status', ['Cancelled', 'Closed'])
             ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
             ->get();
-
+            
         $fabrication = $this->get_production_order_count_totals($production_orders, 1);
         $assembly = $this->get_production_order_count_totals($production_orders, 3);
         
         $for_feedback_production_orders = DB::connection('mysql_mes')->table('production_order')
-            ->whereRaw('(feedback_qty < produced_qty)')->where('status', '!=', 'Cancelled')
+            ->whereRaw('(feedback_qty < produced_qty)')->whereNotIn('status', ['Cancelled', 'Closed'])
             ->where('produced_qty', '>', 0)
             ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
             ->get();
@@ -3173,7 +3173,7 @@ class SecondaryController extends Controller
             ->distinct()->pluck('production_order');
         // get painting production orders
         $scheduled_painting_production_orders = DB::connection('mysql_mes')->table('production_order')
-            ->whereIn('production_order', $scheduled_painting_production_orders)->where('status', '!=', 'Cancelled')
+            ->whereIn('production_order', $scheduled_painting_production_orders)->whereNotIn('status', ['Cancelled', 'Closed'])
             ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
             ->get();
 
@@ -3182,12 +3182,12 @@ class SecondaryController extends Controller
         // get painting production orders ready for feedback
         $for_feedback_painting_production_orders = DB::connection('mysql_mes')->table('production_order as po')
             ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')->where('jt.workstation', 'Painting')
-            ->whereRaw('(po.feedback_qty < po.produced_qty)')->where('po.status', '!=', 'Cancelled')
+            ->whereRaw('(po.feedback_qty < po.produced_qty)')->whereNotIn('po.status', ['Cancelled', 'Closed'])
             ->where('po.produced_qty', '>', 0)->distinct()->pluck('po.production_order');
         // get painting production orders
         $for_feedback_painting_production_orders = DB::connection('mysql_mes')->table('production_order')
             ->whereIn('production_order', $for_feedback_painting_production_orders)->where('produced_qty', '>', 0)
-            ->where('status', '!=', 'Cancelled')->whereRaw('(feedback_qty < produced_qty)')
+            ->whereNotIn('status', ['Cancelled', 'Closed'])->whereRaw('(feedback_qty < produced_qty)')
             ->selectRaw('operation_id, qty_to_manufacture, status, produced_qty, (qty_to_manufacture - produced_qty) as wip_qty, (produced_qty - feedback_qty) as for_feedback')
             ->get();
 
@@ -3236,7 +3236,7 @@ class SecondaryController extends Controller
             })
             ->where('po.produced_qty', '>', 0)
 			->whereRaw('po.produced_qty > feedback_qty')
-            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereNotIn('po.status', ['Cancelled', 'Closed'])
             ->whereIn('po.operation_id', $user_permitted_operations)
             ->selectRaw('(po.produced_qty - po.feedback_qty) as for_feedback')->get();
 

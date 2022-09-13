@@ -6721,6 +6721,9 @@ class MainController extends Controller
 				->whereDate('planned_start_date', '<', $schedule_date)
 				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
+			$pending_count = Clone $pending_backlogs;
+			$backlogs = $pending_count->count();
+
 			// get completed backlogs before $schedule_date based on production order actual_end_date
 			$completed_production_orders = DB::connection('mysql_mes')->table('production_order')
 				->whereIn('status', ['Completed'])->whereBetween('actual_end_date', [$start, $end])
@@ -6776,7 +6779,7 @@ class MainController extends Controller
 				'parent_item_codes' => array_unique(array_column($production_orders, 'parent_item_code'))
 			];
 
-			return view('tables.tbl_production_schedule_monitoring', compact('production_orders', 'filters'));
+			return view('tables.tbl_production_schedule_monitoring', compact('production_orders', 'filters', 'backlogs'));
 		}
 
 		$production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);
