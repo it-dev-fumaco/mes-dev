@@ -50,6 +50,7 @@
                                 Action
                               </button>
                               <div class="dropdown-menu">
+                                <a href="#" class="dropdown-item close-production-btn" style="padding-left: 15px;" data-production-order="{{ $row['production_order'] }}" data-tabselected="inprogress">Close</a>
                                 <a href="#" class="dropdown-item cancel-prod-btn " style="padding-left: 15px;" data-prod="{{ $row['production_order'] }}" data-tabselected="inprogress">Cancel</a>
                                 <a href="#" class="dropdown-item complete-prod-btn " style="padding-left: 15px;" data-prod="{{ $row['production_order'] }}" data-tabselected="inprogress">Complete</a>
 
