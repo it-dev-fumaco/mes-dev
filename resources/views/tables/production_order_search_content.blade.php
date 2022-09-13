@@ -134,14 +134,15 @@
 								<br>
 								<div class="table-responsive">
 									<table style="width: 100%; border-color: #D5D8DC;">
+										<col style="width: 11%;">
 										<col style="width: 15%;">
-										<col style="width: 15%;">
-										<col style="width: 12%;">
-										<col style="width: 12%;">
 										<col style="width: 10%;">
 										<col style="width: 10%;">
 										<col style="width: 10%;">
 										<col style="width: 10%;">
+										<col style="width: 10%;">
+										<col style="width: 10%;">
+										<col style="width: 8%;">
 										@if ($item_details['feedback_qty'] <= 0)
 										<col style="width: 6%;">
 										@endif
@@ -153,6 +154,7 @@
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>MACHINE</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>START</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>END</b></td>
+											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DURATION</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>OPERATOR</b></td>
 											@if ($item_details['feedback_qty'] <= 0)
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>ACTION</b></td>
@@ -203,6 +205,7 @@
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
+												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $c['total_duration'] }}</td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 													<span class="hvrlink-plan">{{ $operator_name }}</span>
 													@if($b['workstation'] != "Spotwelding")
@@ -249,6 +252,7 @@
 												@if ($b['workstation'] != 'Painting')
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@endif
+												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>

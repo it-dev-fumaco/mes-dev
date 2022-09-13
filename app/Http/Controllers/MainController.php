@@ -441,25 +441,30 @@ class MainController extends Controller
 					$reference_id = ($d->workstation == 'Spotwelding') ? $d->job_ticket_id : $d->time_log_id;
 					$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
 
-					if ($d->cycle_time_in_seconds > 0) {
+				
+					if ($d->duration > 0) {
 						if ($d->good > 0) {
-							$cycle_time_in_seconds = $d->cycle_time_in_seconds / $d->good;
+							$cycle_time_in_seconds = $d->duration * 3600;
 						} else {
 							$cycle_time_in_seconds = 0;
 						}
-					
-						$dur_hours = floor($cycle_time_in_seconds / 3600);
-						$dur_minutes = floor(($cycle_time_in_seconds / 60) % 60);
-						$dur_seconds = $cycle_time_in_seconds % 60;
+
+						$seconds = $cycle_time_in_seconds%60;
+						$minutes = floor(($cycle_time_in_seconds%3600)/60);
+						$hours = floor(($cycle_time_in_seconds%86400)/3600);
+						$days = floor(($cycle_time_in_seconds%2592000)/86400);
+						$months = floor($cycle_time_in_seconds/2592000);
+						
+						$dur_months = ($months > 0) ? $months .'M' : null;
+						$dur_days = ($days > 0) ? $days .'d' : null;
+						$dur_hours = ($hours > 0) ? $hours .'h' : null;
+						$dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+						$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
 			
-						$dur_hours = ($dur_hours > 0) ? $dur_hours .'h' : null;
-						$dur_minutes = ($dur_minutes > 0) ? $dur_minutes .'m' : null;
-						$dur_seconds = ($dur_seconds > 0) ? $dur_seconds .'s' : null;
-			
-						$cycle_time_per_log = $dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds;
+						$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds;
 					}else{
-						$cycle_time_per_log = '-';
-					}
+						$total_duration = '-';
+					}					
 
 					$helpers = DB::connection('mysql_mes')->table('helper')
 						->where('time_log_id', $d->time_log_id)->orderBy('operator_name', 'asc')
@@ -477,7 +482,7 @@ class MainController extends Controller
 						'good' => $d->good,
 						'reject' => $d->reject,
 						'remarks' => $d->remarks,
-						'cycle_time_per_log' => $cycle_time_per_log
+						'total_duration' => trim($total_duration)
 					];
 				}
 			}

@@ -1443,28 +1443,31 @@
     $('#close-production-modal').modal('show');
   });
 
-  $('#close-production-modal form').submit(function(e){
-    e.preventDefault();
-    $.ajax({
-      url: '/close_production_order',
-      type:"POST",
-      data: $(this).serialize(),
-      success:function(data){
-        if (!data.success) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          location.reload();
-          $('#close-production-modal').modal('hide');
+  @if (!in_array($activePage, ['production_schedule'])) 
+    $('#close-production-modal form').submit(function(e){
+      e.preventDefault();
+      $.ajax({
+        url: '/close_production_order',
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (!data.success) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            location.reload();
+            $('#close-production-modal').modal('hide');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
         }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
+      });
     });
-  });
+  @endif
+  
   // Close production Modal and Submit
 
   // Re-open production Modal and Submit

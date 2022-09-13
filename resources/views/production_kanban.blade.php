@@ -1647,6 +1647,30 @@
 
 <script>
   $(document).ready(function(){
+    $('#close-production-modal form').submit(function(e){
+      e.preventDefault();
+      $.ajax({
+        url: '/close_production_order',
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (!data.success) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            reload_notif_table_inprogress();
+            reload_notif_table();
+            $('#close-production-modal').modal('hide');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+  
     $(document).on('click', '#add-operation-btn', function(){
     var workstation = $('#sel-workstation option:selected').text();
     var wprocess = $('#sel-process').val();
