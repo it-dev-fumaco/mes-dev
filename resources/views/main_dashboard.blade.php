@@ -834,6 +834,14 @@
       get_for_feedback_production(page);
     });
 
+    $(document).on('click', '.custom-production-pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      get_for_feedback_production(page);
+    });
+
+    
+
     $(document).on('keyup', '#view-for-feedback-list-search-box', function(){
       get_for_feedback_production(1);
     });
