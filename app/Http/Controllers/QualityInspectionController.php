@@ -677,22 +677,7 @@ class QualityInspectionController extends Controller
             ->where('quality_inspection.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('quality_inspection.status', ['QC Passed', 'QC Failed'])
             ->select('job_ticket.process_id', 'job_ticket.workstation', 'production_order.production_order', 'production_order.item_code', 'production_order.stock_uom', 'quality_inspection.*', 'production_order.description', 'reject_list.reject_reason')
-            ->orderBy('quality_inspection.created_at', 'desc')->union($q)->get();
-
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($list);
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $list = $paginatedItems;
+            ->union($q)->orderBy('created_at', 'desc')->paginate(10);
 
         return view('quality_inspection.tbl_reject_confirmation', compact('list'));
     }

@@ -49,7 +49,11 @@
 	<tr class="text-center" style="font-size: 10pt;">
 		<td>
 			<a href="#" class="font-weight-bold view-production-order-details" data-production-order="{{ $details->production_order }}" style="color: black;">{{ $details->production_order }}</a>
-			<small class="d-block mt-1">{{ $details->planned_start_date ? \Carbon\Carbon::parse($details->planned_start_date)->format('M. d, Y') : 'Unscheduled' }}</small>
+			@if ($details->planned_start_date)
+			<small class="d-block mt-1">{{ \Carbon\Carbon::parse($details->planned_start_date)->format('M. d, Y') }}</small>
+			@else
+			<small class="d-block mt-1 text-danger">Unscheduled</small>
+			@endif
 		</td>
 		<td><b>{{ $details->sales_order }}{{ $details->material_request }}</b></td>
 		<td>{{ $details->customer }}</td>
@@ -394,7 +398,11 @@
 						--
 						@endif
 						<span class="{{ $stat_badge }}" style="font-size: 9pt;">{{ $part['status'] }}</span>
+						@if ($part['planned_start_date'])
 						<small class="d-block mt-1">{{ $part['planned_start_date'] }}</small>
+						@else
+						<small class="d-block mt-1 text-danger">Unscheduled</small>
+						@endif
 					</td>
 					@php
 					$for_add_item_part = '';
