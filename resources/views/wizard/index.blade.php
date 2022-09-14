@@ -832,6 +832,7 @@
                data: {production_orders: production_order},
                success:function(data){
                   if (data.message) {
+                     a3 = 0;
                      showNotification("danger", data.message, "now-ui-icons travel_info");
                      return false;
                   }
@@ -885,6 +886,7 @@
                data: {so: so, bom: bom, idx: idx, qty: qty, item_reference_id: item_reference_id, delivery_date: delivery_date},
                success:function(data){
                   if(data.message) {
+                     a1 = 0;
                      showNotification("danger", data.message, "now-ui-icons travel_info");
                      return false;
                   }
@@ -943,6 +945,7 @@
                data: {production_orders: production_orders},
                success:function(data){
                   if (data.message) {
+                     a4 = 0;
                      showNotification('danger', data.message, "now-ui-icons travel_info");
                      return false;
                   }
@@ -970,6 +973,7 @@
          a2++;
          var unreviewed_bom = $('#parts-list').find('.unchecked').length;
          if (unreviewed_bom > 0) {
+            a2 = 0;
             showNotification("info", 'Please review all BOM first.', "now-ui-icons travel_info");
             return false;
          }

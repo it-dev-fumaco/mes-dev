@@ -3439,6 +3439,24 @@ class MainController extends Controller
 				}
 			}
 
+			$operator_existing_ongoing_backlog_task = DB::connection('mysql_mes')->table('job_ticket')
+				->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+				->where('time_logs.operator_id', $request->operator_id)->whereDate('time_logs.from_time', '<', Carbon::now()->startOfDay()->format('Y-m-d'))
+				->where('time_logs.status', 'In Progress')->first();
+
+			if ($operator_existing_ongoing_backlog_task) {
+				return response()->json(['success' => 0, 'message' => "Operator has on-going task from previous date. " . $operator_existing_ongoing_backlog_task->production_order]);
+			}
+
+			$operator_existing_ongoing_backlog_task_spotwelding = DB::connection('mysql_mes')->table('job_ticket')
+				->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+				->where('spotwelding_qty.operator_id', $request->operator_id)->whereDate('spotwelding_qty.from_time', '<', Carbon::now()->startOfDay()->format('Y-m-d'))
+				->where('spotwelding_qty.status', 'In Progress')->first();
+
+			if ($operator_existing_ongoing_backlog_task_spotwelding) {
+				return response()->json(['success' => 0, 'message' => "Operator has on-going task from previous date. " . $operator_existing_ongoing_backlog_task_spotwelding->production_order]);
+			}
+
 	    	$machine_name = $machine_details->machine_name;
 				
 			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
@@ -3662,6 +3680,24 @@ class MainController extends Controller
 			if ($operator_in_progress_spotwelding->machine_code != $request->machine_code) {
 				return response()->json(['success' => 0, 'message' => "Operator has in-progress production order in machine <b>" . $operator_in_progress_spotwelding->machine_code . "</b><br>Production Order: <b>" . $operator_in_progress_spotwelding->production_order . "</b>"]);
 			}
+		}
+
+		$operator_existing_ongoing_backlog_task = DB::connection('mysql_mes')->table('job_ticket')
+			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+			->where('time_logs.operator_id', $request->operator_id)->whereDate('time_logs.from_time', '<', Carbon::now()->startOfDay()->format('Y-m-d'))
+			->where('time_logs.status', 'In Progress')->first();
+
+		if ($operator_existing_ongoing_backlog_task) {
+			return response()->json(['success' => 0, 'message' => "Operator has on-going task from previous date. " . $operator_existing_ongoing_backlog_task->production_order]);
+		}
+
+		$operator_existing_ongoing_backlog_task_spotwelding = DB::connection('mysql_mes')->table('job_ticket')
+			->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+			->where('spotwelding_qty.operator_id', $request->operator_id)->whereDate('spotwelding_qty.from_time', '<', Carbon::now()->startOfDay()->format('Y-m-d'))
+			->where('spotwelding_qty.status', 'In Progress')->first();
+
+		if ($operator_existing_ongoing_backlog_task_spotwelding) {
+			return response()->json(['success' => 0, 'message' => "Operator has on-going task from previous date. " . $operator_existing_ongoing_backlog_task_spotwelding->production_order]);
 		}
 
 		$job_ticket = DB::connection('mysql_mes')->table('job_ticket')
