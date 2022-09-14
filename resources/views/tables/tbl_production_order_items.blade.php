@@ -143,6 +143,13 @@
 			</a> 
 		</li>
 		@endif
+		@if (count($qa_array) > 0)
+		<li class="nav-item create-feedback-tab">
+			<a class="nav-link" data-toggle="tab" href="#wtpoi6" role="tab" aria-controls="messages" aria-selected="false">
+				<span class="badge badge-info mr-2">{{ count($qa_array) }}</span> Quality Inspection Log(s)
+			</a> 
+		</li>
+		@endif
 	</ul>
 
 	<div class="tab-content bg-light" style="border: 1px solid #f2f3f4;">
@@ -698,6 +705,70 @@
 			</div>
 		</div>
 		<!-- Activity Logs -->
+
+		<!-- QA Logs -->
+		<div class="tab-pane" id="wtpoi6" role="tabpanel" aria-labelledby="w5-tab">
+			<div class="col-12 p-2" style="max-height: 500px; overflow:auto;">
+				@if(count($qa_array) > 0)
+					<table class="custom-table-1-1 w-100 mt-3" style="font-size: 9pt;">
+						<tr class="text-center">
+							<th>Workstation</th>
+							<th>Status</th>
+							<th>Qty Checked</th>
+							<th>Rejects</th>
+							<th>Inspection Type</th>
+							<th>Inspection Date</th>
+							<th>Inspected By</th>
+						</tr>
+						@foreach ($qa_array as $i => $qa)
+							@php
+								switch($qa->qa_status){
+									case 'QC Passed':
+										$badge = 'success';
+										break;
+									case 'QC Failed':
+										$badge = 'secondary';
+										break;
+									case 'For Confirmation':
+										$badge = 'warning';
+										break;
+									default:
+										$badge = null;
+										break;
+								}
+							@endphp
+							<tr>
+								<td class="text-center p-1">{{ $qa->workstation }}</td>
+								<td class="text-center p-1">
+									<span class="badge badge-{{ $badge }}" style="font-size: 8pt;">{{ $qa->qa_status }}</span>
+								</td>
+								<td class="text-center p-1">{{ $qa->actual_qty_checked }}</td>
+								<td class="text-center p-1">{{ $qa->rejected_qty }}</td>
+								<td class="text-center p-1">
+									{{ $qa->qa_inspection_type }}
+									@if ($qa->qa_inspection_type == 'Reject Confirmation')
+										@isset($reject_reason[$qa->job_ticket_id])
+											<div class="text-left p-1 m-0">
+												<ul class="m-0">
+													@foreach ($reject_reason[$qa->job_ticket_id] as $reject)
+														<li class="font-italic">{{ $reject->reject_reason }}</li>
+													@endforeach
+												</ul>
+											</div>
+										@endisset
+									@endif
+								</td>
+								<td class="text-center p-1">{{ Carbon\Carbon::parse($qa->qa_inspection_date)->format('M-d-Y h:i:A') }}</td>
+								<td class="text-center p-1">{{ $qa->qa_owner }}</td>
+							</tr>
+						@endforeach
+					</table>
+				@else
+					<h5 class="text-center m-4">No record(s) found.</h5>
+				@endif
+			</div>
+		</div>
+		<!-- QA Logs -->
 	</div>
 		
 	@if($details->feedback_qty < $details->qty_to_manufacture)

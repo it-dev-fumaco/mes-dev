@@ -205,7 +205,7 @@
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
-												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $c['total_duration'] }}</td>
+												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ isset($c['total_duration']) ? $c['total_duration'] : '-' }}</td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 													<span class="hvrlink-plan">{{ $operator_name }}</span>
 													@if($b['workstation'] != "Spotwelding")

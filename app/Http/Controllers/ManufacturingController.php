@@ -2488,7 +2488,34 @@ class ManufacturingController extends Controller
             }
         }
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty'));
+        $spotwelding_qa = DB::connection('mysql_mes')->table('job_ticket')
+            ->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
+            ->join('quality_inspection as qa', 'qa.reference_id', 'job_ticket.job_ticket_id')
+            ->where('job_ticket.production_order', $production_order)
+            ->select('job_ticket.job_ticket_id', 'job_ticket.workstation', 'qa.qa_inspection_type', 'qa.qa_inspection_date', 'qa.status as qa_status', 'qa.actual_qty_checked', 'qa.reject_type', 'qa.qc_remarks', 'qa.created_by as qa_owner', 'qa.rejected_qty', 'spotwelding_qty.good', 'spotwelding_qty.reject', 'spotwelding_qty.operator_name', 'qa.created_at');
+
+        $qa_array = DB::connection('mysql_mes')->table('job_ticket')
+            ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+            ->join('quality_inspection as qa', 'qa.reference_id', 'time_logs.time_log_id')
+            ->where('job_ticket.production_order', $production_order)
+            ->select('job_ticket.job_ticket_id', 'job_ticket.workstation', 'qa.qa_inspection_type', 'qa.qa_inspection_date', 'qa.status as qa_status', 'qa.actual_qty_checked', 'qa.reject_type', 'qa.qc_remarks', 'qa.created_by as qa_owner', 'qa.rejected_qty', 'time_logs.good', 'time_logs.reject', 'time_logs.operator_name', 'qa.created_at')
+            ->union($spotwelding_qa)->get();
+
+        $qa_array = collect($qa_array)->sortByDesc(function($col) {
+            return sprintf('%s', $col->created_at);
+        })->values()->all();
+
+        $reject_reason = [];
+        if(in_array('Reject Confirmation', collect($qa_array)->pluck('qa_inspection_type')->toArray())){
+            $reject_reason_qry = DB::connection('mysql_mes')->table('reject_reason')
+                ->join('reject_list', 'reject_list.reject_list_id', 'reject_reason.reject_list_id')
+                ->whereIn('reject_reason.job_ticket_id', collect($qa_array)->pluck('job_ticket_id')->toArray())
+                ->get();
+
+            $reject_reason = collect($reject_reason_qry)->groupBy('job_ticket_id');
+        }
+
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason'));
     }
 
     public function create_material_transfer_for_return(Request $request){
