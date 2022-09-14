@@ -4745,6 +4745,10 @@ class ManufacturingController extends Controller
         $production_order_list = [];
         foreach ($production_orders as $prod) {
             $conversion_qty = isset($bom_reference[$prod->item_code]) ? $bom_reference[$prod->item_code][0]->qty * 1 : 0;
+            if($conversion_qty <= 0){
+                $conversion_qry = DB::connection('mysql')->table('tabBOM Item')->where('item_code', $prod->item_code)->where('bom_no', $prod->bom_no)->first();
+                $conversion_qty = $conversion_qry ? $conversion_qry->qty * 1 : 0;
+            }
 
             $so_order_qty = isset($sales_order_item[$prod->parent_item_code]) ? $sales_order_item[$prod->parent_item_code][0]->qty * 1 : 0;
 
