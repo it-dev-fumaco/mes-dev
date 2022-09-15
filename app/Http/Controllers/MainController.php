@@ -6753,12 +6753,12 @@ class MainController extends Controller
 			
 			// get schedule production order against $schedule_date
 			$scheduled_production = DB::connection('mysql_mes')->table('production_order')
-				->whereNotIn('status', ['Cancelled', 'Closed'])->whereDate('planned_start_date', $schedule_date)
+				->whereNotIn('status', ['Cancelled', 'Closed'])->whereDate('planned_start_date', $start)
 				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
 			// get pending backlogs before $schedule_date
 			$pending_backlogs = DB::connection('mysql_mes')->table('production_order')
-				->whereIn('status', ['In Progress', 'Not Started'])
+				->whereIn('status', ['In Progress', 'Not Started', 'Partially Feedbacked', 'Ready for Feedback'])
 				->whereDate('planned_start_date', '<', $schedule_date)
 				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
 
@@ -6767,7 +6767,7 @@ class MainController extends Controller
 
 			// get completed backlogs before $schedule_date based on production order actual_end_date
 			$completed_production_orders = DB::connection('mysql_mes')->table('production_order')
-				->whereIn('status', ['Completed'])->whereBetween('actual_end_date', [$start, $end])
+				->whereIn('status', ['Completed', 'Feedbacked'])->whereBetween('actual_end_date', [$start, $end])
 				->whereDate('planned_start_date', '<', $schedule_date)
 				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
 				->union($pending_backlogs)->union($scheduled_production)->get();
@@ -6848,14 +6848,15 @@ class MainController extends Controller
             $q = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
                 ->whereNotIn('po.status', ['Cancelled', 'Closed'])
-                ->whereDate('scheduled_date', $scheduled_date)->where('machine_code', $machine->machine_code)
+                ->whereDate('scheduled_date', $scheduled_date)
+				->where('machine_code', $machine->machine_code)
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
             // get scheduled production order before $scheduled_date
             $q1 = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
-                ->whereIn('po.status', ['In Progress', 'Not Started'])
+                ->whereIn('po.status', ['In Progress', 'Not Started', 'Partially Feedbacked', 'Ready for Feedback'])
                 ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
@@ -6863,7 +6864,7 @@ class MainController extends Controller
             // get scheduled production order before $scheduled_date
             $assigned_production_q = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
-                ->whereIn('po.status', ['Completed'])
+                ->whereIn('po.status', ['Completed', 'Feedbacked'])
                 ->whereBetween('po.actual_end_date', [$start, $end])
                 ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification')
