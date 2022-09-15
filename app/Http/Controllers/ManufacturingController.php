@@ -2436,7 +2436,7 @@ class ManufacturingController extends Controller
             ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
             ->where('ste.docstatus', 1)->sum('sted.qty');
 
-        $activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('reference', $production_order)->where('action', '!=', 'Reset Time Log')->orderBy('created_at', 'desc')->get();
+        $activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('reference', $production_order)->orderBy('created_at', 'desc')->get();
 
         // collect item codes
         $required_item_codes = collect($required_items)->sortBy('item_code')->pluck('item_code');

@@ -3243,8 +3243,9 @@ class MainController extends Controller
 
 		$activity_logs = [
 			'action' => 'Restarted Process',
-			'message' => $workstation->workstation.' process has been restarted for '.$workstation->workstation.' by '.$workstation->operator_name,
+			'message' => $workstation->workstation.' process has been restarted by '.$workstation->operator_name,
 			'created_by' => $workstation->operator_name,
+			'reference' => $workstation->production_order,
 			'created_at' => Carbon::now()->toDateTimeString()
 		];
 
@@ -3584,7 +3585,8 @@ class MainController extends Controller
 
 			$activity_logs = [
 				'created_at' => $now->toDateTimeString(),
-				'created_by' => $operator->employee_name
+				'created_by' => $operator->employee_name,
+				'reference' => $request->production_order,
 			];
 
 			$job_ticket_ids = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->pluck('job_ticket_id');
@@ -7577,8 +7579,8 @@ class MainController extends Controller
 
 			$activity_logs = [
 				'action' => 'Reset Time Log',
-				'message' => 'Reset time logs for job ticket '.$request->job_ticket_id.' of '.$job_ticket_details->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
-				'reference' => $request->job_ticket_id,
+				'message' => 'Reset time logs for '.$process->process_name.' of '.$job_ticket_details->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+				'reference' => $job_ticket_details->production_order,
 				'created_at' => Carbon::now()->toDateTimeString(),
 				'created_by' => Auth::user()->email
 			];
