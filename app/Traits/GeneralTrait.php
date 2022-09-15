@@ -60,6 +60,9 @@ trait GeneralTrait
             $job_ticket_status = 'Completed';
         }else if(count($logs) > 0){
             $job_ticket_status = 'In Progress';
+            if($job_ticket_detail->workstation == 'Painting' && $total_good <= 0){
+                $job_ticket_status = 'Pending';
+            }
         }else{
             $job_ticket_status = 'Pending';
         }
@@ -70,6 +73,8 @@ trait GeneralTrait
             'reject' => $total_reject,
             'actual_start_date' => $job_ticket_actual_start_date,
             'actual_end_date' => $job_ticket_actual_end_date,
+            'last_modified_by' => Auth::check() ? Auth::user()->employee_name : null,
+            'last_modified_at' => Carbon::now()->toDateTimeString()
         ];
         
         if($job_ticket_detail->workstation == 'Painting'){

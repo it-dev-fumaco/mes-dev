@@ -262,10 +262,16 @@ class PaintingOperatorController extends Controller
 			];
 		}
 
+		$reject_qry = DB::connection('mysql_mes')->table('job_ticket as jt')->where('workstation', 'Painting')->whereIn('production_order', collect($painting_processes)->pluck('production_order'))->selectRaw('production_order, SUM(reject) as reject')->groupBy('production_order')->get();
+		$reject_per_po = collect($reject_qry)->groupBy('production_order');
+
+		$time_logs = collect($unloaded_qry)->pluck('time_log_id');
+		$reference_time_logs = collect($unloaded_qry)->pluck('reference_time_log')->merge($time_logs)->filter();
+
 		$qa = DB::connection('mysql_mes')->table('quality_inspection')->whereIn('reference_id', collect($painting_processes)->pluck('time_log_id'))->where('reference_type', 'Time Logs')->where('qa_inspection_type', 'Random Inspection')->where('status', 'QC Passed')->get();
 		$qa_check = collect($qa)->groupBy('reference_id');
 
-		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'qa_check', 'unloaded_per_time_log_id', 'qty_array'));
+		return view('painting_operator.tbl_painting_task', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'painting_processes', 'machine_code', 'qa_check', 'unloaded_per_time_log_id', 'qty_array', 'reject_per_po'));
 	}
 
 	// /reject_painting
@@ -288,52 +294,77 @@ class PaintingOperatorController extends Controller
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
 			$job_ticket_id = $time_log->job_ticket_id;
 
-			if($good_qty_after_transaction > 0){
-				$update = [
-					'last_modified_at' => $now->toDateTimeString(),
-					'last_modified_by' => Auth::user()->employee_name,
-					'good' => $good_qty_after_transaction,
-					'reject' => $request->rejected_qty + $time_log->reject,
+			$update = [
+				'last_modified_at' => $now->toDateTimeString(),
+				'last_modified_by' => Auth::user()->employee_name,
+				'good' => $good_qty_after_transaction
+			];
+
+			if($good_qty_after_transaction <= 0){
+				$update['status'] = 'Completed';
+			}
+
+			if($request->process_name == 'Loading'){
+				$update['reject'] = $request->rejected_qty + $time_log->reject;
+			}
+
+			$reference_type = 'Time Logs';
+			$reference_id =  $request->id;
+
+			$insert = [
+				'reference_type' => $reference_type,
+				'reference_id' => $reference_id,
+				'qa_inspection_type' => 'Reject Confirmation',
+				'rejected_qty' => $request->rejected_qty,
+				'total_qty' => $time_log->good,
+				'status' => 'For Confirmation',
+				'created_by' => Auth::user()->employee_name,
+				'created_at' => $now->toDateTimeString(),
+			];
+
+			$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+
+			foreach($reject_reason as $i => $row){
+				$reason[] = [
+					'job_ticket_id' => $job_ticket_id,
+					'qa_id' => $qa_id,
+					'reject_list_id' => $row,
+					'reject_value' => '-'
 				];
+			}
 
-				$reference_type = 'Time Logs';
-				$reference_id =  $request->id;
+			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
+			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
+			if($request->process_name == 'Unloading'){
+				$unloading_tl = DB::connection('mysql_mes')->table('time_logs')->where('reference_time_log', $request->id)->first();
+				$update['reject'] = $request->rejected_qty + $time_log->reject;
 
-				$insert = [
-					'reference_type' => $reference_type,
-					'reference_id' => $reference_id,
-					'qa_inspection_type' => 'Reject Confirmation',
-					'rejected_qty' => $request->rejected_qty,
-					'total_qty' => $time_log->good,
-					'status' => 'For Confirmation',
-					'created_by' => Auth::user()->employee_name,
-					'created_at' => $now->toDateTimeString(),
-				];
+				if($unloading_tl){
+					DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_tl->time_log_id)->update($update);
 
-				$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+					$this->update_job_ticket($unloading_tl->job_ticket_id);
+				}else{
+					$unloading_jt = DB::connection('mysql_mes')->table('job_ticket as jt')
+						->join('process', 'process.process_id', 'jt.process_id')
+						->where('process.process_name', 'Unloading')->where('jt.production_order', $request->production_order)->first();
 
-				foreach($reject_reason as $i => $row){
-					$reason[] = [
-						'job_ticket_id' => $job_ticket_id,
-						'qa_id' => $qa_id,
-						'reject_list_id' => $row,
-						'reject_value' => '-'
-					];
+					DB::connection('mysql_mes')->table('time_logs')->insert([
+						'job_ticket_id' => $unloading_jt->job_ticket_id,
+						'reference_time_log' => $request->id,
+						'to_time' => $now->toDateTimeString(),
+						'machine_code' => 'M00200',
+						'reject' => $request->rejected_qty,
+						'machine_name' => 'Painting Machine',
+						'operator_id' => Auth::user()->user_id,
+						'operator_name' => Auth::user()->employee_name,
+						'operator_nickname' => Auth::user()->nick_name,
+						'status' => 'Completed',
+						'created_by' => Auth::user()->employee_name,
+						'created_at' => $now->toDateTimeString(),
+					]);
+
+					$this->update_job_ticket($unloading_jt->job_ticket_id);
 				}
-
-				DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
-				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-				if($request->process_name == 'Unloading' && $request->status == 'Completed'){
-					$unloading_tl = DB::connection('mysql_mes')->table('time_logs')->where('reference_time_log', $request->id)->first();
-
-					if($unloading_tl){
-						DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_tl->time_log_id)->update($update);
-
-						$this->update_job_ticket($unloading_tl->job_ticket_id);
-					}
-				}
-			}else{
-				DB::connection('mysql_mes')->table('time_logs')->where('reference_time_log', $request->id)->delete();
 			}
 
 			$this->update_job_ticket($job_ticket_id);
