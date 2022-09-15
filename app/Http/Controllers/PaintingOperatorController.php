@@ -123,10 +123,18 @@ class PaintingOperatorController extends Controller
 
 	public function get_production_order_details($production_order, $process_id){
 		$now = Carbon::now();
-		$task_qry = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
-			->where('process_id', $process_id)->first();
+		$task_qry = DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('production_order as po', 'po.production_order', 'jt.production_order')
+			->join('process', 'jt.process_id', 'process.process_id')
+			->where('po.production_order', $production_order)->where('jt.process_id', $process_id)
+			->select('jt.planned_start_date', 'po.qty_to_manufacture', 'jt.completed_qty', 'process.process_name')
+			->first();
 		if (!$task_qry) {
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
+		}
+
+		if($task_qry->process_name == 'Loading' && $task_qry->qty_to_manufacture == $task_qry->completed_qty){
+			return response()->json(['success' => 0, 'message' => 'Loading task already completed.']);
 		}
 
 		if(!$task_qry->planned_start_date || $task_qry->planned_start_date > $now->format('Y-m-d H:i:s')){
@@ -141,9 +149,6 @@ class PaintingOperatorController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Task is already completed.']);
 		}
 
-		$production_order_details = DB::connection('mysql_mes')->table('production_order')
-			->where('production_order', $production_order)->first();
-
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->join('job_ticket', 'job_ticket.production_order', 'production_order.production_order')
 			->where('production_order.production_order', $production_order)
@@ -156,11 +161,7 @@ class PaintingOperatorController extends Controller
 
 		$qty = $production_orders->qty_to_manufacture - $loaded_qty;
 
-		if (!$production_order_details) {
-            return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
-        } else {        
-			return response()->json(['success' => 1, 'message' => "Production Order found.", 'details' => $production_orders, 'qty' => $qty]);
-		}
+		return response()->json(['success' => 1, 'message' => "Production Order found.", 'details' => $production_orders, 'qty' => $qty]);
 	}
 
 	public function login_operator(Request $request){
