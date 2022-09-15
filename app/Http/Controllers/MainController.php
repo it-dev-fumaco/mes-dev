@@ -2142,53 +2142,72 @@ class MainController extends Controller
 	}
 
     public function update_production_task_schedules(Request $request){
-		if(!Auth::user()) {
-            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
-        }
-
-		$now = Carbon::now();
-		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
-		if (!$production_order_details) {
-			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.',  'reload_tbl' => $request->reload_tbl]);
-		}
-
-		if ($production_order_details->status != 'Completed') {
-			$current_schedule =  Carbon::parse($production_order_details->planned_start_date);
-			$new_schedule = Carbon::parse($request->planned_start_date);
-			$diff_in_days = $current_schedule->diffInDays($new_schedule);
-			
-			// $val_mes = [
-			// 	'planned_start_date' => $new_schedule,
-			// ];
-
-			// DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($val_mes);
-			$values=[];
-			$tasks = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
-			foreach ($tasks as $row) {
-				if ($row->workstation != 'Painting') {
-					$current_planned_start_date = ($row->planned_start_date) ? $row->planned_start_date : $production_order_details->planned_start_date;
-
-					if($new_schedule->toDateTimeString() > $current_schedule->toDateTimeString()){
-						$new_planned_start_date = Carbon::parse($current_planned_start_date)->addDays($diff_in_days);
-					}
-					
-					if($new_schedule->toDateTimeString() < $current_schedule->toDateTimeString()){
-						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
-					}
-					if($new_schedule->toDateTimeString() == $current_schedule->toDateTimeString()){
-						$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
-					}
-
-					$values = [
-						'last_modified_by' => Auth::user()->employee_name,
-						'last_modified_at' => $now->toDateTimeString(),
-						'planned_start_date' => $new_schedule,
-					];
-
-					DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
-				}
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
 			}
-		}
+	
+			$now = Carbon::now();
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			if (!$production_order_details) {
+				return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.',  'reload_tbl' => $request->reload_tbl]);
+			}
+	
+			if ($production_order_details->status != 'Completed') {
+				$current_schedule =  Carbon::parse($production_order_details->planned_start_date);
+				$new_schedule = Carbon::parse($request->planned_start_date);
+				$diff_in_days = $current_schedule->diffInDays($new_schedule);
+				
+				$values=[];
+				$tasks = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
+				foreach ($tasks as $row) {
+					if ($row->workstation != 'Painting') {
+						$current_planned_start_date = ($row->planned_start_date) ? $row->planned_start_date : $production_order_details->planned_start_date;
+	
+						if($new_schedule->toDateTimeString() > $current_schedule->toDateTimeString()){
+							$new_planned_start_date = Carbon::parse($current_planned_start_date)->addDays($diff_in_days);
+						}
+						
+						if($new_schedule->toDateTimeString() < $current_schedule->toDateTimeString()){
+							$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
+						}
+						if($new_schedule->toDateTimeString() == $current_schedule->toDateTimeString()){
+							$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
+						}
+	
+						$values = [
+							'last_modified_by' => Auth::user()->employee_name,
+							'last_modified_at' => $now->toDateTimeString(),
+							'planned_start_date' => $new_schedule,
+						];
+	
+						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
+					}
+				}
+
+				if ($request->current && $request->current != 'unscheduled') {
+					$msg = 'Scheduled start date has been changed from '.Carbon::parse($request->current)->format('M. d, Y') .' to '. $new_schedule->format('M. d, Y') .' by '.Auth::user()->employee_name;
+				} else {
+					$msg = 'Scheduled start date has been changed from "Unscheduled" to '. $new_schedule->format('M. d, Y') .' by '.Auth::user()->employee_name;
+				}
+				$activity_logs = [
+					'action' => 'Change Schedule',
+					'message' => $msg,
+					'reference' => $production_order_details->production_order,
+					'created_by' => Auth::user()->employee_name,
+					'created_at' => Carbon::now()->toDateTimeString()
+				];
+
+				DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert restarted process log in activity logs
+			}
+
+			DB::connection('mysql_mes')->commit();
+		} catch (Exception $th) {
+			DB::connection('mysql_mes')->rollback();
+
+			return response()->json(['success' => 0, 'message' => 'Something went wrong. Please try again.', 'reload_tbl' => $request->reload_tbl]);
+		}	
 	}
 
 	public function update_production_order_schedule(Request $request){
