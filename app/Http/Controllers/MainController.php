@@ -6849,7 +6849,7 @@ class MainController extends Controller
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
                 ->whereNotIn('po.status', ['Cancelled', 'Closed'])
                 ->whereDate('scheduled_date', $scheduled_date)
-				->where('machine_code', 'M00207')
+				->where('machine_code', $machine->machine_code)
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
