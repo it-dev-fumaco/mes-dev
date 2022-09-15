@@ -60,6 +60,8 @@ class SpotweldingController extends Controller
 	}
 
 	public function start_task(Request $request){
+		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
     	try {
     		if (!$request->operator_id) {
     			return response()->json(['success' => 0, 'message' => 'Please enter Operator ID.']);
@@ -70,6 +72,12 @@ class SpotweldingController extends Controller
 	    	if (!$operator) {
 	    		return response()->json(['success' => 0, 'message' => 'Operator not found.']);
 	    	}
+
+			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			if(in_array($production_order->status, ['Cancelled', 'Closed'])){
+				$err = $production_order->status == 'Cancelled' ? 'Cancelled' : 'Closed';
+	    		return response()->json(['success' => 0, 'message' => 'Cannot start task. Production Order is '.$err]);
+			}
 
 	    	$machine_name = DB::connection('mysql_mes')->table('machine')
 	    		->where('machine_code', $request->machine_code)->first()->machine_name;
@@ -100,7 +108,6 @@ class SpotweldingController extends Controller
 	    		return response()->json(['success' => 0, 'message' => 'Task already completed.', 'details' => []]);
 	    	}
 
-			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 			if($production_order->qty_to_manufacture == 1 && $production_order){
 				$in_progress_part = DB::connection('mysql_mes')->table('spotwelding_qty')
 					->where('spotwelding_part_id', $spotwelding_part_id)->where('status', 'In Progress')->first();
@@ -160,9 +167,13 @@ class SpotweldingController extends Controller
 
 			$this->update_job_ticket($request->job_ticket_id);
 
-	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
     	} catch (Exception $e) {
-    		return response()->json(["success" => 0, "message" => $e->getMessage()]);
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+			return response()->json(["success" => 0, "message" => $e->getMessage()]);
     	}
 	}
 
