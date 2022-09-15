@@ -6471,10 +6471,20 @@ class MainController extends Controller
 
         $conveyor_schedule_list = [];
         foreach($machines as $machine){
+
+			$production_orders = $this->conveyor_assigned_production_orders($schedule_date, $machine->machine_code);
+
+			$on_going_prod = DB::connection('mysql_mes')->table('job_ticket as j')
+				->join('time_logs as t', 'j.job_ticket_id', 't.job_ticket_id')
+				->where('t.status', 'In Progress')
+				->whereIn('j.production_order', collect($production_orders)->pluck('production_order'))
+				->pluck('j.production_order')->toArray();
+
             $conveyor_schedule_list[] = [
                 'machine_code' => $machine->machine_code,
                 'machine_name' => $machine->machine_name,
-                'production_orders' => $this->conveyor_assigned_production_orders($schedule_date, $machine->machine_code)
+                'production_orders' => $production_orders,
+				'wip_production_orders' => $on_going_prod
             ];
 		}
 
@@ -6871,10 +6881,17 @@ class MainController extends Controller
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc')
                 ->union($q)->union($q1)->get();
 
+			$on_going_prod = DB::connection('mysql_mes')->table('job_ticket as j')
+				->join('time_logs as t', 'j.job_ticket_id', 't.job_ticket_id')
+				->where('t.status', 'In Progress')
+				->whereIn('j.production_order', collect($assigned_production_q)->pluck('production_order'))
+				->pluck('j.production_order')->toArray();
+
             $assigned_production_orders[] = [
                 'machine_code' => $machine->machine_code,
                 'machine_name' => $machine->machine_name,
-                'production_orders' => collect($assigned_production_q)->sortBy('order_no')
+                'production_orders' => collect($assigned_production_q)->sortBy('order_no'),
+				'on_going_production_orders' => $on_going_prod
             ];
 		}
 

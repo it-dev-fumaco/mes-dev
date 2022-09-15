@@ -33,20 +33,24 @@
 						</thead>
 						<tbody style="font-size: 8pt;">
 							@forelse ($row['production_orders'] as $r)
-							<tr>
+							@php
+								$c = '';
+								if (in_array($r['production_order'], $row['wip_production_orders'])) {
+									$c = 'active-process';
+								}
+								if($r['status'] == 'Not Started'){
+									$b = 'secondary';
+								}elseif($r['status'] == 'In Progress'){
+									$b = 'warning';
+								}else{
+									$b = 'success';
+								}
+							@endphp
+							<tr class="{{ $c }}">
 								<td class="text-center align-middle">
 									<h4 class="m-0 font-weight-bold">{{ $r['order_no'] }}</h4>
 								</td>
 								<td class="text-center font-weight-bold">
-									@php
-										if($r['status'] == 'Not Started'){
-											$b = 'secondary';
-										}elseif($r['status'] == 'In Progress'){
-											$b = 'warning';
-										}else{
-											$b = 'success';
-										}
-									@endphp
 									<span class="badge badge-{{ $b }} view-prod-details-btn" style="font-size: 9pt;">{{ $r['production_order'] }}</span>
 								</td>
 								<td class="text-center">
@@ -85,3 +89,18 @@
 	</div>
 	@endforeach
 </div>
+
+<style>
+	.active-process {
+		background-color: #e69e0e;
+		color: #000000;
+		animation: blinkingBackground 2.5s linear infinite;
+	}
+	@keyframes blinkingBackground{
+		0%    { background-color: #ffff;}
+		25%   { background-color: #FFC107;}
+		50%   { background-color: #ffff;}
+		75%   { background-color: #FFC107;}
+		100%  { background-color: #ffff;}
+	}
+</style>
