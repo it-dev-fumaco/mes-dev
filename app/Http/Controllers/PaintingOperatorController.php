@@ -482,6 +482,11 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Production Order '.$request->production_order.' not found.']);
 			}
 
+			if(in_array($production_order->status, ['Cancelled', 'Closed'])){
+				$err = $production_order->status == 'Cancelled' ? 'Cancelled' : 'Closed';
+				return response()->json(['success' => 0, 'message' => 'Production Order <b>'.$request->production_order.'</b> was <b>'.$err.'</b>.']);
+			}
+
 			$values = [
 				'job_ticket_id' => $request->job_ticket_id,
 				'from_time' => $now->toDateTimeString(),

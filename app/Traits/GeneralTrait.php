@@ -703,22 +703,32 @@ trait GeneralTrait
         }else{
             $status = 'Material For Issue';
         }
-        if($stat == "In Progress"){
-           $status = "In Progress";
+
+        switch ($stat) {
+            case 'In Progress':
+                $status = 'In Progress';
+                break;
+            case 'Cancelled':
+                $status = 'Cancelled';
+                break;
+            case 'Completed':
+            case 'Ready for Feedback':
+                $status = 'Ready for Feedback';
+                break;
+            case 'Closed':
+                $status = 'Closed';
+                break;
+            default:
+                $status = $stat;
+                break;
         }
-        if ($stat == "Cancelled") {
-            $status = 'Cancelled';
-        }
-        if ($stat == "Completed") {
-            $status = 'Ready For Feedback';
-        }
-        if($feedback_qty > 0){
+
+        if($feedback_qty > 0 || $stat == 'Partially Feedbacked'){
             $status = 'Partially Feedbacked';
 
         }
         if($manufacture <= $feedback_qty){
             $status = 'Feedbacked';
-
         }
 
         return $status;

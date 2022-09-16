@@ -2357,12 +2357,12 @@ class MainController extends Controller
 				$join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
 				$join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
 			})
-			->where('jt.planned_start_date', null)->where('pro.status', '!=', 'Cancelled')
+			->where('jt.planned_start_date', null)
 			->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
+			->whereNotIn('pro.status', ['Completed', 'Stopped', 'Cancelled', 'Closed'])
 			->where('jt.workstation', 'Painting')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
 			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty','pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
-			->whereNotIn('pro.status', ['Completed', 'Stopped', 'Cancelled'])
 			->orderBy('pro.created_at', 'desc')->get();
 
 		$unscheduled = [];
@@ -2459,7 +2459,7 @@ class MainController extends Controller
             $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
 		})
 		->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
-		->whereNotIn('pro.status', ['Completed', 'Cancelled'])
+		->whereNotIn('pro.status', ['Completed', 'Cancelled', 'Closed'])
 		->where('jt.workstation', 'Painting')
 		->whereDate('jt.planned_start_date', $schedule_date)
 		->distinct('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
@@ -4120,6 +4120,11 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> not found.']);
 		}
 
+		if(in_array($existing_production_order->status, ['Cancelled', 'Closed'])){
+			$err = $existing_production_order->status == 'Cancelled' ? 'Cancelled' : 'Closed';
+			return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>'.$err.'</b>.']);
+		}
+
 		if($workstation != 'Spotwelding'){
 			$task_reject_confirmation = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -4454,7 +4459,8 @@ class MainController extends Controller
 			foreach ($date_range as $date) {
 				$production_order_task = DB::connection('mysql_mes')->table('production_order')
 					->join('job_ticket', 'production_order.production_order', 'job_ticket.production_order')
-					->where('production_order.status', '!=', 'Cancelled')
+					// ->where('production_order.status', '!=', 'Cancelled')
+					->whereNotIn('production_order.status', ['Cancelled', 'Closed'])
 					->where('job_ticket.workstation', $workstation)
 					->whereDate('job_ticket.planned_start_date', $date)
 					->select('production_order.sub_parent_item_code', 'production_order.parent_item_code', 'production_order.customer', 'production_order.sales_order', 'production_order.material_request', 'job_ticket.job_ticket_id', 'production_order.production_order', 'workstation', 'job_ticket.status', 'production_order.qty_to_manufacture', 'production_order.item_code', 'production_order.description', 'stock_uom', 'parts_category', DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) as process_name'), DB::raw('(SELECT color_legend FROM process WHERE process_id = job_ticket.process_id) as color_legend'), DB::raw('IFNULL(sales_order, material_request) as reference'))->get();
@@ -5752,7 +5758,7 @@ class MainController extends Controller
 	public function painting_ready_list(Request $request){
 		$orders = DB::connection('mysql_mes')->table('production_order as prod')
 			->join('job_ticket as tsd', 'tsd.production_order', 'prod.production_order')
-            ->whereNotIn('prod.status', ['Cancelled', 'Completed'])->where('tsd.workstation', 'Painting')
+            ->whereNotIn('prod.status', ['Cancelled', 'Completed', 'Closed'])->where('tsd.workstation', 'Painting')
             ->where(function($q) use ($request) {
                 $q->where('prod.production_order', 'LIKE', '%'.$request->q.'%')
                 ->orWhere('prod.item_code', 'LIKE', '%'.$request->q.'%')

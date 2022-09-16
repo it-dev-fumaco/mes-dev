@@ -44,6 +44,9 @@
 										case "Feedbacked":
 											$badge_color ="success";
 											break;
+										case "Closed":
+											$badge_color = 'secondary';
+											break;
 										default:
 											$badge_color ="warning";
 											break;
