@@ -344,6 +344,10 @@ class PaintingOperatorController extends Controller
 
 					$this->update_job_ticket($unloading_tl->job_ticket_id);
 				}else{
+					$seconds = $now->diffInSeconds(Carbon::parse($time_log->from_time));
+					$duration= $seconds / 3600;
+					$update['duration'] = $duration;
+
 					$unloading_jt = DB::connection('mysql_mes')->table('job_ticket as jt')
 						->join('process', 'process.process_id', 'jt.process_id')
 						->where('process.process_name', 'Unloading')->where('jt.production_order', $request->production_order)->first();
@@ -359,6 +363,7 @@ class PaintingOperatorController extends Controller
 						'operator_name' => Auth::user()->employee_name,
 						'operator_nickname' => Auth::user()->nick_name,
 						'status' => 'Completed',
+						'duration' => $duration,
 						'created_by' => Auth::user()->employee_name,
 						'created_at' => $now->toDateTimeString(),
 					]);
@@ -553,6 +558,9 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Unloading task not found for Production Order '.$request->production_order.'.']);
 			}
 
+			$seconds = $now->diffInSeconds(Carbon::parse($current_task->from_time));
+			$duration= $seconds / 3600;
+
 			$values = [
 				'job_ticket_id' => $unloading_jt->job_ticket_id,
 				'reference_time_log' => $current_task->time_log_id,
@@ -564,6 +572,7 @@ class PaintingOperatorController extends Controller
 				'operator_name' => $operator->employee_name,
 				'operator_nickname' => $operator->nick_name,
 				'status' => 'Completed',
+				'duration' => $duration,
 				'created_by' => $operator->employee_name,
 				'created_at' => $now->toDateTimeString(),
 			];

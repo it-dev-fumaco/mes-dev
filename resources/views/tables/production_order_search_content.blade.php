@@ -189,13 +189,12 @@
 												@php
 													$machine = ($c['machine_code']) ? $c['machine_code'] : '-';
 													$operator_name = ($c['operator_name']) ? $c['operator_name'] : '-';
-													$from_time = ($c['from_time']) ? $c['from_time'] : '-';
-													$to_time = ($c['to_time']) ? $c['to_time'] : '-';
+													$from_time = ($c['from_time']) ? Carbon\Carbon::parse($c['from_time'])->format('m-d-Y h:i:s A') : '-';
+													$to_time = ($c['to_time']) ? Carbon\Carbon::parse($c['to_time'])->format('m-d-Y h:i:s A') : '-';
 													$inprogress_class = ($c['status'] == 'In Progress') ? 'active-process' : '';
+													$qc_status = null;
 													
-													if($b['process'] == "Housing and Frame Welding"){
-														$qc_status = '';
-													}else{
+													if($b['process'] != "Housing and Frame Welding"){
 														$qc_status = ($c['qa_inspection_status'] == 'QC Passed') ? "qc_passed" : "qc_failed";
 														$qc_status = ($c['qa_inspection_status'] == 'Pending') ? '' : $qc_status;
 													}
@@ -253,8 +252,8 @@
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@endif
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
+												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@if ($item_details['feedback_qty'] <= 0)
 												<td class="text-center" style="border: 1px solid #ABB2B9;">
@@ -319,20 +318,24 @@
 												<td style="border: 1px solid #ABB2B9;padding:5px;">{{ $rows['qty_to_manufacture'] }}</td>
 												<td style="border: 1px solid #ABB2B9;padding:5px;">{{ $rows['produced_qty'] }}</td>
 												@php
-													if($rows['material_status'] == "Material For Issue"){
-														$stat_badge ="danger";
-													}else if($rows['material_status'] == "Material Issued"){
-														$stat_badge ="primary";
-													}else if($rows['material_status'] == "Cancelled"){
-														$stat_badge ="danger";
-													}else if($rows['material_status'] == "Ready For Feedback"){
-														$stat_badge ="info";
-													}else if($rows['material_status'] == "Partially Feedbacked"){
-														$stat_badge ="success";
-													}else if($rows['material_status'] == "Feedbacked"){
-														$stat_badge ="success";
-													}else{
-														$stat_badge ="warning";
+													switch ($rows['material_status']) {
+														case "Cancelled":
+														case "Material For Issue":
+															$stat_badge ="danger";
+															break;
+														case "Material Issued":
+															$stat_badge ="primary";
+															break;
+														case "Ready For Feedback":
+															$stat_badge ="info";
+															break;
+														case "Partially Feedbacked":
+														case "Feedbacked":
+															$stat_badge ="success";
+															break;
+														default:
+															$stat_badge ="warning";
+															break;
 													}
 												@endphp
 												<td style="border: 1px solid #ABB2B9;padding:5px;">
