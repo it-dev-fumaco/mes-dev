@@ -3837,6 +3837,7 @@ class SecondaryController extends Controller
     }
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
+
         //schedule_planned_start_date
         if(!empty($request->prodname)){
             if($request->planned_start_datepicker == null){
@@ -3888,7 +3889,6 @@ class SecondaryController extends Controller
         if(empty($request->shifttype)){
             $arr= [];
             return response()->json(['success' => 0, 'message' => 'No shift selected' ]);
-
         }else{
             $arr=$request->shifttype;
         }
@@ -3938,10 +3938,12 @@ class SecondaryController extends Controller
                 }
             }   
         }
+
         if($request->pagename == "calendar"){
             $get_data=$this->get_production_schedule_calendar($request->operation_id);
              return $get_data;
         }else{
+            return 10;
             return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
         }
     }
@@ -4538,18 +4540,22 @@ class SecondaryController extends Controller
 
     }
     
-    public function production_schedule_calendar($id){
-        $operation_id=$id;
-        if($id==1){
-            $operation_name="Fabrication";
-        }else{
-            $operation_name="Wiring and Assembly";
+    public function production_schedule_calendar($operation_id){
+        switch ($operation_id) {
+            case 1:
+                $operation_name = 'Fabrication';
+                break;
+            case 2:
+                $operation_name = 'Painting';
+                break;
+            default:
+                $operation_name = 'Wiring and Assembly';
+                break;
         }
-        if($id==2){
-            $operation_name="Painting";
-        }
+
         return view('production_schedule_calendar', compact('operation_id','operation_name'));
     }
+
     public function get_production_schedule_calendar($operation_id){
         if($operation_id == 2){
             $prod = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -8770,7 +8776,7 @@ class SecondaryController extends Controller
                 ->where('jt.workstation', 'Painting')
                 ->where('jt.planned_start_date','!=', null)
                 ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
-                ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+                ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom', 'pro.produced_qty')
                 ->get();
         }else{
             $prod_details= DB::connection('mysql_mes')->table('production_order')
@@ -8785,7 +8791,6 @@ class SecondaryController extends Controller
                 ->get();
         }
         
-        
         return view('tables.tbl_prod_list_calendar', compact('prod_details', 'forpage', 'planned_date', 'operation'));
     }
     public function get_assembly_prod_calendar(Request $request){
@@ -8797,8 +8802,10 @@ class SecondaryController extends Controller
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
             ->whereIn('production_order.production_order', $myArray)
-            ->whereDate( DB::raw('IFNULL(delivery_date.rescheduled_delivery_date, delivery_date.delivery_date)'), '<', $request->planned)
-            ->whereRaw('(production_order.item_code = delivery_date.parent_item_code)')
+            ->when($request->operation == 3, function ($q) use ($request){
+                $q->whereDate( DB::raw('IFNULL(delivery_date.rescheduled_delivery_date, delivery_date.delivery_date)'), '<', $request->planned)
+                    ->whereRaw('(production_order.item_code = delivery_date.parent_item_code)');
+            })
             ->select('production_order.*', 'delivery_date.delivery_date as deli', 'delivery_date.delivery_date_id',DB::raw('IFNULL(delivery_date.rescheduled_delivery_date, delivery_date.delivery_date) as rescheduled_delivery_date') )
             ->get();
         $prod= collect($prod_orders)->pluck('production_order');
