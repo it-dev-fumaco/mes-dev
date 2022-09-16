@@ -719,7 +719,6 @@ trait GeneralTrait
                 $status = 'Closed';
                 break;
             default:
-                $status = $stat;
                 break;
         }
 
