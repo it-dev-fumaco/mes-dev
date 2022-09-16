@@ -3172,7 +3172,7 @@ class MainController extends Controller
     public function get_qa_inspection_status($reference_type, $reference_id){
 		$query = DB::connection('mysql_mes')->table('quality_inspection')
 			->where('reference_id', $reference_id)->where('reference_type', $reference_type)
-			->where('status', '!=', 'For Confirmation')->first();
+			->where('status', '!=', 'For Confirmation')->orderBy('created_at', 'desc')->first();
 
     	if ($query) {
     		return $query->status;
