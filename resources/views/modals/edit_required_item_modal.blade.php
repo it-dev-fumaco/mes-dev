@@ -16,6 +16,9 @@
                </button>
             </div>
             <div class="modal-body">
+               <div class="alert alert-info border text-center" role="alert" id="change-item-code-warning">
+                  <b>Note:</b> Production item is a product bundle. You cannot <br> change / replace items in a product bundle.
+                </div>
                <div class="row m-0 p-0">
                   <div class="col-md-6 offset-md-6">
                      <div class="pull-right p-0">
