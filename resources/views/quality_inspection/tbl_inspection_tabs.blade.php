@@ -27,7 +27,7 @@
             @php
                $index = 0;
             @endphp
-            @foreach($checklist as $category => $list)
+            @forelse($checklist as $category => $list)
             @php
                $tab = $index;
             @endphp
@@ -212,7 +212,13 @@
                   </div>
                </div>
             </div>
-            @endforeach
+            @empty
+               <div class="container-fluid text-center">
+                  <div class="col-4 mx-auto d-flex flex-row justify-content-center align-items-center" style="border-left: 10px solid #17A2B8 !important; height: 50px;">
+                     <span>Quality Inspection for this workstation is not set up.</span>
+                  </div>
+               </div>
+            @endforelse
             <div class="tab-pane" id="tablast-inspection" role="tabpanel" aria-labelledby="tablast">
                <div class="row" style="min-height: 420px;">
                   <div class="col-md-6">
