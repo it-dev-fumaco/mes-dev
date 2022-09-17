@@ -3757,8 +3757,7 @@ class MainController extends Controller
 		$status = $job_ticket_details->status;
 		$machine_code = $request->machine_code;
 
-		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)
-			->where('operator_id', $operator_id)->first();
+		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->first();
 
 		$exploded_production_order = explode('-', $request->production_order);
 
@@ -3781,7 +3780,6 @@ class MainController extends Controller
 				->where('po.production_order', $request->production_order)
 				->where('jt.workstation', $request->workstation)
 				->where('jt.job_ticket_id', $request->job_ticket_id)
-				->where('time_logs.operator_id', Auth::user()->user_id)
 				->select('po.item_code', 'time_logs.time_log_id', 'jt.job_ticket_id', 'time_logs.operator_id', 'time_logs.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'time_logs.status', 'time_logs.from_time', 'time_logs.to_time', 'po.customer', 'po.qty_to_manufacture', DB::raw('(SELECT SUM(good) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'po.stock_uom', 'po.project', 'time_logs.operator_name', 'jt.process_id', 'time_logs.good')
 				->orderByRaw("FIELD(time_logs.status, 'In Progress', 'Pending', 'Completed') ASC")
 				->orderBy('time_logs.last_modified_at', 'desc')->get();
