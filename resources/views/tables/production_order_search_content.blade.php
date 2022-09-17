@@ -164,57 +164,67 @@
 											@endif
 										</thead>
 										<tbody style="font-size: 9pt;">
-											@foreach ($operation_list as $b)
+											@foreach ($operation_list as $workstation => $processes)
 											@php
-												if($b['workstation'] == "Spotwelding"){
-													$spotclass= "spotclass";
+												$rowspan = count($processes) < collect($operation_list[$workstation])->sum('count') ? collect($operation_list[$workstation])->sum('count') : count($processes);
+												if($workstation == "Spotwelding"){
+													$spotclass = "spotclass";
 													$icon = '<span style="font-size:15px;">&nbsp; >></span>';
+													$jt = $operation_list['Spotwelding'][0]['job_ticket'];
 												}else{
-													$spotclass= "";
-													$icon="";
+													$spotclass = $icon = $jt = "";
 												}
+
+												$is_painting = false;
 											@endphp
 											<tr>
-												<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
-													<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
-														<b>{{ $b['workstation'] }} {!! $icon !!}</b>
-													</span>
-													<br><span style="font-size:9px;"><i>{{ $b['cycle_time'] }}</i></span>
+												<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ ($rowspan) }}">
+													<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $jt }}" data-prodno="{{ $production_order_no }}">{{ $workstation }} {!! $icon !!}</span>
 												</td>
-												@if (count($b['operations']) > 0 )
-												<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $b['count'] }}">
-													<span class="{{ $spotclass }}" data-jobticket="{{ $b['job_ticket'] }}" data-prodno="{{ $b['production_order'] }}">
-														<b>{{ $b['process'] }}</b>
+												@foreach ($processes as $process)
+												<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $process['count'] }}">
+													<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $process['job_ticket'] }}" data-prodno="{{ $process['production_order'] }}">
+														{{ $process['process'] }}
 													</span>
-													<br><span style="font-size:11px;"><b><i>{{ $b['count_good'] }}</i><b></span>
+													<span class="d-block font-weight-bold font-italic" style="font-size: 11px;">{{ $process['count_good'] }}</span>
+													<span class="d-block font-italic" style="font-size: 9px;">{{ $process['cycle_time'] }}</span>
 												</td>
-												@foreach($b['operations'] as $c)
+												@if (count($process['operations']) > 0 )
+												@foreach($process['operations'] as $a)
 												@php
-													$machine = ($c['machine_code']) ? $c['machine_code'] : '-';
-													$operator_name = ($c['operator_name']) ? $c['operator_name'] : '-';
-													$from_time = ($c['from_time']) ? Carbon\Carbon::parse($c['from_time'])->format('M-d-Y h:i A') : '-';
-													$to_time = ($c['to_time']) ? Carbon\Carbon::parse($c['to_time'])->format('M-d-Y h:i A') : '-';
-													$inprogress_class = ($c['status'] == 'In Progress') ? 'active-process' : '';
+													$machine = ($a['machine_code']) ? $a['machine_code'] : '-';
+													$operator_name = ($a['operator_name']) ? $a['operator_name'] : '-';
+													$from_time = ($a['from_time']) ? Carbon\Carbon::parse($a['from_time'])->format('M-d-Y h:i A') : '-';
+													$to_time = ($a['to_time']) ? Carbon\Carbon::parse($a['to_time'])->format('M-d-Y h:i A') : '-';
+													$inprogress_class = ($a['status'] == 'In Progress') ? 'active-process' : '';
 													$qc_status = null;
 													
-													if($b['process'] != "Housing and Frame Welding"){
-														$qc_status = ($c['qa_inspection_status'] == 'QC Passed') ? "qc_passed" : "qc_failed";
-														$qc_status = ($c['qa_inspection_status'] == 'Pending') ? '' : $qc_status;
+													if($process['process'] != "Housing and Frame Welding"){
+														$qc_status = ($a['qa_inspection_status'] == 'QC Passed') ? "qc_passed" : "qc_failed";
+														$qc_status = ($a['qa_inspection_status'] == 'Pending') ? '' : $qc_status;
 													}
 												@endphp
-												<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['good']) }}</b></td>
-												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($c['reject']) }}</b></td>
+												<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['good']) }}</b></td>
+												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['reject']) }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
-												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
-												<td class="text-center {{ $inprogress_class }} {{ $b['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
-												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ isset($c['total_duration']) ? $c['total_duration'] : '-' }}</td>
+												<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
+												<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
+
+												@if ($workstation == 'Painting' && !$is_painting)
+												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;" rowspan="{{ ($rowspan) }}">{{ $painting_duration }}</td>
+												@php
+													$is_painting = true;
+												@endphp
+												@else
+												<td class="text-center {{ $inprogress_class }} {{ $workstation == 'Painting' ? 'd-none' : '' }}" style="border: 1px solid #ABB2B9;">{{ isset($a['total_duration']) ? $a['total_duration'] : '-' }}</td>
+												@endif
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 													<span class="hvrlink-plan">{{ $operator_name }}</span>
-													@if($b['workstation'] != "Spotwelding")
+													@if($process['workstation'] != "Spotwelding")
 													<div class="hover-box text-center">
-														@if (count($c['helpers']) > 0)
+														@if (count($a['helpers']) > 0)
 														<label class="font-weight-bold mb-1">HELPER(S)</label>
-														@foreach ($c['helpers'] as $helper)
+														@foreach ($a['helpers'] as $helper)
 														<span class="d-block">{{ $helper }}</span>
 														@endforeach
 														@else
@@ -225,20 +235,20 @@
 												</td>
 												@if ($item_details['feedback_qty'] <= 0)
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
-													@if ($b['workstation'] != 'Spotwelding')
-													<span class="d-none">{{ $b['production_order'] }}</span>
-													<span class="d-none">{{ $b['workstation'] }}</span>
-													<span class="d-none">{{ $b['process'] }}</span>
+													@if ($process['workstation'] != 'Spotwelding')
+													<span class="d-none">{{ $process['production_order'] }}</span>
+													<span class="d-none">{{ $process['workstation'] }}</span>
+													<span class="d-none">{{ $process['process'] }}</span>
 													<span class="d-none">{{ $from_time }}</span>
 													<span class="d-none">{{ $to_time }}</span>
 													<span class="d-none">{{ $operator_name }}</span>
-													<span class="d-none">{{ $c['good'] }}</span>
+													<span class="d-none">{{ $a['good'] }}</span>
 													@if (in_array($details->status, ['Cancelled', 'Closed']))
 														<img src="{{ asset('/img/edit-new-icon.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
 														<img src="{{ asset('/img/reset.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
 													@else
-														<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
-														<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $b['job_ticket'] }}" data-timelog="{{ $c['timelog_id'] }}">
+														<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $process['job_ticket'] }}" data-timelog="{{ $a['timelog_id'] }}">
+														<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $process['job_ticket'] }}" data-timelog="{{ $a['timelog_id'] }}">
 													@endif
 													@else
 													<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
@@ -248,14 +258,13 @@
 											</tr>
 											@endforeach
 											@else
-												<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $b['process'] }}</b></td>
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
-												@if ($b['workstation'] != 'Painting')
+												@if ($process['workstation'] != 'Painting')
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@endif
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $b['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
+												<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 												@if ($item_details['feedback_qty'] <= 0)
@@ -265,7 +274,7 @@
 												@endif
 											</tr>
 											@endif
-											</tr>
+											@endforeach
 											@endforeach
 										</tbody>
 									</table>

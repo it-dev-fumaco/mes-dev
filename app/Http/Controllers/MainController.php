@@ -410,6 +410,7 @@ class MainController extends Controller
 		$operation_list = [];
 		foreach ($process_arr as $row) {
 			$operations_arr = [];
+			$painting_cycle_time_in_seconds = 0;
 			if($row->workstation == "Spotwelding"){
 				$operations =  DB::connection('mysql_mes')->table('spotwelding_qty')
 					->where('job_ticket_id',  $row->job_ticket_id)->get();
@@ -421,7 +422,9 @@ class MainController extends Controller
 
 				$operations_arr[] = [
 					'machine_code' => null,
+					'timelog_id' => null,
 					'operator_name' => null,
+					'helpers' => [],
 					'from_time' => $min_count,
 					'to_time' => ($row->status == "In Progress") ? '' : $max_count,
 					'status' => (count($status) == 0 )? 'Not started': "In Progress",
@@ -429,6 +432,7 @@ class MainController extends Controller
 					'good' => $row->completed_qty,
 					'reject' => $total_rejects,
 					'remarks' => null,
+					'total_duration' => null
 				];
 			}else{
 				$operations = DB::connection('mysql_mes')->table('job_ticket AS jt')
@@ -484,9 +488,31 @@ class MainController extends Controller
 						'remarks' => $d->remarks,
 						'total_duration' => trim($total_duration)
 					];
+
+					$painting_cycle_time_in_seconds += $row->workstation == 'Painting' ? $d->duration : 0;
 				}
 			}
 
+			if ($painting_cycle_time_in_seconds > 0) {
+				$painting_cycle_time_in_seconds = $painting_cycle_time_in_seconds * 3600;
+
+				$seconds = $painting_cycle_time_in_seconds%60;
+				$minutes = floor(($painting_cycle_time_in_seconds%3600)/60);
+				$hours = floor(($painting_cycle_time_in_seconds%86400)/3600);
+				$days = floor(($painting_cycle_time_in_seconds%2592000)/86400);
+				$months = floor($painting_cycle_time_in_seconds/2592000);
+				
+				$dur_months = ($months > 0) ? $months .'M' : null;
+				$dur_days = ($days > 0) ? $days .'d' : null;
+				$dur_hours = ($hours > 0) ? $hours .'h' : null;
+				$dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+				$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+	
+				$painting_duration = trim($dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds);
+			}else{
+				$painting_duration = '-';
+			}					
+			
 			$operation_list[] = [
 				'production_order' => $jtno,
 				'workstation' => $row->workstation,
@@ -564,12 +590,14 @@ class MainController extends Controller
 			}
 		}
 
+		$operation_list = collect($operation_list)->groupBy('workstation');
+
 		$job_tickets = collect($process_arr)->pluck('job_ticket_id');
 		$activity_logs = DB::connection('mysql_mes')->table('activity_logs')->where('action', 'Reset Time Log')->whereIn('reference', $job_tickets)->orderBy('created_at', 'desc')->get();
 
 		$success = 1;
 
-		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs'));
+		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs', 'painting_duration'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
