@@ -192,8 +192,8 @@
 												@php
 													$machine = ($c['machine_code']) ? $c['machine_code'] : '-';
 													$operator_name = ($c['operator_name']) ? $c['operator_name'] : '-';
-													$from_time = ($c['from_time']) ? Carbon\Carbon::parse($c['from_time'])->format('m-d-Y h:i A') : '-';
-													$to_time = ($c['to_time']) ? Carbon\Carbon::parse($c['to_time'])->format('m-d-Y h:i A') : '-';
+													$from_time = ($c['from_time']) ? Carbon\Carbon::parse($c['from_time'])->format('M-d-Y h:i A') : '-';
+													$to_time = ($c['to_time']) ? Carbon\Carbon::parse($c['to_time'])->format('M-d-Y h:i A') : '-';
 													$inprogress_class = ($c['status'] == 'In Progress') ? 'active-process' : '';
 													$qc_status = null;
 													
