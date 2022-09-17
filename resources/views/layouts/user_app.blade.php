@@ -1072,6 +1072,13 @@
           }else{
             $('#override-production-modal').modal('show');
             $('#override-production-div').html(response);
+
+            $('.op-select').select2({
+              dropdownParent: $("#override-production-order-form"),
+              dropdownAutoWidth: false,
+              width: '100%',
+              cache: false
+            });
           }
         }
       });

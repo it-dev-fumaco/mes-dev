@@ -1119,6 +1119,9 @@
 <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 
+<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
+
 <script>
 $(document).ready(function(){
   function get_production_order_material_status(page){
