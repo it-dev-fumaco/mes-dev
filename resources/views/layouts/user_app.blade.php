@@ -1021,9 +1021,9 @@
 <div class="modal fade" id="override-production-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
     <div class="modal-content">
-      <div class="modal-header p-3">
+      <div class="modal-header p-3 text-white" style="background-color: #0277BD;">
         <h5 class="modal-title">Feedback Override <span id="override-production-order-text" class="font-weight-bold"></span></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>

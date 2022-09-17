@@ -7717,7 +7717,24 @@ class MainController extends Controller
 
 		$machine_per_process = collect($machine_list)->groupBy('process_id')->toArray();
 
-		$operators = DB::connection('mysql_essex')->table('users')->orderBy('employee_name', 'asc')->pluck('employee_name', 'user_id');
+		$operation_name = DB::connection('mysql_mes')->table('operation')->where('operation_id', $production_order_details->operation_id)->first();
+		$operation_name = $operation_name ? $operation_name->operation_name : null;
+
+		$operation_name = strpos(strtolower($operation_name), "fabrication") !== false ? $operation_name . ' Painting' : $operation_name;
+
+		$operation_name = explode(" ", $operation_name);
+
+		$operators = DB::connection('mysql_essex')->table('users as u')
+			->join('departments as d', 'd.department_id', 'u.department_id')
+			->when($operation_name, function ($query) use ($operation_name) {
+				return $query->where(function($q) use ($operation_name) {
+					foreach ($operation_name as $str) {
+						$q->orWhere('d.department', 'LIKE', "%".$str."%");
+					}
+				});
+			})
+			->where('u.user_type', 'Employee')->where('u.status', 'Active')
+			->orderBy('employee_name', 'asc')->pluck('u.employee_name', 'u.user_id');
 		
 		return view('override_production_form', compact('production_order_operations', 'production_order_details', 'machine_per_process', 'operators', 'operator_logs', 'spotwelding_operator_logs'));
 	}
