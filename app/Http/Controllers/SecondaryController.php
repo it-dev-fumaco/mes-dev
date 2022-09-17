@@ -3949,7 +3949,6 @@ class SecondaryController extends Controller
             $get_data=$this->get_production_schedule_calendar($request->operation_id);
              return $get_data;
         }else{
-            return 10;
             return response()->json(['success' => 1, 'message' => 'Successfully updated', "reload_tbl" => $request->date_reload_tbl]);
         }
     }
