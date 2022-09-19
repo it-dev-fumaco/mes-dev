@@ -487,6 +487,12 @@ class PaintingOperatorController extends Controller
 				return response()->json(['success' => 0, 'message' => 'Production Order <b>'.$request->production_order.'</b> was <b>'.$err.'</b>.']);
 			}
 
+			$loaded_qty = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->job_ticket_id)->sum('good');
+
+			if(($request->qty + $loaded_qty) > $production_order->qty_to_manufacture){
+				return response()->json(['success' => 0, 'message' => 'Requested qty cannot exceed the qty to manufacture.']);
+			}
+
 			$values = [
 				'job_ticket_id' => $request->job_ticket_id,
 				'from_time' => $now->toDateTimeString(),
