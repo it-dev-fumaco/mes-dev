@@ -6897,7 +6897,7 @@ class MainController extends Controller
         $unassigned_production = DB::connection('mysql_mes')->table('production_order')
             ->where('operation_id', $operation_id)->whereNotIn('status', ['Cancelled', 'Closed', 'Feedbacked', 'Completed'])
             ->whereNotIn('production_order', array_column($assigned_production->toArray(), 'production_order'))
-			->whereDate('planned_start_date', '<', $scheduled_date)->get();
+			->whereDate('planned_start_date', '<=', $scheduled_date)->get();
 
         $machines = DB::connection('mysql_mes')->table('machine')
             ->where('operation_id', $operation_id)->orderBy('order_no', 'asc')->get();
