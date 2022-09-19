@@ -58,9 +58,12 @@
                                 </thead>
                                 <tbody style="font-size: 10pt;">
                                     @forelse($task_random_inspection as $row)
+                                    @php
+                                        $batch_date = $row->process == 'Unloading' ? $row->to_time : $row->from_time;
+                                    @endphp
                                     <tr>
                                         <td><b>{{ $row->process }}</b></td>
-                                        <td><b>{{ date('M-d-Y h:i A', strtotime($row->from_time)) }}</b></td>
+                                        <td><b>{{ date('M-d-Y h:i A', strtotime($batch_date)) }}</b></td>
                                         <td><b>{{ $row->operator_name }}</b></td>
                                         <td><b>{{ $row->completed_qty }}</b></td>
                                         <td>
