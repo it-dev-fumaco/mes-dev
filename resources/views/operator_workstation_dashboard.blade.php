@@ -758,7 +758,7 @@
         return false;
       }
 
-      var checklist_unchecked = $('#' + tab_id + ' input:checkbox:not(:checked)').length;
+      var checklist_unchecked = $('#' + tab_id + ' .chk-list input:checkbox:not(:checked)').length;
       if(checklist_unchecked > 0){
         if(tab_qty_reject <= 0){
           showNotification("danger", 'Please enter quantity reject.', "now-ui-icons travel_info");

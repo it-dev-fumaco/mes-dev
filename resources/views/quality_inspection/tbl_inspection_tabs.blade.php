@@ -58,7 +58,7 @@
                                     @if(strtolower($r->reject_checklist) == 'material type')
                                     <tr>
                                        <td>
-                                          <div class="inputGroup m-1">
+                                          <div class="inputGroup chk-list m-1">
                                              <input id="option{{ $r->reject_list_id }}" name="option{{ $r->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r->reject_reason }}" value="{{ $r->reject_list_id }}" />
                                              <label for="option{{ $r->reject_list_id }}">{{ $r->reject_checklist }}</label>
                                           </div>
@@ -78,7 +78,7 @@
                                     @if(strtolower($r->reject_checklist) != 'material type')
                                     <tr>
                                        <td>
-                                          <div class="inputGroup m-1">
+                                          <div class="inputGroup chk-list m-1">
                                              <input id="option{{ $r->reject_list_id }}" name="option{{ $r->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r->reject_reason }}" value="{{ $r->reject_list_id }}" />
                                              <label for="option{{ $r->reject_list_id }}">{{ $r->reject_checklist }}</label>
                                           </div>
@@ -106,7 +106,7 @@
                                        <ul class="list-unstyled">
                                           @foreach ($res as $r0)
                                           <li class="p-1 d-block">
-                                             <div class="inputGroup">
+                                             <div class="inputGroup chk-list">
                                                 <input id="option{{ $r0->reject_list_id }}" name="option{{ $r0->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r0->reject_reason }}" value="{{ $r0->reject_list_id }}" />
                                                 <label for="option{{ $r0->reject_list_id }}"><p style="line-height: 1.6;">{{ $r0->reject_checklist }}</p></label>
                                              </div>
@@ -122,7 +122,7 @@
                                        <ul class="list-unstyled">
                                           @foreach ($result as $r1)
                                              <li class="p-1 d-block">
-                                                <div class="inputGroup">
+                                                <div class="inputGroup chk-list">
                                                    <input id="option{{ $r1->reject_list_id }}" name="option{{ $r1->reject_list_id }}" type="checkbox" class="qc-chk select-all-{{ $tab }}" data-reject-reason="{{ $r1->reject_reason }}" value="{{ $r1->reject_list_id }}" />
                                                    <label for="option{{ $r1->reject_list_id }}">{{ $r1->reject_checklist }}</label>
                                                 </div>
