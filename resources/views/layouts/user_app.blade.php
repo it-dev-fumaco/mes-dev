@@ -1057,6 +1057,10 @@
   <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
 <script>
   $(document).ready(function(){
+    function close_modal(modal){
+      $(modal).modal('hide');
+    }
+    
     $(document).on('click', '.override-production-btn', function(e) {
       e.preventDefault();
       var production_order = $(this).data('production-order');

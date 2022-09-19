@@ -477,6 +477,9 @@
   <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <script>
    $(document).ready(function(){
+    function close_modal(modal){
+      $(modal).modal('hide');
+    }
      
     $('#jt-search-btn').click(function(e){
       e.preventDefault();

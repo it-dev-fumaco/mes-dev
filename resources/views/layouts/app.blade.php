@@ -360,6 +360,10 @@
 
   <script>
     $(document).ready(function() {
+      function close_modal(modal){
+        $(modal).modal('hide');
+      }
+      
       $(document).on('click', '.edit-time-log-btn', function(e) {
         e.preventDefault();
 

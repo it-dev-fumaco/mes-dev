@@ -2933,6 +2933,90 @@ class MainController extends Controller
         return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id', 'breaktime_data'));
     }
 
+	public function update_maintenance_task(Request $request){
+		DB::connection('mysql_mes')->beginTransaction();
+		try{
+			if(!$request->user_id){
+				return response()->json(['success' => 0, 'message' => 'Please enter your access ID.']);
+			}
+			
+			$operator = DB::connection('mysql_mes')->table('user')
+				->join('user_group', 'user.user_group_id', 'user_group.user_group_id')
+				->where('user_group.module', 'Maintenance')->where('user_access_id', $request->user_id)
+				->get();
+
+			$user_info = collect($operator)->first();
+			if(!$operator || !$user_info){
+				return response()->json(['success' => 0, 'message' => 'User not found or not allowed.']);
+			}
+
+			$operator_in_progress_task = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', '!=', $request->machine_breakdown_id)->where('status', 'In Progress')->exists();
+
+			if($operator_in_progress_task){
+				return response()->json(['success' => 0, 'message' => 'User has In progress task.']);
+			}
+
+			$breakdown_details = DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $request->machine_breakdown_id)->first();
+			if(!$breakdown_details){
+				return response()->json(['success' => 0, 'message' => 'Maintenance report not found.']);
+			}
+
+			$now = Carbon::now();
+
+			$status = 'In Process';
+			$timelog_status = 'In Progress';
+			if($request->is_completed == 1){
+				$status = $breakdown_details->hold_reason ? 'On Hold' : 'Pending';
+				$timelog_status = 'Completed';
+			}
+
+			$update = [
+				'status' => $status,
+				'last_modified_by' => $user_info->employee_name,
+				'last_modified_at' => $now->toDateTimeString()
+			];
+
+			if($status == 'In Process'){
+				$update['work_started'] = $now->toDateTimeString();
+			}
+
+			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $request->machine_breakdown_id)->update($update);
+
+			$in_progress_log = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $request->machine_breakdown_id)->where('status', 'In Progress')->orderBy('created_at', 'desc')->first();
+
+			if($in_progress_log){
+				$start_time = Carbon::parse($in_progress_log->start_time);
+				$end_time = Carbon::now()->toDateTimeString();
+				$duration = Carbon::parse($end_time)->diffInSeconds($start_time) / 3600;
+
+				DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('time_log_id', $in_progress_log->time_log_id)->update([
+					'status' => $timelog_status,
+					'end_time' => $now->toDateTimeString(),
+					'duration_in_hours' => $duration,
+					'last_modified_by' => $user_info->employee_name,
+					'last_modified_at' => $now->toDateTimeString()
+				]);
+			}else{
+				DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->insert([
+					'machine_breakdown_id' => $request->machine_breakdown_id,
+					'machine_id' => $request->machine_id,
+					'start_time' => $now->toDateTimeString(),
+					'operator_id' => $request->user_id,
+					'operator_name' => $user_info->employee_name,
+					'status' => $timelog_status,
+					'created_by' => $user_info->employee_name
+				]);
+			}
+
+			DB::connection('mysql_mes')->commit();
+			
+            return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+        } catch (Exception $e) {
+			DB::connection('mysql_mes')->rollback();
+            return response()->json(["error" => $e->getMessage()]);
+        }
+	}
+
     public function current_data_operator($workstation){
 		$now = Carbon::now()->startOfDay()->toDateTimeString();
         $tasks = DB::connection('mysql_mes')->table('job_ticket AS jt')

@@ -474,6 +474,78 @@
 <link rel="stylesheet" href="{{ asset('/css/datepicker/landscape.css') }}" type="text/css" media="print" />
 <script>
   $(document).ready(function(){
+    function close_modal(modal){
+      $(modal).modal('hide');
+    }
+
+    $(document).on('click', '.maintnenance-access-id-modal-trigger', function(e){
+      e.preventDefault();
+      var machine_id = $(this).data('machine-id');
+      var machine_breakdown_id = $(this).data('machine-breakdown-id');
+      $('#machine-id').val(machine_id);
+      $('#machine-breakdown-id').val(machine_breakdown_id);
+      if($(this).data('maintenance-status') == 'In Process'){
+        $('#is-completed').prop('checked', true);
+      }else{
+        $('#is-completed').prop('checked', false);
+      }
+      $('#maintenance-access-id-modal').modal('show');
+      $('#access-id').val('');
+    });
+
+    $(document).on('click', '#access-id-numpad .num', function(e){
+        e.preventDefault();
+        var num = $(this).text();
+        var current = $('#access-id').val();
+        var new_input = current + num;
+            
+        $('#access-id').val(new_input);
+    });
+
+    $(document).on('click', '#submit-access-id', function (e){
+      $.ajax({
+        url: '/update_maintenance_task',
+        type:"POST",
+        data: {
+          _token: '{{ csrf_token() }}',
+          user_id: $('#access-id').val(),
+          machine_id: $('#machine-id').val(),
+          machine_breakdown_id: $('#machine-breakdown-id').val(),
+          is_completed: $('#is-completed').is(":checked") ? 1 : 0
+        },
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#maintenance-access-id-modal').modal('hide');
+            get_pending_for_maintenance();
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    $(document).on('click', '#pending-for-maintenance-trigger', function (){
+      $('#pending-for-maintenance-modal').modal('show');
+      get_pending_for_maintenance();
+    });
+
+    function get_pending_for_maintenance(){
+      $.ajax({
+        url:"/operator/pending_for_maintenance/{{ $operation_id }}",
+        type:"GET",
+        success:function(data){
+          $('#pending-for-maintenance-tbl').html(data);
+          $('#operation').text($('#operation-placeholder').text());
+        }
+      });
+    }
+
     var workstation = "{{ $workstation_name }}";
 
     var active_input = null;
