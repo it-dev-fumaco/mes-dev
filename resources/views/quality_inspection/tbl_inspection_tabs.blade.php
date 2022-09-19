@@ -214,8 +214,8 @@
             </div>
             @empty
                <div class="container-fluid text-center">
-                  <div class="col-4 mx-auto d-flex flex-row justify-content-center align-items-center" style="border-left: 10px solid #17A2B8 !important; height: 50px;">
-                     <span>Quality Inspection for this workstation is not set up.</span>
+                  <div class="col-8 mx-auto">
+                     <h5 class="mt-5 ml-3" style="border-left: 10px solid #17A2B8 !important; ">Quality Inspection for this workstation is not set up. <br> Please contact QA Manager.</h5>
                   </div>
                </div>
             @endforelse

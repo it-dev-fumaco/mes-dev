@@ -80,7 +80,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="6">No Task for Random Inspection</td>
+                                        <td colspan="7">No Task for Random Inspection</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
