@@ -1021,9 +1021,9 @@
 <div class="modal fade" id="override-production-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
     <div class="modal-content">
-      <div class="modal-header p-3">
+      <div class="modal-header p-3 text-white" style="background-color: #0277BD;">
         <h5 class="modal-title">Feedback Override <span id="override-production-order-text" class="font-weight-bold"></span></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1072,6 +1072,13 @@
           }else{
             $('#override-production-modal').modal('show');
             $('#override-production-div').html(response);
+
+            $('.op-select').select2({
+              dropdownParent: $("#override-production-order-form"),
+              dropdownAutoWidth: false,
+              width: '100%',
+              cache: false
+            });
           }
         }
       });
@@ -1787,11 +1794,13 @@
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
       if(!$('#has-no-bom').text()) {
+        $('#change-required-item-modal #change-item-code-warning').removeClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
         $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
         $('#change-required-qty-btn').addClass('d-none');
       } else {
+        $('#change-required-item-modal #change-item-code-warning').addClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
         $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
         $('#change-required-qty-btn').removeAttr('readonly');

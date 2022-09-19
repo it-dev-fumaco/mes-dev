@@ -877,7 +877,8 @@ class SecondaryController extends Controller
           ->join('production_order as prod', 'prod.production_order', 'jt.production_order')
           ->join('process as p', 'p.process_id', 'jt.process_id')
           ->whereDate('jt.planned_start_date', $schedule_date)
-          ->where('prod.status', '!=', 'Cancelled')
+        //   ->where('prod.status', '!=', 'Cancelled')
+          ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
           ->where('jt.status', 'Completed')
           ->where('prod.is_scheduled' , 1)
           ->where('jt.workstation', $workstation)
@@ -906,7 +907,8 @@ class SecondaryController extends Controller
               ->join('process as p', 'p.process_id', 'jt.process_id')
               ->whereDate('jt.planned_start_date', $schedule_date)
               ->whereIn('jt.status', ['Pending', 'In Progress'])
-              ->where('prod.status', '!=', 'Cancelled')
+            //   ->where('prod.status', '!=', 'Cancelled')
+              ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
               ->where('prod.is_scheduled' , 1)
               ->where('jt.workstation', $workstation)
               ->where('jt.process_id', $id)
@@ -2270,7 +2272,8 @@ class SecondaryController extends Controller
                 ->where('tl.machine_code', $row->machine_code)
                 ->whereDate('jt.planned_start_date', $schedule_date)
                 // ->where('jt.status', 'Pending')
-                ->where('prod.status', '!=', 'Cancelled')
+                // ->where('prod.status', '!=', 'Cancelled')
+                ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
                 ->where('jt.status', 'Completed')
                 ->where('prod.is_scheduled' , 1)
                 ->where('jt.workstation', $workstation_name->workstation_name)
@@ -2284,7 +2287,8 @@ class SecondaryController extends Controller
                 ->where('tl.machine_code', $row->machine_code)
                 ->whereDate('tl.to_time', $current_date)
                 // ->where('jt.status', 'Pending')
-                ->where('prod.status', '!=', 'Cancelled')
+                // ->where('prod.status', '!=', 'Cancelled')
+                ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
                 ->where('jt.status', 'Completed')
                 ->where('prod.is_scheduled' , 1)
                 ->where('jt.workstation', $workstation_name->workstation_name)
@@ -2330,7 +2334,8 @@ class SecondaryController extends Controller
                 ->where('tl.machine_code', $row->machine_code)
                 ->whereDate('jt.planned_start_date','<=', $schedule_date)
                 // ->where('jt.status', 'Pending')
-                ->where('prod.status', '!=', 'Cancelled')
+                // ->where('prod.status', '!=', 'Cancelled')
+                ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
                 ->where('tl.status', 'In Progress')
                 ->where('prod.is_scheduled' , 1)
                 ->where('jt.workstation', $workstation_name->workstation_name)
@@ -2361,7 +2366,8 @@ class SecondaryController extends Controller
                 ->join('process as p', 'p.process_id', 'jt.process_id')
                 ->where('tl.machine_code', $row->machine_code)
                 ->whereDate('jt.planned_start_date', $schedule_date)
-                ->where('prod.status', '!=', 'Cancelled')   
+                // ->where('prod.status', '!=', 'Cancelled')
+                ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
                 ->where('tl.status', 'In Progress')
                 ->where('prod.is_scheduled' , 1)
                 ->where('jt.workstation', $workstation_name->workstation_name)
@@ -2540,7 +2546,7 @@ class SecondaryController extends Controller
         public function printJobTickets($scheduled_date){
             $prod_orders = DB::connection('mysql_mes')->table('production_order')
                 ->whereDate('planned_start_date', $scheduled_date)
-                ->whereNotIn('status', ['Completed', 'Cancelled'])->get();
+                ->whereNotIn('status', ['Completed', 'Cancelled', 'Closed'])->get();
  
          $jobtickets = [];
          foreach ($prod_orders as $pro) {
@@ -2720,7 +2726,7 @@ class SecondaryController extends Controller
     // revised - Patrick
     public function productionKanban(){
         $unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
-            ->whereNotIn('status', ['Completed', 'Stopped', 'Cancelled'])->where('is_scheduled', 0)
+            ->whereNotIn('status', ['Completed', 'Stopped', 'Cancelled', 'Closed'])->where('is_scheduled', 0)
             ->orderBy('created_at', 'desc')->get();
 
         $unscheduled = [];
@@ -2845,7 +2851,7 @@ class SecondaryController extends Controller
     }
     public function getScheduledProdOrders_proScheduling($schedule_date){
         $orders = DB::connection('mysql_mes')->table('production_order')
-            ->whereNotIn('status', ['Completed', 'Cancelled'])->where('is_scheduled', 1)
+            ->whereNotIn('status', ['Completed', 'Cancelled', 'Closed'])->where('is_scheduled', 1)
             ->whereDate('planned_start_date', $schedule_date)
             ->orderBy('order_no', 'asc')->orderBy('order_no', 'asc')->orderBy('created_at', 'desc')
             ->get();
@@ -2926,7 +2932,7 @@ class SecondaryController extends Controller
             ->join('job_ticket as tsd', 'time_logs.job_ticket_id', 'tsd.job_ticket_id')
             ->join('production_order as prod','tsd.production_order', 'prod.production_order')
             ->join('process as p', 'p.process_id', 'tsd.process_id')
-            ->whereNotIn('prod.status', ['Cancelled'])
+            ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
             ->join('workstation as work','work.workstation_name','tsd.workstation')
             ->whereIn('tsd.workstation', $permitted_workstation)
             ->where('time_logs.status', 'In Progress')
@@ -2937,7 +2943,7 @@ class SecondaryController extends Controller
                 ->join('job_ticket as tsd', 'spotwelding_qty.job_ticket_id', 'tsd.job_ticket_id')
                 ->join('production_order as prod','tsd.production_order','=','prod.production_order')
                 ->join('process as p', 'p.process_id', 'tsd.process_id')
-                ->whereNotIn('prod.status', ['Cancelled'])
+                ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
                 ->join('workstation as work','work.workstation_name','tsd.workstation')
                 ->whereIn('tsd.workstation', $permitted_workstation)
                 ->where('spotwelding_qty.status', 'In Progress')
@@ -3837,6 +3843,7 @@ class SecondaryController extends Controller
     }
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
+
         //schedule_planned_start_date
         if(!empty($request->prodname)){
             if($request->planned_start_datepicker == null){
@@ -3888,7 +3895,6 @@ class SecondaryController extends Controller
         if(empty($request->shifttype)){
             $arr= [];
             return response()->json(['success' => 0, 'message' => 'No shift selected' ]);
-
         }else{
             $arr=$request->shifttype;
         }
@@ -3938,6 +3944,7 @@ class SecondaryController extends Controller
                 }
             }   
         }
+
         if($request->pagename == "calendar"){
             $get_data=$this->get_production_schedule_calendar($request->operation_id);
              return $get_data;
@@ -4069,7 +4076,7 @@ class SecondaryController extends Controller
         }
 
         $production= DB::connection('mysql_mes')->table('production_order AS po')
-            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereNotIn('po.status', ['Cancelled', 'Closed'])
             ->where(function($q) use ($guide_id) {
                     $q->Where('sales_order', $guide_id)
                         ->orWhere('material_request', $guide_id);
@@ -4079,7 +4086,7 @@ class SecondaryController extends Controller
             ->first();
 
         $parent_productions= DB::connection('mysql_mes')->table('production_order AS po')
-            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereNotIn('po.status', ['Cancelled', 'Closed'])
             ->where(function($q) use ($guide_id) {
                 $q->Where('po.sales_order', $guide_id)
                     ->orWhere('po.material_request', $guide_id);
@@ -4309,7 +4316,7 @@ class SecondaryController extends Controller
                 $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
 
                 $production= DB::connection('mysql_mes')->table('production_order AS po')
-                ->whereNotIn('po.status', ['Cancelled'])
+                ->whereNotIn('po.status', ['Cancelled', 'Closed'])
                 ->where(function($q) use ($guide_id) {
                         $q->Where('po.sales_order', $guide_id)
                             ->orWhere('po.material_request', $guide_id);
@@ -4497,7 +4504,7 @@ class SecondaryController extends Controller
     }
     public function production_mes($item_code, $sales_order){
       $production= DB::connection('mysql_mes')->table('production_order AS po')
-            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereNotIn('po.status', ['Cancelled', 'Closed'])
             ->where(function($q) use ($sales_order) {
                     $q->Where('po.sales_order', $sales_order)
                         ->orWhere('po.material_request', $sales_order);
@@ -4538,18 +4545,22 @@ class SecondaryController extends Controller
 
     }
     
-    public function production_schedule_calendar($id){
-        $operation_id=$id;
-        if($id==1){
-            $operation_name="Fabrication";
-        }else{
-            $operation_name="Wiring and Assembly";
+    public function production_schedule_calendar($operation_id){
+        switch ($operation_id) {
+            case 1:
+                $operation_name = 'Fabrication';
+                break;
+            case 2:
+                $operation_name = 'Painting';
+                break;
+            default:
+                $operation_name = 'Wiring and Assembly';
+                break;
         }
-        if($id==2){
-            $operation_name="Painting";
-        }
+
         return view('production_schedule_calendar', compact('operation_id','operation_name'));
     }
+
     public function get_production_schedule_calendar($operation_id){
         if($operation_id == 2){
             $prod = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -4558,7 +4569,8 @@ class SecondaryController extends Controller
                     $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
                     $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
                 })
-                ->where('pro.status','!=', 'Cancelled')
+                // ->where('pro.status','!=', 'Cancelled')
+                ->whereNotIn('pro.status', ['Cancelled', 'Closed'])
                 ->where('jt.workstation', 'Painting')
                 ->where('jt.planned_start_date','!=', null)
                 ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
@@ -7698,7 +7710,7 @@ class SecondaryController extends Controller
               $prod= DB::connection('mysql_mes')->table('production_order as prod')
               ->join('job_ticket as jt', 'jt.production_order','prod.production_order')
               ->where('jt.workstation','Painting')
-              ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
+              ->whereNotIn('prod.status',[ "Cancelled", 'Completed', 'Closed'])
               ->whereDate('jt.planned_start_date', '<', $current_date)
               ->where('prod.operation_id', $operation_id)
               ->where('jt.status', "Pending")
@@ -7708,7 +7720,7 @@ class SecondaryController extends Controller
               ->get();
               $prod_inprogress= DB::connection('mysql_mes')->table('production_order as prod')
               ->join('job_ticket as jt', 'jt.production_order','prod.production_order')
-              ->whereNotIn('prod.status',[ "Cancelled", 'Completed'])
+              ->whereNotIn('prod.status',[ "Cancelled", 'Completed', 'Closed'])
               ->where('jt.workstation','Painting')
               ->where('jt.status', 'In Progress')
               ->whereDate('jt.planned_start_date', '<', $last_date)
@@ -8766,11 +8778,11 @@ class SecondaryController extends Controller
                 })
                 ->where('pro.operation_id', 1)
                 ->whereDate('jt.planned_start_date', $request->date)
-                ->whereNotIn('pro.status', ['Cancelled', 'Completed'])
+                ->whereNotIn('pro.status', ['Cancelled', 'Completed', 'Closed'])
                 ->where('jt.workstation', 'Painting')
                 ->where('jt.planned_start_date','!=', null)
                 ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
-                ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+                ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom', 'pro.produced_qty')
                 ->get();
         }else{
             $prod_details= DB::connection('mysql_mes')->table('production_order')
@@ -8780,11 +8792,10 @@ class SecondaryController extends Controller
                 })
                 ->where('production_order.operation_id', $request->operation)
                 ->whereDate('production_order.planned_start_date', $request->date)
-                ->whereNotIn('production_order.status', ['Cancelled', 'Completed'])
+                ->whereNotIn('production_order.status', ['Cancelled', 'Completed', 'Closed'])
                 ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.delivery_date as deli')
                 ->get();
         }
-        
         
         return view('tables.tbl_prod_list_calendar', compact('prod_details', 'forpage', 'planned_date', 'operation'));
     }
@@ -8797,8 +8808,10 @@ class SecondaryController extends Controller
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
             ->whereIn('production_order.production_order', $myArray)
-            ->whereDate( DB::raw('IFNULL(delivery_date.rescheduled_delivery_date, delivery_date.delivery_date)'), '<', $request->planned)
-            ->whereRaw('(production_order.item_code = delivery_date.parent_item_code)')
+            ->when($request->operation == 3, function ($q) use ($request){
+                $q->whereDate( DB::raw('IFNULL(delivery_date.rescheduled_delivery_date, delivery_date.delivery_date)'), '<', $request->planned)
+                    ->whereRaw('(production_order.item_code = delivery_date.parent_item_code)');
+            })
             ->select('production_order.*', 'delivery_date.delivery_date as deli', 'delivery_date.delivery_date_id',DB::raw('IFNULL(delivery_date.rescheduled_delivery_date, delivery_date.delivery_date) as rescheduled_delivery_date') )
             ->get();
         $prod= collect($prod_orders)->pluck('production_order');

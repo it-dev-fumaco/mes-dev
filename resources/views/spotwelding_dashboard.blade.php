@@ -1192,6 +1192,7 @@
       $(this).prop('disabled', true);
       var count_selected_parts = $('#select-part-div .selected-part').length;
       if (count_selected_parts <= 1) {
+        $(this).prop('disabled', false);
         $(this).removeProp('disabled');
         showNotification("danger", 'Please select parts.', "now-ui-icons travel_info");
         return false;
@@ -1227,6 +1228,7 @@
         type:"POST",
         data: data,
         success:function(response){
+          $(this).prop('disabled', false);
           $(this).removeProp('disabled');
           if (response.success > 0) {
             get_current_job_ticket_tasks();
@@ -1236,6 +1238,7 @@
           }
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
+          $(this).prop('disabled', false);
           $(this).removeProp('disabled');
           console.log(jqXHR);
           console.log(textStatus);

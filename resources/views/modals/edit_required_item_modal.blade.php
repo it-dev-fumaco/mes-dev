@@ -17,6 +17,11 @@
             </div>
             <div class="modal-body">
                <div class="row m-0 p-0">
+                  <div class="col-10 offset-1">
+                     <div class="alert alert-light text-center shadow text-dark" role="alert" id="change-item-code-warning" style="border-left: 5px solid #21618c;">
+                        <b>Note:</b> Change item code is not applicable (No BOM).
+                      </div>
+                  </div>
                   <div class="col-md-6 offset-md-6">
                      <div class="pull-right p-0">
                         <button type="button" class="btn btn-secondary m-0" id="change-required-qty-btn">Update Required Qty</button>

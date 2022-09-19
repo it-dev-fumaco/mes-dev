@@ -80,10 +80,6 @@ class QualityInspectionController extends Controller
             $timelog_details = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->time_log_id)->first();
         }
 
-        if(!$timelog_details){
-            $timelog_details = [];
-        }
-
         $inspection_type = $request->inspection_type;
 
         return view('quality_inspection.tbl_inspection_tabs', compact('checklist', 'production_order_details', 'workstation_details', 'process_details', 'sample_sizes', 'timelog_details', 'inspection_type', 'reject_levels'));

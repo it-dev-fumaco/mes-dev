@@ -145,8 +145,8 @@
                             </div>
                         </td>
                         <td class="text-center p-2" style="border: 1px solid #ABB2B9;">
-                            <div class="form-group m-0">
-                                <select class="form-control rounded" name="job_ticket[{{ $row->job_ticket_id }}][operator]" required>
+                            <div class="form-group m-0 p-0">
+                                <select class="form-control rounded op-select m-0" name="job_ticket[{{ $row->job_ticket_id }}][operator]" required>
                                     <option value="">Select Operator</option>
                                     @foreach ($operators as $user_id => $operator)
                                     <option value="{{ $user_id }}">{{ $operator }}</option>
@@ -166,3 +166,9 @@
         </div>
     </div>
 </form>
+
+<style>
+    .select2.select2-container .select2-selection {
+        margin-bottom: 0 !important;
+    }
+</style>

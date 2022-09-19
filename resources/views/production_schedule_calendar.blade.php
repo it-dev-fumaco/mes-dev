@@ -292,32 +292,27 @@
         var prod_list = $('#selected_prod_order').val();
         var operation = $('#operation_id').val();
         var planned = $(this).val();
-        if(operation == "3"){
-          $.ajax({
-                url: '/get_assembly_prod_calendar',
-                type: 'get',
-                data: { 'prod_list': prod_list, 'planned':planned},
-                success: function(data)
-                  {
-                    if(data.success == 0){
-                      $("#fabrication_update").attr("disabled", false);
+        $.ajax({
+          url: '/get_assembly_prod_calendar',
+          type: 'get',
+          data: { 'prod_list': prod_list, 'planned':planned, 'operation': operation, '_token': '{{ csrf_token() }}'},
+          success: function(data)
+            {
+              if(data.success == 0){
+                $("#fabrication_update").attr("disabled", false);
 
-                    }else{
-                      $('#tbl_container_details').html(data);
-                      $('#reschedule-deli-modal').modal('show');
-                      $("#fabrication_update").attr("disabled", true);
-                    }
-                  },
-                error: function(jqXHR, textStatus, errorThrown) {
-                  console.log(jqXHR);
-                  onsole.log(textStatus);
-                  console.log(errorThrown);
-                }
-          });
-        }else{
-          $("#fabrication_update").attr("disabled", false);
-
-        }
+              }else{
+                $('#tbl_container_details').html(data);
+                $('#reschedule-deli-modal').modal('show');
+                $("#fabrication_update").attr("disabled", true);
+              }
+            },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            onsole.log(textStatus);
+            console.log(errorThrown);
+          }
+        });
         console.log(prod_list);
       });
       

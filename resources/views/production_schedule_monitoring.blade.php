@@ -169,12 +169,12 @@
                           <div class="card bg-{{ $b }} view-production-order-details" data-production-order="{{ $row->production_order }}" data-position="{{ $i + 1 }}" data-card="unassigned">
                             <div class="card-body">
                               <div class="pull-right">
-                                <span class="badge badge-primary badge-number" style="font-size: 9pt;"></span>
+                                <span class="badge badge-primary badge-number" style="font-size: 8pt;"></span>
                               </div>
-                              <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ $row->production_order }} [{{ $row->sales_order }}{{ $row->material_request }}]</span>
+                              <span class="d-block font-weight-bold" style="font-size: 9pt;">{{ $row->production_order }} [{{ $row->sales_order }}{{ $row->material_request }}]</span>
                               <small class="d-block" style="font-size: 7pt;">{{ $row->customer }}</small>
-                              <span class="d-block mt-1">{{ $row->item_code }} [{{ $row->qty_to_manufacture }} {{ $row->stock_uom }}]</span>
-                              <span class="d-block" style="font-size: 9pt;">{{ strtok($row->description, ',') }}</span>
+                              <span class="d-block mt-1" style="font-size: 8pt;"><b>{{ $row->item_code }}</b> {!! strtok(strip_tags($row->description), ',') !!}</span>
+                              <span class="d-block" style="font-size: 8pt;">[{{ $row->qty_to_manufacture }} {{ $row->stock_uom }}]</span>
                               <span class="d-block mt-1 font-weight-bold text-white" style="font-size: 8pt;">{{ ($row->classification) }}</span>
                             </div>
                           </div>
@@ -196,24 +196,29 @@
                             <div class="card-body custom-sortable custom-sortable-connected overflow-auto" id="{{ $machine['machine_code'] }}" style="height: 740px;">
                               @foreach ($machine['production_orders'] as $j => $row)
                               @php
-                                if($row->status == 'Not Started'){
-                                  $b = 'secondary text-white';
-                                }elseif($row->status == 'In Progress'){
-                                  $b = 'warning';
-                                }else{
-                                  $b = 'success text-white';
+                                $b = 'success text-white';
+                                if (in_array($row->production_order, $machine['on_going_production_orders'])) {
+                                  $b = ' active-process';
+                                } else {
+                                  if($row->status == 'Not Started'){
+                                    $b = 'secondary text-white';
+                                  }elseif($row->status == 'In Progress'){
+                                    $b = 'warning';
+                                  }else{
+                                    $b = 'success text-white';
+                                  }
                                 }
                               @endphp
                               <div class="card bg-{{ $b }} view-production-order-details" data-production-order="{{ $row->production_order }}" data-position="{{ $j + 1 }}" data-card="{{ $row->machine_code }}">
                                 <div class="card-body">
                                   <div class="pull-right">
-                                    <span class="badge badge-primary badge-number" style="font-size: 9pt;">{{ $row->order_no }}</span>
+                                    <span class="badge badge-primary badge-number" style="font-size: 8pt;">{{ $row->order_no }}</span>
                                   </div>
-                                  <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ $row->production_order }} [{{ $row->sales_order }}{{ $row->material_request }}]</span>
+                                  <span class="d-block font-weight-bold" style="font-size: 9pt;">{{ $row->production_order }} [{{ $row->sales_order }}{{ $row->material_request }}]</span>
                                   <small class="d-block" style="font-size: 7pt;">{{ $row->customer }}</small>
-                                  <span class="d-block mt-1">{{ $row->item_code }} [{{ $row->qty_to_manufacture }} {{ $row->stock_uom }}]</span>
-                                  <span class="d-block" style="font-size: 9pt;">{{ strtok($row->description, ',') }}</span>
-                                  <span class="d-block mt-1 font-weight-bold text-white" style="font-size: 8pt;">{{ ($row->classification) }}</span>
+                                  <span class="d-block mt-1" style="font-size: 8pt;"><b>{{ $row->item_code }}</b> {!! strtok(strip_tags($row->description), ',') !!} </span>
+                                  <span class="d-block" style="font-size: 8pt;">[{{ $row->qty_to_manufacture }} {{ $row->stock_uom }}]</span>
+                                  <span class="d-block mt-1 font-weight-bold" style="font-size: 8pt;">{{ ($row->classification) }}</span>
                                 </div>
                               </div>
                               @endforeach
@@ -236,6 +241,18 @@
 </div>
        
 <style type="text/css">
+  .active-process {
+    background-color: #e69e0e;
+    color: #000000;
+    animation: blinkingBackground 2.5s linear infinite;
+  }
+  @keyframes blinkingBackground{
+    0%    { background-color: #e69e0e;}
+    25%   { background-color: #FFC107;}
+    50%   { background-color: #e69e0e;}
+    75%   { background-color: #FFC107;}
+    100%  { background-color: #e69e0e;}
+  }
   #workstation-tabs .active{
     background-color: #f96332;
     font-weight: bold;

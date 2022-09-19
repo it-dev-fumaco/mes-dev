@@ -1,6 +1,10 @@
 <div class="container-fluid p-0">
     @forelse ($painting_processes as $painting)
       @php
+        if($process_name == 'Unloading' && $painting->status == 'Completed' && $painting->good <= 0){
+          continue;
+        }
+
         $unloaded_completed = isset($qty_array[$painting->production_order]['Completed']['Unloading']) ? collect($qty_array[$painting->production_order]['Completed']['Unloading'])->sum('good') : 0;
         $unloaded_in_progress = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->sum('good') : 0;
         $unloaded_in_progress_per_loaded_time_log = isset($qty_array[$painting->production_order]['In Progress']['Unloading']) ? collect($qty_array[$painting->production_order]['In Progress']['Unloading'])->where('reference_time_log', $painting->time_log_id)->sum('good') : 0;
@@ -12,6 +16,8 @@
         $total_loaded = $loaded_completed + $loaded_in_progress;
 
         $balance = $total_loaded - $total_unloaded;
+
+        $rejects = isset($reject_per_po[$painting->production_order]) ? $reject_per_po[$painting->production_order][0]->reject : 0;
       @endphp
         <div class="card m-1">
             <div class="card-body p-0 m-0">
@@ -42,9 +48,9 @@
                             </div>
                           @endif
                         @endif
-                        @if ($painting->reject > 0)
+                        @if ($rejects > 0)
                           <div class="col-4">
-                            <span class="badge badge-secondary" style="font-size: 9pt;">Reject: <b>{{ $painting->reject }}</b></span>
+                            <span class="badge badge-secondary" style="font-size: 9pt;">Reject: <b>{{ $rejects }}</b></span>
                           </div>
                         @endif
                       </div>

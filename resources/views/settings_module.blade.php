@@ -5393,7 +5393,7 @@ function tbl_sampling_plan_reliability(page){
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
         success:function(data){
-          $('#sp_category').html(data);
+          $('#sp_category').html(data.category);
           $('#sp_category').val(id);
         }
         }); 

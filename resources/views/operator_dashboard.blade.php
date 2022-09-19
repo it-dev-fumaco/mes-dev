@@ -1285,15 +1285,18 @@
         type:"POST",
         data: data,
         success:function(response){
+          btn.attr('disabled', false);
+          btn.removeAttr('disabled');
           if (response.success > 0) {
             get_current_job_ticket_tasks();
             showNotification("success", response.message, "now-ui-icons ui-1_check");
           }else{
-            btn.attr('disabled', false);
             showNotification("danger", response.message, "now-ui-icons travel_info");
           }
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
+          btn.attr('disabled', false);
+          btn.removeAttr('disabled');
           console.log(jqXHR);
           console.log(textStatus);
           console.log(errorThrown);

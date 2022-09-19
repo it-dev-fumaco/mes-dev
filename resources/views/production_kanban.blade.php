@@ -2278,6 +2278,7 @@
                     data: {
                       production_order: ui.item.data('name'),
                       planned_start_date: ev.target.id,
+                      current: ui.sender.attr('id')
                     },
                    
                     error : function(data) {
