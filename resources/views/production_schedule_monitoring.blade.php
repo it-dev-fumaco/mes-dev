@@ -1,39 +1,22 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'production_schedule_monitoring',
+  'pageHeader' => 'Schedule - ' . $operation_details->operation_name,
+  'pageSpan' => 'Schedule Date : ' . date('F d, Y', strtotime($schedule_date))
 ])
 
 @section('content')
-<div class="panel-header">
-  <div class="header text-center">
-    <div class="row" style="margin-top:-70px;margin-left:140px;">
-      <div class="col-md-12">
-        <table class="text-center" style="width: 100%;">
-          <tr>
-            <td style="width: 25%; border-right: 5px solid white; color:white;">
-              <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">Schedule Date : {{ date('F d, Y', strtotime($schedule_date)) }}</h4>
-            </td>
-            <td style="width: 50%">
-              <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Production Schedule Monitoring - {{ $operation_details->operation_name }}</h4>
-              <span class="title text-left d-block" style="font-size: 11pt;margin-left: 30px;">{{ Auth::user()->employee_name }}</span>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="panel-header"></div>
 
 @include('modals.machine_kanban_modal')
 <input type="hidden" id="schedule-date-val" value="{{ $schedule_date }}">
 <input type="hidden" id="operation-name" value="{{ $operation_details->operation_name }}">
 <input type="hidden" id="operation-id" value="{{ $operation_details->operation_id }}">
 
-<div class="content">
-  <div class="row" style="margin-top: -70px;">
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
     <div class="col-md-12">
       <div class="row">
-        <div class="col-md-12" style="margin-top:-110px;">
+        <div class="col-md-12">
           <div class="card">
             <div class="card-body pb-0">
               @php

@@ -1,46 +1,18 @@
 @extends('layouts.user_app', [
   'namePage' => 'Fabrication',
   'activePage' => 'machine_profile',
+  'pageHeader' => 'Machine Profile',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
 @include('modals.edit_machine_modal')
-{{-- @include('modals.add_machine_process_modal') --}}
-
-<div class="panel-header" style="margin-top: -50px;">>
-  <div class="header text-center">
-    <div class="row">
-      <div class="col-md-12">
-        <table style="text-align: center; width: 100%;">
-          <tr>
-            <td style="width: 36%; border-right: 5px solid white;">
-              <h2 class="title">
-                <div class="pull-right" style="margin-right: 20px;">
-                  <span style="display: block; font-size: 20pt;">{{ date('M-d-Y') }}</span>
-                  <span style="display: block; font-size: 12pt;">{{ date('l') }}</span>
-                </div>
-              </h2>
-            </td>
-            <td style="width: 14%; border-right: 5px solid white;">
-              <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
-            </td>
-            <td style="width: 50%">
-              <h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Machine Profile</h2>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="content" style="margin-top: -85px;">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        
-        <div class="card-body">
-         <div class="row">
-          <!-- <button type="button" class="btn btn-primary" id="add-machine-button"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button> -->
+<div class="panel-header"></div>
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
           <div class="col-md-8 offset-md-2">
             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#edit-machine-modal" style="float: right;"><i class="now-ui-icons design-2_ruler-pencil"></i> Edit</button>
             
@@ -48,14 +20,14 @@
 
           <div class="col-md-4" style="margin-top: -30px;">
             <div class="form-group" style="float: right;">
-                <div style="text-align: center;" id="machine_test">
-                  @php
-                    $img = ($machine_list->image == null) ? '/storage/machine/change_image.png' : $machine_list->image;
-                  @endphp
-                  <div>
-                      <img src="{{ asset($img) }}" width="190" height="180" class="imgPreview1">
-                  </div>                
-                </div>
+              <div style="text-align: center;" id="machine_test">
+                @php
+                  $img = ($machine_list->image == null) ? '/storage/machine/change_image.png' : $machine_list->image;
+                @endphp
+                <div>
+                  <img src="{{ asset($img) }}" width="190" height="180" class="imgPreview1">
+                </div>                
+              </div>
             </div>       
           </div>
           <input type="hidden" name="machineID" id="machineID" value="{{ $machine_list->machine_code }}">
@@ -108,10 +80,7 @@
             <h5 style="padding-left: 30px;">Machine Breakdown History</h5>
               <div id="tbl_machine_profile" style="padding-left: 30px;"></div>
           </div>
-          {{-- <div class="col-md-8 offset-md-2">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-machine-process-modal" style="float: right;"> Add Process</button>
-            
-          </div> --}}
+      
           <div class="col-md-8 offset-md-2">
             <h5 style="padding-left: 30px;">Machine Process</h5>
             <div style="padding-left: 30px;">
@@ -120,7 +89,6 @@
                 <tr style="font-size: 10px;" class="text-center">
                   <th scope="col" style="font-weight: bold;"><b>#</b></th>
                   <th scope="col" style="font-weight: bold;"><b>Process</b></th>
-                  {{-- <th scope="col" style="font-weight: bold;"><b>Action/s</b></th>--}}
                   
                   
                 </tr>
@@ -132,13 +100,7 @@
                      
                         <td class="text-center">{{ $rows->process_id }}</td>
                         <td class="text-center">{{ $rows->process_name }}</td>
-                        {{-- <td class="text-center">
-                          <a href="#" class="hover-icon"  data-toggle="modal" data-target="#delete-machine-process-{{ $rows->id }}-modal">
-                            <button type='button' class='btn btn-danger btn-sm'><i class='now-ui-icons ui-1_simple-remove' style="font-size: 8pt;font-weight: bold;"></i></button>
-                              
-                          </a>                                                       
-                        </td>
-                        @include('modals.delete_machine_process_modal') --}}
+                     
                      </tr>
                      
                      @empty

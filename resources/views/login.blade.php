@@ -9,8 +9,8 @@
           <h2 class="title">Manufacturing Execution System v9.1 - 2022</h2>
         </div>
       </div>
-      <div class="content" style="margin-top: -80px;">
-        <div class="row">
+      <div class="content" style="margin-top: -80px; min-height: 700px;">
+         <div class="row m-0 p-0">
             <div class="col-md-4 offset-md-4">
                <form id="login-frm" action="/login_user" method="post">
                   @csrf

@@ -2723,7 +2723,9 @@ class MainController extends Controller
     }
 
     public function productionSchedule(){
-    	return view('production_schedule');
+    	$permissions = $this->get_user_permitted_operation();
+
+    	return view('production_schedule', compact('permissions'));
     }
 
     public function getWorkstationSched(Request $request){
@@ -4614,7 +4616,9 @@ class MainController extends Controller
 	}
 
 	public function operators_load_utilization(){
-		return view('operators_load_utilization');
+		$permissions = $this->get_user_permitted_operation();
+
+		return view('operators_load_utilization', compact('permissions'));
 	}
 
 	public function get_operators(Request $request){
@@ -8000,5 +8004,277 @@ class MainController extends Controller
 
 			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
 		}
+	}
+
+	public function dashboardMachineStatus(Request $request) {
+		$operation_id = $request->operation;
+
+		$in_progress_machines = DB::connection('mysql_mes')->table('time_logs')->where('status', 'In Progress')->distinct()->pluck('machine_code');
+
+		$spotwelding_in_progress_machines = DB::connection('mysql_mes')->table('spotwelding_qty')->where('status', 'In Progress')->distinct()->pluck('machine_code');
+
+		$machines_in_use = collect($in_progress_machines)->merge($spotwelding_in_progress_machines);
+
+		$list = DB::connection('mysql_mes')->table('machine')
+			->when($operation_id, function ($query) use ($operation_id) {
+				return $query->where('operation_id', $operation_id);
+			})
+			->whereIn('machine_code', $machines_in_use)
+			->select('machine_code', 'machine_name', 'status', 'image')
+			->get();
+
+		$total_machines_in_use = collect($list)->count();
+
+		$query = DB::connection('mysql_mes')->table('machine')
+			->when($operation_id, function ($query) use ($operation_id) {
+				return $query->where('operation_id', $operation_id);
+			})
+			->select('machine_code', 'status')->get();
+
+		$overall = collect($query)->count();
+		$total_available = collect($query)->where('status', 'Available')->count();
+
+		$totals = [
+			'total_available' => $total_available . '/' . $overall,
+			'percentage' => $total_available > 0 ? round(($total_available/$overall)*100) : 0,
+			'total_machines_in_use' => $total_machines_in_use
+		];
+
+		return view('dashboard_machine_status', compact('list', 'totals', 'operation_id'));
+	}
+
+	public function dashboardOperatorList(Request $request) {
+		$operation_id = $request->operation;
+
+		$operators = DB::connection('mysql_mes')->table('time_logs as tl')
+			->join('job_ticket as jt', 'tl.job_ticket_id', 'jt.job_ticket_id')
+			->join('production_order as po', 'po.production_order', 'jt.production_order')
+			->when($operation_id, function ($query) use ($operation_id) {
+				return $query->where('operation_id', $operation_id);
+			})
+			->whereNotNull('operator_id')->select('operator_name', 'operator_id')
+			->orderBy('operator_name', 'asc')->groupBy('operator_name', 'operator_id')->get();
+
+		$wip_operators = DB::connection('mysql_mes')->table('time_logs')
+			->where('status', 'In Progress')->whereNotNull('operator_id')
+			->pluck('operator_id');
+
+		$spotwelding_operators = $spowtwelding_wip_operators = [];
+		if ($operation_id == 1) {
+			$spotwelding_operators = DB::connection('mysql_mes')->table('spotwelding_qty')
+				->whereNotNull('operator_id')->select('operator_name', 'operator_id')
+				->orderBy('operator_name', 'asc')->groupBy('operator_name', 'operator_id')->get();
+
+			$spowtwelding_wip_operators = DB::connection('mysql_mes')->table('spotwelding_qty')
+					->whereNotNull('operator_id')->where('status', 'In Progress')
+					->whereNotNull('operator_id')->pluck('operator_id');
+		}
+
+		$wip_operators = collect($wip_operators)->merge($spowtwelding_wip_operators)->toArray();
+
+		$operators = collect($spotwelding_operators)->merge($operators);
+
+		$operator_images = DB::connection('mysql_essex')->table('users')
+			->whereNotNull('image')->whereIn('user_id', collect($operators)
+			->pluck('operator_id'))->pluck('image', 'user_id')->toArray();
+
+		$operators_list = $temp = [];
+		foreach ($operators as $row) {
+			if (!in_array($row->operator_id, $temp)) {
+				$image = array_key_exists($row->operator_id, $operator_images) ? $operator_images[$row->operator_id] : null;
+				$image = $image ? 'https://essex.fumaco.local/' . $image : null;
+
+				$operators_list[] = [
+					'id' => $row->operator_id,
+					'name' => $row->operator_name,
+					'image' => $image,
+					'status' => in_array($row->operator_id, $wip_operators) ? 'busy' : 'idle'
+				];
+
+				$temp[] = $row->operator_id;
+			}
+		}
+
+		$list = collect($operators_list)->sortBy('name')->toArray();
+
+		return view('dashboard_operator_list', compact('list'));
+	}
+
+	public function dashboardInProcessProjects(Request $request) {
+		$operation_id = $request->operation;
+
+		if($operation_id == 1){
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('operation_id', $operation_id)
+                ->whereNotIn('workstation_name', ['Painting'])->distinct()
+                ->pluck('workstation_name')->toArray();
+        }elseif($operation_id == 2){
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('workstation_name', 'Painting')->distinct()
+                ->pluck('workstation_name')->toArray();
+        }else{
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('operation_id', $operation_id)->distinct()
+                ->pluck('workstation_name')->toArray();
+        }
+
+        $orders_1 = DB::connection('mysql_mes')->table('time_logs')
+            ->join('job_ticket as tsd', 'time_logs.job_ticket_id', 'tsd.job_ticket_id')
+            ->join('production_order as prod','tsd.production_order', 'prod.production_order')
+            ->join('process as p', 'p.process_id', 'tsd.process_id')
+            ->whereNotIn('prod.status', ['Cancelled'])
+            ->join('workstation as work','work.workstation_name','tsd.workstation')
+            ->whereIn('tsd.workstation', $permitted_workstation)
+            ->where('time_logs.status', 'In Progress')
+            ->select('project', 'prod.production_order', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'produced_qty', 'feedback_qty');
+
+        if($operation_id != 2){
+            $orders = DB::connection('mysql_mes')->table('spotwelding_qty')
+                ->join('job_ticket as tsd', 'spotwelding_qty.job_ticket_id', 'tsd.job_ticket_id')
+                ->join('production_order as prod','tsd.production_order','=','prod.production_order')
+                ->join('process as p', 'p.process_id', 'tsd.process_id')
+                ->whereNotIn('prod.status', ['Cancelled'])
+                ->join('workstation as work','work.workstation_name','tsd.workstation')
+                ->whereIn('tsd.workstation', $permitted_workstation)
+                ->where('spotwelding_qty.status', 'In Progress')
+                ->select('project', 'prod.production_order', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'produced_qty', 'feedback_qty')
+                ->union($orders_1)->get();
+        }else{
+            $orders = $orders_1->get();
+        }
+
+		$query = collect($orders)->groupBy('reference');
+
+		$data = [];
+		foreach ($query as $ref => $values) {
+			$total_planned = collect($values)->sum('qty_to_manufacture');
+			$total_completed = collect($values)->sum('produced_qty');
+			$data[] = [
+				'reference' => $ref,
+				'project' => $values[0]->project,
+				'percentage' => $total_completed > 0 ? round(($total_completed/$total_planned)*100) : 0,
+			];
+		}
+
+		$data = collect($data)->sortBy('percentage')->reverse()->toArray();
+
+		return view('dashboard_in_process_projects', compact('data'));
+	}
+
+	public function dashboardNumbers(Request $request) {
+		$operation_id = $request->operation;
+
+		if($operation_id == 1){
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('operation_id', $operation_id)
+                ->whereNotIn('workstation_name', ['Painting'])->distinct()
+                ->pluck('workstation_name')->toArray();
+        }elseif($operation_id == 2){
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('workstation_name', 'Painting')->distinct()
+                ->pluck('workstation_name')->toArray();
+        }else{
+            $permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+                ->where('operation_id', $operation_id)->distinct()
+                ->pluck('workstation_name')->toArray();
+        }
+
+		$now = Carbon::now();
+
+		if ($operation_id == 2) {
+			$scheduled_production_orders = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+				->whereIn('jt.workstation', $permitted_workstation)
+				->whereBetween('jt.planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
+				->whereNotIn('po.status', ['Cancelled', 'Closed'])->groupBy('po.production_order')->count();
+
+			$production_orders_for_feedback = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+				->whereIn('jt.workstation', $permitted_workstation)->where('produced_qty', '>', 0)->whereRaw('produced_qty > feedback_qty')
+				->whereRaw('qty_to_manufacture > feedback_qty')->whereNotIn('po.status', ['Cancelled', 'Closed'])->groupBy('po.production_order')->count();
+
+			$completed_production_orders = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+				->whereIn('jt.workstation', $permitted_workstation)->whereBetween('po.planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
+				->whereIn('po.status', ['Completed', 'Feedbacked', 'Partially Feedbacked', 'Closed'])->groupBy('po.production_order')->count();
+
+			$daily_output = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'po.production_order', 'jt.production_order')
+				->whereBetween('jt.planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
+				->whereIn('workstation', $permitted_workstation)->whereIn('po.status', ['Completed', 'Feedbacked', 'Partially Feedbacked', 'Closed'])
+				->selectRaw('MIN(produced_qty) as painting_produced_qty, po.production_order')->groupBy('po.production_order')->get();
+
+			$daily_output = collect($daily_output)->sum('painting_produced_qty');
+		} else {
+			$scheduled_production_orders = DB::connection('mysql_mes')->table('production_order')
+				->where('operation_id', $operation_id)
+				->whereBetween('planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
+				->whereNotIn('status', ['Cancelled', 'Closed'])->count();
+
+			$production_orders_for_feedback = DB::connection('mysql_mes')->table('production_order')
+				->where('operation_id', $operation_id)->where('produced_qty', '>', 0)->whereRaw('produced_qty > feedback_qty')
+				->whereRaw('qty_to_manufacture > feedback_qty')->whereNotIn('status', ['Cancelled', 'Closed'])->count();
+
+			$completed_production_orders = DB::connection('mysql_mes')->table('production_order')
+				->where('operation_id', $operation_id)->whereBetween('planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
+				->whereIn('status', ['Completed', 'Feedbacked', 'Partially Feedbacked', 'Closed'])->count();
+
+			$daily_output = DB::connection('mysql_mes')->table('production_order')
+				->whereBetween('planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
+				->where('operation_id', $operation_id)->whereIn('status', ['Completed', 'Feedbacked', 'Partially Feedbacked', 'Closed'])
+				->sum('produced_qty');
+		}
+
+		$ongoing_production_orders = DB::connection('mysql_mes')->table('job_ticket AS tsd')
+			->join('production_order AS pro', 'pro.production_order', 'tsd.production_order')
+			->join('time_logs', 'time_logs.job_ticket_id', 'tsd.job_ticket_id')->where('time_logs.status', 'In Progress')
+			->whereIn('workstation', $permitted_workstation)->whereNotIn('pro.status', ['Cancelled', 'Closed'])->count();
+
+		$ongoing_production_orders += DB::connection('mysql_mes')->table('job_ticket AS tsd')
+			->join('production_order AS pro', 'pro.production_order', 'tsd.production_order')
+			->join('spotwelding_qty as time_logs', 'time_logs.job_ticket_id', 'tsd.job_ticket_id')->where('time_logs.status', 'In Progress')
+			->where('workstation', $permitted_workstation)->whereNotIn('pro.status', ['Cancelled', 'Closed'])->count();
+
+		$quality_inspections = DB::connection('mysql_mes')->table('quality_inspection as q')
+			->join('time_logs as t', 'q.reference_id', 't.time_log_id')
+			->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+			->where('q.reference_type', 'Time Logs')
+			->whereIn('j.workstation', $permitted_workstation)
+			->whereBetween('q.qa_inspection_date', [$now->startOfDay()->format('Y-m-d H:i:s'), $now->endOfDay()->format('Y-m-d H:i:s')])
+			->whereIn('q.qa_inspection_type', ['Quality Check', 'Random Inspection'])->where('q.status', '!=', 'For Confirmation')
+			->count();
+
+		$quality_inspections += DB::connection('mysql_mes')->table('quality_inspection')
+			->whereBetween('qa_inspection_date', [$now->startOfDay()->format('Y-m-d H:i:s'), $now->endOfDay()->format('Y-m-d H:i:s')])
+			->whereIn('qa_inspection_type', ['Quality Check', 'Random Inspection'])->where('status', '!=', 'For Confirmation')
+			->where('reference_type', 'Spotwelding')
+			->count();
+
+
+
+		$rejects = DB::connection('mysql_mes')->table('quality_inspection as q')
+			->join('time_logs as t', 'q.reference_id', 't.time_log_id')
+			->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+			->where('q.reference_type', 'Time Logs')
+			->whereIn('j.workstation', $permitted_workstation)
+			->whereBetween('q.qa_inspection_date', [$now->startOfDay()->format('Y-m-d H:i:s'), $now->endOfDay()->format('Y-m-d H:i:s')])
+			->whereIn('q.qa_inspection_type', ['Quality Check', 'Random Inspection', 'Reject Confirmation'])->where('q.status', '!=', 'For Confirmation')
+			->sum('rejected_qty');
+
+		$rejects += DB::connection('mysql_mes')->table('quality_inspection')
+			->whereBetween('qa_inspection_date', [$now->startOfDay()->format('Y-m-d H:i:s'), $now->endOfDay()->format('Y-m-d H:i:s')])
+			->whereIn('qa_inspection_type', ['Quality Check', 'Random Inspection', 'Reject Confirmation'])->where('status', '!=', 'For Confirmation')
+			->where('reference_type', 'Spotwelding')
+			->sum('rejected_qty');
+
+		return [
+			'scheduled' => number_format($scheduled_production_orders),
+			'for_feedback' => number_format($production_orders_for_feedback),
+			'ongoing' => number_format($ongoing_production_orders),
+			'completed' => number_format($completed_production_orders),
+			'quality_inspections' => number_format($quality_inspections),
+			'rejects' => number_format($rejects),
+			'daily_output' => number_format($daily_output)
+		];
 	}
 }

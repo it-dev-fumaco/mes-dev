@@ -1,180 +1,153 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'item_feedback',
+  'pageHeader' => 'Production Order List',
+  'pageSpan' => Auth::user()->employee_name
 ])
 @section('content')
 @include('modals.item_track_modal')
-<div class="panel-header">
-  <div class="header text-center" style="margin-top: -70px;">
-		<div class="row">
-			<div class="col-md-12">
-				<table style="text-align: center; width: 60%;">
-					<tr>
-						<td style="width: 36%; border-right: 5px solid white;">
-							<h2 class="title">
-								<div class="pull-right" style="margin-right: 20px;">
-									<span style="display: block; font-size: 15pt;">{{ date('M-d-Y') }}</span>
-									<span style="display: block; font-size: 10pt;">{{ date('l') }}</span>
-								</div>
-							</h2>
-						</td>
-						<td style="width: 14%; border-right: 5px solid white;">
-							<h2 class="title" style="margin: auto; font-size: 17pt;"><span id="current-time">--:--:-- --</span></h2>
-						</td>
-						<td style="width: 50%">
-							<h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt; font-size: 19pt;">Production Order(s)</h2>
-						</td>
-					</tr>
-				</table>
-			</div>
-		</div>
-	</div>
-</div>
-<div class="content" style="margin-top: -200px;">
-  <div class="row">
-    <div class="col-md-4 offset-md-8" style="margin-bottom: -50px; z-index: 1;">
-      <div class="pull-right">
-        <button type="button" class="btn btn-secondary" id="reload-list">
-          <i class="now-ui-icons loader_refresh"></i> Refresh List
-        </button>
-        <button type="button" class="btn btn-primary" id="manual-production-create-btn">
-          <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
-        </button>
+<div class="panel-header"></div>
+
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="col-md-4 offset-md-8" style="margin-bottom: -50px; z-index: 1;">
+    <div class="pull-right">
+      <button type="button" class="btn btn-secondary" id="reload-list">
+        <i class="now-ui-icons loader_refresh"></i> Refresh List
+      </button>
+      <button type="button" class="btn btn-primary" id="manual-production-create-btn">
+        <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
+      </button>
       </div>
     </div>
-    {{--  start  --}}
-    <div class="col-md-12" style="min-height:440px;">
-      <div class="panel panel-default">
-        <div class="panel-body panel-body">
-          <div class="col-sm-12 ticket-status-widget pt-" role="tabpanel" aria-expanded="true" aria-hidden="false">
-            <div class="ui-tab-container ui-tab-default">
-              <div justified="true" class="ui-tab">
-                <ul class="nav nav-tabs nav-justified">
-                  <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
-                    <a data-toggle="tab" href="#tab-production-orders">
-                      <span class="tab-number" id="production-orders-total">0</span> 
-                      <span class="tab-title">Production Order(s)</span> 
-                    </a>
-                  </li>
-                  
-                  <li class="tab search-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-search">
-                      <span class="tab-number" id="item-tracking-total">0</span> 
-                      <span class="tab-title">Order Tracking</span> 
-                    </a>
-                  </li>
-
-                  <li class="tab material-status-tab custom-nav-link tab-heading--reddish" heading="Justified">
-                    <a data-toggle="tab" href="#tab-material-status">
-                      <span class="tab-number" id="material-status-total">0</span> 
-                      <span class="tab-title">Material Status</span> 
-                    </a>
-                  </li>
-                </ul>
-  
-                <div class="tab-content">
-                  <div class="tab-pane" id="tab-material-status">
-                    <div class="tab-heading tab-heading--reddish pl-4">
-                      <h4>Production Order Material Status</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white material-status-search" placeholder="Search" id="material-status-search">
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="material-status-div" style="min-height:500px;"></div>
-                    </div>
+  </div>
+  <div class="col-md-12 p-0" style="min-height: 440px;">
+    <div class="panel panel-default">
+      <div class="panel-body panel-body">
+        <div class="col-sm-12 ticket-status-widget pt-" role="tabpanel" aria-expanded="true" aria-hidden="false">
+          <div class="ui-tab-container ui-tab-default">
+            <div justified="true" class="ui-tab">
+              <ul class="nav nav-tabs nav-justified">
+                <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
+                  <a data-toggle="tab" href="#tab-production-orders">
+                    <span class="tab-number" id="production-orders-total">0</span> 
+                    <span class="tab-title">Production Order(s)</span> 
+                  </a>
+                </li>
+                <li class="tab search-tab custom-nav-link" heading="Justified">
+                  <a data-toggle="tab" href="#tab-search">
+                    <span class="tab-number" id="item-tracking-total">0</span> 
+                    <span class="tab-title">Order Tracking</span> 
+                  </a>
+                </li>
+                <li class="tab material-status-tab custom-nav-link tab-heading--reddish" heading="Justified">
+                  <a data-toggle="tab" href="#tab-material-status">
+                    <span class="tab-number" id="material-status-total">0</span> 
+                    <span class="tab-title">Material Status</span> 
+                  </a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane" id="tab-material-status">
+                  <div class="tab-heading tab-heading--reddish pl-4">
+                    <h4>Production Order Material Status</h4>
                   </div>
-                  <div class="tab-pane active" id="tab-production-orders">
-                    {{-- All Production Orders --}}
-                    <div class="tab-heading tab-heading--gray">
-                      <div class="container-fluid">
-                        <div class="row">
-                          <div class="col-8">
-                            <input class='d-none' type="text" value="" id="current-status">
-                            @php
-                              $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed','Closed'];
-                            @endphp
-                            <div class="row">
-                              @foreach ($status_arr as $status)
-                                <label class="PillList-item">
-                                  <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
-                                  <span class="PillList-label">{{ $status }}
-                                  </span>
-                                </label>
-                              @endforeach
-                            </div>
+                  <div class="row">
+                    <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
+                      <div class="form-group mr-2">
+                        <input type="text" class="form-control bg-white material-status-search" placeholder="Search" id="material-status-search">
+                      </div>
+                    </div>
+                    <div class="col-md-12" id="material-status-div" style="min-height:500px;"></div>
+                  </div>
+                </div>
+                <div class="tab-pane active" id="tab-production-orders">
+                  {{-- All Production Orders --}}
+                  <div class="tab-heading tab-heading--gray">
+                    <div class="container-fluid">
+                      <div class="row">
+                        <div class="col-9">
+                          <input class='d-none' type="text" value="" id="current-status">
+                          @php
+                            $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed','Closed'];
+                          @endphp
+                          <div class="row">
+                            @foreach ($status_arr as $status)
+                              <label class="PillList-item">
+                                <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
+                                <span class="PillList-label">{{ $status }}
+                                </span>
+                              </label>
+                            @endforeach
                           </div>
-                          <div class="col-4">
-                            <div class="form-group mr-2">
-                              <input type="text" id="production-orders-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
-                            </div>
+                        </div>
+                        <div class="col-3">
+                          <div class="form-group m-0">
+                            <input type="text" id="production-orders-search" class="form-control bg-white search-filter rounded m-0" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
                           </div>
                         </div>
                         
                       </div>
                     </div>
-                    <div class="row pb-0 pr-3 pl-3">
-                      <div id="accordion" class="pt-0 w-100">
-                        <div class="card pt-0 w-100">
-                          <div class="card-header p-0 w-100" id="headingOne">
-                            <button class="btn p-0" id="filter-btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="color: #979797; background-color: #fff; box-shadow: none;">
-                              <i class="now-ui-icons ui-1_simple-add"></i> &nbsp; Advanced Filter
-                            </button>
-                          </div>
-                      
-                          <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
-                            <div class="card-body">
-                              <div class="row">
-                                <div class="col-3">
-                                  <label>Owner</label>
-                                  <select id="owner-selection" class="form-control" data-div="#production-orders-div">
-                                    <option value="" selected disabled>Select Owner</option>
-                                    <option value="">Select All</option>
-                                    @foreach ($owners as $owner)
-                                        <option value="{{ $owner['email'] }}">{{ $owner['name'] }}</option>
-                                    @endforeach
-                                  </select>
-                                </div>
-                                <div class="col-3">
-                                  <label>Target Warehouse</label>
-                                  <select id="target-warehouse" class="form-control" data-div="#production-orders-div">
-                                    <option value="" selected disabled>Select Target Warehouse</option>
-                                    <option value="">Select All</option>
-                                    @foreach ($target_warehouses as $warehouse)
-                                        <option value="{{ $warehouse }}">{{ $warehouse }}</option>
-                                    @endforeach
-                                  </select>
-                                </div>
-                                <div id='feedback-date-filter' class="col-3 d-none">
-                                  <label>Feedback Date</label>
-                                  <input type="text" name="daterange" id="feedback-date" class="form-control date-range" placeholder="Select Date" value="" data-div="#production-orders-div" />
-                                </div>
+                  </div>
+                  <div class="row p-0 m-0">
+                    <div id="accordion" class="p-0 m-0 w-100">
+                      <div class="card m-0 p-0 w-100">
+                        <div class="card-header p-0 m-0 w-100" id="headingOne">
+                          <button class="btn p-0" id="filter-btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="color: #979797; background-color: #fff; box-shadow: none;">
+                            <i class="now-ui-icons ui-1_simple-add"></i> &nbsp; Advanced Filter
+                          </button>
+                        </div>
+                        <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                          <div class="card-body">
+                            <div class="row">
+                              <div class="col-3">
+                                <label>Owner</label>
+                                <select id="owner-selection" class="form-control" data-div="#production-orders-div">
+                                  <option value="" selected disabled>Select Owner</option>
+                                  <option value="">Select All</option>
+                                  @foreach ($owners as $owner)
+                                      <option value="{{ $owner['email'] }}">{{ $owner['name'] }}</option>
+                                  @endforeach
+                                </select>
+                              </div>
+                              <div class="col-3">
+                                <label>Target Warehouse</label>
+                                <select id="target-warehouse" class="form-control" data-div="#production-orders-div">
+                                  <option value="" selected disabled>Select Target Warehouse</option>
+                                  <option value="">Select All</option>
+                                  @foreach ($target_warehouses as $warehouse)
+                                      <option value="{{ $warehouse }}">{{ $warehouse }}</option>
+                                  @endforeach
+                                </select>
+                              </div>
+                              <div id='feedback-date-filter' class="col-3 d-none">
+                                <label>Feedback Date</label>
+                                <input type="text" name="daterange" id="feedback-date" class="form-control date-range" placeholder="Select Date" value="" data-div="#production-orders-div" />
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div class="row">
-                      <div class="col-12" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
-                    </div>
+                   
                   </div>
                   
-                  <div class="tab-pane" id="tab-search">
-                    {{--  item tracking  --}}
-                    <div class="tab-heading tab-heading--ltgray">
-                      <h4>Item Tracking</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white item-tracking-search" placeholder="Search">
-                        </div>
+                  <div class="row p-0 m-0">
+                    <div class="col-12 p-0 m-0" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
+                  </div>
+                </div>
+                <div class="tab-pane" id="tab-search">
+                  {{--  item tracking  --}}
+                  <div class="tab-heading tab-heading--ltgray">
+                    <h4>Item Tracking</h4>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
+                      <div class="form-group mr-2">
+                        <input type="text" class="form-control bg-white item-tracking-search" placeholder="Search">
                       </div>
-                      <div class="col-md-12" id="item-tracking-div" style="min-height:500px;"></div>
                     </div>
+                    <div class="col-md-12" id="item-tracking-div" style="min-height:500px;"></div>
                   </div>
                 </div>
               </div>
@@ -217,7 +190,7 @@
 
   .custom-nav-link{
     padding: 5px;
-    width: 9%;
+    width: 12%;
   }
 
   .custom-nav-link a{

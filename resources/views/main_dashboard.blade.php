@@ -1,244 +1,263 @@
 @extends('layouts.user_app', [
     'namePage' => 'Fabrication',
     'activePage' => 'main_dashboard',
+    'pageHeader' => 'Production Dashboard',
+    'pageSpan' => Auth::user()->employee_name . ' - ' . $user_details->designation_name
 ])
 
 @section('content')
 @include('modals.view_for_feedback_list_modal')
-<div class="panel-header">
-   <div class="header text-center"> 
-      <div class="row">
-        <div class="col-md-12" style="margin-top:-70px;">
-            <table style="text-align: center; width: 100%;">
-              <tr>
-                <td style="width: 25%; border-right: 5px solid white;">
-                  <h5 class="title">
-                    <div class="pull-right" style="margin-right: 20px;">
-                      <span style="display: block; font-size: 18pt;">{{ date('M-d-Y') }}</span>
-                      <span style="display: block; font-size: 11pt;">{{ date('l') }}</span>
-                    </div>
-                  </h5>
-                </td>
-                <td style="width: 14%; border-right: 5px solid white;">
-                  <h5 class="title" style="margin: auto; font-size: 30pt;"><span id="current-time">--:--:-- --</span></h5>
-                </td>
-                <td style="width: 50%">
-                  <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Production Dashboard</h4>
-                  <span class="title text-left" style="margin-left: 20px; margin: auto 20pt;float:left;">
-                    <i>{{ Auth::user()->employee_name }} - {{ $user_details->designation_name }}</i>
-                  </span>
-                </td>
-              </tr>
-            </table>
-            <input type="hidden" name="date_today" id="date_today" value="{{ date('Y-m-d') }}">
-        </div>
-      </div>
-   </div>
-</div>
-
-<div class="content" style="margin-top: -180px;">
-  <div class="row">
-    <div class="col-md-8">
-      <div class="row">
-        <div class="col-md-12 p-0">
-          <table>
-            <tr>
-              @php
-              $a = array_intersect($mes_user_operations, ['Painting', 'Fabrication', 'Wiring and Assembly']);
-              @endphp
-              @if (count($a) > 0)
-              <td class="mm1" style="width: 10%; background-color: #2C3E50;">
-                <a href="/item_feedback" class="text-center">
-                <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                   <img src="{{ asset('storage/Main Icon/production_orders.png') }}" style="width: 25%; height: 40%; margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;filter:  brightness(0) invert(1);">
-                  <footer class="hmt small text-center text-white" style="padding: 10px 0;">Production Orders</footer>
-                </div>
-              </a>
-              <style>
-              td.mm1:hover {
-                background-color:#797D7F !important;
-              }
-              </style>
-              </td>
-              @endif
-              @php
-              $b = array_intersect($mes_user_operations, ['Fabrication']);
-              @endphp
-              @if (count($b) > 0)
-              <td class="mm1" style="width: 10%; background-color: #566573;">
-                <a href="/wizard" class="text-center">
-                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                    <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;filter:  brightness(0) invert(1);">
-                    <footer class="hmt small text-center text-white" style="padding: 10px 0;">Fabrication Planning</footer>
-                  </div>
-                </a>
-              </td>
-              @endif
-              @php
-              $b1 = array_intersect($mes_user_operations, ['Wiring and Assembly']);
-              @endphp
-              @if (count($b1) > 0)
-              <td class="mm1" style="width: 10%; background-color: #808B96;">
-                <a href="/assembly/wizard" class="text-center">
-                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                    <img src="{{ asset('storage/Main Icon/production_planning.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;filter:  brightness(0) invert(1);">
-                    <footer class="hmt small text-center text-white" style="padding: 10px 0;">Assembly Planning</footer>
-                  </div>
-                </a>
-              </td>
-              @endif
-              @php
-              $c = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
-              if(in_array('Fabrication', $mes_user_operations)){
-                $link = '/production_schedule/1';
-              }else if(in_array('Wiring and Assembly', $mes_user_operations)){
-                $link = '/production_schedule/3';
-              }else{
-                $link = '/production_schedule_painting';
-              }
-              @endphp
-              @if (count($c) > 0)
-              <td class="mm1" style="width: 10%; background-color: #ABB2B9;">
-                <a href="{{ $link }}" class="text-center">
-                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                    <img src="{{ asset('storage/Main Icon/production_order_schedule.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Scheduling</footer>
-                  </div>
-                </a>
-              </td>
-              @endif
-              @php
-              $d = array_intersect($mes_user_operations, ['Fabrication', 'Wiring and Assembly']);
-              @endphp
-              @if (count($d) > 0)
-              {{-- <td style="width: 10%;">
-                <a href="/stock_entry" class="text-center">
-                  <div class="menu-box m-1">
-                    <img src="{{ asset('storage/Main Icon/material_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Widthrawal Slips</footer>
-                  </div>
-                </a>
-              </td> --}}
-              @endif
-              @php
-              $e = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
-              @endphp
-              @if (count($e) > 0)
-              <td class="mm1" style="width: 10%; background-color:#D5D8DC;">
-                <a href="/bom" class="text-center">
-                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                    <img src="{{ asset('storage/Main Icon/bom_list.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">BOM List </footer>
-                  </div>
-                </a>
-              </td>
-              @endif
-              @php
-              $f = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
-              @endphp
-              @if (count($f) > 0)
-              <td class="mm1" style="width: 10%; background-color:#EAECEE;">
-                <a href="/maintenance_request" class="text-center">
-                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                      <img src="{{ asset('storage/Main Icon/maintenance_requests.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Maintenance Request</footer>
-                  </div>
-                </a>
-              </td>
-              @endif
-              @php
-              $h = array_intersect($mes_user_operations, ['Fabrication', 'Wiring and Assembly']);
-              @endphp
-              @if (count($h) > 0)
-              {{-- <td style="width: 10%;">
-                <a href="/inventory" class="text-center">
-                  <div class="menu-box m-1">
-                    <img src="{{ asset('storage/Main Icon/inventory.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Inventory</footer>
-                  </div>
-                </a>
-              </td> --}}
-              @endif
-              @php
-              $i = array_intersect($mes_user_operations, ['Fabrication', 'Painting', 'Wiring and Assembly']);
-              @endphp
-              @if (count($i) > 0)
-              <td class="mm1" style="width: 10%; background-color:#F4F6F6;">
-                <a href="/report_index" class="text-center">
-                  <div class="menu-box m-1" style="background-color: transparent; border: none;">
-                    <img src="{{ asset('storage/Main Icon/reports.png') }}"  style="width:25%; height:40%;margin-left: auto;
-                      margin-right: auto; display: block; padding-top: 10px;">
-                    <footer class="hmt small text-center text-dark" style="padding: 10px 0;">Reports & Analysis</footer>
-                  </div>
-                </a>
-              </td>
-              @endif
-            </tr>
-          </table>
-        </div>
-        <div class="col-md-12 p-0 mt-2">
-          <div class="card m-0">
-            <div class="card-body p-1">
-              <ul class="nav nav-tabs" role="tablist">
-                <li class="nav-item font-weight-bold">
-                  <a class="nav-link active" data-toggle="tab" href="#fab" role="tab">Fabrication</a>
-                </li>
-                <li class="nav-item font-weight-bold">
-                  <a class="nav-link" data-toggle="tab" href="#pa" role="tab">Painting</a>
-                </li>
-                <li class="nav-item font-weight-bold">
-                  <a class="nav-link" data-toggle="tab" href="#wa" role="tab">Wiring and Assembly</a>
-                </li>
-              </ul>
-              <div class="tab-content" id="on-going-production-orders-content">
-                <div class="tab-pane fade show active" id="fab" role="tabpanel" data-operation="1">
-                  <div class="row m-0 p-0">
-                    <div class="col-md-12 m-0 pr-1 pl-1 pt-0">
-                      <div class="row m-0 p-0">
-                        <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
-                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
-                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+<div class="panel-header"></div>
+<input type="hidden" name="date_today" id="date_today" value="{{ date('Y-m-d') }}">
+<div class="row p-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="col-md-12 p-2">
+    <div class="card m-0" style="min-height: 900px;">
+      <div class="card-body p-1">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item font-weight-bold">
+            <a class="nav-link active" data-toggle="tab" href="#fab" role="tab">Fabrication</a>
+          </li>
+          <li class="nav-item font-weight-bold">
+            <a class="nav-link" data-toggle="tab" href="#pa" role="tab">Painting</a>
+          </li>
+          <li class="nav-item font-weight-bold">
+            <a class="nav-link" data-toggle="tab" href="#wa" role="tab">Wiring and Assembly</a>
+          </li>
+        </ul>
+        <div class="tab-content" id="on-going-production-orders-content">
+          <div class="tab-pane fade show active" id="fab" role="tabpanel" data-operation="1">
+            <div class="row m-0 p-0">
+              <div class="col-md-9 m-0 pr-1 pl-1 pt-0">
+                <div class="row m-0 p-0">
+                  <div class="col-md-6 pl-4 pr-4 pb-3">
+                    <span class="d-block font-weight-bold text-center p-2">Production Order</span>
+                    <div class="d-flex flex-row">
+                      <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
+                        <small class="d-block">Scheduled</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="fab-scheduled">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #E67E22;">
+                        <small class="d-block">On-going</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="fab-ongoing">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #48C9B0;">
+                        <small class="d-block">For Feedback</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="fab-for-feedback">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
+                        <small class="d-block">Completed</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="fab-completed">0</span>
                       </div>
                     </div>
-                    <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
-                </div>
-                <div class="tab-pane fade" id="pa" role="tabpanel" data-operation="2">
-                  <div class="row m-0 p-0">
-                    <div class="col-md-12 m-0 pr-1 pl-1 pt-0">
-                      <div class="row m-0 p-0">
-                        <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
-                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
-                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  <div class="col-md-3 pl-4 pr-4 pb-3">
+                    <span class="d-block font-weight-bold text-center p-2">Quality</span>
+                    <div class="d-flex flex-row">
+                      <div class="pl-2 col-6" style="border-left: 5px solid #5F6A6A;">
+                        <small class="d-block">Inspection(s)</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="fab-quality-inspections">0</span>
+                      </div>
+                      <div class="pl-2 col-6" style="border-left: 5px solid #CB4335;">
+                        <small class="d-block">Reject(s)</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="fab-rejects">0</span>
                       </div>
                     </div>
-                    <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
                   </div>
-                </div>
-                <div class="tab-pane fade" id="wa" role="tabpanel" data-operation="3">
-                  <div class="row m-0 p-0">
-                    <div class="col-md-12 m-0 pr-1 pl-1 pt-0">
-                      <div class="row m-0 p-0">
-                        <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
-                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
-                        <div class="col-md-6 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  <div class="col-md-3 p-2">
+                    <div class="card mt-2" style="background-color: #0277BD;">
+                      <div class="card-body pb-0 pt-0 text-center text-white">
+                        <div class="row">
+                          <div class="col-md-12 p-1">
+                            <h5 class="font-weight-bold align-middle m-1 ml-2 text-uppercase" style="font-size: 9pt;">Daily Output</h5>
+                          </div>
+                        </div>
+                        <div class="row" style="background-color: #263238;">
+                          <div class="col-md-12 pb-2">
+                            <span class="d-block font-weight-bold" style="font-size: 18pt;" id="fab-daily-output">0</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                  </div>
+                  <div class="col-md-12">
+                    <div id="fabrication-in-process-projects-list"></div>
+                  </div>
+                  <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                </div>
+              </div>
+              <div class="col-md-3 m-0 pr-1 pl-1 pt-0">
+                <div class="row bg-white m-0 p-0">
+                  <div class="col-md-12 p-2" style="min-height: 400px;">
+                    <span class="text-center font-weight-bold border-bottom p-2 mb-2 text-uppercase d-block" style="font-size: 10pt;">Machine / Workstation Status</span>
+                    <div id="fabrication-machines-status-table"></div>
+                  </div>
+                  <div class="col-md-12 p-2" style="min-height: 300px;">
+                    <div id="fabrication-operators-table"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="pa" role="tabpanel" data-operation="2">
+            <div class="row m-0 p-0">
+              <div class="col-md-9 m-0 pr-1 pl-1 pt-0">
+                <div class="row m-0 p-0">
+                  <div class="col-md-6 pl-4 pr-4 pb-3">
+                    <span class="d-block font-weight-bold text-center p-2">Production Order</span>
+                    <div class="d-flex flex-row">
+                      <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
+                        <small class="d-block">Scheduled</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="p-scheduled">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #E67E22;">
+                        <small class="d-block">On-going</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="p-ongoing">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #48C9B0;">
+                        <small class="d-block">For Feedback</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="p-for-feedback">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
+                        <small class="d-block">Completed</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="p-completed">0</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 pl-4 pr-4 pb-3">
+                    <span class="d-block font-weight-bold text-center p-2">Quality</span>
+                    <div class="d-flex flex-row">
+                      <div class="pl-2 col-6" style="border-left: 5px solid #5F6A6A;">
+                        <small class="d-block">Inspection(s)</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="p-quality-inspections">0</span>
+                      </div>
+                      <div class="pl-2 col-6" style="border-left: 5px solid #CB4335;">
+                        <small class="d-block">Reject(s)</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="p-rejects">0</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 p-2">
+                    <div class="card mt-2" style="background-color: #0277BD;">
+                      <div class="card-body pb-0 pt-0 text-center text-white">
+                        <div class="row">
+                          <div class="col-md-12 p-1">
+                            <h5 class="font-weight-bold align-middle m-1 ml-2 text-uppercase" style="font-size: 9pt;">Daily Output</h5>
+                          </div>
+                        </div>
+                        <div class="row" style="background-color: #263238;">
+                          <div class="col-md-12 pb-2">
+                            <span class="d-block font-weight-bold" style="font-size: 18pt;" id="p-daily-output">0</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div id="painting-in-process-projects-list"></div>
+                  </div>
+                  <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                </div>
+              </div>
+              <div class="col-md-3 m-0 pr-1 pl-1 pt-0">
+                <div class="row bg-white m-0 p-0">
+                  <div class="col-md-12 p-2" style="min-height: 400px;">
+                    <span class="text-center font-weight-bold border-bottom p-2 mb-2 text-uppercase d-block" style="font-size: 10pt;">Machine / Workstation Status</span>
+                    <div id="painting-machines-status-table"></div>
+                  </div>
+                  <div class="col-md-12 p-2" style="min-height: 300px;">
+                    <div id="painting-operators-table"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="wa" role="tabpanel" data-operation="3">
+            <div class="row m-0 p-0">
+              <div class="col-md-9 m-0 pr-1 pl-1 pt-0">
+                <div class="row m-0 p-0">
+                  <div class="col-md-6 pl-4 pr-4 pb-3">
+                    <span class="d-block font-weight-bold text-center p-2">Production Order</span>
+                    <div class="d-flex flex-row">
+                      <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
+                        <small class="d-block">Scheduled</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="wa-scheduled">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #E67E22;">
+                        <small class="d-block">On-going</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="wa-ongoing">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #48C9B0;">
+                        <small class="d-block">For Feedback</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="wa-for-feedback">0</span>
+                      </div>
+                      <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
+                        <small class="d-block">Completed</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="wa-completed">0</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 pl-4 pr-4 pb-3">
+                    <span class="d-block font-weight-bold text-center p-2">Quality</span>
+                    <div class="d-flex flex-row">
+                      <div class="pl-2 col-6" style="border-left: 5px solid #5F6A6A;">
+                        <small class="d-block">Inspection(s)</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="wa-quality-inspections">0</span>
+                      </div>
+                      <div class="pl-2 col-6" style="border-left: 5px solid #CB4335;">
+                        <small class="d-block">Reject(s)</small>
+                        <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="wa-rejects">0</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 p-2">
+                    <div class="card mt-2" style="background-color: #0277BD;">
+                      <div class="card-body pb-0 pt-0 text-center text-white">
+                        <div class="row">
+                          <div class="col-md-12 p-1">
+                            <h5 class="font-weight-bold align-middle m-1 ml-2 text-uppercase" style="font-size: 9pt;">Daily Output</h5>
+                          </div>
+                        </div>
+                        <div class="row" style="background-color: #263238;">
+                          <div class="col-md-12 pb-2">
+                            <span class="d-block font-weight-bold" style="font-size: 18pt;" id="wa-daily-output">0</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div id="assembly-in-process-projects-list"></div>
+                  </div>
+                  <div class="col-md-12 table-div m-0 pr-1 pl-1 pt-0"></div>
+                </div>
+              </div>
+              <div class="col-md-3 m-0 pr-1 pl-1 pt-0">
+                <div class="row bg-white m-0 p-0">
+                  <div class="col-md-12 p-2" style="min-height: 400px;">
+                    <span class="text-center font-weight-bold border-bottom p-2 mb-2 text-uppercase d-block" style="font-size: 10pt;">Machine / Workstation Status</span>
+                    <div id="assembly-machines-status-table"></div>
+                  </div>
+                  <div class="col-md-12 p-2" style="min-height: 300px;">
+                    <div id="assembly-operators-table"></div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- 
+<div class="conten1t" style="margin-top: -180px;">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-12 p-0">
+        </div>
+      
       </div>
     </div>
 
@@ -489,7 +508,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> --}}
 
   <div class="modal fade" id="view-notifications-modal" tabindex="-1" role="dialog">
 	  <div class="modal-dialog modal-lg" role="document">
@@ -503,11 +522,32 @@
 	        </button>
 	      </div>
 	      <div class="modal-body">
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" data-toggle="tab" href="#logs">Activity Logs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="tab" href="#warnings">Warnings&nbsp;<span class="badge badge-danger" id="warnings-badge-2" style="font-size: 14px">0</span></a>
+            </li>
+          </ul>
+
+          <div class="tab-content p-0">
+            <div id="logs" class="container-fluid tab-pane p-0 active">
+              <h5 class="title m-0 text-uppercase p-2 text-center text-white" style="background-color:#3498db;">Activity Logs</h5>
+              <div id="tbl-notifications" style="height: 700px; overflow-y: scroll;"></div>
+            </div>
+
+            <div id="warnings" class="container-fluid tab-pane p-0">
+              <h5 class="title m-0 text-uppercase">Warnings</h5>
+              <div id="tbl-warnings" style="height: 700px; overflow-y: scroll;"></div>
+            </div>
+          </div>
+{{-- 
 	        <div class="row">
 	          <div class="col-md-12">
 	            <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-modal"></div>
 	          </div>
-	        </div>
+	       </div> --}}
 	      </div>
 	      <div class="modal-footer p-2 pr-3">
 	        <button type="button" class="btn btn-secondary m-0" data-dismiss="modal">Close</button>
@@ -575,40 +615,151 @@
     }
 
     .tab-heading--blue {
-    background-color: #2196E3;
-    color: #FFF;
-  }
-  .tab-heading--orange {
-    background-color: #EA9034;
-    color: #FFF;
-  }
-  .tab-heading--reddish {
-    background-color: #E86B46;
-    color: #FFF;
-  }
-  .tab-heading--teal {
-    background-color: #22D3CC;
-    color: #FFF;
-  }
-  .tab-heading--green {
-    background-color: #8BC753;
-    color: #FFF;
-  }
-  .tab-heading--gray {
-    background-color: #808495;
-    color: #FFF;
-  }
-  .tab-heading--ltgray {
-    background-color: #F3F3F3;
-    color: #242424;
-  }
-
-  .logs .active{
-    background-color: #3498DB !important;
-    color: #fff !important;
-    border: 2px solid #3498DB !important;
-  }
-  
+      background-color: #2196E3;
+      color: #FFF;
+    }
+    .tab-heading--orange {
+      background-color: #EA9034;
+      color: #FFF;
+    }
+    .tab-heading--reddish {
+      background-color: #E86B46;
+      color: #FFF;
+    }
+    .tab-heading--teal {
+      background-color: #22D3CC;
+      color: #FFF;
+    }
+    .tab-heading--green {
+      background-color: #8BC753;
+      color: #FFF;
+    }
+    .tab-heading--gray {
+      background-color: #808495;
+      color: #FFF;
+    }
+    .tab-heading--ltgray {
+      background-color: #F3F3F3;
+      color: #242424;
+    }
+    .logs .active{
+      background-color: #3498DB !important;
+      color: #fff !important;
+      border: 2px solid #3498DB !important;
+    }
+    .circle-chart {
+      width: 80px;
+      height: 50px;
+    }
+    .circle-chart__circle {
+      stroke: #00acc1;
+      stroke-width: 2;
+      stroke-linecap: square;
+      fill: none;
+      animation: circle-chart-fill 2s reverse; /* 1 */ 
+      transform: rotate(-90deg); /* 2, 3 */
+      transform-origin: center; /* 4 */
+    }
+    .circle-chart__circle--negative {
+      transform: rotate(-90deg) scale(1,-1); /* 1, 2, 3 */
+    }
+    .circle-chart__background {
+      stroke: #efefef;
+      stroke-width: 2;
+      fill: none; 
+    }
+    .circle-chart__info {
+      animation: circle-chart-appear 2s forwards;
+      opacity: 0;
+      transform: translateY(0.3em);
+    } 
+    .circle-chart__percent {
+      alignment-baseline: central;
+      text-anchor: middle;
+      font-size: 7px;
+    }
+    .circle-chart__subline {
+      alignment-baseline: central;
+      text-anchor: middle;
+      font-size: 3px;
+    }
+    .success-stroke {
+      stroke: #00C851;
+    }
+    .warning-stroke {
+      stroke: #ffbb33;
+    }
+    .danger-stroke {
+      stroke: #ff4444;
+    }
+    @keyframes circle-chart-fill {
+      to { stroke-dasharray: 0 100; }
+    }
+    @keyframes circle-chart-appear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .skills_section{
+      width: 100%;
+      margin: 0 auto;
+      margin-bottom: 80px;
+    }
+    .skills-area {
+      margin-top: 5%;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .single-skill {
+      width: 25%;
+      margin-bottom: 80px;
+    }
+    .success-stroke {
+      stroke: rgb(129, 86, 252);
+    }
+    .circle-chart__background {
+      stroke: #ede4e4;
+      stroke-width: 2;
+    }
+    /* Extra small devices (portrait phones, less than 576px) */
+    @media (max-width: 575.98px) {
+      .skill-icon {
+        width: 50%;
+      }
+      .skill-icon i {
+        font-size: 70px;
+      }
+      .single-skill {
+        width: 50%;
+      }
+    }
+    .progress {
+      margin:20px auto;
+      padding:0;
+      width:90%;
+      height: 22px;
+      overflow:hidden;
+      background:#e5e5e5;
+      border-radius:6px;
+    }
+    .bar {
+      position:relative;
+      float:left;
+      min-width:1%;
+      height:100%;
+      background:cornflowerblue;
+    }
+    .percent {
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      margin:0;
+      font-family:tahoma,arial,helvetica;
+      font-size: 10px;
+      color:white;
+    }
   </style>
 
   <div class="modal fade" id="review-bom-modal" tabindex="-1" role="dialog">
@@ -704,11 +855,128 @@
 
 @section('script')
 <script>
+  function makesvg(percentage, inner_text=""){
+    var abs_percentage = Math.abs(percentage).toString();
+    var percentage_str = percentage.toString();
+    var classes = "";
+    if(percentage < 0){
+        classes = "danger-stroke circle-chart__circle--negative";
+    } else if(percentage > 0 && percentage <= 30){
+        classes = "warning-stroke";
+    } else{
+        classes = "success-stroke";
+    }
+    var svg = '<svg class="circle-chart" viewbox="0 0 33.83098862 33.83098862" xmlns="http://www.w3.org/2000/svg">'
+        + '<circle class="circle-chart__background" cx="16.9" cy="16.9" r="15.9" />'
+        + '<circle class="circle-chart__circle '+classes+'"'
+        + 'stroke-dasharray="'+ abs_percentage+',100"    cx="16.9" cy="16.9" r="15.9" />'
+        + '<g class="circle-chart__info">'
+        + '   <text class="circle-chart__percent" x="17.9" y="19.5">'+percentage_str+'%</text>';
+    if(inner_text){
+        svg += '<text class="circle-chart__subline" x="16.91549431" y="22">'+inner_text+'</text>'
+    }
+    svg += ' </g></svg>';
+    return svg
+  }
+  (function( $ ) {
+    $.fn.circlechart = function() {
+      this.each(function() {
+        var percentage = $(this).data("percentage");
+        var inner_text = $(this).text();
+        $(this).html(makesvg(percentage, inner_text));
+      });
+      return this;
+    };
+  }( jQuery ));
+
   $(document).ready(function(){
+    function dashboard_in_process_projects(operation){
+      $.ajax({
+        url:"/dashboard_in_process_projects",
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          if (operation == 1) {
+            $('#fabrication-in-process-projects-list').html(data);
+          } else if (operation == 3) {
+            $('#assembly-in-process-projects-list').html(data);
+          } else {
+            $('#painting-in-process-projects-list').html(data);
+          }
+        }
+      }); 
+    }
+    function dashboard_numbers(operation){
+      $.ajax({
+        url:"/dashboard_numbers",
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          if (operation == 1) {
+            $('#fab-scheduled').text(data.scheduled);
+            $('#fab-for-feedback').text(data.for_feedback);
+            $('#fab-ongoing').text(data.ongoing);
+            $('#fab-completed').text(data.completed);
+            $('#fab-quality-inspections').text(data.quality_inspections);
+            $('#fab-rejects').text(data.rejects);
+            $('#fab-daily-output').text(data.daily_output);
+          } else if (operation == 3) {
+            $('#wa-scheduled').text(data.scheduled);
+            $('#wa-for-feedback').text(data.for_feedback);
+            $('#wa-ongoing').text(data.ongoing);
+            $('#wa-completed').text(data.completed);
+            $('#wa-quality-inspections').text(data.quality_inspections);
+            $('#wa-rejects').text(data.rejects);
+            $('#wa-daily-output').text(data.daily_output);
+          } else {
+            $('#p-scheduled').text(data.scheduled);
+            $('#p-for-feedback').text(data.for_feedback);
+            $('#p-ongoing').text(data.ongoing);
+            $('#p-completed').text(data.completed);
+            $('#p-quality-inspections').text(data.quality_inspections);
+            $('#p-rejects').text(data.rejects);
+            $('#p-daily-output').text(data.daily_output);
+          }
+        }
+      }); 
+    }
+    function dashboard_machine_status(operation){
+      $.ajax({
+        url:"/dashboard_machine_status",
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          if (operation == 1) {
+            $('#fabrication-machines-status-table').html(data);
+          } else if (operation == 3) {
+            $('#assembly-machines-status-table').html(data);
+          } else {
+            $('#painting-machines-status-table').html(data);
+          }
+        }
+      }); 
+    }
+    function dashboard_operator_list(operation){
+      $.ajax({
+        url:"/dashboard_operator_list",
+        type:"GET",
+        data: {operation: operation},
+        success:function(data){
+          if (operation == 1) {
+            $('#fabrication-operators-table').html(data);
+          } else if (operation == 3) {
+            $('#assembly-operators-table').html(data);
+          } else {
+            $('#painting-operators-table').html(data);
+          }
+        }
+      }); 
+    }
+
     var date_today = $("#date_today").val();
 
     load_dashboard();
-    count_current_production();
+    // count_current_production();
     function load_dashboard(){
       $( "#on-going-production-orders-content .tab-pane" ).each(function( index ) {
         const operation = $(this).data('operation');
@@ -716,6 +984,10 @@
         
         get_ongoing_production_orders(operation, el);
         get_qa(operation, el);
+        dashboard_machine_status(operation);
+        dashboard_operator_list(operation);
+        dashboard_in_process_projects(operation);
+        dashboard_numbers(operation);
         // get_machine_status_per_operation(operation, el);
         // maintenance_schedules_per_operation(operation, el);
       });
@@ -746,7 +1018,7 @@
     // setInterval(load_dashboard, 10000);
     // setInterval(count_current_production, 8000);
 
-    setInterval(notif_dashboard('#tbl-notifications'), 7000);
+    // setInterval(notif_dashboard('#tbl-notifications'), 7000);
 
     $(document).on('click', '#add-operation-btn', function(){
     var workstation = $('#sel-workstation option:selected').text();
@@ -768,16 +1040,16 @@
          $(this).parents("tr").remove();
       });
 
-    function get_qa(operation, el){
-      $.ajax({
-        url:"/qa_monitoring_summary/" + date_today,
-        type:"GET",
-        data: {operation: operation},
-        success:function(data){
-          $(el).find('.table-div').eq(3).html(data);
-        }
-      }); 
-    }
+    // function get_qa(operation, el){
+    //   $.ajax({
+    //     url:"/qa_monitoring_summary/" + date_today,
+    //     type:"GET",
+    //     data: {operation: operation},
+    //     success:function(data){
+    //       $(el).find('.table-div').eq(3).html(data);
+    //     }
+    //   }); 
+    // }
 
     function get_ongoing_production_orders(operation, el){
       $.ajax({
@@ -1074,7 +1346,8 @@
     $('#get-notifications-btn').click(function(e){
       e.preventDefault();
 
-      notif_dashboard('#tbl-notifications-modal');
+      notif_dashboard('#tbl-notifications');
+      warnings_dashboard();
       $('#view-notifications-modal').modal('show');
     });
   
@@ -1100,39 +1373,6 @@
 
       $("#current-time").html(currentTimeString);
     }
-
-    function count_current_production(){
-      $.ajax({
-        url:"/count_current_production_order/" + date_today,
-        type:"GET",
-        success:function(data){
-          $('#fab-planned').text(data.fab_planned);
-          $('#fab-planned-qty').text(data.fab_planned_qty);
-          $('#fab-wip').text(data.fab_wip);
-          $('#fab-wip-qty').text(data.fab_wip_qty);
-          $('#fab-done').text(data.fab_done);
-          $('#fab-done-qty').text(data.fab_done_qty);
-          $('#fab-for-feedback').text(data.fab_for_feedback);
-          $('#fab-for-feedback-qty').text(data.fab_for_feedback_qty);
-          $('#wa-planned').text(data.wa_planned);
-          $('#wa-planned-qty').text(data.wa_planned_qty);
-          $('#wa-wip').text(data.wa_wip);
-          $('#wa-wip-qty').text(data.wa_wip_qty);
-          $('#wa-done').text(data.wa_done);
-          $('#wa-done-qty').text(data.wa_done_qty);
-          $('#wa-for-feedback').text(data.wa_for_feedback);
-          $('#wa-for-feedback-qty').text(data.wa_for_feedback_qty);
-          $('#pa-planned').text(data.pa_planned);
-          $('#pa-planned-qty').text(data.pa_planned_qty);
-          $('#pa-wip').text(data.pa_wip);
-          $('#pa-wip-qty').text(data.pa_wip_qty);
-          $('#pa-done').text(data.pa_done);
-          $('#pa-done-qty').text(data.pa_done_qty);
-          $('#pa-for-feedback').text(data.pa_for_feedback);
-          $('#pa-for-feedback-qty').text(data.pa_for_feedback_qty);
-        }
-      }); 
-    }
   });
 </script>
 
@@ -1157,7 +1397,8 @@
         type:"GET",
         success:function(data){
           $('#tbl-warnings').html(data);
-          $('#warnings-badge').text($('#warnings-count').val());
+          $('#warnings-badge-1').text($('#warnings-count').val());
+          $('#warnings-badge-2').text($('#warnings-count').val());
         }
       });
     // }, 5000);

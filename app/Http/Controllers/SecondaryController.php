@@ -1227,11 +1227,9 @@ class SecondaryController extends Controller
 
     }
     public function get_machine_list_data(Request $request){
-        $machine_list= DB::connection('mysql_mes')
-                ->table('machine')
-                ->where('machine_id', $request->id)
-                ->first();
-        // dd($machine_list);
+        $machine_list= DB::connection('mysql_mes')->table('machine')
+                ->where('machine_id', $request->id)->first();
+
         return view('tables.tbl_machine_list', compact('machine_list'));
     }
     public function get_machine_profile($id){
@@ -1254,7 +1252,9 @@ class SecondaryController extends Controller
             ->select('pm.*', 'p.process_name')
             ->get();
 
-        return view('machine_profile', compact('machine_list', 'process_list'));
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('machine_profile', compact('machine_list', 'process_list', 'permissions'));
     }
     public function delete_machine(Request $request){
         $itemissued = Machine::find($request->machine_id);
@@ -1332,6 +1332,7 @@ class SecondaryController extends Controller
 
     }
     public function workstation_profile($id){
+        $permissions = $this->get_user_permitted_operation();
         $list= DB::connection('mysql_mes')
                 ->table('workstation as w')
                 ->join('operation as op','op.operation_id', 'w.operation_id')
@@ -1346,7 +1347,7 @@ class SecondaryController extends Controller
                 ->orderBy('process_name', 'Asc')
                 ->get();
 
-        return view('workstation_profile', compact('list','machine','process_list'));
+                return view('workstation_profile', compact('list','machine','process_list', 'permissions'));
 
     }
     public function getNextIdxMachineWorkstation($id)
@@ -4546,6 +4547,7 @@ class SecondaryController extends Controller
     }
     
     public function production_schedule_calendar($operation_id){
+        $permissions = $this->get_user_permitted_operation();
         switch ($operation_id) {
             case 1:
                 $operation_name = 'Fabrication';
@@ -4558,7 +4560,7 @@ class SecondaryController extends Controller
                 break;
         }
 
-        return view('production_schedule_calendar', compact('operation_id','operation_name'));
+        return view('production_schedule_calendar', compact('operation_id','operation_name', 'permissions'));
     }
 
     public function get_production_schedule_calendar($operation_id){

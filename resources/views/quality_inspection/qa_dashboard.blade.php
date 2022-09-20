@@ -1,41 +1,14 @@
 @extends('layouts.user_app', [
     'namePage' => 'MES',
     'activePage' => 'qa_dashboard',
+    'pageHeader' => 'Quality Assurance Dashboard',
+  'pageSpan' => Auth::user()->employee_name . ' - ' . $user_details->designation_name
 ])
 
 @section('content')
-<div class="panel-header">
-   <div class="header text-center"> 
-      <div class="row">
-        <div class="col-md-12" style="margin-top:-71px;">
-            <table style="text-align: center; width: 100%;">
-              <tr>
-                <td style="width: 25%; border-right: 5px solid white;">
-                  <h5 class="title">
-                    <div class="pull-right" style="margin-right: 20px;">
-                      <span style="display: block; font-size: 18pt;">{{ date('M-d-Y') }}</span>
-                      <span style="display: block; font-size: 11pt;">{{ date('l') }}</span>
-                    </div>
-                  </h5>
-                </td>
-                <td style="width: 14%; border-right: 5px solid white;">
-                  <h5 class="title" style="margin: auto; font-size: 25pt;"><span id="current-time">--:--:-- --</span></h5>
-                </td>
-                <td style="width: 50%">
-                  <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Quality Assurance Dashboard</h4>
-                  <span class="title text-left" style="margin-left: 20px; margin: auto 20pt;float:left;">
-                    <i>{{ Auth::user()->employee_name }} - {{ $user_details->designation_name }}</i>
-                  </span>
-                </td>
-              </tr>
-            </table>
-        </div>
-      </div>
-   </div>
-</div>
+<div class="panel-header"></div>
 
-<div class="content">
-  <div class="row" style="margin-top: -185px;">
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
     <div class="col-md-12">
       <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
         <li class="nav-item">
@@ -922,7 +895,6 @@
       </div>
     </div>
   </div>
-</div>
 
   
 <style>

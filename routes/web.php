@@ -165,46 +165,46 @@ Route::post('/reorder_productions', 'SecondaryController@reorderProdOrder');
 Route::get('/machine_kanban/workstation/{id}/{name}', 'SecondaryController@machine_kanban_workstation');
 Route::get('/get_count_unassignedTask/machineKanban/{workstation}/{date}', 'SecondaryController@countUnassignedTasksForOperator');
 
-route::get('/machine_list','SecondaryController@goto_machine_list');
-route::post('/save_machine','SecondaryController@insert_machine');
-route::post('/edit_machine','SecondaryController@update_machine');
-route::post('/delete_machine','SecondaryController@delete_machine');
-route::get('/get_machine_list','SecondaryController@get_machine_list_data');
-route::get('/goto_machine_profile/{id}','SecondaryController@get_machine_profile');
-route::get('/workstation_list','SecondaryController@get_workstation_list');
-route::get('/get_tbl_machine_profile','SecondaryController@machine_profile_tbl');
-route::get('/maintenance_machine_list','SecondaryController@maintenanceMachineList');
-route::get('/workstation_profile/{id}','SecondaryController@workstation_profile');
-route::post('/save_workstation_machine','SecondaryController@insert_machineToworkstation');
-route::post('/delete_workstation_machine','SecondaryController@delete_machineToworkstation');
-route::get('/get_machine_to_select','SecondaryController@get_machine_to_select');
-route::post('/save_workstation','SecondaryController@save_workstation');
-route::post('/edit_workstation','SecondaryController@edit_workstation');
-route::post('/delete_workstation','SecondaryController@delete_workstation');
-route::post('/save_process_workstation','SecondaryController@save_process_workstation');
-route::get('/get_tbl_workstation_process','SecondaryController@get_tbl_workstation_process');
-route::get('/get_tbl_workstation_machine','SecondaryController@get_tbl_workstation_machine');
-route::post('/delete_process_workstation','SecondaryController@delete_process_workstation');
-route::post('/save_machine_process','SecondaryController@save_machine_process');
-route::post('/delete_machine_process','SecondaryController@delete_machine_process');
-route::get('/get_workstation_process_jquery/{id}','SecondaryController@get_workstation_process_jquery');
-route::post('/save_process','SecondaryController@save_process');
-route::get('/process_profile/{id}','SecondaryController@process_profile');
-route::get('/get_tbl_assigned_workstation_process','SecondaryController@get_tbl_assigned_workstation_process');
-route::get('/get_tbl_assigned_machine_process','SecondaryController@get_tbl_assigned_machine_process');
-route::get('/get_machine_assignment_jquery/{id}','SecondaryController@get_machine_assignment_jquery');
-route::get('/get_AssignProcessinMachine_jquery/{id}/{workstation}','SecondaryController@get_AssignProcessinMachine_jquery');
-route::post('/process_assignment','SecondaryController@process_assignment');
-route::get('/get_tbl_assigned_machine_process/{id}','SecondaryController@tbl_assigned_machine_process');
-route::get('/get_tbl_process_setup_list','SecondaryController@tbl_process_setup_list');
-route::get('/get_tbl_machine_setup_list','SecondaryController@tbl_machine_setup_list');
-route::post('/update_process_setup_list','SecondaryController@Update_process_setup_list');
-route::post('/delete_process_setup_list','SecondaryController@Delete_process_setup_list');
-Route::get('/get_production_order_details/{id}/{workstation}/{machine}', 'MainController@get_production_order_details');
-Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'SecondaryController@machineKanban_view_machineList');
-
 // WIZARD
 Route::group(['middleware' => 'auth'], function(){
+	route::get('/machine_list','SecondaryController@goto_machine_list');
+	route::post('/save_machine','SecondaryController@insert_machine');
+	route::post('/edit_machine','SecondaryController@update_machine');
+	route::post('/delete_machine','SecondaryController@delete_machine');
+	route::get('/get_machine_list','SecondaryController@get_machine_list_data');
+	route::get('/goto_machine_profile/{id}','SecondaryController@get_machine_profile');
+	route::get('/workstation_list','SecondaryController@get_workstation_list');
+	route::get('/get_tbl_machine_profile','SecondaryController@machine_profile_tbl');
+	route::get('/maintenance_machine_list','SecondaryController@maintenanceMachineList');
+	route::get('/workstation_profile/{id}','SecondaryController@workstation_profile');
+	route::post('/save_workstation_machine','SecondaryController@insert_machineToworkstation');
+	route::post('/delete_workstation_machine','SecondaryController@delete_machineToworkstation');
+	route::get('/get_machine_to_select','SecondaryController@get_machine_to_select');
+	route::post('/save_workstation','SecondaryController@save_workstation');
+	route::post('/edit_workstation','SecondaryController@edit_workstation');
+	route::post('/delete_workstation','SecondaryController@delete_workstation');
+	route::post('/save_process_workstation','SecondaryController@save_process_workstation');
+	route::get('/get_tbl_workstation_process','SecondaryController@get_tbl_workstation_process');
+	route::get('/get_tbl_workstation_machine','SecondaryController@get_tbl_workstation_machine');
+	route::post('/delete_process_workstation','SecondaryController@delete_process_workstation');
+	route::post('/save_machine_process','SecondaryController@save_machine_process');
+	route::post('/delete_machine_process','SecondaryController@delete_machine_process');
+	route::get('/get_workstation_process_jquery/{id}','SecondaryController@get_workstation_process_jquery');
+	route::post('/save_process','SecondaryController@save_process');
+	route::get('/process_profile/{id}','SecondaryController@process_profile');
+	route::get('/get_tbl_assigned_workstation_process','SecondaryController@get_tbl_assigned_workstation_process');
+	route::get('/get_tbl_assigned_machine_process','SecondaryController@get_tbl_assigned_machine_process');
+	route::get('/get_machine_assignment_jquery/{id}','SecondaryController@get_machine_assignment_jquery');
+	route::get('/get_AssignProcessinMachine_jquery/{id}/{workstation}','SecondaryController@get_AssignProcessinMachine_jquery');
+	route::post('/process_assignment','SecondaryController@process_assignment');
+	route::get('/get_tbl_assigned_machine_process/{id}','SecondaryController@tbl_assigned_machine_process');
+	route::get('/get_tbl_process_setup_list','SecondaryController@tbl_process_setup_list');
+	route::get('/get_tbl_machine_setup_list','SecondaryController@tbl_machine_setup_list');
+	route::post('/update_process_setup_list','SecondaryController@Update_process_setup_list');
+	route::post('/delete_process_setup_list','SecondaryController@Delete_process_setup_list');
+	Route::get('/get_production_order_details/{id}/{workstation}/{machine}', 'MainController@get_production_order_details');
+	Route::get('/machineKanban_view_machineList/{id}/{workstation}/{machine}', 'SecondaryController@machineKanban_view_machineList');
+
 	Route::get('/view_override_form/{production_order}', 'MainController@viewOverrideForm');
 	Route::post('/update_override_production_form', 'MainController@updateOverrideProduction');
 	
@@ -663,6 +663,12 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_painting_for_feedback_production', 'PaintingController@get_for_feedback_production');
 	Route::get('/get_painting_cancelled_production_orders', 'PaintingController@get_cancelled_production_orders');
 	Route::post('/sync_production_order_items/{production_order}', 'ManufacturingController@sync_production_order_items');
+
+	Route::get('/dashboard_machine_status', 'MainController@dashboardMachineStatus');
+	Route::get('/dashboard_operator_list', 'MainController@dashboardOperatorList');
+	Route::get('/dashboard_in_process_projects', 'MainController@dashboardInProcessProjects');
+	Route::get('/dashboard_numbers', 'MainController@dashboardNumbers');
+
 });
 
 //operator_checklist
@@ -770,6 +776,12 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/production_inaccurate_material_transferred', 'MainController@inaccurateProductionTransferredQtyWithWithdrawals');
 	Route::get('/timelogOutputVsProducedQty', 'MainController@timelogOutputVsProducedQty');
 	Route::get('/jobTicketCompletedQtyVsTimelogsCompletedQty', 'MainController@jobTicketCompletedQtyVsTimelogsCompletedQty');
+
+	Route::get('/audit_report/mismatched_po_status', 'LinkReportController@mismatched_po_status');
+	Route::get('/audit_report/feedbacked_po_with_pending_ste', 'LinkReportController@feedbacked_po_with_pending_ste');
+	Route::get('/audit_report/transferred_required_qty_mismatch', 'LinkReportController@transferred_required_qty_mismatch');
+	Route::get('/audit_report/overridden_production_orders', 'LinkReportController@overridden_production_orders');
+	Route::get('/audit_report/stocks_transferred_but_none_in_wip', 'LinkReportController@stocks_transferred_but_none_in_wip');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');
@@ -819,11 +831,5 @@ Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_outp
 Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
 Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
 Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
-
-Route::get('/audit_report/mismatched_po_status', 'LinkReportController@mismatched_po_status');
-Route::get('/audit_report/feedbacked_po_with_pending_ste', 'LinkReportController@feedbacked_po_with_pending_ste');
-Route::get('/audit_report/transferred_required_qty_mismatch', 'LinkReportController@transferred_required_qty_mismatch');
-Route::get('/audit_report/overridden_production_orders', 'LinkReportController@overridden_production_orders');
-Route::get('/audit_report/stocks_transferred_but_none_in_wip', 'LinkReportController@stocks_transferred_but_none_in_wip');
 
 Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
