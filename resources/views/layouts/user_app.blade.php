@@ -80,7 +80,7 @@
           <a href="/production_schedule/1" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Fabrication Scheduling</span>
-            </a>
+          </a>
         </li>
         <li class="m-0 {{ !$allowed_on_painting ? 'd-none' : '' }}">
           <a href="/production_schedule/0" class="d-block m-0 p-1" style="text-decoration: none;">
@@ -110,21 +110,6 @@
           </a>
         </li>
       </ul>
-      {{-- <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Tools</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/item_disassembly" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Disassemble Item</span>
-          </a>
-        </li>
-        <li class="ml-1 p-1">
-          <a href="/repack" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Repack</span>
-          </a>
-        </li>
-      </ul> --}}
       @endif
       @if ($is_qa_user)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Quality Assurance</h6>
@@ -169,300 +154,252 @@
           </a>
         </li>
       </ul>
-      </div>
-      
-    </nav>
-    <style>
-       .effect-01 ul li  {
-          border-radius: 5px;
-          border: 1px solid rgba(0,0,0,0);
-          margin: 5px 10px;
-        }	
-        .effect-01 ul li:hover {
-          background: rgba(66, 66, 66, 0.108);
-          border-bottom: 1px solid rgba(0,0,0,.2);
-          border-top: 1px solid rgba(255,255,255,.5);
-          box-shadow: 0 2px 2px rgba(0,0,0,.1);
-          position: relative;
-          text-shadow: 1px 1px 1px rgba(255,255,255,.5);
-        }
-        .effect-01 ul li:active {
-          background: rgba(100,100,100,.05);
-          border-bottom-color: rgba(0,0,0,0);
-          box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
-          text-shadow: none;
-          top: 1px;
-        }
-
-      #wrapper {
-        display: flex;
-        width: 100%;
-      }
-      #sidebar {
-        min-height: 100vh;
-        position: fixed;
-        transition: all 0.25s;
-        width: 265px;
-      }
-      #content {
-        min-height: 100vh;
-        padding: 0;
-        position: absolute;
-        right: 0;
-        transition: all 0.25s;
-        width: calc(100% - 265px);
-      }
-      .no-sidebar #sidebar {
-        margin-left: -265px;
-      }
-      .no-sidebar #content {
-        width: 100%;
-      }
-    </style>
-    @endisset
-   
-    <!-- Page Content -->
-    <div id="content">
-        @if (Auth::check())
-          <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width pb-1 pl-1 pr-1 pt-2">
-            <div class="container-fluid m-0 p-0" id="next">
-              <div class="collapse navbar-collapse" id="navigation">
-                <ul class="navbar-nav col-7 m-0 p-0">
-                  <li class="nav-item active">
-                    <div id="sidebar-toggle" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
-                  </li>
-                  <li class="nav-item active text-center" style="width: 220px;">
-                    <span class="d-block font-weight-bold" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-                    <span class="d-block" style="font-size: 10pt;">{{ date('l') }}</span>
-                  </li>
-                  <li class="nav-item active text-center" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
-                    <span id="current-time" style="font-size: 22pt;">--:--:-- --</span>
-                  </li>
-                  <li class="nav-item active">
-                    <span class="d-block font-weight-bold" style="font-size: 14pt; margin-left: 20px;">{{ $pageHeader }}</span>
-                    @if (Auth::check())
-                    <span class="d-block" style="font-size: 10pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
-                    @endif
-                  </li>
-                </ul>
-                <ul class="navbar-nav m-0 col-5 justify-content-end p-0">
-                  @if (in_array($activePage,['production_schedule', 'production_schedule_painting', 'production_schedule_assembly']))
-                  @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
-                  <li class="nav-item active dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="now-ui-icons files_paper"></i> Scheduling
-                      <p>
-                        <span class="d-lg-none d-md-block">Scheduling</span>
-                      </p>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                        @if(in_array('Fabrication', $mes_user_operations))
-                        <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/production_schedule/1">Fabrication</a>
-                        @endif
-                        @if ($activePage != 'production_schedule_painting')
-                        @if(in_array('Painting', $mes_user_operations))
-                        <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/0">Painting</a>
-                        @endif
-                        @endif
-                        <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/production_schedule/3">Assembly</a>
-                      </div>
-                  </li>
-                  @endif
-                  @endif
-
-                  @if (in_array($activePage,['operators_item_report', 'painting_production_orders']))
-                  @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
-                  <li class="nav-item active dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="now-ui-icons files_paper"></i> Reports
-                      <p>
-                        <span class="d-lg-none d-md-block">Reports</span>
-                      </p>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                      @if ($activePage != 'operators_item_report')
-                      @if(in_array('Fabrication', $mes_user_operations))
-                      <a class="dropdown-item" href="/operator_item_produced_report">Fabrication</a>
-                      @endif
-                      @endif
-                      @if ($activePage != 'painting_production_orders')
-                      @if(in_array('Painting', $mes_user_operations))
-                      <a class="dropdown-item" href="/painting_production_orders">Painting</a>
-                      @endif
-                      @endif
-                    </div>
-                  </li>
-                  @endif
-                  @endif
-
-                  @if (in_array($activePage,['production_planning', 'production_planning_assembly']))
-                  @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
-                  {{-- <li class="nav-item active dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="now-ui-icons files_paper"></i> Planning
-                      <p>
-                        <span class="d-lg-none d-md-block">Planning</span>
-                      </p>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                      @if ($activePage != 'production_planning')
-                      @if(in_array('Fabrication', $mes_user_operations))
-                      <a class="dropdown-item" href="/wizard">Fabrication</a>
-                      @endif
-                      @endif
-                      @if ($activePage != 'production_planning_assembly')
-                      @if(in_array('Wiring and Assembly', $mes_user_operations))
-                      <a class="dropdown-item" href="/assembly/wizard">Assembly</a>
-                      @endif
-                      @endif
-                    </div>
-                  </li> --}}
-                  @endif
-                  @endif
-                  
-                  @if (in_array($activePage,['production_schedule', 'operators_load_utilization']))
-                  <li class="nav-item active dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="now-ui-icons files_paper"></i> Reports
-                      <p>
-                        <span class="d-lg-none d-md-block">Reports</span>
-                      </p>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                      <a class="dropdown-item" href="#" id="view-item-tracking-btn">Item Tracking</a>
-                      <a class="dropdown-item" href="/operators_load_utilization">Operator Load Utilization</a>
-                      <a class="dropdown-item" href="/production_schedule_report">Production Schedule Report</a>
-                      <a class="dropdown-item" href="/item_feedback">Production Order(s)</a>
-                    </div>
-                  </li>
-                  @endif
-                  {{-- <li class="nav-item active" {{ (in_array($activePage,['production_planning', 'machine_schedule', 'item_feedback'])  ? '' : 'hidden') }}>
-                    <a class="nav-link" href="/production_schedule/1">
-                      <i class="now-ui-icons files_paper"></i> Production Schedule
-                      <p>
-                        <span class="d-lg-none d-md-block"> Production Schedule</span>
-                      </p>
-                    </a>
-                  </li>
-                  <li class="nav-item active" {{ (in_array($activePage,['production_schedule', 'item_feedback'])  ? '' : 'hidden') }}>
-                    <a class="nav-link" href="/wizard">
-                      <i class="now-ui-icons files_paper"></i> Planning Wizard
-                      <p>
-                        <span class="d-lg-none d-md-block"> Planning Wizard</span>
-                      </p>
-                    </a>
-                  </li> --}}
-                  @if ($activePage == 'main_dashboard')
-                  <li class="nav-item active">
-                    <a class="nav-link" href="#" id="get-notifications-btn">
-                      <i class="now-ui-icons ui-1_bell-53"></i> Notifications <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
-                      <p>
-                        <span class="d-lg-none d-md-block"> Notifications</span>
-                      </p>
-                    </a>
-                  </li>
-                  @endif
-
-                  @if ($activePage == 'main_dashboard')
-                  <li class="nav-item active">
-                    <a class="nav-link" href="#" id="view-item-tracking-btn">
-                      <i class="now-ui-icons location_pin"></i> Item Tracking
-                      <p>
-                        <span class="d-lg-none d-md-block"> Item Tracking</span>
-                      </p>
-                    </a>
-                  </li>
-                  @endif
-
-                  <li class="nav-item active" {{ $activePage == 'login' ? 'hidden' : '' }}>
-                    <a class="nav-link" href="#" id="jt-search-btn">
-                      <i class="now-ui-icons ui-1_zoom-bold"></i> Production Order Search
-                      <p>
-                        <span class="d-lg-none d-md-block">Production Order Search</span>
-                      </p>
-                    </a>
-                  </li>
-
-                  @if(Auth::user())
-                  <li class="nav-item active">
-                    <a class="nav-link" href="/logout_user">
-                      <i class="now-ui-icons media-1_button-power"></i> Logout
-                      <p>
-                        <span class="d-lg-none d-md-block">Logout</span>
-                      </p>
-                    </a>
-                  </li>
-                  <li class="nav-item active">
-                    <a class="nav-link" href="#" data-toggle="modal" data-target="#about-modal">
-                      <i class="now-ui-icons travel_info"></i>
-                    </a>
-                  </li>
-                  @endif
-                </ul>
+    </div>
+  </nav>
+  <style>
+    .effect-01 ul li  {
+      border-radius: 5px;
+      border: 1px solid rgba(0,0,0,0);
+      margin: 5px 10px;
+    }	
+    .effect-01 ul li:hover {
+      background: rgba(66, 66, 66, 0.108);
+      border-bottom: 1px solid rgba(0,0,0,.2);
+      border-top: 1px solid rgba(255,255,255,.5);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1);
+      position: relative;
+      text-shadow: 1px 1px 1px rgba(255,255,255,.5);
+    }
+    .effect-01 ul li:active {
+      background: rgba(100,100,100,.05);
+      border-bottom-color: rgba(0,0,0,0);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
+      text-shadow: none;
+      top: 1px;
+    }
+    #wrapper {
+      display: flex;
+      width: 100%;
+    }
+    #sidebar {
+      min-height: 100vh;
+      position: fixed;
+      transition: all 0.25s;
+      width: 265px;
+    }
+    #content {
+      min-height: 100vh;
+      padding: 0;
+      position: absolute;
+      right: 0;
+      transition: all 0.25s;
+      width: calc(100% - 265px);
+    }
+    .no-sidebar #sidebar {
+      margin-left: -265px;
+    }
+    .no-sidebar #content {
+      width: 100%;
+    }
+  </style>
+  @endisset
+  <!-- Page Content -->
+  <div id="content">
+    @if (Auth::check())
+    <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width pb-1 pl-1 pr-1 pt-2">
+      <div class="container-fluid m-0 p-0" id="next">
+        <div class="collapse navbar-collapse" id="navigation">
+          <ul class="navbar-nav col-7 m-0 p-0">
+            <li class="nav-item active">
+              <div id="sidebar-toggle" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
+            </li>
+            <li class="nav-item active text-center" style="width: 220px;">
+              <span class="d-block font-weight-bold" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
+              <span class="d-block" style="font-size: 10pt;">{{ date('l') }}</span>
+            </li>
+            <li class="nav-item active text-center" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
+              <span id="current-time" style="font-size: 22pt;">--:--:-- --</span>
+            </li>
+            <li class="nav-item active">
+              <span class="d-block font-weight-bold" style="font-size: 14pt; margin-left: 20px;">{{ $pageHeader }}</span>
+              @if (Auth::check())
+              <span class="d-block" style="font-size: 10pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
+              @endif
+            </li>
+          </ul>
+          <ul class="navbar-nav m-0 col-5 justify-content-end p-0">
+            @if (in_array($activePage,['production_schedule', 'production_schedule_painting', 'production_schedule_assembly']))
+            @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons files_paper"></i> Scheduling
+                <p>
+                  <span class="d-lg-none d-md-block">Scheduling</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                @if(in_array('Fabrication', $mes_user_operations))
+                <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/production_schedule/1">Fabrication</a>
+                @endif
+                @if ($activePage != 'production_schedule_painting')
+                @if(in_array('Painting', $mes_user_operations))
+                <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/0">Painting</a>
+                @endif
+                @endif
+                <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/production_schedule/3">Assembly</a>
               </div>
-            </div>
-          </nav>
-          @endif
-         
-        @yield('content')
+            </li>
+            @endif
+            @endif
 
-        <footer class="footer">
-          <div class="container-fluid">
-            <div class="copyright" id="copyright">
-              &copy;
-              <script>
-                document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))
-              </script>
-              <a href="#" target="_blank">FUMACO IT Dev. Team</a>
-            </div>
-          </div>
-        </footer>
+            @if (in_array($activePage,['operators_item_report', 'painting_production_orders']))
+            @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons files_paper"></i> Reports
+                <p>
+                  <span class="d-lg-none d-md-block">Reports</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                @if ($activePage != 'operators_item_report')
+                @if(in_array('Fabrication', $mes_user_operations))
+                <a class="dropdown-item" href="/operator_item_produced_report">Fabrication</a>
+                @endif
+                @endif
+                @if ($activePage != 'painting_production_orders')
+                @if(in_array('Painting', $mes_user_operations))
+                <a class="dropdown-item" href="/painting_production_orders">Painting</a>
+                @endif
+                @endif
+              </div>
+            </li>
+            @endif
+            @endif
+
+            @if (in_array($activePage,['production_schedule', 'operators_load_utilization']))
+            <li class="nav-item active dropdown">
+              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="now-ui-icons files_paper"></i> Reports
+                <p>
+                  <span class="d-lg-none d-md-block">Reports</span>
+                </p>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                <a class="dropdown-item" href="#" id="view-item-tracking-btn">Item Tracking</a>
+                <a class="dropdown-item" href="/operators_load_utilization">Operator Load Utilization</a>
+                <a class="dropdown-item" href="/production_schedule_report">Production Schedule Report</a>
+                <a class="dropdown-item" href="/item_feedback">Production Order(s)</a>
+              </div>
+            </li>
+            @endif
+            @if ($activePage == 'main_dashboard')
+            <li class="nav-item active">
+              <a class="nav-link" href="#" id="get-notifications-btn">
+                <i class="now-ui-icons ui-1_bell-53"></i> Notifications <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
+                <p>
+                  <span class="d-lg-none d-md-block"> Notifications</span>
+                </p>
+              </a>
+            </li>
+            @endif
+            @if ($activePage == 'main_dashboard')
+            <li class="nav-item active">
+              <a class="nav-link" href="#" id="view-item-tracking-btn">
+                <i class="now-ui-icons location_pin"></i> Item Tracking
+                <p>
+                  <span class="d-lg-none d-md-block"> Item Tracking</span>
+                </p>
+              </a>
+            </li>
+            @endif
+            <li class="nav-item active" {{ $activePage == 'login' ? 'hidden' : '' }}>
+              <a class="nav-link" href="#" id="jt-search-btn">
+                <i class="now-ui-icons ui-1_zoom-bold"></i> Production Order Search
+                <p>
+                  <span class="d-lg-none d-md-block">Production Order Search</span>
+                </p>
+              </a>
+            </li>
+            @if(Auth::user())
+            <li class="nav-item active">
+              <a class="nav-link" href="/logout_user">
+                <i class="now-ui-icons media-1_button-power"></i> Logout
+                <p>
+                  <span class="d-lg-none d-md-block">Logout</span>
+                </p>
+              </a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="#" data-toggle="modal" data-target="#about-modal">
+                <i class="now-ui-icons travel_info"></i>
+              </a>
+            </li>
+            @endif
+          </ul>
+        </div>
       </div>
-</div>
+    </nav>
+    @endif
+         
+    @yield('content')
 
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="copyright" id="copyright">
+          &copy;
+          <script>
+            document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))
+          </script>
+          <a href="#" target="_blank">FUMACO IT Dev. Team</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>
 <div class="sidebar">
   <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
 </div>
 
-  <div class="modal fade" id="about-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold"><i class="now-ui-icons travel_info"></i> About</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+<div class="modal fade" id="about-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title font-weight-bold"><i class="now-ui-icons travel_info"></i> About</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-12">
+            <h4 class="text-center title">Manufacturing Execution System</h4>
+            <h5 class="text-center" style="font-style: italic;">version: <b>10</b> <span style="font-size: 9pt;">Latest Release: 2022-05-20</span></h5>
+          </div>          
         </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12">
-              <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>9.1</b> <span style="font-size: 9pt;">Latest Release: 2022-05-20</span></h5>
-            </div>          
-          </div>
-        </div>
-        <div class="modal-footer">
-            <span class="text-primary">&copy; 2020 FUMACO IT Dev. Team</span>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="text-primary">&copy; 2022 FUMACO IT Dev. Team</span>
       </div>
     </div>
   </div>
+</div>
 
   <div class="modal fade" id="jt-workstations-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
-          
-      
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+        <div class="text-white rounded-top" style="background-color: #0277BD;">
+          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+            <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+            <div class="float-right">
+              <h5 class="modal-title font-weight-bold prod_title_reset p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="modal-body" style="min-height: 600px;">
-            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
-              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails1" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
-            </div>
           <div id="production-search-content"></div>
         </div>
       </div>
@@ -472,17 +409,18 @@
   <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;" id="prod_search2">
-          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+        <div class="text-white rounded-top" style="background-color: #0277BD;">
+          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+            <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+            <div class="float-right">
+              <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="modal-body" style="min-height: 600px;">
-            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
-              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails2" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
-
-            </div>
           <div id="production-search-content-modal2"></div>
         </div>
       </div>

@@ -21,23 +21,23 @@ class SpotweldingController extends Controller
 	use GeneralTrait;
 	
 	public function operator_spotwelding_dashboard(){
-		 $tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', 'Spotwelding')
-        	->select('workstation_name', 'workstation_id')->first();
+		$tabWorkstation= DB::connection('mysql_mes')->table('workstation')
+			->where('workstation_name', 'Spotwelding')->select('workstation_name', 'workstation_id')->first();
 
-		$workstation_list = DB::connection('mysql_mes')
-			->table('workstation as w')
+		$workstation_list = DB::connection('mysql_mes')->table('workstation as w')
 			->join('operation as op','op.operation_id', "w.operation_id")
-			->where('op.operation_name', 'Fabrication')
-			->orderBy('w.order_no', 'asc')->pluck('w.workstation_name');
-        
-        $now = Carbon::now();
-        $workstation = $tabWorkstation->workstation_name;
-        $workstation_id = $tabWorkstation->workstation_id;
-        $workstation_name = 'Spotwelding';
-        $date = $now->format('M d Y');
-        $day_name= $now->format('l');
+			->where('op.operation_name', 'Fabrication')->orderBy('w.order_no', 'asc')->pluck('w.workstation_name');
+		
+		$now = Carbon::now();
+		$workstation = $tabWorkstation->workstation_name;
+		$workstation_id = $tabWorkstation->workstation_id;
+		$workstation_name = 'Spotwelding';
+		$date = $now->format('M d Y');
+		$day_name= $now->format('l');
 
-        return view('operator_spotwelding_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id'));
+		$operation_id = DB::connection('mysql_mes')->table('operation')->where('operation_name', 'Fabrication')->pluck('operation_id')->first();
+
+		return view('operator_spotwelding_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id'));
 	}
 
 	public function spotwelding_dashboard($machine, $job_ticket_id){

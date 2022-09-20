@@ -4750,26 +4750,6 @@ class MainController extends Controller
 		return view('tables.tbl_warnings_dashboard', compact('warnings'));
 	}
 
-    public function operator_spotwelding_dashboard(){
-		 $tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', 'Spotwelding')
-        	->select('workstation_name', 'workstation_id')->first();
-
-        $workstation_list = DB::connection('mysql_mes')
-        ->table('workstation as w')
-        ->join('operation as op', 'op.operation_id', 'w.operation_id')
-        ->where('op.operation_name', 'Fabrication')
-        ->orderBy('w.order_no', 'desc')->pluck('w.workstation_name');
-        
-        $now = Carbon::now();
-        $workstation = $tabWorkstation->workstation_name;
-        $workstation_id = $tabWorkstation->workstation_id;
-        $workstation_name = 'Spotwelding';
-        $date = $now->format('M d Y');
-        $day_name= $now->format('l');
-
-        return view('operator_spotwelding_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id'));
-	}
-
 	public function spotwelding_dashboard($machine, $job_ticket_id){
 		if(!Auth::user()){
 			return redirect('/operator/Spotwelding');

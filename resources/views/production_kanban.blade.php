@@ -9,7 +9,7 @@
 @section('content')
 <div class="panel-header"></div>
 @include('modals.view_for_feedback_list_modal')
-<div class="row p-3" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="row p-3" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
     <div class="card" style="background-color: #a6acaf;">
       <div class="row m-0 p-0">
         <div class="col-7 p-0">
@@ -68,20 +68,16 @@
               </table>
             </div>
           </div>
-          
         </div>
-
         <div class="col-5 p-0">
           <input type="hidden" id="primary-operation-id" value="{{ $primary_id }}">
           <input type="hidden" id="reload_point_page">
           <button type="button" class="btn btn-success mr-1 mt-1 mb-0" id="ready-for-feedback-btn">
             Ready for Feedback <span class="badge badge-danger m-0" id="ready-for-feedback-badge" style="font-size: 9pt;">0</span>
           </button>
-
           <button type="button" class="btn btn-primary mr-1 mt-1 mb-0" id="btn-prod-sched">
             <i class="now-ui-icons ui-1_calendar-60 mr-1"></i> Production Calendar
           </button>
-  
           <button type="button" class="btn text-center btn-prod-notif mr-1 mt-1 mb-0">
             <div class="containerbadge d-block" id="badge" style="padding-right:80px;margin-top:-10px;">
               <a class="entypo-bell"></a>
@@ -90,13 +86,11 @@
               <span style="display:inline-block; vertical-align: text-bottom;">Notifications</span>
             </div>
           </button>
-
           <a href="/production_schedule/{{$primary_id}}" class="mt-1 p-1" id="btn-prod-refresh" style="color:black;">
             <i class="now-ui-icons arrows-1_refresh-69 btn-refresh-page" style="font-size:25px;font-weight:bolder;color:black; vertical-align: middle;"></i>
           </a>
         </div>
       </div>
-    
       <div class="tab-content" style="min-height: 620px;">
         <div class="tab-pane" id="step3" role="tabpanel" aria-labelledby="step3-tab">
           <div class="row" style="margin-top: 10px;">
@@ -166,9 +160,8 @@
                                         }else{
                                           $print_stat="";
                                         }
-
+                                        $print_stat="WS Printed";
                                         @endphp
-
                                       </span>
                                       <div class="details-pane" style="font-size:8pt;">
                                         <h5 class="title">{{ $row['name'] }}</b> [{{ $row['status'] }}]</h5>
@@ -292,7 +285,6 @@
                                 <input type="hidden" id="tryme-{{ $r['schedule'] }}" class="printbox"></input>
                               </div>
                             </div>
-                           
                           </div>
                           <div class="card-body sortable_list connectedSortable pt-3 pl-2 pb-2 pr-2" id="{{ $r['schedule'] }}" style="height: 700px; position: relative; overflow-y: auto; margin-top: -10px;">
                           @foreach($r['orders'] as $i => $order)
@@ -310,7 +302,7 @@
                                 }
                             }
                             @endphp
-                          <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px; background-color: {{$divcolor}};">                                
+                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px; background-color: {{$divcolor}};">                                  
                                   <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="reference-class d-none">{{ $order['sales_order'] }}</span>
@@ -318,7 +310,7 @@
                                   <span class="description-class d-none">{{ $order['description'] }}</span>
                                   <span class="delivery-date-class d-none">{{ $order['delivery_date'] }}</span>
                                   <span class="qty-to-manufacture-class d-none">{{ $order['qty'] }} {{ $order['stock_uom'] }}</span>
-                                  <div class="card-body p-2" style="font-size: 8pt; margin-top: -5px;">
+                              <div class="card-body p-2" style="font-size: 8pt; margin-top: -5px;">
                                 <table style="width: 100%;">
                                   <tr>
                                     <td class="align-middle" colspan="4" style="font-size:10pt;">
@@ -339,9 +331,8 @@
                                         }else{
                                           $print_stat="";
                                         }
-
                                         @endphp
-                                         <a href="#" class="prod_order_link_to_search text-dark" data-prod="{{ $order['name'] }}">
+                                        <a href="#" class="prod_order_link_to_search text-dark" data-prod="{{ $order['name'] }}">
                                           <b>{{ $order['name'] }}</b>
                                           <span style="font-size: 8pt;"> [{{ $order['status'] }}]</span>
                                         </a>
@@ -355,7 +346,6 @@
                                           <i>CTD Qty: <b>{{ $order['produced_qty'] }} {{ $order['stock_uom'] }}</b></i>
                                         </p>
                                       </div>
-                                   
                                       <span class="pull-right badge badge-primary badgecount" style="font-size: 9pt;">{{ $order['order_no'] }}</span>
                                     </td>
                                   </tr>
@@ -411,7 +401,6 @@
                                   </tr>
                                   <input type="hidden" value="" class="counting{{ $r['schedule'] }}">
                                 </table>
-                                
                               </div>
                             </div>
                             @endforeach
@@ -1130,6 +1119,8 @@
   }
 
   .customcontainer {
+    /* display: block; */
+    /* position: relative; */
     cursor: pointer;
     font-size: 22px;
     -webkit-user-select: none;
@@ -1276,7 +1267,7 @@
   .inner {
     overflow-x: auto;
     overflow-y: visible;
-    margin-left: 450px;
+    margin-left: 320px;
   }
 
   .perc {position:absolute; display:none; top: 0; line-height:20px; right:10px;color:black; font-weight:bold;}

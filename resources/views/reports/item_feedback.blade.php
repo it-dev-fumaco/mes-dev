@@ -8,24 +8,23 @@
 @include('modals.item_track_modal')
 <div class="panel-header"></div>
 
-<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-  <div class="col-md-4 offset-md-8" style="margin-bottom: -50px; z-index: 1;">
-    <div class="pull-right">
+<div class="row p-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="col-md-4 offset-md-8 p-1" style="margin-bottom: -60px; z-index: 1;">
+    <div class="pull-right p-0">
       <button type="button" class="btn btn-secondary" id="reload-list">
         <i class="now-ui-icons loader_refresh"></i> Refresh List
       </button>
       <button type="button" class="btn btn-primary" id="manual-production-create-btn">
         <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
       </button>
-      </div>
     </div>
   </div>
   <div class="col-md-12 p-0" style="min-height: 440px;">
-    <div class="panel panel-default">
+    <div class="panel panel-default p-0 m-0">
       <div class="panel-body panel-body">
-        <div class="col-sm-12 ticket-status-widget pt-" role="tabpanel" aria-expanded="true" aria-hidden="false">
+        <div class="col-sm-12 ticket-status-widget pl-2 pr-2 m-0" role="tabpanel" aria-expanded="true" aria-hidden="false">
           <div class="ui-tab-container ui-tab-default">
-            <div justified="true" class="ui-tab">
+            <div justified="true" class="ui-tab p-0 m-0">
               <ul class="nav nav-tabs nav-justified">
                 <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
                   <a data-toggle="tab" href="#tab-production-orders">
@@ -63,16 +62,16 @@
                 <div class="tab-pane active" id="tab-production-orders">
                   {{-- All Production Orders --}}
                   <div class="tab-heading tab-heading--gray">
-                    <div class="container-fluid">
-                      <div class="row">
-                        <div class="col-9">
+                    <div class="container-fluid p-0 m-0">
+                      <div class="row p-0 m-0">
+                        <div class="col-9 p-0">
                           <input class='d-none' type="text" value="" id="current-status">
                           @php
                             $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed','Closed'];
                           @endphp
-                          <div class="row">
+                          <div class="row p-0 m-0">
                             @foreach ($status_arr as $status)
-                              <label class="PillList-item">
+                              <label class="PillList-item mr-2">
                                 <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
                                 <span class="PillList-label">{{ $status }}
                                 </span>
@@ -80,12 +79,11 @@
                             @endforeach
                           </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-3 m-0">
                           <div class="form-group m-0">
                             <input type="text" id="production-orders-search" class="form-control bg-white search-filter rounded m-0" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
                           </div>
                         </div>
-                        
                       </div>
                     </div>
                   </div>
@@ -129,11 +127,9 @@
                         </div>
                       </div>
                     </div>
-                   
                   </div>
-                  
                   <div class="row p-0 m-0">
-                    <div class="col-12 p-0 m-0" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
+                    <div class="col-12 p-0 m-0" id="production-orders-div" style="border-top: 1px solid #D3D7DA;"></div>
                   </div>
                 </div>
                 <div class="tab-pane" id="tab-search">
@@ -156,8 +152,8 @@
         </div>
       </div>
     </div>
-  </div>  
-</div>  
+  </div>
+</div>
 <div class="modal fade bd-example-modal-lg" id="print_modal_js_ws" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document" style="min-width:60%; width:60%;">
       <div class="modal-content">
@@ -622,25 +618,6 @@
             </div>
           </div>
           <div class="row" id="manual-material-operation-row">
-            <!-- <div class="col-md-6">
-              <h6 class="title m-2">Material(s)</h6>
-              <table class="table table-bordered" border="1" style="margin-top: 17px;">
-                <tr>
-                  <th style="width: 30%;" class="text-center">Item Code</th>
-                  <th style="width: 30%;" class="text-center">Source Warehouse</th>
-                  <th style="width: 30%;" class="text-center">Required Qty</th>
-                  <th style="width: 10%;" class="text-center">Action</th>
-                </tr>
-                <tbody id="material-table-tbody"></tbody>
-                <tfoot>
-                  <td colspan="4">
-                    <button class="btn btn-primary" type="button" style="padding: 5px 8px;" id="material-add-row-btn">
-                      <i class="now-ui-icons ui-1_simple-add"></i> Add Row
-                    </button>
-                  </td>
-                </tfoot>
-              </table>
-            </div> -->
 
             <div class="col-md-6 offset-md-3">
               <div class="alert alert-warning text-center" id="manual-prod-note" role="alert">
@@ -1091,9 +1068,6 @@
  <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
 <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
-
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 
 <script>
 $(document).ready(function(){
@@ -1822,7 +1796,8 @@ $(document).ready(function(){
           $('#manual-production-modal input[name="customer"]').val(response.customer);
           $('#manual-production-modal input[name="project"]').val(response.project);
           $('#manual-production-modal input[name="delivery_date"]').val(response.delivery_date);
-          var classification = (response.custom_purpose) ? response.custom_purpose : 'Customer Order';
+          var classification = (response.purpose) ? response.purpose : response.sales_type;
+          classification = (classification != 'Sample') ? 'Customer Order' : 'Sample';
           $('#manual-production-modal input[name="classification"]').val(classification);
         }
       }
