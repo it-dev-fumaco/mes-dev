@@ -37,8 +37,8 @@
     <div class="main-panel d-none" id="main-panel"></div>
     <!-- Sidebar -->
     @isset($permissions)
-    <nav id="sidebar" class="p-4 shadow-sm border">
-      <h5 class="text-center font-weight-bolder border-bottom mt-3 mb-3 border-dark"><a href="/" class="text-dark" style="text-decoration: none;">MES MENU</a></h5>
+    <nav id="sidebar" class="shadow">
+      <h5 class="text-center font-weight-bolder pt-3 pb-3 mb-3 border-dark" style="background-color: #021434;"><a href="/" class="text-white" style="text-decoration: none;">MES MENU</a></h5>
       @php
         $a = array_intersect($permissions['permitted_modules'], ['Production']);
         $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);

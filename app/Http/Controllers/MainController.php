@@ -2941,7 +2941,7 @@ class MainController extends Controller
 			if(!$request->user_id){
 				return response()->json(['success' => 0, 'message' => 'Please enter your access ID.']);
 			}
-			
+
 			$operator = DB::connection('mysql_mes')->table('user')
 				->join('user_group', 'user.user_group_id', 'user_group.user_group_id')
 				->where('user_group.module', 'Maintenance')->where('user_access_id', $request->user_id)
@@ -3011,13 +3011,14 @@ class MainController extends Controller
 			}
 
 			DB::connection('mysql_mes')->commit();
-			
+
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
 			DB::connection('mysql_mes')->rollback();
             return response()->json(["error" => $e->getMessage()]);
         }
 	}
+
 
     public function current_data_operator($workstation){
 		$now = Carbon::now()->startOfDay()->toDateTimeString();
