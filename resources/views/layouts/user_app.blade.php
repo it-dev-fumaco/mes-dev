@@ -44,17 +44,40 @@
         $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
         $c = array_intersect($permissions['permitted_modules'], ['Maintenance']);
       @endphp
+      <div class="pl-3 pr-3 pb-0 pt-0 m-0 effect-01">
         @if (count($a) > 0)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Dashboard</h6>
+      <style>
+        .effect-01 ul li  {
+          border-radius: 5px;
+          border: 1px solid rgba(0,0,0,0);
+          margin: 5px 10px;
+        }	
+        .effect-01 ul li:hover {
+          background: rgba(66, 66, 66, 0.108);
+          border-bottom: 1px solid rgba(0,0,0,.2);
+          border-top: 1px solid rgba(255,255,255,.5);
+          box-shadow: 0 2px 2px rgba(0,0,0,.1);
+          position: relative;
+          text-shadow: 1px 1px 1px rgba(255,255,255,.5);
+        }
+        .effect-01 ul li:active {
+          background: rgba(100,100,100,.05);
+          border-bottom-color: rgba(0,0,0,0);
+          box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
+          text-shadow: none;
+          top: 1px;
+        }
+      </style>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block"> Dashboard</span>
           </a>
         </li>
-        <li class="ml-1 p-1 align-middle">
-          <a href="/item_feedback" style="text-decoration: none;">
+        <li class="m-0 align-middle">
+          <a href="/item_feedback" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block"> Production Order(s)</span>
           </a>
@@ -62,20 +85,20 @@
       </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/production_schedule/1" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/production_schedule/1" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Fabrication Scheduling</span>
             </a>
         </li>
-        <li class="ml-1 p-1">
-          <a href="/production_schedule/0" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/production_schedule/0" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Painting Scheduling</span>
           </a>
         </li>
-        <li class="ml-1 p-1">
-          <a href="/production_schedule/3" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/production_schedule/3" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Assembly Scheduling</span>
           </a>
@@ -83,14 +106,14 @@
       </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/wizard" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/wizard" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Fabrication</span>
           </a>
         </li>
-        <li class="ml-1 p-1">
-          <a href="/assembly/wizard" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/assembly/wizard" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Assembly</span>
           </a>
@@ -115,8 +138,8 @@
       @if (count($b) > 0)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Quality Assurance</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/qa_dashboard" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/qa_dashboard" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">QA Dashboard</span>
           </a>
@@ -126,14 +149,14 @@
       @if (count($c) > 0)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Maintenance</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/maintenance_request" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/maintenance_request" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Maintenance Request(s)</span>
           </a>
         </li>
-        <li class="ml-1 p-1">
-          <a href="/maintenance_machine_list" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/maintenance_machine_list" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Machine List</span>
           </a>
@@ -142,19 +165,20 @@
       @endif
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Reports / Analytics</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="ml-1 p-1">
-          <a href="/report_index" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/report_index" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Reports</span>
           </a>
         </li>
-        <li class="ml-1 p-1">
-          <a href="/settings_module" style="text-decoration: none;">
+        <li class="m-0">
+          <a href="/settings_module" class="d-block m-0 p-2" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Setup</span>
           </a>
         </li>
       </ul>
+    </div>
     </nav>
     <style>
       #wrapper {
