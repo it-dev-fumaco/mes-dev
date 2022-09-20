@@ -1156,6 +1156,8 @@
     });
 
     function get_production_order_items(id){
+      $('#stock-entry-details-modal .modal-title').text(id);
+      $('#stock-entry-details-modal .modal-title').data('production-order', id);
       $.ajax({
         url:"/get_production_order_items/"+ id,
         type:"GET",
