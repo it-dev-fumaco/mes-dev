@@ -480,7 +480,7 @@
                 <div class="col-8 mx-auto mt-2 text-center" style="border-left: solid 10px #17A2B8; display: flex; justify-content: center; align-items: center; min-height: 50px;">
                   <div class="text-center">
                     Pending Stock Withdrawals For Issue will be cancelled <br>
-                    <small>Note: Once Closed, Production Order can still be Re-opened</small>
+                    <small>Note: Once Closed, Production Order can still be Re-open</small>
                   </div>
                 </div>
               </div>
