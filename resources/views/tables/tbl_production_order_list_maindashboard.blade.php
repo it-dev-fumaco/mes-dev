@@ -65,7 +65,13 @@
                   @endforeach
                 </td>
               @endif
-              <td class="text-center p-0">{{ $row['machine'] }}</td>
+              <td class="text-left pl-2 pb-0 pr-0 pt-0">
+                @if ($row['machine_image'])
+                <img src="{{ asset($row['machine_image']) }}" alt="{{ $row['machine'] }}" class="img-thumbn1ail" style="width: 35px; height: 35px;">
+                @else
+                <img src="{{ asset('/storage/no_img.png') }}" alt="{{ $row['machine'] }}" class="img-thu1mbnail" style="width: 35px; height: 35px;">
+                @endif
+                {{ $row['machine'] }}</td>
               <td>
                 <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" style="padding: 10px;">Mark as Done</button>
               </td>

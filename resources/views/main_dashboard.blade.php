@@ -9,7 +9,7 @@
 @include('modals.view_for_feedback_list_modal')
 <div class="panel-header"></div>
 <input type="hidden" name="date_today" id="date_today" value="{{ date('Y-m-d') }}">
-<div class="row p-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+<div class="row p-0 ml-0 mr-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
   <div class="col-md-12 p-2">
     <div class="card m-0" style="min-height: 900px;">
       <div class="card-body p-1">
@@ -256,6 +256,7 @@
     <div class="col-md-8">
       <div class="row">
         <div class="col-md-12 p-0">
+
         </div>
       
       </div>
@@ -547,7 +548,7 @@
 	          <div class="col-md-12">
 	            <div class="table-full-width table-responsive" style="height: 600px; position: relative;" id="tbl-notifications-modal"></div>
 	          </div>
-	       </div> --}}
+	        </div> --}}
 	      </div>
 	      <div class="modal-footer p-2 pr-3">
 	        <button type="button" class="btn btn-secondary m-0" data-dismiss="modal">Close</button>
@@ -564,7 +565,6 @@
       width: 96%;
       margin: 8%;
     }
-
     @-webkit-keyframes blinker {
       from { background-color: rgba(196, 21, 45, 0.2)/* #CD6155 */; }
       to { background-color: inherit; }
@@ -613,7 +613,6 @@
       -webkit-animation-timing-function:ease-in-out;
       -webkit-animation-direction: alternate;
     }
-
     .tab-heading--blue {
       background-color: #2196E3;
       color: #FFF;
@@ -866,18 +865,23 @@
     } else{
         classes = "success-stroke";
     }
+
     var svg = '<svg class="circle-chart" viewbox="0 0 33.83098862 33.83098862" xmlns="http://www.w3.org/2000/svg">'
         + '<circle class="circle-chart__background" cx="16.9" cy="16.9" r="15.9" />'
         + '<circle class="circle-chart__circle '+classes+'"'
         + 'stroke-dasharray="'+ abs_percentage+',100"    cx="16.9" cy="16.9" r="15.9" />'
         + '<g class="circle-chart__info">'
         + '   <text class="circle-chart__percent" x="17.9" y="19.5">'+percentage_str+'%</text>';
+
     if(inner_text){
         svg += '<text class="circle-chart__subline" x="16.91549431" y="22">'+inner_text+'</text>'
     }
+
     svg += ' </g></svg>';
+
     return svg
   }
+
   (function( $ ) {
     $.fn.circlechart = function() {
       this.each(function() {
@@ -888,7 +892,7 @@
       return this;
     };
   }( jQuery ));
-
+ 
   $(document).ready(function(){
     function dashboard_in_process_projects(operation){
       $.ajax({
@@ -906,6 +910,7 @@
         }
       }); 
     }
+
     function dashboard_numbers(operation){
       $.ajax({
         url:"/dashboard_numbers",
@@ -940,6 +945,7 @@
         }
       }); 
     }
+
     function dashboard_machine_status(operation){
       $.ajax({
         url:"/dashboard_machine_status",
@@ -956,6 +962,7 @@
         }
       }); 
     }
+
     function dashboard_operator_list(operation){
       $.ajax({
         url:"/dashboard_operator_list",
@@ -983,11 +990,17 @@
         const el = $(this);
         
         get_ongoing_production_orders(operation, el);
-        get_qa(operation, el);
         dashboard_machine_status(operation);
         dashboard_operator_list(operation);
+
         dashboard_in_process_projects(operation);
+
         dashboard_numbers(operation);
+        
+        
+
+        
+        // get_qa(operation, el);
         // get_machine_status_per_operation(operation, el);
         // maintenance_schedules_per_operation(operation, el);
       });
@@ -1105,14 +1118,6 @@
       var page = $(this).attr('href').split('page=')[1];
       get_for_feedback_production(page);
     });
-
-    $(document).on('click', '.custom-production-pagination a', function(event){
-      event.preventDefault();
-      var page = $(this).attr('href').split('page=')[1];
-      get_for_feedback_production(page);
-    });
-
-    
 
     $(document).on('keyup', '#view-for-feedback-list-search-box', function(){
       get_for_feedback_production(1);
@@ -1347,11 +1352,10 @@
       e.preventDefault();
 
       notif_dashboard('#tbl-notifications');
-      warnings_dashboard();
+      warnings_dashboard()
       $('#view-notifications-modal').modal('show');
     });
   
-
     setInterval(updateClock, 1000);
     function updateClock(){
       var currentTime = new Date();
@@ -1373,6 +1377,39 @@
 
       $("#current-time").html(currentTimeString);
     }
+
+    // function count_current_production(){
+    //   $.ajax({
+    //     url:"/count_current_production_order/" + date_today,
+    //     type:"GET",
+    //     success:function(data){
+    //       $('#fab-planned').text(data.fab_planned);
+    //       $('#fab-planned-qty').text(data.fab_planned_qty);
+    //       $('#fab-wip').text(data.fab_wip);
+    //       $('#fab-wip-qty').text(data.fab_wip_qty);
+    //       $('#fab-done').text(data.fab_done);
+    //       $('#fab-done-qty').text(data.fab_done_qty);
+    //       $('#fab-for-feedback').text(data.fab_for_feedback);
+    //       $('#fab-for-feedback-qty').text(data.fab_for_feedback_qty);
+    //       $('#wa-planned').text(data.wa_planned);
+    //       $('#wa-planned-qty').text(data.wa_planned_qty);
+    //       $('#wa-wip').text(data.wa_wip);
+    //       $('#wa-wip-qty').text(data.wa_wip_qty);
+    //       $('#wa-done').text(data.wa_done);
+    //       $('#wa-done-qty').text(data.wa_done_qty);
+    //       $('#wa-for-feedback').text(data.wa_for_feedback);
+    //       $('#wa-for-feedback-qty').text(data.wa_for_feedback_qty);
+    //       $('#pa-planned').text(data.pa_planned);
+    //       $('#pa-planned-qty').text(data.pa_planned_qty);
+    //       $('#pa-wip').text(data.pa_wip);
+    //       $('#pa-wip-qty').text(data.pa_wip_qty);
+    //       $('#pa-done').text(data.pa_done);
+    //       $('#pa-done-qty').text(data.pa_done_qty);
+    //       $('#pa-for-feedback').text(data.pa_for_feedback);
+    //       $('#pa-for-feedback-qty').text(data.pa_for_feedback_qty);
+    //     }
+    //   }); 
+    // }
   });
 </script>
 

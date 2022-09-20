@@ -20,14 +20,6 @@
                      </div>
                      <div class="card-body">
                         <div class="form-group">
-                           <label>Login As</label>
-                           <select name="login_as" class="form-control" style="font-size: 15pt; font-weight: bold;">
-                              <option value="Production">Production</option>
-                              <option value="Quality Assurance">Quality Assurance</option>
-                              <option value="Maintenance">Maintenance</option>
-                           </select>
-                        </div>
-                        <div class="form-group">
                            <label>User ID</label>
                            <input type="text" class="form-control" name="user_id" placeholder="Enter User ID" required>
                         </div>
@@ -71,7 +63,7 @@
       $('#login-frm').submit(function(e){
          e.preventDefault();
          $.ajax({
-            url:"/login_user",
+            url: $(this).attr('action'),
             type:"POST",
             data: $(this).serialize(),
             success:function(data){

@@ -2937,7 +2937,7 @@ class SecondaryController extends Controller
             ->join('workstation as work','work.workstation_name','tsd.workstation')
             ->whereIn('tsd.workstation', $permitted_workstation)
             ->where('time_logs.status', 'In Progress')
-            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id');
+            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.operator_id', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id');
 
         if($request->operation != 2){
             $orders = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -2948,7 +2948,7 @@ class SecondaryController extends Controller
                 ->join('workstation as work','work.workstation_name','tsd.workstation')
                 ->whereIn('tsd.workstation', $permitted_workstation)
                 ->where('spotwelding_qty.status', 'In Progress')
-                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id')
+                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.operator_id', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id')
                 ->union($orders_1)->get();
         }else{
             $orders = $orders_1->get();
@@ -2971,9 +2971,16 @@ class SecondaryController extends Controller
                 ];
             }
         }
+
+        $machine_images = DB::connection('mysql_mes')->table('machine')
+            ->whereIn('machine_code', collect($orders)->pluck('machine')->unique())
+            ->pluck('image', 'machine_code')->toArray();
         
         $result = [];
         foreach($orders as $row){
+            $machine_img = array_key_exists($row->machine, $machine_images) ? $machine_images[$row->machine] : null;
+            $machine_img = $machine_img ? $machine_img : null;
+
             $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
             $reference_id = ($row->workstation_plot == 'Spotwelding') ? $row->jtname : $row->time_log_id;
             $qa_table = DB::connection('mysql_mes')->table('quality_inspection')
@@ -3028,7 +3035,9 @@ class SecondaryController extends Controller
                 'unloading_operator' => $unloading_operator,
                 'qty_accepted' => $row->qty_to_manufacture,
                 'workstation_id' =>  $row->workstation_id,
-                'helpers' => $helpers
+                'operator_id' =>  $row->operator_id,
+                'helpers' => $helpers,
+                'machine_image' => $machine_img
             ];
         }
 

@@ -40,81 +40,72 @@
     <nav id="sidebar" class="shadow">
       <h5 class="text-center font-weight-bolder pt-3 pb-3 mb-3 border-dark" style="background-color: #021434;"><a href="/" class="text-white" style="text-decoration: none;">MES MENU</a></h5>
       @php
-        $a = array_intersect($permissions['permitted_modules'], ['Production']);
-        $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
-        $c = array_intersect($permissions['permitted_modules'], ['Maintenance']);
+        $is_production_user = array_intersect($permissions['permitted_modules'], ['Production']);
+        $is_qa_user = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
+        $is_maintenance_user = array_intersect($permissions['permitted_modules'], ['Maintenance']);
+
+        $is_production_user = count($is_production_user) > 0 ? true : false;
+        $is_qa_user = count($is_qa_user) > 0 ? true : false;
+        $is_maintenance_user = count($is_maintenance_user) > 0 ? true : false;
+
+        $allowed_on_fabrication = array_intersect($permissions['permitted_operations'], ['Fabrication']);
+        $allowed_on_fabrication = count($allowed_on_fabrication) > 0 ? true : false;
+
+        $allowed_on_assembly = array_intersect($permissions['permitted_operations'], ['Wiring and Assembly']);
+        $allowed_on_assembly = count($allowed_on_assembly) > 0 ? true : false;
+
+        $allowed_on_painting = array_intersect($permissions['permitted_operations'], ['Painting']);
+        $allowed_on_painting = count($allowed_on_painting) > 0 ? true : false;
       @endphp
       <div class="pl-3 pr-3 pb-0 pt-0 m-0 effect-01">
-        @if (count($a) > 0)
+      @if ($is_production_user)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Dashboard</h6>
-      <style>
-        .effect-01 ul li  {
-          border-radius: 5px;
-          border: 1px solid rgba(0,0,0,0);
-          margin: 5px 10px;
-        }	
-        .effect-01 ul li:hover {
-          background: rgba(66, 66, 66, 0.108);
-          border-bottom: 1px solid rgba(0,0,0,.2);
-          border-top: 1px solid rgba(255,255,255,.5);
-          box-shadow: 0 2px 2px rgba(0,0,0,.1);
-          position: relative;
-          text-shadow: 1px 1px 1px rgba(255,255,255,.5);
-        }
-        .effect-01 ul li:active {
-          background: rgba(100,100,100,.05);
-          border-bottom-color: rgba(0,0,0,0);
-          box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
-          text-shadow: none;
-          top: 1px;
-        }
-      </style>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
         <li class="m-0">
-          <a href="/" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block"> Dashboard</span>
           </a>
         </li>
         <li class="m-0 align-middle">
-          <a href="/item_feedback" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/item_feedback" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block"> Production Order(s)</span>
           </a>
         </li>
       </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="m-0">
-          <a href="/production_schedule/1" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+          <a href="/production_schedule/1" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Fabrication Scheduling</span>
             </a>
         </li>
-        <li class="m-0">
-          <a href="/production_schedule/0" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+        <li class="m-0 {{ !$allowed_on_painting ? 'd-none' : '' }}">
+          <a href="/production_schedule/0" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Painting Scheduling</span>
           </a>
         </li>
-        <li class="m-0">
-          <a href="/production_schedule/3" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
+          <a href="/production_schedule/3" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Assembly Scheduling</span>
           </a>
         </li>
       </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
-        <li class="m-0">
-          <a href="/wizard" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0" {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+          <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Fabrication</span>
           </a>
         </li>
-        <li class="m-0">
-          <a href="/assembly/wizard" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
+          <a href="/assembly/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Assembly</span>
           </a>
         </li>
@@ -135,52 +126,74 @@
         </li>
       </ul> --}}
       @endif
-      @if (count($b) > 0)
+      @if ($is_qa_user)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Quality Assurance</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
         <li class="m-0">
-          <a href="/qa_dashboard" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/qa_dashboard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">QA Dashboard</span>
           </a>
         </li>
       </ul>
       @endif
-      @if (count($c) > 0)
+      @if ($is_maintenance_user)
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Maintenance</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
         <li class="m-0">
-          <a href="/maintenance_request" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/maintenance_request" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Maintenance Request(s)</span>
           </a>
         </li>
         <li class="m-0">
-          <a href="/maintenance_machine_list" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/maintenance_machine_list" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Machine List</span>
           </a>
         </li>
       </ul>
       @endif
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Reports / Analytics</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 10pt;">
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
         <li class="m-0">
-          <a href="/report_index" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/report_index" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Reports</span>
           </a>
         </li>
         <li class="m-0">
-          <a href="/settings_module" class="d-block m-0 p-2" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 20px; margin-left: auto; margin-right: auto;">
+          <a href="/settings_module" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Setup</span>
           </a>
         </li>
       </ul>
-    </div>
+      </div>
+      
     </nav>
     <style>
+       .effect-01 ul li  {
+          border-radius: 5px;
+          border: 1px solid rgba(0,0,0,0);
+          margin: 5px 10px;
+        }	
+        .effect-01 ul li:hover {
+          background: rgba(66, 66, 66, 0.108);
+          border-bottom: 1px solid rgba(0,0,0,.2);
+          border-top: 1px solid rgba(255,255,255,.5);
+          box-shadow: 0 2px 2px rgba(0,0,0,.1);
+          position: relative;
+          text-shadow: 1px 1px 1px rgba(255,255,255,.5);
+        }
+        .effect-01 ul li:active {
+          background: rgba(100,100,100,.05);
+          border-bottom-color: rgba(0,0,0,0);
+          box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
+          text-shadow: none;
+          top: 1px;
+        }
+
       #wrapper {
         display: flex;
         width: 100%;
@@ -189,7 +202,7 @@
         min-height: 100vh;
         position: fixed;
         transition: all 0.25s;
-        width: 299px;
+        width: 265px;
       }
       #content {
         min-height: 100vh;
@@ -197,36 +210,36 @@
         position: absolute;
         right: 0;
         transition: all 0.25s;
-        width: calc(100% - 299px);
+        width: calc(100% - 265px);
       }
       .no-sidebar #sidebar {
-        margin-left: -299px;
+        margin-left: -265px;
       }
       .no-sidebar #content {
         width: 100%;
       }
     </style>
     @endisset
-
+   
     <!-- Page Content -->
     <div id="content">
         @if (Auth::check())
-          <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width" id="sidebar-toggle">
-            <div class="container-fluid m-0 p-0">
+          <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width pb-1 pl-1 pr-1 pt-2">
+            <div class="container-fluid m-0 p-0" id="next">
               <div class="collapse navbar-collapse" id="navigation">
                 <ul class="navbar-nav col-7 m-0 p-0">
                   <li class="nav-item active">
-                    <div id="slide-menu" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
+                    <div id="sidebar-toggle" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
                   </li>
                   <li class="nav-item active text-center" style="width: 220px;">
-                    <span class="d-block font-weight-bold" style="font-size: 15pt;">{{ date('M-d-Y') }}</span>
-                    <span class="d-block" style="font-size: 11pt;">{{ date('l') }}</span>
+                    <span class="d-block font-weight-bold" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
+                    <span class="d-block" style="font-size: 10pt;">{{ date('l') }}</span>
                   </li>
                   <li class="nav-item active text-center" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
                     <span id="current-time" style="font-size: 22pt;">--:--:-- --</span>
                   </li>
                   <li class="nav-item active">
-                    <span class="d-block font-weight-bold" style="font-size: 16pt; margin-left: 20px;">{{ $pageHeader }}</span>
+                    <span class="d-block font-weight-bold" style="font-size: 14pt; margin-left: 20px;">{{ $pageHeader }}</span>
                     @if (Auth::check())
                     <span class="d-block" style="font-size: 10pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
                     @endif
@@ -281,6 +294,7 @@
                   </li>
                   @endif
                   @endif
+
                   @if (in_array($activePage,['production_planning', 'production_planning_assembly']))
                   @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
                   {{-- <li class="nav-item active dropdown">
@@ -305,7 +319,7 @@
                   </li> --}}
                   @endif
                   @endif
-
+                  
                   @if (in_array($activePage,['production_schedule', 'operators_load_utilization']))
                   <li class="nav-item active dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -389,7 +403,7 @@
             </div>
           </nav>
           @endif
-
+         
         @yield('content')
 
         <footer class="footer">
@@ -404,11 +418,11 @@
           </div>
         </footer>
       </div>
-    </div>
+</div>
 
-    <div class="sidebar">
-      <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
-    </div>
+<div class="sidebar">
+  <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
+</div>
 
   <div class="modal fade" id="about-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -530,12 +544,6 @@
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
                 <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
-                <div class="col-8 mx-auto mt-2 text-center" style="border-left: solid 10px #17A2B8; display: flex; justify-content: center; align-items: center; min-height: 50px;">
-                  <div class="text-center">
-                    Pending Stock Withdrawals For Issue will be cancelled <br>
-                    <small>Note: Once Closed, Production Order can still be Re-opened</small>
-                  </div>
-                </div>
               </div>
               <div class="col-md-12" id="items-for-return-table-for-close"></div>
             </div>
@@ -886,7 +894,6 @@
     background: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease-in-out;
   }
-
   .numpad:active,
   .numpad:hover {
     cursor: pointer ;
@@ -1074,9 +1081,9 @@
 <div class="modal fade" id="override-production-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
     <div class="modal-content">
-      <div class="modal-header p-3 text-white" style="background-color: #0277BD;">
+      <div class="modal-header p-3">
         <h5 class="modal-title">Feedback Override <span id="override-production-order-text" class="font-weight-bold"></span></h5>
-        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1086,6 +1093,24 @@
     </div>
   </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="view-production-order-disassembly-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width: 70%;">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+           <h5 class="modal-title" id="view-production-order-disassembly-modal-title" style="font-weight: bolder;">Production Order to Disassemble</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <div id="view-production-order-disassembly-modal-body"></div>
+        </div>
+     </div>
+  </div>
+</div>
+
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
   <script src="{{ asset('js/core/jquery.min.js') }}"></script>
@@ -1117,7 +1142,7 @@
     function close_modal(modal){
       $(modal).modal('hide');
     }
-    
+
     $(document).on('click', '.override-production-btn', function(e) {
       e.preventDefault();
       var production_order = $(this).data('production-order');
@@ -1133,13 +1158,6 @@
           }else{
             $('#override-production-modal').modal('show');
             $('#override-production-div').html(response);
-
-            $('.op-select').select2({
-              dropdownParent: $("#override-production-order-form"),
-              dropdownAutoWidth: false,
-              width: '100%',
-              cache: false
-            });
           }
         }
       });
@@ -1511,31 +1529,28 @@
     $('#close-production-modal').modal('show');
   });
 
-  @if (!in_array($activePage, ['production_schedule'])) 
-    $('#close-production-modal form').submit(function(e){
-      e.preventDefault();
-      $.ajax({
-        url: '/close_production_order',
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (!data.success) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            location.reload();
-            $('#close-production-modal').modal('hide');
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+  $('#close-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/close_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#close-production-modal').modal('hide');
         }
-      });
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
     });
-  @endif
-  
+  });
   // Close production Modal and Submit
 
   // Re-open production Modal and Submit
@@ -1855,13 +1870,11 @@
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
       if(!$('#has-no-bom').text()) {
-        $('#change-required-item-modal #change-item-code-warning').removeClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
         $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
         $('#change-required-qty-btn').addClass('d-none');
       } else {
-        $('#change-required-item-modal #change-item-code-warning').addClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
         $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
         $('#change-required-qty-btn').removeAttr('readonly');

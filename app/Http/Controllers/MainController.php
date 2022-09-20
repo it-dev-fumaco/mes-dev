@@ -167,17 +167,33 @@ class MainController extends Controller
 			// check if user exist in user table in MES
 			$mes_user = DB::connection('mysql_mes')->table('user')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-				->where('user_access_id', $request->user_id)->where('module', $request->login_as)->first();
+				->where('user_access_id', $request->user_id)->get();
 
-			if(!$mes_user){
+			if(count($mes_user) <= 0){
 				return response()->json(['success' => 0, 'message' => '<b>User not allowed!</b>']);
 			}
+			
+			$allowed_modules = collect($mes_user)->pluck('module')->toArray();
 
-			$redirect_to = "/main_dashboard";
-			if($request->login_as == 'Quality Assurance'){
-				$redirect_to = '/qa_dashboard';
-			}else if($request->login_as == 'Maintenance'){
-				$redirect_to = '/maintenance_request';
+			$is_production_user = array_intersect($allowed_modules, ['Production']);
+			$is_qa_user = array_intersect($allowed_modules, ['Quality Assurance']);
+			$is_maintenance_user = array_intersect($allowed_modules, ['Maintenance']);
+
+			$is_production_user = count($is_production_user) > 0 ? true : false;
+			$is_qa_user = count($is_qa_user) > 0 ? true : false;
+			$is_maintenance_user = count($is_maintenance_user) > 0 ? true : false;
+
+			$redirect_to = null;
+			if ($is_production_user && !$redirect_to) {
+				$redirect_to = "/main_dashboard";
+			}
+
+			if ($is_qa_user && !$redirect_to) {
+				$redirect_to = "/qa_dashboard";
+			}
+
+			if ($is_maintenance_user && !$redirect_to) {
+				$redirect_to = "/maintenance_request";
 			}
 
 			// validate the info, create rules for the inputs
