@@ -7,8 +7,8 @@
 
 @section('content')
 <div class="panel-header"></div>
-   <div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-      <div class="col-md-12">
+   <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+      <div class="col-md-12 p-0 m-0">
          <div class="card">
             <div class="card-body">
                <ul class="nav nav-tabs d-none" id="myTab" role="tablist">

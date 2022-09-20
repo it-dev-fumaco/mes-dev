@@ -37,8 +37,8 @@
     <div class="main-panel d-none" id="main-panel"></div>
     <!-- Sidebar -->
     @isset($permissions)
-    <nav id="sidebar" class="shadow">
-      <h5 class="text-center font-weight-bolder pt-3 pb-3 mb-3 border-dark" style="background-color: #021434;"><a href="/" class="text-white" style="text-decoration: none;">MES MENU</a></h5>
+    <nav id="sidebar" class="shadow border" style="background-color: #f4f6f6 ;">
+      <h5 class="text-center font-weight-bolder pt-3 pb-3 mb-3 border-dark" style="background-color: #021434; font-size: 12pt;"><a href="/" class="text-white" style="text-decoration: none;">MES MENU</a></h5>
       @php
         $is_production_user = array_intersect($permissions['permitted_modules'], ['Production']);
         $is_qa_user = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
@@ -206,7 +206,7 @@
   <!-- Page Content -->
   <div id="content">
     @if (Auth::check())
-    <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width pb-1 pl-1 pr-1 pt-2">
+    <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width p-1">
       <div class="container-fluid m-0 p-0" id="next">
         <div class="collapse navbar-collapse" id="navigation">
           <ul class="navbar-nav col-7 m-0 p-0">
@@ -214,16 +214,16 @@
               <div id="sidebar-toggle" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
             </li>
             <li class="nav-item active text-center" style="width: 220px;">
-              <span class="d-block font-weight-bold" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-              <span class="d-block" style="font-size: 10pt;">{{ date('l') }}</span>
+              <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ date('M-d-Y') }}</span>
+              <span class="d-block" style="font-size: 8pt;">{{ date('l') }}</span>
             </li>
             <li class="nav-item active text-center" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
-              <span id="current-time" style="font-size: 22pt;">--:--:-- --</span>
+              <span id="current-time" style="font-size: 18pt;">--:--:-- --</span>
             </li>
             <li class="nav-item active">
-              <span class="d-block font-weight-bold" style="font-size: 14pt; margin-left: 20px;">{{ $pageHeader }}</span>
+              <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px;">{{ $pageHeader }}</span>
               @if (Auth::check())
-              <span class="d-block" style="font-size: 10pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
+              <span class="d-block" style="font-size: 8pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
               @endif
             </li>
           </ul>

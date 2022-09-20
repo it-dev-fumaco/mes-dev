@@ -9,7 +9,7 @@
 @section('content')
 <div class="panel-header"></div>
 @include('modals.view_for_feedback_list_modal')
-  <div class="row p-3" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
     <div class="card" style="background-color: #a6acaf;">
       <div class="row m-0 p-0">
         <div class="col-7 p-0">

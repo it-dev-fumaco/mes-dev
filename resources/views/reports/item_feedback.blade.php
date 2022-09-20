@@ -9,56 +9,39 @@
 <div class="panel-header"></div>
 
 <div class="row p-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-  <div class="col-md-4 offset-md-8 p-1" style="margin-bottom: -60px; z-index: 1;">
-    <div class="pull-right p-0">
-      <button type="button" class="btn btn-secondary" id="reload-list">
-        <i class="now-ui-icons loader_refresh"></i> Refresh List
-      </button>
-      <button type="button" class="btn btn-primary" id="manual-production-create-btn">
-        <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
-      </button>
-    </div>
-  </div>
   <div class="col-md-12 p-0" style="min-height: 440px;">
     <div class="panel panel-default p-0 m-0">
       <div class="panel-body panel-body">
         <div class="col-sm-12 ticket-status-widget pl-2 pr-2 m-0" role="tabpanel" aria-expanded="true" aria-hidden="false">
           <div class="ui-tab-container ui-tab-default">
             <div justified="true" class="ui-tab p-0 m-0">
-              <ul class="nav nav-tabs nav-justified">
-                <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
-                  <a data-toggle="tab" href="#tab-production-orders">
-                    <span class="tab-number" id="production-orders-total">0</span> 
-                    <span class="tab-title">Production Order(s)</span> 
-                  </a>
-                </li>
-                <li class="tab search-tab custom-nav-link" heading="Justified">
-                  <a data-toggle="tab" href="#tab-search">
-                    <span class="tab-number" id="item-tracking-total">0</span> 
-                    <span class="tab-title">Order Tracking</span> 
-                  </a>
-                </li>
-                <li class="tab material-status-tab custom-nav-link tab-heading--reddish" heading="Justified">
-                  <a data-toggle="tab" href="#tab-material-status">
-                    <span class="tab-number" id="material-status-total">0</span> 
-                    <span class="tab-title">Material Status</span> 
-                  </a>
-                </li>
-              </ul>
-              <div class="tab-content">
-                <div class="tab-pane" id="tab-material-status">
-                  <div class="tab-heading tab-heading--reddish pl-4">
-                    <h4>Production Order Material Status</h4>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                      <div class="form-group mr-2">
-                        <input type="text" class="form-control bg-white material-status-search" placeholder="Search" id="material-status-search">
-                      </div>
-                    </div>
-                    <div class="col-md-12" id="material-status-div" style="min-height:500px;"></div>
-                  </div>
+              <div class="d-flex flex-row m-0">
+                <div class="col-6 p-0 m-0">
+                  <ul class="nav nav-tabs nav-justified">
+                    <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
+                      <a data-toggle="tab" href="#tab-production-orders">
+                        <span class="tab-number" id="production-orders-total">0</span> 
+                        <span class="tab-title">Production Order(s)</span> 
+                      </a>
+                    </li>
+                    <li class="tab search-tab custom-nav-link" heading="Justified">
+                      <a data-toggle="tab" href="#tab-search">
+                        <span class="tab-number" id="item-tracking-total">0</span> 
+                        <span class="tab-title">Order Tracking</span> 
+                      </a>
+                    </li>
+                  </ul>
                 </div>
+                <div class="text-right p-0 col-6">
+                  <button type="button" class="btn btn-secondary" id="reload-list">
+                    <i class="now-ui-icons loader_refresh"></i> Refresh List
+                  </button>
+                  <button type="button" class="btn btn-primary" id="manual-production-create-btn">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
+                  </button>
+                </div>
+              </div>
+              <div class="tab-content" style="margin-top: -5px;">
                 <div class="tab-pane active" id="tab-production-orders">
                   {{-- All Production Orders --}}
                   <div class="tab-heading tab-heading--gray">
@@ -71,7 +54,7 @@
                           @endphp
                           <div class="row p-0 m-0">
                             @foreach ($status_arr as $status)
-                              <label class="PillList-item mr-2">
+                              <label class="PillList-item mr-2 mb-0">
                                 <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
                                 <span class="PillList-label">{{ $status }}
                                 </span>
@@ -79,8 +62,8 @@
                             @endforeach
                           </div>
                         </div>
-                        <div class="col-3 m-0">
-                          <div class="form-group m-0">
+                        <div class="col-3 m-0 p-0">
+                          <div class="form-group m-0 p-0">
                             <input type="text" id="production-orders-search" class="form-control bg-white search-filter rounded m-0" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
                           </div>
                         </div>
@@ -135,14 +118,20 @@
                 <div class="tab-pane" id="tab-search">
                   {{--  item tracking  --}}
                   <div class="tab-heading tab-heading--ltgray">
-                    <h4>Item Tracking</h4>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                      <div class="form-group mr-2">
-                        <input type="text" class="form-control bg-white item-tracking-search" placeholder="Search">
+                    <div class="row">
+                      <div class="col-md-8">
+                        <h5>Item Tracking</h5>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-group m-0">
+                          <input type="text" class="form-control bg-white item-tracking-search rounded m-0" placeholder="Search">
+                        </div>
                       </div>
                     </div>
+                  
+                  </div>
+                  <div class="row">
+                    
                     <div class="col-md-12" id="item-tracking-div" style="min-height:500px;"></div>
                   </div>
                 </div>
@@ -186,7 +175,7 @@
 
   .custom-nav-link{
     padding: 5px;
-    width: 12%;
+    width: 20%;
   }
 
   .custom-nav-link a{
@@ -199,7 +188,7 @@
   
   .tab-heading {
     width: 100%;
-    padding: 1em .5em;
+    padding: .5em;
   }
   .tab-heading h4 {
     margin: 0;
@@ -253,14 +242,14 @@
   li.tab .tab-number {
     color: #FFF;
     font-weight: 800;
-    font-size: 1.2em;
+    font-size: 1.15em;
     display: block;
     text-align: center;
     margin-bottom: .25em;
   }
   li.tab .tab-title {
     color: #FFF;
-    font-size: .8em;
+    font-size: .7em;
     display: block;
     text-align: center;
     text-transform: uppercase;
@@ -420,7 +409,7 @@
   cursor: pointer;
   display: inline-block;
   float: left;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: normal;
   line-height: 20px;
   margin: 0 12px 12px 0;
@@ -1071,38 +1060,6 @@
 
 <script>
 $(document).ready(function(){
-  function get_production_order_material_status(page){
-    var q = $('#material-status-search').val();
-    $.ajax({
-      url: "/get_production_order_material_status?page=" + page,
-      type:"GET",
-      data: {q},
-      success: function(data){
-        $('#material-status-div').html(data);
-      }
-    });
-  }
-
-  function get_total_production_order_material_status(){
-    $.ajax({
-      url: "/get_production_order_material_status?get_total=1",
-      type:"GET",
-      success: function(data){
-        $('#material-status-total').text(data);
-      }
-    });
-  }
-
-  $(document).on('click', '#tbl-production-order-material-status-pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    get_production_order_material_status(page);
-  });
-
-  $(document).on('keyup', '#material-status-search', function(){
-    get_production_order_material_status();
-  });
-
   $(document).on('click', '#add-operation-btn', function(){
     var workstation = $('#sel-workstation option:selected').text();
     var wprocess = $('#sel-process').val();
@@ -1466,10 +1423,6 @@ $(document).ready(function(){
     item_tracking(0);
     item_tracking(1);
     get_production_order_list(status, '#production-orders-div', 1);
-
-    get_production_order_material_status();
-    get_total_production_order_material_status();
-
     get_production_order_list(status, '#production-orders-div', 1, 1, $('.search-filter').val());
   }
 
