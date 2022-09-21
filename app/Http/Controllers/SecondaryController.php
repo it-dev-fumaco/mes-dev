@@ -2937,7 +2937,7 @@ class SecondaryController extends Controller
             ->join('workstation as work','work.workstation_name','tsd.workstation')
             ->whereIn('tsd.workstation', $permitted_workstation)
             ->where('time_logs.status', 'In Progress')
-            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.operator_id', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id');
+            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.operator_id', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id', 'time_logs.machine_name');
 
         if($request->operation != 2){
             $orders = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -2948,7 +2948,7 @@ class SecondaryController extends Controller
                 ->join('workstation as work','work.workstation_name','tsd.workstation')
                 ->whereIn('tsd.workstation', $permitted_workstation)
                 ->where('spotwelding_qty.status', 'In Progress')
-                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.operator_id', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id')
+                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.operator_id', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id', 'spotwelding_qty.machine_name')
                 ->union($orders_1)->get();
         }else{
             $orders = $orders_1->get();
@@ -2972,15 +2972,8 @@ class SecondaryController extends Controller
             }
         }
 
-        $machine_images = DB::connection('mysql_mes')->table('machine')
-            ->whereIn('machine_code', collect($orders)->pluck('machine')->unique())
-            ->pluck('image', 'machine_code')->toArray();
-        
         $result = [];
         foreach($orders as $row){
-            $machine_img = array_key_exists($row->machine, $machine_images) ? $machine_images[$row->machine] : null;
-            $machine_img = $machine_img ? $machine_img : null;
-
             $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
             $reference_id = ($row->workstation_plot == 'Spotwelding') ? $row->jtname : $row->time_log_id;
             $qa_table = DB::connection('mysql_mes')->table('quality_inspection')
@@ -3013,7 +3006,7 @@ class SecondaryController extends Controller
 
             $result[]=[
                 'workstation_plot'=> $row->workstation_plot,
-                'machine' => $row->machine,
+                'machine' => $row->machine_name,
                 'jtname' => $row->jtname,
                 'process_name' => $row->process_name,
                 'stat' => $row->stat,
@@ -3022,9 +3015,6 @@ class SecondaryController extends Controller
                 'from_time' => ($row->from_time == null)? '-' : Carbon::parse($row->from_time)->format('M-d-Y h:i A'),
                 'to_time' => ($row->to_time == null)? '-' : Carbon::parse($row->to_time)->format('M-d-Y h:i A'),
                 'time_log_id'=>$row->time_log_id,
-                // 'qa_inspection_status' => ($qa_table == null) ? 'Pending': $qa_table->status,
-                // 'qa_inspected_by' =>  ($qa_table == null) ? '': $qa_em->employee_name,
-                // 'qa_inspection_date' => ($qa_table == null) ? 'Pending': Carbon::parse($qa_table->qa_inspection_date)->format('M-d-Y h:i A'),
                 'production_order' => $row->production_order,
                 'job_ticket_id' => $row->job_ticket_id,
                 'timelogs_id' => $row->time_log_id,
@@ -3037,7 +3027,6 @@ class SecondaryController extends Controller
                 'workstation_id' =>  $row->workstation_id,
                 'operator_id' =>  $row->operator_id,
                 'helpers' => $helpers,
-                'machine_image' => $machine_img
             ];
         }
 
