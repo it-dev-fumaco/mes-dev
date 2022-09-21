@@ -8274,4 +8274,85 @@ class MainController extends Controller
 			'daily_output' => number_format($daily_output)
 		];
 	}
+	
+	public function viewOrderList(Request $request) {
+		$permissions = $this->get_user_permitted_operation();
+
+		$order_types = ['Customer Order', 'Manufacture', 'Consignment Order', 'Sample Order'];
+
+		return view('view_order_list', compact('permissions', 'order_types'));
+	}
+
+	public function getOrderList(Request $request) {
+		$material_requests = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)
+			->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
+			->where('per_ordered', '<', 100)->where('status', '!=', 'Stopped')
+			->when($request->q, function ($query) use ($request) {
+				return $query->where(function($q) use ($request) {
+					$q->where('name', 'LIKE', '%'.$request->q.'%')
+					->orWhere('customer', 'LIKE', '%'.$request->q.'%')
+					->orWhere('project', 'LIKE', '%'.$request->q.'%')
+					->orWhere('custom_purpose', 'LIKE', '%'.$request->q.'%');
+				});
+            })
+			->when($request->status, function ($query) use ($request) {
+				return $query->where('status', $request->status);
+            })
+			->when($request->order_types, function ($query) use ($request) {
+				return $query->whereIn('custom_purpose', $request->order_types);
+            })
+			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'custom_purpose as order_type', 'status', 'transaction_date as date_approved');
+
+		$list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)
+			->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
+			->where('per_delivered', '<', 100)->where('status', '!=', 'Closed')
+			->when($request->q, function ($query) use ($request) {
+				return $query->where(function($q) use ($request) {
+					$q->where('name', 'LIKE', '%'.$request->q.'%')
+						->orWhere('customer', 'LIKE', '%'.$request->q.'%')
+						->orWhere('project', 'LIKE', '%'.$request->q.'%')
+						->orWhere('sales_type', 'LIKE', '%'.$request->q.'%');
+				});
+            })
+			->when($request->status, function ($query) use ($request) {
+				return $query->where('status', $request->status);
+            })
+			->when($request->order_types && !in_array('Customer Order', $request->order_types), function ($query) use ($request) {
+				return $query->whereIn('sales_type', $request->order_types);
+            })
+			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'sales_type as order_type', 'status', 'date_approved')
+			->unionAll($material_requests)->orderBy('date_approved', 'desc')->paginate(15);
+
+		// get items
+		$references = collect($list->items())->pluck('name');
+		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->whereIn('parent', $references)
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent');
+
+		$item_list = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $references)
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent')
+			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
+
+		$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+		$default_boms = DB::connection('mysql')->table('tabBOM')
+			->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
+			->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
+			->orderBy('creation', 'desc')->get();
+
+		$default_boms = collect($default_boms)->groupBy('item')->toArray();
+
+		$item_list = collect($item_list)->groupBy('parent')->toArray();
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order')
+			->whereIn('item_code', $item_codes)->whereIn(DB::raw('IFNULL(sales_order, material_request)'), $references)
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'))
+			->get();
+
+		$items_production_orders = [];
+		foreach ($production_orders as $r) {
+			$items_production_orders[$r->reference][$r->item_code][] = $r->production_order;
+		}
+
+		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders'));
+	}
 }

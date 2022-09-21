@@ -25,8 +25,6 @@ Route::get('/', 'MainController@index');
 Route::get('/get_checklist/{workstation_name}/{production_order}/{process_id}', 'QualityInspectionController@get_checklist');
 Route::post('/submit_quality_inspection', 'QualityInspectionController@submit_quality_inspection');
 
-Route::get('/iii', 'ProductionFloorController@com');
-
 Route::get('/operator/Painting/{process_name}', 'PaintingOperatorController@painting_index');
 Route::get('/operator/Painting/{process_name}/login', 'PaintingOperatorController@loading_login');
 Route::get('/get_production_order_details/{production_order}/{process_id}', 'PaintingOperatorController@get_production_order_details');
@@ -641,6 +639,9 @@ Route::get('/drag_n_drop/{production_order}', 'MainController@drag_n_drop');
 Route::get('/get_feedback_logs/{prod}', 'SecondaryController@get_feedbacked_log'); // N
 
 Route::group(['middleware' => 'auth'], function(){
+	Route::get('/order_list', 'MainController@viewOrderList');
+	Route::get('/get_order_list', 'MainController@getOrderList');
+	
 	Route::post('/submit_withdrawal_slip', 'ManufacturingController@submit_withdrawal_slip');
 
 	Route::get('/get_available_warehouse_qty/{item_code}', 'ManufacturingController@get_available_warehouse_qty');

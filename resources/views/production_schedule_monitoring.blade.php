@@ -13,8 +13,8 @@
 <input type="hidden" id="operation-name" value="{{ $operation_details->operation_name }}">
 <input type="hidden" id="operation-id" value="{{ $operation_details->operation_id }}">
 
-<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-    <div class="col-md-12">
+<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+    <div class="col-md-12 p-2 m-0">
       <div class="row">
         <div class="col-md-12">
           <div class="card">
