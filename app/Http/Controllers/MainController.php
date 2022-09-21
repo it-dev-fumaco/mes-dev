@@ -3782,6 +3782,10 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
 		}
 
+		if($job_ticket_details->status == 'Completed'){
+			return response()->json(['success' => 0, 'message' => 'Task already Completed.']);
+		}
+
 		$status = $job_ticket_details->status;
 		$machine_code = $request->machine_code;
 
@@ -3885,8 +3889,10 @@ class MainController extends Controller
 			->where('job_ticket.process_id', $job_ticket_details->process_id)
 			->where('time_logs.operator_id', '!=', $operator_id)
 			->whereNotNull('time_logs.operator_id')
-			->select('time_logs.operator_id', 'time_logs.operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))->groupBy('time_logs.operator_id', 'time_logs.operator_nickname')->get();
-    return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
+			->select('time_logs.operator_id', 'time_logs.operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))
+			->groupBy('time_logs.operator_id', 'time_logs.operator_nickname')->get();
+			
+    	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
 	}
 
 	public function operator_scrap_task($workstation, $machine_code, $production_order, $job_ticket_id, $operator_id){
