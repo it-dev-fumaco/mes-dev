@@ -3886,9 +3886,13 @@ class MainController extends Controller
 		}
 
 		$status = $job_ticket_details->status;
+		if($status == 'Completed'){
+			return response()->json(['success' => 0, 'message' => 'Task already Completed.']);
+		}
+
 		$machine_code = $request->machine_code;
 
-		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->first();
+		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->where('operator_id', Auth::user()->user_id)->first();
 
 		$exploded_production_order = explode('-', $request->production_order);
 
@@ -3898,20 +3902,17 @@ class MainController extends Controller
 
 		if (!$time_logs) {
 			$task_list_qry = DB::connection('mysql_mes')->table('production_order AS po')
-			->join('job_ticket AS jt', 'po.production_order', 'jt.production_order')
-			->where('po.production_order', $request->production_order)
-			->where('jt.workstation', $request->workstation)
-			->where('jt.job_ticket_id', $request->job_ticket_id)
-			->select('po.item_code', 'jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'po.customer', 'po.qty_to_manufacture', 'po.stock_uom', 'po.project', 'jt.process_id', 'jt.completed_qty', 'jt.status')
-			->orderBy('jt.last_modified_at', 'desc')->get();
+				->join('job_ticket AS jt', 'po.production_order', 'jt.production_order')
+				->where('po.production_order', $request->production_order)->where('jt.workstation', $request->workstation)
+				->where('jt.job_ticket_id', $request->job_ticket_id)->select('po.item_code', 'jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'po.customer', 'po.qty_to_manufacture', 'po.stock_uom', 'po.project', 'jt.process_id', 'jt.completed_qty', 'jt.status')
+				->orderBy('jt.last_modified_at', 'desc')->get();
 		}else{
 			$task_list_qry = DB::connection('mysql_mes')->table('production_order AS po')
 				->join('job_ticket AS jt', 'po.production_order', 'jt.production_order')
 				->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
-				->where('po.production_order', $request->production_order)
-				->where('jt.workstation', $request->workstation)
-				->where('jt.job_ticket_id', $request->job_ticket_id)
-				->select('po.item_code', 'time_logs.time_log_id', 'jt.job_ticket_id', 'time_logs.operator_id', 'time_logs.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'time_logs.status', 'time_logs.from_time', 'time_logs.to_time', 'po.customer', 'po.qty_to_manufacture', DB::raw('(SELECT SUM(good) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'po.stock_uom', 'po.project', 'time_logs.operator_name', 'jt.process_id', 'time_logs.good')
+				->where('po.production_order', $request->production_order)->where('jt.workstation', $request->workstation)
+				->where('jt.job_ticket_id', $request->job_ticket_id)->where('time_logs.operator_id', Auth::user()->user_id)
+				->select('po.item_code', 'time_logs.time_log_id', 'jt.job_ticket_id', 'time_logs.operator_id', 'time_logs.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'time_logs.status', 'time_logs.from_time', 'time_logs.to_time', 'po.customer', 'po.qty_to_manufacture', DB::raw('(SELECT SUM(good) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'po.stock_uom', 'po.project', 'time_logs.operator_name', 'jt.process_id', 'time_logs.good', 'jt.status as jtstatus')
 				->orderByRaw("FIELD(time_logs.status, 'In Progress', 'Pending', 'Completed') ASC")
 				->orderBy('time_logs.last_modified_at', 'desc')->get();
 		}
@@ -3932,16 +3933,20 @@ class MainController extends Controller
 					->pluck('time_log_id');
 				
 				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->count();
+
+				$jt_status = $row->status; // time log status
+				if ($row->operator_id != Auth::user()->user_id && $row->jtstatus != 'Completed') {
+					$jt_status = 'Pending';
+				}
 			}else{
 				$qa_inspection_status = 'Pending';
 				$helpers = [];
 				$count_helpers = 0;
-			}
 
-			if(!$time_logs && $row->status != 'Completed'){
-				$jt_status = 'Pending';
-			}else{
-				$jt_status = $row->status;
+				$jt_status = $row->status; // job ticket status
+				if($jt_status != 'Completed'){
+					$jt_status = 'Pending';
+				}
 			}
 
 			$task_list[] = [
@@ -3955,7 +3960,7 @@ class MainController extends Controller
 				'description' => $row->description,
 				'sales_order' => $row->sales_order,
 				'material_request' => $row->material_request,
-				'status' => ($time_logs) ? $row->status : $jt_status,
+				'status' => $jt_status,
 				'from_time' => ($time_logs) ? $row->from_time : null,
 				'to_time' => ($time_logs) ? $row->to_time : null,
 				'customer' => $row->customer,
@@ -3987,8 +3992,10 @@ class MainController extends Controller
 			->where('job_ticket.process_id', $job_ticket_details->process_id)
 			->where('time_logs.operator_id', '!=', $operator_id)
 			->whereNotNull('time_logs.operator_id')
-			->select('time_logs.operator_id', 'time_logs.operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))->groupBy('time_logs.operator_id', 'time_logs.operator_nickname')->get();
-    return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
+			->select('time_logs.operator_id', 'time_logs.operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))
+			->groupBy('time_logs.operator_id', 'time_logs.operator_nickname')->get();
+
+    	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
 	}
 
 	public function operator_scrap_task($workstation, $machine_code, $production_order, $job_ticket_id, $operator_id){
