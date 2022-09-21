@@ -160,6 +160,7 @@
                 $disable_continue = ($row['status'] != 'Completed') ? 'disabled' : '';
                 $disable_continue = ($row['operator_id'] && $row['operator_id'] != Auth::user()->user_id) ? 'disabled' : $disable_continue;
                 $disable_continue = ($row['qty_to_manufacture'] <= $row['total_good']) ? 'disabled' : $disable_continue;
+                $disable_continue = null;
               @endphp
               <tr>
                 <td class="text-center" style="width: 20%;">
