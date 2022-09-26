@@ -3782,10 +3782,6 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
 		}
 
-		if($job_ticket_details->status == 'Completed'){
-			return response()->json(['success' => 0, 'message' => 'Task already Completed.']);
-		}
-
 		$status = $job_ticket_details->status;
 		$machine_code = $request->machine_code;
 
