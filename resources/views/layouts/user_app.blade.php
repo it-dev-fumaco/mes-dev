@@ -154,6 +154,21 @@
           </a>
         </li>
       </ul>
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Settings</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0">
+          <a href="/production_settings" class="d-block m-0 p-1 text-decoration-none">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Production Settings</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/inventory_settings" class="d-block m-0 p-1 text-decoration-none">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Inventory Settings</span>
+          </a>
+        </li>
+      </ul>
     </div>
   </nav>
   <style>

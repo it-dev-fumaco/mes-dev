@@ -1903,32 +1903,11 @@ class SecondaryController extends Controller
                     ->orWhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('w.*', "op.operation_name as operation")
-            ->orderBy('w.workstation_id', 'desc')->get();
+            ->orderBy('w.workstation_id', 'desc')->paginate(15);
         
-
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-        // dd($process_list);
-        return view('tables.tbl_workstation_process_list', compact('data'));
-
+        return view('tables.tbl_workstation_process_list', compact('list'));
     }
+
     public function get_tbl_assigned_machine_process(Request $request){
       
         $process_list= DB::connection('mysql_mes')->table('machine_process')
@@ -2060,33 +2039,9 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                     $q->orWhere('process_name', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('last_modified_at', 'desc')->get();
+            ->orderBy('last_modified_at', 'desc')->paginate(15);
 
-        $workstation_list= DB::connection('mysql_mes')
-                ->table('workstation')->orderBy('order_no','asc')->get();
-
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($process_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_process_setup', compact('data','workstation_list'));
-
-
+        return view('tables.tbl_process_setup', compact('process_list'));
     }
     public function tbl_machine_setup_list(Request $request){
 
@@ -3722,35 +3677,11 @@ class SecondaryController extends Controller
 
     }
     public function tbl_shift_list(Request $request){
-
-        $shift_list= DB::connection('mysql_mes')
-                ->table('shift')
+        $shift_list= DB::connection('mysql_mes')->table('shift')
                 ->join('operation', 'operation.operation_id', 'shift.operation_id')
-                ->select('shift.*','operation.operation_name')
-                ->get();
+                ->select('shift.*','operation.operation_name')->paginate(15);
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($shift_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 7;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_shift_list', compact('data'));
-
-
+        return view('tables.tbl_shift_list', compact('shift_list'));
     }
     public function add_operation(Request $request){
          $now = Carbon::now();
@@ -3815,30 +3746,9 @@ class SecondaryController extends Controller
                     $q->where('operation_name', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('description', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('operation_id', 'desc')->get();
+            ->orderBy('operation_id', 'desc')->paginate(15);
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($shift_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_operation_list', compact('data'));
-
-
+        return view('tables.tbl_operation_list', compact('shift_list'));
     }
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
@@ -5291,29 +5201,9 @@ class SecondaryController extends Controller
                     ->orWhere('type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('model', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('machine_id', 'desc')->get();
-        
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($machine_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
+            ->orderBy('machine_id', 'desc')->paginate(15);
 
-        $data = $paginatedItems;
-
-        return view('tables.tbl_settings_machine_list', compact('data'));
-
+        return view('tables.tbl_settings_machine_list', compact('machine_list'));
     }
     public function stock_adjustment_entries_page(){
         $attributes = $this->get_item_attributes();
@@ -6842,9 +6732,11 @@ class SecondaryController extends Controller
                 ->orwhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%');
                 });
             })
-            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(8);
+            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_item_classification_warehouse_fabrication', compact('item_classification'));
     }
+
     public function item_classification_warehouse_tbl_painting(Request $request){
         $item_classification = DB::connection('mysql_mes')->table('item_classification_warehouse as icw')
             ->join('operation', 'operation.operation_id','icw.operation_id')
@@ -6857,9 +6749,11 @@ class SecondaryController extends Controller
                 ->orwhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%');
                 });
             })
-            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(8);
+            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_item_classification_warehouse_painting', compact('item_classification'));
     }
+
     public function item_classification_warehouse_tbl_assembly(Request $request){
         $item_classification = DB::connection('mysql_mes')->table('item_classification_warehouse as icw')
             ->join('operation', 'operation.operation_id','icw.operation_id')
@@ -6872,9 +6766,11 @@ class SecondaryController extends Controller
                 ->orwhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%');
                 });
             })
-            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(8);
+            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_item_classification_warehouse_assembly', compact('item_classification'));
     }
+    
     public function insert_item_classification_warehouse(Request $request){
 
         $now = Carbon::now();
@@ -8246,7 +8142,7 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                 $q->where('reschedule_reason', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reschedule_reason_id', 'desc')->paginate(8);
+            ->orderBy('reschedule_reason_id', 'desc')->paginate(15);
             
         return view('tables.tbl_late_delivery_reason', compact('list'));
 
@@ -8540,10 +8436,9 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                 $q->where('reason_for_cancellation', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reason_for_cancellation_id', 'desc')->paginate(8);
+            ->orderBy('reason_for_cancellation_id', 'desc')->paginate(15);
             
         return view('tables.tbl_reason_for_cancellation', compact('list'));
-
     }
     public function update_reason_for_cancellation(Request $request){
         if (DB::connection('mysql_mes')->table('reason_for_cancellation_po')
