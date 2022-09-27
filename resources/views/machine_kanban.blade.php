@@ -212,39 +212,6 @@ span.hvrlink:hover + .details-pane {
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="mark-done-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="width: 30%;">
-      <form action="/mark_as_done_task" method="POST" id="mark-done-frm">
-         @csrf
-         <div class="modal-content">
-            <div class="modal-header">
-               <h5 class="modal-title" id="modal-title">
-                <span>Mark as Done</span>
-                <span class="workstation-text" style="font-weight: bolder;"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="text-center">Do you want to override task?</h5>
-                    <input type="hidden" name="id" required id="jt-index">
-                    <input type="hidden" name="qty_accepted" required id="qty-accepted-override">
-                    
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-               <button type="submit" class="btn btn-primary">Confirm</button>
-            </div>
-         </div>
-      </form>
-   </div>
-</div>
-
-<!-- Modal -->
 <div class="modal fade" id="reset-task-modal" tabindex="-1" role="dialog">
    <div class="modal-dialog" role="document" style="width: 30%;">
       <form action="/reset_task" method="POST" id="reset-task-frm">
@@ -437,64 +404,6 @@ span.hvrlink:hover + .details-pane {
           if (data.success) {
             showNotification("success", data.message, "now-ui-icons ui-1_check");
             $('#reset-task-modal').modal('hide');
-            $('#jtname-modal').modal("hide");
-            $('#view-machine-task-modal').modal("hide");
-            reload_me();
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-            return false;
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        },
-      }); 
-    });
-
-    $(document).on('click', '#mark-done-btn', function(){
-      if ($('#machine_kanban_details #card-status').val() == 'Unassigned') {
-        showNotification("danger", 'Please assigned task to machine first', "now-ui-icons travel_info");
-        return false;
-      }
-
-      if ($('#machine_kanban_details #task-status').val() == 'Completed') {
-        showNotification("danger", 'Unable to Mark as Done.', "now-ui-icons travel_info");
-        return false;
-      }
-
-      var workstation = $('#machine_kanban_details .workstation-name').text();
-      var workstation_id = $('#current_workstation').val();
-      var jtid = $('#machine_kanban_details #jt-id').val();
-      var qty = $('#machine_kanban_details #qty-override').val();
-       $.ajax({
-        url:"/get_AssignMachineinProcess_jquery/"+ jtid + "/" + workstation_id,
-        type:"GET",
-        success:function(data){
-          $('#machine_selection').html(data);
-          $('#mark-done-modal #jt-index').val(jtid);
-          $('#mark-done-modal #qty-accepted-override').val(qty);
-
-          
-          $('#mark-done-modal .workstation-text').text('[' + workstation + ']');
-          $('#mark-done-modal').modal('show');
-        }
-
-      }); 
-    });
-
-    $('#mark-done-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr('action');
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#mark-done-modal').modal('hide');
             $('#jtname-modal').modal("hide");
             $('#view-machine-task-modal').modal("hide");
             reload_me();

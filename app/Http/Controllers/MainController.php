@@ -3358,46 +3358,6 @@ class MainController extends Controller
     	}
     }
 
-    public function mark_as_done_task(Request $request){
-    	try {
-			if(!Auth::user()) {
-				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
-			}
-
-            if ($request->id) {
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)
-                    ->where('status','=', 'Completed')->first();
-                if ($jt_details) {
-                    return response()->json(['success' => 0, 'message' => 'Task already Completed']);
-                }
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
-
-                $machine_details= DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->machine_selected_id)->select('machine_code','machine_name')->first();
-                $now = Carbon::now();
-                $values = [
-                    'to_time' => $now->toDateTimeString(),
-                    'status' => 'Completed',
-                    'remarks' => 'Override',
-                    'operator_id' => Auth::user()->user_id,
-                    'operator_name' => Auth::user()->employee_name,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString(),
-                    'good' => $request->qty_accepted,
-                    'completed_qty' => $request->qty_accepted,
-                    'machine_code' => $machine_details->machine_code,
-                    'machine_name' => $machine_details->machine_name
-                ];
-
-                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->update($values);
-
-                $this->update_job_ticket($request->id);
-
-                return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
-            }
-        } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
-        }
-    }
     // SecondaryController
     public function update_machine_path(Request $request){
 

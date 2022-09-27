@@ -436,7 +436,6 @@ Route::get('/get_feedbacked_production_order_assembly/{schedule_date}', 'Assembl
 Route::get('/get_reject_assembly_production_order/{schedule_date}', 'AssemblyController@get_reject_assembly_production_order');
 Route::get('/count_current_assembly_production_schedule_monitoring/{date}', 'AssemblyController@count_current_assembly_production_schedule_monitoring');
 Route::post('/move_today_task_assembly', 'AssemblyController@move_today_task');
-Route::post('/mark_as_done_task_assembly', 'AssemblyController@mark_as_done_task_assembly');
 Route::get('/get_scheduled_production_order/{operation_id}/{scheduled_date}', 'AssemblyController@get_scheduled_production_order');
 Route::get('/get_production_sched_assembly/{date}', 'AssemblyController@get_production_schedule_monitoring_list_assembly');
 Route::get('/get_production_sched_assembly_backlog/{date}', 'AssemblyController@get_production_schedule_monitoring_list_backlogs');
@@ -453,7 +452,6 @@ Route::get('/get_production_schedule_monitoring_list_backlogs/{date}', 'Secondar
 Route::get('/count_current_painting_production_schedule_monitoring/{date}', 'SecondaryController@count_current_painting_production_schedule_monitoring');
 Route::post('/move_today_task', 'SecondaryController@move_today_task');
 Route::post('/addnotes_task', 'SecondaryController@add_notes_task');
-Route::post('/mark_as_done_task_painting', 'SecondaryController@mark_as_done_task_painting');
 Route::get('/print_production_sched/{date}', 'SecondaryController@get_scheduled_for_painting');
 Route::get('/get_production_details_for_edit/{prod}', 'SecondaryController@get_production_details_for_edit');
 Route::post('/edit_cpt_status_qty', 'SecondaryController@edit_cpt_status_qty');
