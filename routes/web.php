@@ -672,6 +672,7 @@ Route::group(['middleware' => 'auth'], function(){
 
 	Route::get('/production_settings', 'MainController@productionSettings');
 	Route::get('/inventory_settings', 'MainController@inventorySettings');
+	Route::get('/qa_settings', 'MainController@qaSettings');
 	
 
 	

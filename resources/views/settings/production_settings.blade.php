@@ -9,9 +9,7 @@
 @include('modals.add_workstation_modal')
 @include('modals.add_machine_modal')
 @include('modals.add_process_modal')
-{{-- @include('modals.process_assignment_modal') --}}
 @include('modals.process_profile')
-{{-- @include('modals.delete_assigned_machine_to_process_modal') --}}
 @include('modals.edit_process_list_modal')
 @include('modals.delete_process_setup_list_modal')
 @include('modals.add_shift_modal')
@@ -61,7 +59,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-10 p-2" style="min-height:1000px;">
+	<div class="col-10 p-2" style="min-height: 1000px;">
 		<div class="tab-content text-center">
 			<div class="tab-pane active" id="process_setup">
 				<div class="card">

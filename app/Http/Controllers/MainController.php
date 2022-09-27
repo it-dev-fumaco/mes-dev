@@ -8374,36 +8374,25 @@ class MainController extends Controller
 	public function inventorySettings(){
         $permissions = $this->get_user_permitted_operation();
 
-        $uom_list = DB::connection('mysql_mes')->table('uom')->get();
-
-        $material_types = DB::connection('mysql')->table('tabItem Attribute Value')
-            ->where('parent', 'like', '%materials%')->distinct()->pluck('attribute_value');
-
-        $list=  DB::connection('mysql_mes')->table('workstation')->paginate(10);
-        $operation = DB::connection('mysql')->table('tabOperation as top')->get();
         $item_classification = DB::connection('mysql')->table('tabItem Classification as item_class')->get();
-        $item_group = DB::connection('mysql')->table('tabItem Group as item_group')->get();
-        $warehouse = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)
-        ->where('company', 'FUMACO Inc.')->get();
+
+        $warehouse = DB::connection('mysql')->table('tabWarehouse')
+			->where('disabled', 0)->where('is_group', 0)->where('company', 'FUMACO Inc.')->get();
+
         $warehouse_wip = DB::connection('mysql')->table('tabWarehouse')->where('company', 'FUMACO Inc.')->where('disabled', 0)->where('is_group', 0)->get();
-        $machine_process= DB::connection('mysql_mes')->table('machine')->paginate(10);
 
-        $process_list= DB::connection('mysql_mes')->table('process')->get();
-        $operation_list=DB::connection('mysql_mes')->table('operation')->get();
-        $shift_list=DB::connection('mysql_mes')->table('shift')
-            ->join('operation', 'operation.operation_id', 'shift.operation_id')
-            ->where('shift.shift_type','!=', 'Regular Shift')->get();
+        $operation_list = DB::connection('mysql_mes')->table('operation')->get();
+    
+        $mes_users = DB::connection('mysql_mes')->table('user')->pluck('employee_name', 'user_access_id');
 
-        $workstation_list= DB::connection('mysql_mes')
-                ->table('workstation')->orderBy('order_no','asc')->get();
-                
-        $employees = DB::connection('mysql_essex')->table('users')->where('user_type', 'Employee')
-            ->where('status', 'Active')->get();
-        $module= DB::connection('mysql_mes')->table('user_group')->groupBy('module')->select('module')->get();
+        return view('settings.inventory_settings', compact('permissions', 'warehouse_wip', 'item_classification', 'warehouse', 'operation_list', 'mes_users'));
+    }
+
+	public function qaSettings(){
+        $permissions = $this->get_user_permitted_operation();
 
         $reject_category = DB::connection('mysql_mes')->table('reject_category')->get();
-        $operations = DB::connection('mysql_mes')->table('operation')->get();
-        $mes_users = DB::connection('mysql_mes')->table('user')->pluck('employee_name', 'user_access_id');
-        return view('settings.inventory_settings', compact('item_group','permissions', 'warehouse_wip','module','item_classification', 'warehouse','list','operation','machine_process', 'process_list','workstation_list', 'employees', 'operations', 'operation_list', 'shift_list','reject_category', 'uom_list', 'material_types', 'mes_users'));
+		
+        return view('settings.qa_settings', compact('permissions', 'reject_category'));
     }
 }

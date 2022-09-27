@@ -6126,21 +6126,26 @@ class SecondaryController extends Controller
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')
             ->where('qa_sp.reject_category_id', 1)
-            ->orderBy('lot_size_min', 'asc')->paginate(8);
+            ->orderBy('lot_size_min', 'asc')->paginate(15);
+
         return view('tables.tbl_qa_sampling_plan_visual', compact('sampling_plan'));
     }
+
     public function get_tbl_qa_variable(Request $request){
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')
             ->where('qa_sp.reject_category_id', 2)
-            ->orderBy('lot_size_min', 'asc')->paginate(8);
+            ->orderBy('lot_size_min', 'asc')->paginate(15);
+
         return view('tables.tbl_qa_sampling_plan_variable', compact('sampling_plan'));
     }
+
     public function get_tbl_qa_reliability(Request $request){
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')
             ->where('qa_sp.reject_category_id', 3)
-            ->orderBy('lot_size_min', 'asc')->paginate(8);
+            ->orderBy('lot_size_min', 'asc')->paginate(15);
+
         return view('tables.tbl_qa_sampling_plan_reliability', compact('sampling_plan'));
     }
     public function save_sampling_plan(Request $request){
@@ -6291,7 +6296,7 @@ class SecondaryController extends Controller
             ->where('op.operation_name', 'Fabrication')
             ->where('w.workstation_name','!=','Painting')
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name')
-            ->orderBy('qa_checklist_id', 'desc')->paginate(9);
+            ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
         return view('tables.tbl_check_list_fabrication', compact('check_list'));
 
@@ -6310,7 +6315,7 @@ class SecondaryController extends Controller
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.workstation_name','=','Painting')
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
-            ->orderBy('qa_checklist_id', 'desc')->paginate(9);
+            ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
         return view('tables.tbl_check_list_painting', compact('check_list'));
     }
@@ -6322,7 +6327,7 @@ class SecondaryController extends Controller
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('op.operation_name', 'Wiring and Assembly')
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
-            ->orderBy('qa_checklist_id', 'desc')->paginate(9);
+            ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
         return view('tables.tbl_check_list_assembly', compact('check_list'));
 
@@ -6416,7 +6421,7 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('rl.*','rc.reject_category_name', 'reject_material_type.material_type')
-            ->orderBy('reject_list_id', 'desc')->paginate(8);
+            ->orderBy('reject_list_id', 'desc')->paginate(15);
             
         return view('tables.tbl_reject_list', compact('reject_list'));
 
@@ -6425,8 +6430,7 @@ class SecondaryController extends Controller
         $reject_list = DB::connection('mysql_mes')->table('reject_list as rl')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->leftJoin('reject_material_type', 'reject_material_type.reject_material_type_id', 'rl.reject_material_type_id')
-            ->leftJoin('operation', 'operation.operation_id', 'rl.operation_id')
-            ->where('rl.owner', 'Operator')
+            ->leftJoin('operation', 'operation.operation_id', 'rl.operation_id')->where('rl.owner', 'Operator')
             ->where(function($q) use ($request) {
                 $q->where('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
@@ -6436,11 +6440,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('rl.*','rc.reject_category_name', 'reject_material_type.material_type', 'operation.operation_name')
-            ->orderBy('reject_list_id', 'desc')->paginate(8);
+            ->orderBy('reject_list_id', 'desc')->paginate(15);
             
         return view('tables.tbl_reject_op_list', compact('reject_list'));
-
     }
+
     public function update_reject_list(Request $request){
         $now = Carbon::now();
         // dd($request->all());
@@ -6529,6 +6533,7 @@ class SecondaryController extends Controller
 
         
     }
+
     public function get_tbl_reject_category(Request $request){
         $reject_category = DB::connection('mysql_mes')->table('reject_category as rc')
             ->where(function($q) use ($request) {
@@ -6537,11 +6542,11 @@ class SecondaryController extends Controller
                     ->orWhere('rc.type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.category_description', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reject_category_id', 'desc')->paginate(8);
+            ->orderBy('reject_category_id', 'desc')->paginate(15);
 
         return view('tables.tbl_reject_category', compact('reject_category'));
-
     }
+
     public function update_reject_category(Request $request){
         $now = Carbon::now();
         $reject_category = [];
@@ -8064,7 +8069,7 @@ class SecondaryController extends Controller
             })
             ->where('w.workstation_name','!=','Painting')
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name', 'process.process_name')
-            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
+            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(15);
 
         return view('tables.tbl_operator_check_list_fabrication', compact('check_list'));
 
@@ -8083,11 +8088,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('rl.*','rc.reject_category_name', 'rmt.material_type')
-            ->orderBy('reject_list_id', 'desc')->paginate(9);
+            ->orderBy('reject_list_id', 'desc')->paginate(15);
 
         return view('tables.tbl_operator_check_list_assembly', compact('check_list'));
-
     }
+
     public function get_tbl_opchecklist_list_painting(Request $request){
         $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
             ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
@@ -8106,10 +8111,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
-            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
-        return view('tables.tbl_operator_check_list_painting', compact('check_list'));
+            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(15);
 
+        return view('tables.tbl_operator_check_list_painting', compact('check_list'));
     }
+
     public function delete_operator_checklist(Request $request){
         DB::connection('mysql_mes')->table('operator_reject_list_setup')->where('operator_reject_list_setup_id', $request->check_list_id)->delete();
         return response()->json(['success' => 1, 'message' => 'Operator reject list setup successfully deleted!', 'reloadtbl' => $request->delete_op_reloadtbl]);
@@ -8365,11 +8371,11 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                 $q->where('material_type', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reject_material_type_id', 'desc')->paginate(8);
+            ->orderBy('reject_material_type_id', 'desc')->paginate(15);
             
         return view('tables.tbl_material_type', compact('list'));
-
     }
+
     public function update_material_type(Request $request){
         if (DB::connection('mysql_mes')->table('reject_material_type')
             ->where('material_type', $request->edit_material_type)
