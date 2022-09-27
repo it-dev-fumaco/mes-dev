@@ -32,7 +32,7 @@
                <span class="nav-link active" id="first-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-1" role="tab" aria-controls="tab1" aria-selected="true">Select for Random Inspection <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_random_inspection_arr) }}</span></span>
             </li>
             <li class="nav-item font-weight-bold">
-               <span class="nav-link" id="second-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-2" role="tab" aria-controls="tab2" aria-selected="false">Reject Confirmation <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_reject_confirmation) }}<span></span>
+               <span class="nav-link" id="second-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-2" role="tab" aria-controls="tab2" aria-selected="false">Select for Reject Confirmation <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_reject_confirmation) }}<span></span>
             </li>
             <li class="nav-item font-weight-bold">
                 <span class="nav-link" id="third-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size: 10pt;">{{ count($qa_inspection_logs) }}<span></span>
@@ -41,13 +41,10 @@
         <div class="tab-content" style="min-height: 300px;">
             <div class="tab-pane active" id="tab{{ $existing_production_order->production_order }}-1" role="tabpanel" aria-labelledby="first-tab">
                 <div class="row" style="min-height: 200px;">
-                    {{-- <div class="col-md-12" style="margin: 8px;">
-                        <h5 class="title text-center" style="margin: 0;">Select Task for Random Inspection</h5>
-                    </div> --}}
                     <div class="col-md-12">
                         <div class="table-responsive">
                             <table class="table table-striped text-center">
-                                <thead class="text-primary" style="font-size: 7pt;">
+                                <thead class="text-primary" style="font-size: 5pt;">
                                     <th class="text-center p-1"><b>PROCESS</b></th>
                                     <th class="text-center p-1"><b>BATCH DATE</b></th>
                                     <th class="text-center p-1"><b>OPERATOR</b></th>
@@ -88,30 +85,27 @@
             </div>
             <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-2" role="tabpanel" aria-labelledby="second-tab">
                 <div class="row" style="min-height: 200px;">
-                    <div class="col-md-12" style="margin: 8px;">
-                        <h5 class="title text-center" style="margin: 0;">Select Task for Reject Confirmation</h5>
-                    </div>
                     <div class="col-md-12">
                         <div class="table-responsive">
                             <table class="table table-striped text-center">
-                                <thead class="text-primary" style="font-size: 7pt;">
-                                    <th class="text-center"><b>PROCESS</b></th>
-                                    <th class="text-center"><b>BATCH DATE</b></th>
-                                    <th class="text-center"><b>REJECT QTY</b></th>
-                                    <th class="text-center"><b>OPERATOR</b></th>
-                                    <th class="text-center"><b>STATUS</b></th>
-                                    <th class="text-center"><b>ACTIONS</b></th>
+                                <thead class="text-primary" style="font-size: 5pt;">
+                                    <th class="text-center p-1"><b>PROCESS</b></th>
+                                    <th class="text-center p-1"><b>BATCH DATE</b></th>
+                                    <th class="text-center p-1"><b>REJECT QTY</b></th>
+                                    <th class="text-center p-1"><b>OPERATOR</b></th>
+                                    <th class="text-center p-1"><b>STATUS</b></th>
+                                    <th class="text-center p-1"><b>ACTIONS</b></th>
                                 </thead>
                                 <tbody style="font-size: 10pt;">
                                     @forelse($task_reject_confirmation as $row)
                                     <tr>
-                                        <td><b>{{ $row->process }}</b></td>
-                                        <td><b>{{ date('M-d-Y h:i A', strtotime($row->from_time)) }}</b></td>
-                                        <td><b>{{ $row->reject }}</b></td>
-                                        <td><b>{{ $row->operator_name }}</b></td>
-                                        <td><b>{{ $row->status }}- {{$row->process}}</b></td>
-                                        <td class="text-center">
-                                            <button type='button' class='btn btn-primary btn-lg reject-confirmation-btn' data-inspection-type="Reject Confirmation" data-workstation="{{ $row->workstation }}" data-production-order="{{ $row->production_order }}" data-process-id="{{ $row->process_id }}" data-qaid="{{ $row->qa_id }}">
+                                        <td class="p-1"><b>{{ $row->process }}</b></td>
+                                        <td class="p-1"><b>{{ date('M-d-Y h:i A', strtotime($row->from_time)) }}</b></td>
+                                        <td class="p-1"><b>{{ $row->reject }}</b></td>
+                                        <td class="p-1"><b>{{ $row->operator_name }}</b></td>
+                                        <td class="p-1"><b>{{ $row->status }}- {{$row->process}}</b></td>
+                                        <td class="text-center p-1">
+                                            <button type='button' class='btn pb-2 pr-3 pt-2 pl-3 btn-primary btn-lg reject-confirmation-btn' data-inspection-type="Reject Confirmation" data-workstation="{{ $row->workstation }}" data-production-order="{{ $row->production_order }}" data-process-id="{{ $row->process_id }}" data-qaid="{{ $row->qa_id }}">
                                                 <i class='now-ui-icons gestures_tap-01'></i> Select
                                             </button>
                                         </td>
@@ -129,29 +123,26 @@
             </div>
             <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-3" role="tabpanel" aria-labelledby="third-tab">
                 <div class="row" style="min-height: 200px;">
-                    <div class="col-md-12" style="margin: 8px;">
-                        <h5 class="title text-center" style="margin: 0;">QA Inspection Log(s)</h5>
-                    </div>
                     <div class="col-md-12">
                         <div class="table-responsive">
                             <table class="table table-striped text-center">
-                                <thead class="text-primary" style="font-size: 7pt;">
-                                    <th class="text-center"><b>PROCESS</b></th>
-                                    <th class="text-center"><b>INSPECTION DATE</b></th>
-                                    <th class="text-center"><b>INSPECTION TYPE</b></th>
-                                    <th class="text-center"><b>QTY</b></th>
-                                    <th class="text-center"><b>INSPECTED BY</b></th>
-                                    <th class="text-center"><b>STATUS</b></th>
+                                <thead class="text-primary" style="font-size: 5pt;">
+                                    <th class="text-center p-1"><b>PROCESS</b></th>
+                                    <th class="text-center p-1"><b>INSPECTION DATE</b></th>
+                                    <th class="text-center p-1"><b>INSPECTION TYPE</b></th>
+                                    <th class="text-center p-1"><b>QTY</b></th>
+                                    <th class="text-center p-1"><b>INSPECTED BY</b></th>
+                                    <th class="text-center p-1"><b>STATUS</b></th>
                                 </thead>
                                 <tbody style="font-size: 10pt;">
                                     @forelse($qa_inspection_logs as $row)
                                     <tr>
-                                        <td><b>{{ $row['process'] }}</b></td>
-                                        <td><b>{{ $row['qa_inspection_date'] }}</b></td>
-                                        <td><b>{{ $row['qa_inspection_type'] }}</b></td>
-                                        <td><b>{{ $row['actual_qty_checked'] }}</b></td>
-                                        <td><b>{{ $row['qa_staff'] }}</b></td>
-                                        <td class="font-weight-bold">
+                                        <td class="p-1"><b>{{ $row['process'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['qa_inspection_date'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['qa_inspection_type'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['actual_qty_checked'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['qa_staff'] }}</b></td>
+                                        <td class="font-weight-bold p-1">
                                             @if ($row['status'] == 'QC Passed')
                                             <span class="badge badge-success" style="font-size: 10pt;"> {{ $row['status'] }}</span>
                                             @else
