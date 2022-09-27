@@ -1002,64 +1002,6 @@ class AssemblyController extends Controller
     return response()->json(['success' => 1, 'message' => 'Scheduled Date Successfully Updated!']);
 
     }
-    public function add_notes_task(Request $request) {
-        $val = [];
-            $val = [
-                'notes' => $request->remarks_field,
-                'last_modified_by' => Auth::user()->email,
-            ];
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod_no)->update($val);  
-    return response()->json(['success' => 1, 'message' => 'Remarks Successfully Added!']);
-
-    }
-    public function mark_as_done_task_assembly(Request $request){
-    	try {
-            $now = Carbon::now();
-            if ($request->prod) {
-           
-                $prod = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod)->first();
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod)->get();
-                foreach($jt_details as $row){
-                    if(DB::connection('mysql_mes')->table('time_logs')
-                    ->where('job_ticket_id', '=', $row->job_ticket_id)
-                    ->exists()){
-                    $values = [
-                    'status' => 'Completed',
-                    'good' => $prod->qty_to_manufacture,
-                    'to_time' => $now->toDateTimeString(),
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                    ];
-
-                    DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $row->job_ticket_id)->where('status','!=','Completed')->update($values);
-                    }
-                }
-                                
-                $values = [
-                    'status' => 'Completed',
-                    'remarks' => 'Override',
-                    'completed_qty' => $prod->qty_to_manufacture,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-
-                DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod)->where('status','!=','Completed')->update($values);
-
-                $values1 = [
-                    'status' => 'Completed',
-                    'produced_qty' => $prod->qty_to_manufacture,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-
-                DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod)->update($values1);
-
-                return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
-            }
-        } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
-        }
-    }
     
     public function get_scheduled_production_order($operation_id, $scheduled_date){
         $scheduled_date = Carbon::parse($scheduled_date);

@@ -2431,12 +2431,21 @@ class SecondaryController extends Controller
                     return response()->json(['success' => 0, 'message' => 'Task already Completed']);
                 }
 
-                $prod_manufacturing_qty = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->first();
-                $pending = $prod_manufacturing_qty->qty_to_manufacture - $job_ticket_details->completed_qty;
+                $qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->sum('qty_to_manufacture');
+                $pending = $qty_to_manufacture - $job_ticket_details->completed_qty;
 
                 $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
-                $logs = DB::connection('mysql_mes')->table($logs_table)
-                    ->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
+                if ($request->logid) {
+                    $logs = DB::connection('mysql_mes')->table($logs_table)
+                        ->where('time_log_id', $request->logid)->where('status', 'In Progress')->first();
+
+                    if(!$logs){
+                        return response()->json(['success' => 0, 'message' => 'Task not found. Please reload the page.']);
+                    }
+                } else {
+                    $logs = DB::connection('mysql_mes')->table($logs_table)
+                        ->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
+                }
 
                 $values = [
                     'last_modified_by' => Auth::user()->employee_name,
@@ -2453,9 +2462,13 @@ class SecondaryController extends Controller
                     $values['good'] = $pending;
                     $values['duration'] = $duration;
 
-                    DB::connection('mysql_mes')->table($logs_table)
-                        ->where('job_ticket_id', $request->id)->where('status', 'In Progress')
-                        ->update($values);
+                    if ($request->logid) {
+                        DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)
+                            ->where('status', 'In Progress')->update($values);
+                    } else {
+                        DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $job_ticket_details->job_ticket_id)
+                            ->where('status', 'In Progress')->update($values);
+                    }                   
                 }
 
                 // reset values array
@@ -2485,17 +2498,31 @@ class SecondaryController extends Controller
                 $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
                     ->where('production_order', $job_ticket_details->production_order)->min('completed_qty');
                 
-                $values['status'] = $produced_qty == $prod_manufacturing_qty->qty_to_manufacture ? 'Completed' : 'In Progress';
+                $values['status'] = $produced_qty == $qty_to_manufacture ? 'Completed' : 'In Progress';
                 $values['produced_qty'] = $produced_qty;
 
                 DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $job_ticket_details->production_order)->update($values);
 
+                if ($request->logid) {
+                    $check_wip_timelog = DB::connection('mysql_mes')->table($logs_table)
+                        ->where('time_log_id', $request->logid)->where('status', 'In Progress')->first();
+                } else {
+                    $check_wip_timelog = DB::connection('mysql_mes')->table($logs_table)
+                        ->where('job_ticket_id', $job_ticket_details->job_ticket_id)->where('status', 'In Progress')->first();
+                }
+            
+                if($check_wip_timelog){
+                    return response()->json(['success' => 0, 'message' => 'Task not updated. Please reload the page and try again.']);
+                }
+
                 DB::connection('mysql_mes')->commit();
+
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
             }
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
+
             return response()->json(["error" => $e->getMessage()]);
         }
     }
@@ -6040,52 +6067,6 @@ class SecondaryController extends Controller
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod_no)->update($val);  
     return response()->json(['success' => 1, 'message' => 'Remarks Successfully Added!']);
 
-    }
-
-    public function mark_as_done_task_painting(Request $request){
-        try {
-            $now = Carbon::now();
-            if ($request->prod) {
-                $prod = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod)->first();
-                $jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod)->get();
-                foreach($jt_details as $row){
-                    if(DB::connection('mysql_mes')->table('time_logs')
-                    ->where('job_ticket_id', '=', $row->job_ticket_id)
-                    ->exists()){
-                    $values = [
-                    'status' => 'Completed',
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                    ];
-
-                    DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $row->job_ticket_id)->where('status','!=','Completed')->update($values);
-                    }
-                }
-                                
-                $values = [
-                    'status' => 'Completed',
-                    'remarks' => 'Override',
-                    'completed_qty' => $prod->qty_to_manufacture,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-
-                DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->prod)->where('workstation','Painting')->where('status','!=','Completed')->update($values);
-
-                $values1 = [
-                    'status' => 'Completed',
-                    'produced_qty' => $prod->qty_to_manufacture,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-
-                DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->prod)->update($values1);
-
-                return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
-            }
-        } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
-        }
     }
 
     function format_operating_hrs($ss) {
