@@ -2456,6 +2456,7 @@ class SecondaryController extends Controller
                 if($logs){
                     $from_time = Carbon::parse($logs->from_time);
                     $duration = $from_time->diffInSeconds($now);
+			        $duration= $duration / 3600;
 
                     $values['status'] = 'Completed';
                     $values['to_time'] = $now->toDateTimeString();
