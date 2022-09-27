@@ -42,7 +42,7 @@
             <div class="tab-pane active" id="tab{{ $existing_production_order->production_order }}-1" role="tabpanel" aria-labelledby="first-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12">
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px;">
                             <table class="table table-striped text-center">
                                 <thead class="text-primary" style="font-size: 5pt;">
                                     <th class="text-center p-1"><b>PROCESS</b></th>
@@ -86,7 +86,7 @@
             <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-2" role="tabpanel" aria-labelledby="second-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12">
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px;">
                             <table class="table table-striped text-center">
                                 <thead class="text-primary" style="font-size: 5pt;">
                                     <th class="text-center p-1"><b>PROCESS</b></th>
@@ -124,7 +124,7 @@
             <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-3" role="tabpanel" aria-labelledby="third-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12">
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px;">
                             <table class="table table-striped text-center">
                                 <thead class="text-primary" style="font-size: 5pt;">
                                     <th class="text-center p-1"><b>PROCESS</b></th>
