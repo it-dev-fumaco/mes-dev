@@ -4253,7 +4253,26 @@ class MainController extends Controller
 			}
 		}
 
-		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order', 'qa_qty_per_timelog', 'qa_inspection_logs'));
+		$task_random_inspection_arr = [];
+		foreach ($task_random_inspection as $r) {
+			$batch_date = $r->process == 'Unloading' ? $r->to_time : $r->from_time;
+			$batch_date = Carbon::parse($batch_date)->format('M-d-Y h:i A');
+			$task_random_inspection_arr[] = [
+				'batch_date' => $batch_date,
+				'process' => $r->process,
+				'operator_name' => $r->operator_name,
+				'completed_qty' => $r->completed_qty,
+				'inspected_qty' => array_key_exists($r->time_log_id, $qa_qty_per_timelog) ? $qa_qty_per_timelog[$r->time_log_id] : 0,
+				'status' => $r->status,
+				'time_log_id' => $r->time_log_id,
+				'workstation' => $r->workstation,
+				'process_id' => $r->process_id,
+			];
+		}
+
+		$task_random_inspection_arr = collect($task_random_inspection_arr)->sortBy('inspected_qty');
+
+		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection_arr', 'existing_production_order', 'qa_qty_per_timelog', 'qa_inspection_logs'));
 	}
 
 	public function maintenance_request(Request $request){

@@ -29,7 +29,7 @@
     <div class="col-md-12">
         <ul class="nav nav-tabs" role="tablist" style="margin-top: 8px;">
             <li class="nav-item font-weight-bold">
-               <span class="nav-link active" id="first-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-1" role="tab" aria-controls="tab1" aria-selected="true">Random Inspection <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_random_inspection) }}</span></span>
+               <span class="nav-link active" id="first-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-1" role="tab" aria-controls="tab1" aria-selected="true">Select for Random Inspection <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_random_inspection_arr) }}</span></span>
             </li>
             <li class="nav-item font-weight-bold">
                <span class="nav-link" id="second-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-2" role="tab" aria-controls="tab2" aria-selected="false">Reject Confirmation <span class="badge badge-primary" style="font-size: 10pt;">{{ count($task_reject_confirmation) }}<span></span>
@@ -41,39 +41,36 @@
         <div class="tab-content" style="min-height: 300px;">
             <div class="tab-pane active" id="tab{{ $existing_production_order->production_order }}-1" role="tabpanel" aria-labelledby="first-tab">
                 <div class="row" style="min-height: 200px;">
-                    <div class="col-md-12" style="margin: 8px;">
+                    {{-- <div class="col-md-12" style="margin: 8px;">
                         <h5 class="title text-center" style="margin: 0;">Select Task for Random Inspection</h5>
-                    </div>
+                    </div> --}}
                     <div class="col-md-12">
                         <div class="table-responsive">
                             <table class="table table-striped text-center">
                                 <thead class="text-primary" style="font-size: 7pt;">
-                                    <th class="text-center"><b>PROCESS</b></th>
-                                    <th class="text-center"><b>BATCH DATE</b></th>
-                                    <th class="text-center"><b>OPERATOR</b></th>
-                                    <th class="text-center"><b>COMPLETED QTY</b></th>
-                                    <th class="text-center"><b>INSPECTED QTY</b></th>
-                                    <th class="text-center"><b>STATUS</b></th>
-                                    <th class="text-center"><b>ACTIONS</b></th>
+                                    <th class="text-center p-1"><b>PROCESS</b></th>
+                                    <th class="text-center p-1"><b>BATCH DATE</b></th>
+                                    <th class="text-center p-1"><b>OPERATOR</b></th>
+                                    <th class="text-center p-1"><b>COMPLETED QTY</b></th>
+                                    <th class="text-center p-1"><b>INSPECTED QTY</b></th>
+                                    <th class="text-center p-1"><b>STATUS</b></th>
+                                    <th class="text-center p-1"><b>ACTIONS</b></th>
                                 </thead>
-                                <tbody style="font-size: 10pt;">
-                                    @forelse($task_random_inspection as $row)
-                                    @php
-                                        $batch_date = $row->process == 'Unloading' ? $row->to_time : $row->from_time;
-                                    @endphp
+                                <tbody style="font-size: 9pt;">
+                                    @forelse($task_random_inspection_arr as $row)
                                     <tr>
-                                        <td><b>{{ $row->process }}</b></td>
-                                        <td><b>{{ date('M-d-Y h:i A', strtotime($batch_date)) }}</b></td>
-                                        <td><b>{{ $row->operator_name }}</b></td>
-                                        <td><b>{{ $row->completed_qty }}</b></td>
-                                        <td>
-                                            <span class="font-weight-bold" style="font-size: 18pt !important;">
-                                                {{ array_key_exists($row->time_log_id, $qa_qty_per_timelog) ? $qa_qty_per_timelog[$row->time_log_id] : 0 }}
+                                        <td class="p-1"><b>{{ $row['process'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['batch_date'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['operator_name'] }}</b></td>
+                                        <td class="p-1"><b>{{ $row['completed_qty'] }}</b></td>
+                                        <td class="p-1">
+                                            <span class="font-weight-bold" style="font-size: 15pt !important;">
+                                                {{ $row['inspected_qty'] }}
                                             </span>
                                         </td>
-                                        <td><b>{{ $row->status }}</b></td>
-                                        <td class="text-center">
-                                            <button type='button' class='btn btn-primary btn-lg quality-inspection-btn' data-timelog-id="{{ $row->time_log_id }}" data-inspection-type="Random Inspection" data-workstation="{{ $row->workstation }}" data-processid="{{ $row->process_id }}" data-production-order="{{ $existing_production_order->production_order }}">
+                                        <td class="p-1"><b>{{ $row['status'] }}</b></td>
+                                        <td class="text-center p-1">
+                                            <button type='button' class='btn pb-2 pr-3 pt-2 pl-3 btn-primary btn-lg quality-inspection-btn' data-timelog-id="{{ $row['time_log_id'] }}" data-inspection-type="Random Inspection" data-workstation="{{ $row['workstation'] }}" data-processid="{{ $row['process_id'] }}" data-production-order="{{ $existing_production_order->production_order }}">
                                                 <i class='now-ui-icons gestures_tap-01'></i> Select
                                             </button>
                                         </td>
