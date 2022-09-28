@@ -4962,7 +4962,7 @@ class MainController extends Controller
     }
 
     public function get_users(Request $request){
-		$list = DB::connection('mysql_mes')->table('user')
+		$users = DB::connection('mysql_mes')->table('user')
 			->join('operation as op','op.operation_id','user.operation_id')
 			->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
 			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
@@ -4973,28 +4973,8 @@ class MainController extends Controller
 					->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
 					->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
 		    })
-            ->orderBy('user.user_id', 'desc')->get();
+            ->orderBy('user.user_id', 'desc')->paginate(15);
         
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $users = $paginatedItems;
-    	
     	return view('tables.tbl_users', compact('users'));
     }
 
@@ -8394,5 +8374,17 @@ class MainController extends Controller
         $reject_category = DB::connection('mysql_mes')->table('reject_category')->get();
 		
         return view('settings.qa_settings', compact('permissions', 'reject_category'));
+    }
+
+	public function userSettings(){
+        $permissions = $this->get_user_permitted_operation();
+                
+        $employees = DB::connection('mysql_essex')->table('users')->where('user_type', 'Employee')
+            ->where('status', 'Active')->get();
+        $module= DB::connection('mysql_mes')->table('user_group')->groupBy('module')->select('module')->get();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        return view('settings.user_settings', compact('permissions', 'module', 'employees', 'operations'));
     }
 }

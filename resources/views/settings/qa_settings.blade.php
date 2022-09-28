@@ -1429,7 +1429,6 @@
 }
 
 </style>
-
 @endsection
 
 @section('script')
@@ -1437,8 +1436,10 @@
 <script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
-<script type="text/javascript">
-      function showNotification(color, message, icon){
+
+<script>
+  $(document).ready(function(){
+    function showNotification(color, message, icon){
       $.notify({
         icon: icon,
         message: message
@@ -1451,264 +1452,198 @@
         }
       });
     }
-</script>
-
-<script>
-  $(document).ready(function(){
-
-    
    
     $.ajaxSetup({
       headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
       }
     }); 
-    
 
-
-  });
-</script>
-<script type="text/javascript">
-$(document).ready(function(){
-  check_list_fabrication();
-  check_list_painting();
-  check_list_assembly();
-  qa_reject_list();
-  reject_category_list();
-  tbl_sampling_plan_visual();
-  tbl_sampling_plan_variable();
-  tbl_sampling_plan_reliability();
-
-
-
+    check_list_fabrication();
+    check_list_painting();
+    check_list_assembly();
+    qa_reject_list();
+    reject_category_list();
+    tbl_sampling_plan_visual();
+    tbl_sampling_plan_variable();
+    tbl_sampling_plan_reliability();
 
     $('.sel4').select2({
-    dropdownParent: $("#add-checklist-modal"),
-    dropdownAutoWidth: false,
-    width: '100%',
-    cache: false
-  });
+      dropdownParent: $("#add-checklist-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
     $('.sel6').select2({
-    dropdownParent: $("#add-reject-modal"),
-    dropdownAutoWidth: false,
-    width: '100%',
-    cache: false
-  });
-$('.sel7').select2({
-    dropdownParent: $("#edit-reject-modal"),
-    dropdownAutoWidth: false,
-    width: '100%',
-    cache: false
-  });
-$('.sel8').select2({
-    dropdownParent: $("#add-reject-category-modal"),
-    dropdownAutoWidth: false,
-    width: '100%',
-    cache: false
-  });
-$('.sel9').select2({
-    dropdownParent: $("#add-sampling-plan-modal"),
-    dropdownAutoWidth: false,
-    width: '100%',
-    cache: false
-  });
+      dropdownParent: $("#add-reject-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
+    $('.sel7').select2({
+      dropdownParent: $("#edit-reject-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
-  $('.operator-checklist-sel').select2({
-    dropdownParent: $("#add-operator-checklist-modal"),
-    dropdownAutoWidth: false,
-    width: '100%',
-    cache: false
-  });
+    $('.sel8').select2({
+      dropdownParent: $("#add-reject-category-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
+    $('.sel9').select2({
+      dropdownParent: $("#add-sampling-plan-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
+    
+    $('.operator-checklist-sel').select2({
+      dropdownParent: $("#add-operator-checklist-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
+   
+    $(document).on('click', '#checklist_list_pagination_fabrication a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      check_list_fabrication(page);
+    });
 
- 
+    $(document).on('click', '#checklist_list_pagination_painting a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      check_list_painting(page);
+    });
 
+    $(document).on('click', '#checklist_list_pagination_assembly a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      check_list_assembly(page);
+    });
 
-     $('.modal').on('hidden.bs.modal', function(){
+    $(document).on('click', '#checklist_list_pagination_operator a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      check_list_operator(page);
+    });
+
+    $(document).on('click', '#reject_check_list_pagination a', function(event){
+      event.preventDefault();
+      var query = $('#search_reject_setup').val();
+      var page = $(this).attr('href').split('page=')[1];
+      qa_reject_list(page, query);
+    });
+
+    $(document).on('click', '#op_reject_check_list_pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      var query = $('#search_operator_reject_setup').val();
+      op_reject_list(page, query);
+    });
+
+    $(document).on('click', '#reject_category_pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      reject_category_list(page);
+    });
+
+    $('.modal').on('hidden.bs.modal', function(){
       var frm = $(this).find('form')[0];
       if (frm) frm.reset();
     });
 
-});
-</script>
+    $(document).on('keyup', '#search_reject_setup', function(){
+      var query = $(this).val();
+      var parent_tab = $("#qa_tab li a.active").attr('data-qatab');
 
-<script>
+      if(parent_tab == "checklist"){
+        check_list_assembly(1, query);
+      }else if(parent_tab == "user"){
+        reje
+      }else if(parent_tab == "category"){
 
-  function markMatch(text, term) {
+      }else if(parent_tab == "reject"){
+        qa_reject_list(1, query);
+      }else{
 
-    var startString = '<span class="boldwrap">';
-    var endString = text.replace(startString, '');
+      }
+    });
 
-    var match = endString.toUpperCase().indexOf(term.toUpperCase());
-    var $result = $('<span></span>');
+    $(document).on('keyup', '#search_operator_reject_setup', function(){
+      var query = $(this).val();
+      var parent_tab = $("#operator_tab li a.active").attr('data-qatab');
+      if(parent_tab == "op_fabrication"){
+        operator_check_list_fabrication(1, query);
+      }else if(parent_tab == "op_painting"){
+        operator_check_list_painting(1, query);
+      }else if(parent_tab == "op_assembly"){
+        operator_check_list_assembly(1, query);
+      }else if(parent_tab == "op_reject"){
+        op_reject_list(1, query);
+      }else{
+      }
+    });
 
-    if (match < 0) {
-      return $result.text(text);
-    }
-    var elementToReplace = endString.substr(match, term.length);
-    var $match = '<span class="select2-rendered__match">' + endString.substring(match, match + term.length) + '</span>';
-    text = startString + endString.replace(elementToReplace, $match);
-
-    // console.log(text);
-    $result.append(text);
-    return $result;
-  }
-
- 
-</script>
-
-
-<script type="text/javascript">
-
- 
-   
-    $(document).on('click', '#checklist_list_pagination_fabrication a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-   check_list_fabrication(page);
-
-  });
-    $(document).on('click', '#checklist_list_pagination_painting a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-   check_list_painting(page);
-
-  });
-    $(document).on('click', '#checklist_list_pagination_assembly a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-   check_list_assembly(page);
-
-  });
-    $(document).on('click', '#checklist_list_pagination_operator a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-   check_list_operator(page);
-
-  });
-  $(document).on('click', '#reject_check_list_pagination a', function(event){
-    event.preventDefault();
-    var query = $('#search_reject_setup').val();
-    var page = $(this).attr('href').split('page=')[1];
-    qa_reject_list(page, query);
-
-  });
-  $(document).on('click', '#op_reject_check_list_pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    var query = $('#search_operator_reject_setup').val();
-    op_reject_list(page, query);
-
-  });
-    $(document).on('click', '#reject_category_pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    reject_category_list(page);
-
-  });
-    
-
-    
-</script>
-
-
-
-<script>
-
-
-
-  $(document).on('keyup', '#search_reject_setup', function(){
-    var query = $(this).val();
-		var parent_tab = $("#qa_tab li a.active").attr('data-qatab');
-    if(parent_tab == "checklist"){
-      check_list_assembly(1, query);
-    }else if(parent_tab == "user"){
-      reje
-    }else if(parent_tab == "category"){
-
-    }else if(parent_tab == "reject"){
-      qa_reject_list(1, query);
-    }else{
-
-    }
-  });
-  $(document).on('keyup', '#search_operator_reject_setup', function(){
-    var query = $(this).val();
-		var parent_tab = $("#operator_tab li a.active").attr('data-qatab');
-    if(parent_tab == "op_fabrication"){
-      operator_check_list_fabrication(1, query);
-    }else if(parent_tab == "op_painting"){
-      operator_check_list_painting(1, query);
-    }else if(parent_tab == "op_assembly"){
-      operator_check_list_assembly(1, query);
-    }else if(parent_tab == "op_reject"){
-      op_reject_list(1, query);
-    }else{
-    }
-  });
-
-
-
-</script>
-
-<script type="text/javascript">
-  
-  $(document).on('click', '#add-reject-button', function(){
-    $.ajax({
+    $(document).on('click', '#add-reject-button', function(){
+      $.ajax({
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
         success:function(data){
           $('#reject_category').html(data.category);
         }
-    });  
-    $("#op_operation").prop('required',false);
-    $('#checklist_th').show();
-    $('#add-reject-modal .modal-title').text('Add QA Reject list');
-    $('#div_op_operation').hide();
-    $('#reject_owner').val('Quality Assurance');
-    $('#add-reject-modal tbody').empty();
-    $('#add-reject-modal').modal('show');
-});
-$(document).on('click', '#add-operator-reject-button', function(){
-    $.ajax({
+      });  
+      
+      $("#op_operation").prop('required',false);
+      $('#checklist_th').show();
+      $('#add-reject-modal .modal-title').text('Add QA Reject list');
+      $('#div_op_operation').hide();
+      $('#reject_owner').val('Quality Assurance');
+      $('#add-reject-modal tbody').empty();
+      $('#add-reject-modal').modal('show');
+    });
+     
+    $(document).on('click', '#add-operator-reject-button', function(){
+      $.ajax({
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
         success:function(data){
           $('#reject_category').html(data.category);
           $('#op_operation').html(data.operation);
         }
-    }); 
-    $("#op_operation").prop('required',true);
-    $('#div_op_operation').show();
-    $('#checklist_th').hide();
-    $('#reject_owner').val('Operator');
-    $('#add-reject-modal .modal-title').text('Add Operator Reject list');
-    $('#add-reject-modal tbody').empty();
-    $('#add-reject-modal').modal('show');
-});
+      });
 
-$(document).on('click', '.btn-edit-checklist', function(){
-
+      $("#op_operation").prop('required',true);
+      $('#div_op_operation').show();
+      $('#checklist_th').hide();
+      $('#reject_owner').val('Operator');
+      $('#add-reject-modal .modal-title').text('Add Operator Reject list');
+      $('#add-reject-modal tbody').empty();
+      $('#add-reject-modal').modal('show');
+    });
+    
+    $(document).on('click', '.btn-edit-checklist', function(){
       var workstation = $(this).data('workstationid');
       var operation = $(this).data('operationid');
       var classifi = $(this).data('classifi');
       var checklist = $(this).data('checklist');
       var check_list_id = $(this).data('id');
-
       $('#edit_r_workstation_id').text(workstation);
       $('#edit_r_operation_id').text(operation);
       $('#edit_classification').text(classifi);
       $('#edit_c_checklist').val(checklist);
       $('orig_checklist').val(checklist);
       $('#checklist_id').val(check_list_id);
-
       $('#edit-checklist-modal').modal('show');
     });
 
-$(document).on('click', '.btn-delete-checklist', function(){
-
+    $(document).on('click', '.btn-delete-checklist', function(){
       var id = $(this).data('id');
       var workstation = $(this).data('workstation');
       var rejectlist = $(this).data('rejectchecklist');
@@ -1719,51 +1654,39 @@ $(document).on('click', '.btn-delete-checklist', function(){
       $('#delete_checklist_id').val(id);
       $('#delete-checklist-modal').modal('show');
     });
-</script>
-<script>
-function check_list_fabrication(page, query){
-    $.ajax({
-          url:"/get_tbl_checklist_list_fabrication?page=" + page,
-          type:"GET",
-          data: {search_string: query},
-          success:function(data){
-            
-            $('#tbl_check_list_fabrication').html(data);
-          }
-        });
 
-}
-</script>
-<script>
-function check_list_painting(page, query){
-    $.ajax({
-          url:"/get_tbl_checklist_list_painting?page=" + page,
-          type:"GET",
-          data: {search_string: query},
-          success:function(data){
-            
-            $('#tbl_check_list_painting').html(data);
-          }
-        });
+    function check_list_fabrication(page, query){
+      $.ajax({
+        url:"/get_tbl_checklist_list_fabrication?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+          $('#tbl_check_list_fabrication').html(data);
+        }
+      });
+    }
 
-}
-</script>
-<script>
-function check_list_assembly(page, query){
-    $.ajax({
-          url:"/get_tbl_checklist_list_assembly?page=" + page,
-          type:"GET",
-          data: {search_string: query},
-          success:function(data){
-            
-            $('#tbl_check_list_assembly').html(data);
-          }
-        });
+    function check_list_painting(page, query){
+      $.ajax({
+        url:"/get_tbl_checklist_list_painting?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+          $('#tbl_check_list_painting').html(data);
+        }
+      });
+    }
 
-}
-</script>
-
-<script type="text/javascript">
+    function check_list_assembly(page, query){
+      $.ajax({
+        url:"/get_tbl_checklist_list_assembly?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+          $('#tbl_check_list_assembly').html(data);
+        }
+      });
+    }
 
     $('#save-checklist-frm').submit(function(e){
       e.preventDefault();
@@ -1781,9 +1704,7 @@ function check_list_assembly(page, query){
             check_list_fabrication();
             check_list_painting();
             check_list_assembly();
-            
             $('#save-checklist-frm').trigger("reset");
-            // getAssignedTasks();
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -1793,8 +1714,6 @@ function check_list_assembly(page, query){
         }
       });
     });
-</script>
-<script type="text/javascript">
 
     $('#delete-checklist-frm').submit(function(e){
       e.preventDefault();
@@ -1812,165 +1731,161 @@ function check_list_assembly(page, query){
             check_list_fabrication();
             check_list_painting();
             check_list_assembly();
-            
             $('#delete-checklist-frm').trigger("reset");
           }
         }
       });
     });
-</script>
-
-<script>
-
 
     $(document).on('click', '#add-checklist-fabrication-button', function(){
-       $('#add-checklist-modal .modal-title').text('Fabrication');
-       $('#owner_checklist').val('Quality Assurance');
+      $('#add-checklist-modal .modal-title').text('Fabrication');
+      $('#owner_checklist').val('Quality Assurance');
 
-        $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Fabrication",
-            type:"GET",
-            success:function(data){
-              $("#r_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-            $('#reject-table tbody').empty();
-            $('#add-checklist-modal').modal('show');
-
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Fabrication",
+        type:"GET",
+        success:function(data){
+          $("#r_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+      
+      $('#reject-table tbody').empty();
+      $('#add-checklist-modal').modal('show');
     });
+
     $(document).on('click', '#add-checklist-painting-button', function(){
-       $('#add-checklist-painting-modal .modal-title').text('Painting');
-       $('#painting_owner_checklist').val('Quality Assurance');
-       
-       $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Painting",
-            type:"GET",
-            success:function(data){
-              $("#painting_r_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-        $('#painting-reject-table tbody').empty();
-        $('#add-checklist-painting-modal').modal('show');
+      $('#add-checklist-painting-modal .modal-title').text('Painting');
+      $('#painting_owner_checklist').val('Quality Assurance');
+      
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Painting",
+        type:"GET",
+        success:function(data){
+          $("#painting_r_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+
+      $('#painting-reject-table tbody').empty();
+      $('#add-checklist-painting-modal').modal('show');
     });
+
     $(document).on('click', '#add-checklist-assembly-button', function(){
-       $('#add-checklist-modal .modal-title').text('Wiring and Assembly');
-       $('#owner_checklist').val('Quality Assurance');
-       $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Wiring and Assembly",
-            type:"GET",
-            success:function(data){
-              $("#r_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-        $('#reject-table tbody').empty();
-        $('#add-checklist-modal').modal('show');
+      $('#add-checklist-modal .modal-title').text('Wiring and Assembly');
+      $('#owner_checklist').val('Quality Assurance');
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Wiring and Assembly",
+        type:"GET",
+        success:function(data){
+          $("#r_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+      $('#reject-table tbody').empty();
+      $('#add-checklist-modal').modal('show');
     });
+
     $(document).on('click', '#add-checklist-operator-button', function(){
-        $('#owner_checklist').val('Operator');
-       $('#add-checklist-modal .modal-title').text('Operator Rejects Types');
-        $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Operator",
-            type:"GET",
-            success:function(data){
-              $("#r_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-            $('#reject-table tbody').empty();
-            $('#add-checklist-modal').modal('show');
-
+      $('#owner_checklist').val('Operator');
+      $('#add-checklist-modal .modal-title').text('Operator Rejects Types');
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Operator",
+        type:"GET",
+        success:function(data){
+          $("#r_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+      $('#reject-table tbody').empty();
+      $('#add-checklist-modal').modal('show');
     });
+
     $('#add-checklist-modal .add-row').click(function(e){
-         e.preventDefault();
-         var row = '';
-         $.ajax({
-            url: "/get_reject_type_desc",
-            type:"get",
-            cache: false,
-            success: function(response) {
-               row += '<option value="none">--Type--</option>';
-               $.each(response, function(i, d){
-                  row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
-               });
-               var thizz = document.getElementById('reject-table');
-              var id = $(thizz).closest('table').find('tr:last td:first').text();
-               var validation = isNaN(parseFloat(id));
-               if(validation){
-                var new_id = 1;
-               }else{
-                var new_id = parseInt(id) + 1;
-               }
-              //  alert(new_id);
-               var len2 = new_id;
-               var id_unique="count"+len2;
-               // alert(id_unique);
-               var tblrow = '<tr>' +
-                  '<td>'+len2+'</td>' +
-                  '<td><select name="new_checklist_r_type[]" class="form-control onchange-selection count-row sel16"  data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
-                  '<td><select name="new_checklist_r_desc[]" class="form-control sel16" id='+id_unique+' required></select></td>' +
-                  '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
-                  '</tr>';
-
-               $("#add-checklist-modal #reject-table").append(tblrow);
-               // autoRowNumberAddKPI();
-               $('.sel16').select2({
-                  dropdownParent: $("#add-checklist-modal "),
-                  dropdownAutoWidth: false,
-                  width: '100%',
-                  cache: false
-                });
-            },
-            error: function(response) {
-               alert('Error fetching Designation!');
-            }
-         });
-      });
-     
-       $(document).on('change', '.onchange-selection', function(){
-           var owner = $('#owner_checklist').val();
-           var first_selection_data = $(this).val();
-           var id_for_second_selection = $(this).attr('data-idcolumn');
-           var operation = $('#add-checklist-modal .modal-title').text();
-           var format_id_for_second_selection = "#"+id_for_second_selection;
-            $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
-            type:"GET",
-            success:function(data){
-              $(format_id_for_second_selection).html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
+      e.preventDefault();
+      var row = '';
+      $.ajax({
+        url: "/get_reject_type_desc",
+        type:"get",
+        cache: false,
+        success: function(response) {
+          row += '<option value="none">--Type--</option>';
+          $.each(response, function(i, d){
+            row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
           });
-      });
-       $(document).on("click", ".delete", function(){
-        $(this).parents("tr").remove();
-      });
-</script>
-<script type="text/javascript">
+          var thizz = document.getElementById('reject-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          }else{
+            var new_id = parseInt(id) + 1;
+          }
+          var len2 = new_id;
+          var id_unique="count"+len2;
+              
+          var tblrow = '<tr>' +
+            '<td>'+len2+'</td>' +
+            '<td><select name="new_checklist_r_type[]" class="form-control onchange-selection count-row sel16"  data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
+            '<td><select name="new_checklist_r_desc[]" class="form-control sel16" id='+id_unique+' required></select></td>' +
+            '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
+            '</tr>';
 
-$('#save-reject-frm').submit(function(e){
+          $("#add-checklist-modal #reject-table").append(tblrow);
+          $('.sel16').select2({
+            dropdownParent: $("#add-checklist-modal "),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
+        },
+        error: function(response) {
+          console.log('Error fetching Designation!');
+        }
+      });
+    });
+     
+    $(document).on('change', '.onchange-selection', function(){
+      var owner = $('#owner_checklist').val();
+      var first_selection_data = $(this).val();
+      var id_for_second_selection = $(this).attr('data-idcolumn');
+      var operation = $('#add-checklist-modal .modal-title').text();
+      var format_id_for_second_selection = "#"+id_for_second_selection;
+      $.ajax({
+        url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
+        type:"GET",
+        success:function(data){
+          $(format_id_for_second_selection).html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    $(document).on("click", ".delete", function(){
+      $(this).parents("tr").remove();
+    });
+        
+    $('#save-reject-frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
       $.ajax({
@@ -1992,102 +1907,88 @@ $('#save-reject-frm').submit(function(e){
               $('#save-reject-frm').trigger("reset");
               qa_reject_list();
             }
-
           }
         }
       });
     });
-</script>
-<script>
-function qa_reject_list(page, query){
-    $.ajax({
-          url:"/get_tbl_qa_reject_list?page=" + page,
-          data: {search_string: query},
-          type:"GET",
-          success:function(data){
-            $('#tbl_reject_list').html(data);
-          }
-        });
 
-}
-</script>
-<script>
-op_reject_list();
-function op_reject_list(page, query){
-    $.ajax({
-          url:"/get_tbl_op_reject_list?page=" + page,
-          data: {search_string: query},
-          type:"GET",
-          success:function(data){
-            $('#tbl_operator_reject_list').html(data);
-          }
-        });
-
-}
-</script>
-<script type="text/javascript">
-    $(document).on('click', '.edit-rejectlist-btn', function(){
-        var rjt_id = $(this).attr('data-id');
-        var rjt_list = $(this).attr('data-rjtlist');
-        var rjt_reason = $(this).attr('data-rjtreason');
-        var rjt_ctg = $(this).attr('data-ctgID');
-        var rjt_res = $(this).attr('data-responsible');
-        var rjt_mtype = $(this).attr('data-mtype');
-        var reloadtbl = $(this).attr('data-reloadtbl');
-        var rjt_action = $(this).attr('data-action');
-        var owner = $(this).attr('data-owner');
-        var opoperation = $(this).attr('data-opoperation');
-        if(reloadtbl =="Operator"){
-          $('#edit_reject_checklist_div').hide();
-          $('#div_operation_edit').show();
-
-        }else{
-          $('#edit_reject_checklist_div').show();
-          $('#div_operation_edit').hide();
-
-
+    function qa_reject_list(page, query){
+      $.ajax({
+        url:"/get_tbl_qa_reject_list?page=" + page,
+        data: {search_string: query},
+        type:"GET",
+        success:function(data){
+          $('#tbl_reject_list').html(data);
         }
-        $('#orig_reject_operation').val(opoperation);
-        $('#edit_reject_owner').val(owner);
-        $('#reloadtbl_edit').val(reloadtbl);
-        $('#orig_reject_category').val(rjt_ctg);
-        $('#edit_reject_checklist').val(rjt_list);
-        $('#orig_reject_checklist').val(rjt_list);
-        $('#edit_reject_reason').val(rjt_reason);
-        $('#orig_reject_reason').val(rjt_reason);
-        $('#edit_id_reject').val(rjt_id);
-        $('#edit_reject_responsible').val(rjt_res);
-        $('#orig_reject_responsible').val(rjt_res);
-  
-        $('#edit_r_action').val(rjt_action);
-        $('#orig_r_action').val(rjt_action);
-        $('#orig_material_type').val(rjt_mtype);
-        // $('#edit_reject_owner').trigger('change');
-        $('#edit_r_action').trigger('change');
+      });
+    }
 
-        $.ajax({
+    op_reject_list();
+    function op_reject_list(page, query){
+      $.ajax({
+        url:"/get_tbl_op_reject_list?page=" + page,
+        data: {search_string: query},
+        type:"GET",
+        success:function(data){
+          $('#tbl_operator_reject_list').html(data);
+        }
+      });
+    }
+
+    $(document).on('click', '.edit-rejectlist-btn', function(){
+      var rjt_id = $(this).attr('data-id');
+      var rjt_list = $(this).attr('data-rjtlist');
+      var rjt_reason = $(this).attr('data-rjtreason');
+      var rjt_ctg = $(this).attr('data-ctgID');
+      var rjt_res = $(this).attr('data-responsible');
+      var rjt_mtype = $(this).attr('data-mtype');
+      var reloadtbl = $(this).attr('data-reloadtbl');
+      var rjt_action = $(this).attr('data-action');
+      var owner = $(this).attr('data-owner');
+      var opoperation = $(this).attr('data-opoperation');
+      if(reloadtbl =="Operator"){
+        $('#edit_reject_checklist_div').hide();
+        $('#div_operation_edit').show();
+      }else{
+        $('#edit_reject_checklist_div').show();
+        $('#div_operation_edit').hide();
+      }
+
+      $('#orig_reject_operation').val(opoperation);
+      $('#edit_reject_owner').val(owner);
+      $('#reloadtbl_edit').val(reloadtbl);
+      $('#orig_reject_category').val(rjt_ctg);
+      $('#edit_reject_checklist').val(rjt_list);
+      $('#orig_reject_checklist').val(rjt_list);
+      $('#edit_reject_reason').val(rjt_reason);
+      $('#orig_reject_reason').val(rjt_reason);
+      $('#edit_id_reject').val(rjt_id);
+      $('#edit_reject_responsible').val(rjt_res);
+      $('#orig_reject_responsible').val(rjt_res);
+      $('#edit_r_action').val(rjt_action);
+      $('#orig_r_action').val(rjt_action);
+      $('#orig_material_type').val(rjt_mtype);
+      $('#edit_r_action').trigger('change');
+
+      $.ajax({
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
-          success:function(data){
-            $('#edit_reject_category').html(data.category);
-            $('#edit_reject_operation').html(data.operation);
-            $('#edit_material_type').html(data.material_type);
-            $('#edit_reject_category').val(rjt_ctg);
-            $('#edit_reject_operation').val(opoperation);
-            $('#edit_material_type').val(rjt_mtype);
+        success:function(data){
+          $('#edit_reject_category').html(data.category);
+          $('#edit_reject_operation').html(data.operation);
+          $('#edit_material_type').html(data.material_type);
+          $('#edit_reject_category').val(rjt_ctg);
+          $('#edit_reject_operation').val(opoperation);
+          $('#edit_material_type').val(rjt_mtype);
 
-            $('#edit_material_type').trigger('change');
-            $('#edit_reject_responsible').trigger('change');
-            $('#edit_reject_category').trigger('change');
-            $('#edit_reject_operation').trigger('change');
-
-          }
-        }); 
-        $('#edit-reject-modal').modal('show');
-
+          $('#edit_material_type').trigger('change');
+          $('#edit_reject_responsible').trigger('change');
+          $('#edit_reject_category').trigger('change');
+          $('#edit_reject_operation').trigger('change');
+        }
+      }); 
+      $('#edit-reject-modal').modal('show');
     });
-</script>
-<script type="text/javascript">
 
     $('#update-reject-frm').submit(function(e){
       e.preventDefault();
@@ -2115,29 +2016,22 @@ function op_reject_list(page, query){
         }
       });
     });
-</script>
-<script type="text/javascript">
+
     $(document).on('click', '.btn-delete-rejectlist', function(){
-        var rjt_id = $(this).attr('data-id');
-        var rjt_list = $(this).attr('data-rjtlist');
-        var rjt_reason = $(this).attr('data-rjtreason');
-        var rjt_ctg = $(this).attr('data-ctgID');
-        var reloadtbl = $(this).attr('data-reloadtbl');
-        if(rjt_list== ''){
-          $('#delete_rejectlist_label').text(rjt_reason);
-        }else{
-          $('#delete_rejectlist_label').text(rjt_list);
-        }
-        $('#delete_rejectlist_id').val(rjt_id);
-        $('#delete_reloadtbl').val(reloadtbl);
-
-        
-
-        $('#delete-reject-modal').modal('show');
-
+      var rjt_id = $(this).attr('data-id');
+      var rjt_list = $(this).attr('data-rjtlist');
+      var rjt_reason = $(this).attr('data-rjtreason');
+      var rjt_ctg = $(this).attr('data-ctgID');
+      var reloadtbl = $(this).attr('data-reloadtbl');
+      if(rjt_list== ''){
+        $('#delete_rejectlist_label').text(rjt_reason);
+      }else{
+        $('#delete_rejectlist_label').text(rjt_list);
+      }
+      $('#delete_rejectlist_id').val(rjt_id);
+      $('#delete_reloadtbl').val(reloadtbl);
+      $('#delete-reject-modal').modal('show');
     });
-</script>
-<script type="text/javascript">
 
     $('#delete-reject-frm').submit(function(e){
       e.preventDefault();
@@ -2152,61 +2046,50 @@ function op_reject_list(page, query){
           }else{
             if(data.reloadtbl == "Operator"){
               showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#delete-reject-modal').modal('hide');
-                op_reject_list();
-                $('#delete-reject-frm').trigger("reset");
+              $('#delete-reject-modal').modal('hide');
+              op_reject_list();
+              $('#delete-reject-frm').trigger("reset");
             }else{
               showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#delete-reject-modal').modal('hide');
-                qa_reject_list();
-                $('#delete-reject-frm').trigger("reset");
+              $('#delete-reject-modal').modal('hide');
+              qa_reject_list();
+              $('#delete-reject-frm').trigger("reset");
             }
           }
         }
       });
     });
-</script>           
-<script type="text/javascript">
+    
     $(document).on('click', '#add-reject-ctg-button ', function(){       
-        $('#add-reject-category-modal').modal('show');
-
+      $('#add-reject-category-modal').modal('show');
     });
-</script>             
-<script>
-function reject_category_list(page, query){
-    $.ajax({
-          url:"/get_tbl_reject_category?page=" + page,
-          data: {search_string: query},
-          type:"GET",
-          success:function(data){
-            
-            $('#tbl-reject-ctg').html(data);
-          }
-        });
 
-}
-</script> 
-<script type="text/javascript">
+    function reject_category_list(page, query){
+      $.ajax({
+        url:"/get_tbl_reject_category?page=" + page,
+        data: {search_string: query},
+        type:"GET",
+        success:function(data){
+          $('#tbl-reject-ctg').html(data);
+        }
+      });
+    }
+
     $(document).on('click', '.edit-reject-category-btn', function(){
-        var ctg_id = $(this).attr('data-id');
-        var ctg_type = $(this).attr('data-type');
-        var ctg_name = $(this).attr('data-category');
-        var ctg_desc = $(this).attr('data-categorydesc');
-        // alert(ctg_type);
-        $('#edit_type option:contains(' + ctg_type + ')').prop({selected: true});
-        // $('#edit_type').val($(this).find(':selected').data('ctg_type'));
-        $('#edit_type').val(ctg_type);
-        $('#orig_reject_ctgtype').val(ctg_type);
-        $('#orig_category').val(ctg_name);
-        $('#edit_category').val(ctg_name);
-        $('#edit_reject_ctgdesc').val(ctg_desc);
-        $('#orig_reject_ctgdesc').val(ctg_desc);
-        $('#ctg_id').val(ctg_id);
-        $('#edit-reject-category-modal').modal('show');
-
+      var ctg_id = $(this).attr('data-id');
+      var ctg_type = $(this).attr('data-type');
+      var ctg_name = $(this).attr('data-category');
+      var ctg_desc = $(this).attr('data-categorydesc');
+      $('#edit_type option:contains(' + ctg_type + ')').prop({selected: true});
+      $('#edit_type').val(ctg_type);
+      $('#orig_reject_ctgtype').val(ctg_type);
+      $('#orig_category').val(ctg_name);
+      $('#edit_category').val(ctg_name);
+      $('#edit_reject_ctgdesc').val(ctg_desc);
+      $('#orig_reject_ctgdesc').val(ctg_desc);
+      $('#ctg_id').val(ctg_id);
+      $('#edit-reject-category-modal').modal('show');
     });
-</script> 
-<script type="text/javascript">
 
     $('#add-reject-category-frm').submit(function(e){
       e.preventDefault();
@@ -2227,8 +2110,6 @@ function reject_category_list(page, query){
         }
       });
     });
-</script>  
-<script type="text/javascript">
 
     $('#edit-reject-category-frm').submit(function(e){
       e.preventDefault();
@@ -2249,21 +2130,16 @@ function reject_category_list(page, query){
         }
       });
     });
-</script>  
-<script type="text/javascript">
-    $(document).on('click', '.btn-delete-reject-category', function(){
-        var ctg_id = $(this).attr('data-id');
-        var ctg_type = $(this).attr('data-type');
-        var ctg_name = $(this).attr('data-category');
-        var ctg_desc = $(this).attr('data-categorydesc');
-        // alert(ctg_type);
-        $('#delete_reject_category_label').text(ctg_name);
-        $('#delete_reject_category_id').val(ctg_id);
-        $('#delete-reject-category-modal').modal('show');
 
+    $(document).on('click', '.btn-delete-reject-category', function(){
+      var ctg_id = $(this).attr('data-id');
+      var ctg_type = $(this).attr('data-type');
+      var ctg_name = $(this).attr('data-category');
+      var ctg_desc = $(this).attr('data-categorydesc');
+      $('#delete_reject_category_label').text(ctg_name);
+      $('#delete_reject_category_id').val(ctg_id);
+      $('#delete-reject-category-modal').modal('show');
     });
-</script>   
-<script type="text/javascript">
 
     $('#delete-reject-category-frm').submit(function(e){
       e.preventDefault();
@@ -2284,72 +2160,58 @@ function reject_category_list(page, query){
         }
       });
     });
-</script>
-<script>
-function tbl_sampling_plan_visual(page){
-    $.ajax({
-          url:"/get_tbl_qa_visual?page=" + page,
-          type:"GET",
-          success:function(data){
-            
-            $('#tbl_visual').html(data);
-          }
-        });
 
-}
-</script> 
-<script>
-function tbl_sampling_plan_variable(page){
-    $.ajax({
-          url:"/get_tbl_qa_variable?page=" + page,
-          type:"GET",
-          success:function(data){
-            
-            $('#tbl_variable').html(data);
-          }
-        });
+    function tbl_sampling_plan_visual(page){
+      $.ajax({
+        url:"/get_tbl_qa_visual?page=" + page,
+        type:"GET",
+        success:function(data){
+          $('#tbl_visual').html(data);
+        }
+      });
+    }
 
-}
-</script> 
-<script>
-function tbl_sampling_plan_reliability(page){
-    $.ajax({
-          url:"/get_tbl_qa_reliability?page=" + page,
-          type:"GET",
-          success:function(data){
-            
-            $('#tbl_reliability').html(data);
-          }
-        });
+    function tbl_sampling_plan_variable(page){
+      $.ajax({
+        url:"/get_tbl_qa_variable?page=" + page,
+        type:"GET",
+        success:function(data){
+          $('#tbl_variable').html(data);
+        }
+      });
+    }
 
-}
-</script> 
-<script type="text/javascript">
+    function tbl_sampling_plan_reliability(page){
+      $.ajax({
+        url:"/get_tbl_qa_reliability?page=" + page,
+        type:"GET",
+        success:function(data){
+          $('#tbl_reliability').html(data);
+        }
+      });
+    }
+    
     $(document).on('click', '.add-smpl-plan', function(){
-        var id = $(this).attr('data-id');
-        var spname = $(this).attr('data-spname');
-        $.ajax({
+      var id = $(this).attr('data-id');
+      var spname = $(this).attr('data-spname');
+      $.ajax({
         url:"/get_reject_category_for_add_reject_modal",
         type:"GET",
         success:function(data){
           $('#sp_category').html(data.category);
           $('#sp_category').val(id);
         }
-        }); 
-        $.ajax({
+      }); 
+      $.ajax({
         url:"/get_max_for_min_sampling_plan/"+ id,
         type:"GET",
         success:function(data){
           $('#lot_min').val(data);
         }
-        });
-        $('.sampling-text').text('['+ spname+']' );
-
-        $('#add-sampling-plan-modal').modal('show');
-
+      });
+      $('.sampling-text').text('['+ spname+']' );
+      $('#add-sampling-plan-modal').modal('show');
     });
-</script>
-<script type="text/javascript">
 
     $('#add-sampling-plan-frm').submit(function(e){
       e.preventDefault();
@@ -2363,62 +2225,54 @@ function tbl_sampling_plan_reliability(page){
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
             showNotification("success", data.message, "now-ui-icons ui-1_check");
-           if (data.val == 1) {
-            tbl_sampling_plan_visual();
-            $('#add-sampling-plan-modal').modal('hide');
-            $('#add-sampling-plan-frm').trigger("reset");
-           }else if(data.val == 2){
-            tbl_sampling_plan_variable();
-            $('#add-sampling-plan-modal').modal('hide');
-            $('#add-sampling-plan-frm').trigger("reset");
-           }else{
-            tbl_sampling_plan_reliability();
-            $('#add-sampling-plan-modal').modal('hide');
-            $('#add-sampling-plan-frm').trigger("reset");
-           }
+            if (data.val == 1) {
+              tbl_sampling_plan_visual();
+              $('#add-sampling-plan-modal').modal('hide');
+              $('#add-sampling-plan-frm').trigger("reset");
+            }else if(data.val == 2){
+              tbl_sampling_plan_variable();
+              $('#add-sampling-plan-modal').modal('hide');
+              $('#add-sampling-plan-frm').trigger("reset");
+            }else{
+              tbl_sampling_plan_reliability();
+              $('#add-sampling-plan-modal').modal('hide');
+              $('#add-sampling-plan-frm').trigger("reset");
+            }
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
       });
     });
-</script>
-<script type="text/javascript">
 
-
-
-$(document).on('click', '#sampling_visual_pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    tbl_sampling_plan_visual(page);
-  });
-$(document).on('click', '#sampling_variable_pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    tbl_sampling_plan_variable(page);
-
-  });
-$(document).on('click', '#sampling_reliability_pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    tbl_sampling_plan_reliability(page);
-
-  });
-</script>
-<script type="text/javascript">
-    $(document).on('click', '.btn-delete-sampling_plan', function(){
-        var id = $(this).attr('data-id');
-        var category = $(this).attr('data-category');
-        $('#delete_sampling_plan_id').val(id);
-        $('#delete_sampling_plan_category').val(category);
-        $('#delete-sampling-plan-modal').modal('show');
-
+    $(document).on('click', '#sampling_visual_pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      tbl_sampling_plan_visual(page);
     });
-</script>
-<script type="text/javascript">
+
+    $(document).on('click', '#sampling_variable_pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      tbl_sampling_plan_variable(page);
+    });
+
+    $(document).on('click', '#sampling_reliability_pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      tbl_sampling_plan_reliability(page);
+    });
+
+    $(document).on('click', '.btn-delete-sampling_plan', function(){
+      var id = $(this).attr('data-id');
+      var category = $(this).attr('data-category');
+      $('#delete_sampling_plan_id').val(id);
+      $('#delete_sampling_plan_category').val(category);
+      $('#delete-sampling-plan-modal').modal('show');
+    });
 
     $('#delete-sampling-plan-frm').submit(function(e){
       e.preventDefault();
@@ -2432,271 +2286,267 @@ $(document).on('click', '#sampling_reliability_pagination a', function(event){
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
             showNotification("success", data.message, "now-ui-icons ui-1_check");
-           
             if (data.category == 1) {
-            tbl_sampling_plan_visual();
-            $('#delete-sampling-plan-modal').modal('hide');
-             $('#delete-sampling-plan-frm').trigger("reset");
-           }else if(data.category == 2){
-            tbl_sampling_plan_variable();
-            $('#delete-sampling-plan-modal').modal('hide');
-             $('#delete-sampling-plan-frm').trigger("reset");
-           }else{
-            tbl_sampling_plan_reliability();
-            $('#delete-sampling-plan-modal').modal('hide');
-             $('#delete-sampling-plan-frm').trigger("reset");
-           }
+              tbl_sampling_plan_visual();
+              $('#delete-sampling-plan-modal').modal('hide');
+              $('#delete-sampling-plan-frm').trigger("reset");
+            }else if(data.category == 2){
+              tbl_sampling_plan_variable();
+              $('#delete-sampling-plan-modal').modal('hide');
+              $('#delete-sampling-plan-frm').trigger("reset");
+            }else{
+              tbl_sampling_plan_reliability();
+              $('#delete-sampling-plan-modal').modal('hide');
+              $('#delete-sampling-plan-frm').trigger("reset");
+            }
           }
         }
       });
     });
-</script>
 
-<script type="text/javascript">
     $('#add-reject-modal .add-row').click(function(e){
-         e.preventDefault();
-         var selectValues1 = {
-          "": "Select Responsible",
-          "Engineering": "Engineering",
-          "Operator": "Operator",
-          'Assembler': "Assembler",
-          'Supplier': "Supplier",                             
-          'Machine/Equipment': "Machine/Equipment", 
-          "Others" : 'Others'
-        };
-        
-        var selectValues2 = {
-          "": "Select Recommended Action",
-          "Undefined": "Undefined",
-          "Rework": "Rework",
-          "Replace": "Replace",
-          "Scrap": "Scrap",
-          "Use as is": "Use as is"
-        };
+      e.preventDefault();
+      var selectValues1 = {
+        "": "Select Responsible",
+        "Engineering": "Engineering",
+        "Operator": "Operator",
+        'Assembler': "Assembler",
+        'Supplier': "Supplier",                             
+        'Machine/Equipment': "Machine/Equipment", 
+        "Others" : 'Others'
+      };
+    
+      var selectValues2 = {
+        "": "Select Recommended Action",
+        "Undefined": "Undefined",
+        "Rework": "Rework",
+        "Replace": "Replace",
+        "Scrap": "Scrap",
+        "Use as is": "Use as is"
+      };
 
-        var selectValues4 = {
-          "": "Select Operation",
-          "Fabrication": "",
-          "Operator": "Operator",
-          'Assembler': "Assembler",
-          'Supplier': "Supplier",
-          "Others" : 'Others'
-        };
-        var row1 = '';
-        var row2 = '';
-        var col1 = '';
+      var selectValues4 = {
+        "": "Select Operation",
+        "Fabrication": "",
+        "Operator": "Operator",
+        'Assembler': "Assembler",
+        'Supplier': "Supplier",
+        "Others" : 'Others'
+      };
 
+      var row1 = '';
+      var row2 = '';
+      var col1 = '';
 
-        $.each(selectValues1, function(i, d){
-            row1 += '<option value="' + i + '">' + d + '</option>';
-        });
-        $.each(selectValues2, function(i, d){
-            row2 += '<option value="' + i + '">' + d + '</option>';
-        });
-        var owner = $('#reject_owner').val();
-
-        var thizz = document.getElementById('addreject-table');
-        var id = $(thizz).closest('table').find('tr:last td:first').text();
-        var validation = isNaN(parseFloat(id));
-
-        if(validation){
-            var new_id = 1;
-        }else{
-            var new_id = parseInt(id) + 1;
-        }
-        var len2 = new_id;
-        var id_unique="count"+len2;
-        $.ajax({
-          url: "/get_material_type",
-          type:"get",
-          cache: false,
-          success: function(response) {
-            col1 += '<option value="">Select Material Type</option>';
-              $.each(response.material_type, function(i, d){
-                col1 += '<option value="' + d.reject_material_type_id + '">' + d.material_type + '</option>';
-              });
-              
-              if (owner == "Operator") {
-
-                var tblrow = '<tr>' +
-                  '<td>'+len2+'</td>' +
-                  '<td><input type="text" class="form-control select-input" name="reject_reason[]" required id="reject_reason"></td>' +
-                  '<td><select name="m_type[]" class="form-control sel6">'+col1+'</select></td>' +
-                  '<td><select name="responsible[]" class="form-control count-row sel6" required>'+row1+'</select></td>' +
-                  '<td><select name="r_action[]" class="form-control sel6" required>'+row2+'</select></td>' +
-                  '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
-                  '</tr>';
-              }else{
-                var tblrow = '<tr>' +
-                  '<td>'+len2+'</td>' +
-                  '<td><input type="text" class="form-control select-input" name="reject_checklist[]" required id="reject_reason"></td>' +
-                  '<td><input type="text" class="form-control select-input" name="reject_reason[]" required id="reject_reason"></td>' +
-                  '<td><select name="m_type[]" class="form-control sel6">'+col1+'</select></td>' +
-                  '<td><select name="responsible[]" class="form-control count-row sel6" required>'+row1+'</select></td>' +
-                  '<td><select name="r_action[]" class="form-control sel6" required>'+row2+'</select></td>' +
-                  '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
-                  '</tr>';
-              }
-              $("#add-reject-modal #addreject-table").append(tblrow);
-              $('.sel6').select2({
-                  dropdownParent: $("#add-reject-modal"),
-                  dropdownAutoWidth: false,
-                  width: '100%',
-                  cache: false
-              });
-
-            },
-          error: function(response) {
-            alert('Error!');
-        }
-
+      $.each(selectValues1, function(i, d){
+          row1 += '<option value="' + i + '">' + d + '</option>';
       });
 
+      $.each(selectValues2, function(i, d){
+          row2 += '<option value="' + i + '">' + d + '</option>';
+      });
+
+      var owner = $('#reject_owner').val();
+      var thizz = document.getElementById('addreject-table');
+      var id = $(thizz).closest('table').find('tr:last td:first').text();
+      var validation = isNaN(parseFloat(id));
+
+      if(validation){
+          var new_id = 1;
+      }else{
+          var new_id = parseInt(id) + 1;
+      }
+      var len2 = new_id;
+      var id_unique="count"+len2;
+      
+      $.ajax({
+        url: "/get_material_type",
+        type:"get",
+        cache: false,
+        success: function(response) {
+          col1 += '<option value="">Select Material Type</option>';
+          $.each(response.material_type, function(i, d){
+            col1 += '<option value="' + d.reject_material_type_id + '">' + d.material_type + '</option>';
+          });
+          
+          if (owner == "Operator") {
+            var tblrow = '<tr>' +
+              '<td>'+len2+'</td>' +
+              '<td><input type="text" class="form-control select-input" name="reject_reason[]" required id="reject_reason"></td>' +
+              '<td><select name="m_type[]" class="form-control sel6">'+col1+'</select></td>' +
+              '<td><select name="responsible[]" class="form-control count-row sel6" required>'+row1+'</select></td>' +
+              '<td><select name="r_action[]" class="form-control sel6" required>'+row2+'</select></td>' +
+              '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
+              '</tr>';
+          } else {
+            var tblrow = '<tr>' +
+              '<td>'+len2+'</td>' +
+              '<td><input type="text" class="form-control select-input" name="reject_checklist[]" required id="reject_reason"></td>' +
+              '<td><input type="text" class="form-control select-input" name="reject_reason[]" required id="reject_reason"></td>' +
+              '<td><select name="m_type[]" class="form-control sel6">'+col1+'</select></td>' +
+              '<td><select name="responsible[]" class="form-control count-row sel6" required>'+row1+'</select></td>' +
+              '<td><select name="r_action[]" class="form-control sel6" required>'+row2+'</select></td>' +
+              '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
+              '</tr>';
+          }
+          $("#add-reject-modal #addreject-table").append(tblrow);
+
+          $('.sel6').select2({
+            dropdownParent: $("#add-reject-modal"),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
+        },
+        error: function(response) {
+          console.log('Error!');
+        }
+      });
     });
-</script>
-
-
-<script>
 
     $(document).on('click', '#add-opchecklist-fabrication-button', function(){
-       $('#add-operator-checklist-modal .modal-title').text('Fabrication');
-       $('#operator_owner_checklist').val('Operator');
-       $('#reload_operator_checklist').val('Fabrication');
+      $('#add-operator-checklist-modal .modal-title').text('Fabrication');
+      $('#operator_owner_checklist').val('Operator');
+      $('#reload_operator_checklist').val('Fabrication');
        
-        $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Fabrication",
-            type:"GET",
-            success:function(data){
-              $("#opchecklist_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-            $('#operator-checklist-table tbody').empty();
-            $('#add-operator-checklist-modal').modal('show');
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Fabrication",
+        type:"GET",
+        success:function(data){
+          $("#opchecklist_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
 
+      $('#operator-checklist-table tbody').empty();
+      $('#add-operator-checklist-modal').modal('show');
     });
+
     $(document).on('click', '#add-opchecklist-painting-button', function(){
-       $('#add-operator-checklist-modal .modal-title').text('Painting');
-       $('#operator_owner_checklist').val('Operator');
-       $('#reload_operator_checklist').val('Painting');
+      $('#add-operator-checklist-modal .modal-title').text('Painting');
+      $('#operator_owner_checklist').val('Operator');
+      $('#reload_operator_checklist').val('Painting');
 
-       $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Painting",
-            type:"GET",
-            success:function(data){
-              $("#opchecklist_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-        $('#operator-checklist-table tbody').empty();
-        $('#add-operator-checklist-modal').modal('show');
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Painting",
+        type:"GET",
+        success:function(data){
+          $("#opchecklist_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+      $('#operator-checklist-table tbody').empty();
+      $('#add-operator-checklist-modal').modal('show');
     });
+
     $(document).on('click', '#add-opchecklist-assembly-button', function(){
-       $('#add-operator-checklist-modal .modal-title').text('Wiring and Assembly');
-       $('#operator_owner_checklist').val('Operator');
-       $('#reload_operator_checklist').val('Asembly');
+      $('#add-operator-checklist-modal .modal-title').text('Wiring and Assembly');
+      $('#operator_owner_checklist').val('Operator');
+      $('#reload_operator_checklist').val('Asembly');
 
-       $.ajax({
-            url:"/get_workstation_list_from_checklist/"+ "Wiring and Assembly",
-            type:"GET",
-            success:function(data){
-              $("#opchecklist_workstation_id").html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          });
-        $('#operator-checklist-table tbody').empty();
-        $('#add-operator-checklist-modal').modal('show');
+      $.ajax({
+        url:"/get_workstation_list_from_checklist/"+ "Wiring and Assembly",
+        type:"GET",
+        success:function(data){
+          $("#opchecklist_workstation_id").html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+      $('#operator-checklist-table tbody').empty();
+      $('#add-operator-checklist-modal').modal('show');
     });
+
     $('#add-operator-checklist-modal .add-row').click(function(e){
-         e.preventDefault();
-         var row = '';
-         var row2 = '';
-         var workstation = $("#opchecklist_workstation_id").val();
-         $.ajax({
-            url: "/get_reject_categ_and_process",
-            type:"get",
-            data:{workstation:workstation},
-            success: function(response) {
-               row += '<option value="none">--Type--</option>';
-               $.each(response.category, function(i, d){
-                  row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
-               });
-               row2 += '<option value="">--Process--</option>';
-               $.each(response.process, function(i, d){
-                  row2 += '<option value="' + d.process_id + '">' + d.process_name + '</option>';
-               });
-
-               var thizz = document.getElementById('operator-checklist-table');
-               var id = $(thizz).closest('table').find('tr:last td:first').text();
-               var validation = isNaN(parseFloat(id));
-               if(validation){
-                var new_id = 1;
-               }else{
-                var new_id = parseInt(id) + 1;
-               }
-              //  alert(new_id);
-               var len2 = new_id;
-               var id_unique="operator-count"+len2;
-               // alert(id_unique);
-               var tblrow = '<tr>' +
-                  '<td>'+len2+'</td>' +
-                  '<td><select name="operator_new_checklist_r_type[]" class="form-control operator-onchange-selection count-row operator-checklist-sel"   data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
-                  '<td><select name="operator_new_checklist_r_process[]" class="form-control count-row operator-checklist-sel">'+row2+'</select></td>' +
-                  '<td><select name="operator_new_checklist_r_desc[]" class="form-control operator-checklist-sel" id='+id_unique+' required></select></td>' +
-                  '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
-                  '</tr>';
-
-               $("#add-operator-checklist-modal #operator-checklist-table").append(tblrow);
-               // autoRowNumberAddKPI();
-               $('.operator-checklist-sel').select2({
-                  dropdownParent: $("#add-operator-checklist-modal"),
-                  dropdownAutoWidth: false,
-                  width: '100%',
-                  cache: false
-                });
-            },
-            error: function(response) {
-               alert('Connection Lost, pls try again');
-            }
-         });
-      });
-     
-       $(document).on('change', '.operator-onchange-selection', function(){
-           var owner = $('#operator_owner_checklist').val();
-           var first_selection_data = $(this).val();
-           var id_for_second_selection = $(this).attr('data-idcolumn');
-           var format_id_for_second_selection = "#"+id_for_second_selection;
-           var operation = $('#add-operator-checklist-modal .modal-title').text();
-            $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
-            type:"GET",
-            success:function(data){
-              $(format_id_for_second_selection).html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
+      e.preventDefault();
+      var row = '';
+      var row2 = '';
+      var workstation = $("#opchecklist_workstation_id").val();
+      $.ajax({
+        url: "/get_reject_categ_and_process",
+        type:"get",
+        data:{workstation:workstation},
+        success: function(response) {
+          row += '<option value="none">--Type--</option>';
+          $.each(response.category, function(i, d){
+            row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
           });
+
+          row2 += '<option value="">--Process--</option>';
+          $.each(response.process, function(i, d){
+            row2 += '<option value="' + d.process_id + '">' + d.process_name + '</option>';
+          });
+
+          var thizz = document.getElementById('operator-checklist-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          } else {
+            var new_id = parseInt(id) + 1;
+          }
+
+          var len2 = new_id;
+          var id_unique="operator-count"+len2;
+              
+          var tblrow = '<tr>' +
+            '<td>'+len2+'</td>' +
+            '<td><select name="operator_new_checklist_r_type[]" class="form-control operator-onchange-selection count-row operator-checklist-sel"   data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
+            '<td><select name="operator_new_checklist_r_process[]" class="form-control count-row operator-checklist-sel">'+row2+'</select></td>' +
+            '<td><select name="operator_new_checklist_r_desc[]" class="form-control operator-checklist-sel" id='+id_unique+' required></select></td>' +
+            '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
+            '</tr>';
+
+          $("#add-operator-checklist-modal #operator-checklist-table").append(tblrow);
+        
+          $('.operator-checklist-sel').select2({
+            dropdownParent: $("#add-operator-checklist-modal"),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
+        },
+        error: function(response) {
+          console.log('Connection Lost, pls try again');
+        }
       });
-       $(document).on("click", ".delete", function(){
-        $(this).parents("tr").remove();
+    });
+     
+    $(document).on('change', '.operator-onchange-selection', function(){
+      var owner = $('#operator_owner_checklist').val();
+      var first_selection_data = $(this).val();
+      var id_for_second_selection = $(this).attr('data-idcolumn');
+      var format_id_for_second_selection = "#"+id_for_second_selection;
+      var operation = $('#add-operator-checklist-modal .modal-title').text();
+      $.ajax({
+        url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/'+ operation,
+        type:"GET",
+        success:function(data){
+          $(format_id_for_second_selection).html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
       });
-</script>
-<script type="text/javascript">
+    });
+
+    $(document).on("click", ".delete", function(){
+      $(this).parents("tr").remove();
+    });
+
     $('#save-operator-checklist-frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
@@ -2707,7 +2557,7 @@ $(document).on('click', '#sampling_reliability_pagination a', function(event){
         success:function(data){
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
+          } else {
             if(data.reloadtbl == "Fabrication"){
               showNotification("success", data.message, "now-ui-icons ui-1_check");
               $('#add-operator-checklist-modal').modal('hide');
@@ -2733,82 +2583,79 @@ $(document).on('click', '#sampling_reliability_pagination a', function(event){
         }
       });
     });
-</script>
-<script>
-operator_check_list_fabrication();
- function operator_check_list_fabrication(page, query){
-    $.ajax({
-          url:"/get_tbl_opchecklist_list_fabrication?page=" + page,
-          type:"GET",
-          data: {search_string: query},
-          success:function(data){
-            $('#tbl_opcheck_list_fabrication').html(data);
-          }
-        });
-}
-</script>
-<script>
-operator_check_list_assembly();
- function operator_check_list_assembly(page, query){
-    $.ajax({
-          url:"/get_tbl_opchecklist_list_assembly?page=" + page,
-          type:"GET",
-          data: {search_string: query},
-          success:function(data){
-            $('#tbl_opcheck_list_assembly').html(data);
-          }
-        });
-}
-</script>
-<script>
-operator_check_list_painting();
- function operator_check_list_painting(page, query){
-    $.ajax({
-          url:"/get_tbl_opchecklist_list_painting?page=" + page,
-          type:"GET",
-          data: {search_string: query},
-          success:function(data){
-            $('#tbl_opcheck_list_painting').html(data);
-          }
-        });
-}
-</script>
-<script>  
-   $(document).on('click', '#operator_checklist_list_pagination_fabrication a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    var query = $("#search_operator_reject_setup").val();
-    operator_check_list_fabrication(page, query);
-  });
-  $(document).on('click', '#operator_checklist_list_pagination_assembly a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    var query = $("#search_operator_reject_setup").val();
-    operator_check_list_assembly(page, query);
 
-  });
-  $(document).on('click', '#operator_checklist_list_pagination_painting a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    var query = $("#search_operator_reject_setup").val();
-    operator_check_list_painting(page, query);
+    operator_check_list_fabrication();
+    function operator_check_list_fabrication(page, query){
+      $.ajax({
+        url:"/get_tbl_opchecklist_list_fabrication?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+          $('#tbl_opcheck_list_fabrication').html(data);
+        }
+      });
+    }
 
-  });
-  $(document).on('click', '.btn-delete-opchecklist', function(){
-    var id = $(this).data('id');
-    var workstation = $(this).data('workstation');
-    var rejectlist = $(this).data('rejectchecklist');
-    var operation = $(this).data('operation');
-    var reloadtbl = $(this).data('reloadtbl');
-    $('#delete_opchecklist_label').text(rejectlist);
-    $('#delete_opworkstation_label').text(workstation);
-    $('.operation-text').text("["+operation+"]");
-    $('#delete_opchecklist_id').val(id);
-    $('#delete_op_reloadtbl').val(reloadtbl);
-    
-    $('#delete-operator-checklist-modal').modal('show');
-  });
-  $('#delete-operator-checklist-frm').submit(function(e){
+    operator_check_list_assembly();
+    function operator_check_list_assembly(page, query){
+      $.ajax({
+        url:"/get_tbl_opchecklist_list_assembly?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+          $('#tbl_opcheck_list_assembly').html(data);
+        }
+      });
+    }
+
+    operator_check_list_painting();
+    function operator_check_list_painting(page, query){
+      $.ajax({
+        url:"/get_tbl_opchecklist_list_painting?page=" + page,
+        type:"GET",
+        data: {search_string: query},
+        success:function(data){
+          $('#tbl_opcheck_list_painting').html(data);
+        }
+      });
+    }
+
+    $(document).on('click', '#operator_checklist_list_pagination_fabrication a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      var query = $("#search_operator_reject_setup").val();
+      operator_check_list_fabrication(page, query);
+    });
+
+    $(document).on('click', '#operator_checklist_list_pagination_assembly a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      var query = $("#search_operator_reject_setup").val();
+      operator_check_list_assembly(page, query);
+    });
+
+    $(document).on('click', '#operator_checklist_list_pagination_painting a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      var query = $("#search_operator_reject_setup").val();
+      operator_check_list_painting(page, query);
+    });
+
+    $(document).on('click', '.btn-delete-opchecklist', function(){
+      var id = $(this).data('id');
+      var workstation = $(this).data('workstation');
+      var rejectlist = $(this).data('rejectchecklist');
+      var operation = $(this).data('operation');
+      var reloadtbl = $(this).data('reloadtbl');
+      $('#delete_opchecklist_label').text(rejectlist);
+      $('#delete_opworkstation_label').text(workstation);
+      $('.operation-text').text("["+operation+"]");
+      $('#delete_opchecklist_id').val(id);
+      $('#delete_op_reloadtbl').val(reloadtbl);
+      $('#delete-operator-checklist-modal').modal('show');
+    });
+
+    $('#delete-operator-checklist-frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
       $.ajax({
@@ -2839,24 +2686,25 @@ operator_check_list_painting();
         }
       });
     });
-</script>
-<script>
-  tbl_material_type();
-  function tbl_material_type(page, query){
-        $.ajax({
-          url:"/get_material_type_tbl?page="+page,
-          data: {search_string: query},
-          type:"GET",
-          success:function(data){
-            $('#tbl_material_type').html(data);
-          }
-        }); 
-  }
-  $(document).on('click', '#add-material-type-button', function(){
-    $('#add-material-type-modal').modal('show');
-  });
-  $('#add-material-type-row').click(function(e){
-    e.preventDefault();
+
+    tbl_material_type();
+    function tbl_material_type(page, query){
+      $.ajax({
+        url:"/get_material_type_tbl?page="+page,
+        data: {search_string: query},
+        type:"GET",
+        success:function(data){
+          $('#tbl_material_type').html(data);
+        }
+      }); 
+    }
+      
+    $(document).on('click', '#add-material-type-button', function(){
+      $('#add-material-type-modal').modal('show');
+    });
+
+    $('#add-material-type-row').click(function(e){
+      e.preventDefault();
       var thizz = document.getElementById('material-type-table');
       var id = $(thizz).closest('table').find('tr:last td:first').text();
       var validation = isNaN(parseFloat(id));
@@ -2873,154 +2721,152 @@ operator_check_list_painting();
         '<td> <a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
         '</tr>';
       $("#add-material-type-modal #material-type-table").append(tblrow);
-         
-  });
-  $(document).on('click', '#material_type_pagination a', function(event){
+    });
+
+    $(document).on('click', '#material_type_pagination a', function(event){
       event.preventDefault();
       var query = $("#search_material_type_setup").val();
       var page = $(this).attr('href').split('page=')[1];
       tbl_material_type(page, query);
-
     });
+
     $(document).on('keyup', '#search_material_type_setup', function(){
-    var query = $(this).val();
-    tbl_material_type(1, query);
-  });
-  $('#add-material-type-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#add-material-type-modal').modal('hide');
-                tbl_material_type();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
+      var query = $(this).val();
+      tbl_material_type(1, query);
     });
+
+    $('#add-material-type-frm').submit(function(e){
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr("action"),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-material-type-modal').modal('hide');
+            tbl_material_type();
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
     $('#edit-material-type-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#edit-material-type-modal').modal('hide');
-                tbl_material_type();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr("action"),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#edit-material-type-modal').modal('hide');
+            tbl_material_type();
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
     });
+
     $(document).on('click', '.btn_edit_material_type', function(){
       var edit_material_type = $(this).data('reason');
       var id = $(this).data('id');
-
       $('#orig_material_type_setup').val(edit_material_type);
       $('#edit_material_type_setup').val(edit_material_type);
       $('#mtypeid').val(id);
-  
-       $('#edit-material-type-modal').modal('show');
-
+      $('#edit-material-type-modal').modal('show');
     });
-
-
 
     $(document).on('change', '#opchecklist_workstation_id', function(){
       $('#operator-checklist-table tbody').empty();
     });
-    $('#add-checklist-painting-modal .add-row').click(function(e){
-         e.preventDefault();
-         var row = '';
-         var row2 = '';
-         var workstation = $("#painting_r_workstation_id").val();
-         $.ajax({
-            url: "/get_reject_categ_and_process",
-            type:"get",
-            cache: false,
-            data:{workstation:workstation},
-            success: function(response) {
-               row += '<option value="none">--Type--</option>';
-               $.each(response.category, function(i, d){
-                  row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
-               });
-               row2 += '<option value="none">--Process--</option>';
-               $.each(response.process, function(i, d){
-                  row2 += '<option value="' + d.process_id + '">' + d.process_name + '</option>';
-               });
 
-               var thizz = document.getElementById('painting-reject-table');
-               var id = $(thizz).closest('table').find('tr:last td:first').text();
-               var validation = isNaN(parseFloat(id));
-               if(validation){
-                var new_id = 1;
-               }else{
-                var new_id = parseInt(id) + 1;
-               }
-               var len2 = new_id;
-               var id_unique="paintcount"+len2;
-               var tblrow = '<tr>' +
-                  '<td>'+len2+'</td>' +
-                  '<td><select name="new_checklist_r_type[]" class="form-control painting-onchange-selection count-row sel17"  data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
-                  '<td><select name="new_checklist_r_process[]" class="form-control count-row sel17">'+row2+'</select></td>' +
-                  '<td><select name="new_checklist_r_desc[]" class="form-control sel17" id='+id_unique+' required></select></td>' +
-                  '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
-                  '</tr>';
-               $("#add-checklist-painting-modal #painting-reject-table").append(tblrow);
-               // autoRowNumberAddKPI();
-               $('.sel17').select2({
-                  dropdownParent: $("#add-checklist-painting-modal"),
-                  dropdownAutoWidth: false,
-                  width: '100%',
-                  cache: false
-                });
-            },
-            error: function(response) {
-               alert('Error fetching Designation!');
-            }
-         });
-      });
-      $(document).on('change', '.painting-onchange-selection', function(){
-           var owner = $('#painting_owner_checklist').val();
-           var first_selection_data = $(this).val();
-           var id_for_second_selection = $(this).attr('data-idcolumn');
-           var format_id_for_second_selection = "#"+id_for_second_selection;
-           var operation = $('#add-checklist-painting-modal .modal-title').text();
-           
-          $.ajax({
-            url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/' + operation,
-            type:"GET",
-            success:function(data){
-              $(format_id_for_second_selection).html(data);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
+    $('#add-checklist-painting-modal .add-row').click(function(e){
+      e.preventDefault();
+      var row = '';
+      var row2 = '';
+      var workstation = $("#painting_r_workstation_id").val();
+      $.ajax({
+        url: "/get_reject_categ_and_process",
+        type:"get",
+        cache: false,
+        data:{workstation:workstation},
+        success: function(response) {
+          row += '<option value="none">--Type--</option>';
+          $.each(response.category, function(i, d){
+            row += '<option value="' + d.reject_category_id + '">' + d.reject_category_name + '</option>';
           });
+          row2 += '<option value="none">--Process--</option>';
+          $.each(response.process, function(i, d){
+            row2 += '<option value="' + d.process_id + '">' + d.process_name + '</option>';
+          });
+
+          var thizz = document.getElementById('painting-reject-table');
+          var id = $(thizz).closest('table').find('tr:last td:first').text();
+          var validation = isNaN(parseFloat(id));
+          if(validation){
+            var new_id = 1;
+          }else{
+            var new_id = parseInt(id) + 1;
+          }
+          var len2 = new_id;
+          var id_unique="paintcount"+len2;
+          var tblrow = '<tr>' +
+            '<td>'+len2+'</td>' +
+            '<td><select name="new_checklist_r_type[]" class="form-control painting-onchange-selection count-row sel17"  data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
+            '<td><select name="new_checklist_r_process[]" class="form-control count-row sel17">'+row2+'</select></td>' +
+            '<td><select name="new_checklist_r_desc[]" class="form-control sel17" id='+id_unique+' required></select></td>' +
+            '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
+            '</tr>';
+          $("#add-checklist-painting-modal #painting-reject-table").append(tblrow);
+          $('.sel17').select2({
+            dropdownParent: $("#add-checklist-painting-modal"),
+            dropdownAutoWidth: false,
+            width: '100%',
+            cache: false
+          });
+        },
+        error: function(response) {
+          console.log('Error fetching Designation!');
+        }
       });
-      $('#save-painting-checklist-frm').submit(function(e){
+    });
+
+    $(document).on('change', '.painting-onchange-selection', function(){
+      var owner = $('#painting_owner_checklist').val();
+      var first_selection_data = $(this).val();
+      var id_for_second_selection = $(this).attr('data-idcolumn');
+      var format_id_for_second_selection = "#"+id_for_second_selection;
+      var operation = $('#add-checklist-painting-modal .modal-title').text();
+      
+      $.ajax({
+        url:"/get_reject_desc/"+first_selection_data+'/'+owner + '/' + operation,
+        type:"GET",
+        success:function(data){
+          $(format_id_for_second_selection).html(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    $('#save-painting-checklist-frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
       $.ajax({
@@ -3036,9 +2882,7 @@ operator_check_list_painting();
             check_list_fabrication();
             check_list_painting();
             check_list_assembly();
-            
             $('#save-painting-checklist-frm').trigger("reset");
-            // getAssignedTasks();
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -3048,5 +2892,6 @@ operator_check_list_painting();
         }
       });
     });
+  });
 </script>
 @endsection

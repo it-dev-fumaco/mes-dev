@@ -772,11 +772,6 @@
       $('#icw_operation option:contains(' + is_active + ')').prop({selected: true});
       $('#icw_operation').trigger('change');
     }
-   
-      // if(!is_active){
-      //   $('#transaction-filter-div').toggle();
-      //   $('#invetory-filters-div').toggle();
-      // }
 	  });
     $(document).on('click', '#add-machine-to-workstation-button', function(){
       $('#add-machine_to_workstation-processprofile-modal').modal('show');
@@ -837,28 +832,11 @@
 </script>
 <script type="text/javascript">
 $(document).ready(function(){
-//   get_machine_assign();
   tbl_process_setup_list();
   tbl_shift_list();
   tbl_operation_list();
-//   tbl_shift_schedule_sched();
-//   get_users();
   workstation_list();
   setting_machine_list();
-//   check_list_fabrication();
-//   check_list_painting();
-//   check_list_assembly();
-//   qa_reject_list();
-//   reject_category_list();
-//   tbl_sampling_plan_visual();
-//   tbl_sampling_plan_variable();
-//   tbl_sampling_plan_reliability();
-//   item_classification_warehouse_tbl_fabrication();
-//   item_classification_warehouse_tbl_painting();
-//   item_classification_warehouse_tbl_assembly();
-//   get_user_group();
-//   tbl_wip_list();
-//   tbl_email_trans();
 
   $('.schedule-date').datepicker({
     'format': 'yyyy-mm-dd',
@@ -873,8 +851,6 @@ $(document).ready(function(){
     $('#process_id_to_assign').val(process_id);
     $('#process-profile-modal .modal-title').text(process_name);
     
-    // var status = $(this).data('status');
-    // alert(process_id);
     tbl_process_assigned_process();
     $('#process-profile-modal').modal('show');
     });
@@ -886,10 +862,6 @@ $(document).ready(function(){
     $('#delete_workstation').text(workstation);
     $('#delete_machine').text(machine);
 
-
-    // var status = $(this).data('status');
-    // alert(id);
-    // tbl_process_assigned_process();
     $('#delete-assigned').modal('show');
     });
   $(document).on('click', '.add-process-assignment', function(){

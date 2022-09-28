@@ -7995,7 +7995,7 @@ class SecondaryController extends Controller
                     $q->where('email', 'LIKE', '%'.$request->search_string.'%')
                     ->orwhere('email_trans', 'LIKE', '%'.$request->search_string.'%');
                 })
-                ->orderBy('email_trans_recipient_id', 'desc')->paginate(10);
+                ->orderBy('email_trans_recipient_id', 'desc')->paginate(15);
             
             return view('tables.tbl_email_trans', compact('data'));
 

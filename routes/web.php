@@ -673,10 +673,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/production_settings', 'MainController@productionSettings');
 	Route::get('/inventory_settings', 'MainController@inventorySettings');
 	Route::get('/qa_settings', 'MainController@qaSettings');
-	
-
-	
-
+	Route::get('/user_settings', 'MainController@userSettings');
 });
 
 //operator_checklist
