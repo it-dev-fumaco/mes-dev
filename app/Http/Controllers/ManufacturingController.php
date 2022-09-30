@@ -2224,10 +2224,6 @@ class ManufacturingController extends Controller
 
             $transferred_qty = ($item->transferred_qty - $item->returned_qty);
 
-            $returned_qty = $item->returned_qty;
-
-            $has_pending_item_withdrawals = count($pending_item_withdrawals) > 0 ? true : false;
-
             $withdrawals = [];
             foreach ($item_withdrawals as $i) {
                 $reserved_qty = 0;
@@ -2256,23 +2252,16 @@ class ManufacturingController extends Controller
                 $actual_qty = ($actual_qty - $issued_qty) - $reserved_qty;
                 $actual_qty = $actual_qty < 0 ? 0 : $actual_qty;
 
-                $istatus = ($i->docstatus == 1 && $transferred_qty > 0) ? 'Issued' : 'For Checking';
-                $irequested_qty = ($i->docstatus == 1 && $transferred_qty > 0) ? $i->qty : $transferred_qty;
-                if ($has_pending_item_withdrawals) {
-                    $istatus = ($i->docstatus == 1) ? 'Issued' : 'For Checking';
-                    $irequested_qty = ($i->docstatus == 1) ? $i->qty : $transferred_qty;
-                }
-
                 $withdrawals[] = [
                     'id' => null,
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $actual_qty,
                     'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
                     'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? ($i->issued_qty - $item->returned_qty) : 0,
-                    'status' => $istatus,
+                    'status' => ($i->docstatus == 1 && $transferred_qty > 0) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
-                    'requested_qty' => $irequested_qty,
+                    'requested_qty' => ($i->qty - $item->returned_qty),
                     'remarks' => $i->remarks
                 ];
             }
@@ -2309,8 +2298,8 @@ class ManufacturingController extends Controller
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $actual_qty,
                     'qty' => ($i->docstatus == 1) ? $i->qty : 0,
-                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0 && $returned_qty <= 0) ? $i->issued_qty : 0,
-                    'status' => ($i->docstatus == 1 && $transferred_qty > 0 && $returned_qty <= 0) ? 'Issued' : 'For Checking',
+                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? $i->issued_qty : 0,
+                    'status' => ($i->docstatus == 1 && $transferred_qty > 0) ? 'Issued' : 'For Checking',
                     'ste_names' => $i->parent,
                     'ste_docstatus' => $i->docstatus,
                     'requested_qty' => $i->qty,
@@ -3294,15 +3283,8 @@ class ManufacturingController extends Controller
                     'order_type' => $mes_production_order_details->classification,
                 ];
 
-                $pending_ste = DB::connection('mysql')->table('tabStock Entry Detail as sted')
-                    ->join('tabStock Entry as ste', 'ste.name', 'sted.parent')->where('ste.purpose', 'Material Transfer for Manufacture')
-                    ->where('sted.item_code', $item_details->item_code)->where('ste.work_order', $request->production_order)
-                    ->where('ste.docstatus', 0)->first();
-
-                if (!$pending_ste) {
-                    DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
-                    DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
-                }
+                DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
+                DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
             }
 
             DB::connection('mysql')->commit();
