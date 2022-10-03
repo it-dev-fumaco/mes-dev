@@ -4160,6 +4160,16 @@ class MainController extends Controller
 			$now = Carbon::now();
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
+
+			if ($time_log) {
+				$is_feedbacked = DB::connection('mysql_mes')->table('production_order as p')
+					->join('job_ticket as j', 'p.production_order', 'j.production_order')
+					->where('j.job_ticket_id', $time_log->job_ticket_id)->where('p.feedback_qty', '>', 0)->exists();
+
+				if ($is_feedbacked) {
+					return response()->json(['success' => 0, 'message' => 'Production Order Feedbacked must be cancelled first to register item reject(s).']);
+				}
+			}
 			
             $update = [
                 'last_modified_at' => $now->toDateTimeString(),
