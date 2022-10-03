@@ -2041,6 +2041,28 @@
     $('#review-bom-modal').modal('show');
   });
 
+  $(document).on('click', '#submit-update-parent-code-btn', function(e){
+    e.preventDefault();
+    if ($('#select-parent-custom').val()) {
+      $.ajax({
+        url: $('#update-parent-code-form').attr('action'),
+        type:"POST",
+        data: $('#update-parent-code-form').serialize(),
+        success:function(response){
+          get_pending_material_transfer_for_manufacture(response.production_order);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    } else {
+      showNotification("danger", 'Please select parent item code', "now-ui-icons travel_info");
+      return false;
+    }
+  });
+
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();
   

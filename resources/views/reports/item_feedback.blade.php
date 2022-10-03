@@ -1273,7 +1273,6 @@ $(document).ready(function(){
       type:"GET",
       success:function(response){
         $('#feedback-production-items').html(response);
-        
       },
       error: function(jqXHR, textStatus, errorThrown) {
         console.log(jqXHR);

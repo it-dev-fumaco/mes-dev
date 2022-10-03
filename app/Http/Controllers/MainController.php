@@ -6077,9 +6077,21 @@ class MainController extends Controller
             ->first();
 
 		if(!$production_order_details){
-			$message = 'Production Order <b>' . $production_order . '</b> parent item code mismatch. Please contact your system administrator.';
+			$message = 'Production Order <b>' . $production_order . '</b> parent item code mismatch. Please update parent item code.';
 
-			return view('tables.tbl_pending_material_transfer_for_manufacture', compact('message'));
+			$reference_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
+			$reference_doctype = $reference_details->sales_order ? 'tabSales Order Item' : 'tabMaterial Request Item';
+			$reference_name = $reference_details->sales_order ? $reference_details->sales_order : $reference_details->material_request;
+
+			$delivery_date_items = [];
+			if ($reference_details) {
+				$delivery_date_items = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $reference_name)->pluck('parent_item_code');
+			}
+			
+			$parent_item_codes = DB::connection('mysql')->table($reference_doctype)->where('parent', $reference_name)
+				->whereIn('item_code', $delivery_date_items)->pluck('description', 'item_code');
+
+			return view('tables.tbl_pending_material_transfer_for_manufacture', compact('message', 'parent_item_codes', 'production_order'));
 		}
 
 		$q = DB::connection('mysql')->table('tabStock Entry as ste')
@@ -8458,4 +8470,28 @@ class MainController extends Controller
 
         return view('settings.user_settings', compact('permissions', 'module', 'employees', 'operations'));
     }
+
+	public function updateParentCode($production_order, Request $request) {
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			$production_det = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
+			if (!$production_det) {
+				return response()->json(['status' => 0, 'message' => 'Production order' . $production_order . ' not found.', 'production_order' => $production_order]);
+			}
+
+			DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update([
+				'parent_item_code' => $request->parent_item_code,
+				'last_modified_at' => Carbon::now()->toDateTimeString(),
+				'last_modified_by' => Auth::user()->employee_name
+			]);
+
+			DB::connection('mysql_mes')->commit();
+
+			return response()->json(['status' => 1, 'message' => 'Parent code for ' . $production_order . ' has been updated.', 'production_order' => $production_order]);
+		} catch (Exception $th) {
+			DB::connection('mysql_mes')->rollback();
+
+			return response()->json(['status' => 0, 'message' => 'Something went wrong. Please reload the page and try again.', 'production_order' => $production_order]);
+		}
+	}
 }

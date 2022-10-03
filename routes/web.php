@@ -384,6 +384,8 @@ Route::post('/edit_operator_time_log', 'MainController@edit_operator_time_log');
 
 //fabrication_calendar
 Route::group(['middleware' => 'auth'], function(){
+	Route::post('/update_parent_code/{production_order}', 'MainController@updateParentCode');
+	
 	Route::get('/qa_monitoring_summary/{schedule_date}', 'SecondaryController@qa_monitoring_summary');
 	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
