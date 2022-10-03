@@ -10,7 +10,9 @@ trait GeneralTrait
         // get job ticket detail
         $job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-            ->where('job_ticket_id', $job_ticket_id)->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no')->first();
+            ->where('job_ticket_id', $job_ticket_id)
+            ->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no', 'production_order.item_code')
+            ->first();
 
         if(!$job_ticket_id || !$job_ticket_detail){
             return 0;
@@ -194,6 +196,8 @@ trait GeneralTrait
 
         DB::connection('mysql')->table('tabWork Order')->where('name', $job_ticket_detail->production_order)
             ->update($values);
+
+        $this->updateCycleTimePerProcess($job_ticket_detail->item_code, $job_ticket_detail->process_id);
 
         return 1;
     }
@@ -967,6 +971,33 @@ trait GeneralTrait
                 'total_completed_qty' => $total_completed_qty,
                 'total_time_in_mins' => $total_time_in_mins,
             ]);
+        }
+    }
+
+    public function updateCycleTimePerProcess($item_code, $process_id) {
+        $average = DB::connection('mysql_mes')->table('production_order as p')
+            ->join('job_ticket as j', 'j.production_order', 'p.production_order')
+            ->join('time_logs as t', 'j.job_ticket_id', 't.job_ticket_id')
+            ->where('p.item_code', $item_code)->where('j.process_id', $process_id)
+            ->where('t.status', 'Completed')->whereNotIn('p.status', ['Cancelled'])
+            ->avg('t.cycle_time_in_seconds');
+
+        $existing = DB::connection('mysql_mes')->table('item_cycle_time_per_process')
+            ->where('item_code', $item_code)->where('process_id', $process_id)->first();
+
+        if ($existing) {
+            DB::connection('mysql_mes')->table('item_cycle_time_per_process')
+                ->where('item_cycle_time_per_process_id', $existing->item_cycle_time_per_process_id)
+                ->update(['cycle_time_in_seconds' => $average, 'last_modified_by' => Auth::user()->employee_name]);
+        } else {
+            DB::connection('mysql_mes')->table('item_cycle_time_per_process')
+                ->insert([
+                    'item_code' => $item_code,
+                    'process_id' => $process_id,
+                    'cycle_time_in_seconds' => $average,
+                    'created_by' => Auth::user()->employee_name,
+                    'last_modified_by' => Auth::user()->employee_name,
+                ]);            
         }
     }
 }
