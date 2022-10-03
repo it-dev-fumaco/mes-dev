@@ -695,7 +695,7 @@
 						<li>
 							<span style="font-size: 8pt;" class="text-muted">{{ Carbon\Carbon::parse($log->created_at)->format('M d, Y h:i:s a') }}</span><br>
 							<span style="font-size: 8pt;"><b>{{ $log->action }}</b></span><br>
-							<span style="font-size: 8pt;">{{ $log->message ? explode(' at ', $log->message)[0] : null }}</span><br><br>
+							<span style="font-size: 8pt;">{!! $log->message !!}</span><br><br>
 						</li>
 					@endforeach
 				</ul>

@@ -1830,7 +1830,7 @@ class ManufacturingController extends Controller
 
             DB::connection('mysql_mes')->table('activity_logs')->insert([
                 'action' => 'Production Order Closed',
-                'message' => 'Production Order '.$request->production_order.' has been closed by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                'message' => 'Production Order '.$request->production_order.' has been closed by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString() .'<br>Reason: ' . $request->reason,
                 'reference' => $request->production_order,
                 'created_at' => Carbon::now()->toDateTimeString(),
                 'created_by' => Auth::user()->email
