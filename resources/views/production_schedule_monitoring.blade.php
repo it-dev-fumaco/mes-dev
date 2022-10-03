@@ -136,7 +136,7 @@
                     <div class="col-md-2 p-2">
                       <div class="card m-0" style="background-color:#D5D8DC; min-height: 800px;">
                         <div class="card-header" style="margin-top: -15px;">
-                          <h5 class="card-title text-center font-weight-bold" style="font-size: 15px;">Unassigned Prod. Order(s)</h5>
+                          <h5 class="card-title text-center font-weight-bold" style="font-size: 13px;">Unassigned Prod. Order(s)</h5>
                         </div>
                         <div class="card-body custom-sortable custom-sortable-connected overflow-auto" id="unassigned" style="height: 740px;">
                           @foreach ($production_machine_board['unassigned_production'] as $i => $row)
@@ -163,6 +163,12 @@
                           </div>
                           @endforeach
                         </div>
+                        <div class="card-footer card-footer__events text-white p-0 m-0" style="background-color: #254d78;">
+                          <div class="d-flex flex-row m-0 text-uppercase">
+                            <div class="p-2 col-md-6 text-left" style="font-size: 8pt;">Total Qty: <b>{{ number_format(collect($production_machine_board['unassigned_production'])->sum('qty_to_manufacture')) }}</b></div>
+                            <div class="p-2 col-md-6 text-right" style="font-size: 8pt;">On Queue: <b>{{ number_format(count($production_machine_board['unassigned_production'])) }}</b></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div class="col-md-10 m-0 p-0">
@@ -171,12 +177,12 @@
                         <div class="col-md-2 p-2" style="min-width: 350px !important;">
                           <div class="card m-0" style="background-color:#D5D8DC; min-height: 800px;">
                             <div class="card-header" style="margin-top: -15px;">
-                              <h5 class="card-title text-center font-weight-bold" style="font-size: 15px;">{{ $machine['machine_name'] }}</h5>
+                              <h5 class="card-title text-center font-weight-bold" style="font-size: 13px;">{{ $machine['machine_name'] }}</h5>
                               <div class="pull-right p-1" style="margin-top: -40px;">
                                 <img src="{{ asset('img/print.png') }}" width="25" class="print-schedule" data-machine="{{ $machine['machine_code'] }}">
                               </div>
                             </div>
-                            <div class="card-body custom-sortable custom-sortable-connected overflow-auto" id="{{ $machine['machine_code'] }}" style="height: 740px;">
+                            <div class="card-body custom-sortable custom-sortable-connected overflow-auto mb-0" id="{{ $machine['machine_code'] }}" style="height: 740px;">
                               @foreach ($machine['production_orders'] as $j => $row)
                               @php
                                 $b = 'success text-white';
@@ -205,6 +211,12 @@
                                 </div>
                               </div>
                               @endforeach
+                            </div>
+                            <div class="card-footer card-footer__events text-white p-0 m-0" style="background-color: #254d78;">
+                              <div class="d-flex flex-row m-0 text-uppercase">
+                                <div class="p-2 col-md-6 text-left" style="font-size: 8pt;">Total Qty: <b>{{ number_format(collect($machine['production_orders'])->sum('qty_to_manufacture')) }}</b> unit(s)</div>
+                                <div class="p-2 col-md-6 text-right" style="font-size: 8pt;">On Queue: <b>{{ number_format(count($machine['production_orders'])) }}</b></div>
+                              </div>
                             </div>
                           </div>
                         </div>
