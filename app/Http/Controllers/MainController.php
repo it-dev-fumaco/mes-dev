@@ -4209,9 +4209,25 @@ class MainController extends Controller
 				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 			}
 
-			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $time_log->job_ticket_id)->first()->process_id;
+			$production_order = null;
+			$process = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $time_log->job_ticket_id)->first();
+			if ($process) {
+				$production_order = $process->production_order;
+				$process = DB::connection('mysql_mes')->table('process')->where('process_id', $process->process_id)->first();
+				$process_name = $process ? $process->process_name : null;
+			}
 			
 			$this->update_job_ticket($time_log->job_ticket_id);
+
+			$activity_logs = [
+				'action' => 'Reject Entry',
+				'message' => 'Reject quantity of ' . $request->rejected_qty . ' for '.$request->workstation.' - ' . $process_name . ' has been submitted by ' . Auth::user()->employee_name,
+				'reference' => $production_order,
+				'created_at' => $now->toDateTimeString(),
+				'created_by' => Auth::user()->employee_name
+			];
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
 		
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
