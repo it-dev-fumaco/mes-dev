@@ -3315,7 +3315,6 @@
     $(document).on('click', '.btn-delete-process-setup-list', function(){
       var process_id = $(this).data('processid');
       var process_name = $(this).data('process');
-      // alert(process_name);
       $('#delete_process_id').val(process_id);
       $('#delete_process_name_input').text(process_name);
       $('#delete-process-setup-list-modal').modal('show');
@@ -3384,7 +3383,6 @@ $(document).ready(function(){
     $('#process-profile-modal .modal-title').text(process_name);
     
     // var status = $(this).data('status');
-    // alert(process_id);
     tbl_process_assigned_process();
     $('#process-profile-modal').modal('show');
     });
@@ -3396,10 +3394,6 @@ $(document).ready(function(){
     $('#delete_workstation').text(workstation);
     $('#delete_machine').text(machine);
 
-
-    // var status = $(this).data('status');
-    // alert(id);
-    // tbl_process_assigned_process();
     $('#delete-assigned').modal('show');
     });
   $(document).on('click', '.add-process-assignment', function(){
@@ -4328,7 +4322,7 @@ function workstation_list(page, query){
       var workstation_name = $(this).data('workstationname');
       var order_no = $(this).data('orderno');
       var operation = $(this).data('operation');
-      // alert(operation);
+      
       $('#orig_workstation_name').val(workstation_name);
       $('#orig_workstation_id').val(workstation_id);
       $('#edit_workstation_name').val(workstation_name);
@@ -4342,7 +4336,7 @@ function workstation_list(page, query){
       var workstation_name = $(this).data('workstationname');
       var order_no = $(this).data('orderno');
       var operation = $(this).data('operation');
-      // alert(operation);
+      
       $('#delete-workstation-id').val(workstation_id);
       $('#delete-workstation-name').val(workstation_name);
       $('#workstation_name_label').text(workstation_name);
@@ -4428,7 +4422,7 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
       var model = $(this).data('model');
       var image = $(this).data('image');
       var imagevar = image;
-      // alert(imagevar);
+      
       $("#machine_image").attr("src","");
       $("#machine_image").attr("src",imagevar);
       $('#edit_orig_image').val(image);
@@ -4488,7 +4482,6 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
       var image = $(this).data('image');
       $('#machine_image').attr("src",$(this).data('image'));
       
-      // alert(operation);
       $('#edit_orig_image').val(image);
       $('#editt_machineid').val(machine_id);
 
@@ -4498,7 +4491,6 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
       $('#edit_machine_type').val(type);
       $('#edit_machine_model').val(model);
       $('#edit_machine_status').val(status);
-      // $('#machine_image_forupload').val(image);
       
       $('#delete-machine-modal').modal('show');
     });
@@ -4512,9 +4504,7 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
       var model = $(this).data('model');
       var image = $(this).data('image');
       
-      // alert(operation);
       $('#delete-machine-id').val(machine_id);
-      // alert(machine_id);
       $('#delete-machine-code').val(machine_code);
       $('#machine_code_label').text(machine_code);
       
@@ -4956,10 +4946,8 @@ $('#fast-issuance-sel').select2({
                }else{
                 var new_id = parseInt(id) + 1;
                }
-              //  alert(new_id);
                var len2 = new_id;
                var id_unique="count"+len2;
-               // alert(id_unique);
                var tblrow = '<tr>' +
                   '<td>'+len2+'</td>' +
                   '<td><select name="new_checklist_r_type[]" class="form-control onchange-selection count-row sel16"  data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
@@ -5229,9 +5217,7 @@ function reject_category_list(page, query){
         var ctg_type = $(this).attr('data-type');
         var ctg_name = $(this).attr('data-category');
         var ctg_desc = $(this).attr('data-categorydesc');
-        // alert(ctg_type);
         $('#edit_type option:contains(' + ctg_type + ')').prop({selected: true});
-        // $('#edit_type').val($(this).find(':selected').data('ctg_type'));
         $('#edit_type').val(ctg_type);
         $('#orig_reject_ctgtype').val(ctg_type);
         $('#orig_category').val(ctg_name);

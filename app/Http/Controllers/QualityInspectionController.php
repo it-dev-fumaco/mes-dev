@@ -23,30 +23,53 @@ class QualityInspectionController extends Controller
             return response()->json(['success' => 0, 'message' => 'No QA Checklist found for workstation ' . $workstation_name]);
         }
 
+        $operation_id = $workstation_details->operation_id;
         $process_details = DB::connection('mysql_mes')->table('process')->where('process_id', $process_id)->first();
         if(!$process_details){
             return response()->json(['success' => 0, 'message' => 'Process not found.']);
         }
 
+        $production_order_items = $item_images = $inspected_component_qtys = [];
+        if ($operation_id == 3) {
+            $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)
+                ->select('item_code', 'description', 'required_qty')->get();
+
+            $item_images = DB::connection('mysql')->table('tabItem Images')->where('parent', collect($production_order_items)->pluck('item_code'))
+                ->pluck('image_path', 'parent')->toArray();
+
+            $inspected_component_qtys = DB::connection('mysql_mes')->table('inspected_component')
+                ->whereIn('item_code', collect($production_order_items)->pluck('item_code'))
+                ->where('production_order', $production_order)
+                ->selectRaw('item_code, SUM(inspected_qty) as inspected_qty, SUM(rejected_qty) as rejected_qty')
+                ->groupBy('item_code')->get();
+
+            $inspected_component_qtys = collect($inspected_component_qtys)->groupBy('item_code')->toArray();
+        }
+
         if($workstation_name == "Painting"){
             $q = DB::connection('mysql_mes')->table('qa_checklist')
-            ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
-            ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
-            ->where(function($q) use ($process_id) {
-                $q->where('qa_checklist.process_id', $process_id)
-                    ->orWhere('qa_checklist.process_id', null);
-            })
-            ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
-            ->get();
+                ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
+                ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+                ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
+                ->where(function($q) use ($process_id) {
+                    $q->where('qa_checklist.process_id', $process_id)
+                        ->orWhere('qa_checklist.process_id', null);
+                })
+                ->where('reject_category.reject_category_id', $request->reject_category)
+                ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
+                ->get();
         }else{
             $q = DB::connection('mysql_mes')->table('qa_checklist')
                 ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
                 ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
                 ->where('qa_checklist.workstation_id', $workstation_details->workstation_id)
+                ->where('reject_category.reject_category_id', $request->reject_category)
                 ->orderByRaw("FIELD(type, 'Minor Reject(s)','Major Reject(s)','Critical Reject(s)') DESC")
                 ->get();
         }
+
+        $reject_category = 'In Process - ';
+        $reject_category .= strtoupper(count($q) > 0 ? $q[0]->reject_category_name : 'Quality Inspection');
 
         $checklist = collect($q)->groupBy(['type', 'reject_category_name']);
 
@@ -81,8 +104,8 @@ class QualityInspectionController extends Controller
         }
 
         $inspection_type = $request->inspection_type;
-
-        return view('quality_inspection.tbl_inspection_tabs', compact('checklist', 'production_order_details', 'workstation_details', 'process_details', 'sample_sizes', 'timelog_details', 'inspection_type', 'reject_levels'));
+       
+        return view('quality_inspection.tbl_inspection_tabs', compact('checklist', 'production_order_details', 'workstation_details', 'process_details', 'sample_sizes', 'timelog_details', 'inspection_type', 'reject_levels', 'production_order_items', 'reject_category', 'item_images', 'inspected_component_qtys'));
     }
     
     // /submit_quality_inspection
@@ -107,6 +130,7 @@ class QualityInspectionController extends Controller
                 }
             }
 
+           
             $qa_staff_name = $qa_user->employee_name;
             if ($request->time_log_id) {
                 if ($request->inspection_type == 'Random Inspection') {
@@ -137,7 +161,8 @@ class QualityInspectionController extends Controller
                             'status' => ($request->total_rejects > 0) ? 'QC Failed' : 'QC Passed',
                             'qc_remarks' => $request->qc_remarks,
                             'created_by' => $qa_staff_name,
-                            'created_at' => $now->toDateTimeString()
+                            'created_at' => $now->toDateTimeString(),
+                            'reject_category_id' => $request->reject_category_id
                         ];
                     }else{
                         $insert = [
@@ -154,7 +179,8 @@ class QualityInspectionController extends Controller
                             'status' => ($request->total_rejects > 0) ? 'QC Failed' : 'QC Passed',
                             'qc_remarks' => $request->qc_remarks,
                             'created_by' => $qa_staff_name,
-                            'created_at' => $now->toDateTimeString()
+                            'created_at' => $now->toDateTimeString(),
+                            'reject_category_id' => $request->reject_category_id
                         ];
                     }
                 
@@ -175,6 +201,20 @@ class QualityInspectionController extends Controller
                     DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request->time_log_id)->update($update);
                     
                     $qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+
+                    if ($request->item_code) {
+                        $inspected_component = [
+                            'qa_id' => $qa_id,
+                            'item_code' => $request->item_code,
+                            'inspected_qty' => $request->total_checked,
+                            'rejected_qty' => $request->total_rejects,
+                            'production_order' => $production_order,
+                            'created_by' => $qa_staff_name,
+                            'created_at' => $now->toDateTimeString(),
+                        ];
+    
+                        DB::connection('mysql_mes')->table('inspected_component')->insert($inspected_component);
+                    }
 
                     if($request->rejection_values){
                         $rejection_values = rtrim($request->rejection_values, ',');
@@ -231,8 +271,6 @@ class QualityInspectionController extends Controller
                         'qa_disposition' => $request->qa_disposition,
                         'remarks' => $request->remarks,
                         'status' => ($request->rejected_qty > 0) ? 'QC Failed' : 'QC Passed',
-                        // 'created_by' => $qa_staff_name,
-                        // 'created_at' => $now->toDateTimeString()
                     ];
 
                     DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request->qa_id)->update($update);
@@ -337,11 +375,14 @@ class QualityInspectionController extends Controller
                         }
                     }
                 }
+
                 DB::connection('mysql_mes')->commit();
-                return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
+
+                return response()->json(['success' => 1, 'message' => 'QA Inspection created.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation, 'checklist_url' => $request->checklist_url, 'timelogid' => $request->time_log_id]]);
             }
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
+
 			return response()->json(['success' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
         }
     }

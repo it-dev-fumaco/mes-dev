@@ -536,7 +536,7 @@
 </div>
 
 <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog" role="document" style="min-width: 90%;">
+  <div class="modal-dialog" role="document" style="min-width: 95%;">
      <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #f57f17;">
            <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
@@ -1877,14 +1877,7 @@
       }
 
     });
-    $(document).on('change','#present_input', function(){
-      // var valpre = $(this).val();
-      // var valprev = $('#previous_input').val();
-      // var diff = valpre - valprev;
-      // alert(diff);
-      //  $("#incoming_water_discharged").val(diff);
-      console.log('hi');
-    });
+
     $(document).on('click', '#painting_chemical_records_frm .next-tab', function(e){
       e.preventDefault();
 

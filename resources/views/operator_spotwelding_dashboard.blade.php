@@ -225,7 +225,7 @@
 </div>
 
 <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog" role="document" style="min-width: 90%;">
+  <div class="modal-dialog" role="document" style="min-width: 95%;">
      <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #f57f17;">
            <h5 class="modal-title"><b>@if(isset($workstation_name)){{ $workstation_name }}@else{{$workstation}}@endif</b> - <span class="production-order"></span></h5>
@@ -823,11 +823,14 @@
         var process_id = $(this).data('processid');
         var workstation = $(this).data('workstation');
         var inspection_type = $(this).data('inspection-type');
+        var reject_category = $(this).data('reject-cat');
   
         var data = {
           time_log_id: $(this).data('timelog-id'),
-          inspection_type: inspection_type
+          inspection_type,
+          reject_category
         }
+
         $.ajax({
           url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
           type:"GET",
@@ -843,8 +846,6 @@
             console.log(errorThrown);
           },
         });
-  
-        
       });
   
       $(document).on('submit', '#quality-inspection-frm', function(e){

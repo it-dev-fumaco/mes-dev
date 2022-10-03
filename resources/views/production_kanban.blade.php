@@ -2155,16 +2155,13 @@
               if(data.success < 1){
                 ui.sender.sortable("cancel");
                 showNotification("danger", "Unable to rechedule planned start date.       <br><b>Production Order has on-going Process.</b>", "now-ui-icons travel_info");
-                // alert(ui.sender.attr('id'));
               }else{
 
                 if(primary_operation_id == "3"){
                   if($(this).attr('id') == "unscheduled"){
                     $(prod_id).css('background-color', 'white');
-                    // alert(delivery_date);
                   }else if(date > data_delivery_date){
                     $(prod_id).css('background-color', '#e74c3c');
-                    // alert(delivery_date);
                   }else{
                     if(ui.item.data('statdiv') == "not_move"){
                       $(prod_id).css('background-color', '#EB984E');
@@ -2189,7 +2186,6 @@
                     });
                   }
                   $('#reschedule_delivery_frm').submit(function(e){ //FUNCTION ONCE THE SUBMIT BUTTON IS CLICK
-                    // alert(ui.item.data('name'));
                     $.ajax({
                       url:"/update_production_task_schedules",
                       type:"POST",

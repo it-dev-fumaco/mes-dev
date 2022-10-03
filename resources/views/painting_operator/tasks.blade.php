@@ -385,7 +385,7 @@
    </div>
  </div>
  <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog" role="document" style="min-width: 90%;">
+  <div class="modal-dialog" role="document" style="min-width: 95%;">
      <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #f57f17;">
            <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
@@ -1207,21 +1207,33 @@
           }
         });
       }
+
+      
+      $(document).on('click', '.quality-inspection-btn-op', function(e){
+        e.preventDefault();
+        var production_order = $(this).data('production-order');
+        var workstation = 'Painting';
+        var time_log_id = $(this).data('timelog-id');
+        get_tasks_for_inspection(workstation, production_order, time_log_id);
+      });
   
       $(document).on('click', '.quality-inspection-btn', function(e){
         e.preventDefault();
-  
+
         $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-  
+
         var production_order = $(this).data('production-order');
         var process_id = $(this).data('processid');
-        var workstation = 'Painting';
+        var workstation = $(this).data('workstation');
         var inspection_type = $(this).data('inspection-type');
-  
+        var reject_category = $(this).data('reject-cat');
+
         var data = {
           time_log_id: $(this).data('timelog-id'),
-          inspection_type: inspection_type
+          inspection_type,
+          reject_category,
         }
+
         $.ajax({
           url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
           type:"GET",
@@ -1237,7 +1249,7 @@
             console.log(textStatus);
             console.log(errorThrown);
           },
-        });  
+        });
       });
   
       $(document).on('submit', '#quality-inspection-frm', function(e){
@@ -2321,14 +2333,7 @@ $('#end-task-frm').submit(function(e){
       }
 
     });
-    $(document).on('change','#present_input', function(){
-      // var valpre = $(this).val();
-      // var valprev = $('#previous_input').val();
-      // var diff = valpre - valprev;
-      // alert(diff);
-      //  $("#incoming_water_discharged").val(diff);
-      console.log('hi');
-    });
+    
     $(document).on('click', '#painting_chemical_records_frm .next-tab', function(e){
       e.preventDefault();
 
@@ -2602,7 +2607,6 @@ $('#end-task-frm').submit(function(e){
             
           },
           error: function(data) {
-          alert(data);
           }
         });
     }

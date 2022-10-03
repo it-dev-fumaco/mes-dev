@@ -102,7 +102,7 @@
                         @endif
 
                         <div class="col-4 p-0">
-                            <button type="button" class="btn btn-block sub-btn quality-inspection-btn" data-timelog-id="{{ $painting->time_log_id }}" data-production-order="{{ $painting->production_order }}" data-processid="{{ $painting->process_id }}" data-inspection-type="Random Inspection" style="background-color: #f57f17;">
+                            <button type="button" class="btn btn-block sub-btn quality-inspection-btn-op" data-timelog-id="{{ $painting->time_log_id }}" data-production-order="{{ $painting->production_order }}" data-processid="{{ $painting->process_id }}" data-inspection-type="Random Inspection" style="background-color: #f57f17;">
                               <i class="now-ui-icons ui-1_check" style="font-size: 13pt;"></i><br><span style="font-size: 8pt;">Quality Check</span>
                             </button>
                         </div>

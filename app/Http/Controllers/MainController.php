@@ -224,7 +224,7 @@ class MainController extends Controller
 				}
 			}
 		} catch (\Exception $e) {
-			return response()->json(['success' => 0, 'message' => '<b>There was a problem connecting to ESSEX.</b>']);
+			return response()->json(['success' => 0, 'message' => '<b>No connection to authentication server.</b>']);
 		}
 	}
 
@@ -3886,10 +3886,6 @@ class MainController extends Controller
 		}
 
 		$status = $job_ticket_details->status;
-		if($status == 'Completed'){
-			return response()->json(['success' => 0, 'message' => 'Task already Completed.']);
-		}
-
 		$machine_code = $request->machine_code;
 
 		$time_logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->where('operator_id', Auth::user()->user_id)->first();
@@ -4261,30 +4257,36 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>'.$err.'</b>.']);
 		}
 
-		if($workstation != 'Spotwelding'){
-			$task_reject_confirmation = DB::connection('mysql_mes')->table('job_ticket')
-				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
-				->join('quality_inspection', 'time_logs.time_log_id', 'quality_inspection.reference_id')
-				->where('quality_inspection.reference_type', 'Time Logs')->where('production_order', $production_order)
-				->where('workstation', $workstation)->whereIn('time_logs.status', ['In Progress', 'Completed'])
-				->where('quality_inspection.status', 'For Confirmation')
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', 'time_logs.to_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject', 'qa_id','job_ticket.workstation','job_ticket.process_id', 'job_ticket.production_order')
-				->orderBy('idx', 'asc')->get();
+		$reject_category_per_workstation = DB::connection('mysql_mes')->table('qa_checklist as qc')
+			->join('workstation as w','w.workstation_id', 'qc.workstation_id')
+			->join('reject_list as rl','rl.reject_list_id', 'qc.reject_list_id')
+			->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
+			->join('operation as op', 'op.operation_id', 'w.operation_id')
+			->where('w.workstation_name', $workstation)
+			->select('rc.reject_category_id','rc.reject_category_name')->distinct('rc.reject_category_id')
+			->orderBy('rc.reject_category_id', 'asc')->get();
 
+		if($workstation != 'Spotwelding'){
 			$task_random_inspection = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
 				->where('production_order', $production_order)
 				->where('workstation', $workstation)
+				->when($request->timelogid, function ($a) use ($request) {
+					$a->where('time_logs.time_log_id', $request->timelogid);
+				})
 				->whereIn('time_logs.status', ['In Progress', 'Completed'])
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', 'time_logs.to_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', 'time_logs.to_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id', 'time_logs.machine_name')
 				->orderBy('idx', 'asc')->get();
 
 			$qa_logs = DB::connection('mysql_mes')->table('quality_inspection as q')
 				->join('time_logs as t', 'q.reference_id', 't.time_log_id')
 				->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+				->when($request->timelogid, function ($a) use ($request) {
+					$a->where('t.time_log_id', $request->timelogid);
+				})
 				->where('j.production_order', $production_order)->where('j.workstation', $workstation)
 				->where('q.reference_type', 'Time Logs')->where('q.status', '!=', 'For Confirmation')
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id', 'q.reject_category_id', 'q.rejected_qty')
 				->orderBy('q.qa_inspection_date', 'desc')->get();
 
 			$qa_staff_names = collect($qa_logs)->pluck('qa_staff_id')->unique();
@@ -4297,43 +4299,49 @@ class MainController extends Controller
 				$qa_inspection_logs[] = [
 					'process' => $r->process,
 					'qa_inspection_type' => $r->qa_inspection_type,
-					'actual_qty_checked' => number_format($r->actual_qty_checked),
+					'actual_qty_checked' => $r->actual_qty_checked,
+					'reject_qty' => $r->rejected_qty,
 					'status' => $r->status,
 					'qa_staff' => array_key_exists($r->qa_staff_id, $qa_staff_names) ? $qa_staff_names[$r->qa_staff_id] : null,
-					'qa_inspection_date' => Carbon::parse($r->qa_inspection_date)->format('M. d, Y h:i A')
+					'qa_inspection_date' => Carbon::parse($r->qa_inspection_date)->format('M. d, Y h:i A'),
+					'reject_category_id' => $r->reject_category_id
 				];
 			}
 
 			$qa_inspected_qty_per_timelog = collect($qa_logs)->groupBy('reference_id');
 			$qa_qty_per_timelog = [];
 			foreach ($qa_inspected_qty_per_timelog as $reference_id => $values) {
-				$qa_qty_per_timelog[$reference_id] = collect($values)->sum('actual_qty_checked');
+				$qa_per_category = collect($values)->groupBy('reject_category_id');
+				$qa_per_category_arr = [];
+				foreach ($qa_per_category as $cat_id => $rows) {
+					$qa_per_category_arr[$cat_id] = [
+						'actual_qty_checked' => collect($rows)->sum('actual_qty_checked'),
+						'rejected_qty' => collect($rows)->sum('rejected_qty'),
+					];
+				}
+				$qa_qty_per_timelog[$reference_id] = $qa_per_category_arr;
 			}
 		}else{
-			$task_reject_confirmation = DB::connection('mysql_mes')->table('job_ticket')
-				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
-				->join('quality_inspection', 'spotwelding_qty.time_log_id', 'quality_inspection.reference_id')
-				->where('quality_inspection.reference_type', 'Time Logs')->where('production_order', $production_order)
-				->where('workstation', $workstation)
-				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
-				->where('quality_inspection.status', 'For Confirmation')
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject', 'qa_id','job_ticket.workstation','job_ticket.process_id', 'job_ticket.production_order')
-				->orderBy('idx', 'asc')->get();
-
 			$task_random_inspection = DB::connection('mysql_mes')->table('job_ticket')
 				->join('spotwelding_qty', 'spotwelding_qty.job_ticket_id', 'job_ticket.job_ticket_id')
 				->where('production_order', $production_order)
 				->where('workstation', $workstation)
+				->when($request->timelogid, function ($a) use ($request) {
+					$a->where('spotwelding_qty.time_log_id', $request->timelogid);
+				})
 				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id', 'spotwelding_qty.machine_name')
 				->orderBy('idx', 'asc')->get();
 
 			$qa_logs = DB::connection('mysql_mes')->table('quality_inspection as q')
 				->join('spotwelding_qty as t', 'q.reference_id', 't.time_log_id')
 				->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+				->when($request->timelogid, function ($a) use ($request) {
+					$a->where('t.time_log_id', $request->timelogid);
+				})
 				->where('j.production_order', $production_order)->where('j.workstation', $workstation)
 				->where('q.reference_type', 'Spotwelding')->where('q.status', '!=', 'For Confirmation')
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id', 'q.reject_category_id', 'q.rejected_qty')
 				->orderBy('q.qa_inspection_date', 'desc')->get();
 
 			$qa_staff_names = collect($qa_logs)->pluck('qa_staff_id')->unique();
@@ -4346,21 +4354,58 @@ class MainController extends Controller
 				$qa_inspection_logs[] = [
 					'process' => $r->process,
 					'qa_inspection_type' => $r->qa_inspection_type,
-					'actual_qty_checked' => number_format($r->actual_qty_checked),
+					'actual_qty_checked' => $r->actual_qty_checked,
+					'reject_qty' => $r->rejected_qty,
 					'status' => $r->status,
 					'qa_staff' => array_key_exists($r->qa_staff_id, $qa_staff_names) ? $qa_staff_names[$r->qa_staff_id] : null,
-					'qa_inspection_date' => Carbon::parse($r->qa_inspection_date)->format('M. d, Y h:i A')
+					'qa_inspection_date' => Carbon::parse($r->qa_inspection_date)->format('M. d, Y h:i A'),
+					'reject_category_id' => $r->reject_category_id
 				];
 			}
 
 			$qa_inspected_qty_per_timelog = collect($qa_logs)->groupBy('reference_id');
 			$qa_qty_per_timelog = [];
 			foreach ($qa_inspected_qty_per_timelog as $reference_id => $values) {
-				$qa_qty_per_timelog[$reference_id] = collect($values)->sum('actual_qty_checked');
+				$qa_per_category = collect($values)->groupBy('reject_category_id');
+				$qa_per_category_arr = [];
+				foreach ($qa_per_category as $cat_id => $rows) {
+					$qa_per_category_arr[$cat_id] = [
+						'actual_qty_checked' => collect($rows)->sum('actual_qty_checked'),
+						'rejected_qty' => collect($rows)->sum('rejected_qty'),
+					];
+				}
+				$qa_qty_per_timelog[$reference_id] = $qa_per_category_arr;
 			}
 		}
 
-		return view('tables.tbl_production_process_inspection', compact('task_reject_confirmation', 'task_random_inspection', 'existing_production_order', 'qa_qty_per_timelog', 'qa_inspection_logs'));
+		$task_random_inspection_arr = [];
+		foreach ($task_random_inspection as $r) {
+			$batch_date = $r->process == 'Unloading' ? $r->to_time : $r->from_time;
+			$batch_date = Carbon::parse($batch_date)->format('M-d-Y h:i A');
+
+			foreach ($reject_category_per_workstation as $rc) {
+				$qtys = array_key_exists($r->time_log_id, $qa_qty_per_timelog) ? $qa_qty_per_timelog[$r->time_log_id] : [];
+				$inspected_qty = array_key_exists($rc->reject_category_id, $qtys) ? $qtys[$rc->reject_category_id]['actual_qty_checked'] : 0;
+				$rejected_qty = array_key_exists($rc->reject_category_id, $qtys) ? $qtys[$rc->reject_category_id]['rejected_qty'] : 0;
+				$task_random_inspection_arr[$rc->reject_category_id][] = [
+					'batch_date' => $batch_date,
+					'process' => $r->process,
+					'operator_name' => $r->operator_name,
+					'completed_qty' => $r->completed_qty,
+					'machine' => $r->machine_name,
+					'inspected_qty' => $inspected_qty,
+					'rejected_qty' => $rejected_qty,
+					'status' => $r->status,
+					'time_log_id' => $r->time_log_id,
+					'workstation' => $r->workstation,
+					'process_id' => $r->process_id,
+				];
+			}
+		}
+
+		$task_random_inspection_arr = collect($task_random_inspection_arr)->sortBy('inspected_qty')->toArray();
+
+		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation'));
 	}
 
 	public function maintenance_request(Request $request){
