@@ -416,7 +416,7 @@
     <form action="/cancel_production_order" method="POST">
       @csrf
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
           <h5 class="modal-title">Modal Title</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>

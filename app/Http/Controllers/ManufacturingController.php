@@ -1825,6 +1825,7 @@ class ManufacturingController extends Controller
                     'status' => 'Closed',
                     'last_modified_at' => $now->toDateTimeString(),
                     'last_modified_by' => Auth::user()->email,
+                    'remarks' => $request->reason
                 ]);
 
             DB::connection('mysql_mes')->table('activity_logs')->insert([

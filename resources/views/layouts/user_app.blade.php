@@ -460,7 +460,7 @@
       <form action="/cancel_production_order" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
             <h5 class="modal-title">Modal Title</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -494,10 +494,10 @@
   <!-- Modal Close Production Order -->
   <div class="modal fade" id="close-production-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-      <form action="/cancel_production_order?close_production_order=1" method="POST">
+      <form action="#" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
             <h5 class="modal-title">Modal Title</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -505,10 +505,14 @@
           </div>
           <div class="modal-body">
             <div class="row">
-              <div class="col-md-12">
+              <div class="col-md-10 offset-md-1">
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
                 <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
+                <div class="mt-3">
+                  <label for="" class="text-muted">Please specify reason for closing production order</label>
+                  <textarea class="form-control border rounded p-2" name="reason" cols="30" rows="10" required></textarea>
+                </div>
               </div>
               <div class="col-md-12" id="items-for-return-table-for-close"></div>
             </div>
@@ -1046,7 +1050,7 @@
 <div class="modal fade" id="override-production-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
     <div class="modal-content">
-      <div class="modal-header p-3">
+      <div class="modal-header p-3 text-white" style="background-color: #0277BD;">
         <h5 class="modal-title">Feedback Override <span id="override-production-order-text" class="font-weight-bold"></span></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
