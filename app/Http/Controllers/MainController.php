@@ -7593,10 +7593,10 @@ class MainController extends Controller
 
 			$activity_logs = [
 				'action' => 'Reset Time Log',
-				'message' => 'Reset time logs for '.$process->process_name.' of '.$job_ticket_details->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+				'message' => 'Reset time logs for '.$process->process_name.' of '.$job_ticket_details->production_order.' by '.$authorized_user.' at '.Carbon::now()->toDateTimeString(),
 				'reference' => $job_ticket_details->production_order,
 				'created_at' => Carbon::now()->toDateTimeString(),
-				'created_by' => Auth::user()->email
+				'created_by' => $authorized_user
 			];
 	
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
@@ -7746,7 +7746,7 @@ class MainController extends Controller
 			->where('u.user_type', 'Employee')->where('u.status', 'Active')
 			->orderBy('employee_name', 'asc')->pluck('u.employee_name', 'u.user_id');
 		
-		return view('override_production_form', compact('production_order_operations', 'production_order_details', 'machine_per_process', 'operators', 'operator_logs', 'spotwelding_operator_logs'));
+		return view('override_production_form', compact('product7596ion_order_operations', 'production_order_details', 'machine_per_process', 'operators', 'operator_logs', 'spotwelding_operator_logs'));
 	}
 
 	public function updateOverrideProduction(Request $request) {
