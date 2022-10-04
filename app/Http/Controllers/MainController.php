@@ -7762,14 +7762,14 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->delete();
 
-			$this->update_job_ticket($job_ticket_id);
+			$this->update_job_ticket($job_ticket_id, $authorized_user);
 
 			$activity_logs = [
 				'action' => 'Reset Time Log',
-				'message' => 'Reset time logs for '.$process->process_name.' of '.$job_ticket_details->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+				'message' => 'Reset time logs for '.$process->process_name.' of '.$job_ticket_details->production_order.' by '.$authorized_user.' at '.Carbon::now()->toDateTimeString(),
 				'reference' => $job_ticket_details->production_order,
 				'created_at' => Carbon::now()->toDateTimeString(),
-				'created_by' => Auth::user()->email
+				'created_by' => $authorized_user
 			];
 	
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);

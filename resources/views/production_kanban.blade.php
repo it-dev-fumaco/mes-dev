@@ -113,8 +113,8 @@
           </div>
         </div>
         <div class="tab-pane active kanban-filtering" id="step1" role="tabpanel" aria-labelledby="step1-tab">
-          <div class="row">
-            <div class="col-md-12">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
               <div class="scrolling outer">
                 <div class="inner" id="inner">
                   <table>
