@@ -146,7 +146,7 @@
 										<col style="width: 10%;">
 										<col style="width: 10%;">
 										<col style="width: 8%;">
-										@if ($item_details['feedback_qty'] <= 0)
+										@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
 										<col style="width: 6%;">
 										@endif
 										<thead style="font-size: 10pt;">
@@ -233,7 +233,7 @@
 													</div>
 													@endif
 												</td>
-												@if ($item_details['feedback_qty'] <= 0)
+												@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 													@if ($process['workstation'] != 'Spotwelding')
 													<span class="d-none">{{ $process['production_order'] }}</span>
