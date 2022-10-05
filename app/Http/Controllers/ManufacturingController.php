@@ -748,7 +748,7 @@ class ManufacturingController extends Controller
                             $reference_id = ($d->workstation == 'Spotwelding') ? $d->job_ticket_id : $d->time_log_id;
                             // $qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
 
-                            if ($d->cycle_time_in_seconds > 0) {
+                            if ($d->cycle_time_in_seconds > 0 && $d->good > 0) {
                                 $cycle_time_in_seconds = $d->cycle_time_in_seconds / $d->good;
 
                                 $dur_hours = floor($cycle_time_in_seconds / 3600);
