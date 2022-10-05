@@ -15,7 +15,7 @@
       <div class="card-body p-1">
         <div class="row p-0 m-0">
           <div class="col-6">
-            <span class="d-block font-weight-bold text-center p-2 text-uppercase">Scheduled Orders Today</span>
+            <span class="d-block font-weight-bold text-left p-2 text-uppercase">Scheduled Orders Today</span>
             <div class="d-flex flex-row">
               <div class="pl-2 col-3" style="border-left: 5px solid #229954;">
                 <small class="d-block">Sales Order</small>
@@ -59,7 +59,7 @@
           <div class="col-9 p-1">
             <div class="card shadow-none border">
               <div class="card-header pt-2 pl-3 pr-3 pb-2 bg-warning">
-                <h6 class="text-white font-weight-bold text-center m-0 rounded-top" style="font-size: 10.5pt;">On-Going Production Order(s)</h6>
+                <h6 class="text-white font-weight-bold text-left m-0 rounded-top" style="font-size: 10.5pt;">On-Going Production Order(s)</h6>
               </div>
               <div class="card-body pb-1 pl-1 pr-1 pt-0" style="min-height: 300px;">
                 <ul class="nav nav-tabs mt-1 border-0" role="tablist" style="font-size: 9pt;">
@@ -88,7 +88,7 @@
             </div>
             <div class="card shadow-none border">
               <div class="card-header pt-2 pl-3 pr-3 pb-2" style="background-color: #012f6a;">
-                <h6 class="text-white font-weight-bold text-center m-0 rounded-top" style="font-size: 10.5pt;">In Process Order(s)</h6>
+                <h6 class="text-white font-weight-bold text-left m-0 rounded-top" style="font-size: 10.5pt;">In Process Order(s)</h6>
               </div>
               <div class="card-body p-0" style="min-height: 200px;" id="wip-orders-div"></div>
             </div>

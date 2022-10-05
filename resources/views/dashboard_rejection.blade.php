@@ -20,7 +20,7 @@
                     </tr>
                     @empty 
                     <tr>
-                        <td colspan="3" class="text-center text-uppercase text-muted">No rejection(s) found</td>
+                        <td colspan="3" class="text-center text-uppercase text-muted">No rejection(s) reported</td>
                     </tr>
                     @endforelse
                 </tbody>
