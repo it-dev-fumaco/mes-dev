@@ -7635,8 +7635,8 @@ class MainController extends Controller
 				return response()->json(['status' => 0, 'message' => 'Production Order not found.']);
 			}
 
-			if ($production_order_details->feedback_qty < $production_order_details->qty_to_manufacture) {
-				return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been partially / fully feedbacked.']);
+			if ($production_order_details->feedback_qty >= $production_order_details->qty_to_manufacture) {
+				return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been fully feedbacked.']);
 			}
 
 			if ($request->is_operator) {
