@@ -129,6 +129,7 @@
                      <div class="row p-0 m-0">
                         <div class="col-8 p-0">
                            @foreach($list as $ind => $result)
+                           <span class="checklist-category d-none">{{ $ind }}</span>
                            <div class="p-0">
                               @if(stripos($ind, 'Variable') !== false)
                               <table style="width: 100%;">

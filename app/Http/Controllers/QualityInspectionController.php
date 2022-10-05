@@ -124,13 +124,13 @@ class QualityInspectionController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Authorized QA Employee ID not found.']);
             }
             
-            if($request->total_rejects > 0){
+            $total_rejects = $request->total_rejects;
+            if($total_rejects > 0){
                 if (!$request->qc_remarks) {
                     return response()->json(['success' => 0, 'message' => 'Please select QC Remarks.']);
                 }
             }
 
-           
             $qa_staff_name = $qa_user->employee_name;
             if ($request->time_log_id) {
                 if ($request->inspection_type == 'Random Inspection') {
@@ -146,6 +146,17 @@ class QualityInspectionController extends Controller
                     $production_order = $job_ticket_details->production_order;
                     $workstation = $job_ticket_details->workstation;
 
+                    $prod_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
+
+                    if ($request->item_code) {
+                        $item_required_qty = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)
+                            ->where('item_code', $request->item_code)->sum('required_qty');
+
+                        $required_qty_per_piece = $item_required_qty / $prod_details->qty_to_manufacture;
+                        $total_rejects = $total_rejects / $required_qty_per_piece;
+                        $total_rejects = $total_rejects < 1 ? 1 : round($total_rejects);
+                    }
+
                     if ($request->workstation == 'Spotwelding') {
                         $insert = [
                             'reference_type' => 'Spotwelding',
@@ -156,9 +167,9 @@ class QualityInspectionController extends Controller
                             'reject_level' => $request->reject_level,
                             'sample_size' => $request->sample_size,
                             'actual_qty_checked' => $request->total_checked,
-                            'rejected_qty' => $request->total_rejects,
+                            'rejected_qty' => $total_rejects,
                             'for_rework_qty' => 0,
-                            'status' => ($request->total_rejects > 0) ? 'QC Failed' : 'QC Passed',
+                            'status' => ($total_rejects > 0) ? 'QC Failed' : 'QC Passed',
                             'qc_remarks' => $request->qc_remarks,
                             'created_by' => $qa_staff_name,
                             'created_at' => $now->toDateTimeString(),
@@ -174,9 +185,9 @@ class QualityInspectionController extends Controller
                             'reject_level' => $request->reject_level,
                             'sample_size' => $request->sample_size,
                             'actual_qty_checked' => $request->total_checked,
-                            'rejected_qty' => $request->total_rejects,
+                            'rejected_qty' => $total_rejects,
                             'for_rework_qty' => 0,
-                            'status' => ($request->total_rejects > 0) ? 'QC Failed' : 'QC Passed',
+                            'status' => ($total_rejects > 0) ? 'QC Failed' : 'QC Passed',
                             'qc_remarks' => $request->qc_remarks,
                             'created_by' => $qa_staff_name,
                             'created_at' => $now->toDateTimeString(),
@@ -184,7 +195,7 @@ class QualityInspectionController extends Controller
                         ];
                     }
                 
-                    $good_qty_after_transaction = $job_ticket_details->good - $request->total_rejects;
+                    $good_qty_after_transaction = $job_ticket_details->good - $total_rejects;
         
                     if($good_qty_after_transaction < 0){
                         $good_qty_after_transaction = 0;
@@ -194,7 +205,7 @@ class QualityInspectionController extends Controller
                         'last_modified_at' => $now->toDateTimeString(),
                         'last_modified_by' => $qa_staff_name,
                         'good' => $good_qty_after_transaction,
-                        'reject' => $request->total_rejects,
+                        'reject' => $total_rejects,
                     ];
                     
                     $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
@@ -251,7 +262,6 @@ class QualityInspectionController extends Controller
                     $production_order = $job_ticket_details->production_order;
                     $workstation = $job_ticket_details->workstation;
 
-                    $prod_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
                     if ($request->rejected_qty > $prod_details->qty_to_manufacture) {
                         return response()->json(['success' => 0, 'message' => 'Rejected qty cannot be greater than ' . $prod_details->qty_to_manufacture]);
                     }
