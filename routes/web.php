@@ -667,10 +667,11 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_painting_cancelled_production_orders', 'PaintingController@get_cancelled_production_orders');
 	Route::post('/sync_production_order_items/{production_order}', 'ManufacturingController@sync_production_order_items');
 
-	Route::get('/dashboard_machine_status', 'MainController@dashboardMachineStatus');
-	Route::get('/dashboard_operator_list', 'MainController@dashboardOperatorList');
-	Route::get('/dashboard_in_process_projects', 'MainController@dashboardInProcessProjects');
+	Route::get('/idle_machines', 'MainController@idleMachines');
+	Route::get('/idle_operators', 'MainController@idleOperators');
 	Route::get('/dashboard_numbers', 'MainController@dashboardNumbers');
+	Route::get('/dashboard_rejections', 'MainController@rejectionListToday');
+	Route::get('/dashboard_in_process_orders', 'MainController@dashboardInProcessOrders');
 
 	Route::get('/production_settings', 'MainController@productionSettings');
 	Route::get('/inventory_settings', 'MainController@inventorySettings');

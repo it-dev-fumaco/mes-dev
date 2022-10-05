@@ -1,4 +1,4 @@
-<div id="all-production-orders-table" class="table-responsive" style="font-size: 9pt;">
+<div id="all-production-orders-table" style="font-size: 9pt;">
     <table class="table table-striped">
       <col style="width: 10%;">
       <col style="width: 35%;">
@@ -91,9 +91,9 @@
             {{ $entry }}
             @endforeach</td>
      
-          <td class="text-center" style="padding: 3px;">
-            <div class="btn-group">
-              <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <td class="text-center p-1">
+            <div class="btn-group dropleft">
+              <button type="button" class="btn p-2 btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Action
               </button>
               <div class="dropdown-menu">
