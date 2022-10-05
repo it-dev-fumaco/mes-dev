@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
     'namePage' => 'Fabrication',
     'activePage' => 'main_dashboard',
-    'pageHeader' => 'Production Dashboard',
+    'pageHeader' => 'Production Floor Monitoring',
     'pageSpan' => Auth::user()->employee_name . ' - ' . $user_details->designation_name
 ])
 
@@ -58,21 +58,23 @@
         <div class="row p-0 m-0">
           <div class="col-9 p-1">
             <div class="card shadow-none border">
-              <div class="card-header pt-2 pl-3 pr-3 pb-2 bg-warning">
-                <h6 class="text-white font-weight-bold text-left m-0 rounded-top" style="font-size: 10.5pt;">On-Going Production Order(s)</h6>
+              <div class="card-header pt-0 pl-3 pr-1 pb-0 bg-warning">
+                <div class="d-flex flex-row justify-content-between align-items-center">
+                  <h6 class="text-white font-weight-bold text-left m-0 p-0 rounded-top" style="font-size: 10.5pt;">On-Going Production Order(s)</h6>
+                  <ul class="nav nav-tabs m-0 border-0 p-0 dashboard-custom-tabs" role="tablist" style="font-size: 9pt;">
+                    <li class="nav-item font-weight-bold">
+                      <a class="nav-link active border rounded m-1 pb-1 pt-1 text-dark" data-toggle="tab" href="#fab" role="tab">Fabrication</a>
+                    </li>
+                    <li class="nav-item font-weight-bold">
+                      <a class="nav-link border rounded m-1 pb-1 pt-1 text-dark" data-toggle="tab" href="#pa" role="tab">Painting</a>
+                    </li>
+                    <li class="nav-item font-weight-bold">
+                      <a class="nav-link border rounded m-1 pb-1 pt-1 text-dark" data-toggle="tab" href="#wa" role="tab">Wiring and Assembly</a>
+                    </li>
+                  </ul>
+                </div>
               </div>
               <div class="card-body pb-1 pl-1 pr-1 pt-0" style="min-height: 300px;">
-                <ul class="nav nav-tabs mt-1 border-0" role="tablist" style="font-size: 9pt;">
-                  <li class="nav-item font-weight-bold">
-                    <a class="nav-link active border rounded m-1 pb-1 pt-1" data-toggle="tab" href="#fab" role="tab">Fabrication</a>
-                  </li>
-                  <li class="nav-item font-weight-bold">
-                    <a class="nav-link border rounded m-1 pb-1 pt-1" data-toggle="tab" href="#pa" role="tab">Painting</a>
-                  </li>
-                  <li class="nav-item font-weight-bold">
-                    <a class="nav-link border rounded m-1 pb-1 pt-1" data-toggle="tab" href="#wa" role="tab">Wiring and Assembly</a>
-                  </li>
-                </ul>
                 <div class="tab-content" id="on-going-production-orders-content">
                   <div class="tab-pane fade show active" id="fab" role="tabpanel" data-operation="1">
                     <div class="table-div m-1 p-0"></div>
@@ -143,6 +145,10 @@
 </div>
   
 <style>
+  .dashboard-custom-tabs .nav-link.active {
+    background-color: #b2babb  !important;
+    color: #ffffff !important;
+  }
   .menu-box{
     display: inline-block;
     background-color: #ffffff; 
