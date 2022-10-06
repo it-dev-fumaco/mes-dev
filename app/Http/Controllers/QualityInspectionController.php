@@ -111,6 +111,7 @@ class QualityInspectionController extends Controller
     // /submit_quality_inspection
     public function submit_quality_inspection(Request $request){
         DB::connection('mysql_mes')->beginTransaction();
+        DB::connection('mysql')->beginTransaction();
         try {
             $now = Carbon::now(); 	
             if (!$request->inspected_by) {
@@ -148,7 +149,7 @@ class QualityInspectionController extends Controller
 
                     $prod_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
 
-                    if ($request->item_code) {
+                    if ($request->item_code && $total_rejects > 0) {
                         $item_required_qty = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)
                             ->where('item_code', $request->item_code)->sum('required_qty');
 
@@ -386,12 +387,14 @@ class QualityInspectionController extends Controller
                     }
                 }
 
+                DB::connection('mysql')->commit();
                 DB::connection('mysql_mes')->commit();
 
                 return response()->json(['success' => 1, 'message' => 'QA Inspection created.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation, 'checklist_url' => $request->checklist_url, 'timelogid' => $request->time_log_id]]);
             }
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
+            DB::connection('mysql')->rollback();
 
 			return response()->json(['success' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
         }
