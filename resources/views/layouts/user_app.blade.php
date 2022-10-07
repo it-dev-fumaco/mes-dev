@@ -73,6 +73,12 @@
             <span class="d-inline-block"> Production Order(s)</span>
           </a>
         </li>
+        <li class="m-0 align-middle">
+          <a href="/order_list" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block"> Order List</span>
+          </a>
+        </li>
       </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
