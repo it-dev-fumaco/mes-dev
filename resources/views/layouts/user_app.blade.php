@@ -120,6 +120,12 @@
             <span class="d-inline-block">QA Dashboard</span>
           </a>
         </li>
+        <li class="m-0">
+          <a href="/qa_inspection_logs" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">QA Inspection Logs</span>
+          </a>
+        </li>
       </ul>
       @endif
       @if ($is_maintenance_user)
