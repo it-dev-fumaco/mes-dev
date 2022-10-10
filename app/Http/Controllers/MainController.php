@@ -8275,7 +8275,7 @@ class MainController extends Controller
 			->when($request->order_types, function ($query) use ($request) {
 				return $query->whereIn('custom_purpose', $request->order_types);
             })
-			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'custom_purpose as order_type', 'status', 'transaction_date as date_approved');
+			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'custom_purpose as order_type', 'status', 'modified as date_approved', DB::raw('CONCAT(address_line, " ", address_line2, " ", city_town)  as shipping_address'), 'owner', 'notes00 as notes');
 
 		$list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)
 			->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
@@ -8294,16 +8294,16 @@ class MainController extends Controller
 			->when($request->order_types && !in_array('Customer Order', $request->order_types), function ($query) use ($request) {
 				return $query->whereIn('sales_type', $request->order_types);
             })
-			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'sales_type as order_type', 'status', 'date_approved')
+			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'sales_type as order_type', 'status', 'date_approved', 'shipping_address', 'owner', 'notes')
 			->unionAll($material_requests)->orderBy('date_approved', 'desc')->paginate(15);
 
 		// get items
 		$references = collect($list->items())->pluck('name');
 		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent');
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date');
 
 		$item_list = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent')
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date')
 			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
 
 		$item_codes = collect($item_list)->pluck('item_code')->unique();
