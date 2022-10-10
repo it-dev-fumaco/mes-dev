@@ -34,7 +34,7 @@ class QualityInspectionController extends Controller
             $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)
                 ->select('item_code', 'description', 'required_qty')->get();
 
-            $item_images = DB::connection('mysql')->table('tabItem Images')->where('parent', collect($production_order_items)->pluck('item_code'))
+            $item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', collect($production_order_items)->pluck('item_code'))
                 ->pluck('image_path', 'parent')->toArray();
 
             $inspected_component_qtys = DB::connection('mysql_mes')->table('inspected_component')
