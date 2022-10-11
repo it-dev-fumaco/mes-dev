@@ -2378,6 +2378,7 @@ class SecondaryController extends Controller
         
     }
      public function mark_as_done_task(Request $request){
+        DB::connection('mysql')->beginTransaction();
         DB::connection('mysql_mes')->beginTransaction();
         try {
             $now = Carbon::now();
@@ -2403,6 +2404,7 @@ class SecondaryController extends Controller
                 if($logs){
                     $from_time = Carbon::parse($logs->from_time);
                     $duration = $from_time->diffInSeconds($now);
+                    $duration = $duration / 3600;
 
                     $values['status'] = 'Completed';
                     $values['to_time'] = $now->toDateTimeString();
@@ -2447,10 +2449,12 @@ class SecondaryController extends Controller
                 DB::connection('mysql_mes')->table('production_order')
                     ->where('production_order', $job_ticket_details->production_order)->update($values);
 
+                DB::connection('mysql')->commit();
                 DB::connection('mysql_mes')->commit();
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
             }
         } catch (Exception $e) {
+            DB::connection('mysql')->rollback();
             DB::connection('mysql_mes')->rollback();
             return response()->json(["error" => $e->getMessage()]);
         }
