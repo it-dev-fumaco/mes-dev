@@ -588,76 +588,6 @@ class QualityInspectionController extends Controller
         $qa_staffs = DB::connection('mysql_essex')->table('users')
             ->whereIn('user_id', $qa_staffs)->pluck('employee_name', 'user_id')->toArray();
 
-
-        // $production_order_query = DB::connection('mysql_mes')->table('production_order')->get();
-      
-        // $item_code = array_unique(array_column($production_order_query->toArray(), 'item_code'));
-        // $customer = array_unique(array_column($production_order_query->toArray(), 'customer'));
-        // $production_order = array_unique(array_column($production_order_query->toArray(), 'production_order'));
-
-        // $production_order_query = [];
-      
-        // $item_code = array_unique(array_column($production_order_query, 'item_code'));
-        // $customer = array_unique(array_column($production_order_query, 'customer'));
-        // $production_order = array_unique(array_column($production_order_query, 'production_order'));
-
-        // $workstations = DB::connection('mysql_mes')->table('workstation')
-        //     ->select('operation_id', 'workstation_name','workstation_id')->get();
-
-        // $fab_workstation = collect($workstations)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && $value->workstation_name != 'Painting');
-        // });
-
-        // $pain_workstation = collect($workstations)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && $value->workstation_name == 'Painting');
-        // });
-
-        // $assem_workstation = collect($workstations)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 3);
-        // });
-
-        // $processes = DB::connection('mysql_mes')->table('process_assignment')
-        //     ->join('process', 'process.process_id', 'process_assignment.process_id')
-        //     ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-        //     ->groupBy('process_assignment.process_id', 'process.process_name', 'workstation.operation_id')
-        //     ->select('process_assignment.process_id', 'process.process_name', 'workstation.operation_id')
-        //     ->get();
-    
-        // $fab_process = collect($processes)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && !in_array($value->process_name, ['Loading','Unloading']));
-        // });
-
-        // $process_painting = collect($processes)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && in_array($value->process_name, ['Loading','Unloading']));
-        // });
-
-        // $assem_process = collect($processes)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 3);
-        // });
-
-        // $qc_staff= DB::connection('mysql_mes')->table('quality_inspection')->whereNotNull('qa_staff_id')->distinct('qa_staff_id')->pluck('qa_staff_id');
-        // $qc_name = [];
-        // foreach ($qc_staff as $id) {
-        //     $emp_name= DB::connection('mysql_essex')->table('users')
-        //         ->where('user_id', $id)->select('employee_name')->first();
-
-        //     if($emp_name){
-        //         $qc_name[]=[
-        //             "name" => $emp_name->employee_name,
-        //             "user_id" =>  $id
-        //         ];
-        //     }
-        // }
-
-        // $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();
-
-        // $operators = DB::connection('mysql_essex')->table('users')
-        //     ->where('status', 'Active')->where('user_type', 'Employee')
-        //     ->whereIn('designation_id', [46, 47, 53])->orderBy('employee_name', 'asc')
-        //     ->select('user_id', 'employee_name')->get();
-
-        // return view('quality_inspection.qa_dashboard', compact('user_details','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process", 'permissions', 'reject_category'));
-
         return view('quality_inspection.qa_dashboard', compact('user_details', 'permissions', 'qa_staffs', 'summary'));
     }
 
@@ -668,152 +598,9 @@ class QualityInspectionController extends Controller
             return redirect('/main_dashboard');
         }
 
-        $now = Carbon::now();
-        // return Carbon::now()->endOfDay()->format('Y-m-d');
-        $qa_logs = DB::connection('mysql_mes')->table('quality_inspection as qa')
-            ->join('time_logs', 'time_logs.time_log_id', 'qa.reference_id')
-            ->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-            ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-            // ->whereDate('quality_inspection.qa_inspection_date', '>=', $now->startOfDay())
-            // ->where('quality_inspection.qa_inspection_date', '<=',  $now->endOfDay())
-            ->where('qa.reference_type', 'Time Logs')->whereNotnull('qa.qa_inspection_date')
-            ->whereIn('qa.status', ['QC Passed', 'QC Failed'])
-            ->select('qa.qa_staff_id', 'job_ticket.workstation', 'qa.qa_inspection_date', 'qa.actual_qty_checked', 'qa.rejected_qty', 'production_order.operation_id');
+        $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();
 
-        $qa_logs = DB::connection('mysql_mes')->table('quality_inspection as qa')
-            ->join('spotwelding_qty', 'spotwelding_qty.time_log_id', 'qa.reference_id')
-            ->join('job_ticket', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-            ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-            ->whereDate('qa.qa_inspection_date', '>=', $now->startOfDay())
-            ->where('qa.qa_inspection_date', '<=',  $now->endOfDay())
-            ->where('qa.reference_type', 'Time Logs')->whereNotnull('qa.qa_inspection_date')
-            ->whereIn('qa.status', ['QC Passed', 'QC Failed'])
-            ->select('qa.qa_staff_id', 'job_ticket.workstation', 'qa.qa_inspection_date', 'qa.actual_qty_checked', 'qa.rejected_qty', 'production_order.operation_id')
-            ->unionAll($qa_logs)->limit(500)->orderBy('qa_inspection_date', 'desc')->get();
-
-        $qa_logs_fabrication = $qa_logs_painting = $qa_logs_assembly = 0;
-        $qa_logs_fabrication_qty_checked = $qa_logs_painting_qty_checked = $qa_logs_assembly_qty_checked = 0;
-        $qa_logs_fabrication_rejected_qty = $qa_logs_painting_rejected_qty = $qa_logs_assembly_rejected_qty = 0;
-        $qa_inspector_fabrication = $qa_inspector_painting = $qa_inspector_assembly = [];
-        foreach ($qa_logs as $r) {
-            if ($r->operation_id == 1 && $r->workstation != 'Painting') {
-                $qa_logs_fabrication++;
-                $qa_inspector_fabrication[] = $r->qa_staff_id;
-                $qa_logs_fabrication_qty_checked += $r->actual_qty_checked;
-                $qa_logs_fabrication_rejected_qty += $r->rejected_qty;
-            }
-
-            if ($r->operation_id == 1 && $r->workstation == 'Painting') {
-                $qa_logs_painting++;
-                $qa_inspector_painting[] = $r->qa_staff_id;
-                $qa_logs_painting_qty_checked += $r->actual_qty_checked;
-                $qa_logs_painting_rejected_qty += $r->rejected_qty;
-            }
-
-            if ($r->operation_id == 3) {
-                $qa_logs_assembly++;
-                $qa_inspector_assembly[] = $r->qa_staff_id;
-                $qa_logs_assembly_qty_checked += $r->actual_qty_checked;
-                $qa_logs_assembly_rejected_qty += $r->rejected_qty;
-            }
-        }
-
-        $summary['fabrication'] = [
-            'total_logs' => number_format($qa_logs_fabrication),
-            'inspectors' => array_unique($qa_inspector_fabrication),
-            'qty_checked' => number_format($qa_logs_fabrication_qty_checked),
-            'qty_rejects' => number_format($qa_logs_fabrication_rejected_qty),
-        ];
-
-        $summary['painting'] = [
-            'total_logs' => number_format($qa_logs_painting),
-            'inspectors' => array_unique($qa_inspector_painting),
-            'qty_checked' => number_format($qa_logs_painting_qty_checked),
-            'qty_rejects' => number_format($qa_logs_painting_rejected_qty),
-        ];
-
-        $summary['assembly'] = [
-            'total_logs' => number_format($qa_logs_assembly),
-            'inspectors' => array_unique($qa_inspector_assembly),
-            'qty_checked' => number_format($qa_logs_assembly_qty_checked),
-            'qty_rejects' => number_format($qa_logs_assembly_rejected_qty),
-        ];
-
-        $qa_staffs = array_merge( array_unique($qa_inspector_fabrication),  array_unique($qa_inspector_painting),  array_unique($qa_inspector_assembly));
-        $qa_staffs = DB::connection('mysql_essex')->table('users')
-            ->whereIn('user_id', $qa_staffs)->pluck('employee_name', 'user_id')->toArray();
-
-
-        // $production_order_query = DB::connection('mysql_mes')->table('production_order')->get();
-      
-        // $item_code = array_unique(array_column($production_order_query->toArray(), 'item_code'));
-        // $customer = array_unique(array_column($production_order_query->toArray(), 'customer'));
-        // $production_order = array_unique(array_column($production_order_query->toArray(), 'production_order'));
-
-        // $production_order_query = [];
-      
-        // $item_code = array_unique(array_column($production_order_query, 'item_code'));
-        // $customer = array_unique(array_column($production_order_query, 'customer'));
-        // $production_order = array_unique(array_column($production_order_query, 'production_order'));
-
-        // $workstations = DB::connection('mysql_mes')->table('workstation')
-        //     ->select('operation_id', 'workstation_name','workstation_id')->get();
-
-        // $fab_workstation = collect($workstations)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && $value->workstation_name != 'Painting');
-        // });
-
-        // $pain_workstation = collect($workstations)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && $value->workstation_name == 'Painting');
-        // });
-
-        // $assem_workstation = collect($workstations)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 3);
-        // });
-
-        // $processes = DB::connection('mysql_mes')->table('process_assignment')
-        //     ->join('process', 'process.process_id', 'process_assignment.process_id')
-        //     ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
-        //     ->groupBy('process_assignment.process_id', 'process.process_name', 'workstation.operation_id')
-        //     ->select('process_assignment.process_id', 'process.process_name', 'workstation.operation_id')
-        //     ->get();
-    
-        // $fab_process = collect($processes)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && !in_array($value->process_name, ['Loading','Unloading']));
-        // });
-
-        // $process_painting = collect($processes)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 1 && in_array($value->process_name, ['Loading','Unloading']));
-        // });
-
-        // $assem_process = collect($processes)->filter(function ($value, $key) {
-        //     return ($value->operation_id == 3);
-        // });
-
-        // $qc_staff= DB::connection('mysql_mes')->table('quality_inspection')->whereNotNull('qa_staff_id')->distinct('qa_staff_id')->pluck('qa_staff_id');
-        // $qc_name = [];
-        // foreach ($qc_staff as $id) {
-        //     $emp_name= DB::connection('mysql_essex')->table('users')
-        //         ->where('user_id', $id)->select('employee_name')->first();
-
-        //     if($emp_name){
-        //         $qc_name[]=[
-        //             "name" => $emp_name->employee_name,
-        //             "user_id" =>  $id
-        //         ];
-        //     }
-        // }
-
-        // $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();
-
-        // $operators = DB::connection('mysql_essex')->table('users')
-        //     ->where('status', 'Active')->where('user_type', 'Employee')
-        //     ->whereIn('designation_id', [46, 47, 53])->orderBy('employee_name', 'asc')
-        //     ->select('user_id', 'employee_name')->get();
-
-        // return view('quality_inspection.qa_dashboard', compact('user_details','process_painting','item_code','customer','production_order', 'qc_name', 'operators','fab_workstation','assem_workstation','pain_workstation','fab_process', "assem_process", 'permissions', 'reject_category'));
-
-        return view('quality_inspection.view_rejection_report', compact('permissions', 'qa_staffs', 'summary'));
+        return view('quality_inspection.view_rejection_report', compact('permissions', 'reject_category'));
     }
 
     public function get_quick_view_data(){
@@ -898,8 +685,6 @@ class QualityInspectionController extends Controller
 
         $quality_inspection_query = $quality_inspection_query->get();
 
-        // $inspected_production_orders = collect($quality_inspection_query)->unique('production_order')->count();
-
         $inspected_qty = collect($quality_inspection_query)->sum('actual_qty_checked');
         $rejected_qty = collect($quality_inspection_query)->sum('rejected_qty');
         $sample_size = collect($quality_inspection_query)->sum('sample_size');
@@ -922,18 +707,6 @@ class QualityInspectionController extends Controller
             ->whereIn('production_order.status', ['Completed', 'In Progress'])
             ->distinct('production_order.production_order')
             ->count();
-
-        // if($count_production_order > 0){
-        //     $qa_efficiency = ($inspected_production_orders / $count_production_order) * 100;
-        // }else{
-        //     $qa_efficiency = 0;
-        // }
-
-        // if($sample_size > 0){
-        //     $performance = ($actual_qty_checked / $sample_size) * 100;
-        // }else{
-        //     $performance = 0;
-        // }
         
         return $data = [
             'produced_qty' => number_format($produced_qty),
@@ -941,8 +714,6 @@ class QualityInspectionController extends Controller
             'rejected_qty' => number_format($rejected_qty),
             'production_order' => number_format($count_production_order),
             'completed_wip_production_orders' => number_format($completed_wip_production_orders),
-            // 'qa_efficiency' => number_format($qa_efficiency),
-            // 'performance' => number_format($performance),
         ];
     }
 

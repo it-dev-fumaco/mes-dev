@@ -285,7 +285,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
-          console.log(data);
           if (data.success) {
             showNotification("success", data.message, "now-ui-icons ui-1_check");
             $('#quality-inspection-modal').modal('hide');

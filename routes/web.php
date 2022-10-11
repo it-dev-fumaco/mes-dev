@@ -63,6 +63,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/submit_stock_entry/{id}', 'ManufacturingController@submit_stock_entry');
 
 	Route::get('/count_reject_for_confirmation', 'QualityInspectionController@count_reject_for_confirmation');
+	Route::get('/view_rejection_report', 'QualityInspectionController@viewRejectionReport');
 });
 
 Route::get('/get_reject_confirmation_checklist/{production_order}/{workstation_name}/{process_id}/{qa_id}', 'QualityInspectionController@get_reject_confirmation_checklist');
