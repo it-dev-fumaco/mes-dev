@@ -8135,37 +8135,30 @@ class MainController extends Controller
 	public function idleOperators(Request $request) {
 		$operation_id = $request->operation;
 
-		$operators = DB::connection('mysql_mes')->table('time_logs as tl')
-			->join('job_ticket as jt', 'tl.job_ticket_id', 'jt.job_ticket_id')
-			->join('production_order as po', 'po.production_order', 'jt.production_order')
-			->when($operation_id, function ($query) use ($operation_id) {
-				return $query->where('operation_id', $operation_id);
+		$operators = DB::connection('mysql_essex')->table('users as u')
+			->join('departments as d', 'd.department_id', 'u.department_id')
+			->where('u.status', 'Active')->where('u.user_type', 'Employee')
+			->where(function($q) use ($request) {
+				$q->where('d.department', 'LIKE', '%painting%')
+					->orWhere('d.department', 'LIKE', '%assembly%')
+					->orWhere('d.department', 'LIKE', '%fabrication%');
 			})
-			->whereNotNull('operator_id')->select('operator_name', 'operator_id')
-			->orderBy('operator_name', 'asc')->groupBy('operator_name', 'operator_id')->get();
+			->select('u.user_id as operator_id', 'u.employee_name')
+			->orderBy('u.employee_name', 'asc')->get();
 
 		$wip_operators = DB::connection('mysql_mes')->table('time_logs')
 			->where('status', 'In Progress')->whereNotNull('operator_id')
 			->pluck('operator_id');
 
-		$spotwelding_operators = $spowtwelding_wip_operators = [];
-		if ($operation_id == 1) {
-			$spotwelding_operators = DB::connection('mysql_mes')->table('spotwelding_qty')
-				->whereNotNull('operator_id')->select('operator_name', 'operator_id')
-				->orderBy('operator_name', 'asc')->groupBy('operator_name', 'operator_id')->get();
-
-			$spowtwelding_wip_operators = DB::connection('mysql_mes')->table('spotwelding_qty')
-				->whereNotNull('operator_id')->where('status', 'In Progress')
-				->whereNotNull('operator_id')->pluck('operator_id');
-		}
+		$spowtwelding_wip_operators = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->whereNotNull('operator_id')->where('status', 'In Progress')
+			->whereNotNull('operator_id')->pluck('operator_id');
 
 		$wip_operators = collect($wip_operators)->merge($spowtwelding_wip_operators)->toArray();
 
-		$operators = collect($spotwelding_operators)->merge($operators);
-
 		$operator_images = DB::connection('mysql_essex')->table('users')
-			->whereNotNull('image')->whereIn('user_id', collect($operators)
-			->pluck('operator_id'))->pluck('image', 'user_id')->toArray();
+			->whereNotNull('image')->whereIn('user_id', collect($operators)->pluck('operator_id'))
+			->pluck('image', 'user_id')->toArray();
 
 		$operators_idle_time_spotwelding = DB::connection('mysql_mes')->table('time_logs')->where('status', '!=', 'In Progress')
 			->whereNotNull('operator_id')->select('operator_id', DB::raw('MAX(to_time) as last_transaction'))->groupBy('operator_id')
@@ -8202,7 +8195,7 @@ class MainController extends Controller
 
 					$operators_list[] = [
 						'id' => $row->operator_id,
-						'name' => $row->operator_name,
+						'name' => $row->employee_name,
 						'image' => $image,
 						'idle_time' => $total_duration,
 						'last_transaction' => $last_transaction,
