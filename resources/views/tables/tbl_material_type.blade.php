@@ -25,4 +25,4 @@
     @endforelse
   </tbody>
 </table>
-<div id="material_type_pagination" class="col-md-12 text-center">{{ $list->links() }}</div>
+<div id="material_type_pagination" class="col-md-12 text-center">{{ $list->appends(request()->input())->links() }}</div>

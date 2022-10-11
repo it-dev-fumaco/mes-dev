@@ -32,4 +32,4 @@
     @endforelse
   </tbody>
 </table>
-<div id="reject_category_pagination" class="col-md-12 text-center">{{ $reject_category->links() }}</div>
+<div id="reject_category_pagination" class="col-md-12 text-center">{{ $reject_category->appends(request()->input())->links() }}</div>

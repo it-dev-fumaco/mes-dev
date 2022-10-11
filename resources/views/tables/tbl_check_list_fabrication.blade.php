@@ -33,5 +33,5 @@
       @endforelse
     </tbody>
   </table>
-  <div id="checklist_list_pagination_fabrication" class="col-md-12 text-center">{{ $check_list->links() }}</div>
+  <div id="checklist_list_pagination_fabrication" class="col-md-12 text-center">{{ $check_list->appends(request()->input())->links() }}</div>
 </div>

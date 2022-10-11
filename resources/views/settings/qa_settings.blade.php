@@ -47,11 +47,6 @@
 							<div class="col-md-8 p-0 m-0">
 								<h5 class="text-white font-weight-bold text-left p-1 m-0">Quality Inspection Setup</h5>
 							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_reject_setup">
-								</div>
-							</div>
 						</div>
 					</div>
           <div class="card-body p-0">
@@ -72,63 +67,35 @@
                 <div class="tab-content text-center">
                   <div class="tab-pane active p-0" id="inspection_checklist">
                     <div class="row p-0 m-0">
-											<div class="col-md-4 pl-0 pb-1 pt-1 pr-2">
-												<div class="card" style="min-height: 1000px;">
-													<table class="text-white" style="width: 100%;background-color:#34495e;">
-														<col style="width: 70%;">
-														<col style="width: 30%;">
-														<tr>
-															<th class="text-left font-weight-bold" style="padding-left: 20px; font-size: 12pt;">Fabrication</th>
-															<td class="text-right">
-																<button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-checklist-fabrication-button" style="margin: 5px;">
-																	<i class="now-ui-icons ui-1_simple-add"></i> Add
-																</button>
-															</td>
-														</tr>
-													</table>
-													<div class="card-body p-1">
-														<div class="tbl_check_list_fabrication" id="tbl_check_list_fabrication"></div>
-													</div>
-												</div>
-											</div>
-											<div class="col-md-4 pl-1 pb-1 pt-1 pr-1">
-												<div class="card" style="min-height: 1000px;">
-													<table class="text-white" style="width: 100%;background-color:#34495e;">
-														<col style="width: 70%;">
-														<col style="width: 30%;">
-														<tr>
-															<th class="text-left font-weight-bold" style="padding-left: 20px; font-size: 12pt;">Painting</th>
-															<td class="text-right">
-																<button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-checklist-painting-button" style="margin: 5px;">
-																	<i class="now-ui-icons ui-1_simple-add"></i> Add
-																</button>
-															</td>
-														</tr>
-													</table>
-													<div class="card-body p-1">
-														<div class="tbl_check_list_painting" id="tbl_check_list_painting"></div>
-													</div>
-												</div>
-											</div>
-											<div class="col-md-4 pl-2 pb-1 pt-1 pr-0">
-												<div class="card" style="min-height: 1000px;">
-													<table class="text-white" style="width: 100%; background-color:#34495e;">
-														<col style="width: 70%;">
-														<col style="width: 30%;">
-														<tr>
-															<th class="text-left font-weight-bold" style="padding-left: 20px; font-size: 12pt;">Wiring and Assembly</th>
-															<td class="text-right">
-																<button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-checklist-assembly-button" style="margin: 5px;">
-																	<i class="now-ui-icons ui-1_simple-add"></i> Add
-																</button>
-															</td>
-														</tr>
-													</table>
-													<div class="card-body p-1">
-														<div class="tbl_check_list_assembly" id="tbl_check_list_assembly"></div>
-													</div>
-												</div>
-											</div>
+                      @php
+                          $workstations = [
+                            ['value' => 'fabrication', 'title' => 'Fabrication'],
+                            ['value' => 'painting', 'title' => 'Painting'],
+                            ['value' => 'assembly', 'title' => 'Wiring and Assembly']
+                          ];
+                      @endphp
+                      @foreach ($workstations as $workstation)
+                        <div class="col-md-4 pl-0 pb-1 pt-1 pr-2">
+                          <div class="card" style="min-height: 1000px;">
+                            <table class="text-white" style="width: 100%;background-color:#34495e;">
+                              <col style="width: 70%;">
+                              <col style="width: 30%;">
+                              <tr>
+                                <th class="text-left font-weight-bold" style="padding-left: 20px; font-size: 12pt;">{{ $workstation['title'] }}</th>
+                                <td class="text-right">
+                                  <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-checklist-{{ $workstation['value'] }}-button" style="margin: 5px;">
+                                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                  </button>
+                                </td>
+                              </tr>
+                            </table>
+                            <div class="card-body p-1">
+                              <input type="text" class="form-control rounded search-str" name="{{ $workstation['value'] }}" placeholder="Search..." data-workstation="{{ $workstation['value'] }}">
+                              <div class="tbl_check_list_{{ $workstation['value'] }}" id="tbl_check_list_{{ $workstation['value'] }}"></div>
+                            </div>
+                          </div>
+                        </div>
+                      @endforeach
                     </div>
                   </div>
                   <div class="tab-pane" id="qa_reject_list">
@@ -148,6 +115,7 @@
                             </tr>
                           </table>
                           <div class="card-body p-0">
+                            <input type="text" class="form-control rounded search-str" placeholder="Search..." name="reject_list" data-workstation="reject_list">
                             <div class="tbl_reject_list" id="tbl_reject_list"></div>
                           </div>
                         </div>
@@ -166,11 +134,6 @@
 						<div class="row p-2 m-0">
 							<div class="col-md-8 p-0 m-0">
 								<h5 class="text-white font-weight-bold text-left p-1 m-0">Sampling Plan Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_machine_setupss">
-								</div>
 							</div>
 						</div>
 					</div>
@@ -244,11 +207,6 @@
 							<div class="col-md-8 p-0 m-0">
 								<h5 class="text-white font-weight-bold text-left p-1 m-0">Operator Reject Setup</h5>
 							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_operator_reject_setup">
-								</div>
-							</div>
 						</div>
 					</div>
           <div class="card-body p-0">
@@ -313,6 +271,9 @@
                             </tr>
                           </table>
                           <div class="card-body p-0">
+                            <div class="container-fluid p-2">
+                              <input type="text" class="form-control rounded search-str" placeholder="Search..." name="operator_reject_list" data-workstation="operator_reject_list">
+                            </div>
                             <div class="tbl_operator_reject_list" id="tbl_operator_reject_list"></div>
                           </div>
                         </div>
@@ -336,6 +297,9 @@
                             </tr>
                           </table>
                           <div class="card-body p-0">
+                            <div class="container-fluid p-2">
+                              <input type="text" class="form-control rounded search-str" placeholder="Search..." name="op_fabrication" data-workstation="op_fabrication">
+                            </div>
                             <div class="tbl_check_list_fabrication" id="tbl_opcheck_list_fabrication"></div>
                           </div>
                         </div>
@@ -359,6 +323,9 @@
                             </tr>
                           </table>
                           <div class="card-body p-0">
+                            <div class="container-fluid p-2">
+                              <input type="text" class="form-control rounded search-str" placeholder="Search..." name="op_painting" data-workstation="op_painting">
+                            </div>
                             <div class="tbl_check_list_painting" id="tbl_opcheck_list_painting"></div>
                           </div>
                         </div>
@@ -380,6 +347,9 @@
                             </tr>
                           </table>
                           <div class="card-body p-0">
+                            <div class="container-fluid p-2">
+                              <input type="text" class="form-control rounded search-str" placeholder="Search..." name="op_assembly" data-workstation="op_assembly">
+                            </div>
                             <div class="tbl_check_list_assembly" id="tbl_opcheck_list_assembly"></div>
                           </div>
                         </div>
@@ -401,7 +371,7 @@
 							</div>
 							<div class="col-md-4 p-0 m-0">
 								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_material_type_setup">
+									<input type="text" class="form-control rounded bg-white search-str" placeholder="Search..." name="material_type_setup" data-workstation="material_type_setup">
 								</div>
 							</div>
 						</div>
@@ -425,7 +395,7 @@
 							</div>
 							<div class="col-md-4 p-0 m-0">
 								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_reject_category_setup">
+									<input type="text" class="form-control rounded bg-white search-str" placeholder="Search..." name="qa_reject_category" data-workstation="qa_reject_category">
 								</div>
 							</div>
 						</div>
@@ -1513,19 +1483,22 @@
     $(document).on('click', '#checklist_list_pagination_fabrication a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      check_list_fabrication(page);
+      var query = $('input[name=fabrication]').val();
+      check_list_fabrication(page, query);
     });
 
     $(document).on('click', '#checklist_list_pagination_painting a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      check_list_painting(page);
+      var query = $('input[name=painting]').val();
+      check_list_painting(page, query);
     });
 
     $(document).on('click', '#checklist_list_pagination_assembly a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      check_list_assembly(page);
+      var query = $('input[name=assembly]').val();
+      check_list_assembly(page, query);
     });
 
     $(document).on('click', '#checklist_list_pagination_operator a', function(event){
@@ -1536,22 +1509,23 @@
 
     $(document).on('click', '#reject_check_list_pagination a', function(event){
       event.preventDefault();
-      var query = $('#search_reject_setup').val();
       var page = $(this).attr('href').split('page=')[1];
+      var query = $('input[name=reject_list]').val();
       qa_reject_list(page, query);
     });
 
     $(document).on('click', '#op_reject_check_list_pagination a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      var query = $('#search_operator_reject_setup').val();
+      var query = $('input[name=operator_reject_list]').val();
       op_reject_list(page, query);
     });
 
     $(document).on('click', '#reject_category_pagination a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      reject_category_list(page);
+      var query = $('input[name=qa_reject_category]').val();
+      reject_category_list(page, query);
     });
 
     $('.modal').on('hidden.bs.modal', function(){
@@ -1653,6 +1627,46 @@
       $('.operation-text').text("["+operation+"]");
       $('#delete_checklist_id').val(id);
       $('#delete-checklist-modal').modal('show');
+    });
+
+    $(document).on('keyup', '.search-str', function (){
+      var workstation = $(this).data('workstation');
+      var search_string = $(this).val();
+
+      switch (workstation) {
+        case 'fabrication':
+          check_list_fabrication(1, search_string);
+          break;
+        case 'painting':
+          check_list_painting(1, search_string);
+          break;
+        case 'assembly':
+          check_list_assembly(1, search_string);
+          break;
+        case 'reject_list':
+          qa_reject_list(1, search_string);
+          break;
+        case 'op_fabrication':
+          operator_check_list_fabrication(1, search_string);
+          break;
+        case 'op_painting':
+          operator_check_list_painting(1, search_string);
+          break;
+        case 'op_assembly':
+          operator_check_list_assembly(1, search_string);
+          break;
+        case 'operator_reject_list':
+          op_reject_list(1, search_string);
+          break;
+        case 'qa_reject_category':
+          reject_category_list(1, search_string);
+          break;
+        case 'material_type_setup':
+          tbl_material_type(1, search_string);
+          break;
+        default:
+          break;
+      }
     });
 
     function check_list_fabrication(page, query){
@@ -2623,21 +2637,21 @@
     $(document).on('click', '#operator_checklist_list_pagination_fabrication a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      var query = $("#search_operator_reject_setup").val();
+      var query = $('input[name=op_fabrication]').val();
       operator_check_list_fabrication(page, query);
     });
 
     $(document).on('click', '#operator_checklist_list_pagination_assembly a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      var query = $("#search_operator_reject_setup").val();
+      var query = $('input[name=op_assembly]').val();
       operator_check_list_assembly(page, query);
     });
 
     $(document).on('click', '#operator_checklist_list_pagination_painting a', function(event){
       event.preventDefault();
       var page = $(this).attr('href').split('page=')[1];
-      var query = $("#search_operator_reject_setup").val();
+      var query = $('input[name=op_painting]').val();
       operator_check_list_painting(page, query);
     });
 
@@ -2725,8 +2739,8 @@
 
     $(document).on('click', '#material_type_pagination a', function(event){
       event.preventDefault();
-      var query = $("#search_material_type_setup").val();
       var page = $(this).attr('href').split('page=')[1];
+      var query = $('input[name=material_type_setup]').val();
       tbl_material_type(page, query);
     });
 

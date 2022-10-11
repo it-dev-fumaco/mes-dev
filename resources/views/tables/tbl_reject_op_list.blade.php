@@ -41,4 +41,4 @@
     @endforelse
   </tbody>
 </table>
-<div id="op_reject_check_list_pagination" class="col-md-12 text-center">{{ $reject_list->links() }}</div>
+<div id="op_reject_check_list_pagination" class="col-md-12 text-center">{{ $reject_list->appends(request()->input())->links() }}</div>

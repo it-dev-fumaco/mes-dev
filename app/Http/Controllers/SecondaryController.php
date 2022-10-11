@@ -6295,6 +6295,14 @@ class SecondaryController extends Controller
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('op.operation_name', 'Fabrication')
             ->where('w.workstation_name','!=','Painting')
+            ->when($request->search_string, function ($query) use ($request){
+                $query->where(function($q) use ($request) {
+                    return $q->where('w.workstation_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rc.reject_category_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_reason', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_checklist', 'like', '%'.$request->search_string.'%');
+                });
+            })
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name')
             ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
@@ -6314,6 +6322,15 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.workstation_name','=','Painting')
+            ->when($request->search_string, function ($query) use ($request){
+                $query->where(function($q) use ($request) {
+                    return $q->where('w.workstation_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rc.reject_category_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_reason', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_checklist', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('process.process_name', 'like', '%'.$request->search_string.'%');
+                });
+            })
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
             ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
@@ -6326,6 +6343,14 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('op.operation_name', 'Wiring and Assembly')
+            ->when($request->search_string, function ($query) use ($request){
+                $query->where(function($q) use ($request) {
+                    return $q->where('w.workstation_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rc.reject_category_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_reason', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_checklist', 'like', '%'.$request->search_string.'%');
+                });
+            })
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
             ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
