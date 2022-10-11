@@ -519,8 +519,8 @@ class QualityInspectionController extends Controller
             ->join('time_logs', 'time_logs.time_log_id', 'qa.reference_id')
             ->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
-            ->whereDate('quality_inspection.qa_inspection_date', '>=', $now->startOfDay())
-            ->where('quality_inspection.qa_inspection_date', '<=',  $now->endOfDay())
+            ->whereDate('qa.qa_inspection_date', '>=', $now->startOfDay())
+            ->where('qa.qa_inspection_date', '<=',  $now->endOfDay())
             ->where('qa.reference_type', 'Time Logs')->whereNotnull('qa.qa_inspection_date')
             ->whereIn('qa.status', ['QC Passed', 'QC Failed'])
             ->select('qa.qa_staff_id', 'job_ticket.workstation', 'qa.qa_inspection_date', 'qa.actual_qty_checked', 'qa.rejected_qty', 'production_order.operation_id');
