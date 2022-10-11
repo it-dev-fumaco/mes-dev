@@ -251,6 +251,24 @@ class QualityInspectionController extends Controller
                     }
                     
                     $this->update_job_ticket($job_ticket_details->job_ticket_id);
+
+                    $process_name = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->pluck('process_name')->first();
+
+                    if($total_rejects > 0){
+                        $message = 'Reject quantity of ' . $total_rejects . ' for '.$request->workstation.' - ' . $process_name . ' has been submitted by ' . $qa_user->employee_name;
+                    }else{
+                        $message = 'QC Pass for '.$request->workstation.' - ' . $process_name . ' has been submitted by ' . $qa_user->employee_name;
+                    }
+
+                    $activity_logs = [
+                        'action' => $total_rejects > 0 ? 'QC Failed' : 'QC Passed',
+                        'message' => $message,
+                        'reference' => $production_order,
+                        'created_at' => $now->toDateTimeString(),
+                        'created_by' => $qa_user->employee_name
+                    ];
+        
+                    DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
                 }else{
                     if ($request->workstation == 'Spotwelding') {
                         $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
