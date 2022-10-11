@@ -56,11 +56,13 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_feedbacked_production_order/{schedule_date}', 'PaintingController@get_feedbacked_production_order');
 	Route::get('/qa_dashboard', 'QualityInspectionController@qa_dashboard');
 	Route::get('/qa_staff_workload', 'QualityInspectionController@qa_staff_workload');
-	Route::get('/get_reject_for_confirmation', 'QualityInspectionController@get_reject_for_confirmation');
+	Route::get('/get_reject_for_confirmation/{operation_id}', 'QualityInspectionController@get_reject_for_confirmation');
 	Route::get('/get_quick_view_data', 'QualityInspectionController@get_quick_view_data');
 	Route::get('/get_top_defect_count', 'QualityInspectionController@get_top_defect_count');
 	Route::get('/get_reject_types/{workstation}/{process_id}', 'QualityInspectionController@get_reject_types');
 	Route::post('/submit_stock_entry/{id}', 'ManufacturingController@submit_stock_entry');
+
+	Route::get('/count_reject_for_confirmation', 'QualityInspectionController@count_reject_for_confirmation');
 });
 
 Route::get('/get_reject_confirmation_checklist/{production_order}/{workstation_name}/{process_id}/{qa_id}', 'QualityInspectionController@get_reject_confirmation_checklist');
