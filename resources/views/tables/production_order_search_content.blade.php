@@ -137,23 +137,25 @@
 								<br>
 								<div class="table-responsive">
 									<table style="width: 100%; border-color: #D5D8DC;">
-										<col style="width: 11%;">
-										<col style="width: 15%;">
-										<col style="width: 10%;">
-										<col style="width: 10%;">
-										<col style="width: 10%;">
-										<col style="width: 10%;">
-										<col style="width: 10%;">
-										<col style="width: 10%;">
-										<col style="width: 8%;">
+										<col style="width: 11%;"><!-- WORKSTATION -->
+										<col style="width: 14%;"><!-- PROCESS -->
+										<col style="width: 7%;"><!-- GOOD -->
+										<col style="width: 7%;"><!-- REJECT -->
+										<col style="width: 7%;"><!-- REWORK -->
+										<col style="width: 10%;"><!-- MACHINE -->
+										<col style="width: 10%;"><!-- START -->
+										<col style="width: 10%;"><!-- END -->
+										<col style="width: 10%;"><!-- DURATION -->
+										<col style="width: 8%;"><!-- OPERATOR -->
 										@if ($item_details['feedback_qty'] <= 0)
-										<col style="width: 6%;">
+										<col style="width: 6%;"><!-- ACTION -->
 										@endif
 										<thead style="font-size: 10pt;">
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>WORKSTATION</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROCESS</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>GOOD</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REJECT</b></td>
+											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REWORK</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>MACHINE</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>START</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>END</b></td>
@@ -206,6 +208,7 @@
 												@endphp
 												<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['good']) }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['reject']) }}</b></td>
+												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['rework']) }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>

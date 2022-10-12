@@ -436,6 +436,8 @@ class MainController extends Controller
 				$max_count= collect($operations)->max('to_time');
 				$status = collect($operations)->where('status', 'In Progress');
 
+				$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->whereIn('reference_id', collect($operations)->pluck('time_log_id'))->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
+
 				$operations_arr[] = [
 					'machine_code' => null,
 					'timelog_id' => null,
@@ -447,6 +449,7 @@ class MainController extends Controller
 					'qa_inspection_status' => null,
 					'good' => $row->completed_qty,
 					'reject' => $total_rejects,
+					'rework' => $rework_qty,
 					'remarks' => null,
 					'total_duration' => null
 				];
@@ -461,7 +464,8 @@ class MainController extends Controller
 					$reference_id = ($d->workstation == 'Spotwelding') ? $d->job_ticket_id : $d->time_log_id;
 					$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
 
-				
+					$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->where('reference_id', $d->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
+
 					if ($d->duration > 0) {
 						if ($d->good > 0) {
 							$cycle_time_in_seconds = $d->duration * 3600;
@@ -501,6 +505,7 @@ class MainController extends Controller
 						'qa_inspection_status' => $qa_inspection_status,
 						'good' => $d->good,
 						'reject' => $d->reject,
+						'rework' => $rework_qty,
 						'remarks' => $d->remarks,
 						'total_duration' => trim($total_duration)
 					];

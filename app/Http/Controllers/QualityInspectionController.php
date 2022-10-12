@@ -208,7 +208,7 @@ class QualityInspectionController extends Controller
                         'last_modified_at' => $now->toDateTimeString(),
                         'last_modified_by' => $qa_staff_name,
                         'good' => $good_qty_after_transaction,
-                        'reject' => $total_rejects,
+                        'reject' => $total_rejects + $job_ticket_details->reject,
                     ];
                     
                     $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
