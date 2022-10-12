@@ -5400,65 +5400,64 @@ class MainController extends Controller
     	$now = Carbon::now();
         $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')
         	->where('name', $stock_entry)->first();
+		if ($stock_entry_qry && $stock_entry_qry->docstatus == 1) {
+			$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')
+				->where('parent', $stock_entry)->get();
 
-        $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')
-        	->where('parent', $stock_entry)->get();
+			$stock_ledger_entry = [];
+			foreach ($stock_entry_detail as $row) {
+				$warehouse = ($row->s_warehouse) ? $row->s_warehouse : $row->t_warehouse;
 
-        $stock_ledger_entry = [];
-        foreach ($stock_entry_detail as $row) {
-        	$warehouse = ($row->s_warehouse) ? $row->s_warehouse : $row->t_warehouse;
+				$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $warehouse)
+					->where('item_code', $row->item_code)->first();
 
-        	$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $warehouse)
-				->where('item_code', $row->item_code)->first();
+				$stock_ledger_entry[] = [
+					'name' => 'mes' . uniqid(),
+					'creation' => $now->toDateTimeString(),
+					'modified' => $now->toDateTimeString(),
+					'modified_by' => Auth::user()->email,
+					'owner' => Auth::user()->email,
+					'docstatus' => 1,
+					'parent' => null,
+					'parentfield' => null,
+					'parenttype' => null,
+					'idx' => 0,
+					'serial_no' => $row->serial_no,
+					'fiscal_year' => $now->format('Y'),
+					'voucher_type' => 'Stock Entry',
+					'posting_time' => $now->format('H:i:s'),
+					'actual_qty' => ($row->s_warehouse) ? ($row->qty * -1) : $row->qty,
+					'stock_value' => $bin_qry->actual_qty * $bin_qry->valuation_rate,
+					'_comments' => null,
+					'incoming_rate' => ($row->t_warehouse) ? ($row->basic_rate) : 0,
+					'voucher_detail_no' => $row->name,
+					'stock_uom' => $row->stock_uom,
+					'warehouse' => $warehouse,
+					'_liked_by' => null,
+					'company' => 'FUMACO Inc.',
+					'_assign' => null,
+					'item_code' => $row->item_code,
+					// 'stock_queue' => ,
+					'valuation_rate' => $bin_qry->valuation_rate,
+					'project' => $stock_entry_qry->project,
+					'voucher_no' => $row->parent,
+					'outgoing_rate' => 0,
+					'is_cancelled' => 0,
+					'qty_after_transaction' => $bin_qry->actual_qty,
+					'_user_tags' => null,
+					'batch_no' => $row->batch_no,
+					'stock_value_difference' => ($row->s_warehouse) ? ($row->qty * $row->valuation_rate) * -1  : $row->qty * $row->valuation_rate,
+					'posting_date' => $now->format('Y-m-d'),
+				];
+			}
 
-        	$stock_ledger_entry[] = [
-	    		'name' => 'mes' . uniqid(),
-			    'creation' => $now->toDateTimeString(),
-				'modified' => $now->toDateTimeString(),
-				'modified_by' => Auth::user()->email,
-				'owner' => Auth::user()->email,
-				'docstatus' => 1,
-				'parent' => null,
-				'parentfield' => null,
-				'parenttype' => null,
-				'idx' => 0,
-				'serial_no' => $row->serial_no,
-				'fiscal_year' => $now->format('Y'),
-				'voucher_type' => 'Stock Entry',
-				'posting_time' => $now->format('H:i:s'),
-				'actual_qty' => ($row->s_warehouse) ? ($row->qty * -1) : $row->qty,
-				'stock_value' => $bin_qry->actual_qty * $bin_qry->valuation_rate,
-				'_comments' => null,
-				'incoming_rate' => ($row->t_warehouse) ? ($row->basic_rate) : 0,
-				'voucher_detail_no' => $row->name,
-				'stock_uom' => $row->stock_uom,
-				'warehouse' => $warehouse,
-				'_liked_by' => null,
-				'company' => 'FUMACO Inc.',
-				'_assign' => null,
-				'item_code' => $row->item_code,
-				// 'stock_queue' => ,
-				'valuation_rate' => $bin_qry->valuation_rate,
-				'project' => $stock_entry_qry->project,
-				'voucher_no' => $row->parent,
-				'outgoing_rate' => 0,
-				'is_cancelled' => 0,
-				'qty_after_transaction' => $bin_qry->actual_qty,
-				'_user_tags' => null,
-				'batch_no' => $row->batch_no,
-				'stock_value_difference' => ($row->s_warehouse) ? ($row->qty * $row->valuation_rate) * -1  : $row->qty * $row->valuation_rate,
-				'posting_date' => $now->format('Y-m-d'),
-	    	];
-        }
-
-        DB::connection('mysql')->table('tabStock Ledger Entry')->insert($stock_ledger_entry);
+			DB::connection('mysql')->table('tabStock Ledger Entry')->insert($stock_ledger_entry);
+		}
     }
 
 	public function update_bin($stock_entry){
         try {
             $now = Carbon::now();
-
-            $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
 
             $latest_id = DB::connection('mysql')->table('tabBin')->where('name', 'like', '%BINM%')->max('name');
             $latest_id = ($latest_id) ? $latest_id : 0;
@@ -5466,136 +5465,136 @@ class MainController extends Controller
             $new_id = (array_key_exists(1, $latest_id_exploded)) ? $latest_id_exploded[1] + 1 : 1;
 
             $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
-
-            $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
+			if ($stock_entry_qry && $stock_entry_qry->docstatus == 1) {
+				$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
             
-            $s_data_insert = [];
-            $d_data = [];
-            foreach($stock_entry_detail as $row){
-               
-                    if($row->s_warehouse){
-                        $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
-                        ->where('item_code', $row->item_code)->first();
-                    if (!$bin_qry) {
-                               
-                        $new_id = $new_id + 1;
-                        $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-                        $id = 'BINM/'.$new_id;
-
-                        $bin = [
-                            'name' => $id,
-                            'creation' => $now->toDateTimeString(),
-                            'modified' => $now->toDateTimeString(),
-                            'modified_by' => Auth::user()->email,
-                            'owner' => Auth::user()->email,
-                            'docstatus' => 0,
-                            'parent' => null,
-                            'parentfield' => null,
-                            'parenttype' => null,
-                            'idx' => 0,
-                            'reserved_qty_for_production' => 0,
-                            '_liked_by' => null,
-                            'fcfs_rate' => 0,
-                            'reserved_qty' => 0,
-                            '_assign' => null,
-                            'planned_qty' => 0,
-                            'item_code' => $row->item_code,
-                            'actual_qty' => $row->transfer_qty,
-                            'projected_qty' => $row->transfer_qty,
-                            'ma_rate' => 0,
-                            'stock_uom' => $row->stock_uom,
-                            '_comments' => null,
-                            'ordered_qty' => 0,
-                            'reserved_qty_for_sub_contract' => 0,
-                            'indented_qty' => 0,
-                            'warehouse' => $row->s_warehouse,
-                            'stock_value' => $row->valuation_rate * $row->transfer_qty,
-                            '_user_tags' => null,
-                            'valuation_rate' => $row->valuation_rate,
-                        ];
-
-                        DB::connection('mysql')->table('tabBin')->insert($bin);
-                    }else{
-						$qty_after_transaction = $bin_qry->actual_qty - $row->transfer_qty;
-						if ($qty_after_transaction < 0) {
-							return ['status' => 0, 'message' => 'Insufficient stock for ' . $row->item_code . ' in ' . $row->s_warehouse];
+				$s_data_insert = [];
+				$d_data = [];
+				foreach($stock_entry_detail as $row){
+				   
+						if($row->s_warehouse){
+							$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
+							->where('item_code', $row->item_code)->first();
+						if (!$bin_qry) {
+								   
+							$new_id = $new_id + 1;
+							$new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
+							$id = 'BINM/'.$new_id;
+	
+							$bin = [
+								'name' => $id,
+								'creation' => $now->toDateTimeString(),
+								'modified' => $now->toDateTimeString(),
+								'modified_by' => Auth::user()->email,
+								'owner' => Auth::user()->email,
+								'docstatus' => 0,
+								'parent' => null,
+								'parentfield' => null,
+								'parenttype' => null,
+								'idx' => 0,
+								'reserved_qty_for_production' => 0,
+								'_liked_by' => null,
+								'fcfs_rate' => 0,
+								'reserved_qty' => 0,
+								'_assign' => null,
+								'planned_qty' => 0,
+								'item_code' => $row->item_code,
+								'actual_qty' => $row->transfer_qty,
+								'projected_qty' => $row->transfer_qty,
+								'ma_rate' => 0,
+								'stock_uom' => $row->stock_uom,
+								'_comments' => null,
+								'ordered_qty' => 0,
+								'reserved_qty_for_sub_contract' => 0,
+								'indented_qty' => 0,
+								'warehouse' => $row->s_warehouse,
+								'stock_value' => $row->valuation_rate * $row->transfer_qty,
+								'_user_tags' => null,
+								'valuation_rate' => $row->valuation_rate,
+							];
+	
+							DB::connection('mysql')->table('tabBin')->insert($bin);
+						}else{
+							$qty_after_transaction = $bin_qry->actual_qty - $row->transfer_qty;
+							if ($qty_after_transaction < 0) {
+								return ['status' => 0, 'message' => 'Insufficient stock for ' . $row->item_code . ' in ' . $row->s_warehouse];
+							}
+							$bin = [
+								'modified' => $now->toDateTimeString(),
+								'modified_by' => Auth::user()->email,
+								'actual_qty' => $bin_qry->actual_qty - $row->transfer_qty,
+								'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
+								'valuation_rate' => $bin_qry->valuation_rate,
+							];
+			
+							DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
 						}
-                        $bin = [
-                            'modified' => $now->toDateTimeString(),
-                            'modified_by' => Auth::user()->email,
-                            'actual_qty' => $bin_qry->actual_qty - $row->transfer_qty,
-                            'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
-                            'valuation_rate' => $bin_qry->valuation_rate,
-                        ];
-        
-                        DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
-                    }
-                    
-                }
-
-                if($row->t_warehouse){
-                    $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
-                        ->where('item_code', $row->item_code)->first();
-                    if (!$bin_qry) {
-                        
-                        $new_id = $new_id + 1;
-                        $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-                        $id = 'BINM/'.$new_id;
-
-                        $bin = [
-                            'name' => $id,
-                            'creation' => $now->toDateTimeString(),
-                            'modified' => $now->toDateTimeString(),
-                            'modified_by' => Auth::user()->email,
-                            'owner' => Auth::user()->email,
-                            'docstatus' => 0,
-                            'parent' => null,
-                            'parentfield' => null,
-                            'parenttype' => null,
-                            'idx' => 0,
-                            'reserved_qty_for_production' => 0,
-                            '_liked_by' => null,
-                            'fcfs_rate' => 0,
-                            'reserved_qty' => 0,
-                            '_assign' => null,
-                            'planned_qty' => 0,
-                            'item_code' => $row->item_code,
-                            'actual_qty' => $row->transfer_qty,
-                            'projected_qty' => $row->transfer_qty,
-                            'ma_rate' => 0,
-                            'stock_uom' => $row->stock_uom,
-                            '_comments' => null,
-                            'ordered_qty' => 0,
-                            'reserved_qty_for_sub_contract' => 0,
-                            'indented_qty' => 0,
-                            'warehouse' => $row->t_warehouse,
-                            'stock_value' => $row->valuation_rate * $row->transfer_qty,
-                            '_user_tags' => null,
-                            'valuation_rate' => $row->valuation_rate,
-                        ];
-
-                        DB::connection('mysql')->table('tabBin')->insert($bin);
-                    }else{
-						$qty_after_transaction = $bin_qry->actual_qty + $row->transfer_qty;
-						if ($qty_after_transaction <= 0) {
-							return ['status' => 0, 'message' => 'Qty cannot be less than or equal to zero for ' . $row->item_code . ' in ' . $row->t_warehouse];
+						
+					}
+	
+					if($row->t_warehouse){
+						$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
+							->where('item_code', $row->item_code)->first();
+						if (!$bin_qry) {
+							
+							$new_id = $new_id + 1;
+							$new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
+							$id = 'BINM/'.$new_id;
+	
+							$bin = [
+								'name' => $id,
+								'creation' => $now->toDateTimeString(),
+								'modified' => $now->toDateTimeString(),
+								'modified_by' => Auth::user()->email,
+								'owner' => Auth::user()->email,
+								'docstatus' => 0,
+								'parent' => null,
+								'parentfield' => null,
+								'parenttype' => null,
+								'idx' => 0,
+								'reserved_qty_for_production' => 0,
+								'_liked_by' => null,
+								'fcfs_rate' => 0,
+								'reserved_qty' => 0,
+								'_assign' => null,
+								'planned_qty' => 0,
+								'item_code' => $row->item_code,
+								'actual_qty' => $row->transfer_qty,
+								'projected_qty' => $row->transfer_qty,
+								'ma_rate' => 0,
+								'stock_uom' => $row->stock_uom,
+								'_comments' => null,
+								'ordered_qty' => 0,
+								'reserved_qty_for_sub_contract' => 0,
+								'indented_qty' => 0,
+								'warehouse' => $row->t_warehouse,
+								'stock_value' => $row->valuation_rate * $row->transfer_qty,
+								'_user_tags' => null,
+								'valuation_rate' => $row->valuation_rate,
+							];
+	
+							DB::connection('mysql')->table('tabBin')->insert($bin);
+						}else{
+							$qty_after_transaction = $bin_qry->actual_qty + $row->transfer_qty;
+							if ($qty_after_transaction <= 0) {
+								return ['status' => 0, 'message' => 'Qty cannot be less than or equal to zero for ' . $row->item_code . ' in ' . $row->t_warehouse];
+							}
+	
+							$bin = [
+								'modified' => $now->toDateTimeString(),
+								'modified_by' => Auth::user()->email,
+								'actual_qty' => $bin_qry->actual_qty + $row->transfer_qty,
+								'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
+								'valuation_rate' => $bin_qry->valuation_rate,
+							];
+			
+							DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
 						}
-
-                        $bin = [
-                            'modified' => $now->toDateTimeString(),
-                            'modified_by' => Auth::user()->email,
-                            'actual_qty' => $bin_qry->actual_qty + $row->transfer_qty,
-                            'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
-                            'valuation_rate' => $bin_qry->valuation_rate,
-                        ];
-        
-                        DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
-                    }
-                }
-            }
-
-			return ['status' => 1, 'message' => 'Bin updated.'];
-            
+					}
+				}
+	
+				return ['status' => 1, 'message' => 'Bin updated.'];
+			}
         } catch (Exception $e) {
             return ['status' => 0, 'message' => 'Error creating transaction. Please try again.'];
         }
@@ -5604,75 +5603,77 @@ class MainController extends Controller
 	public function create_gl_entry($stock_entry){
 		$now = Carbon::now();
 		$stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
-		$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')
-			->where('parent', $stock_entry)
-			->select('s_warehouse', 't_warehouse', DB::raw('SUM(basic_amount) as basic_amount'), 'parent', 'cost_center', 'expense_account')
-			->groupBy('s_warehouse', 't_warehouse', 'parent', 'cost_center', 'expense_account')
-			->get();
+		if ($stock_entry_qry && $stock_entry_qry->docstatus == 1) {
+			$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')
+				->where('parent', $stock_entry)
+				->select('s_warehouse', 't_warehouse', DB::raw('SUM(basic_amount) as basic_amount'), 'parent', 'cost_center', 'expense_account')
+				->groupBy('s_warehouse', 't_warehouse', 'parent', 'cost_center', 'expense_account')
+				->get();
 
-		$gl_entry = [];
-		foreach ($stock_entry_detail as $row) {
-			if($row->s_warehouse){
-				$credit = $row->basic_amount;
-				$debit = 0;
-				$account = $row->s_warehouse;
-			}else{
-				$credit = 0;
-				$debit = $row->basic_amount;
-				$account = $row->t_warehouse;
-			}
+			$gl_entry = [];
+			foreach ($stock_entry_detail as $row) {
+				if($row->s_warehouse){
+					$credit = $row->basic_amount;
+					$debit = 0;
+					$account = $row->s_warehouse;
+				}else{
+					$credit = 0;
+					$debit = $row->basic_amount;
+					$account = $row->t_warehouse;
+				}
 
-			$gl_entry[] = [
-				'name' => 'mes' . uniqid(),
-				'creation' => $now->toDateTimeString(),
-				'modified' => $now->toDateTimeString(),
-				'modified_by' => Auth::user()->email,
-				'owner' => Auth::user()->email,
-				'docstatus' => 1,
-				'parent' => null,
-				'parentfield' => null,
-				'parenttype' => null,
-				'idx' => 0,
-				'fiscal_year' => $now->format('Y'),
-				'voucher_no' => $row->parent,
-				'cost_center' => $row->cost_center,
-				'credit' => $credit,
-				'party_type' => null,
-				'transaction_date' => null,
-				'debit' => $debit,
-				'party' => null,
-				'_liked_by' => null,
-				'company' => 'FUMACO Inc.',
-				'_assign' => null,
-				'voucher_type' => 'Stock Entry',
-				'_comments' => null,
-				'is_advance' => 'No',
-				'remarks' => 'Accounting Entry for Stock',
-				'account_currency' => 'PHP',
-				'debit_in_account_currency' => $debit,
-				'_user_tags' => null,
-				'account' => $account,
-				'against_voucher_type' => null,
-				'against' => $row->expense_account,
-				'project' => $stock_entry_qry->project,
-				'against_voucher' => null,
-				'is_opening' => 'No',
-				'posting_date' => $stock_entry_qry->posting_date,
-				'credit_in_account_currency' => $credit,
-				'total_allocated_amount' => 0,
-				'reference_no' => null,
-				'mode_of_payment' => null,
-				'order_type' => null,
-				'po_no' => null,
-				'reference_date' => null,
-				'cr_ref_no' => null,
-				'or_ref_no' => null,
-				'dr_ref_no' => null,
-				'pr_ref_no' => null,
-			];
-		}	
-		
-		DB::connection('mysql')->table('tabGL Entry')->insert($gl_entry);
+				$gl_entry[] = [
+					'name' => 'mes' . uniqid(),
+					'creation' => $now->toDateTimeString(),
+					'modified' => $now->toDateTimeString(),
+					'modified_by' => Auth::user()->email,
+					'owner' => Auth::user()->email,
+					'docstatus' => 1,
+					'parent' => null,
+					'parentfield' => null,
+					'parenttype' => null,
+					'idx' => 0,
+					'fiscal_year' => $now->format('Y'),
+					'voucher_no' => $row->parent,
+					'cost_center' => $row->cost_center,
+					'credit' => $credit,
+					'party_type' => null,
+					'transaction_date' => null,
+					'debit' => $debit,
+					'party' => null,
+					'_liked_by' => null,
+					'company' => 'FUMACO Inc.',
+					'_assign' => null,
+					'voucher_type' => 'Stock Entry',
+					'_comments' => null,
+					'is_advance' => 'No',
+					'remarks' => 'Accounting Entry for Stock',
+					'account_currency' => 'PHP',
+					'debit_in_account_currency' => $debit,
+					'_user_tags' => null,
+					'account' => $account,
+					'against_voucher_type' => null,
+					'against' => $row->expense_account,
+					'project' => $stock_entry_qry->project,
+					'against_voucher' => null,
+					'is_opening' => 'No',
+					'posting_date' => $stock_entry_qry->posting_date,
+					'credit_in_account_currency' => $credit,
+					'total_allocated_amount' => 0,
+					'reference_no' => null,
+					'mode_of_payment' => null,
+					'order_type' => null,
+					'po_no' => null,
+					'reference_date' => null,
+					'cr_ref_no' => null,
+					'or_ref_no' => null,
+					'dr_ref_no' => null,
+					'pr_ref_no' => null,
+				];
+			}	
+			
+			DB::connection('mysql')->table('tabGL Entry')->insert($gl_entry);
+		}
 	}
 
     public function updatejt(){
