@@ -23,7 +23,7 @@
 		</ul>
 		<!-- Tab panes -->
 		<div class="tab-content">
-         <div class="tab-pane active" id="prod_search_tab{{ $production_order_no }}" role="tabpanel" aria-labelledby="search_tab">
+         	<div class="tab-pane active" id="prod_search_tab{{ $production_order_no }}" role="tabpanel" aria-labelledby="search_tab">
 				<div class="row" style="margin-top: 12px;">
 					<div class="col-md-12">
 						<div class="row">
@@ -68,14 +68,32 @@
 							<div class="col-md-12">
 								@php 
 								@endphp
-								<div style="margin: 5px; display:{{($item_details['planned_start_date'] == null )? 'none':''}};">
-									<span style="font-size: 12pt; margin: auto;">Scheduled Date: </span>
-									<span class="font-weight-bold" style="font-size: 12pt; margin: auto;">{{ $item_details['planned_start_date'] }}</span>
-									<span class="badge badge-{{ ($item_details['status'] == 'Late') ? 'danger' : 'info' }}">{{ $item_details['status'] }}</span>
+								<div class="row">
+									@if ($item_details['planned_start_date'])
+										<div class="col-6 p-1">
+											<span style="font-size: 12pt; margin: auto;">Scheduled Date: </span>
+											<span class="font-weight-bold" style="font-size: 12pt; margin: auto;">{{ $item_details['planned_start_date'] }}</span>
+											<span class="badge badge-{{ ($item_details['status'] == 'Late') ? 'danger' : 'info' }}">{{ $item_details['status'] }}</span>
+										</div>
+									@else
+										<div class="col-6 p-1">
+											<span style="font-size: 12pt; margin: auto;color:#dc3545;font-weight:bolder;">Unscheduled</span>
+										</div>
+									@endif
+									@if ($item_details['qty_to_manufacture'] != $qty_to_manufacture)
+										<div class="col-6">
+											<div class="row">
+												<div class="col-6 p-1">
+													Planned Qty: <span class="font-weight-bold" style="font-size: 12pt;">{{ $total_planned_qty }}</span>
+												</div>
+												<div class="col-6 p-1">
+													Unplanned Qty: <span class="font-weight-bold" style="font-size: 12pt;">{{ $qty_to_manufacture > $total_planned_qty ? $qty_to_manufacture - $total_planned_qty : 0 }}</span>
+												</div>
+											</div>
+										</div>
+									@endif
 								</div>
-								<div style="margin: 5px; display:{{($item_details['planned_start_date'] == null )? '':'none'}};">
-									<span style="font-size: 12pt; margin: auto;color:#dc3545;font-weight:bolder;">Unscheduled</span>
-								</div>
+								
 								<table style="width: 100%; border-color: #D5D8DC;">
 									<col style="width: 18%;">
 									<col style="width: 24%;">
@@ -261,6 +279,7 @@
 											</tr>
 											@endforeach
 											@else
+												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
 												<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>0</b></td>
 												@if ($process['workstation'] != 'Painting')
