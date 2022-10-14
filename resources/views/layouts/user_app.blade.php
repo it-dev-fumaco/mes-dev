@@ -2218,7 +2218,7 @@
           $('#stock-entry-details-modal').modal('show');
         },
         error : function(data) {
-          console.log(data.responseText);
+          showNotification("danger", 'Something went wrong. Please reload the page and try again.', "now-ui-icons travel_info");
         }
       });
     }

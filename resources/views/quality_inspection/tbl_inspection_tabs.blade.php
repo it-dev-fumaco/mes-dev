@@ -97,7 +97,7 @@
                                           <img src="{{ $img }}" alt="{{ $r->item_code }}" class="m-1" style="width: 50px; height: 50px;">
                                           <div class="m-1">
                                              <span class="d-block font-weight-bold">{{ $r->item_code }}</span>
-                                             <small class="d-block">{{ strip_tags($r->description) }}</small>
+                                             <span class="d-block" style="font-size: 8pt;">{{ strip_tags($r->description) }}</span>
                                           </div>
                                        </div>
                                     </td>
