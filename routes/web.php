@@ -550,6 +550,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/inventory_settings', 'MainController@inventorySettings');
 	Route::get('/qa_settings', 'MainController@qaSettings');
 	Route::get('/user_settings', 'MainController@userSettings');
+	Route::get('/orderTypes', 'MainController@orderTypes');
+	Route::get('/deliveryAlert', 'MainController@deliveryAlert');
 });
 //operator_checklist
 Route::post('/save_operator_checklist', 'SecondaryController@save_operator_checklist');

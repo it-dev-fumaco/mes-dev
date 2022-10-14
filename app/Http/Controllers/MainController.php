@@ -625,7 +625,7 @@ class MainController extends Controller
 
 		$bom = DB::connection('mysql')->table('tabBOM')->where('item', $details->sub_parent_item_code)->where('is_default', 1)->orderBy('modified', 'desc')->first();
 		$bom_details = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom->name)->where('item_code', $details->item_code)->first();
-		$qty_to_manufacture = $bom_details->qty * $sales_order_qty;
+		$qty_to_manufacture = ($bom_details ? $bom_details->qty : 0) * $sales_order_qty;
 
 		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs', 'painting_duration', 'total_planned_qty', 'qty_to_manufacture'));
 	}
@@ -8254,6 +8254,85 @@ class MainController extends Controller
 			'quality_inspections' => number_format($quality_inspection_created),
 			'for_feedback' => number_format($for_feedback)
 		];
+	}
+
+	public function orderTypes() {
+		$material_requests = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)
+			->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
+			->where('per_ordered', '<', 100)->where('status', '!=', 'Stopped')
+			->select('name', 'creation', 'custom_purpose as order_type', 'status')->get();
+
+		$consignment_orders = $sample_orders = $other_orders = 0;
+		foreach ($material_requests as $r) {
+			if ($r->order_type == 'Consignment Order') {
+				$consignment_orders++;
+			}
+
+			if ($r->order_type == 'Sample Order') {
+				$sample_orders++;
+			}
+
+			if (!in_array($r->order_type, ['Consignment Order', 'Sample Order', 'Consignment', 'Sample'])) {
+				$other_orders++;
+			}
+		}
+
+		$customer_order = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)
+			->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
+			->where('per_delivered', '<', 100)->where('status', '!=', 'Closed')
+			->select('name', 'creation', 'sales_type as order_type', 'status')
+			->orderBy('creation', 'desc')->count();
+
+		return [
+			'customer_order' => number_format($customer_order),
+			'consignment_order' => number_format($consignment_orders),
+			'sample_order' => number_format($sample_orders),
+			'other_order' => number_format($other_orders)
+		];
+	}
+
+	public function deliveryAlert(Request $request) {
+		// $undelivered_orders = DB::connection('mysql_mes')->table('delivery_date')->where('is_delivered', 0)->get();
+		// foreach ($undelivered_orders as $s) {
+		// 	$ref_type = explode("-", $s->reference_no)[0];
+		// 	if ($ref_type == 'SO') {
+		// 		$is_delivered = DB::connection('mysql')->table('tabSales Order')->where('name', $s->reference_no)->where('per_delivered', 100)->exists();
+		// 	} else {
+		// 		$is_delivered = DB::connection('mysql')->table('tabMaterial Request')->where('name', $s->reference_no)->where('per_ordered', 100)->exists();
+		// 	}
+
+		// 	$is_delivered = $is_delivered ? 1 : 0;
+		// 	if ($is_delivered) {
+		// 		DB::connection('mysql_mes')->table('delivery_date')->where('delivery_date_id', $s->delivery_date_id)->update(['is_delivered' => $is_delivered]);
+		// 	}
+		// }
+
+		$undelivered_orders = DB::connection('mysql_mes')->table('delivery_date')->where('is_delivered', 0)->distinct()->pluck('reference_no');
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order as p')->join('delivery_date as d', DB::raw('IFNULL(p.sales_order, p.material_request)'), 'd.reference_no')
+			->whereRaw('p.feedback_qty > 0')->whereRaw('p.parent_item_code = p.item_code')->whereNotIn('p.status', ['Cancelled', 'Stopped', 'Closed'])->where('d.is_delivered', 0)
+			->whereRaw('p.parent_item_code = d.parent_item_code')
+			->when($request->q, function ($query) use ($request) {
+				return $query->where(function($q) use ($request) {
+					$q->where('d.reference_no', 'LIKE', '%'.$request->q.'%')
+					->orWhere('p.item_code', 'LIKE', '%'.$request->q.'%');
+				});
+            })
+			->select('d.reference_no', 'p.item_code', 'p.qty_to_manufacture', 'p.stock_uom', DB::raw('IFNULL(d.rescheduled_delivery_date, d.delivery_date) as del_date'))
+			->whereDate(DB::raw('IFNULL(d.rescheduled_delivery_date, d.delivery_date)'), '<=', Carbon::now()->format('Y-m-d'))->orderBy('del_date', 'asc')->get();
+
+		$data = [];
+		foreach ($production_orders as $r) {
+			$data[] = [
+				'reference_no' => $r->reference_no,
+				'item_code' => $r->item_code,
+				'stock_uom' => $r->stock_uom,
+				'qty' => $r->qty_to_manufacture,
+				'status' => Carbon::now()->ne($r->del_date) ? 'For Reschedule' : 'To Delivery Today'
+			];
+		}
+
+		return view('tables.tbl_delivery_alert', compact('data'));
 	}
 	
 	public function viewOrderList(Request $request) {

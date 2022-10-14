@@ -31,7 +31,7 @@ class AssemblyController extends Controller
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
-          
+
             $reference_details = DB::connection('mysql')->table('tab' . $reference_type)->where('name', $id)->where('docstatus', 1)->first();
             if (!$reference_details) {
                 return response()->json(['message' => $reference_type .' <b>' . $id . '</b> not found.']);
@@ -39,11 +39,21 @@ class AssemblyController extends Controller
 
             if ($reference_type == 'Sales Order') {
                 $items = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
-                    ->select(DB::raw('parent, (qty - delivered_qty) as pending_qty'), 'item_code', 'warehouse', 'description', 'uom', 'qty', 'idx', 'item_classification', 'delivered_qty', 'name', 'delivery_date')->orderBy('idx', 'asc')->get();
+                    ->when($request->item, function ($query) use ($request){
+                        return $query->whereIn('item_code', $request->item);
+                    })
+                    ->select(DB::raw('parent, (qty - delivered_qty) as pending_qty'), 'item_code', 'warehouse', 'description', 'uom', 'qty', 'idx', 'item_classification', 'delivered_qty', 'name', 'delivery_date')
+                    ->orderBy('idx', 'asc')->get();
             }else{
                 $items = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
-                   ->select(DB::raw('parent, (qty - ordered_qty) as pending_qty'), 'item_code', 'warehouse', 'description', 'uom', 'qty', 'idx', 'ordered_qty', 'name', 'item_classification', 'schedule_date as delivery_date')->orderBy('idx', 'asc')->get();
+                    ->when($request->item, function ($query) use ($request){
+                        return $query->whereIn('item_code', $request->item);
+                    })
+                   ->select(DB::raw('parent, (qty - ordered_qty) as pending_qty'), 'item_code', 'warehouse', 'description', 'uom', 'qty', 'idx', 'ordered_qty', 'name', 'item_classification', 'schedule_date as delivery_date')
+                   ->orderBy('idx', 'asc')->get();
             }
+
+            $requested_bom = $request->bom ? $request->bom : [];
 
             $existing_production_orders = [];
             if($request->no_bom) {
@@ -101,6 +111,7 @@ class AssemblyController extends Controller
                     'production_order' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->name : null,
                     'planned_start_date' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->planned_start_date : null,
                     'fg_warehouse' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->fg_warehouse : null,
+                    'requested_bom' => array_key_exists($item->item_code, $requested_bom) ? $requested_bom[$item->item_code] : null
                 ];
             }
 
@@ -232,7 +243,7 @@ class AssemblyController extends Controller
                             'description' => $parent_part['description'],
                             'item_classification' => $parent_part['item_classification'],
                             'item_group' => $parent_part['item_group'],
-                            'bom' => $parent_default_bom->name,
+                            'bom' => $parent_part['bom_no'],
                             'bom_reviewed' => $parent_default_bom->is_reviewed,
                             'planned_qty' => $parent_part['qty'] * $request->qty[$idx],
                             'available_qty' => $available_qty,

@@ -39,6 +39,16 @@
                      <div class="row" style="margin-top: 10px;">
                         <div class="col-md-6 offset-md-3">
                            <form id="get-somr-frm">
+                              @if (request('item'))
+                              @foreach (request('item') as $r)
+                              <input type="hidden" value="{{ $r }}" name="item[]">
+                              @endforeach
+                              @endif
+                              @if (request('bom'))
+                              @foreach (request('bom') as $s => $e)
+                              <input type="hidden" value="{{ $e }}" name="bom[{{ $s }}]">
+                              @endforeach
+                              @endif
                               <table style="width: 100%;">
                                  <col style="width: 20%;">
                                  <col style="width: 25%;">
@@ -52,8 +62,8 @@
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
                                           <select class="form-control form-control-lg" id="items-from">
-                                             <option value="Sales Order">Sales Order</option>
-                                             <option value="Material Request">Material Request</option>
+                                             <option value="Sales Order" {{ request('type') ? (request('type') == 'SO' ? 'selected' : '') : '' }}>Sales Order</option>
+                                             <option value="Material Request" {{ request('type') ? (request('type') == 'MREQ' ? 'selected' : '') : '' }}>Material Request</option>
                                           </select>
                                        </div>
                                     </td>
@@ -62,7 +72,8 @@
                                     </td>
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
-                                          <input type="text" id="reference-no" class="form-control form-control-lg" value="SO-" autocomplete="off">
+                                          <input type="hidden" id="ref-no" value="{{ request('ref') }}">
+                                          <input type="text" id="reference-no" class="form-control form-control-lg" value="{{ request('ref') ? request('ref') : 'SO-' }}" autocomplete="off">
                                        </div>
                                     </td>
                                     <td class="align-middle">
@@ -72,7 +83,7 @@
                               </table>
                            </form>
                         </div>
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-md-12">
                            <div id="so-item-list-div"></div>
                         </div>
                      </div>
@@ -87,7 +98,7 @@
                   <div class="tab-pane" id="step2" role="tabpanel" aria-labelledby="step2-tab">
                      <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">2. Get Finished Goods</h4>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-md-12">
                            <div class="so-details-div"></div>
                            <div id="parts-list-div"></div>
                         </div>
@@ -747,12 +758,16 @@
          }
       });
 
-      $('#get-somr-frm').submit(function(e){
-         e.preventDefault();
+      if ($('#ref-no').val()) {
+         submit_somr_form();
+      }
+
+      function submit_somr_form() {
          var items_from = $('#items-from').val();
          $.ajax({
             url: "/assembly/get_reference_details/" + items_from + "/" + $('#reference-no').val(),
             type:"GET",
+            data: $('#get-somr-frm').serialize(),
             success:function(data){
                if (data.message) {
                   var alert = '<div class="alert alert-danger text-center" role="alert" style="font-size: 12pt;">'+ data.message + '</div>';
@@ -772,6 +787,11 @@
                console.log(errorThrown);
             },
          });
+      }
+
+      $('#get-somr-frm').submit(function(e){
+         e.preventDefault();
+         submit_somr_form();
       });
 
       // get part
@@ -1521,8 +1541,6 @@
          });
       });
 
-     
-
       function showNotification(color, message, icon){
          $.notify({
             icon: icon,
@@ -1535,28 +1553,6 @@
                align: 'center'
             }
          });
-      }
-
-      setInterval(updateClock, 1000);
-      function updateClock(){
-         var currentTime = new Date();
-         var currentHours = currentTime.getHours();
-         var currentMinutes = currentTime.getMinutes();
-         var currentSeconds = currentTime.getSeconds();
-         // Pad the minutes and seconds with leading zeros, if required
-         currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-         currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-         // Choose either "AM" or "PM" as appropriate
-         var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-         // Convert the hours component to 12-hour format if needed
-         currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-         // Convert an hours component of "0" to "12"
-         currentHours = (currentHours === 0) ? 12 : currentHours;
-         currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-         // Compose the string for display
-         var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
-
-         $("#current-time").html(currentTimeString);
       }
 
       $(document).on('show.bs.modal', '.modal', function (event) {

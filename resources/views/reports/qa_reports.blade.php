@@ -647,20 +647,7 @@
   <style type="text/css">
   .modal-lg-custom {
       max-width: 80% !important;
-  }
-  #manual-production-modal .form-control {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-shadow: none;
-    margin-bottom: 15px;
-  }
-  #manual-production-modal .form-control:hover, #manual-production-modal .form-control:focus, #manual-production-modal .form-control:active {
-    box-shadow: none;
-  }
-  #manual-production-modal .form-control:focus {
-    border: 1px solid #34495e;
-  }
-  
+  }  
   .select2.select2-container {
     width: 100% !important;
   }

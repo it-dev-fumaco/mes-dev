@@ -68,69 +68,94 @@
                 </div>
                 <div class="row mt-2">
                     <div class="col-12">
-                        <table class="table table-bordered table-striped">
-                            <col style="width: 5%;">
-                            <col style="width: 41%;">
-                            <col style="width: 12%;">
-                            <col style="width: 10%;">
-                            <col style="width: 10%;">
-                            <col style="width: 10%;">
-                            <col style="width: 12%;">
-                            <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
-                                <th class="p-2">No.</th>
-                                <th class="p-2">Item Description</th>
-                                <th class="p-2">Qty</th>
-                                <th class="p-2">Available Stock</th>
-                                <th class="p-2">BOM No.</th>
-                                <th class="p-2">Ship by</th>
-                                <th class="p-2">Action</th>
-                            </thead>
-                            <tbody style="font-size: 8pt;">
-                                @php
-                                    $items = array_key_exists($s->name, $item_list) ? $item_list[$s->name] : [];
-                                    $production_orders = array_key_exists($s->name, $items_production_orders) ? $items_production_orders[$s->name] : [];
-                                @endphp
-                                @forelse ($items as $v)
-                                @php
-                                    $bom = array_key_exists($v->item_code, $default_boms) ? $default_boms[$v->item_code] : [];
-                                    $bom = count($bom) > 0 ? $bom[0]->name : null;
+                        <form action="/assembly/wizard" class="order-items-form">
+                            <input type="hidden" name="ref" value="{{ $s->name }}">
+                            @php
+                                $ref_type = explode("-", $s->name)[0];
+                            @endphp
+                            <input type="hidden" name="ref_type" value="{{ $ref_type }}">
+                            <table class="table table-bordered table-striped">
+                                <col style="width: 5%;">
+                                <col style="width: 46%;">
+                                <col style="width: 10%;">
+                                <col style="width: 17%;">
+                                <col style="width: 10%;">
+                                <col style="width: 12%;">
+                                <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
+                                    <th class="p-2">-</th>
+                                    <th class="p-2">Item Description</th>
+                                    <th class="p-2">Qty</th>
+                                    <th class="p-2">BOM No.</th>
+                                    <th class="p-2">Ship by</th>
+                                    <th class="p-2">Prod. Order</th>
+                                </thead>
+                                <tbody style="font-size: 8pt;">
+                                    @php
+                                        $items = array_key_exists($s->name, $item_list) ? $item_list[$s->name] : [];
+                                        $production_orders = array_key_exists($s->name, $items_production_orders) ? $items_production_orders[$s->name] : [];
+                                    @endphp
+                                    @forelse ($items as $v)
+                                    @php
+                                        $bom = array_key_exists($v->item_code, $default_boms) ? $default_boms[$v->item_code] : [];
+                                        $defaultbom = count($bom) > 0 ? $bom[0]->name : null;
 
-                                    $production_orders = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
-                                @endphp
-                                <tr>
-                                    <td class="text-center p-2">{{ $v->idx }}</td>
-                                    <td class="text-justify p-2">
-                                        <span class="font-weight-bold">{{ $v->item_code }}</span> {!! $v->description !!}</td>
-                                    <td class="text-center p-2">
-                                        <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
-                                        <small class="d-block">{{ $v->stock_uom }}</small>
-                                    </td>
-                                    <td class="text-center p-2"></td>
-                                    <td class="text-center p-2">
-                                        <a href="#" class="text-decoration-none view-bom" data-id="{{ $bom }}">{{ $bom }}</a>
-                                    </td>
-                                    <td class="text-center p-2">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
-                                    <td class="text-center p-2">
-                                        @forelse ($production_orders as $production_order)
-                                        <a href="#" data-jtno="{{ $production_order }}" class="text-decoration-none prod-details-btn">{{ $production_order }}</a>
-                                        @empty
+                                        $production_orders = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
+                                    @endphp
+                                    <tr>
+                                        <td class="text-center p-2">
+                                            <input type="checkbox" class="form-control" value="{{ $v->item_code }}" name="item[]">
+                                        </td>
+                                        <td class="text-justify p-2">
+                                            <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}</td>
+                                        <td class="text-center p-2">
+                                            <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
+                                            <small class="d-block">{{ $v->stock_uom }}</small>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            @if(count($bom) > 0)
+                                            <div class="input-group m-0">
+                                                <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
+                                                    @foreach($bom as $b)
+                                                    <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-info view-bom" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                </div>
+                                            </div>
+                                            @else
+                                            <input type="hidden" name="bom[{{ $v->item_code }}]">
+                                            <span>-- No BOM --</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center p-2">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
+                                        <td class="text-center p-2">
+                                            @forelse ($production_orders as $production_order)
+                                            <a href="#" data-jtno="{{ $production_order }}" class="text-decoration-none prod-details-btn d-block">{{ $production_order }}</a>
+                                            @empty
                                             -
-                                        @endforelse
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted text-uppercase">No item(s) found</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                        @if ($s->notes)
-                        <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2" style="font-size: 12px;">
-                            <span class="font-weight-bold d-inline-block m-1">Notes:</span>
-                            <span class="d-inline-block m-1">{!! $s->notes !!}</span>
-                        </div>
-                        @endif
+                                            @endforelse
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted text-uppercase">No item(s) found</td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                            <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2" style="font-size: 12px;">
+                                <div class="col-8">
+                                    @if ($s->notes)
+                                    <span class="font-weight-bold d-inline-block m-1">Notes:</span>
+                                    <span class="d-inline-block m-1">{!! $s->notes !!}</span>
+                                    @endif
+                                </div>
+                                <div class="col-4 p-0">
+                                    <button class="btn btn-primary float-right m-0" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

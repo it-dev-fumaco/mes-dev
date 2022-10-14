@@ -80,6 +80,21 @@
           </a>
         </li>
       </ul>
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0" {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+          <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Fabrication</span>
+          </a>
+        </li>
+        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
+          <a href="/assembly/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Assembly</span>
+          </a>
+        </li>
+      </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
         <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
@@ -98,21 +113,6 @@
           <a href="/production_schedule/3" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Assembly Scheduling</span>
-          </a>
-        </li>
-      </ul>
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0" {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
-          <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Fabrication</span>
-          </a>
-        </li>
-        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
-          <a href="/assembly/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Assembly</span>
           </a>
         </li>
       </ul>
