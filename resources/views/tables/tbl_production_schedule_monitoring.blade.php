@@ -1,156 +1,110 @@
-<div class="row">
-  <div class="col-md-6 offset-md-1" style="margin-top: -52px;">
-    <table class="w-100 mt-2 p-0" id="filter-form">
-      <col style="width: 40%;">
-      <col style="width: 25%;">
-      <col style="width: 25%;">
-      <col style="width: 10%;">
-      <tr>
-        <td>
-          <div class="form-group mb-0 mr-1">
-            <select class="form-control select-custom" id="customer-filter">
-              <option value="all">Select Customer</option>
-              @foreach ($filters['customers'] as $i => $customer)
-              <option value="{{ $customer }}">{{ $customer }}</option>
-              @endforeach
-            </select>
-          </div>
-        </td>
-        <td>
-          <div class="form-group mb-0 mr-1">
-            <select class="form-control select-custom" id="reference-filter">
-              <option value="all">Select Reference No.</option>
-              @foreach ($filters['reference_nos'] as $i => $reference)
-              <option value="{{ $reference }}">{{ $reference }}</option>
-              @endforeach
-            </select>
-          </div>
-        </td>
-        <td>
-          <div class="form-group mb-0 mr-1">
-            <select class="form-control select-custom rounded-0" id="parent-item-filter">
-              <option value="all">Select Parent Item</option>
-              @foreach ($filters['parent_item_codes'] as $i => $parent_item)
-              <option value="{{ $parent_item }}">{{ $parent_item }}</option>
-              @endforeach
-            </select>
-          </div>
-        </td>
-        <td class="pl-2">
-          <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
-        </td>
-      </tr>
-    </table>
-  </div>
-</div>
-<table class="table table-striped text-center sticky-header" id="monitoring-table">
-    <col style="width: 7%;"><!-- Prod. Order -->
-    <col style="width: 7%;"><!-- Planned Start -->
-    <col style="width: 7%;"><!-- Delivery Date -->
-    <col style="width: 16%;"><!-- Customer -->
-    <col style="width: 26%;"><!-- Item Description -->
-    <col style="width: 6%;"><!-- Qty -->
-    <col style="width: 6%;"><!-- Produced -->
-    <col style="width: 6%;"><!-- Feedbacked -->
-    <col style="width: 6%;"><!-- Balance -->
-    <col style="width: 6%;"><!-- Reject -->
-    <col style="width: 9%;"><!-- Action -->
-    <thead class="text-primary" style="font-size: 7pt;">
-      <th class="text-center font-weight-bold">Prod. Order</th>
-      <th class="text-center font-weight-bold">Planned Start</th>
-      <th class="text-center font-weight-bold">Delivery Date</th>
-      <th class="text-center font-weight-bold">Customer</th>
-      <th class="text-center font-weight-bold">Item Description</th>
-      <th class="text-center font-weight-bold">Qty</th>
-      <th class="text-center font-weight-bold">Produced</th>
-      <th class="text-center font-weight-bold">Feedbacked</th>
-      <th class="text-center font-weight-bold">Balance</th>
-      <th class="text-center font-weight-bold">Reject</th>
-      <th class="text-center font-weight-bold">Action</th>
-    </thead>
-    <tbody style="font-size: 9pt;">
-      @forelse($production_orders as $row)
-      @php
-          if($row['status'] == 'Completed'){
-            $badge = 'badge-success';
-            $text = 'Completed';
-          }else if($row['is_backlog']){
-            $badge = 'badge-danger';
-            $text = 'Backlog';
-          }else{
-            $badge = 'd-none';
-            $text = null;
-          }
-      @endphp
-      <tr class="tbl-row" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['reference_no'] }}" data-parent-item="{{ $row['parent_item_code'] }}">
-        <td class="text-center p-0">
-          <a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn font-weight-bold text-dark d-block">{{ $row['production_order'] }}</a>
-          <span class="badge {{ $badge }}" style="font-size: 9pt;">{{ $text }}</span>
-        </td>
-        <td class="text-center p-0">
-          <span class="d-block font-weight-bold">{{ date('M-d-Y', strtotime($row['planned_start_date'])) }}</span>
-          <span class="d-block font-italic" style="font-size: 8pt;">{{ $row['actual_start_date'] }}</span>
-        </td>
-        <td class="text-center p-0 font-weight-bold">{{ date('M-d-Y', strtotime($row['delivery_date'])) }}</td>
-        <td class="text-center">
-          <span class="d-block font-weight-bold">{{ $row['reference_no'] }}</span>
-          <span class="d-block">{{ $row['customer'] }}</span>
-        </td>
-        <td class="text-justify">
-          <span class="font-weight-bold">{{ $row['item_code'] }}</span> - {{$row['description'] }}
-          @if ($row['notes'])
-          <span class="d-block"><b>Notes:</b> {{ $row['notes'] }}</span>
-          @endif
-        </td>
-        <td class="text-center">
-          <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['qty_to_manufacture'] }}</span>
-          <span class="d-block">{{ $row['stock_uom'] }}</span>
-        </td>
-        <td class="text-center">
-          <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['produced_qty'] }}</span>
-          <span class="d-block">{{ $row['stock_uom'] }}</span>
-        </td>
-        <td class="text-center">
-          <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['feedback_qty'] }}</span>
-          <span class="d-block">{{ $row['stock_uom'] }}</span>
-        </td>
-        <td class="text-center">
-          <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['balance_qty'] }}</span>
-          <span class="d-block">{{ $row['stock_uom'] }}</span>
-        </td>
-        <td class="text-center">
-          <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['rejects'] }}</span>
-          <span class="d-block">{{ $row['stock_uom'] }}</span>
-        </td>
-        <td class="text-center p-0">
-          <div class="btn-group m-0">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $row['production_order'] }}" data-item-code="{{ $row['item_code'] }}">View Materials</a>
-              @if ($row['parent_item_code'] == $row['item_code'])
-              <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $row['production_order'] }}">Reschedule Delivery Date</a>
-              @endif
-              <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $row['production_order'] }}">Create Feedback</a>
-              <a class="dropdown-item addnotes" href="#" data-production-order="{{ $row['production_order'] }}" data-notes="{{ $row['notes'] }}">Add Notes</a>
-              <a class="dropdown-item view-process-qty-btn" href="#" data-production-order="{{ $row['production_order'] }}">View Process</a>
-              @if (!in_array($row['status'], ['Cancelled', 'Feedbacked']))
-                @if ($row['status'] == 'Closed')
-                  <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Re-open Production</a>
-                @else
-                  <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Close Production</a>
-                @endif
+<div class="container-fluid">
+  @php
+      $qty_to_manufacture = [];
+  @endphp
+  @forelse ($planned_start_dates as $date)
+    @php
+        $production_order = isset($production_orders[$date]) ? $production_orders[$date] : [];
+        $qty_to_manufacture[] = collect($production_order)->sum('qty_to_manufacture');
+    @endphp
+    <div class="card card-primary">
+      <div class="card-body">
+        <div class="row p-0">
+          <div class="col-2 text-center p-3">
+            <div class="col-10 text-left">
+              <span style="font-size: 17pt;">{{ Carbon\Carbon::parse($date)->format('M d, Y') }}</span> <br>
+              <span>{{ Carbon\Carbon::parse($date)->format('l') }}</span> <br>
+              @if (Carbon\Carbon::parse($date)->endOfDay() < Carbon\Carbon::now()->startOfDay())
+                <span style="color: #E42223">BACKLOG</span>
+              @else
+                <span style="color: #1F8C04">TODAY</span>
               @endif
             </div>
           </div>
-        </td>
-      </tr>
-      @empty
-      <tr>
-        <td colspan="12" class="text-center">No Scheduled Production Order(s) found</td>
-      </tr>
-      @endforelse
-    </tbody>
-  </table>
+          <div class="col-10 p-0">
+            <table class="table table-striped text-center" id="monitoring-table">
+              <col style="width: 12%"><!-- Actual Start Date -->
+              <col style="width: 20%"><!-- Prod. Order -->
+              <col style="width: 30%"><!-- Item Description -->
+              <col style="width: 12%"><!-- Delivery Date -->
+              <col style="width: 8%"><!-- Qty -->
+              <col style="width: 8%"><!-- Action -->
+              <tbody style="font-size: 9pt;">
+                @forelse($production_order as $row)
+                @php
+                  if($row['status'] == 'Completed'){
+                    $status = '#4BFA1F';
+                  }else if (Carbon\Carbon::parse($date)->endOfDay() < Carbon\Carbon::now()->startOfDay()) {
+                    $status = '#FA2C1F';
+                  }else{
+                    $status = $row['actual_start_date'] ? '#FA7A50' : '#B8C1B5';
+                  }
+                @endphp
+                <tr class="tbl-row" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['reference_no'] }}" data-parent-item="{{ $row['parent_item_code'] }}">
+                  <td class="p-0">
+                    <div class="container-fluid row text-center p-1">
+                      <div class="col-4 d-flex flex-row justify-content-center align-items-center">
+                        <div style="width: 25px; height: 25px; border-radius: 50%; background-color: {{ $status }}"></div>
+                      </div>
+                      <div class="col-8 d-flex flex-row justify-content-center align-items-center">
+                        <span class="text-center p-0 font-weight-bold" style="font-size: 8pt; white-space: nowrap">
+                          {{ $row['actual_start_date'] ? $row['actual_start_date'] : 'Not Started' }}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center p-0">
+                    <a href="#" data-jtno="{{ $row['production_order'] }}" class="prod-details-btn font-weight-bold text-dark d-block">{{ $row['production_order'] }}</a>
+                    <span class="d-block">{{ $row['customer'] }}</span>
+                  </td>
+                  <td class="text-justify">
+                    <span class="font-weight-bold">{{ $row['item_code'] }}</span> - {{$row['description'] }}
+                    @if ($row['notes'])
+                    <span class="d-block"><b>Notes:</b> {{ $row['notes'] }}</span>
+                    @endif
+                  </td>
+                  <td class="text-center p-0 font-weight-bold">SHIP BY: {{ date('m/d/Y', strtotime($row['delivery_date'])) }}</td>
+                  <td class="text-center">
+                    <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['qty_to_manufacture'] }}</span>
+                    <span class="d-block">{{ $row['stock_uom'] }}</span>
+                  </td>
+                  <td class="text-center p-0">
+                    <div class="btn-group m-0">
+                      <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action </button>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $row['production_order'] }}" data-item-code="{{ $row['item_code'] }}">View Materials</a>
+                        @if ($row['parent_item_code'] == $row['item_code'])
+                        <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $row['production_order'] }}">Reschedule Delivery Date</a>
+                        @endif
+                        <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $row['production_order'] }}">Create Feedback</a>
+                        <a class="dropdown-item addnotes" href="#" data-production-order="{{ $row['production_order'] }}" data-notes="{{ $row['notes'] }}">Add Notes</a>
+                        <a class="dropdown-item view-process-qty-btn" href="#" data-production-order="{{ $row['production_order'] }}">View Process</a>
+                        @if (!in_array($row['status'], ['Cancelled', 'Feedbacked']))
+                          @if ($row['status'] == 'Closed')
+                            <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Re-open Production</a>
+                          @else
+                            <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $row['production_order'] }}">Close Production</a>
+                          @endif
+                        @endif
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                @empty
+                <tr>
+                  <td colspan="12" class="text-center">No Scheduled Production Order(s) found</td>
+                </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  @empty
+      
+  @endforelse
+</div>
 
   <style>
     .sticky-header th{
@@ -164,7 +118,7 @@
 <script>
   $(document).ready(function (){
     $('#production-order-count').text('{{ count($production_orders) }}');
-    $('#qty-to-manufacture-count').text('{{ number_format(collect($production_orders)->sum("qty_to_manufacture")) }}');
+    $('#qty-to-manufacture-count').text('{{ number_format(collect($qty_to_manufacture)->sum()) }}');
     $('#backlogged-production-order-count').text('{{ $backlogs }}');
   });
 </script>

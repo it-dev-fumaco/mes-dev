@@ -71,8 +71,39 @@
                       <div class="card p-0" style="background-color: #0277BD;">
                         <div class="card-body pb-0">
                           <div class="row" style="margin-top: -15px;">
-                            <div class="col-md-8" style="padding: 5px 5px 5px 12px;">
+                            <div class="col-md-1" style="padding: 5px 5px 5px 12px;">
                               <h5 class="text-white font-weight-bold text-left m-2 pl-3" style="font-size: 13pt;">Filter</h5>
+                            </div>
+                            <div class="col-md-7">
+                              <table class="w-100 mt-2 p-0" id="filter-form">
+                                <col style="width: 40%;">
+                                <col style="width: 25%;">
+                                <col style="width: 25%;">
+                                <col style="width: 10%;">
+                                <tr>
+                                  <td>
+                                    <div class="form-group mb-0 mr-1">
+                                      <select class="form-control" id="customer-filter">
+                                      </select>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-group mb-0 mr-1">
+                                      <select class="form-control" id="reference-filter">
+                                      </select>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-group mb-0 mr-1">
+                                      <select class="form-control rounded-0" id="parent-item-filter">
+                                      </select>
+                                    </div>
+                                  </td>
+                                  <td class="pl-2">
+                                    <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
+                                  </td>
+                                </tr>
+                              </table>
                             </div>
                             <div class="col-md-4 m-0" style="padding: 5px;">
                               <table style="width: 100%;">
@@ -658,17 +689,97 @@
     var operation_id = $('#operation-id').val();
 
     $(document).on('change', '#filter-form select', function() {
-      filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+      // filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+      filter_schedule_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
     });
 
     $(document).on('click', '#clear-kanban-filters', function(e){
       e.preventDefault();
-    
       $('#customer-filter').val('all').trigger('change');
       $('#reference-filter').val('all').trigger('change');
       $('#parent-item-filter').val('all').trigger('change');
     
       filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+    });
+
+    function filter_schedule_monitoring_table(fltr1, fltr2, fltr3){
+      $.ajax({
+        url: "/production_schedule_monitoring/{{ $operation_details->operation_id }}/{{ $schedule_date }}",
+        type: "GET",
+        data: {
+          customer: fltr1,
+          reference: fltr2,
+          parent: fltr3
+        },
+        success: function (response) {
+          $('#scheduled-production-div').html(response);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    }
+
+    $('#customer-filter').select2({
+      placeholder: 'Select a Customer',
+      ajax: {
+        url: '/production_schedule_monitoring_filters/{{ $operation_details->operation_id }}/{{ $schedule_date }}',
+        method: 'GET',
+        dataType: 'json',
+        data: function (data) {
+          return {
+            search_customer: data.term // search term
+          };
+        },
+        processResults: function (response) {
+          return {
+            results: response.customers
+          };
+        },
+        cache: true
+      }
+    });
+
+    $('#reference-filter').select2({
+      placeholder: 'Select Reference Number',
+      ajax: {
+        url: '/production_schedule_monitoring_filters/{{ $operation_details->operation_id }}/{{ $schedule_date }}',
+        method: 'GET',
+        dataType: 'json',
+        data: function (data) {
+          return {
+            search_reference: data.term // search term
+          };
+        },
+        processResults: function (response) {
+          return {
+            results: response.reference_nos
+          };
+        },
+        cache: true
+      }
+    });
+
+    $('#parent-item-filter').select2({
+      placeholder: 'Select Parent Item Code',
+      ajax: {
+        url: '/production_schedule_monitoring_filters/{{ $operation_details->operation_id }}/{{ $schedule_date }}',
+        method: 'GET',
+        dataType: 'json',
+        data: function (data) {
+          return {
+            search_parent: data.term // search term
+          };
+        },
+        processResults: function (response) {
+          return {
+            results: response.parent
+          };
+        },
+        cache: true
+      }
     });
 
     // start by showing all items
@@ -690,6 +801,8 @@
       if (fltr3 !== 'all') {
         selector =  selector + '[data-parent-item="' + fltr3 + '"]';
       }
+
+      // count rows without d-none
 
       // show all results
       $(selector).removeClass('d-none');

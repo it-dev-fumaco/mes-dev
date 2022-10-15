@@ -6963,6 +6963,63 @@ class MainController extends Controller
 		return response()->json(['success' => 1, 'message' => 'Production Order updated.', 'reload_tbl' => $request->reload_tbl]);	
 	}
 
+	public function production_schedule_monitoring_filters($operation, $schedule_date, Request $request){
+		$production_orders = DB::connection('mysql_mes')->table('production_order')
+			->whereNotIn('status', ['Cancelled', 'Closed'])
+			->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
+			->when($request->search_customer, function ($q) use ($request){
+				return $q->where('customer', 'like', '%'.$request->search_customer.'%');
+			})
+			->when($request->search_reference, function ($q) use ($request){
+				return $q->where(function ($x) use ($request){
+					$x->where('sales_order', 'like', '%'.$request->search_reference.'%')->orWhere('material_request', 'like', '%'.$request->search_reference.'%');
+				});
+			})
+			->when($request->search_parent, function ($q) use ($request){
+				return $q->where('parent_item_code', 'like', '%'.$request->search_parent.'%');
+			})
+			->get();
+
+		$customers = $refs = $parent = [];
+		foreach ($production_orders as $row) {
+			$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+			$customers[] = $row->customer;
+			$refs[] = $reference_no;
+			$parent[] = $row->parent_item_code;
+		}
+
+		$customers = collect($customers)->push('%All')->sort()->toArray();
+		$refs = collect($refs)->push('%All')->sort()->toArray();
+		$parent = collect($parent)->push('%All')->sort()->toArray();
+
+		$customers = collect(array_unique(array_filter($customers)))->map(function ($q){
+			return [
+				'id' => $q == '%All' ? 'Select All' : $q,
+				'text' => $q == '%All' ? 'Select All' : $q
+			];
+		})->values()->all();
+
+		$refs = collect(array_unique(array_filter($refs)))->map(function ($q){
+			return [
+				'id' => $q == '%All' ? 'Select All' : $q,
+				'text' => $q == '%All' ? 'Select All' : $q
+			];
+		})->values()->all();
+
+		$parent = collect(array_unique(array_filter($parent)))->map(function ($q){
+			return [
+				'id' => $q == '%All' ? 'Select All' : $q,
+				'text' => $q == '%All' ? 'Select All' : $q
+			];
+		})->values()->all();
+
+		return response()->json([
+			'customers' => $customers,
+			'reference_nos' => $refs,
+			'parent' => $parent
+		]);
+	}
+
 	public function production_schedule_monitoring($operation, $schedule_date, Request $request){
 		$permissions = $this->get_user_permitted_operation();
 
@@ -6977,8 +7034,7 @@ class MainController extends Controller
 		$workstation_list = DB::connection('mysql_mes')->table('workstation')
             ->where('operation_id', $operation)
             ->select('workstation_name','order_no','workstation_id')
-			->orderBy('order_no','asc')->get();
-
+			->orderBy('order_no','desc')->get();
 		if ($request->ajax()) {
 			$start = Carbon::parse($schedule_date)->startOfDay();
 			$end = Carbon::parse($schedule_date)->endOfDay();
@@ -6986,13 +7042,35 @@ class MainController extends Controller
 			// get schedule production order against $schedule_date
 			$scheduled_production = DB::connection('mysql_mes')->table('production_order')
 				->whereNotIn('status', ['Cancelled', 'Feedbacked', 'Completed', 'Closed'])->whereDate('planned_start_date', $start)
-				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
+				->when($request->customer && $request->customer != 'Select All', function ($q) use ($request){
+					return $q->where('customer', $request->customer);
+				})
+				->when($request->reference && $request->reference != 'Select All', function ($q) use ($request){
+					return $q->where(function ($x) use ($request){
+						$x->where('sales_order', $request->reference)->orWhere('material_request', $request->reference);
+					});
+				})
+				->when($request->parent && $request->parent != 'Select All', function ($q) use ($request){
+					return $q->where('parent_item_code', $request->parent);
+				});
 
 			// get pending backlogs before $schedule_date
 			$pending_backlogs = DB::connection('mysql_mes')->table('production_order')
 				->whereIn('status', ['In Progress', 'Not Started', 'Partially Feedbacked', 'Ready for Feedback'])
 				->whereDate('planned_start_date', '<', $schedule_date)
-				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture');
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
+				->when($request->customer && $request->customer != 'Select All', function ($q) use ($request){
+					return $q->where('customer', $request->customer);
+				})
+				->when($request->reference && $request->reference != 'Select All', function ($q) use ($request){
+					return $q->where(function ($x) use ($request){
+						$x->where('sales_order', $request->reference)->orWhere('material_request', $request->reference);
+					});
+				})
+				->when($request->parent && $request->parent != 'Select All', function ($q) use ($request){
+					return $q->where('parent_item_code', $request->parent);
+				});
 
 			$pending_count = Clone $pending_backlogs;
 			$backlogs = $pending_count->count();
@@ -7002,6 +7080,17 @@ class MainController extends Controller
 				->whereIn('status', ['Completed', 'Feedbacked'])->whereBetween('actual_end_date', [$start, $end])
 				->whereDate('planned_start_date', '<', $schedule_date)
 				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
+				->when($request->customer && $request->customer != 'Select All', function ($q) use ($request){
+					return $q->where('customer', $request->customer);
+				})
+				->when($request->reference && $request->reference != 'Select All', function ($q) use ($request){
+					return $q->where(function ($x) use ($request){
+						$x->where('sales_order', $request->reference)->orWhere('material_request', $request->reference);
+					});
+				})
+				->when($request->parent && $request->parent != 'Select All', function ($q) use ($request){
+					return $q->where('parent_item_code', $request->parent);
+				})
 				->union($pending_backlogs)->union($scheduled_production)->get();
 
 			$production_orders = [];
@@ -7023,8 +7112,7 @@ class MainController extends Controller
 				}
 
 				$is_backlog = (Carbon::parse($row->planned_start_date)->format('Y-m-d') < Carbon::now()->format('Y-m-d')) ? 1 : 0;
-
-				$production_orders[] = [
+				$production_orders[$row->planned_start_date][] = [
 					'production_order' => $row->production_order,
 					'planned_start_date' => $row->planned_start_date,
 					'actual_start_date' => (!in_array($row->status, ['Not Started', 'Pending'])) ? Carbon::parse($row->actual_start_date)->format('Y-m-d h:i:A') : null,
@@ -7046,13 +7134,8 @@ class MainController extends Controller
 				];
 			}
 
-			$filters = [
-				'customers' => array_unique(array_column($production_orders, 'customer')),
-				'reference_nos' => array_unique(array_column($production_orders, 'reference_no')),
-				'parent_item_codes' => array_unique(array_column($production_orders, 'parent_item_code'))
-			];
-
-			return view('tables.tbl_production_schedule_monitoring', compact('production_orders', 'filters', 'backlogs'));
+			$planned_start_dates = collect(array_keys($production_orders))->sort()->reverse()->values()->all();
+			return view('tables.tbl_production_schedule_monitoring', compact('production_orders', 'backlogs', 'planned_start_dates'));
 		}
 
 		$production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);

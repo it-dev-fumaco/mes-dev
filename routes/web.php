@@ -312,6 +312,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/update_parent_code/{production_order}', 'MainController@updateParentCode');
 	Route::get('/qa_monitoring_summary/{schedule_date}', 'SecondaryController@qa_monitoring_summary');
 	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
+	Route::get('/production_schedule_monitoring_filters/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring_filters');
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
     Route::post('/add_shift_schedule', 
         ['uses' => 'SecondaryController@add_shift_schedule', 'as' => 'fabrication.ajax_update']);
