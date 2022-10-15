@@ -2545,6 +2545,16 @@ class ManufacturingController extends Controller
             if($request->qty_to_return > $request->qty){
                 return response()->json(['status' => 0, 'message' => 'Quantity cannot be greater than ' . $request->qty]);
             }
+
+            // check if there are existing request for return
+            $pending_returns = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.docstatus', 0)->where('ste.work_order', $request->production_order)->where('ste.purpose', 'Material Transfer')->where('sted.item_code', $request->item_code)->sum('transfer_qty');
+
+            // if return qty + existing pending for return exceeds item qty
+            if(($pending_returns + $request->qty_to_return) > $request->qty_to_return){
+                return response()->json(['status' => 0, 'message' => 'Request for return for item <b>'.$request->item_code.'</b> already exists']);
+            }
             
             // copy values from stock entry detail
             $stock_entry_details = DB::connection('mysql')->table('tabStock Entry as ste')
@@ -2553,7 +2563,7 @@ class ManufacturingController extends Controller
                 ->where('ste.purpose', 'Material Transfer for Manufacture')->whereIn('ste.name', explode(',', $request->ste_names))
                 ->where('sted.item_code', $request->item_code)
                 ->select('ste.*', 'sted.*', 'ste.name as ste_name')->first();
-            
+
             if (!$stock_entry_details) {
                 return response()->json(['status' => 0, 'message' => 'Stock entry item ' . $request->item_code . ' not found.']);
             }
@@ -2577,7 +2587,7 @@ class ManufacturingController extends Controller
             }
 
             if($item_status == 'For Checking'){
-                $item_classification = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first()->item_classification;
+                $item_classification = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->pluck('item_classification')->first();
                 if(in_array($item_classification, ['FA - FRAME ASSEMBLY', 'RA - REFLECTOR ASSEMBLY'])){
                     $item_status = 'Issued';
                 }
