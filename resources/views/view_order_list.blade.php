@@ -28,18 +28,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 pb-0">
-                        <form action="/order_list" method="GET" autocomplete="off">
-                            <div class="d-flex flex-row justify-content-end p-0 m-0">
-                                <div class="form-group col-6 p-1 m-0">
-                                    <input type="text" name="q" class="form-control rounded-0" placeholder="Order Inquiry" value="{{ request('q') }}">
-                                </div>
-                                <div class="form-group p-1 m-0">
-                                    <button class="btn btn-info m-0" type="submit">Search</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
                     <div class="col-md-8 p-2">
                         <form id="order-list-form">
                             <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
@@ -69,43 +57,6 @@
                             </div>
                         </form>
                         <div id="delivery-alert-div"></div>
-                    </div>
-
-                    <div class="col-md-12 p-2">
-                        <form id="delivery-alert-form">
-                            <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Open Order(s)</h6>
-                                <div class="p-2 m-0">
-                                    <input type="text" name="q" class="form-control rounded bg-white m-0 delivery-alert-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
-                                </div>
-                            </div>
-                        </form>
-                        <table class="table table-bordered table-striped">
-                            <col style="width: 25%;">
-                            <col style="width: 25%;">
-                            <col style="width: 25%;">
-                            <col style="width: 25%;">
-                            <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 7pt;">
-                                <th class="p-2">Order No.</th>
-                                <th class="p-2">Item</th>
-                                <th class="p-2">Qty</th>
-                                <th class="p-2">Status</th>
-                            </thead>
-                            <tbody class="text-center" style="font-size: 9pt;">
-                                {{-- @forelse ($list as $r)
-                                <tr>
-                                    <td class="p-2">{{ $r->name }}</td>
-                                    <td class="p-2">{{ $r->customer }}</td>
-                                    <td class="p-2">{{ $r->project }}</td>
-                                    <td class="p-2">{{ $r->order_type }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6"></td>
-                                </tr>
-                                @endforelse --}}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>

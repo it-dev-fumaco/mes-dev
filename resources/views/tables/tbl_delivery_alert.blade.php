@@ -1,4 +1,4 @@
-<div class="table-responsive border" style="max-height: 600px;">
+<div class="table-responsive border" style="max-height: 780px;">
     <table class="table table-bordered table-striped">
         <col style="width: 25%;">
         <col style="width: 25%;">

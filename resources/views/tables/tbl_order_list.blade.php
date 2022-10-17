@@ -1,34 +1,55 @@
 <table class="table table-bordered table-striped">
-    <col style="width: 8%;">
-    <col style="width: 12%;">
+    <col style="width: 10%;">
     <col style="width: 20%;">
     <col style="width: 20%;">
     <col style="width: 12%;">
     <col style="width: 12%;">
+    <col style="width: 10%;">
     <col style="width: 12%;">
     <col style="width: 4%;">
     <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
         <th class="p-2">Order No.</th>
-        <th class="p-2">Type</th>
         <th class="p-2">Customer</th>
         <th class="p-2">Project</th>
         <th class="p-2">Date Approved</th>
         <th class="p-2">Delivery Date</th>
-        <th class="p-2">Status</th>
+        <th class="p-2">Order Status</th>
+        <th class="p-2">Prod. Status</th>
         <th class="p-2">-</th>
     </thead>
     <tbody class="text-center" style="font-size: 8pt;">
         @forelse ($list as $r)
         <tr>
-            <td class="p-2">{{ $r->name }}</td>
-            <td class="p-2">{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $r->order_type }}</td>
+            <td class="p-2">
+                <span class="d-block font-weight-bold">{{ $r->name }}</span>
+                <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $r->order_type }}</small>
+            </td>
             <td class="p-2">{{ $r->customer }}</td>
             <td class="p-2">{{ $r->project }}</td>
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</td>
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') : '-' }}</td>
             <td class="p-2">{{ $r->status }}</td>
-            <td class="p-2">
-                <a href="#" data-toggle="modal" data-target="#{{ strtolower($r->name) }}-modal" class="text-decoration-none">View</a>
+            <td class="p-1">
+                @if (array_key_exists($r->name, $order_production_status))
+                @php
+                    $progress_bar_val = $order_production_status[$r->name];
+                    if ($progress_bar_val < 100) {
+                        $progress_bar_color = 'bg-warning';
+                    } else {
+                        $progress_bar_color = 'bg-success';
+                    }
+                @endphp
+                <div class="progress">
+                    <div class="progress-bar {{ $progress_bar_color }}" role="progressbar" style="width: {{ $progress_bar_val }}%" aria-valuenow="{{ $progress_bar_val }}" aria-valuemin="0" aria-valuemax="100">
+                        <small>{{ $progress_bar_val }}%</small>
+                    </div>
+                </div>
+                @else
+                    --
+                @endif
+            </td>
+            <td class="p-1">
+                <a href="#" data-toggle="modal" data-target="#{{ strtolower($r->name) }}-modal" class="btn btn-primary btn-xs pr-3 pl-3 pb-2 pt-2 text-decoration-none"><i class="now-ui-icons ui-1_zoom-bold"></i></a>
             </td>
         </tr>
         @empty

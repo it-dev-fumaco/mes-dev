@@ -8427,43 +8427,45 @@ class MainController extends Controller
 	}
 
 	public function getOrderList(Request $request) {
-		$material_requests = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)
-			->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
-			->where('per_ordered', '<', 100)->where('status', '!=', 'Stopped')
+		$material_requests = DB::connection('mysql')->table('tabMaterial Request as mr')
+			->where('mr.docstatus', 1)
+			->whereIn('mr.custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
+			->where('mr.per_ordered', '<', 100)->where('mr.status', '!=', 'Stopped')
 			->when($request->q, function ($query) use ($request) {
 				return $query->where(function($q) use ($request) {
-					$q->where('name', 'LIKE', '%'.$request->q.'%')
-					->orWhere('customer', 'LIKE', '%'.$request->q.'%')
-					->orWhere('project', 'LIKE', '%'.$request->q.'%')
-					->orWhere('custom_purpose', 'LIKE', '%'.$request->q.'%');
+					$q->where('mr.name', 'LIKE', '%'.$request->q.'%')
+					->orWhere('mr.customer', 'LIKE', '%'.$request->q.'%')
+					->orWhere('mr.project', 'LIKE', '%'.$request->q.'%')
+					->orWhere('mr.custom_purpose', 'LIKE', '%'.$request->q.'%');
 				});
             })
 			->when($request->status, function ($query) use ($request) {
-				return $query->where('status', $request->status);
+				return $query->where('mr.status', $request->status);
             })
 			->when($request->order_types, function ($query) use ($request) {
-				return $query->whereIn('custom_purpose', $request->order_types);
+				return $query->whereIn('mr.custom_purpose', $request->order_types);
             })
-			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'custom_purpose as order_type', 'status', 'modified as date_approved', DB::raw('CONCAT(address_line, " ", address_line2, " ", city_town)  as shipping_address'), 'owner', 'notes00 as notes');
-
-		$list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)
-			->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
-			->where('per_delivered', '<', 100)->where('status', '!=', 'Closed')
+			->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes');//, 'wo.name as production_order'
+			
+		$list = DB::connection('mysql')->table('tabSales Order as so')
+			->where('so.docstatus', 1)
+			->whereIn('so.sales_type', ['Regular Sales', 'Sales DR'])
+			->where('so.per_delivered', '<', 100)->where('so.status', '!=', 'Closed')
 			->when($request->q, function ($query) use ($request) {
 				return $query->where(function($q) use ($request) {
-					$q->where('name', 'LIKE', '%'.$request->q.'%')
-						->orWhere('customer', 'LIKE', '%'.$request->q.'%')
-						->orWhere('project', 'LIKE', '%'.$request->q.'%')
-						->orWhere('sales_type', 'LIKE', '%'.$request->q.'%');
+					$q->where('so.name', 'LIKE', '%'.$request->q.'%')
+						->orWhere('so.customer', 'LIKE', '%'.$request->q.'%')
+						->orWhere('so.project', 'LIKE', '%'.$request->q.'%')
+						->orWhere('so.sales_type', 'LIKE', '%'.$request->q.'%');
 				});
             })
 			->when($request->status, function ($query) use ($request) {
-				return $query->where('status', $request->status);
+				return $query->where('so.status', $request->status);
             })
 			->when($request->order_types && !in_array('Customer Order', $request->order_types), function ($query) use ($request) {
-				return $query->whereIn('sales_type', $request->order_types);
+				return $query->whereIn('so.sales_type', $request->order_types);
             })
-			->select('name', 'creation', 'customer', 'project', 'delivery_date', 'sales_type as order_type', 'status', 'date_approved', 'shipping_address', 'owner', 'notes')
+			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes')//, 'wo.name as production_order'
 			->unionAll($material_requests)->orderBy('date_approved', 'desc')->paginate(15);
 
 		// get items
@@ -8488,7 +8490,7 @@ class MainController extends Controller
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->whereIn(DB::raw('IFNULL(sales_order, material_request)'), $references)
-			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'))
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty')
 			->get();
 
 		$items_production_orders = [];
@@ -8496,7 +8498,16 @@ class MainController extends Controller
 			$items_production_orders[$r->reference][$r->item_code][] = $r->production_order;
 		}
 
-		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders'));
+		$prod_statuses = collect($production_orders)->groupBy('reference')->toArray();
+		$order_production_status = [];
+		foreach ($prod_statuses as $i => $r) {
+			$total_qty =  collect($r)->sum('qty_to_manufacture');
+			$total_feedback_qty =  collect($r)->sum('feedback_qty');
+			$percentage = ($total_feedback_qty/$total_qty) * 100;
+			$order_production_status[$i] = $percentage;
+		}
+
+		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status'));
 	}
 
 	public function productionSettings(){
