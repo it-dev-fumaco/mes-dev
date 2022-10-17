@@ -2119,6 +2119,8 @@ class MainController extends Controller
 	}
 
 	public function reorderProdOrder(Request $request, $id){
+		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
     	try {
 			$val = [];
 			if ($request->positions) {
@@ -2134,23 +2136,20 @@ class MainController extends Controller
 						$val_order_no=[
 							'sequence' => $position,
 						];
-							DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $name)->where('workstation','Painting')->update($val_order_no);
 
-							if(DB::connection('mysql_mes')->table('job_ticket as jt')
+						DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $name)->where('workstation','Painting')->update($val_order_no);
+
+						if(DB::connection('mysql_mes')->table('job_ticket as jt')
 							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
 							->where('jt.production_order', $name)
 							->where('tl.status', "In Progress")
 							->select('tl.status as stat')
 							->exists()){
-
-							}else{
-								DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $name)->where('workstation','Painting')->update($val_sched);
-
-							}
-
+						}else{
+							DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $name)->where('workstation','Painting')->update($val_sched);
+						}
 					}
 				}else{
-				
 					foreach ($request->positions as $value) {
 						$name = $value[0];
 						$position = $value[1];
@@ -2193,8 +2192,12 @@ class MainController extends Controller
 					}
 				}
 			}
-    		
+    		DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(["success" => 1]);
     	} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
     		return response()->json(["error" => $e->getMessage()]);
     	}	
 	}
@@ -2205,7 +2208,7 @@ class MainController extends Controller
 			if(!Auth::user()) {
 				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
 			}
-	
+
 			$now = Carbon::now();
 			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
 			if (!$production_order_details) {
@@ -2268,6 +2271,82 @@ class MainController extends Controller
 		}	
 	}
 
+	public function save_shift_schedule(Request $request){
+		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->whereNotIn('status', ['Cancelled', 'Closed'])->first();
+
+			if(!$production_order_details){
+				return response()->json(['success' => 0, 'message' => 'Production order not found.']);
+			}
+
+			$checker = DB::connection('mysql_mes')->table('production_order')->where('is_scheduled', 1)->whereDate('planned_start_date', $request->schedule_date)->where('operation_id', $request->operation_id)->whereNotIn('status', ['Cancelled', 'Closed'])->exists();
+
+			if(!$checker){
+				DB::connection('mysql_mes')->table('shift_schedule')->insert([
+					'shift_id' => $request->selected_shift,
+					'date' => $request->schedule_date,
+					'scheduled_by' => Auth::user()->employee_name,
+					'remarks' => $request->remarks,
+					'created_at' => Carbon::now()->toDateTimeString(),
+					'created_by' => Auth::user()->email,
+					'last_modified_at' => Carbon::now()->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email
+				]);
+			}
+
+			if($request->operation_id == 2){ // Painting Schedule
+				DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->where('status', 'Pending')->update([
+					'planned_start_date' => $request->schedule_date,
+					'last_modified_at' => Carbon::now()->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email
+				]);
+			}else{ // Fabrication and Assembly Schedule
+				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update([
+					'is_scheduled' => 1,
+					'planned_start_date' => $request->schedule_date,
+					'last_modified_at' => Carbon::now()->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email
+				]);
+
+				DB::connection('mysql')->table('tabWork Order')->where('name', $request->production_order)->update([
+					'scheduled' => 1,
+					'planned_start_date' => $request->schedule_date,
+					'modified' => Carbon::now()->toDateTimeString(),
+					'modified_by' => Auth::user()->email
+				]);
+			}
+
+			$current_date = $production_order_details->planned_start_date ? Carbon::parse($request->planned_start_date)->format('M. d, Y') : '"Unscheduled"';
+
+			$msg = 'Scheduled start date has been changed from '.$current_date.' to '. Carbon::parse($request->schedule_date)->format('M. d, Y') .' by '.Auth::user()->employee_name;
+
+			$activity_logs = [
+				'action' => 'Change Schedule'.($request->operation_id == 2 ? ' - Painting' : null),
+				'message' => $msg,
+				'reference' => $production_order_details->production_order,
+				'created_by' => Auth::user()->employee_name,
+				'created_at' => Carbon::now()->toDateTimeString()
+			];
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
+
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['success' => 1, 'message' => 'Shift schedule updated.']);
+		} catch (\Throwable $th) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
+			return response()->json(['success' => 0, 'message' => 'Something went wrong. Please try again later.']);
+		}
+	}
+
 	public function update_production_order_schedule(Request $request){
 		$now = Carbon::now();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
@@ -2297,15 +2376,19 @@ class MainController extends Controller
 		}
 		
 		$permissions = $this->get_user_permitted_operation();
-
 		$primary_id=$operation_id;
-		if($primary_id == "1"){
-			$operation_name_text="Fabrication";
-		}else{
-			$operation_name_text="Assembly";
-		}
 
-		$operation_name_text = ($operation_id < 1) ? 'Painting' : $operation_name_text;
+		switch ($operation_id) {
+			case 1:
+				$operation_name_text="Fabrication";
+				break;
+			case 2:
+				$operation_name_text="Painting";
+				break;
+			default:
+				$operation_name_text="Assembly";
+				break;
+		}
 
 		$mes_user_operations = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
@@ -2313,7 +2396,7 @@ class MainController extends Controller
 			->where('module', 'Production')
 			->where('user_access_id', Auth::user()->user_id)->pluck('operation_name')->toArray();
 
-		if($operation_id < 1){
+		if($operation_id == 2){
 			$get_painting_schedules = $this->get_painting_schedules($primary_id);
 
 			$unscheduled = $get_painting_schedules['unscheduled'];
@@ -2327,7 +2410,9 @@ class MainController extends Controller
 			$filters = $productionKanban['filters'];
 		}
 
-		return view('production_kanban', compact('operation_name_text','primary_id','unscheduled', 'scheduled', 'mes_user_operations', 'permissions', 'filters'));
+		$shifts = DB::connection('mysql_mes')->table('shift')->where('operation_id', $operation_id)->get();
+
+		return view('production_kanban', compact('operation_name_text','primary_id','unscheduled', 'scheduled', 'mes_user_operations', 'permissions', 'filters', 'shifts', 'operation_id'));
 	}
 	public function productionKanban($operation_id){
 		$unscheduled_prod = DB::connection('mysql_mes')->table('production_order')
@@ -6765,27 +6850,26 @@ class MainController extends Controller
 	}
 	public function drag_n_drop($name){
 		if(DB::connection('mysql_mes')->table('job_ticket as jt')
-							->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
-							->where('jt.production_order', $name)
-							->where('spotpart.status', "In Progress")
-							->select('spotpart.status as stat')
-							->exists()){
-								return response()->json(['success' => 0, 'message' => 'error.']);
+			->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
+			->where('jt.production_order', $name)
+			->where('spotpart.status', "In Progress")
+			->select('spotpart.status as stat')
+			->exists()){
+				return response()->json(['success' => 0, 'message' => 'error.']);
+		}else{
+			if(DB::connection('mysql_mes')->table('job_ticket as jt')
+			->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
+			->where('jt.production_order', $name)
+			->where('tl.status', "In Progress")
+			->select('tl.status as stat')
+			->exists()){
+				return response()->json(['success' => 0, 'message' => 'error.']);
 
-						}else{
-							if(DB::connection('mysql_mes')->table('job_ticket as jt')
-							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
-							->where('jt.production_order', $name)
-							->where('tl.status', "In Progress")
-							->select('tl.status as stat')
-							->exists()){
-								return response()->json(['success' => 0, 'message' => 'error.']);
+			}else{
+				return response()->json(['success' => 1, 'message' => 'Task updated.']);
 
-							}else{
-								return response()->json(['success' => 1, 'message' => 'Task updated.']);
-
-							}
-						}
+			}
+		}
 	}
 	// update production order rescheduled date (erp) and MES
 	public function update_rescheduled_delivery_date(Request $request){

@@ -104,7 +104,7 @@
           </a>
         </li>
         <li class="m-0 {{ !$allowed_on_painting ? 'd-none' : '' }}">
-          <a href="/production_schedule/0" class="d-block m-0 p-1" style="text-decoration: none;">
+          <a href="/production_schedule/2" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Painting Scheduling</span>
           </a>

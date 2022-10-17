@@ -115,6 +115,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/update_task_schedule/{job_ticket_id}', 'MainController@update_task_schedule');
 	Route::post('/update_production_task_schedules', 'MainController@update_production_task_schedules');
 	Route::post('/update_production_order_schedule', 'MainController@update_production_order_schedule');
+	Route::post('/save_shift_schedule', 'MainController@save_shift_schedule');
 	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');	
 });
 

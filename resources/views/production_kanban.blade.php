@@ -231,7 +231,7 @@
                     <tr id="containers">
                       @foreach($scheduled as $r)
                       <td class="td unique_container">
-                        <div class="card" style="background-color:#e5e7e9; height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
+                        <div class="card" style="background-color:#e5e7e9; height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}" data-order-count="{{ count($r['orders']) }}">
                           <div class="card-header p-1">
                             <input type="hidden" id="divcount-{{ $r['schedule'] }}" value="">
                             <div class="d-flex flex-row justify-content-between align-items-middle m-0">
@@ -875,6 +875,43 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="selectShiftModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #0277BD">
+        <h5 class="modal-title" style="color: #fff;">Select Shift Schedule</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/save_shift_schedule" id="shift_schedule_form" method="post">
+        <div class="modal-body">
+          <div class="d-none">
+            <input type="text" name="schedule_date" id="schedule_date" value="">
+            <input type="text" name="operation_id" value="{{ $operation_id }}">
+            <input type="text" name="production_order" id="shift-production-order" value="">
+          </div>
+          <select name="selected_shift" class="form-control" id="shift-selection" required>
+            <option selected value="">Select Shift</option>
+            @foreach ($shifts as $shift)
+              <option value="{{ $shift->shift_id }}">
+                {{ $shift->shift_type.' - '.$shift->time_in.' - '.$shift->time_out }}
+              </option>
+            @endforeach
+          </select>
+          <br>
+          <label style="font-size: 9pt">Remarks</label>
+          <textarea name="remarks" id="shift-remarks" rows="5" class="form-control" placeholder="Remarks..." required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" id="save-shift-btn" class="btn btn-primary">Save Shift Schedule</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -2009,12 +2046,47 @@
       });
     });
 
+    $('#shift_schedule_form').submit(function(e){
+      e.preventDefault();
+
+      $.ajax({
+        url:"/save_shift_schedule",
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#schedule_date').val('');
+            $('#shift-production-order').val('');
+            $('#shift-selection').val('').trigger('change');
+            $('#shift-remarks').val('');
+            location.reload();
+          }
+        },
+        error : function(data) {
+          console.log(data.responseText);
+        }
+      });
+    });
+
+    var update_sched = 0;
+
     $('#inner').scrollLeft(320);
     $( ".sortable_list" ).sortable({
       connectWith: ".connectedSortable",
       appendTo: 'body',
       helper: 'clone',
       update:function(event, ui) {
+        if($("#id-" + event.target.id + '-id').length !== 0) {
+          if($("#id-" + event.target.id + '-id').data('order-count') < 1){
+            $('#schedule_date').val(event.target.id);
+            $('#shift-production-order').val(ui.item.data('name'));
+            $('#selectShiftModal').modal('show');
+            return false;
+          }
+        }
         var primary_operation_id = $('#primary-operation-id').val();
         var parent_id = ui.item.attr("data-parentitemcode");
         var item_code_id = ui.item.attr("data-itemcode");
@@ -2100,6 +2172,11 @@
         }
       },
       receive: function(ev, ui) {
+        if($("#id-" + ev.target.id + '-id').length !== 0) {
+          if($("#id-" + ev.target.id + '-id').data('order-count') < 1){
+            return false;
+          }
+        }
         var primary_operation_id = $('#primary-operation-id').val();
         var primary_operation_id = $('#primary-operation-id').val();
         var data_delivery_date =  ui.item.data('delivery');
@@ -2146,8 +2223,6 @@
         var date = $(this).attr('id');
         var prod_id = "#sched-" +  ui.item.data('name');
         $(id_check).attr("data-dateslct", sched); //setter
-
-
           $.ajax({
             url:"/drag_n_drop/"+ prod,
             type:"get",
@@ -2156,7 +2231,6 @@
                 ui.sender.sortable("cancel");
                 showNotification("danger", "Unable to rechedule planned start date.       <br><b>Production Order has on-going Process.</b>", "now-ui-icons travel_info");
               }else{
-
                 if(primary_operation_id == "3"){
                   if($(this).attr('id') == "unscheduled"){
                     $(prod_id).css('background-color', 'white');
