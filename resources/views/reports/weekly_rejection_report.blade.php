@@ -30,7 +30,7 @@
 </div>
 
 <div class="container-fluid bg-white">
-    <div class="row" style="margin-top: -90px">
+    <div class="row" style="margin-top: -120px">
         <div class="col-12 mx-auto bg-white">
             @php
                 switch($operation){
@@ -56,9 +56,9 @@
                 }
             @endphp
             <form action="/weekly_rejection_report/{{ $link }}">
-                <div class="row">
+                <div class="row p-0 m-0">
                     <div class="p-1 mt-1 mb-1 col-3">
-                        <small class="ml-3 d-block">Period:</small>
+                        <small class="d-block">Period:</small>
                         <span class="d-block font-weight-bold text-center">{{ $start->startOfDay()->format('F d, Y').' - '.$end->endOfDay()->format('F d, Y') }} ({{ $end->diffInDays($start) }} day/s)</span>
                     </div>
                     <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #27AE60;">
@@ -72,7 +72,7 @@
                     <div class="p-1 mt-1 mb-1 col-3">
                         <div class="row">
                             <div class="col-8">
-                                <input type="text" class='form-control m-2' id="daterange" name='date' />
+                                <input type="text" class='form-control m-2 rounded' id="daterange" name='date' />
                             </div>
                             <div class="col-4">
                                 <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
@@ -81,7 +81,7 @@
                     </div>
                 </div>
             </form>
-            <table class="table table-bordered">
+            <table class="table table-bordered table-striped table-hover">
                 <thead class="text-white bg-secondary reject-font-size">
                     <tr>
                         <th class="text-center p-1" style="font-size: 10pt;">Production Order</th>
@@ -108,7 +108,7 @@
                             <td class="p-2 reject-font-size text-center">{{ $reject['to_time'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['good'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['reject'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['reject_reason'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{!! $reject['reject_reason'] !!}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['operator_name'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
                         </tr>

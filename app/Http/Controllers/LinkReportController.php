@@ -155,39 +155,24 @@ class LinkReportController extends Controller
         $start_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[0]) : Carbon::now()->subDays(7))->startOfDay()->format('Y-m-d');
         $end_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[1]) : Carbon::now())->endOfDay()->format('Y-m-d');
 
-        $rejection_logs = DB::connection('mysql_mes')->select("
-            SELECT
-                jt.job_ticket_id,
-                po.production_order,
-                po.sales_order,
-                po.customer,
-                po.material_request,
-                po.status as po_status,
-                po.operation_id,
-                jt.workstation,
-                tl.from_time,
-                tl.to_time,
-                tl.good,
-                tl.reject,
-                tl.operator_name,
-                tl.status,
-                rl.reject_reason
-            FROM
-                mes.time_logs AS tl
-                    JOIN
-                mes.job_ticket AS jt ON tl.job_ticket_id = jt.job_ticket_id
-                    JOIN
-                mes.reject_reason AS rr ON rr.job_ticket_id = jt.job_ticket_id
-                    JOIN
-                mes.reject_list AS rl ON rl.reject_list_id = rr.reject_list_id
-                    JOIN
-                mes.production_order AS po ON po.production_order = jt.production_order
-            WHERE
-                from_time BETWEEN '".$start_date."' AND '".$end_date."'
-            AND jt.workstation != 'Spotwelding'
-            AND tl.reject > 0
-            order by from_time asc;
-        ");
+        $rejection_logs = DB::connection('mysql_mes')->table('time_logs as t')
+            ->join('job_ticket as j', 't.job_ticket_id', 'j.job_ticket_id')
+            ->join('production_order as p', 'p.production_order', 'j.production_order')
+            ->join('reject_reason as rr', 'rr.job_ticket_id', 'j.job_ticket_id')
+            ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
+            ->whereBetween('t.from_time', [$start_date, $end_date])->where('j.workstation', '!=', 'Spotwelding')
+            ->where('t.reject', '>', 0)
+            ->when($operation_id == 3, function($q){
+                $q->where('p.operation_id', 3);
+            })
+            ->when($operation_id == 1, function($q){
+                $q->where('p.operation_id', 1);
+            })
+            ->when($operation_id == 2, function($q){
+                $q->where('j.workstation', 'Painting');
+            })
+            ->select('j.job_ticket_id', 'p.production_order', 'p.sales_order', 'p.customer', 'p.material_request', 'p.status as po_status', 'p.operation_id', 'j.workstation', 't.from_time', 't.to_time', 't.good', 't.reject', 't.operator_name', 't.status', DB::raw('GROUP_CONCAT(DISTINCT rl.reject_reason SEPARATOR "<br>") as reject_reasons'))
+            ->groupBy('j.job_ticket_id', 'p.production_order', 'p.sales_order', 'p.customer', 'p.material_request', 'p.status', 'p.operation_id', 'j.workstation', 't.from_time', 't.to_time', 't.good', 't.reject', 't.operator_name', 't.status')->orderBy('t.from_time', 'asc')->get();
 
         $total_good = collect($rejection_logs)->sum('good');
         $total_reject = collect($rejection_logs)->sum('reject');
@@ -196,7 +181,7 @@ class LinkReportController extends Controller
 		// Create a new Laravel collection from the array data
 		$itemCollection = collect($rejection_logs);
 		// Define how many items we want to be visible in each page
-		$perPage = 10;
+		$perPage = 20;
 		// Slice the collection to get the items to display in current page
 		$currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
 		// Create our paginator and pass it to the view
@@ -214,16 +199,15 @@ class LinkReportController extends Controller
                 'customer' => $reject->customer,
                 'material_request' => $reject->material_request,
                 'workstation' => $reject->workstation,
-                'from_time' => $reject->from_time,
-                'to_time' => $reject->to_time,
+                'from_time' => Carbon::parse($reject->from_time)->format('M. d, Y h:i A'),
+                'to_time' => Carbon::parse($reject->to_time)->format('M. d, Y h:i A'),
                 'good' => $reject->good,
                 'reject' => $reject->reject,
                 'operator_name' => $reject->operator_name,
                 'status' => $reject->status,
-                'reject_reason' => $reject->reject_reason
+                'reject_reason' => $reject->reject_reasons
             ];
         }
-
 
         return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'operation', 'permissions', 'total_good', 'total_reject'));
     }
