@@ -8373,50 +8373,6 @@ class MainController extends Controller
 			'other_order' => number_format($other_orders)
 		];
 	}
-
-	public function deliveryAlert(Request $request) {
-		// $undelivered_orders = DB::connection('mysql_mes')->table('delivery_date')->where('is_delivered', 0)->get();
-		// foreach ($undelivered_orders as $s) {
-		// 	$ref_type = explode("-", $s->reference_no)[0];
-		// 	if ($ref_type == 'SO') {
-		// 		$is_delivered = DB::connection('mysql')->table('tabSales Order')->where('name', $s->reference_no)->where('per_delivered', 100)->exists();
-		// 	} else {
-		// 		$is_delivered = DB::connection('mysql')->table('tabMaterial Request')->where('name', $s->reference_no)->where('per_ordered', 100)->exists();
-		// 	}
-
-		// 	$is_delivered = $is_delivered ? 1 : 0;
-		// 	if ($is_delivered) {
-		// 		DB::connection('mysql_mes')->table('delivery_date')->where('delivery_date_id', $s->delivery_date_id)->update(['is_delivered' => $is_delivered]);
-		// 	}
-		// }
-
-		$undelivered_orders = DB::connection('mysql_mes')->table('delivery_date')->where('is_delivered', 0)->distinct()->pluck('reference_no');
-
-		$production_orders = DB::connection('mysql_mes')->table('production_order as p')->join('delivery_date as d', DB::raw('IFNULL(p.sales_order, p.material_request)'), 'd.reference_no')
-			->whereRaw('p.feedback_qty > 0')->whereRaw('p.parent_item_code = p.item_code')->whereNotIn('p.status', ['Cancelled', 'Stopped', 'Closed'])->where('d.is_delivered', 0)
-			->whereRaw('p.parent_item_code = d.parent_item_code')
-			->when($request->q, function ($query) use ($request) {
-				return $query->where(function($q) use ($request) {
-					$q->where('d.reference_no', 'LIKE', '%'.$request->q.'%')
-					->orWhere('p.item_code', 'LIKE', '%'.$request->q.'%');
-				});
-            })
-			->select('d.reference_no', 'p.item_code', 'p.qty_to_manufacture', 'p.stock_uom', DB::raw('IFNULL(d.rescheduled_delivery_date, d.delivery_date) as del_date'))
-			->whereDate(DB::raw('IFNULL(d.rescheduled_delivery_date, d.delivery_date)'), '<=', Carbon::now()->format('Y-m-d'))->orderBy('del_date', 'asc')->get();
-
-		$data = [];
-		foreach ($production_orders as $r) {
-			$data[] = [
-				'reference_no' => $r->reference_no,
-				'item_code' => $r->item_code,
-				'stock_uom' => $r->stock_uom,
-				'qty' => $r->qty_to_manufacture,
-				'status' => Carbon::now()->ne($r->del_date) ? 'For Reschedule' : 'To Delivery Today'
-			];
-		}
-
-		return view('tables.tbl_delivery_alert', compact('data'));
-	}
 	
 	public function viewOrderList(Request $request) {
 		$permissions = $this->get_user_permitted_operation();
@@ -8507,7 +8463,12 @@ class MainController extends Controller
 			$order_production_status[$i] = $percentage;
 		}
 
-		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status'));
+		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
+			->where('created_by', Auth::user()->email)->whereIn('reference', $references)->where('action', 'View Order')->get();
+		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
+		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
+
+		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs'));
 	}
 
 	public function productionSettings(){
@@ -8600,5 +8561,15 @@ class MainController extends Controller
 			->orderBy('last_modified_at', 'desc')->get();
 
 		return view('dashboard_wip_orders', compact('list'));
+	}
+
+	public function createViewOrderLog(Request $request) {
+		DB::connection('mysql_mes')->table('activity_logs')->insert([
+			'action' => 'View Order',
+			'reference' => $request->order_no,
+			'message' => $request->order_no . ' has been viewed by ' . Auth::user()->employee_name . ' on ' . Carbon::now()->toDateTimeString(),
+			'created_at' => Carbon::now()->toDateTimeString(),
+			'created_by' => Auth::user()->email
+		]);
 	}
 }

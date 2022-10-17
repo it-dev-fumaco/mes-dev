@@ -28,7 +28,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-8 p-2">
+                    <div class="col-md-12 p-2">
                         <form id="order-list-form">
                             <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
                                 <h6 class="m-2 p-2 text-uppercase text-white text-center">Order List</h6>
@@ -46,17 +46,6 @@
                             </div>
                         </form>
                         <div id="order-list-div"></div>
-                    </div>
-                    <div class="col-md-4 p-2">
-                        <form id="delivery-alert-form">
-                            <div class="d-flex flex-row rounded-top align-items-center justify-content-between bg-warning" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Delivery Alert</h6>
-                                <div class="p-2 m-0">
-                                    <input type="text" name="q" class="form-control rounded bg-white m-0 delivery-alert-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
-                                </div>
-                            </div>
-                        </form>
-                        <div id="delivery-alert-div"></div>
                     </div>
                 </div>
             </div>
@@ -206,9 +195,18 @@
 @section('script')
 <script>
 $(document).ready(function(){
+    $(document).on('click', '.view-order-btn', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: "/createViewOrderLog/",
+            type:"POST",
+            data: {order_no: $(this).data('order'), _token: '{{ csrf_token() }}'},
+        });
+    });
+
     loadOrderList();
     loadOrderTypes();
-    deliveryAlert();
     $(document).on('click', '.order-types-chk', function() {
         loadOrderList();
     });
@@ -226,10 +224,6 @@ $(document).ready(function(){
 
     $(document).on('keyup', '.order-list-search', function(){
         loadOrderList();
-    });
-
-    $(document).on('keyup', '.delivery-alert-search', function(){
-        deliveryAlert();
     });
 
     $(document).on('click', '.order-list-pagination a', function(e){
@@ -270,7 +264,6 @@ $(document).ready(function(){
         });
     }
 
-  
     function loadOrderTypes(){
         $.ajax({
             url: "/orderTypes",
@@ -280,19 +273,6 @@ $(document).ready(function(){
                 $('#sample-order-text').text(data.sample_order);
                 $('#customer-order-text').text(data.customer_order);
                 $('#other-order-text').text(data.other_order);
-            }
-        });
-    }
-
-    function deliveryAlert(){
-        $('#loader-wrapper').removeAttr('hidden');
-        $.ajax({
-            url: "/deliveryAlert",
-            type:"GET",
-            data: $('#delivery-alert-form').serialize(),
-            success:function(data){
-                $('#loader-wrapper').attr('hidden', true);
-                $('#delivery-alert-div').html(data);
             }
         });
     }

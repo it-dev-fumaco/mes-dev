@@ -1,11 +1,12 @@
 <table class="table table-bordered table-striped">
     <col style="width: 10%;">
     <col style="width: 20%;">
-    <col style="width: 20%;">
-    <col style="width: 12%;">
-    <col style="width: 12%;">
+    <col style="width: 16%;">
     <col style="width: 10%;">
-    <col style="width: 12%;">
+    <col style="width: 10%;">
+    <col style="width: 10%;">
+    <col style="width: 10%;">
+    <col style="width: 10%;">
     <col style="width: 4%;">
     <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
         <th class="p-2">Order No.</th>
@@ -13,23 +14,25 @@
         <th class="p-2">Project</th>
         <th class="p-2">Date Approved</th>
         <th class="p-2">Delivery Date</th>
+        <th class="p-2">Delivery Status</th>
         <th class="p-2">Order Status</th>
         <th class="p-2">Prod. Status</th>
         <th class="p-2">-</th>
     </thead>
     <tbody class="text-center" style="font-size: 8pt;">
         @forelse ($list as $r)
-        <tr>
+        <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
             <td class="p-2">
-                <span class="d-block font-weight-bold">{{ $r->name }}</span>
+                <span class="d-block">{{ $r->name }}</span>
                 <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $r->order_type }}</small>
             </td>
             <td class="p-2">{{ $r->customer }}</td>
             <td class="p-2">{{ $r->project }}</td>
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</td>
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') : '-' }}</td>
+            <td class="p-2">{{ \Carbon\Carbon::now()->ne($r->delivery_date) ? 'For Reschedule' : 'To Delivery Today' }}</td>
             <td class="p-2">{{ $r->status }}</td>
-            <td class="p-1">
+            <td class="p-2">
                 @if (array_key_exists($r->name, $order_production_status))
                 @php
                     $progress_bar_val = $order_production_status[$r->name];
@@ -49,7 +52,13 @@
                 @endif
             </td>
             <td class="p-1">
-                <a href="#" data-toggle="modal" data-target="#{{ strtolower($r->name) }}-modal" class="btn btn-primary btn-xs pr-3 pl-3 pb-2 pt-2 text-decoration-none"><i class="now-ui-icons ui-1_zoom-bold"></i></a>
+                <div class="btn-group dropleft">
+                    <button type="button" class="btn p-2 btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Action</button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item view-order-btn" href="#" data-toggle="modal" data-target="#{{ strtolower($r->name) }}-modal" data-order="{{ $r->name }}">View Order</a>
+                        <a class="dropdown-item" href="#">Reschedule Delivery Date</a>
+                    </div>
+                </div>
             </td>
         </tr>
         @empty
@@ -93,34 +102,28 @@
                             <input type="hidden" name="ref" value="{{ $s->name }}">
                             @php
                                 $ref_type = explode("-", $s->name)[0];
+                                $items = array_key_exists($s->name, $item_list) ? $item_list[$s->name] : [];
+                                $production_orders = array_key_exists($s->name, $items_production_orders) ? $items_production_orders[$s->name] : [];
                             @endphp
                             <input type="hidden" name="ref_type" value="{{ $ref_type }}">
                             <table class="table table-bordered table-striped">
-                                <col style="width: 5%;">
-                                <col style="width: 46%;">
-                                <col style="width: 10%;">
-                                <col style="width: 17%;">
-                                <col style="width: 10%;">
-                                <col style="width: 12%;">
                                 <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
-                                    <th class="p-2">-</th>
-                                    <th class="p-2">Item Description</th>
-                                    <th class="p-2">Qty</th>
-                                    <th class="p-2">BOM No.</th>
-                                    <th class="p-2">Ship by</th>
-                                    <th class="p-2">Prod. Order</th>
+                                    <th class="p-2" style="width: 5%;">-</th>
+                                    <th class="p-2" style="width: 46%;">Item Description</th>
+                                    <th class="p-2" style="width: 10%;">Qty</th>
+                                    <th class="p-2" style="width: 17%;">BOM No.</th>
+                                    <th class="p-2" style="width: 10%;">Ship by</th>
+                                    @if (count($production_orders) > 0)
+                                    <th class="p-2" style="width: 12%;">Prod. Order</th>
+                                    @endif
                                 </thead>
                                 <tbody style="font-size: 8pt;">
-                                    @php
-                                        $items = array_key_exists($s->name, $item_list) ? $item_list[$s->name] : [];
-                                        $production_orders = array_key_exists($s->name, $items_production_orders) ? $items_production_orders[$s->name] : [];
-                                    @endphp
                                     @forelse ($items as $v)
                                     @php
                                         $bom = array_key_exists($v->item_code, $default_boms) ? $default_boms[$v->item_code] : [];
                                         $defaultbom = count($bom) > 0 ? $bom[0]->name : null;
 
-                                        $production_orders = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
+                                        $production_order_item = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
                                     @endphp
                                     <tr>
                                         <td class="text-center p-2">
@@ -150,13 +153,15 @@
                                             @endif
                                         </td>
                                         <td class="text-center p-2">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
+                                        @if (count($production_orders) > 0)
                                         <td class="text-center p-2">
-                                            @forelse ($production_orders as $production_order)
+                                            @forelse ($production_order_item as $production_order)
                                             <a href="#" data-jtno="{{ $production_order }}" class="text-decoration-none prod-details-btn d-block">{{ $production_order }}</a>
                                             @empty
                                             -
                                             @endforelse
                                         </td>
+                                        @endif
                                     </tr>
                                     @empty
                                     <tr>
@@ -165,23 +170,18 @@
                                     @endforelse
                                 </tbody>
                             </table>
-                            <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2" style="font-size: 12px;">
-                                <div class="col-8">
-                                    @if ($s->notes)
-                                    <span class="font-weight-bold d-inline-block m-1">Notes:</span>
-                                    <span class="d-inline-block m-1">{!! $s->notes !!}</span>
-                                    @endif
-                                </div>
-                                <div class="col-4 p-0">
-                                    <button class="btn btn-primary float-right m-0" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
-                                </div>
+                            <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2 align-items-start" style="font-size: 12px;">
+                                @if ($s->notes)
+                                <span class="font-weight-bold d-inline-block m-1">Notes:</span>
+                                <span class="d-inline-block m-1">{!! $s->notes !!}</span>
+                                @endif
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer pb-1 pl-2 pr-2 pt-1">
-                <button type="button" class="btn btn-secondary pb-2 pt-2 pr-3 pl-3" data-dismiss="modal">Close</button>
+            <div class="modal-footer p-3">
+                <button class="btn btn-primary btn-lg float-right m-0" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
             </div>
         </div>
     </div>

@@ -552,7 +552,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/qa_settings', 'MainController@qaSettings');
 	Route::get('/user_settings', 'MainController@userSettings');
 	Route::get('/orderTypes', 'MainController@orderTypes');
-	Route::get('/deliveryAlert', 'MainController@deliveryAlert');
 });
 //operator_checklist
 Route::post('/save_operator_checklist', 'SecondaryController@save_operator_checklist');
@@ -640,6 +639,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/audit_report/overridden_production_orders', 'LinkReportController@overridden_production_orders');
 	Route::get('/audit_report/stocks_transferred_but_none_in_wip', 'LinkReportController@stocks_transferred_but_none_in_wip');
 	Route::get('/qa_inspection_logs', 'QualityInspectionController@qaInspectionLogs');
+
+	Route::post('/createViewOrderLog', 'MainController@createViewOrderLog');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');
