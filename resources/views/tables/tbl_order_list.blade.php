@@ -21,10 +21,10 @@
     </thead>
     <tbody class="text-center" style="font-size: 8pt;">
         @forelse ($list as $r)
-        <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
+        <tr class="{{ $loop->first ? 'active-process1' : '' }} {{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
             <td class="p-2">
                 <span class="d-block">{{ $r->name }}</span>
-                <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $r->order_type }}</small>
+                <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Sales Order' : $r->order_type }}</small>
             </td>
             <td class="p-2">{{ $r->customer }}</td>
             <td class="p-2">{{ $r->order_type }}</td>
@@ -52,10 +52,12 @@
                     } else {
                         $progress_bar_color = 'bg-success';
                     }
+
+                    $production_orders = array_key_exists($r->name, $items_production_orders) ? $items_production_orders[$r->name] : [];
                 @endphp
                 @if ($has_in_progress && $progress_bar_val <= 0)
                     <span class="badge badge-warning" style="font-size: 7pt;">In Progress</span>
-                @elseif ($has_in_progress <= 0 && $progress_bar_val <= 0)
+                @elseif ($has_in_progress <= 0 && $progress_bar_val <= 0 && count($production_orders) <= 0)
                 <span class="badge badge-danger" style="font-size: 7pt;">Not Started</span>
                 @else
                 <div class="progress">
@@ -65,7 +67,7 @@
                 </div>
                 @endif
                 @else
-                    -
+                <small>{!! in_array($r->name, $seen_order_logs) ? '<img src="'. asset('/img/view-icon.png') . '" width="18"> Viewed' : '-' !!}</small>
                 @endif
             </td>
             <td class="p-1">
@@ -181,7 +183,7 @@
                                             <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
                                             @if ($po['status'] == 'In Progress')
                                             <span class="badge badge-warning" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                            @elseif ($po['status'] == 'Completed')
+                                            @elseif (in_array($po['status'], ['Completed', 'Feedbacked']))
                                             <span class="badge badge-success" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                             @else
                                             <span class="badge badge-secondary" style="font-size: 7pt;">{{ $po['status'] }}</span>
@@ -236,3 +238,20 @@
     </div>
 </div>
 @endforeach 
+
+<style>
+      .active-process1 {
+    background-color: #0aa934;
+    color: #000000;
+    animation: blinkingBackground1 2.5s linear infinite;
+  }
+
+  @keyframes blinkingBackground1{
+    0%    { background-color: #ffffff;}
+    25%   { background-color: #0aa934;}
+    50%   { background-color: #ffffff;}
+    75%   { background-color: #0aa934;}
+    100%  { background-color: #ffffff;}
+  }
+
+</style>

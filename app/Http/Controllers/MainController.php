@@ -8596,7 +8596,7 @@ class MainController extends Controller
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->whereIn(DB::raw('IFNULL(sales_order, material_request)'), $references)
-			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status')
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty')
 			->get();
 
 		$items_production_orders = [];
@@ -8613,7 +8613,11 @@ class MainController extends Controller
 			$total_qty =  collect($r)->sum('qty_to_manufacture');
 			$total_feedback_qty =  collect($r)->sum('feedback_qty');
 			$percentage = ($total_feedback_qty/$total_qty) * 100;
+			$has_in_progress = array_filter($r, function ($var) {
+				return ($var->produced_qty > 0);
+			});
 			$has_in_progress = collect($r)->where('status', 'In Progress')->count();
+			$has_in_progress += collect($has_in_progress)->count();
 			$order_production_status[$i]['percentage'] = number_format($percentage);
 			$order_production_status[$i]['has_in_progress'] = $has_in_progress;
 		}
