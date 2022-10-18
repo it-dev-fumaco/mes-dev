@@ -1,8 +1,8 @@
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped table-hover">
     <col style="width: 10%;">
     <col style="width: 20%;">
-    <col style="width: 16%;">
     <col style="width: 10%;">
+    <col style="width: 16%;">
     <col style="width: 10%;">
     <col style="width: 10%;">
     <col style="width: 10%;">
@@ -11,10 +11,10 @@
     <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
         <th class="p-2">Order No.</th>
         <th class="p-2">Customer</th>
+        <th class="p-2">Order Type</th>
         <th class="p-2">Project</th>
         <th class="p-2">Date Approved</th>
         <th class="p-2">Delivery Date</th>
-        <th class="p-2">Delivery Status</th>
         <th class="p-2">Order Status</th>
         <th class="p-2">Prod. Status</th>
         <th class="p-2">-</th>
@@ -27,10 +27,20 @@
                 <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $r->order_type }}</small>
             </td>
             <td class="p-2">{{ $r->customer }}</td>
+            <td class="p-2">{{ $r->order_type }}</td>
             <td class="p-2">{{ $r->project }}</td>
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</td>
-            <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') : '-' }}</td>
-            <td class="p-2">{{ \Carbon\Carbon::now()->ne($r->delivery_date) ? 'For Reschedule' : 'To Delivery Today' }}</td>
+            <td class="p-2">
+                @if ($r->delivery_date)
+                @if (\Carbon\Carbon::now()->ne($r->delivery_date))
+                <span class="badge badge-danger" style="font-size: 7pt;">{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</span>
+                @else
+                <span class="badge badge-info" style="font-size: 7pt;">{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</span>
+                @endif
+                @else
+                    -
+                @endif
+            </td>
             <td class="p-2">{{ $r->status }}</td>
             <td class="p-2">
                 @if (array_key_exists($r->name, $order_production_status))
@@ -63,7 +73,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="8" class="text-center text-uppercase text-muted">No order(s) found.</td>
+            <td colspan="9" class="text-center text-uppercase text-muted">No order(s) found.</td>
         </tr>
         @endforelse
     </tbody>
@@ -88,6 +98,7 @@
                     <div class="col-8">
                         <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->customer }}</span>
                         <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
+                        <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
                         <span class="d-block mt-1" style="font-size: 10pt;">Date Approved: <b>{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</b></span>
                         <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
                         <span class="d-block mt-1" style="font-size: 10pt;">Created by: <b>{{ $s->owner }}</b></span>
@@ -109,13 +120,14 @@
                             <table class="table table-bordered table-striped">
                                 <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                     <th class="p-2" style="width: 5%;">-</th>
-                                    <th class="p-2" style="width: 46%;">Item Description</th>
+                                    <th class="p-2" style="width: 41%;">Item Description</th>
                                     <th class="p-2" style="width: 10%;">Qty</th>
                                     <th class="p-2" style="width: 17%;">BOM No.</th>
                                     <th class="p-2" style="width: 10%;">Ship by</th>
                                     @if (count($production_orders) > 0)
-                                    <th class="p-2" style="width: 12%;">Prod. Order</th>
+                                    <th class="p-2" style="width: 10%;">Prod. Order</th>
                                     @endif
+                                    <th class="p-1" style="width: 7%;">Track Order</th>
                                 </thead>
                                 <tbody style="font-size: 8pt;">
                                     @forelse ($items as $v)
@@ -155,17 +167,29 @@
                                         <td class="text-center p-2">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
                                         @if (count($production_orders) > 0)
                                         <td class="text-center p-2">
-                                            @forelse ($production_order_item as $production_order)
-                                            <a href="#" data-jtno="{{ $production_order }}" class="text-decoration-none prod-details-btn d-block">{{ $production_order }}</a>
+                                            @forelse ($production_order_item as $po)
+                                            <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
+                                            @if ($po['status'] == 'In Progress')
+                                            <span class="badge badge-warning" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                            @elseif ($po['status'] == 'Completed')
+                                            <span class="badge badge-success" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                            @else
+                                            <span class="badge badge-secondary" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                            @endif
                                             @empty
                                             -
                                             @endforelse
                                         </td>
                                         @endif
+                                        <td class="text-center p-2">
+                                            <button class="btn btn-info btn-icon btn_trackmodal" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $s->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $s->customer }}">
+                                                <i class="now-ui-icons ui-1_zoom-bold"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted text-uppercase">No item(s) found</td>
+                                        <td colspan="7" class="text-center text-muted text-uppercase">No item(s) found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -178,6 +202,15 @@
                             </div>
                         </form>
                     </div>
+                    {{-- @php
+                        $seen_logs = array_key_exists($s->name, $seen_logs_per_order) ? $seen_logs_per_order[$s->name] : [];
+                    @endphp
+                    <div class="col-12" style="font-size: 7pt;">
+                        <span class="d-block font-weight-bold">Seen by:</span>
+                        @foreach ($seen_logs as $e)
+                        <span class="d-block">{{ $e->created_by . ' - ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
+                        @endforeach
+                    </div> --}}
                 </div>
             </div>
             <div class="modal-footer p-3">

@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'view_order_list',
-  'pageHeader' => 'Production Planning',
+  'pageHeader' => 'Customer Orders',
   'pageSpan' => Auth::user()->employee_name
 ])
 
@@ -15,7 +15,7 @@
                     <div class="col-md-6 pb-0">
                          <div class="d-flex flex-row col-12 m-0">
                             <div class="pl-2 col-4" style="border-left: 5px solid #229954;">
-                                <small class="d-block">Customer Order</small>
+                                <small class="d-block">Sales Order</small>
                                 <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="customer-order-text">0</span>
                             </div>
                             <div class="pl-2 col-4" style="border-left: 5px solid #E67E22;">
@@ -26,17 +26,21 @@
                                 <small class="d-block">Sample Order</small>
                                 <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="sample-order-text">0</span>
                             </div>
+							<div class="pl-2 col-4" style="border-left: 5px solid #31590954;">
+                                <small class="d-block">Others</small>
+                                <span class="d-block font-weight-bolder" style="font-size: 17pt;" id="other-order-text">0</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-12 p-2">
                         <form id="order-list-form">
                             <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Order List</h6>
+                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Orders</h6>
                                 <div class="pt-2 pb-2">
                                     @foreach ($order_types as $order_type)
                                     <label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
-                                        <input type="checkbox" class="order-types-chk" value="{{ $order_type }}" name="order_types[]">
-                                        <span class="pill-chk-label">{{ $order_type }}</span>
+                                        <input type="checkbox" class="order-types-chk" value="{{ $order_type['id'] }}" name="order_types[]">
+                                        <span class="pill-chk-label">{{ $order_type['type'] }}</span>
                                     </label>
                                     @endforeach
                                 </div>

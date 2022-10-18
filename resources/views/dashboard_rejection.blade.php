@@ -1,3 +1,4 @@
+@if (count($list) > 0)
 <div class="card shadow-none border">
     <div class="card-header pt-2 pl-3 pr-3 pb-2 bg-danger">
       <h6 class="text-white font-weight-bold text-center m-0 rounded-top" style="font-size: 10.5pt;">Rejection <span class="badge badge-primary pull-right">{{ count($list) }}</span></h6>
@@ -28,3 +29,4 @@
         </div>
     </div>
 </div>
+@endif

@@ -8461,7 +8461,24 @@ class MainController extends Controller
 	public function viewOrderList(Request $request) {
 		$permissions = $this->get_user_permitted_operation();
 
-		$order_types = ['Customer Order', 'Manufacture', 'Consignment Order', 'Sample Order'];
+		$order_types = [
+			[
+				'id' => 'Customer Order',
+				'type' => 'Sales Order'
+			],
+			[
+				'id' => 'Consignment Order',
+				'type' => 'Consignment Order'
+			],
+			[
+				'id' => 'Sample Order',
+				'type' => 'Sample Order'
+			],
+			[
+				'id' => 'Manufacture',
+				'type' => 'Others'
+			]
+		];
 
 		return view('view_order_list', compact('permissions', 'order_types'));
 	}
@@ -8485,7 +8502,7 @@ class MainController extends Controller
 			->when($request->order_types, function ($query) use ($request) {
 				return $query->whereIn('mr.custom_purpose', $request->order_types);
             })
-			->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes');//, 'wo.name as production_order'
+			->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person');
 			
 		$list = DB::connection('mysql')->table('tabSales Order as so')
 			->where('so.docstatus', 1)
@@ -8505,16 +8522,16 @@ class MainController extends Controller
 			->when($request->order_types && !in_array('Customer Order', $request->order_types), function ($query) use ($request) {
 				return $query->whereIn('so.sales_type', $request->order_types);
             })
-			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes')//, 'wo.name as production_order'
+			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person')
 			->unionAll($material_requests)->orderBy('date_approved', 'desc')->paginate(15);
 
 		// get items
 		$references = collect($list->items())->pluck('name');
 		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date');
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name');
 
 		$item_list = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date')
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name')
 			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
 
 		$item_codes = collect($item_list)->pluck('item_code')->unique();
@@ -8530,12 +8547,15 @@ class MainController extends Controller
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->whereIn(DB::raw('IFNULL(sales_order, material_request)'), $references)
-			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty')
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status')
 			->get();
 
 		$items_production_orders = [];
 		foreach ($production_orders as $r) {
-			$items_production_orders[$r->reference][$r->item_code][] = $r->production_order;
+			$items_production_orders[$r->reference][$r->item_code][] = [
+				'production_order' => $r->production_order,
+				'status' => $r->status
+			];
 		}
 
 		$prod_statuses = collect($production_orders)->groupBy('reference')->toArray();
@@ -8638,22 +8658,16 @@ class MainController extends Controller
 		return view('dashboard_rejection', compact('list'));
 	}
 
-	public function dashboardInProcessOrders() {
-		$list = DB::connection('mysql_mes')->table('production_order')
-			->where('status', 'In Progress')->whereRaw('parent_item_code = item_code')
-			->select('sales_order', 'material_request', 'parent_item_code', 'sub_parent_item_code', 'item_code', 'qty_to_manufacture', 'delivery_date', 'customer', 'description', 'classification')
-			->orderBy('last_modified_at', 'desc')->get();
-
-		return view('dashboard_wip_orders', compact('list'));
-	}
-
 	public function createViewOrderLog(Request $request) {
-		DB::connection('mysql_mes')->table('activity_logs')->insert([
-			'action' => 'View Order',
-			'reference' => $request->order_no,
-			'message' => $request->order_no . ' has been viewed by ' . Auth::user()->employee_name . ' on ' . Carbon::now()->toDateTimeString(),
-			'created_at' => Carbon::now()->toDateTimeString(),
-			'created_by' => Auth::user()->email
-		]);
+		$existing = DB::connection('mysql_mes')->table('activity_logs')->where('action', 'View Order')->where('reference', $request->order_no)->where('created_by', Auth::user()->email)->exists();
+		if (!$existing) {
+			DB::connection('mysql_mes')->table('activity_logs')->insert([
+				'action' => 'View Order',
+				'reference' => $request->order_no,
+				'message' => $request->order_no . ' has been viewed by ' . Auth::user()->employee_name . ' on ' . Carbon::now()->toDateTimeString(),
+				'created_at' => Carbon::now()->toDateTimeString(),
+				'created_by' => Auth::user()->email
+			]);
+		}
 	}
 }

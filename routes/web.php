@@ -547,12 +547,13 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/idle_operators', 'MainController@idleOperators');
 	Route::get('/dashboard_numbers', 'MainController@dashboardNumbers');
 	Route::get('/dashboard_rejections', 'MainController@rejectionListToday');
-	Route::get('/dashboard_in_process_orders', 'MainController@dashboardInProcessOrders');
 	Route::get('/production_settings', 'MainController@productionSettings');
 	Route::get('/inventory_settings', 'MainController@inventorySettings');
 	Route::get('/qa_settings', 'MainController@qaSettings');
 	Route::get('/user_settings', 'MainController@userSettings');
 	Route::get('/orderTypes', 'MainController@orderTypes');
+	Route::get('/dashboard_operator_output', 'MainController@dashboardOperatorOutput');
+	
 });
 //operator_checklist
 Route::post('/save_operator_checklist', 'SecondaryController@save_operator_checklist');

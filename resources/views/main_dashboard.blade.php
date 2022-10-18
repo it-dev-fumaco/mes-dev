@@ -493,16 +493,6 @@
       }); 
     }
 
-    function dashboard_wip_orders(){
-      $.ajax({
-        url:"/dashboard_in_process_orders",
-        type:"GET",
-        success:function(data){
-          $('#wip-orders-div').html(data);
-        }
-      }); 
-    }
-
     var date_today = $("#date_today").val();
 
     load_dashboard();
@@ -511,7 +501,6 @@
       idle_operators();
       dashboard_numbers();
       dashboard_rejections();
-      dashboard_wip_orders();
       $( "#on-going-production-orders-content .tab-pane" ).each(function( index ) {
         const operation = $(this).data('operation');
         const el = $(this);
