@@ -226,6 +226,15 @@ $(document).ready(function(){
 		}
 	});
 
+	$(document).on('click', '.order-items-form input[type="checkbox"]', function(e) {
+		var frm = $(this).closest('form').eq(0);
+		if (frm.find('input[type="checkbox"]:checked').length > 0) {
+			frm.find('button[type="submit"]').removeClass('btn-secondary disabled').addClass('btn-primary');
+		} else {
+			frm.find('button[type="submit"]').addClass('btn-secondary disabled').removeClass('btn-primary');
+		}
+	});
+
     $(document).on('keyup', '.order-list-search', function(){
         loadOrderList();
     });

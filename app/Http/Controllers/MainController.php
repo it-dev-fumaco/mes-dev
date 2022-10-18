@@ -8564,11 +8564,13 @@ class MainController extends Controller
 			$total_qty =  collect($r)->sum('qty_to_manufacture');
 			$total_feedback_qty =  collect($r)->sum('feedback_qty');
 			$percentage = ($total_feedback_qty/$total_qty) * 100;
-			$order_production_status[$i] = $percentage;
+			$has_in_progress = collect($r)->where('status', 'In Progress')->count();
+			$order_production_status[$i]['percentage'] = number_format($percentage);
+			$order_production_status[$i]['has_in_progress'] = $has_in_progress;
 		}
 
 		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
-			->where('created_by', Auth::user()->email)->whereIn('reference', $references)->where('action', 'View Order')->get();
+			->where('created_by', Auth::user()->email)->whereIn('reference', $references)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
 		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
 		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
 

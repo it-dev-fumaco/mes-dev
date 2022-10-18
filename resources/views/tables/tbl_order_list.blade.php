@@ -1,4 +1,4 @@
-<table class="table table-bordered table-striped table-hover">
+<table class="table table-bordered table-hover">
     <col style="width: 10%;">
     <col style="width: 20%;">
     <col style="width: 10%;">
@@ -45,20 +45,27 @@
             <td class="p-2">
                 @if (array_key_exists($r->name, $order_production_status))
                 @php
-                    $progress_bar_val = $order_production_status[$r->name];
+                    $progress_bar_val = $order_production_status[$r->name]['percentage'];
+                    $has_in_progress = $order_production_status[$r->name]['has_in_progress'];
                     if ($progress_bar_val < 100) {
                         $progress_bar_color = 'bg-warning';
                     } else {
                         $progress_bar_color = 'bg-success';
                     }
                 @endphp
+                @if ($has_in_progress && $progress_bar_val <= 0)
+                    <span class="badge badge-warning" style="font-size: 7pt;">In Progress</span>
+                @elseif ($has_in_progress <= 0 && $progress_bar_val <= 0)
+                <span class="badge badge-danger" style="font-size: 7pt;">Not Started</span>
+                @else
                 <div class="progress">
                     <div class="progress-bar {{ $progress_bar_color }}" role="progressbar" style="width: {{ $progress_bar_val }}%" aria-valuenow="{{ $progress_bar_val }}" aria-valuemin="0" aria-valuemax="100">
                         <small>{{ $progress_bar_val }}%</small>
                     </div>
                 </div>
+                @endif
                 @else
-                    --
+                    No Prod. Order
                 @endif
             </td>
             <td class="p-1">
@@ -78,38 +85,40 @@
         @endforelse
     </tbody>
 </table>
-<div class="m-2 order-list-pagination">
-    {{ $list->appends(Request::except('page'))->links() }}
-</div>
+<div class="m-2 order-list-pagination">{{ $list->appends(Request::except('page'))->links() }}</div>
 
 @foreach ($list as $i => $s)
 <!-- Modal -->
 <div class="modal fade" id="{{ strtolower($s->name) }}-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 80%;">
-        <div class="modal-content">
-            <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
-                <h5 class="modal-title text-uppercase">{{ $s->name }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-            <div class="modal-body pb-2">
-                <div class="d-flex flex-row">
-                    <div class="col-8">
-                        <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->customer }}</span>
-                        <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
-                        <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
-                        <span class="d-block mt-1" style="font-size: 10pt;">Date Approved: <b>{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</b></span>
-                        <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
-                        <span class="d-block mt-1" style="font-size: 10pt;">Created by: <b>{{ $s->owner }}</b></span>
-                    </div>
-                    <div class="col-4">
-                        <span class="d-block" style="font-size: 10pt;"><b>SHIP TO:</b> {!! $s->shipping_address !!}</span>
-                    </div>
+        <form action="/assembly/wizard" class="order-items-form">
+            <div class="modal-content">
+                <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
+                    <h5 class="modal-title text-uppercase">{{ $s->name }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="row mt-2">
-                    <div class="col-12">
-                        <form action="/assembly/wizard" class="order-items-form">
+                <div class="modal-body pb-2">
+                    <table class="w-100 border-0">
+                        <tr>
+                            <td class="align-top" style="width: 40%;">
+                                <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->customer }}</span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
+                            </td>
+                            <td class="align-top" style="width: 40%;">
+                                <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Date Approved: <b>{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Created by: <b>{{ $s->owner }}</b></span>
+                            </td>
+                            <td class="align-top" style="width: 20%;">
+                                <span class="d-block" style="font-size: 10pt;"><b>SHIP TO:</b> {!! $s->shipping_address !!}</span>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="row mt-2">
+                        <div class="col-12">
                             <input type="hidden" name="ref" value="{{ $s->name }}">
                             @php
                                 $ref_type = explode("-", $s->name)[0];
@@ -200,23 +209,27 @@
                                 <span class="d-inline-block m-1">{!! $s->notes !!}</span>
                                 @endif
                             </div>
-                        </form>
+                        </div>
+                        @php
+                            $seen_logs = array_key_exists($s->name, $seen_logs_per_order) ? $seen_logs_per_order[$s->name] : [];
+                        @endphp
+                        <div class="col-12" style="font-size: 7pt;">
+                            <span class="d-block font-weight-bold">Activity Log(s):</span>
+                            <ul>
+                                @foreach ($seen_logs as $e)
+                                <li>
+                                    <span class="d-block">{{ 'Opened by ' . ucwords(str_replace(".", " ", explode("@", $e->created_by)[0])) . ' on ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
-                    {{-- @php
-                        $seen_logs = array_key_exists($s->name, $seen_logs_per_order) ? $seen_logs_per_order[$s->name] : [];
-                    @endphp
-                    <div class="col-12" style="font-size: 7pt;">
-                        <span class="d-block font-weight-bold">Seen by:</span>
-                        @foreach ($seen_logs as $e)
-                        <span class="d-block">{{ $e->created_by . ' - ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
-                        @endforeach
-                    </div> --}}
+                </div>
+                <div class="modal-footer p-3">
+                    <button class="btn btn-secondary btn-lg float-right m-0 disabled" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
                 </div>
             </div>
-            <div class="modal-footer p-3">
-                <button class="btn btn-primary btn-lg float-right m-0" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 @endforeach 
