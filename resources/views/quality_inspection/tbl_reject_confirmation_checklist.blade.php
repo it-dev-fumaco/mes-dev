@@ -70,9 +70,7 @@
 			</div>
 		</div>
 		<div class="col-md-12 text-right">
-			<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 			<button type="submit" class="btn btn-primary">Confirm</button>
 		</div>
-	</div>
 	</div>
 </form>

@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'view_order_list',
-  'pageHeader' => 'Customer Orders',
+  'pageHeader' => 'Open Orders',
   'pageSpan' => Auth::user()->employee_name
 ])
 
@@ -35,7 +35,7 @@
                     <div class="col-md-12 p-2">
                         <form id="order-list-form">
                             <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Orders</h6>
+                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Open Orders</h6>
                                 <div class="pt-2 pb-2">
                                     @foreach ($order_types as $order_type)
                                     <label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">

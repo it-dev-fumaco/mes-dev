@@ -70,7 +70,7 @@
         <li class="m-0 align-middle">
           <a href="/order_list" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block"> Customer Orders</span>
+            <span class="d-inline-block"> Open Orders</span>
           </a>
         </li>
         <li class="m-0 align-middle">

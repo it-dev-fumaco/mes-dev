@@ -8,14 +8,14 @@
     <col style="width: 10%;">
     <col style="width: 10%;">
     <col style="width: 4%;">
-    <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
+    <thead class="text-white text-center font-weight-bold text-uppercase bg-secondary" style="font-size: 6pt;">
         <th class="p-2">Order No.</th>
         <th class="p-2">Customer</th>
         <th class="p-2">Order Type</th>
         <th class="p-2">Project</th>
         <th class="p-2">Date Approved</th>
         <th class="p-2">Delivery Date</th>
-        <th class="p-2">Order Status</th>
+        <th class="p-2">Delivery Status</th>
         <th class="p-2">Prod. Status</th>
         <th class="p-2">-</th>
     </thead>
@@ -65,7 +65,7 @@
                 </div>
                 @endif
                 @else
-                    No Prod. Order
+                    -
                 @endif
             </td>
             <td class="p-1">
@@ -106,9 +106,10 @@
                                 <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->customer }}</span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
                             </td>
                             <td class="align-top" style="width: 40%;">
-                                <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Delivery Date: <b>{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Date Approved: <b>{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Created by: <b>{{ $s->owner }}</b></span>
                             </td>
@@ -127,7 +128,7 @@
                             @endphp
                             <input type="hidden" name="ref_type" value="{{ $ref_type }}">
                             <table class="table table-bordered table-striped">
-                                <thead class="text-primary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
+                                <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                     <th class="p-2" style="width: 5%;">-</th>
                                     <th class="p-2" style="width: 41%;">Item Description</th>
                                     <th class="p-2" style="width: 10%;">Qty</th>
@@ -204,7 +205,10 @@
                                 </tbody>
                             </table>
                             <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2 align-items-start" style="font-size: 12px;">
-                                @if ($s->notes)
+                                @php
+                                    $notes = strip_tags($s->notes);
+                                @endphp
+                                @if ($notes)
                                 <span class="font-weight-bold d-inline-block m-1">Notes:</span>
                                 <span class="d-inline-block m-1">{!! $s->notes !!}</span>
                                 @endif
@@ -214,11 +218,10 @@
                             $seen_logs = array_key_exists($s->name, $seen_logs_per_order) ? $seen_logs_per_order[$s->name] : [];
                         @endphp
                         <div class="col-12" style="font-size: 7pt;">
-                            <span class="d-block font-weight-bold">Activity Log(s):</span>
                             <ul>
                                 @foreach ($seen_logs as $e)
                                 <li>
-                                    <span class="d-block">{{ 'Opened by ' . ucwords(str_replace(".", " ", explode("@", $e->created_by)[0])) . ' on ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
+                                    <span class="d-block font-italic text-muted">{{ 'Opened by ' . ucwords(str_replace(".", " ", explode("@", $e->created_by)[0])) . ' on ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
                                 </li>
                                 @endforeach
                             </ul>
