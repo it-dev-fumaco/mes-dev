@@ -38,7 +38,7 @@
 				<div class="col-md-6">
 					<div class="form-group">
 						<label class="font-weight-bold">Reject Type</label>
-						<select class="form-control rounded" name="reject_list_id">
+						<select class="form-control rounded" name="reject_list_id" required>
 							@forelse($checklist as $r)
 							<option value="{{ $r->reject_list_id }}" {{ ($reject_details->reject_list_id == $r->reject_list_id) ? 'selected' : '' }}>{{ $r->reject_reason }}</option>
 							@empty
@@ -47,19 +47,20 @@
 						</select>
 					</div>
 					<div class="form-group">
-						<label class="font-weight-bold">Disposition</label>
-						<select class="form-control rounded" name="qa_disposition">
-							<option value="Use As Is">"Use As Is"</option>
-							<option value="Replace">Replace</option>
-							<option value="Rework">Rework</option>
-							<option value="Scrap">Scrap</option>
-						</select>
+						<label class="font-weight-bold">Confirmed Reject Qty</label>
+						<input type="text" name="rejected_qty" class="form-control rounded" value="{{ $qa_details->rejected_qty }}" required>
 					</div>
 				</div>
 				<div class="col-md-6">
+				
 					<div class="form-group">
-						<label class="font-weight-bold">Confirmed Reject Qty</label>
-						<input type="text" name="rejected_qty" class="form-control rounded" value="{{ $qa_details->rejected_qty }}">
+						<label class="font-weight-bold">Disposition</label>
+						<select class="form-control rounded" name="qa_disposition" required>
+							<option value="">Select Disposition</option>
+							<option value="Use As Is">"Use As Is"</option>
+							<option value="Rework">For Rework</option>
+							<option value="Scrap">Scrap / Defective</option>
+						</select>
 					</div>
 					<div class="form-group">
 						<label class="font-weight-bold">Remarks</label>

@@ -15,7 +15,7 @@
           <div class="col-9 p-1">
             <div class="card shadow-none border">
               <div class="card-header p-0">
-                <h6 class="text-white1 font-weight-bold text-left m-2 rounded-top" style="font-size: 10.5pt;">In Process Quality Inspection Log(s)</h6>
+                <h6 class="text-white1 font-weight-bold text-left m-2 rounded-top" style="font-size: 10.5pt;">In Process Quality Inspection Log(s) Today</h6>
                 <table class="w-100 table-bordered text-center rounded" border="1">
                   <col style="width: 25%;">
                   <col style="width: 25%;">
@@ -87,7 +87,7 @@
             </div>
             <div class="card shadow-none border">
               <div class="card-header pt-2 pl-3 pr-3 pb-2" style="background-color:#D35400;">
-                <h6 class="text-white font-weight-bold text-left m-0 rounded-top" style="font-size: 10.5pt;">Reject(s)/Defect(s) for Confirmation <span class="badge badge-info float-right" id="reject-count-overall">0</span></h6>
+                <h6 class="text-white font-weight-bold text-left m-0 rounded-top" style="font-size: 10.5pt;">Pending Reject(s)/Defect(s) for Confirmation <span class="badge badge-info float-right" id="reject-count-overall">0</span></h6>
               </div>
               <div class="card-body pb-1 pl-1 pr-1 pt-0" style="min-height: 300px;">
                 <ul class="nav nav-tabs m-0 border-0 p-0 dashboard-custom-tabs" role="tablist" style="font-size: 9pt;">

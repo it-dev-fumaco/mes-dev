@@ -129,13 +129,13 @@
         <li class="m-0">
           <a href="/qa_inspection_logs" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">QA Inspection Logs</span>
+            <span class="d-inline-block">Inspection Logs</span>
           </a>
         </li>
         <li class="m-0">
-          <a href="/view_rejection_report" class="d-block m-0 p-1" style="text-decoration: none;">
+          <a href="/weekly_rejection_report" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Rejection Report</span>
+            <span class="d-inline-block">Rejection Logs</span>
           </a>
         </li>
       </ul>
@@ -163,12 +163,6 @@
           <a href="/report_index" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Reports</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/settings_module" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Setup</span>
           </a>
         </li>
       </ul>

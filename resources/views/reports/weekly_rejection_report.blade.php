@@ -1,30 +1,15 @@
 @extends('layouts.user_app', [
   'namePage' => 'Weekly Rejection Report',
   'activePage' => 'weekly_rejection_report',
-  'pageHeader' => $operation .' Rejection Report',
+  'pageHeader' => 'Rejection Logs',
   'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
 <div class="panel-header"></div>
-    <div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-        <div class="col-12 mx-auto bg-white">
+    <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+        <div class="col-12 m-0 bg-white border">
             @php
-                switch($operation){
-                    case 'Fabrication':
-                        $link = 1;
-                        break;
-                    case 'Painting':
-                        $link = 2;
-                        break;
-                    case 'Wiring and Assembly':
-                        $link = 3;
-                        break;
-                    default:
-                        $link = 0;
-                        break;
-                }
-
                 $start = \Carbon\Carbon::now()->subDays(7);
                 $end = \Carbon\Carbon::now();
                 if(request()->has('date')){
@@ -32,33 +17,42 @@
                     $end = isset(explode(' - ', request('date'))[1]) ? \Carbon\Carbon::parse(explode(' - ', request('date'))[1]) : null;
                 }
             @endphp
-            <form action="/weekly_rejection_report/{{ $link }}">
-                <div class="row">
+            <form action="/weekly_rejection_report">
+                <div class="row p-0 m-0">
                     <div class="p-1 mt-1 mb-1 col-3">
-                        <small class="ml-3 d-block">Period:</small>
-                        <span class="d-block font-weight-bold text-center">{{ $start->startOfDay()->format('F d, Y').' - '.$end->endOfDay()->format('F d, Y') }} ({{ $end->diffInDays($start) }} day/s)</span>
+                        <small class="d-block">Period:</small>
+                        <span class="d-block font-weight-bold text-center">{{ $start->startOfDay()->format('M. d, Y').' - '.$end->endOfDay()->format('M. d, Y') }} ({{ $end->diffInDays($start) }} day/s)</span>
                     </div>
-                    <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #27AE60;">
+                    <div class="p-1 mt-1 mb-1 col-2" style="border-left: 10px solid #27AE60;">
                         <small class="d-block" style="font-size: 8pt;">Total Good</small>
                         <h5 class="d-block font-weight-bold m-0">{{ number_format($total_good) }}</h5>
                     </div>
-                    <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #F40305;">
+                    <div class="p-1 mt-1 mb-1 col-2" style="border-left: 10px solid #F40305;">
                         <small class="d-block" style="font-size: 8pt;">Total Reject</small>
                         <h5 class="d-block font-weight-bold m-0">{{ number_format($total_reject) }}</h5>
                     </div>
-                    <div class="p-1 mt-1 mb-1 col-3">
-                        <div class="row">
-                            <div class="col-8">
-                                <input type="text" class='form-control m-2' id="daterange" name='date' />
+                    <div class="p-1 mt-1 mb-1 col-5">
+                        <div class="d-flex flex-row align-items-center">
+                            <div class="col-5 pt-1 pl-2 pr-2 pb-1">
+                                <select name="operation_id" class="form-control rounded">
+                                    <option value="">Select Operation</option>
+                                    <option value="1" {{ request('operation_id') == 1 ? 'selected' : '' }}>Fabrication</option>
+                                    <option value="2" {{ request('operation_id') == 2 ? 'selected' : '' }}>Painting</option>
+                                    <option value="3" {{ request('operation_id') == 3 ? 'selected' : '' }}>wiring and Assembly</option>
+                                </select>
                             </div>
-                            <div class="col-4">
-                                <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
+                            <div class="col-5 pt-1 pl-2 pr-2 pb-1">
+                                <input type="text" class='form-control rounded' id="daterange" name='date' />
+                            </div>
+                            <div class="col-2 p-1">
+                                <button class="btn btn-primary btn-xs p-2 m-0 w-100" type="submit">Search</button>
                             </div>
                         </div>
+         
                     </div>
                 </div>
             </form>
-            <table class="table table-bordered">
+            <table class="table table-bordered table-striped table-hover">
                 <thead class="text-white bg-secondary reject-font-size">
                     <tr>
                         <th class="text-center p-1" style="font-size: 10pt;">Production Order</th>
@@ -85,7 +79,7 @@
                             <td class="p-2 reject-font-size text-center">{{ $reject['to_time'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['good'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['reject'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['reject_reason'] }}</td>
+                            <td class="p-2 reject-font-size text-center">{!! $reject['reject_reason'] !!}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['operator_name'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
                         </tr>

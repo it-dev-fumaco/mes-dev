@@ -643,6 +643,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/qa_inspection_logs', 'QualityInspectionController@qaInspectionLogs');
 
 	Route::post('/createViewOrderLog', 'MainController@createViewOrderLog');
+
+	Route::get('/weekly_rejection_report', 'LinkReportController@weekly_rejection_report');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');
@@ -674,7 +676,7 @@ Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
-Route::get('/weekly_rejection_report/{operation_id}', 'LinkReportController@weekly_rejection_report');
+
 Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
 Route::get('/rejection_report', 'LinkReportController@rejection_report');
