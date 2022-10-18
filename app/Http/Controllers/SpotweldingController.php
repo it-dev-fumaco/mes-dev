@@ -178,6 +178,8 @@ class SpotweldingController extends Controller
 	}
 
 	public function end_task(Request $request){
+		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
         try {
 			$now = Carbon::now();
 			$current_task = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -188,7 +190,15 @@ class SpotweldingController extends Controller
 
 			$cycle_time_in_seconds = $seconds / $request->completed_qty;
 
-			$good_qty = $request->completed_qty - $current_task->reject;
+			$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->where('reference_id', $current_task->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
+
+			$rejects = $current_task->reject;
+			if($rework_qty > 0){
+				$rejects = $current_task->reject - $rework_qty;
+				$rejects = $rejects > 0 ? $rejects : 0;
+			}
+
+			$good_qty = $request->completed_qty - $rejects;
 
 			$operation_id = DB::connection('mysql_mes')->table('production_order')
 				->where('production_order', $request->production_order)->first()->operation_id;
@@ -219,8 +229,12 @@ class SpotweldingController extends Controller
 				$this->update_inventory($part->part_code, $bom_qty * $good_qty, 1);
 			}
 
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
             return response()->json(["error" => $e->getMessage()]);
         }
 	}

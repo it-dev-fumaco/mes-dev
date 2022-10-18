@@ -173,7 +173,7 @@
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROCESS</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>GOOD</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REJECT</b></td>
-											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REWORK</b></td>
+											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>FOR REWORK</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>MACHINE</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>START</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>END</b></td>

@@ -438,6 +438,12 @@ class MainController extends Controller
 
 				$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Spotwelding')->whereIn('reference_id', collect($operations)->pluck('time_log_id'))->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
 
+				$total_rework = $rework_qty;
+				if($row->completed_qty > 0){
+					$total_rework = $rework_qty - $row->completed_qty;
+					$total_rework = $total_rework > 0 ? $total_rework : 0;
+				}
+
 				$operations_arr[] = [
 					'machine_code' => null,
 					'timelog_id' => null,
@@ -449,7 +455,7 @@ class MainController extends Controller
 					'qa_inspection_status' => null,
 					'good' => $row->completed_qty,
 					'reject' => $total_rejects,
-					'rework' => $rework_qty,
+					'rework' => $total_rework,
 					'remarks' => null,
 					'total_duration' => null
 				];
@@ -465,6 +471,13 @@ class MainController extends Controller
 					$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
 
 					$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->where('reference_id', $d->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
+
+					$total_rework = $rework_qty;
+					if($d->good > 0){
+						$good_qty = $d->workstation == 'Painting' ? collect($operations)->where('status', '!=' ,'In Progress')->sum('good') : collect($operations)->sum('good');
+						$total_rework = $rework_qty - $good_qty;
+						$total_rework = $total_rework > 0 ? $total_rework : 0;
+					}
 
 					if ($d->duration > 0) {
 						if ($d->good > 0) {
@@ -505,7 +518,7 @@ class MainController extends Controller
 						'qa_inspection_status' => $qa_inspection_status,
 						'good' => $d->good,
 						'reject' => $d->reject,
-						'rework' => $rework_qty,
+						'rework' => $total_rework,
 						'remarks' => $d->remarks,
 						'total_duration' => trim($total_duration)
 					];
@@ -725,12 +738,24 @@ class MainController extends Controller
 			$current_task = DB::connection('mysql_mes')->table('time_logs')
 				->where('time_log_id', $request->id)->first();
 
+			if(!$current_task){
+				return response()->json(['status' => 0, 'message' => 'Task not found.']);
+			}
+
 			$seconds = $now->diffInSeconds(Carbon::parse($current_task->from_time));
 			$duration= $seconds / 3600;
 
 			$cycle_time_in_seconds = $seconds / $request->completed_qty;
 
-			$good_qty = $request->completed_qty - $current_task->reject;
+			$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->where('reference_id', $current_task->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
+
+			$rejects = $current_task->reject;
+			if($rework_qty > 0){
+				$rejects = $current_task->reject - $rework_qty;
+				$rejects = $rejects > 0 ? $rejects : 0;
+			}
+
+			$good_qty = $request->completed_qty - $rejects;
 
 			// get in progress time logs
 			$in_progress_time_logs = DB::connection('mysql_mes')->table('job_ticket')
@@ -3995,6 +4020,7 @@ class MainController extends Controller
 			return $this->operator_scrap_task($request->workstation, $request->machine_code, $request->production_order, $request->job_ticket_id, $operator_id);
 		}
 
+		$total_rework = 0;
 		if (!$time_logs) {
 			$task_list_qry = DB::connection('mysql_mes')->table('production_order AS po')
 				->join('job_ticket AS jt', 'po.production_order', 'jt.production_order')
@@ -4010,6 +4036,8 @@ class MainController extends Controller
 				->select('po.item_code', 'time_logs.time_log_id', 'jt.job_ticket_id', 'time_logs.operator_id', 'time_logs.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'time_logs.status', 'time_logs.from_time', 'time_logs.to_time', 'po.customer', 'po.qty_to_manufacture', DB::raw('(SELECT SUM(good) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'po.stock_uom', 'po.project', 'time_logs.operator_name', 'jt.process_id', 'time_logs.good', 'jt.status as jtstatus')
 				->orderByRaw("FIELD(time_logs.status, 'In Progress', 'Pending', 'Completed') ASC")
 				->orderBy('time_logs.last_modified_at', 'desc')->get();
+
+			$total_rework = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->where('reference_id', $time_logs->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
 		}
 
 		$task_list = [];
@@ -4044,6 +4072,12 @@ class MainController extends Controller
 				}
 			}
 
+			$rework_qty = $total_rework;
+			if($time_logs && $row->total_good > 0){
+				$rework_qty = $total_rework - $row->total_good;
+				$rework_qty = $rework_qty > 0 ? $rework_qty : 0;
+			}
+
 			$task_list[] = [
 				'item_code' => $row->item_code,
 				'job_ticket_id' => $row->job_ticket_id,
@@ -4062,6 +4096,7 @@ class MainController extends Controller
 				'qty_to_manufacture' => $row->qty_to_manufacture,
 				'total_good' => ($time_logs) ? $row->total_good : $row->completed_qty,
 				'total_reject' => ($time_logs) ? $row->total_reject : 0,
+				'total_rework' => $rework_qty,
 				'stock_uom' => $row->stock_uom,
 				'project' => $row->project,
 				'operator_name' => ($time_logs) ? $row->operator_name : null,
@@ -4089,8 +4124,8 @@ class MainController extends Controller
 			->whereNotNull('time_logs.operator_id')
 			->select('time_logs.operator_id', 'time_logs.operator_nickname', DB::raw('SUM(time_logs.good + time_logs.reject) as completed_qty'))
 			->groupBy('time_logs.operator_id', 'time_logs.operator_nickname')->get();
-
-    	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator'));
+		
+    	return view('tables.tbl_current_operator_task', compact('task_list', 'machine_code', 'batch_list', 'in_progress_operator', 'total_rework'));
 	}
 
 	public function operator_scrap_task($workstation, $machine_code, $production_order, $job_ticket_id, $operator_id){
@@ -4242,6 +4277,8 @@ class MainController extends Controller
     }
 	
 	public function reject_task(Request $request){
+		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
 		try {
 			if(!Auth::user()) {
 				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
@@ -4255,10 +4292,20 @@ class MainController extends Controller
 			$data= $request->all();
 			$reject_reason= $data['reject_list'];
 
-
 			$now = Carbon::now();
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 			$good_qty_after_transaction = $time_log->good - $request->rejected_qty;
+
+			$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $time_log->job_ticket_id)->first();
+
+			$total_rejects = 0;
+			$production_order = null;
+			if ($job_ticket_details) {
+				$production_order = $job_ticket_details->production_order;
+				$process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->first();
+				$process_name = $process ? $process->process_name : null;
+				$total_rejects = $job_ticket_details->reject;
+			}
 
 			if ($time_log) {
 				$is_feedbacked = DB::connection('mysql_mes')->table('production_order as p')
@@ -4274,7 +4321,7 @@ class MainController extends Controller
                 'last_modified_at' => $now->toDateTimeString(),
                 'last_modified_by' => Auth::user()->employee_name,
                 'good' => $good_qty_after_transaction,
-                'reject' => $request->rejected_qty,
+                'reject' => $request->rejected_qty + $total_rejects,
 			];
 
 			$reference_type = ($request->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
@@ -4307,14 +4354,6 @@ class MainController extends Controller
 			if($request->workstation != 'Spotwelding'){
 				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 			}
-
-			$production_order = null;
-			$process = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $time_log->job_ticket_id)->first();
-			if ($process) {
-				$production_order = $process->production_order;
-				$process = DB::connection('mysql_mes')->table('process')->where('process_id', $process->process_id)->first();
-				$process_name = $process ? $process->process_name : null;
-			}
 			
 			$this->update_job_ticket($time_log->job_ticket_id);
 
@@ -4327,9 +4366,13 @@ class MainController extends Controller
 			];
 
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
-		
+
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
             return response()->json(["error" => $e->getMessage()]);
         }
 	}
