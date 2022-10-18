@@ -32,24 +32,40 @@
               <tbody style="font-size: 9pt;">
                 @forelse($production_order as $row)
                 @php
-                  if($row['status'] == 'Completed'){
-                    $status = '#4BFA1F';
-                  }else if (Carbon\Carbon::parse($date)->endOfDay() < Carbon\Carbon::now()->startOfDay()) {
-                    $status = '#FA2C1F';
+                  if($row['actual_start_date']){
+                    switch ($row['status']) {
+                      case "Cancelled":
+                      case "Material For Issue":
+                        $badge_color ="danger";
+                        break;
+                      case "Material Issued":
+                        $badge_color ="primary";
+                        break;
+                      case "Ready For Feedback":
+                        $badge_color ="info";
+                        break;
+                      case "Partially Feedbacked":
+                      case "Feedbacked":
+                        $badge_color ="success";
+                        break;
+                      case "Closed":
+                        $badge_color = 'secondary';
+                        break;
+                      default:
+                        $badge_color ="warning";
+                        break;
+                    }
+                    $status = $row['status'];
                   }else{
-                    $status = $row['actual_start_date'] ? '#FA7A50' : '#B8C1B5';
+                    $badge_color ="danger";
+                    $status = 'Not Started';
                   }
                 @endphp
                 <tr class="tbl-row" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['reference_no'] }}" data-parent-item="{{ $row['parent_item_code'] }}">
                   <td class="p-0">
                     <div class="container-fluid row text-center p-1">
-                      <div class="col-4 d-flex flex-row justify-content-center align-items-center">
-                        <div style="width: 25px; height: 25px; border-radius: 50%; background-color: {{ $status }}"></div>
-                      </div>
-                      <div class="col-8 d-flex flex-row justify-content-center align-items-center">
-                        <span class="text-center p-0 font-weight-bold" style="font-size: 8pt; white-space: nowrap">
-                          {{ $row['actual_start_date'] ? $row['actual_start_date'] : 'Not Started' }}
-                        </span>
+                      <div class="col-12 d-flex flex-row justify-content-center align-items-center">
+                        <span class="badge badge-{{ $badge_color }}" style="font-size: 8pt;">{{ $status }}</span>
                       </div>
                     </div>
                   </td>
