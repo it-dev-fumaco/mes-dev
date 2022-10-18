@@ -2436,8 +2436,14 @@ class MainController extends Controller
 		}
 
 		$shifts = DB::connection('mysql_mes')->table('shift')->where('operation_id', $operation_id)->get();
+		$shift_schedules = DB::connection('mysql_mes')->table('shift_schedule as ss')
+			->join('shift as s', 's.shift_id', 'ss.shift_id')
+			->where('s.operation_id', $operation_id)
+			->orderBy('date', 'desc')
+			->get();
+		$shift_schedule = collect($shift_schedules)->groupBy('date');
 
-		return view('production_kanban', compact('operation_name_text','primary_id','unscheduled', 'scheduled', 'mes_user_operations', 'permissions', 'filters', 'shifts', 'operation_id'));
+		return view('production_kanban', compact('operation_name_text','primary_id','unscheduled', 'scheduled', 'mes_user_operations', 'permissions', 'filters', 'shifts', 'shift_schedule', 'operation_id'));
 	}
 	public function productionKanban($operation_id){
 		$unscheduled_prod = DB::connection('mysql_mes')->table('production_order')

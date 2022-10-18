@@ -230,6 +230,9 @@
                   <table>
                     <tr id="containers">
                       @foreach($scheduled as $r)
+                      @php
+                        $shift = isset($shift_schedule[$r['schedule']]) ? $shift_schedule[$r['schedule']][0] : [];
+                      @endphp
                       <td class="td unique_container">
                         <div class="card" style="background-color:#e5e7e9; height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}" data-order-count="{{ count($r['orders']) }}">
                           <div class="card-header p-1">
@@ -241,6 +244,11 @@
                                   <div class="ml-1">
                                     <span class="d-block" style="font-size: 10pt;">{{ date('l', strtotime($r['schedule'])) }} <b>{{ (date('Y-m-d') == date('Y-m-d', strtotime($r['schedule']))) ? '[Today]' : '' }}</b></span>
                                     <span class="d-block" style="font-size: 8pt;">{{ date('F', strtotime($r['schedule'])) }}</span>
+                                    @if ($shift)
+                                      <span class="d-block" style="font-size: 8pt;">
+                                        {{ $shift->time_in.' - '.$shift->time_out }}
+                                      </span>
+                                    @endif
                                   </div>
                                 </div>
                               </div>
@@ -883,7 +891,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #0277BD">
-        <h5 class="modal-title" style="color: #fff;">Select Shift Schedule</h5>
+        <h5 class="modal-title" style="color: #fff;">Select Shift Schedule - <span id="shift-selected-date">Date</span></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -905,7 +913,7 @@
           </select>
           <br>
           <label style="font-size: 9pt">Remarks</label>
-          <textarea name="remarks" id="shift-remarks" rows="5" class="form-control" placeholder="Remarks..." required></textarea>
+          <textarea name="remarks" id="shift-remarks" rows="5" class="form-control" placeholder="Remarks..."></textarea>
         </div>
         <div class="modal-footer">
           <button type="submit" id="save-shift-btn" class="btn btn-primary">Save Shift Schedule</button>
@@ -2083,6 +2091,16 @@
           if($("#id-" + event.target.id + '-id').data('order-count') < 1){
             $('#schedule_date').val(event.target.id);
             $('#shift-production-order').val(ui.item.data('name'));
+            
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+            var formattedDate = new Date(event.target.id);
+            var d = formattedDate.getDate();
+            var m =  formattedDate.getMonth();
+            var y = formattedDate.getFullYear();
+
+            $('#shift-selected-date').text(monthNames[m] + ". " + d + ", " + y);
             $('#selectShiftModal').modal('show');
             return false;
           }
