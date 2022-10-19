@@ -627,6 +627,42 @@ class SecondaryController extends Controller
         }
     }
 
+    public function saveMaintenanceRequest(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $status = $request->status;
+            DB::connection('mysql_mes')->table('machine_breakdown')->insert([
+                'machine_id' => $request->machine_id,
+                'machine_breakdown_id' => $this->getNextOrderNumber(),
+                'status' => $status,
+                'reported_by' => $request->reported_by,
+                'date_reported' => $request->date_reported,
+                'remarks' => $request->remarks,
+                'date_resolved' => $status == 'Done' ? $request->date_resolved : null,
+                'work_done' => $status == 'Done' ? $request->work_done : null,
+                'assigned_maintenance_staff' => $request->assigned_maintenance_staff,
+                'category' => $request->category,
+                'type' => $request->category,
+                'corrective_reason' => ($request->category == "Corrective") ? $request->corrective_reason : null,
+                'breakdown_reason' => ($request->category == "Breakdown") ? $request->breakdown_reason : null,
+                'created_by' => Auth::user()->email,
+                'last_modified_by' => Auth::user()->email,
+            ]);
+
+            if ($request->category == "Breakdown") {
+                DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_id)->update(['status' => 'Unavailable']);
+            }
+
+            DB::connection('mysql_mes')->commit();
+             
+            return response()->json(['success' => 1, 'message' => 'Maintenance Request has been successfully created.']);
+        } catch (Exception $e) {
+            DB::connection('mysql_mes')->rollback();
+
+            return response()->json(["error" => 'An error occured. Please try again.']);
+        }
+    }
+
     public function timesheet_details_report($id){
         $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')

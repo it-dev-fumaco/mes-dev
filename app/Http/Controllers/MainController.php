@@ -4583,6 +4583,7 @@ class MainController extends Controller
 	}
 
 	public function maintenance_request(Request $request){
+		$permissions = $this->get_user_permitted_operation();
 		$list = DB::connection('mysql_mes')->table('machine_breakdown')->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')->get();
 
 		$fabrication = collect($list)->where('operation_id', 1)->count();
@@ -4601,7 +4602,7 @@ class MainController extends Controller
 			->orderBy('breakdown_count', 'desc')
 			->get();
 		
-		$machines = DB::connection('mysql_mes')->table('machine')->get();
+		$machines = DB::connection('mysql_mes')->table('machine')->orderby('machine_code', 'asc')->get();
 
 		$machine_list = collect($machines)->groupBy('machine_code');
 
@@ -4616,7 +4617,21 @@ class MainController extends Controller
  			];
 		}
 
-		return view('maintenance_request_page', compact('fabrication', 'painting', 'wiring', 'machine_arr'));
+		$operators = DB::connection('mysql_essex')->table('users as u')
+			->join('departments as d', 'd.department_id', 'u.department_id')
+			->where('u.status', 'Active')->where('u.user_type', 'Employee')
+			->where(function($q) use ($request) {
+				$q->where('d.department', 'LIKE', '%painting%')
+					->orWhere('d.department', 'LIKE', '%assembly%')
+					->orWhere('d.department', 'LIKE', '%fabrication%')
+					->orWhere('d.department', 'LIKE', '%engineering%')
+					->orWhere('d.department', 'LIKE', '%production%')
+					->orWhere('d.department', 'LIKE', '%Plant Services%');
+			})
+			->select('u.user_id as operator_id', 'u.employee_name', 'd.department')
+			->orderBy('u.employee_name', 'asc')->get();
+
+		return view('maintenance_request_page', compact('fabrication', 'painting', 'wiring', 'machine_arr', 'permissions', 'machines', 'operators'));
 	}
 
 	public function maintenance_request_list(Request $request){
@@ -4654,7 +4669,8 @@ class MainController extends Controller
 			->where('operation.operation_id', $request->operation)
 			->select('machine_breakdown.*', 'machine.image', 'machine.machine_name', 'machine.machine_code', 'operation.operation_name', 'operation.operation_id')
 			->orderByRaw("FIELD(machine_breakdown.status, 'In Process', 'Pending', 'On Hold', 'Done', '')asc")
-			->paginate(10);
+			->orderBy('created_at', 'desc')
+			->paginate(15);
 
 		$permissions = $this->get_user_permitted_operation();
 
