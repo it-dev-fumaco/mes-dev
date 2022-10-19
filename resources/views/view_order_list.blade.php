@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'view_order_list',
-  'pageHeader' => 'Open Orders',
+  'pageHeader' => 'Open Order(s)',
   'pageSpan' => Auth::user()->employee_name
 ])
 

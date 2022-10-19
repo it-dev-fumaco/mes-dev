@@ -24,7 +24,7 @@
         @php
             $delivery_date = $r->reschedule_delivery != 0 ? $r->reschedule_delivery_date : $r->delivery_date;
         @endphp
-        <tr class="{{ $loop->first ? 'active-process1' : '' }} {{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
+        <tr class="{{ $loop->first ? 'is-new-order' : '' }} {{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
             <td class="p-2">
                 <span class="d-block">{{ $r->name }}</span>
                 <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Sales Order' : $r->order_type }}</small>
@@ -133,7 +133,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="{{ strtolower($s->name) }}-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 80%;">
+    <div class="modal-dialog" role="document" style="min-width: 85%;">
         <form action="/assembly/wizard" class="order-items-form">
             <div class="modal-content">
                 <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
@@ -172,13 +172,14 @@
                             <input type="hidden" name="ref_type" value="{{ $ref_type }}">
                             <table class="table table-bordered table-striped">
                                 <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
-                                    <th class="p-2" style="width: 5%;">-</th>
-                                    <th class="p-2" style="width: 41%;">Item Description</th>
-                                    <th class="p-2" style="width: 10%;">Qty</th>
+                                    <th class="p-2" style="width: 3%;">-</th>
+                                    <th class="p-2" style="width: 40%;">Item Description</th>
+                                    <th class="p-2" style="width: 8%;">Qty</th>
                                     <th class="p-2" style="width: 17%;">BOM No.</th>
                                     <th class="p-2" style="width: 10%;">Ship by</th>
                                     @if (count($production_orders) > 0)
-                                    <th class="p-2" style="width: 10%;">Prod. Order</th>
+                                    <th class="p-2" style="width: 8%;">Prod. Order</th>
+                                    <th class="p-2" style="width: 8%;">Produced Qty</th>
                                     @endif
                                     <th class="p-1" style="width: 7%;">Track Order</th>
                                 </thead>
@@ -209,7 +210,7 @@
                                                     @endforeach
                                                 </select>
                                                 <div class="input-group-append">
-                                                    <button class="btn btn-info view-bom" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
                                                 </div>
                                             </div>
                                             @else
@@ -233,6 +234,7 @@
                                             -
                                             @endforelse
                                         </td>
+                                        <td class="text-center p-2 font-weight-bold" style="font-size: 9pt;">{{ collect($production_order_item)->sum('produced_qty') }}</td>
                                         @endif
                                         <td class="text-center p-2">
                                             <button class="btn btn-info btn-icon btn_trackmodal" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $s->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $s->customer }}">
@@ -281,18 +283,17 @@
 @endforeach 
 
 <style>
-      .active-process1 {
-    background-color: #0aa934;
-    color: #000000;
-    animation: blinkingBackground1 2.5s linear infinite;
-  }
+    .is-new-order {
+        background-color: #0aa934;
+        color: #000000;
+        animation: blinkingBackgroundNewOrder 2.5s linear infinite;
+    }
 
-  @keyframes blinkingBackground1{
-    0%    { background-color: #ffffff;}
-    25%   { background-color: #0aa934;}
-    50%   { background-color: #ffffff;}
-    75%   { background-color: #0aa934;}
-    100%  { background-color: #ffffff;}
-  }
-
+    @keyframes blinkingBackgroundNewOrder{
+        0%    { background-color: #ffffff;}
+        25%   { background-color: #0aa934;}
+        50%   { background-color: #ffffff;}
+        75%   { background-color: #0aa934;}
+        100%  { background-color: #ffffff;}
+    }
 </style>

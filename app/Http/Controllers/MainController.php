@@ -8627,7 +8627,8 @@ class MainController extends Controller
 		foreach ($production_orders as $r) {
 			$items_production_orders[$r->reference][$r->item_code][] = [
 				'production_order' => $r->production_order,
-				'status' => $r->status
+				'status' => $r->status,
+				'produced_qty' => $r->produced_qty
 			];
 		}
 
