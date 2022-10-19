@@ -19,25 +19,39 @@
         </table>
 
         <table style="border: 1px solid black;width: 100%; border-collapse: collapse;">
-            <col style="width: 50;">
+            <col style="width: {{ !isset($data['items_arr']) ? '50%' : '80%' }};">
             <col style="width: 20%;">
-            <col style="width: 30%;">
-
+            @if (!isset($data['items_arr']))
+                <col style="width: 30%;">
+            @endif
             <tr class="text-center">
                 <th>ITEM DETAILS</th>
                 <th>QTY</th>
-                <th>REASON</th>
+                @if (!isset($data['items_arr']))
+                    <th>REASON</th>
+                @endif
             </tr>
-            <tr style="font-size: 10pt;">
-                <td style="font-size: 10pt;text-align:justify;"><span class="font-weight-bold">
-                     <b>{{ $data['item_code'] }}</b> <br> {{ $data['description'] }}
-                </td>
-                <td style="font-size: 10pt;text-align:center;" >{{ $data['qty'] }} &nbsp;{{ $data['uom'] }} </td>
-                <td style="font-size: 10pt;text-align:center;" > <b> {{ $data['resched_reason'] }}</b></td>
-
-        
-            </tr>
-            
+            @if (isset($data['items_arr']))
+                @foreach ($data['items_arr'] as $item)
+                    <tr style="font-size: 10pt;">
+                        <td style="font-size: 10pt;text-align:justify;"><span class="font-weight-bold">
+                            <b>{{ $item->item_code }}</b> <br> {{ strip_tags($item->description) }}
+                        </td>
+                        <td style="font-size: 10pt;text-align:center;" >{{ number_format($item->qty).' '.$item->stock_uom }} </td>
+                    </tr>
+                @endforeach
+                <tr>
+                    <td colspan=2 style="font-size: 10pt;text-align:center;" > <b> {{ $data['resched_reason'] }}</b></td>
+                </tr>
+            @else
+                <tr style="font-size: 10pt;">
+                    <td style="font-size: 10pt;text-align:justify;"><span class="font-weight-bold">
+                        <b>{{ $data['item_code'] }}</b> <br> {{ $data['description'] }}
+                    </td>
+                    <td style="font-size: 10pt;text-align:center;" >{{ $data['qty'] }} &nbsp;{{ $data['uom'] }} </td>
+                    <td style="font-size: 10pt;text-align:center;" > <b> {{ $data['resched_reason'] }}</b></td>
+                </tr>
+            @endif
         </table>
 
         <p style="display:block;line-height:8px;">For more details please log in to http://10.0.0.83:8000</p>

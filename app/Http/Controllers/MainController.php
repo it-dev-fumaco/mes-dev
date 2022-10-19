@@ -8531,9 +8531,11 @@ class MainController extends Controller
 
 		return view('view_order_list', compact('permissions', 'order_types'));
 	}
-
+	
+	// /get_order_list
 	public function getOrderList(Request $request) {
-		$material_requests = DB::connection('mysql')->table('tabMaterial Request as mr')
+		$material_requests = DB::table('_3f2ec5a818bccb73.tabMaterial Request as mr')
+			->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name')
 			->where('mr.docstatus', 1)
 			->whereIn('mr.custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
 			->where('mr.per_ordered', '<', 100)->where('mr.status', '!=', 'Stopped')
@@ -8551,7 +8553,10 @@ class MainController extends Controller
 			->when($request->order_types, function ($query) use ($request) {
 				return $query->whereIn('mr.custom_purpose', $request->order_types);
             })
-			->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person');
+			->when(isset($request->reschedule), function ($q){
+				return $q->whereDate(DB::raw('IFNULL(dd.rescheduled_delivery_date, mr.delivery_date)'), '<', Carbon::now()->startOfDay());
+			})
+			->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'dd.rescheduled_delivery_date as reschedule_delivery_date', DB::raw('IFNULL(dd.rescheduled_delivery_date, 0) as reschedule_delivery'));
 			
 		$list = DB::connection('mysql')->table('tabSales Order as so')
 			->where('so.docstatus', 1)
@@ -8571,7 +8576,10 @@ class MainController extends Controller
 			->when($request->order_types && !in_array('Customer Order', $request->order_types), function ($query) use ($request) {
 				return $query->whereIn('so.sales_type', $request->order_types);
             })
-			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person')
+			->when(isset($request->reschedule), function ($q){
+				return $q->whereDate(DB::raw('CASE so.reschedule_delivery WHEN 1 THEN so.reschedule_delivery ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
+			})
+			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery')
 			->unionAll($material_requests)->orderBy('date_approved', 'desc')->paginate(15);
 
 		// get items
@@ -8627,7 +8635,89 @@ class MainController extends Controller
 		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
 		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
 
-		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs'));
+		$reschedule_reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->select('reschedule_reason_id as id', 'reschedule_reason as reason')->get();
+
+		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs', 'reschedule_reason'));
+	}
+
+	public function reschedule_delivery(Request $request, $id){
+		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			$table = explode('-', $id)[0] == 'SO' ? 'tabSales Order' : 'tabMaterial Request';
+			$so_details = DB::connection('mysql')->table($table)->where('name', $id)->first();
+			$delivery_date_details = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->first();
+
+			if(!$so_details || !$delivery_date_details){
+				return redirect()->back()->with('error', 'Sales Order not found.');
+			}
+
+			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('item_code', 'description', 'qty', 'stock_uom')->get();
+
+			$reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->reason)->pluck('reschedule_reason')->first();
+
+			DB::connection('mysql')->table('tabSales Order')->where('name', $id)->update([
+				'reschedule_delivery' => 1,
+				'reschedule_delivery_date' => $request->rescheduled_date,
+				'modified' => Carbon::now()->toDateTimeString(),
+				'modified_by' => Auth::user()->email
+			]);
+
+			DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
+				'rescheduled_delivery_date' => $request->rescheduled_date,
+				'last_modified_at' => Carbon::now()->toDateTimeString(),
+				'last_modified_by' => Auth::user()->email
+			]);
+
+			DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert([
+				'delivery_date_id' => $delivery_date_details->delivery_date_id,
+				'previous_delivery_date' => $request->previous_date,
+				'reschedule_reason_id' => $request->reason,
+				'rescheduled_by' => Auth::user()->employee_name,
+				'remarks' => $request->remarks,
+				'created_at' => Carbon::now()->toDateTimeString(),
+				'created_by' => Auth::user()->email,
+				'last_modified_at' => Carbon::now()->toDateTimeString(),
+				'last_modified_by' => Auth::user()->email
+			]);
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert([
+				'action' => 'Reschedule Delivery Date',
+				'reference' => $id,
+				'message' => 'Delivery date has been changed from '.Carbon::parse($request->previous_date)->format('M. d, Y').' to '.Carbon::parse($request->rescheduled_date)->format('M. d, Y'). ' by '.Auth::user()->employee_name,
+				'created_at' => Carbon::now()->toDateTimeString(),
+				'created_by' => Auth::user()->email,
+				'last_modified_at' => Carbon::now()->toDateTimeString(),
+				'last_modified_by' => Auth::user()->email
+			]);
+
+			$email_data = array( 
+				'orig_delivery_date'	=> Carbon::parse($request->previous_date)->format('Y-m-d'),
+				'resched_date'			=> Carbon::parse($request->rescheduled_date)->format('Y-m-d'),
+				'items_arr'				=> $so_items,
+				'reference'				=> $id,
+				'resched_by'			=> Auth::user()->employee_name,
+				'resched_reason'		=> $reason.' - '.$request->remarks,
+				'customer'				=> $so_details->customer
+			); 
+
+			if($get_sales_order_owner->owner != "Administrator"){
+				Mail::to($so_details->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				Mail::to("jave.kulong@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+			}
+
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
+
+			return redirect()->back()->with('success', 'Delivery date rescheduled.');
+		} catch (\Throwable $th) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
+			// throw $th; // view error (formatted)
+			return redirect()->back()->with('error', 'Something went wrong. Please try again later');
+		}
 	}
 
 	public function productionSettings(){

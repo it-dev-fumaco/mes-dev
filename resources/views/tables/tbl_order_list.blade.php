@@ -21,6 +21,9 @@
     </thead>
     <tbody class="text-center" style="font-size: 8pt;">
         @forelse ($list as $r)
+        @php
+            $delivery_date = $r->reschedule_delivery != 0 ? $r->reschedule_delivery_date : $r->delivery_date;
+        @endphp
         <tr class="{{ $loop->first ? 'active-process1' : '' }} {{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
             <td class="p-2">
                 <span class="d-block">{{ $r->name }}</span>
@@ -31,12 +34,10 @@
             <td class="p-2">{{ $r->project }}</td>
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</td>
             <td class="p-2">
-                @if ($r->delivery_date)
-                @if (\Carbon\Carbon::now()->ne($r->delivery_date))
-                <span class="badge badge-danger" style="font-size: 7pt;">{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</span>
-                @else
-                <span class="badge badge-info" style="font-size: 7pt;">{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</span>
-                @endif
+                @if ($delivery_date)
+                    <span class="badge badge-{{ Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() ? 'danger' : 'info' }}" style="font-size: 7pt;">
+                        {{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}
+                    </span>
                 @else
                     -
                 @endif
@@ -75,7 +76,7 @@
                     <button type="button" class="btn p-2 btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Action</button>
                     <div class="dropdown-menu">
                         <a class="dropdown-item view-order-btn" href="#" data-toggle="modal" data-target="#{{ strtolower($r->name) }}-modal" data-order="{{ $r->name }}">View Order</a>
-                        <a class="dropdown-item" href="#">Reschedule Delivery Date</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#reschedule-{{ strtolower($r->name) }}-Modal">Reschedule Delivery Date</a>
                     </div>
                 </div>
             </td>
@@ -90,6 +91,46 @@
 <div class="m-2 order-list-pagination">{{ $list->appends(Request::except('page'))->links() }}</div>
 
 @foreach ($list as $i => $s)
+    @php
+        $delivery_date = $s->reschedule_delivery != 0 ? $s->reschedule_delivery_date : $s->delivery_date;
+    @endphp
+<!-- Modal -->
+<div class="modal fade" id="reschedule-{{ strtolower($s->name) }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Reschedule Delivery Date - <b>{{ $s->name }}</b></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="/reschedule_delivery/{{ $s->name }}" method="post">
+                @csrf
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p>Delivery Date: {{ Carbon\Carbon::parse($delivery_date)->format('M d, Y') }}</p>
+                        <input type="text" name="previous_date" class="d-none" value="{{ $delivery_date }}">
+                        <label for="rescheduled_date">New Delivery Date</label>
+                        <input type="date" name="rescheduled_date" class="form-control" min="{{ Carbon\Carbon::now()->format('Y-m-d') }}">
+                        <br>
+                        <select name="reason" class="form-control" required>
+                            <option value="" selected>Select Reason</option>
+                            @foreach ($reschedule_reason as $reason)
+                                <option value="{{ $reason->id }}">{{ $reason->reason }}</option>
+                            @endforeach
+                        </select>
+                        <br>
+                        <textarea name="remarks" class="form-control" placeholder="Remarks..." rows="8"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal -->
 <div class="modal fade" id="{{ strtolower($s->name) }}-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 80%;">

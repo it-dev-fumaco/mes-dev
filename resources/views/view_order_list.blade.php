@@ -45,7 +45,17 @@
                                     @endforeach
                                 </div>
                                 <div class="p-2 m-0">
-                                    <input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
+									<div class="row">
+										<div class="col-5">
+											<div class="custom-control custom-checkbox pt-2">
+												<input type="checkbox" name="reschedule" class="custom-control-input" id="reschedule-checkbox">
+												<label class="custom-control-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
+											</div>
+										</div>
+										<div class="col-7">
+											<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
+										</div>
+									</div>
                                 </div>
                             </div>
                         </form>
@@ -199,6 +209,12 @@
 @section('script')
 <script>
 $(document).ready(function(){
+	@if (session()->has('success'))
+		showNotification("success", '{{ session()->get("success") }}', "now-ui-icons travel_info");
+	@elseif(session()->has('error'))
+		showNotification("danger", '{{ session()->get("error") }}', "now-ui-icons travel_info");
+	@endif
+
     $(document).on('click', '.view-order-btn', function(e) {
         e.preventDefault();
 
@@ -233,6 +249,10 @@ $(document).ready(function(){
 		} else {
 			frm.find('button[type="submit"]').addClass('btn-secondary disabled').removeClass('btn-primary');
 		}
+	});
+
+	$(document).on('click', '#reschedule-checkbox', function (){
+        loadOrderList();
 	});
 
     $(document).on('keyup', '.order-list-search', function(){

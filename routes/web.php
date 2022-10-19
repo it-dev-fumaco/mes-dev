@@ -527,6 +527,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/order_list', 'MainController@viewOrderList');
 	Route::get('/get_order_list', 'MainController@getOrderList');
 	Route::post('/submit_withdrawal_slip', 'ManufacturingController@submit_withdrawal_slip');
+	Route::post('/reschedule_delivery/{id}', 'MainController@reschedule_delivery');
 	Route::get('/get_available_warehouse_qty/{item_code}', 'ManufacturingController@get_available_warehouse_qty');
 	Route::get('/get_pending_material_transfer_for_manufacture/{production_order}', 'MainController@get_pending_material_transfer_for_manufacture');
 	Route::post('/cancel_request/{production_order}', 'MainController@delete_pending_material_transfer_for_manufacture');
