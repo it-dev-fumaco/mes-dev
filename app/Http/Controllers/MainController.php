@@ -8673,12 +8673,14 @@ class MainController extends Controller
 
 			$reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->reason)->pluck('reschedule_reason')->first();
 
-			DB::connection('mysql')->table('tabSales Order')->where('name', $id)->update([
-				'reschedule_delivery' => 1,
-				'reschedule_delivery_date' => $request->rescheduled_date,
-				'modified' => Carbon::now()->toDateTimeString(),
-				'modified_by' => Auth::user()->email
-			]);
+			if($table == 'tabSales Order'){
+				DB::connection('mysql')->table('tabSales Order')->where('name', $id)->update([
+					'reschedule_delivery' => 1,
+					'reschedule_delivery_date' => $request->rescheduled_date,
+					'modified' => Carbon::now()->toDateTimeString(),
+					'modified_by' => Auth::user()->email
+				]);
+			}
 
 			DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
 				'rescheduled_delivery_date' => $request->rescheduled_date,
@@ -8718,7 +8720,7 @@ class MainController extends Controller
 				'customer'				=> $so_details->customer
 			); 
 
-			if($get_sales_order_owner->owner != "Administrator"){
+			if($so_details->owner != "Administrator"){
 				Mail::to($so_details->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 				Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
 				Mail::to("jave.kulong@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
