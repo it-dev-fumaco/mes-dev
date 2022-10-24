@@ -549,6 +549,7 @@
       $('#'+machine_breakdown_id+'-hold-reason').prop('required', true);
       $('#'+machine_breakdown_id+'-work-done').prop('required', false);
       $('#'+machine_breakdown_id+'-findings').prop('required', false);
+      $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', false);
     }else if($('#'+machine_breakdown_id+'-status').val() == 'In Process'){
       $('#'+machine_breakdown_id+'-findings-container').slideDown();
       $('#'+machine_breakdown_id+'-work-done-container').slideUp();
@@ -556,6 +557,7 @@
       $('#'+machine_breakdown_id+'-findings').prop('required', true);
       $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
       $('#'+machine_breakdown_id+'-work-done').prop('required', false);
+      $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', true);
     }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
       $('#'+machine_breakdown_id+'-work-done-container').slideDown();
       $('#'+machine_breakdown_id+'-findings-container').slideDown();
@@ -563,6 +565,7 @@
       $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
       $('#'+machine_breakdown_id+'-work-done').prop('required', true);
       $('#'+machine_breakdown_id+'-findings').prop('required', true);
+      $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', true);
     }else{
       $('#'+machine_breakdown_id+'-work-done-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
@@ -570,6 +573,7 @@
       $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
       $('#'+machine_breakdown_id+'-work-done').prop('required', false);
       $('#'+machine_breakdown_id+'-findings').prop('required', false);
+      $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', false);
     }
   }
 

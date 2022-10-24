@@ -68,7 +68,7 @@
                                         <div class="col-4"></div>
                                         <div class="col-3">
                                             <label class="pl-2">Assigned Maintenance Staff</label>
-                                            <select class="form-control" name="maintenance_staff">
+                                            <select class="form-control" name="maintenance_staff" id="{{ $row->machine_breakdown_id }}-maintenance-staff">
                                                 <option value="" {{ $row->assigned_maintenance_staff ? null : 'selected' }} disabled>Select Maintenance Staff</option>
                                                 @foreach ($maintenance_staff as $staff)
                                                     <option value="{{ $staff->employee_name }}" {{ $row->assigned_maintenance_staff == $staff->employee_name ? 'selected' : null }}>{{ $staff->employee_name }}</option>
