@@ -903,6 +903,13 @@
             <input type="text" name="operation_id" value="{{ $operation_id }}">
             <input type="text" name="production_order" id="shift-production-order" value="">
           </div>
+          <div class="container p-0">
+            <div class="card">
+              <div class="card-body text-center" style="border-left: 10px solid #0277BD">
+                <span style="font-size: 8pt;"><i class="now-ui-icons travel_info"></i>&nbsp;Please select shift schedule first</span>
+              </div>
+            </div>
+          </div>
           <select name="selected_shift" class="form-control" id="shift-selection" required>
             <option selected value="">Select Shift</option>
             @foreach ($shifts as $shift)
@@ -2092,15 +2099,16 @@
             $('#schedule_date').val(event.target.id);
             $('#shift-production-order').val(ui.item.data('name'));
             
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            const monthNames = [
+              "Jan. ", "Feb. ", "Mar. ", "Apr. ", "May. ", "Jun. ",
+              "Jul. ", "Aug. ", "Sep. ", "Oct. ", "Nov. ", "Dec. "
             ];
             var formattedDate = new Date(event.target.id);
             var d = formattedDate.getDate();
-            var m =  formattedDate.getMonth();
+            var m = formattedDate.getMonth();
             var y = formattedDate.getFullYear();
 
-            $('#shift-selected-date').text(monthNames[m] + ". " + d + ", " + y);
+            $('#shift-selected-date').text(monthNames[m] + d + ", " + y);
             $('#selectShiftModal').modal('show');
             return false;
           }
@@ -2338,6 +2346,11 @@
           });   
       }
     }).disableSelection();
+
+    $('#selectShiftModal').on('hide.bs.modal', function (e) {
+      $( ".sortable_list" ).sortable('cancel');
+      showNotification("danger", "Unable to schedule planned start date.<br><b>Please select shift schedule first.</b>", "now-ui-icons travel_info");
+    });
     
     $.ajaxSetup({
       headers: {
