@@ -945,6 +945,7 @@ class QualityInspectionController extends Controller
         return view('tables.tbl_reject_reason', compact('tab', 'validation_tab'));
     }
 
+    // /qa_inspection_logs
     public function qaInspectionLogs() {
         $permissions = $this->get_user_permitted_operation();
 
@@ -1089,7 +1090,7 @@ class QualityInspectionController extends Controller
 
         $qa_results = [];
         foreach ($qa_logs as $r) {
-            $qa_results[$r->reject_category_id][$r->reference_id] = [
+            $qa_results[$r->reject_category_id][$r->reference_id][$r->qa_id] = [
                 "sample_size" => $r->sample_size,
                 "actual_qty_checked" => $r->actual_qty_checked,
                 "rejected_qty" => $r->rejected_qty,
@@ -1101,13 +1102,13 @@ class QualityInspectionController extends Controller
         $qa_staff_names = DB::connection('mysql_essex')->table('users')
             ->whereIn('user_id', $qa_staffs)->pluck('employee_name', 'user_id')->toArray();
 
-        $qa_logs = collect($qa_logs)->groupBy('reference_id')->toArray();
+        // $qa_logs = collect($qa_logs)->groupBy('reference_id')->toArray();
 
         $data = [];
         foreach ($qa_logs as $reference_id => $rows) {
             $reject_reasons = DB::connection('mysql_mes')->table('reject_reason')
                 ->join('reject_list','reject_list.reject_list_id','reject_reason.reject_list_id')
-                ->where('reject_reason.qa_id', $rows[0]->qa_id)->orderBy('reject_reason.reject_list_id')
+                ->where('reject_reason.qa_id', $rows->qa_id)->orderBy('reject_reason.reject_list_id')
                 ->distinct()->pluck('reject_list.reject_reason')->toArray();
             
             if (count($reject_reasons) > 0) {
@@ -1117,21 +1118,22 @@ class QualityInspectionController extends Controller
             }
 
             $data[] = [
-                "production_order" => $rows[0]->production_order,
-                "customer" => $rows[0]->customer,
-                "reference" => $rows[0]->sales_order ? $rows[0]->sales_order : $rows[0]->material_request,
-                "item_code" => $rows[0]->item_code,
-                "description" => strip_tags($rows[0]->description),
-                "workstation" => $rows[0]->workstation,
-                "process_name" => $rows[0]->process_name,
-                "machine_code" => $rows[0]->machine_code,
-                "qa_inspection_date" => Carbon::parse($rows[0]->qa_inspection_date)->format('M. d, Y h:i A'),
-                "batch_qty" => $rows[0]->batch_qty,
-                "reference_id" => $reference_id,
-                "status" => $rows[0]->status,
+                "production_order" => $rows->production_order,
+                "customer" => $rows->customer,
+                "reference" => $rows->sales_order ? $rows->sales_order : $rows->material_request,
+                "item_code" => $rows->item_code,
+                "description" => strip_tags($rows->description),
+                "workstation" => $rows->workstation,
+                "process_name" => $rows->process_name,
+                "machine_code" => $rows->machine_code,
+                "qa_inspection_date" => Carbon::parse($rows->qa_inspection_date)->format('M. d, Y h:i A'),
+                "batch_qty" => $rows->batch_qty,
+                "reference_id" => $rows->reference_id,
+                "status" => $rows->status,
                 "remarks" => $reject_reasons,
-                "operator" => $rows[0]->operator_name,
-                "qc_staff" => array_key_exists($rows[0]->qa_staff_id, $qa_staff_names) ? $qa_staff_names[$rows[0]->qa_staff_id] : null,
+                "operator" => $rows->operator_name,
+                "qc_staff" => array_key_exists($rows->qa_staff_id, $qa_staff_names) ? $qa_staff_names[$rows->qa_staff_id] : null,
+                'qa_id' => $rows->qa_id
             ];
         }
 

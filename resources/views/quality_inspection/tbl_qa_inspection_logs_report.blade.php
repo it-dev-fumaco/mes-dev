@@ -40,11 +40,11 @@
       <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ $r['batch_qty'] }}</td>
       @foreach ($reject_category as $s)
       @php
-        $qa_results = isset($qa_results[$s->reject_category_id][$r['reference_id']]) ? $qa_results[$s->reject_category_id][$r['reference_id']] : [];
+        $qa_result = isset($qa_results[$s->reject_category_id][$r['reference_id']][$r['qa_id']]) ? $qa_results[$s->reject_category_id][$r['reference_id']][$r['qa_id']] : [];
       @endphp
-      <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ isset($qa_results['sample_size']) ? $qa_results['sample_size'] : 'n/a' }}</td>
-      <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ isset($qa_results['actual_qty_checked']) ? $qa_results['actual_qty_checked'] : 'n/a' }}</td>
-      <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ isset($qa_results['rejected_qty']) ? $qa_results['rejected_qty'] : 'n/a' }}</td>
+      <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ isset($qa_result['sample_size']) ? $qa_result['sample_size'] : 'n/a' }}</td>
+      <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ isset($qa_result['actual_qty_checked']) ? $qa_result['actual_qty_checked'] : 'n/a' }}</td>
+      <td class="text-center p-1" style="border: 1px solid #ABB2B9;">{{ isset($qa_result['rejected_qty']) ? $qa_result['rejected_qty'] : 'n/a' }}</td>
       @endforeach
       @php
         if ($r['status'] == "QC Passed") {
