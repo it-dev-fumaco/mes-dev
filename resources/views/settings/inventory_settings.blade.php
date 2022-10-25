@@ -632,7 +632,8 @@
 		</form>
 	</div>
 </div>
-
+@include('modals.uom_conversion_modal')
+@include('modals.delete_uom_conversion_modal')
 <style type="text/css">
   .scrolling table {
     table-layout: fixed;
@@ -891,6 +892,233 @@
       });
    }
 
+   	// Item Warehouse Setup form submits
+	$('#delete-item-classification-warehouse-frm').submit(function(e){
+		e.preventDefault();
+		var url = $(this).attr("action");
+		$.ajax({
+			url: url,
+			type:"POST",
+			data: $(this).serialize(),
+			success:function(data){
+				if (data.success < 1) {
+					showNotification("danger", data.message, "now-ui-icons travel_info");
+				}else{
+					showNotification("success", data.message, "now-ui-icons ui-1_check");
+					$('#delete-item-warehouse-modal').modal('hide');
+					$('#edit-item-classification-warehouse-frm').trigger("reset");
+					item_classification_warehouse_tbl_fabrication();
+					item_classification_warehouse_tbl_painting();
+					item_classification_warehouse_tbl_assembly();
+				
+				}
+			}
+		});
+    });
+	$('#edit-item-classification-warehouse-frm').submit(function(e){
+		e.preventDefault();
+		var url = $(this).attr("action");
+			$.ajax({
+			url: url,
+			type:"POST",
+			data: $(this).serialize(),
+			success:function(data){
+				if (data.success < 1) {
+					showNotification("danger", data.message, "now-ui-icons travel_info");
+				}else{
+					showNotification("success", data.message, "now-ui-icons ui-1_check");
+					$('#edit-item-warehouse-modal').modal('hide');
+					$('#edit-item-classification-warehouse-frm').trigger("reset");
+					item_classification_warehouse_tbl_fabrication();
+					item_classification_warehouse_tbl_painting();
+					item_classification_warehouse_tbl_assembly();
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	});
+	$('#save-item-classification-warehouse-frm').submit(function(e){
+		e.preventDefault();
+		var url = $(this).attr("action");
+		$.ajax({
+			url: url,
+			type:"POST",
+			data: $(this).serialize(),
+			success:function(data){
+				if (data.success < 1) {
+					showNotification("danger", data.message, "now-ui-icons travel_info");
+				}else{
+					showNotification("success", data.message, "now-ui-icons ui-1_check");
+					$('#add-item-warehouse-modal').modal('hide');
+					$('#save-item-classification-warehouse-frm').trigger("reset");
+					item_classification_warehouse_tbl_fabrication();
+					item_classification_warehouse_tbl_painting();
+					item_classification_warehouse_tbl_assembly();
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	});
+	// Item Warehouse Setup form submits
+
+	// Fast Issuance Setup form submits
+	$('#add-allowed-fast-issuance-warehouse form').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-allowed-fast-issuance-warehouse').modal('hide');
+            fast_issuance_warehouse();
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+	$('#delete-allowed-fast-issuance-warehouse form').submit(function(e){
+		e.preventDefault();
+
+		$.ajax({
+			url: $(this).attr("action"),
+			type:"POST",
+			data: $(this).serialize(),
+			success:function(data){
+				if (data.status) {
+					showNotification("success", data.message, "now-ui-icons ui-1_check");
+					$('#delete-allowed-fast-issuance-warehouse').modal('hide');
+					fast_issuance_warehouse();
+				}else{
+					showNotification("danger", 'There was a problem deleting warehouse.', "now-ui-icons travel_info");
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	});
+	$('#add-allowed-fast-issuance-user form').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-allowed-fast-issuance-user').modal('hide');
+            fast_issuance_user();
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
+	$('#delete-allowed-fast-issuance-user form').submit(function(e){
+		e.preventDefault();
+
+		$.ajax({
+			url: $(this).attr("action"),
+			type:"POST",
+			data: $(this).serialize(),
+			success:function(data){
+				if (data.status) {
+					showNotification("success", data.message, "now-ui-icons ui-1_check");
+					$('#delete-allowed-fast-issuance-user').modal('hide');
+					fast_issuance_user();
+				}else{
+					showNotification("danger", 'There was a problem deleting user.', "now-ui-icons travel_info");
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	});
+	// Fast Issuance Setup form submits
+
+	// WIP warehouse form submits
+	$('#add-wip-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#add-wip-modal').modal('hide');
+                $('#add-wip-frm').trigger("reset");
+                tbl_wip_list();
+
+          }
+        }
+      });
+    });
+
+    $('#edit-wip-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#edit-wip-modal').modal('hide');
+                $('#edit-wip-frm').trigger("reset");
+                tbl_wip_list();
+
+          }
+        }
+      });
+    });
+
+    $('#delete-wip-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#delete-wip-modal').modal('hide');
+                $('#delete-wip-frm').trigger("reset");
+                tbl_wip_list();
+
+          }
+        }
+      });
+    });
+	// WIP warehouse form submits
+
 	uom_conversion_list();
 	$('#add-uom-conversion-btn').click(function(e){
 		e.preventDefault();
@@ -1003,54 +1231,6 @@
 		$('#allowed-fast-issuance-user-name').text(username);
 
 		$('#delete-allowed-fast-issuance-user').modal('show');
-	});
-
-	$('#delete-allowed-fast-issuance-user form').submit(function(e){
-		e.preventDefault();
-
-		$.ajax({
-			url: $(this).attr("action"),
-			type:"POST",
-			data: $(this).serialize(),
-			success:function(data){
-				if (data.status) {
-					showNotification("success", data.message, "now-ui-icons ui-1_check");
-					$('#delete-allowed-fast-issuance-user').modal('hide');
-					fast_issuance_user();
-				}else{
-					showNotification("danger", 'There was a problem deleting user.', "now-ui-icons travel_info");
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(jqXHR);
-				console.log(textStatus);
-				console.log(errorThrown);
-			}
-		});
-	});
-
-	$('#delete-allowed-fast-issuance-warehouse form').submit(function(e){
-		e.preventDefault();
-
-		$.ajax({
-			url: $(this).attr("action"),
-			type:"POST",
-			data: $(this).serialize(),
-			success:function(data){
-				if (data.status) {
-					showNotification("success", data.message, "now-ui-icons ui-1_check");
-					$('#delete-allowed-fast-issuance-warehouse').modal('hide');
-					fast_issuance_warehouse();
-				}else{
-					showNotification("danger", 'There was a problem deleting warehouse.', "now-ui-icons travel_info");
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(jqXHR);
-				console.log(textStatus);
-				console.log(errorThrown);
-			}
-		});
 	});
 
     $(document).on('click', '.delete-uom-conversion-btn', function(e){
@@ -1208,50 +1388,6 @@ $(document).ready(function(){
       if (frm) frm.reset();
     });
 
-
-
-
-    $('#add-allowed-fast-issuance-warehouse form').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.status) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-allowed-fast-issuance-warehouse').modal('hide');
-            fast_issuance_warehouse();
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        }
-      });
-    });
-
-    $('#add-allowed-fast-issuance-user form').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.status) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-allowed-fast-issuance-user').modal('hide');
-            fast_issuance_user();
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        }
-      });
-    });
-
-
-
-
   $(document).on('keyup', '#search_item_warehouse_setup', function(){
     var query = $(this).val();
     val = $('#item_warehouse_setup').find('a.active').attr('data-values');
@@ -1298,38 +1434,6 @@ $(document).on('click', '#tbl-fast-issuance-warehouse-pagination a', function(ev
   });
 
 
-</script>
-
-
-<script type="text/javascript">
-
-  $('#save-item-classification-warehouse-frm').submit(function(e){
-    e.preventDefault();
-    var url = $(this).attr("action");
-    $.ajax({
-      url: url,
-      type:"POST",
-      data: $(this).serialize(),
-      success:function(data){
-        if (data.success < 1) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          $('#add-item-warehouse-modal').modal('hide');
-          $('#save-item-classification-warehouse-frm').trigger("reset");
-          item_classification_warehouse_tbl_fabrication();
-          item_classification_warehouse_tbl_painting();
-          item_classification_warehouse_tbl_assembly();
-         
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
 </script>
 <script type="text/javascript">
 fast_issuance_warehouse();
@@ -1437,35 +1541,6 @@ function fast_issuance_warehouse(page, query){
         
 
     });
-</script> 
-<script type="text/javascript">
-  $('#edit-item-classification-warehouse-frm').submit(function(e){
-    e.preventDefault();
-    var url = $(this).attr("action");
-    $.ajax({
-      url: url,
-      type:"POST",
-      data: $(this).serialize(),
-      success:function(data){
-        if (data.success < 1) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-          $('#edit-item-warehouse-modal').modal('hide');
-           $('#edit-item-classification-warehouse-frm').trigger("reset");
-          item_classification_warehouse_tbl_fabrication();
-          item_classification_warehouse_tbl_painting();
-          item_classification_warehouse_tbl_assembly();
-         
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR);
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    });
-  });
 </script>
 <script type="text/javascript">
     $(document).on('click', '.delete-itemclassware-btn', function(){
@@ -1501,31 +1576,6 @@ function fast_issuance_warehouse(page, query){
         var page = $(this).attr('href').split('page=')[1];
         item_classification_warehouse_tbl_assembly(page, query);
 
-    });
-</script> 
-<script type="text/javascript">
-
-    $('#delete-item-classification-warehouse-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-item-warehouse-modal').modal('hide');
-             $('#edit-item-classification-warehouse-frm').trigger("reset");
-            item_classification_warehouse_tbl_fabrication();
-            item_classification_warehouse_tbl_painting();
-            item_classification_warehouse_tbl_assembly();
-           
-          }
-        }
-      });
     });
 </script>
 <script type="text/javascript">
@@ -1659,9 +1709,7 @@ function fast_issuance_warehouse(page, query){
     }
             
  }
-
-
-function tbl_wip_list(page, query){
+	function tbl_wip_list(page, query){
       $.ajax({
         url:"/tbl_wip_list/?page=" + page,
         type:"GET",
@@ -1671,74 +1719,10 @@ function tbl_wip_list(page, query){
         }
       });  
     }
-
-    $('#add-wip-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#add-wip-modal').modal('hide');
-                $('#add-wip-frm').trigger("reset");
-                tbl_wip_list();
-
-          }
-        }
-      });
-    });
-
-    $('#edit-wip-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#edit-wip-modal').modal('hide');
-                $('#edit-wip-frm').trigger("reset");
-                tbl_wip_list();
-
-          }
-        }
-      });
-    });
-
-    $('#delete-wip-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#delete-wip-modal').modal('hide');
-                $('#delete-wip-frm').trigger("reset");
-                tbl_wip_list();
-
-          }
-        }
-      });
-    });
-
      
-       $(document).on("click", ".delete", function(){
+	$(document).on("click", ".delete", function(){
         $(this).parents("tr").remove();
-      });
+	});
 
 </script>
 

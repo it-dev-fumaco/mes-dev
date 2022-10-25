@@ -25,11 +25,11 @@
                      </div>
                      <div class="form-group">
                         <label>Workstation Name:</label>
-                        <input type="text" class="form-control form-control-lg" name="workstation_name" id="edit_workstation_name">
+                        <input type="text" class="form-control form-control-lg" name="workstation_name" id="edit_workstation_name" required>
                      </div>
                      <div class="form-group">
                         <label>Order No:</label>
-                        <input type="text" class="form-control form-control-lg" name="order_no" id="edit_order_no">
+                        <input type="text" class="form-control form-control-lg" name="order_no" id="edit_order_no" required>
                      </div>
                   </div>
 

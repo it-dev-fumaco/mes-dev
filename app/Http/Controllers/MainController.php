@@ -8739,6 +8739,7 @@ class MainController extends Controller
 		}
 	}
 
+	// /production_settings
 	public function productionSettings(){
         $permissions = $this->get_user_permitted_operation();
 
@@ -8761,7 +8762,12 @@ class MainController extends Controller
     
         $mes_users = DB::connection('mysql_mes')->table('user')->pluck('employee_name', 'user_access_id');
 
-        return view('settings.inventory_settings', compact('permissions', 'warehouse_wip', 'item_classification', 'warehouse', 'operation_list', 'mes_users'));
+		$uom_list = DB::connection('mysql_mes')->table('uom')->get();
+
+        $material_types = DB::connection('mysql')->table('tabItem Attribute Value')
+            ->where('parent', 'like', '%materials%')->distinct()->pluck('attribute_value');
+
+        return view('settings.inventory_settings', compact('permissions', 'warehouse_wip', 'item_classification', 'warehouse', 'operation_list', 'mes_users', 'uom_list', 'material_types'));
     }
 
 	public function qaSettings(){

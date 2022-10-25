@@ -739,6 +739,458 @@
       });
     }
 
+    // Production Process Setup form submits
+    $('#delete-assigned-machine-workstation-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-assigned').modal('hide');
+            tbl_process_assigned_process();
+            // getAssignedTasks();
+          }
+        }
+      });
+    });
+
+    $('#edit-process-setup-list-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#edit-process-setup-list-modal').modal('hide');
+            tbl_process_setup_list();
+            // getAssignedTasks();
+          }
+        }
+      });
+    });
+
+    $('#delete-process-setup-list-modal-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-process-setup-list-modal').modal('hide');
+            tbl_process_setup_list();
+            // getAssignedTasks();
+          }
+        }
+      });
+    });
+
+    $('#add-process-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-process-modal').modal('hide');
+            tbl_process_setup_list();
+            // getAssignedTasks();
+          }
+        }
+      });
+    });
+    // Production Process Setup form submits
+
+    // Operation Setup form submits
+    $('#add-operation-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-operation-modal').modal('hide');
+            tbl_operation_list();
+          }
+        }
+      });
+    });
+
+    $('#edit-operation-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#edit-operation-modal').modal('hide');
+            tbl_operation_list();
+
+          }
+        }
+      });
+    });
+    // Operation Setup form submits
+
+    // Workstation Setup form submits
+    $('#add-worktation-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      var form = $('#add-worktation-frm');
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        $.ajax({
+          url: url,
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            if (data.success < 1) {
+              showNotification("danger", data.message, "now-ui-icons travel_info");
+            }else{
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+                  $('#add-workstation-modal').modal('hide');
+                  $('#add-worktation-frm').trigger("reset");
+                  // location.reload(true);
+                  workstation_list();
+            }
+          }
+        });
+      }
+    });
+    $('#edit-workstation-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      var form = $('#edit-workstation-frm');
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        $.ajax({
+          url: url,
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            if (data.success < 1) {
+              showNotification("danger", data.message, "now-ui-icons travel_info");
+            }else{
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+              $('#edit-workstation-modal').modal('hide');
+              $('#edit-workstation-frm').trigger("reset");
+              workstation_list();
+            }
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+          }
+        });
+      }
+    });
+    $('#delete-workstation-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-workstation-modal').modal('hide');
+            workstation_list();
+          }
+        }
+      });
+    });
+    // Workstation Setup form submits
+
+    // Machine Setup form submits
+    $('#edit-machine-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      var form1 = $(this).get(0); 
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: new FormData(form1),
+        processData: false,
+        contentType: false,
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#edit-machine-modal').modal('hide');
+            $('#edit-machine-frm').trigger("reset");
+            $('#edit-machine-modal').trigger("reset");
+            $("#edit-machine-frm .imgPreview").attr("src","");
+            setting_machine_list();
+          }
+        }
+      });
+    });
+    $('#add-machine-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      var form1 = $(this).get(0); 
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: new FormData(form1),
+        processData: false,
+        contentType: false,
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-machine-modal').modal('hide');
+            $('#add-machine-frm').trigger("reset");
+
+            setting_machine_list();
+          }
+        }
+      });
+    });
+    $('#delete-machine-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-machinelist-modal').modal('hide');
+            setting_machine_list();
+          }
+        }
+      });
+    });
+    // Machine Setup form submits
+    
+    // Reschedule Delivery Reason Setup form submits
+    $('#add-late-delivery-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#add-late-delivery-modal').modal('hide');
+                tbl_late_delivery_date();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $('#edit-late-delivery-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#edit-late-delivery-modal').modal('hide');
+                tbl_late_delivery_date();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    // Reschedule Delivery Reason Setup form submits
+
+    // Reason for Cancellation Setup form submits
+    $('#add-cancelled-reason-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#add-cancelled-reason-modal').modal('hide');
+                tbl_reason_for_cancellation_po();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $('#edit-cancelled-reason-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#edit-cancelled-reason-modal').modal('hide');
+                tbl_reason_for_cancellation_po();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $(document).on('click', '.btn_delete_reason_for_cancellation', function(){
+      var delete_reason_for_cancellation = $(this).data('reason');
+      var id = $(this).data('id');
+      $('#delete_label_reason_cancellation_id').text(delete_reason_for_cancellation);
+      $('#delete_reason_cancellation_id').val(id);
+      $('#delete_reason_cancellation').val(delete_reason_for_cancellation);
+      $('#delete-cancelled-reason-modal').modal('show');
+    });
+    $('#delete-cancelled-reason-frm').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#delete-cancelled-reason-modal').modal('hide');
+                tbl_reason_for_cancellation_po();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    // Reason for Cancellation Setup form submits
+
+    // Shift Setup form submits
+    $('#add-shift-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#add-shift-modal').modal('hide');
+            tbl_shift_list();
+          }
+        }
+      });
+    });
+    $('#edit-shift-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#edit-shift-modal').modal('hide');
+            tbl_shift_list();
+            tbl_shift_schedule_sched();
+          }
+        }
+      });
+    });
+    $('#delete-shift-frm').submit(function(e){
+      e.preventDefault();
+      var url = $(this).attr("action");
+      $.ajax({
+        url: url,
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#delete-shift-modal').modal('hide');
+            tbl_shift_list();
+          }
+        }
+      });
+    });
+    // Shift Setup form submits
+
 	 $('.time').timepicker({
         'showDuration': true,
         'timeFormat': 'g:i a'
@@ -748,10 +1200,6 @@
         'autoclose': true
     });
 
-
-
-
-   
     $.ajaxSetup({
       headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -877,53 +1325,6 @@ $(document).ready(function(){
   $(document).on('click', '#add-process-button', function(){
     $('#add-process-modal').modal('show');
     });
-    $('#add-worktation-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#add-workstation-modal').modal('hide');
-                $('#add-worktation-frm').trigger("reset");
-                // location.reload(true);
-                workstation_list();
-
-          }
-        }
-      });
-    });
-    $('#edit-workstation-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#edit-workstation-modal').modal('hide');
-                $('#edit-worktation-frm').trigger("reset");
-                workstation_list();
-
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
-    });
-
       function getMachine_list(){
       $.ajax({
         url:"/get_machine_list",
@@ -1021,9 +1422,6 @@ $('.sel9').select2({
     width: '100%',
     cache: false
   });
-
-
-    
 
     $('#add-user-btn').click(function(e){
       e.preventDefault();
@@ -1303,6 +1701,7 @@ $('.sel9').select2({
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
+          console.log(data.message);adsasd
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
           }else{
@@ -1316,7 +1715,6 @@ $('.sel9').select2({
     });
 </script>
 <script type="text/javascript">
-
     $(document).on('click', '#assigned_machine_process a', function(event){
     event.preventDefault();
     var page = $(this).attr('href').split('page=')[1];
@@ -1391,97 +1789,6 @@ $('.sel9').select2({
     reject_category_list(page);
 
   });
-    
-
-    
-</script>
-<script type="text/javascript">
-
-    $('#delete-assigned-machine-workstation-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-assigned').modal('hide');
-            tbl_process_assigned_process();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
-</script>
-<script type="text/javascript">
-
-    $('#edit-process-setup-list-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#edit-process-setup-list-modal').modal('hide');
-            tbl_process_setup_list();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
-</script>
-<script type="text/javascript">
-
-    $('#delete-process-setup-list-modal-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-process-setup-list-modal').modal('hide');
-            tbl_process_setup_list();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
-</script>
-<script type="text/javascript">
-
-    $('#add-process-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-process-modal').modal('hide');
-            tbl_process_setup_list();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
 </script>
 <script type="text/javascript">
   function tbl_shift_list(page){
@@ -1493,69 +1800,6 @@ $('.sel9').select2({
           }
         }); 
   }
-</script>
-<script type="text/javascript">
-
-    $('#add-shift-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-shift-modal').modal('hide');
-            tbl_shift_list();
-          }
-        }
-      });
-    });
-</script>
-<script type="text/javascript">
-
-    $('#edit-shift-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#edit-shift-modal').modal('hide');
-            tbl_shift_list();
-            tbl_shift_schedule_sched();
-          }
-        }
-      });
-    });
-</script>
-<script type="text/javascript">
-    $('#delete-shift-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-shift-modal').modal('hide');
-            tbl_shift_list();
-          }
-        }
-      });
-    });
 </script>
 
 <script type="text/javascript">
@@ -1582,47 +1826,6 @@ $('.sel9').select2({
           }
         }); 
   }
-</script>
-<script type="text/javascript">
-    $('#add-operation-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-operation-modal').modal('hide');
-            tbl_operation_list();
-          }
-        }
-      });
-    });
-</script>
-<script type="text/javascript">
-    $('#edit-operation-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#edit-operation-modal').modal('hide');
-            tbl_operation_list();
-
-          }
-        }
-      });
-    });
 </script>
 <script type="text/javascript">
       $('.modal').on('hidden.bs.modal', function(){
@@ -1816,50 +2019,6 @@ function workstation_list(page, query){
          var page = $(this).attr('href').split('page=')[1];
          workstation_list(page);
     });
-    $('#delete-workstation-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-workstation-modal').modal('hide');
-            workstation_list();
-          }
-        }
-      });
-    });
- 
-</script>
-<script type="text/javascript">
-    $('#add-machine-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      var form1 = $(this).get(0); 
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: new FormData(form1),
-        processData: false,
-        contentType: false,
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-machine-modal').modal('hide');
-            $('#add-machine-frm').trigger("reset");
-
-            setting_machine_list();
-          }
-        }
-      });
-    });
 </script>
 <!-- Machine_list -->
 <script>
@@ -1907,37 +2066,6 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
       
       $('#edit-machine-modal').modal('show');
     });
-
-    $('#edit-machine-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      var form1 = $(this).get(0); 
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: new FormData(form1),
-        processData: false,
-        contentType: false,
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#edit-machine-modal').modal('hide');
-            $('#edit-machine-frm').trigger("reset");
-            $('#edit-machine-modal').trigger("reset");
-            $("#edit-machine-frm .imgPreview").attr("src","");
-            setting_machine_list();
-            // localStorage.clear(); 
-
-            // tbl_shift_schedule_sched();
- 
-                // $("#edit-machine-modal .modal-content").empty();
-      
-          }
-        }
-      });
-    });
   
     $(document).on('click', '.btn-delete-machine', function(){
       var machine_id = $(this).data('machineid');
@@ -1981,24 +2109,6 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
       $('#machine_code_label').text(machine_code);
       
       $('#delete-machinelist-modal').modal('show');
-    });
-    $('#delete-machine-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-machinelist-modal').modal('hide');
-            setting_machine_list();
-          }
-        }
-      });
     });
 
     $('#add-allowed-fast-issuance-warehouse form').submit(function(e){
@@ -2152,30 +2262,6 @@ $(document).on('click', '#add-operator-reject-button', function(){
     $('#add-reject-modal tbody').empty();
     $('#add-reject-modal').modal('show');
 });
-// $(document).on('change', '#reject_owner', function(){
-    // var category_val = $('#reject_owner').val();
-    // $('#add-reject-modal tbody').empty();
-    // if (category_val == "Operator") {
-    //     $("#reject_checklist_div").hide();
-    // }else{
-    //    $("#reject_checklist_div").show();
-
- 
-    // }
-// });
-// $(document).on('change', '#edit_reject_owner', function(){
-//     var category_val = $('#edit_reject_owner').val();
-//     if (category_val == 'Operator') {
-//                $("#edit_reject_checklist_div").hide();
-
-        
-//     }else{
-//                       $("#edit_reject_checklist_div").show();
-
-
- 
-//     }
-// });
 
 $(document).on('click', '.btn-edit-checklist', function(){
 
@@ -3981,52 +4067,6 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
     var query = $(this).val();
     tbl_late_delivery_date(1, query);
   });
-  $('#add-late-delivery-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#add-late-delivery-modal').modal('hide');
-                tbl_late_delivery_date();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
-    });
-    $('#edit-late-delivery-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#edit-late-delivery-modal').modal('hide');
-                tbl_late_delivery_date();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
-    });
 </script>
 <script>
 
@@ -4392,29 +4432,6 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
         '</tr>';
       $("#add-cancelled-reason-modal #cancelled-reason-table").append(tblrow);
     });
-    $('#add-cancelled-reason-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#add-cancelled-reason-modal').modal('hide');
-                tbl_reason_for_cancellation_po();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
-    });
     tbl_reason_for_cancellation_po();
   function tbl_reason_for_cancellation_po(page, query){
     $.ajax({
@@ -4434,59 +4451,6 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
       $('#edit_reason_for_cancellation_id').val(id);
       $('#edit-cancelled-reason-modal').modal('show');
 
-    });
-    $('#edit-cancelled-reason-frm').submit(function(e){
-        e.preventDefault();
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#edit-cancelled-reason-modal').modal('hide');
-                tbl_reason_for_cancellation_po();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
-    });
-    $(document).on('click', '.btn_delete_reason_for_cancellation', function(){
-      var delete_reason_for_cancellation = $(this).data('reason');
-      var id = $(this).data('id');
-      $('#delete_label_reason_cancellation_id').text(delete_reason_for_cancellation);
-      $('#delete_reason_cancellation_id').val(id);
-      $('#delete_reason_cancellation').val(delete_reason_for_cancellation);
-      $('#delete-cancelled-reason-modal').modal('show');
-    });
-    $('#delete-cancelled-reason-frm').submit(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr("action"),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(data){
-              if (data.success < 1) {
-                showNotification("danger", data.message, "now-ui-icons travel_info");
-              }else{
-                showNotification("success", data.message, "now-ui-icons ui-1_check");
-                $('#delete-cancelled-reason-modal').modal('hide');
-                tbl_reason_for_cancellation_po();
-              }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
     });
     $(document).on('click', '#reason_cancellation_pagination a', function(event){
       event.preventDefault();
