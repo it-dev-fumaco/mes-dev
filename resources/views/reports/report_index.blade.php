@@ -92,6 +92,9 @@
                                 <tr>
                                     <td><a href="/weekly_rejection_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Logs Report</span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/reject_reasons_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Reasons Report</span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>

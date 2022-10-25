@@ -209,6 +209,47 @@ class LinkReportController extends Controller
         return view('reports.weekly_rejection_report', compact('rejection_logs', 'reject_arr', 'permissions', 'total_good', 'total_reject'));
     }
 
+    // /rejection_reasons_report/{id}
+    public function reject_reasons_report(Request $request){
+        $permissions = $this->get_user_permitted_operation();
+        $operations = DB::connection('mysql_mes')->table('operation')->select('operation_id', 'operation_name')->get();
+
+        $operation_id = $request->operation_id ? $request->operation_id : 1;
+
+        if(!$operations){
+            return redirect()->back()->with('error', 'Operation not found.');
+        }
+
+        $start = Carbon::now()->startOfDay()->subDays(7);
+        $end = Carbon::now()->endOfDay();
+        if($request->date){
+            $start = Carbon::parse(explode(' - ', $request->date)[0])->startOfDay();
+            $end = isset(explode(' - ', $request->date)[1]) ? Carbon::parse(explode(' - ', $request->date)[1])->endOfDay() : Carbon::now()->endOfDay();
+        }
+
+        $operation_name = collect($operations)->groupBy('operation_id');
+
+        $reject_reasons = DB::connection('mysql_mes')->table('reject_reason as rr')
+            ->join('job_ticket as jt', 'jt.job_ticket_id', 'rr.job_ticket_id')
+            ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
+            ->join('production_order as po', 'po.production_order', 'jt.production_order')
+            ->join('reject_category as rc', 'rc.reject_category_id', 'rl.reject_category_id')
+            ->where('po.operation_id', $operation_id)->whereBetween('rr.created_at', [$start, $end])
+            ->selectRaw('rr.reject_list_id, rl.reject_reason, rc.type, rc.reject_category_name, count(rr.reject_list_id) as count')->groupBy('rr.reject_list_id', 'rl.reject_reason', 'rc.type', 'rc.reject_category_name')
+            ->orderBy('count', 'desc')
+            ->get();
+
+        $reject_types = collect($reject_reasons)->groupBy('type');
+
+        $counts_arr = [
+            'critical' => isset($reject_types['Critical Reject(s)']) ? count($reject_types['Critical Reject(s)']) : 0,
+            'major' => isset($reject_types['Major Reject(s)']) ? count($reject_types['Major Reject(s)']) : 0,
+            'minor' => isset($reject_types['Minor Reject(s)']) ? count($reject_types['Minor Reject(s)']) : 0
+        ];
+
+        return view('reports.reject_reasons', compact('operation_id', 'reject_reasons', 'operations', 'counts_arr', 'permissions'));
+    }
+
     public function export_rejection_logs(Request $request){
         $permissions = $this->get_user_permitted_operation();
         $start_date = $request->date ? explode(' - ', $request->date)[0] : Carbon::now()->subDays(30);
