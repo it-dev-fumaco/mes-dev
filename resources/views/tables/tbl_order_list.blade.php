@@ -24,7 +24,7 @@
         @php
             $delivery_date = $r->reschedule_delivery != 0 ? $r->reschedule_delivery_date : $r->delivery_date;
         @endphp
-        <tr class="{{ $loop->first ? 'is-new-order' : '' }} {{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
+        <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
             <td class="p-2">
                 <span class="d-block">{{ $r->name }}</span>
                 <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Sales Order' : $r->order_type }}</small>
@@ -35,11 +35,11 @@
             <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</td>
             <td class="p-2">
                 @if ($delivery_date)
-                    <span class="badge badge-{{ Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() ? 'danger' : 'info' }}" style="font-size: 7pt;">
-                        {{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}
-                    </span>
+                <span class="badge badge-{{ Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() ? 'danger' : 'info' }}" style="font-size: 7pt;">
+                    {{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}
+                </span>
                 @else
-                    -
+                -
                 @endif
             </td>
             <td class="p-2">{{ $r->status }}</td>
@@ -59,7 +59,7 @@
                 @if ($has_in_progress && $progress_bar_val <= 0)
                     <span class="badge badge-warning" style="font-size: 7pt;">In Progress</span>
                 @elseif ($has_in_progress <= 0 && $progress_bar_val <= 0 && count($production_orders) <= 0)
-                <span class="badge badge-danger" style="font-size: 7pt;">Not Started</span>
+                    <span class="badge badge-danger" style="font-size: 7pt;">Not Started</span>
                 @else
                 <div class="progress">
                     <div class="progress-bar {{ $progress_bar_color }}" role="progressbar" style="width: {{ $progress_bar_val }}%" aria-valuenow="{{ $progress_bar_val }}" aria-valuemin="0" aria-valuemax="100">
@@ -98,7 +98,7 @@
 <div class="modal fade" id="reschedule-{{ strtolower($s->name) }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header text-white" style="background-color: #0277BD;">
                 <h5 class="modal-title" id="exampleModalLabel">Reschedule Delivery Date - <b>{{ $s->name }}</b></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -111,19 +111,19 @@
                         <p>Delivery Date: {{ Carbon\Carbon::parse($delivery_date)->format('M d, Y') }}</p>
                         <input type="text" name="previous_date" class="d-none" value="{{ $delivery_date }}">
                         <label for="rescheduled_date">New Delivery Date</label>
-                        <input type="date" name="rescheduled_date" class="form-control" min="{{ Carbon\Carbon::now()->format('Y-m-d') }}">
+                        <input type="date" name="rescheduled_date" class="form-control rounded" min="{{ Carbon\Carbon::now()->format('Y-m-d') }}" required>
                         <br>
-                        <select name="reason" class="form-control" required>
+                        <select name="reason" class="form-control rounded" required>
                             <option value="" selected>Select Reason</option>
                             @foreach ($reschedule_reason as $reason)
-                                <option value="{{ $reason->id }}">{{ $reason->reason }}</option>
+                            <option value="{{ $reason->id }}">{{ $reason->reason }}</option>
                             @endforeach
                         </select>
                         <br>
-                        <textarea name="remarks" class="form-control" placeholder="Remarks..." rows="8"></textarea>
+                        <textarea name="remarks" class="form-control rounded border p-2" placeholder="Remarks..." rows="8"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer pt-2 pb-2">
                     <button type="submit" class="btn btn-primary">Save changes</button>
                 </div>
             </form>

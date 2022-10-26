@@ -8840,4 +8840,98 @@ class MainController extends Controller
 			]);
 		}
 	}
+
+	public function dashboardOperatorOutput() {
+		$now = Carbon::now();
+		$q = DB::connection('mysql_mes')->table('time_logs as t')->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+			->join('production_order as p', 'j.production_order', 'p.production_order')->where('t.status', 'Completed')
+			->whereNotNull('t.operator_id')->whereDate('t.from_time', '>=', $now->startOfDay())->whereDate('t.to_time', '<=', $now->endOfDay())
+			->selectRaw('t.operator_id, t.operator_name, t.good, j.workstation, p.operation_id')
+			->orderBy('t.from_time', 'desc')->get();
+
+		$fabrication_op_output = $painting_op_output = $assembly_op_output = [];
+		foreach ($q as $e) {
+			if ($e->operation_id == 1 && $e->workstation != 'Painting') {
+				if (array_key_exists($e->operator_id, $fabrication_op_output)) {
+					$fabrication_op_output[$e->operator_id]['output'] += $e->good;
+				} else {
+					$fabrication_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good];
+				}
+			}
+
+			if ($e->workstation == 'Painting') {
+				if (array_key_exists($e->operator_id, $painting_op_output)) {
+					$painting_op_output[$e->operator_id]['output'] += $e->good;
+				} else {
+					$painting_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good];
+				}
+			}
+
+			if ($e->operation_id == 3) {
+				if (array_key_exists($e->operator_id, $assembly_op_output)) {
+					$assembly_op_output[$e->operator_id]['output'] += $e->good;
+				} else {
+					$assembly_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good];
+				}
+			}
+		}
+
+		$fabrication_data = $painting_data = $assembly_data = [];
+		$fabrication_max_output = collect($fabrication_op_output)->max('output');
+		foreach (collect($fabrication_op_output)->sortBy('output')->reverse() as $v) {
+			$percentage = ($v['output']/$fabrication_max_output) * 100;
+			$fabrication_data[] = [
+				'operator_name' => $this->splitName($v['operator_name']),
+				'percentage' => round($percentage),
+				'output' => number_format($v['output'])
+			];
+		}
+
+		$painting_max_output = collect($painting_op_output)->max('output');
+		foreach (collect($painting_op_output)->sortBy('output')->reverse() as $v) {
+			$percentage = ($v['output']/$painting_max_output) * 100;
+			$painting_data[] = [
+				'operator_name' => $this->splitName($v['operator_name']),
+				'percentage' => round($percentage),
+				'output' => number_format($v['output'])
+			];
+		}
+
+		$assembly_max_output = collect($assembly_op_output)->max('output');
+		foreach (collect($assembly_op_output)->sortBy('output')->reverse() as $v) {
+			$percentage = ($v['output']/$assembly_max_output) * 100;
+			$assembly_data[] = [
+				'operator_name' => $this->splitName($v['operator_name']),
+				'percentage' => round($percentage),
+				'output' => number_format($v['output'])
+			];
+		}
+
+		$data = [
+			'fabrication' => $fabrication_data,
+			'painting' => $painting_data,
+			'assembly' => $assembly_data,
+		];
+
+		return view('dashboard_operator_output', compact('data', 'q'));
+	}
+
+	private function splitName($name){
+		$names = explode(' ', $name);
+		$firstname = substr($name, 0, 1);
+		$lastname = $names[count($names) - 1];
+		$lastname = $this->clean($lastname);
+		if (in_array(strtolower($lastname), ['jr', 'sr'])) {
+			$lastname = $names[count($names) - 2] . ' ' . $this->clean($names[count($names) - 1]) . '.';
+		}
+
+		return $firstname . '. ' . $lastname;
+	}
+
+	private function clean($string) {
+		$string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
+		$string = preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+	 
+		return preg_replace('/-+/', '-', $string); // Replaces multiple hyphens with single one.
+	 }
 }

@@ -35,7 +35,7 @@
                     <div class="col-md-12 p-2">
                         <form id="order-list-form">
                             <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Open Orders</h6>
+                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Open Order(s)</h6>
                                 <div class="pt-2 pb-2">
                                     @foreach ($order_types as $order_type)
                                     <label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
@@ -48,8 +48,8 @@
 									<div class="row">
 										<div class="col-5">
 											<div class="custom-control custom-checkbox pt-2">
-												<input type="checkbox" name="reschedule" class="custom-control-input" id="reschedule-checkbox">
-												<label class="custom-control-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
+												<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
+												<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
 											</div>
 										</div>
 										<div class="col-7">
@@ -91,7 +91,7 @@
 </div>
 
 <style>
-   .pill-chk-item {
+	.pill-chk-item {
 		cursor: pointer;
 		display: inline-block;
 		float: left;
@@ -100,7 +100,7 @@
 		line-height: 20px;
 		margin: 0 12px 12px 0;
 		text-transform: capitalize;
-   }
+	}
 	.pill-chk-item input[type="checkbox"] {
 		display: none;
 	}
@@ -215,11 +215,17 @@ $(document).ready(function(){
 		showNotification("danger", '{{ session()->get("error") }}', "now-ui-icons travel_info");
 	@endif
 
+	$.ajaxSetup({
+		headers: {
+			'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+		}
+    }); 
+
     $(document).on('click', '.view-order-btn', function(e) {
         e.preventDefault();
 
         $.ajax({
-            url: "/createViewOrderLog/",
+            url: "/createViewOrderLog",
             type:"POST",
             data: {order_no: $(this).data('order'), _token: '{{ csrf_token() }}'},
         });

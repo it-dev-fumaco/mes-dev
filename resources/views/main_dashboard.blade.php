@@ -57,6 +57,7 @@
         </div>
         <div class="row p-0 m-0">
           <div class="col-9 p-1">
+            <div id="dashboard-operator-output-div"></div>
             <div class="card shadow-none border">
               <div class="card-header pt-0 pl-3 pr-1 pb-0 bg-warning">
                 <div class="d-flex flex-row justify-content-between align-items-center">
@@ -87,12 +88,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="card shadow-none border">
-              <div class="card-header pt-2 pl-3 pr-3 pb-2" style="background-color: #012f6a;">
-                <h6 class="text-white font-weight-bold text-left m-0 rounded-top" style="font-size: 10.5pt;">In Process Order(s)</h6>
-              </div>
-              <div class="card-body p-0" style="min-height: 200px;" id="wip-orders-div"></div>
             </div>
           </div>
           <div class="col-3 p-1">
@@ -447,6 +442,17 @@
 @section('script')
 <script> 
   $(document).ready(function(){
+    dashboard_operator_output();
+    function dashboard_operator_output(){
+      $.ajax({
+        url:"/dashboard_operator_output",
+        type:"GET",
+        success:function(data){
+          $('#dashboard-operator-output-div').html(data);
+        }
+      }); 
+    }
+
     function dashboard_numbers(){
       $.ajax({
         url:"/dashboard_numbers",

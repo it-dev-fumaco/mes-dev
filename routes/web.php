@@ -240,7 +240,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/maintenance_request', 'MainController@maintenance_request');
 	Route::get('/maintenance_request_list', 'MainController@maintenance_request_list');
 	Route::post('/save_maintenance_request', 'SecondaryController@saveMaintenanceRequest');
-	
+	Route::get('/dashboard_operator_output', 'MainController@dashboardOperatorOutput');
 	Route::post('/update_maintenance_request/{machine_breakdown_id}', 'MainController@update_maintenance_request');
 	// Stock Entry
 	Route::get('/stock_entry', 'MainController@stock_entry');
@@ -644,9 +644,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/audit_report/overridden_production_orders', 'LinkReportController@overridden_production_orders');
 	Route::get('/audit_report/stocks_transferred_but_none_in_wip', 'LinkReportController@stocks_transferred_but_none_in_wip');
 	Route::get('/qa_inspection_logs', 'QualityInspectionController@qaInspectionLogs');
-
 	Route::post('/createViewOrderLog', 'MainController@createViewOrderLog');
-
 	Route::get('/weekly_rejection_report', 'LinkReportController@weekly_rejection_report');
 	Route::get('/reject_reasons_report', 'LinkReportController@reject_reasons_report');
 });
