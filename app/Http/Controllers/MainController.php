@@ -8607,10 +8607,10 @@ class MainController extends Controller
 		// get items
 		$references = collect($list->items())->pluck('name');
 		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty');
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note');
 
 		$item_list = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty')
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
 			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
 
 		$item_codes = collect($item_list)->pluck('item_code')->unique();

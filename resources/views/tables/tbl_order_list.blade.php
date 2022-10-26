@@ -199,7 +199,11 @@
                                             <input type="checkbox" class="form-control" value="{{ $v->item_code }}" name="item[]">
                                         </td>
                                         <td class="text-justify p-2">
-                                            <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}</td>
+                                            <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
+                                            @if ($ref_type == 'SO')
+                                            <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
+                                            @endif
+                                        </td>
                                         <td class="text-center p-2">
                                             <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
                                             <small class="d-block">{{ $v->stock_uom }}</small>
