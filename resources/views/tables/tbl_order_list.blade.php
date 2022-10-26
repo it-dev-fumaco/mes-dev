@@ -68,7 +68,7 @@
                 </div>
                 @endif
                 @else
-                <small>{!! in_array($r->name, $seen_order_logs) ? '<img src="'. asset('/img/view-icon.png') . '" width="18"> Viewed' : '-' !!}</small>
+                <span style="font-size: 8.5pt;">{!! in_array($r->name, $seen_order_logs) ? '<img src="'. asset('/img/view-icon.png') . '" width="18"> Viewed' : '-' !!}</span>
                 @endif
             </td>
             <td class="p-1">
@@ -174,12 +174,15 @@
                                 <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                     <th class="p-2" style="width: 3%;">-</th>
                                     <th class="p-2" style="width: 40%;">Item Description</th>
-                                    <th class="p-2" style="width: 8%;">Qty</th>
-                                    <th class="p-2" style="width: 17%;">BOM No.</th>
-                                    <th class="p-2" style="width: 10%;">Ship by</th>
+                                    <th class="p-2" style="width: 5%;">Ordered</th>
+                                    @if (count($production_orders) > 0)
+                                    <th class="p-2" style="width: 5%;">Manufactured</th>
+                                    @endif
+                                    <th class="p-2" style="width: 5%;">Delivered</th>
+                                    <th class="p-2" style="width: 15%;">BOM No.</th>
+                                    <th class="p-2" style="width: 8%;">Ship by</th>
                                     @if (count($production_orders) > 0)
                                     <th class="p-2" style="width: 8%;">Prod. Order</th>
-                                    <th class="p-2" style="width: 8%;">Produced Qty</th>
                                     @endif
                                     <th class="p-1" style="width: 7%;">Track Order</th>
                                 </thead>
@@ -199,6 +202,16 @@
                                             <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}</td>
                                         <td class="text-center p-2">
                                             <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
+                                            <small class="d-block">{{ $v->stock_uom }}</small>
+                                        </td>
+                                        @if (count($production_orders) > 0)
+                                        <td class="text-center p-2 font-weight-bold" style="font-size: 9pt;">
+                                            <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ collect($production_order_item)->sum('produced_qty') }}</span>
+                                            <small class="d-block">{{ $v->stock_uom }}</small>
+                                        </td>
+                                        @endif
+                                        <td class="text-center p-2 font-weight-bold" style="font-size: 9pt;">
+                                            <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->delivered_qty) }}</span>
                                             <small class="d-block">{{ $v->stock_uom }}</small>
                                         </td>
                                         <td class="text-center p-2">
@@ -234,7 +247,6 @@
                                             -
                                             @endforelse
                                         </td>
-                                        <td class="text-center p-2 font-weight-bold" style="font-size: 9pt;">{{ collect($production_order_item)->sum('produced_qty') }}</td>
                                         @endif
                                         <td class="text-center p-2">
                                             <button class="btn btn-info btn-icon btn_trackmodal" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $s->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $s->customer }}">
@@ -262,11 +274,11 @@
                         @php
                             $seen_logs = array_key_exists($s->name, $seen_logs_per_order) ? $seen_logs_per_order[$s->name] : [];
                         @endphp
-                        <div class="col-12" style="font-size: 7pt;">
+                        <div class="col-12" style="font-size: 8pt;">
                             <ul>
                                 @foreach ($seen_logs as $e)
                                 <li>
-                                    <span class="d-block font-italic text-muted">{{ 'Opened by ' . ucwords(str_replace(".", " ", explode("@", $e->created_by)[0])) . ' on ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
+                                    <span class="d-block font-italic text-muted">{{ 'Viewed by ' . ucwords(str_replace(".", " ", explode("@", $e->created_by)[0])) . ' on ' . \Carbon\Carbon::parse($e->created_at)->format('M. d, Y h:i A') }}</span>
                                 </li>
                                 @endforeach
                             </ul>

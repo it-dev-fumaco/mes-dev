@@ -8554,7 +8554,10 @@ class MainController extends Controller
 			->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name')
 			->where('mr.docstatus', 1)
 			->whereIn('mr.custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
-			->where('mr.per_ordered', '<', 100)->where('mr.status', '!=', 'Stopped')
+			->where('mr.status', '!=', 'Stopped')
+			->when(!$request->q, function ($query) use ($request) {
+				return $query->where('mr.per_ordered', '<', 100);
+            })
 			->when($request->q, function ($query) use ($request) {
 				return $query->where(function($q) use ($request) {
 					$q->where('mr.name', 'LIKE', '%'.$request->q.'%')
@@ -8577,7 +8580,10 @@ class MainController extends Controller
 		$list = DB::connection('mysql')->table('tabSales Order as so')
 			->where('so.docstatus', 1)
 			->whereIn('so.sales_type', ['Regular Sales', 'Sales DR'])
-			->where('so.per_delivered', '<', 100)->where('so.status', '!=', 'Closed')
+			->where('so.status', '!=', 'Closed')
+			->when(!$request->q, function ($query) use ($request) {
+				return $query->where('so.per_delivered', '<', 100);
+            })
 			->when($request->q, function ($query) use ($request) {
 				return $query->where(function($q) use ($request) {
 					$q->where('so.name', 'LIKE', '%'.$request->q.'%')
@@ -8601,10 +8607,10 @@ class MainController extends Controller
 		// get items
 		$references = collect($list->items())->pluck('name');
 		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name');
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty');
 
 		$item_list = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $references)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name')
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty')
 			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
 
 		$item_codes = collect($item_list)->pluck('item_code')->unique();
