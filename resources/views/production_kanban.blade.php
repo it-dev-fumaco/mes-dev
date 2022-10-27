@@ -891,7 +891,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #0277BD">
-        <h5 class="modal-title" style="color: #fff;">Select Shift Schedule - <span id="shift-selected-date">Date</span></h5>
+        <h5 class="modal-title" style="color: #fff;">Select Schedule - <span id="shift-selected-date">Date</span></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -906,7 +906,7 @@
           <div class="container p-0">
             <div class="card">
               <div class="card-body text-center" style="border-left: 10px solid #0277BD">
-                <span style="font-size: 8pt;"><i class="now-ui-icons travel_info"></i>&nbsp;Please select shift schedule first</span>
+                <span style="font-size: 8pt;"><i class="now-ui-icons travel_info"></i>&nbsp;Please select production schedule for this date</span>
               </div>
             </div>
           </div>
@@ -919,7 +919,7 @@
             @endforeach
           </select>
           <br>
-          <label style="font-size: 9pt">Remarks</label>
+          <label style="font-size: 9pt">Note</label>
           <textarea name="remarks" id="shift-remarks" rows="5" class="form-control" placeholder="Remarks..."></textarea>
         </div>
         <div class="modal-footer">
