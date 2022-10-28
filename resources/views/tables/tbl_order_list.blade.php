@@ -154,12 +154,12 @@
                                 <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Company: <b>{{ $s->company }}</b></span>
                             </td>
                             <td class="align-top" style="width: 40%;">
                                 <span class="d-block mt-1" style="font-size: 10pt;">Delivery Date: <b>{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Date Approved: <b>{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Created by: <b>{{ $s->owner }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Company: <b>{{ $s->company }}</b></span>
                             </td>
                             <td class="align-top" style="width: 20%;">
                                 <span class="d-block" style="font-size: 10pt;"><b>SHIP TO:</b> {!! $s->shipping_address !!}</span>

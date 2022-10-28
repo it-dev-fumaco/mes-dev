@@ -12,7 +12,10 @@
                 <div class="d-flex flex-row align-items-center p-0 m-0">
                     <div class="col-4 p-1">{{ $r['operator_name'] }}</div>
                     <div class="col-8 p-0 m-0">
-                        <div class="progress border m-1" style="height: 15px !important;">
+                        <div class="progress m-1" style="height: 15px !important;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $r['reject_percentage'] }}%" aria-valuenow="{{ $r['reject_percentage'] }}" aria-valuemin="0" aria-valuemax="100">
+                                <small>{{ $r['reject'] }}</small>
+                            </div>
                             <div class="progress-bar" role="progressbar" style="width: {{ $r['percentage'] }}%" aria-valuenow="{{ $r['percentage'] }}" aria-valuemin="0" aria-valuemax="100">
                                 <small>{{ $r['output'] }}</small>
                             </div>
@@ -31,7 +34,10 @@
                 <div class="d-flex flex-row align-items-center p-0 m-0">
                     <div class="col-4 p-1">{{ $r['operator_name'] }}</div>
                     <div class="col-8 p-0 m-0">
-                        <div class="progress border m-1" style="height: 15px !important;">
+                        <div class="progress m-1" style="height: 15px !important;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $r['reject_percentage'] }}%" aria-valuenow="{{ $r['reject_percentage'] }}" aria-valuemin="0" aria-valuemax="100">
+                                <small>{{ $r['reject'] }}</small>
+                            </div>
                             <div class="progress-bar" role="progressbar" style="width: {{ $r['percentage'] }}%" aria-valuenow="{{ $r['percentage'] }}" aria-valuemin="0" aria-valuemax="100">
                                 <small>{{ $r['output'] }}</small>
                             </div>
@@ -50,7 +56,10 @@
                 <div class="d-flex flex-row align-items-center p-0 m-0">
                     <div class="col-4 p-1">{{ $r['operator_name'] }}</div>
                     <div class="col-8 p-0 m-0">
-                        <div class="progress border m-1" style="height: 15px !important;">
+                        <div class="progress m-1" style="height: 15px !important;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $r['reject_percentage'] }}%" aria-valuenow="{{ $r['reject_percentage'] }}" aria-valuemin="0" aria-valuemax="100">
+                                <small>{{ $r['reject'] }}</small>
+                            </div>
                             <div class="progress-bar" role="progressbar" style="width: {{ $r['percentage'] }}%" aria-valuenow="{{ $r['percentage'] }}" aria-valuemin="0" aria-valuemax="100">
                                 <small>{{ $r['output'] }}</small>
                             </div>

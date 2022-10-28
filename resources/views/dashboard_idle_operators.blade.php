@@ -19,7 +19,7 @@
                         </td>
                         <td class="p-2 align-middle">
                             <span class="d-block font-weight-bold">{{ $row['name'] }}</span>
-                            <small class="badge badge-primary">{{ $row['idle_time'] }}</small>
+                            <span class="badge badge-danger" style="font-size: 7pt;">{{ $row['idle_time'] }}</span>
                         </td>
                     </tr>
                     @empty 
