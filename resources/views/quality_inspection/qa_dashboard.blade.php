@@ -13,7 +13,7 @@
       <div class="card-body p-1">
         <div class="row p-0 m-0">
           <div class="col-9 p-1">
-            <div class="card shadow-none border">
+            <div class="card shadow-none border mb-2">
               <div class="card-header p-0">
                 <h6 class="text-white1 font-weight-bold text-left m-2 rounded-top" style="font-size: 10.5pt;">In Process Quality Inspection Log(s) Today</h6>
                 <table class="w-100 table-bordered text-center rounded" border="1">
@@ -23,17 +23,17 @@
                   <col style="width: 12%;">
                   <col style="width: 12%;">
                   <tbody>
-                    <tr class="text-uppercase font-weight-bold text-white" style="background-color: #012f6a;">
+                    <tr class="text-uppercase font-weight-bold text-white" style="background-color: #012f6a; font-size: 9pt;">
                       <th rowspan="2" class="p-1">Operation</th>
                       <th rowspan="2" class="p-1">QA Inspector</th>
                       <th rowspan="2" class="p-1">Inspection Logs</th>
                       <th colspan="2" class="p-1">Qty</th>
                     </tr>
-                    <tr class="text-white">
-                      <th class="bg-success p-0">Inspected</th>
-                      <th class="bg-danger p-0">Rejects</th>
+                    <tr class="text-white text-uppercase" style="font-size: 8pt;">
+                      <td class="bg-success p-0">Inspected</td>
+                      <td class="bg-danger p-0">Rejects</td>
                     </tr>
-                    <tr class="bg-dark text-white">
+                    <tr class="bg-dark text-white" style="font-size: 8pt;">
                       <td class="p-2 text-uppercase">Fabrication</td>
                       <td class="p-2">
                         @forelse ($summary['fabrication']['inspectors'] as $qa_staff)
@@ -49,7 +49,7 @@
                       <td class="p-2">{{ $summary['fabrication']['qty_checked'] }}</td>
                       <td class="p-2">{{ $summary['fabrication']['qty_rejects'] }}</td>
                     </tr>
-                    <tr class="bg-dark text-white">
+                    <tr class="bg-dark text-white" style="font-size: 8pt;">
                       <td class="p-2 text-uppercase">Painting</td>
                       <td class="p-2">
                         @forelse ($summary['painting']['inspectors'] as $qa_staff)
@@ -65,7 +65,7 @@
                       <td class="p-2">{{ $summary['painting']['qty_checked'] }}</td>
                       <td class="p-2">{{ $summary['painting']['qty_rejects'] }}</td>
                     </tr>
-                    <tr class="bg-dark text-white">
+                    <tr class="bg-dark text-white" style="font-size: 8pt;">
                       <td class="p-2 text-uppercase">Assembly</td>
                       <td class="p-2">
                         @forelse ($summary['assembly']['inspectors'] as $qa_staff)
@@ -194,18 +194,31 @@
      </div>
   </div>
 </div>
+
+{{-- Reject Confirmation Modal --}}
+<div class="modal fade" id="reject-confirmation-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document" style="min-width: 80%;">
+     <div class="modal-content">
+        <div class="text-white rounded-top" style="background-color: #f57f17;">
+          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+            <h5 class="font-weight-bold m-0 p-0">QA Reject Confirmation</h5>
+            <div class="float-right">
+              <h5 class="modal-title font-weight-bold prod_title_reset p-0 mr-5 font-italic d-inline-block" id="reject-for-confirmation-production-order">PROM-47694</h5>
+              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body">
+           <div id="reject-confirmation-div"></div>
+        </div>
+     </div>
+  </div>
+</div>
 @endsection
 
 @section('script')
-<script type="text/javascript" src="{{ asset('js/daterange/moment.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('js/daterange/daterangepicker.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/daterange/daterangepicker.css') }}" />
-
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
-
 <script>
   $(document).ready(function(){
     load_dashboard();
@@ -217,6 +230,40 @@
         reject_for_confirmation(operation, el);
       });
     }
+
+    $(document).on('click', '.reject-for-confirmation-action-btn', function(e) {
+      e.preventDefault();
+      var p = $(this).data('production-order');
+      $.ajax({
+        url:"/getProductionOrderRejectForConfirmation/" + p,
+        type:"GET",
+        success:function(data){
+          $('#reject-confirmation-div').html(data);
+          $('#reject-for-confirmation-production-order').text(p);
+          
+          $('#reject-confirmation-modal').modal('show');
+        }
+      });
+    });
+
+    $(document).on('submit', '#reject-confirmation-form', function(e) {
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#reject-confirmation-modal').modal('hide');
+            reject_for_confirmation(data.operation, $("#reject-for-confirmation-content .tab-pane").find('.active'));
+            count_reject_for_confirmation();
+          }else{
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }
+        }
+      });
+    });
 
     function reject_for_confirmation(operation, el, page = null){
       var q = $(el).find('.search-reject-confirmation').eq(0).val();
@@ -257,49 +304,9 @@
       reject_for_confirmation(operation, el, page);
     });
 
-    $(document).on('click', '.reject-confirmation-btn', function(e){
+    $(document).on('click', '.remove-workstation-row', function(e) {
       e.preventDefault();
-      
-      var inspection_type = $(this).data('inspection-type');
-      var workstation = $(this).data('workstation');
-      var production_order = $(this).data('production-order');
-      var process_id = $(this).data('process-id');
-      var qa_id = $(this).data('qaid');
-
-      $.ajax({
-        url:"/get_reject_confirmation_checklist/" + production_order + "/" + workstation + "/" + process_id + "/" + qa_id,
-        type:"GET",
-        success:function(data){
-          $('#quality-inspection-div').html(data);
-          $('#quality-inspection-modal .qc-type').text(inspection_type);
-          $('#quality-inspection-modal .qc-workstation').text('[' + workstation + ']');
-          $('#quality-inspection-modal').modal('show');
-        }
-      });
-    });
-
-    $(document).on('submit', '#reject-confirmation-frm', function(e){
-      e.preventDefault();
-      $.ajax({
-        url: $(this).attr('action'),
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#quality-inspection-modal').modal('hide');
-            reject_for_confirmation(data.details.operation_id, $("#reject-for-confirmation-content .tab-pane").find('.active'));
-            count_reject_for_confirmation();
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        }
-      });
+      $(this).closest("tr").remove();
     });
 
     function showNotification(color, message, icon){

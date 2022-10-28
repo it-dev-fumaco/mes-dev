@@ -275,6 +275,10 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/hide_reject', 'SecondaryController@hidereject_notif_dash');
 	Route::get('/operator_item_produced_report', 'SecondaryController@operator_item_produced_report');
 	Route::get('/export/view/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@export_view');
+
+	Route::get('/getProductionOrderRejectForConfirmation/{production_order}', 'QualityInspectionController@getProductionOrderRejectForConfirmation');
+	Route::post('/submitRejectConfirmation/{production_order}', 'QualityInspectionController@submitRejectConfirmation');
+	
 });
 //painting_calendar
 Route::group(['middleware' => 'auth'], function(){
