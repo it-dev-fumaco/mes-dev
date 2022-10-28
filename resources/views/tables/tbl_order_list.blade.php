@@ -25,10 +25,7 @@
             $delivery_date = $r->reschedule_delivery != 0 ? $r->reschedule_delivery_date : $r->delivery_date;
         @endphp
         <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
-            <td class="p-2">
-                <span class="d-block">{{ $r->name }}</span>
-                <small>{{ in_array($r->order_type, ['Sales DR', 'Regular Sales']) ? 'Sales Order' : $r->order_type }}</small>
-            </td>
+            <td class="p-2">{{ $r->name }}</td>
             <td class="p-2">{{ $r->customer }}</td>
             <td class="p-2">{{ $r->order_type }}</td>
             <td class="p-2">{{ $r->project }}</td>
@@ -131,13 +128,19 @@
     </div>
 </div>
 
+@php
+    $ref_type = explode("-", $s->name)[0];
+    $items = array_key_exists($s->name, $item_list) ? $item_list[$s->name] : [];
+    $production_orders = array_key_exists($s->name, $items_production_orders) ? $items_production_orders[$s->name] : [];
+@endphp
+
 <!-- Modal -->
 <div class="modal fade" id="{{ strtolower($s->name) }}-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 85%;">
         <form action="/assembly/wizard" class="order-items-form">
             <div class="modal-content">
                 <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
-                    <h5 class="modal-title text-uppercase">{{ $s->name }}</h5>
+                    <h5 class="modal-title">{{ $ref_type == 'SO' ? 'Sales Order' : 'Material Request - ' . $s->order_type }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -146,10 +149,12 @@
                     <table class="w-100 border-0">
                         <tr>
                             <td class="align-top" style="width: 40%;">
-                                <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->customer }}</span>
+                                <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->name }}</span>
+                                <span class="d-block font-weight-bold" style="font-size: 11pt;">{{ $s->customer }}</span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
                                 <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
+                                <span class="d-block mt-1" style="font-size: 10pt;">Company: <b>{{ $s->company }}</b></span>
                             </td>
                             <td class="align-top" style="width: 40%;">
                                 <span class="d-block mt-1" style="font-size: 10pt;">Delivery Date: <b>{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</b></span>
@@ -164,11 +169,6 @@
                     <div class="row mt-2">
                         <div class="col-12">
                             <input type="hidden" name="ref" value="{{ $s->name }}">
-                            @php
-                                $ref_type = explode("-", $s->name)[0];
-                                $items = array_key_exists($s->name, $item_list) ? $item_list[$s->name] : [];
-                                $production_orders = array_key_exists($s->name, $items_production_orders) ? $items_production_orders[$s->name] : [];
-                            @endphp
                             <input type="hidden" name="ref_type" value="{{ $ref_type }}">
                             <table class="table table-bordered table-striped">
                                 <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
