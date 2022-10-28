@@ -135,7 +135,7 @@
 @endphp
 
 <!-- Modal -->
-<div class="modal fade" id="{{ strtolower($s->name) }}-modal" tabindex="-1" role="dialog">
+<div class="modal fade order-modal" id="{{ strtolower($s->name) }}-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 85%;">
         <form action="/assembly/wizard" class="order-items-form">
             <div class="modal-content">
@@ -289,8 +289,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer p-3">
-                    <button class="btn btn-secondary btn-lg float-right m-0 disabled" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
+                <div class="border-top pt-2 pb-2 pl-3 pr-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/print_order/{{ $s->name }}" class="btn btn-info pt-2 pb-2 pl-3 pr-3 print-order-btn"><img src="{{ asset('/img/print_btn.png') }}" alt="Print" width="20" class="m-0"> Print</a>
+                        <button class="btn btn-secondary btn-lg float-ri1ght m1-0 disabled" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
+                    </div>
                 </div>
             </div>
         </form>

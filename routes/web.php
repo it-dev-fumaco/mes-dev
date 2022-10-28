@@ -560,7 +560,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/user_settings', 'MainController@userSettings');
 	Route::get('/orderTypes', 'MainController@orderTypes');
 	Route::get('/dashboard_operator_output', 'MainController@dashboardOperatorOutput');
-	
+	Route::get('/print_order/{order_id}', 'MainController@printOrder');
 });
 //operator_checklist
 Route::post('/save_operator_checklist', 'SecondaryController@save_operator_checklist');

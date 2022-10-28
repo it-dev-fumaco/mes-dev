@@ -84,6 +84,8 @@
 	</div>
 </div>
 
+<iframe src="#" id="iframe-print-order" style="display: none;"></iframe>
+
 <div id="loader-wrapper" hidden>
     <div id="loader"></div>
     <div class="loader-section section-left"></div>
@@ -209,6 +211,15 @@
 @section('script')
 <script>
 $(document).ready(function(){
+	$(document).on('click', '.print-order-btn', function(e){
+      e.preventDefault();
+	  $("#iframe-print-order").attr("src", $(this).attr('href'));
+    });
+
+	$(document).on('hidden.bs.modal', '.order-modal', function () {
+		$("#iframe-print-order").attr("src", '#');
+	});
+
 	@if (session()->has('success'))
 		showNotification("success", '{{ session()->get("success") }}', "now-ui-icons travel_info");
 	@elseif(session()->has('error'))

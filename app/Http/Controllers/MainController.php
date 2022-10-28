@@ -8852,7 +8852,7 @@ class MainController extends Controller
 		$q = DB::connection('mysql_mes')->table('time_logs as t')->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
 			->join('production_order as p', 'j.production_order', 'p.production_order')->where('t.status', 'Completed')
 			->whereNotNull('t.operator_id')->whereDate('t.from_time', '>=', $now->startOfDay())->whereDate('t.to_time', '<=', $now->endOfDay())
-			->selectRaw('t.operator_id, t.operator_name, t.good, j.workstation, p.operation_id')
+			->selectRaw('t.operator_id, t.operator_name, t.good, j.workstation, p.operation_id, t.reject')
 			->orderBy('t.from_time', 'desc')->get();
 
 		$fabrication_op_output = $painting_op_output = $assembly_op_output = [];
@@ -8860,24 +8860,29 @@ class MainController extends Controller
 			if ($e->operation_id == 1 && $e->workstation != 'Painting') {
 				if (array_key_exists($e->operator_id, $fabrication_op_output)) {
 					$fabrication_op_output[$e->operator_id]['output'] += $e->good;
+					$fabrication_op_output[$e->operator_id]['reject'] += $e->reject;
 				} else {
-					$fabrication_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good];
+					$fabrication_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good, 'reject' => $e->reject];
 				}
 			}
 
 			if ($e->workstation == 'Painting') {
 				if (array_key_exists($e->operator_id, $painting_op_output)) {
 					$painting_op_output[$e->operator_id]['output'] += $e->good;
+					$painting_op_output[$e->operator_id]['reject'] += $e->reject;
 				} else {
 					$painting_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good];
+					$painting_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good, 'reject' => $e->reject];
 				}
 			}
 
 			if ($e->operation_id == 3) {
 				if (array_key_exists($e->operator_id, $assembly_op_output)) {
 					$assembly_op_output[$e->operator_id]['output'] += $e->good;
+					$assembly_op_output[$e->operator_id]['reject'] += $e->reject;
 				} else {
 					$assembly_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good];
+					$assembly_op_output[$e->operator_id] = ['operator_name' => $e->operator_name, 'output' => $e->good, 'reject' => $e->reject];
 				}
 			}
 		}
@@ -8885,31 +8890,40 @@ class MainController extends Controller
 		$fabrication_data = $painting_data = $assembly_data = [];
 		$fabrication_max_output = collect($fabrication_op_output)->max('output');
 		foreach (collect($fabrication_op_output)->sortBy('output')->reverse() as $v) {
-			$percentage = ($v['output']/$fabrication_max_output) * 100;
+			$output_percentage = ($v['output']/$fabrication_max_output) * 100;
+			$reject_percentage = ($v['reject']/$fabrication_max_output) * 100;
 			$fabrication_data[] = [
 				'operator_name' => $this->splitName($v['operator_name']),
-				'percentage' => round($percentage),
-				'output' => number_format($v['output'])
+				'percentage' => $output_percentage,
+				'reject_percentage' => $reject_percentage,
+				'output' => number_format($v['output']),
+				'reject' => number_format($v['reject']),
 			];
 		}
 
 		$painting_max_output = collect($painting_op_output)->max('output');
 		foreach (collect($painting_op_output)->sortBy('output')->reverse() as $v) {
-			$percentage = ($v['output']/$painting_max_output) * 100;
+			$output_percentage = ($v['output']/$painting_max_output) * 100;
+			$reject_percentage = ($v['reject']/$painting_max_output) * 100;
 			$painting_data[] = [
 				'operator_name' => $this->splitName($v['operator_name']),
-				'percentage' => round($percentage),
-				'output' => number_format($v['output'])
+				'percentage' => $output_percentage,
+				'reject_percentage' => $reject_percentage,
+				'output' => number_format($v['output']),
+				'reject' => number_format($v['reject']),
 			];
 		}
 
 		$assembly_max_output = collect($assembly_op_output)->max('output');
 		foreach (collect($assembly_op_output)->sortBy('output')->reverse() as $v) {
-			$percentage = ($v['output']/$assembly_max_output) * 100;
+			$output_percentage = ($v['output']/$assembly_max_output) * 100;
+			$reject_percentage = ($v['reject']/$assembly_max_output) * 100;
 			$assembly_data[] = [
 				'operator_name' => $this->splitName($v['operator_name']),
-				'percentage' => round($percentage),
-				'output' => number_format($v['output'])
+				'percentage' => $output_percentage,
+				'reject_percentage' => $reject_percentage,
+				'output' => number_format($v['output']),
+				'reject' => number_format($v['reject']),
 			];
 		}
 
@@ -8939,5 +8953,24 @@ class MainController extends Controller
 		$string = preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
 	 
 		return preg_replace('/-+/', '-', $string); // Replaces multiple hyphens with single one.
-	 }
+	}
+
+	public function printOrder($order_id) {
+		$ref_type = explode("-", $order_id)[0];
+
+		if ($ref_type == 'SO') {
+			$details = DB::connection('mysql')->table('tabSales Order')->where('name', $order_id)
+				->select('name', 'transaction_date', 'customer', 'project', 'delivery_date', 'status', 'sales_type', 'shipping_address', 'notes')->first();
+
+			$items = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $order_id)->orderBy('idx', 'asc')->get();
+		} else {
+			$details = DB::connection('mysql')->table('tabMaterial Request')->where('name', $order_id)
+				->select('name', 'customer', 'project', 'custom_purpose as sales_type', 'transaction_date', 'delivery_date', 'status', DB::raw('CONCAT(address_line, " ", address_line2, " ", city_town)  as shipping_address'), 'notes00 as notes')->first();
+
+			$items = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $order_id)
+				->select('item_code', 'description', 'idx', 'qty', 'stock_uom', 'schedule_date as delivery_date')->orderBy('idx', 'asc')->get();
+		}
+
+		return view('print_order', compact('items', 'details', 'ref_type'));
+	}
 }
