@@ -22,7 +22,7 @@
     <tbody class="text-center" style="font-size: 8pt;">
         @forelse ($list as $r)
         @php
-            $delivery_date = $r->reschedule_delivery != 0 ? $r->reschedule_delivery_date : $r->delivery_date;
+            $delivery_date = $r->reschedule_delivery == 1 ? $r->reschedule_delivery_date : $r->delivery_date;
         @endphp
         <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
             <td class="p-2">{{ $r->name }}</td>
@@ -89,7 +89,7 @@
 
 @foreach ($list as $i => $s)
     @php
-        $delivery_date = $s->reschedule_delivery != 0 ? $s->reschedule_delivery_date : $s->delivery_date;
+        $delivery_date = $s->reschedule_delivery == 1 ? $s->reschedule_delivery_date : $s->delivery_date;
     @endphp
 <!-- Modal -->
 <div class="modal fade" id="reschedule-{{ strtolower($s->name) }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
