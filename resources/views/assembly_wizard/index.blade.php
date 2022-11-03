@@ -1,37 +1,14 @@
 @extends('layouts.user_app', [
     'namePage' => 'MES',
     'activePage' => 'production_planning_assembly',
+    'pageHeader' => 'Planning Wizard - Assembly',
+      'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -70px;">
-   <div class="header text-center">
-      <div class="row">
-         <div class="col-md-8 text-white">
-            <table style="text-align: center; width: 100%;">
-               <tr>
-                  <td style="width: 30%; border-right: 5px solid white;">
-                     <div class="pull-right title mr-3">
-                        <span class="d-block m-0 p-0" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-                        <span class="d-block m-0 p-0" style="font-size: 10pt;">{{ date('l') }}</span>
-                     </div>
-                  </td>
-                  <td style="width: 20%; border-right: 5px solid white;">
-                     <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
-                  </td>
-                  <td style="width: 50%">
-                     <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Planning Wizard - Assembly</h3>
-                  </td>
-               </tr>
-            </table>
-         </div>
-      </div>
-   </div>
-</div>
-<br>
-<div class="content" style="margin-top: -145px;">
-   <div class="row">
-      <div class="col-md-12">
+<div class="panel-header"></div>
+   <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+      <div class="col-md-12 m-0 p-0">
          <div class="card">
             <div class="card-body">
                <ul class="nav nav-tabs d-none" id="myTab" role="tablist">
@@ -62,6 +39,16 @@
                      <div class="row" style="margin-top: 10px;">
                         <div class="col-md-6 offset-md-3">
                            <form id="get-somr-frm">
+                              @if (request('item'))
+                              @foreach (request('item') as $r)
+                              <input type="hidden" value="{{ $r }}" name="item[]">
+                              @endforeach
+                              @endif
+                              @if (request('bom'))
+                              @foreach (request('bom') as $s => $e)
+                              <input type="hidden" value="{{ $e }}" name="bom[{{ $s }}]">
+                              @endforeach
+                              @endif
                               <table style="width: 100%;">
                                  <col style="width: 20%;">
                                  <col style="width: 25%;">
@@ -75,8 +62,8 @@
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
                                           <select class="form-control form-control-lg" id="items-from">
-                                             <option value="Sales Order">Sales Order</option>
-                                             <option value="Material Request">Material Request</option>
+                                             <option value="Sales Order" {{ request('type') ? (request('type') == 'SO' ? 'selected' : '') : '' }}>Sales Order</option>
+                                             <option value="Material Request" {{ request('type') ? (request('type') == 'MREQ' ? 'selected' : '') : '' }}>Material Request</option>
                                           </select>
                                        </div>
                                     </td>
@@ -85,7 +72,8 @@
                                     </td>
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
-                                          <input type="text" id="reference-no" class="form-control form-control-lg" value="SO-" autocomplete="off">
+                                          <input type="hidden" id="ref-no" value="{{ request('ref') }}">
+                                          <input type="text" id="reference-no" class="form-control form-control-lg" value="{{ request('ref') ? request('ref') : 'SO-' }}" autocomplete="off">
                                        </div>
                                     </td>
                                     <td class="align-middle">
@@ -95,7 +83,7 @@
                               </table>
                            </form>
                         </div>
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-md-12">
                            <div id="so-item-list-div"></div>
                         </div>
                      </div>
@@ -110,7 +98,7 @@
                   <div class="tab-pane" id="step2" role="tabpanel" aria-labelledby="step2-tab">
                      <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">2. Get Finished Goods</h4>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-md-12">
                            <div class="so-details-div"></div>
                            <div id="parts-list-div"></div>
                         </div>
@@ -213,7 +201,6 @@
          </div>
       </div>
    </div>
-</div>
 
 <iframe id="iframe-print" style="display: none;"></iframe>
 
@@ -771,12 +758,16 @@
          }
       });
 
-      $('#get-somr-frm').submit(function(e){
-         e.preventDefault();
+      if ($('#ref-no').val()) {
+         submit_somr_form();
+      }
+
+      function submit_somr_form() {
          var items_from = $('#items-from').val();
          $.ajax({
             url: "/assembly/get_reference_details/" + items_from + "/" + $('#reference-no').val(),
             type:"GET",
+            data: $('#get-somr-frm').serialize(),
             success:function(data){
                if (data.message) {
                   var alert = '<div class="alert alert-danger text-center" role="alert" style="font-size: 12pt;">'+ data.message + '</div>';
@@ -796,6 +787,11 @@
                console.log(errorThrown);
             },
          });
+      }
+
+      $('#get-somr-frm').submit(function(e){
+         e.preventDefault();
+         submit_somr_form();
       });
 
       // get part
@@ -1545,8 +1541,6 @@
          });
       });
 
-     
-
       function showNotification(color, message, icon){
          $.notify({
             icon: icon,
@@ -1559,28 +1553,6 @@
                align: 'center'
             }
          });
-      }
-
-      setInterval(updateClock, 1000);
-      function updateClock(){
-         var currentTime = new Date();
-         var currentHours = currentTime.getHours();
-         var currentMinutes = currentTime.getMinutes();
-         var currentSeconds = currentTime.getSeconds();
-         // Pad the minutes and seconds with leading zeros, if required
-         currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-         currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-         // Choose either "AM" or "PM" as appropriate
-         var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-         // Convert the hours component to 12-hour format if needed
-         currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-         // Convert an hours component of "0" to "12"
-         currentHours = (currentHours === 0) ? 12 : currentHours;
-         currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-         // Compose the string for display
-         var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
-
-         $("#current-time").html(currentTimeString);
       }
 
       $(document).on('show.bs.modal', '.modal', function (event) {

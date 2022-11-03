@@ -301,22 +301,4 @@ class ProductionFloorController extends Controller
 
 		return $breakdowns;
 	}
-
-	// public function get_inspection_rate_per_workstation($workstation){
-	// 	$start = Carbon::now()->startOfDay()->toDateTimeString();
-	// 	$end = Carbon::now()->endOfDay()->toDateTimeString();
-
-	// 	$q = DB::connection('mysql_mes')->table('production_order')
-	// 		->join('job_ticket', 'production_order.production_order', 'job_ticket.production_order')
-	// 		->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
-	// 		->where('job_ticket.workstation', $workstation)
-	// 		->whereBetween('time_logs.from_time', [$start, $end])
-	// 		->whereBetween('time_logs.to_time', [$start, $end])
-	// 		->pluck('time_logs.time_log_id');
-		
-	// 	$q = DB::connection('mysql_mes')->table('quality_inspection')
-	// 		->whereIn('time_log_id', $q)->whereBetween('qa_inspection_date', [$start, $end])
-
-	// 	return $q;
-	// }
 }

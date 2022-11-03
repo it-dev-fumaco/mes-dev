@@ -337,14 +337,12 @@
                }else{
                 var new_id = parseInt(id) + 1;
                }
-              //  alert(new_id);
                var len2 = new_id;
                var id_unique="desc"+len2;
                var current_uniq="current"+len2;
                var comsump_uniq="comsump"+len2;
                var bal_uniq="bal"+len2;
                
-               // alert(id_unique);
                var tblrow = '<tr>' +
                   '<td>'+len2+'</td>' +
                   '<td style="font-size:16px;"><select name="item_code[]" class="form-control onchange-selection-item_code count-row"  data-idcolumn='+id_unique+' data-id='+len2+' required>'+row+'</select></td>' +
@@ -359,7 +357,6 @@
                // autoRowNumberAddKPI();
             },
             error: function(response) {
-               alert('Error fetching Designation!');
             }
          });
       });
@@ -370,7 +367,6 @@
            var current = "#current"+id;
            var comsump = "#comsump"+id;
            var bal = "#bal"+id;
-         //   alert(current);
            var format_id_for_second_selection = "#"+id_for_second_selection;
            $.ajax({
             url:"/get_powder_coat_desc/"+ val,

@@ -485,6 +485,28 @@
 </div>
 
 
+<div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog" role="document" style="min-width: 95%;">
+    <div class="modal-content">
+      <div class="text-white rounded-top" style="background-color: #f57f17;">
+        <div class="d-flex flex-row justify-content-between pt-2 pb-2 pr-3 pl-3 align-items-center">
+          <h5 class="font-weight-bold m-0 p-0" style="font-size: 14pt;">In Process - Quality Inspection</h5>
+          <div class="float-right">
+            <h5 class="modal-title font-weight-bold p-0 mr-3 font-italic d-inline-block" style="font-size: 14pt;">{{ $workstation }} - <span class="production-order"></span></h5>
+            <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body p-2" style="min-height: 480px;">
+        <div id="tasks-for-inspection-tbl"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 @endsection
 @section('script')
@@ -724,9 +746,9 @@
       get_tasks_for_inspection(workstation, production_order);
     });
 
-    function get_tasks_for_inspection(workstation, production_order){
+    function get_tasks_for_inspection(workstation, production_order, timelogid = null){
       $.ajax({
-        url:"/get_tasks_for_inspection/" + workstation +"/" + production_order,
+        url:"/get_tasks_for_inspection/" + workstation +"/" + production_order + "?timelogid=" + timelogid,
         type:"GET",
         success:function(data){
           if(data.success == 0){
@@ -741,35 +763,12 @@
       });
     }
 
-    $(document).on('click', '.quality-inspection-btn', function(e){
+    $(document).on('click', '.quality-inspection-btn-op', function(e){
       e.preventDefault();
-
-      $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-
       var production_order = $(this).data('production-order');
-      var process_id = $(this).data('processid');
       var workstation = '{{ $workstation }}';
-      var inspection_type = $(this).data('inspection-type');
-
-      var data = {
-        time_log_id: $(this).data('timelog-id'),
-        inspection_type: inspection_type
-      }
-      $.ajax({
-        url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
-        type:"GET",
-        data: data,
-        success:function(response){
-          active_input = null;
-          $('#quality-inspection-div').html(response);
-          $('#quality-inspection-modal .qc-type').text(inspection_type);
-          $('#quality-inspection-modal').modal('show');
-        }, error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        },
-      });
+      var time_log_id = $(this).data('timelog-id');
+      get_tasks_for_inspection(workstation, production_order, time_log_id);
     });
 
     $(document).on('submit', '#quality-inspection-frm', function(e){
@@ -784,8 +783,23 @@
         success:function(data){
           if (data.success) {
             showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#quality-inspection-modal').modal('hide');
-            get_tasks_for_inspection(data.details.workstation, data.details.production_order)
+            get_tasks_for_inspection(data.details.workstation, data.details.production_order, data.details.timelogid);
+              if (data.details.checklist_url) {
+                $.ajax({
+                  url: data.details.checklist_url,
+                  type:"GET",
+                  success:function(response){
+                    active_input = null;
+                    $('#quality-inspection-div').html(response);
+                  }, error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                  },
+                });
+              } else {
+                $('#quality-inspection-modal').modal('hide');
+              }
           }else{
             showNotification("danger", data.message, "now-ui-icons travel_info");
             $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
@@ -798,6 +812,42 @@
             }
       });
     });
+
+    $(document).on('click', '.quality-inspection-btn', function(e){
+        e.preventDefault();
+
+        $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
+
+        var production_order = $(this).data('production-order');
+        var process_id = $(this).data('processid');
+        var workstation = $(this).data('workstation');
+        var inspection_type = $(this).data('inspection-type');
+        var reject_category = $(this).data('reject-cat');
+
+        var data = {
+          time_log_id: $(this).data('timelog-id'),
+          inspection_type,
+          reject_category,
+        }
+
+        $.ajax({
+          url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
+          type:"GET",
+          data: data,
+          success:function(response){
+            active_input = null;
+            $('#quality-inspection-div').html(response);
+            $('#quality-inspection-modal .qc-type').text(inspection_type);
+            $('#quality-inspection-modal .qc-workstation').text('[' + workstation + ']');
+            $('#quality-inspection-modal').modal('show');
+          }, error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+          },
+        });
+      });
+  
 
     $(document).on('click', '.custom-a', function(e){
       e.preventDefault();

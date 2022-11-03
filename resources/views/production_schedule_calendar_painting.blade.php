@@ -128,21 +128,15 @@
         
         },
         eventDrop: function(event, element, revertFunc) {
-
-        // alert(
-        //         event.start.format()
-        // );
         if (event.status == "Completed") {
                   revertFunc();
         }else{
-                  // alert(event.id + ' was dropped on ' + event.start.format());
                     $.ajax({
                         url: '/calendar_painting/update_planned_start_date',
                         type: 'POST',
                         data: { 'scheduledtime': event.start.format(), 'prodid' : event.id },
                         success: function(event)
                                     {
-                                        // alert('ok');
                                     },
                                     error: function(jqXHR, textStatus, errorThrown) {
                           console.log(jqXHR);
@@ -183,7 +177,6 @@
             url: '/get_production_schedule_calendar_painting',
             type: 'GET',
             error: function() {
-               // alert('there was an error while fetching events!');
             }
          }],
         

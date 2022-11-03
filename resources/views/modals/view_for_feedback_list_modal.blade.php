@@ -2,16 +2,16 @@
 <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" id="view-for-feedback-list-modal">
     <div class="modal-dialog" role="document" style="min-width: 97%;">
         <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #229954;">
+            <div class="modal-header text-white" style="background-color: #0277BD;">
                 <h5 class="modal-title">Production Order for Feedback</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="z-index: 10;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body pt-0">
-                <div class="col-md-4 pull-right" style="margin-top: -50px; padding-right: 50px;">
+                <div class="col-md-4 pull-right" style="margin-top: -53px; padding-right: 50px;">
                     <div class="form-group m-0 p-0">
-                        <input type="text" class="form-control search-feedback-prod" placeholder="Search" style="background-color: white;" id="view-for-feedback-list-search-box">
+                        <input type="text" class="form-control search-feedback-prod rounded" placeholder="Search" style="background-color: white;" id="view-for-feedback-list-search-box">
                     </div>
                 </div>
                 <div class="row p-0">

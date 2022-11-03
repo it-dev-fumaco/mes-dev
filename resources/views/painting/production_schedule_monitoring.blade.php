@@ -712,7 +712,6 @@ defer(function() {
           }else{
             showNotification("danger", response.message, "now-ui-icons travel_info");
           }
-          // alert(response.message);
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(jqXHR);
@@ -723,13 +722,6 @@ defer(function() {
       }
    
    }); 
-// $('#table_id tr').click(function(){
-//     $(this).remove();
-//     return false;
-// });
-// $("#table_id").delegate(".btn-hide", "click", function() {
-//   $(this).closest("tr").hide();
-// });
 </script>
 <script type="text/javascript">
       $(document).on('click', '.btn-movedtoday', function(){

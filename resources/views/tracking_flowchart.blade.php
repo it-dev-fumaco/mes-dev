@@ -9,419 +9,413 @@
   </div>
   </div>
 @endif
-<div class="content">
-  <div class="row">
-    <div class="col-md-9">
-      <div class="card" style="width: 100%; height: auto;">
-        <div class="card-header">
-          {{--<h5 style="display: inline;"><b>Sales Order no: </b>{{ $production->sales_order }}</h5>
-          <h5 style="display: inline-block; padding-left: 50px;"><b>Customer:</b> {{$production->customer}}</h5>
-           --}}
-        </div>
-        <div class="card-body" style="min-height:800px;">
-          <div class="col-md-12">
-            <table style="width: 100%; border-color: #D5D8DC;">
-              <col style="width: 18%;">
-              <col style="width: 24%;">
-              <col style="width: 23%;">
-              <col style="width: 20%;">
-              <tr style="font-size: 9pt;">
-                <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REFERENCE NO.</b></td>
-                <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>CUSTOMER</b></td>
-                <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROJECT</b></td>
-                <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DELIVERY DATE</b></td>
-              </tr>
-              <tr style="font-size: 10pt;">
-                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no">{{ ($production->sales_order == '')? $production->material_request: $production->sales_order }}</span></td>
-                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust">{{$production->customer}}</span></td>
-                <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"> {{$production->project}}</span></td>
-                <td class="text-center" style="border: 1px solid #ABB2B9;">
-                  <span class="del-date">{{($production->rescheduled_delivery_date == null)? $production->delivery_date: $production->rescheduled_delivery_date}}</span>
-                </td>
-              </tr>
-              <tr style="font-size: 10pt;display:none;">
-                <td style="border: 1px solid #ABB2B9; font-size: 9pt;" class="text-center"><b>ITEM DETAIL(S):</b></td>
-                <td style="border: 1px solid #ABB2B9;" colspan="4"><span class="item-code font-weight-bold">{!! $bom->item_code !!} </span>- <span class="desc">{!! $bom->description !!}</span></td>
-              </tr>
-            </table>
-          </div>
-          @php
-            $end_date = ($materials['end_date'] == "") ? "" : $materials['end_date'];
-            $start_date = ($materials['start_date'] == "") ? "Not Started" : $materials['start_date'];
-            $plan_time = ($materials['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($materials['planned_start_date'])->format('M d, Y');
-            if($materials['status'] == 'Completed'){
-              $colorme= '#2ecc71';
-              $stat= '';
-              $hideme= '';
-              $hide_ongoing_process='none';
-            }elseif($materials['status'] == 'In Progress'){
-              $stat= '';
-              $colorme= '#f5b041 ';
-              $hideme= '';
-              $hide_ongoing_process='';
-            }elseif($materials['status'] == ''){
-              $stat= '';
-              $colorme= 'white';
-              $hideme= 'none';
-              $hide_ongoing_process='none';
-            }else{
-              $stat= 'Pending';
-              $colorme= '#d6dbdf';
-              $hideme= '';
-              $hide_ongoing_process='';
-            }
-            $displayme= ($materials['operation_id']  == "1") ? "none" : "none" ;
-            $displayasssembly = ($materials['operation_id']  == "1") ? "none" : "" ;
-            $prod = ($materials['production_order']  == "") ? "No Production Order" : $materials['production_order'] ;
-            $prod_dash = ($materials['production_order']  == "") ? "" : " - " ;
-            $parent_item_border= ($materials['operation_id']  == "3") ? "none" : "1px solid #abb2b9";
-            $parent_radius= ($materials['operation_id']  == "3") ? "none" : ".2em" ;
-          @endphp
-          <div style="width: 100%; overflow: auto; min-height:740px;"  class="col-md-12 my-auto">
-            <div class="col-sm-12 my-auto" style="padding-top: 20px;margin-top: 30px;">
-              <div class=" col-sm-12 my-auto" > 
-                <ul class="tree ulclass text-center">
-                  <li class="liclass text-center">
-                    <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:100%;">
-                      <div class="row text-center bread justify-content-center" style="padding-top:5px;width:100%;">
-                        <div class="col-md-12 bread">
-                          <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}
-                          @if($materials['status'] == 'Unknown Status')
-                          <br>
-                          <span class="badge badge-danger">{{ $materials['status'] }}</span> @endif
-                          @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>  @endif</b> </span>
-                        <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['description'] !!} </span>
-                        <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
+<div class="content p-0 m-0">
+  <div class="row p-0 m-0">
+    <div class="col-md-9 p-1">
+      <table style="width: 100%; border-color: #D5D8DC;">
+        <col style="width: 18%;">
+        <col style="width: 24%;">
+        <col style="width: 23%;">
+        <col style="width: 20%;">
+        <tr style="font-size: 9pt;">
+          <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REFERENCE NO.</b></td>
+          <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>CUSTOMER</b></td>
+          <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROJECT</b></td>
+          <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DELIVERY DATE</b></td>
+        </tr>
+        <tr style="font-size: 10pt;">
+          <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no">{{ ($production->sales_order == '')? $production->material_request: $production->sales_order }}</span></td>
+          <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust">{{$production->customer}}</span></td>
+          <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"> {{$production->project}}</span></td>
+          <td class="text-center" style="border: 1px solid #ABB2B9;">
+            <span class="del-date">{{($production->rescheduled_delivery_date == null)? $production->delivery_date: $production->rescheduled_delivery_date}}</span>
+          </td>
+        </tr>
+        <tr style="font-size: 10pt;display:none;">
+          <td style="border: 1px solid #ABB2B9; font-size: 9pt;" class="text-center"><b>ITEM DETAIL(S):</b></td>
+          <td style="border: 1px solid #ABB2B9;" colspan="4"><span class="item-code font-weight-bold">{!! $bom->item_code !!} </span>- <span class="desc">{!! $bom->description !!}</span></td>
+        </tr>
+      </table>
 
-                        </div>
-                      </div>
-                      <div class="row bread breads row" style="margin-top:5px;display:{{$displayasssembly}}; text-align:initial !important;">
-                        <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; text-align:initial !important;width:100%;">
-                          <ul class="breadcrumb-css bread breads row align-items-center justify-content-center" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};  text-align:initial !important;">
-                            @forelse($materials['process'] as $uli)
-                              <li class="{{$uli['status']}} bread breads mt-3 mb-3" style=" text-align:initial !important;width:auto;"><a class="bread breads" style=" text-align:initial !important;padding-left:25px;margin-right:10px;width:auto;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block; padding-right:20px;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
-                            @empty
-                            <li class="bread" style="text-align:initial !important;"></li>
-                            @endforelse
-                          </ul>
-                        </div>
-                      </div>
+      @php
+        $end_date = ($materials['end_date'] == "") ? "" : $materials['end_date'];
+        $start_date = ($materials['start_date'] == "") ? "Not Started" : $materials['start_date'];
+        $plan_time = ($materials['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($materials['planned_start_date'])->format('M d, Y');
+        if($materials['status'] == 'Completed'){
+          $colorme= '#2ecc71';
+          $stat= '';
+          $hideme= '';
+          $hide_ongoing_process='none';
+        }elseif($materials['status'] == 'In Progress'){
+          $stat= '';
+          $colorme= '#f5b041 ';
+          $hideme= '';
+          $hide_ongoing_process='';
+        }elseif($materials['status'] == ''){
+          $stat= '';
+          $colorme= 'white';
+          $hideme= 'none';
+          $hide_ongoing_process='none';
+        }else{
+          $stat= 'Pending';
+          $colorme= '#d6dbdf';
+          $hideme= '';
+          $hide_ongoing_process='';
+        }
+        $displayme= ($materials['operation_id']  == "1") ? "none" : "none" ;
+        $displayasssembly = ($materials['operation_id']  == "1") ? "none" : "" ;
+        $prod = ($materials['production_order']  == "") ? "No Production Order" : $materials['production_order'] ;
+        $prod_dash = ($materials['production_order']  == "") ? "" : " - " ;
+        $parent_item_border= ($materials['operation_id']  == "3") ? "none" : "1px solid #abb2b9";
+        $parent_radius= ($materials['operation_id']  == "3") ? "none" : ".2em" ;
+      @endphp
+      <div style="width: 100%; overflow: auto; min-height:740px;"  class="col-md-12 my-auto border">
+        <div class="col-sm-12 my-auto" style="padding-top: 20px;margin-top: 30px;">
+          <div class=" col-sm-12 my-auto" > 
+            <ul class="tree ulclass text-center">
+              <li class="liclass text-center">
+                <div  class="row bread justify-content-center" style="border:{{$parent_item_border}};border-radius:{{$parent_radius}}; overflow:inherit;display:inline-block;margin:0 auto;position:relative;margin-bottom:35px;padding-left:5px;padding-right:5px;width:100%;">
+                  <div class="row text-center bread justify-content-center" style="padding-top:5px;width:100%;">
+                    <div class="col-md-12 bread">
+                      <span class="text-center centerd prod-details-btn" style='text-align:center;font-size:18px;' data-jtno="{{ $materials['production_order'] }}"><b>{{ $materials['production_order'] }}{{ $prod_dash }}{{ $materials['item_code'] }}
+                      @if($materials['status'] == 'Unknown Status')
+                      <br>
+                      <span class="badge badge-danger">{{ $materials['status'] }}</span>
+                      @endif
+                      @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>
+                      @endif</b> </span>
+                  <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['description'] !!} </span>
+                  <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
+
+                  </div>
+                </div>
+                <div class="row bread breads row" style="margin-top:5px;display:{{$displayasssembly}}; text-align:initial !important;">
+                  <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; text-align:initial !important;width:100%;">
+                    <ul class="breadcrumb-css bread breads row align-items-center justify-content-center" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};  text-align:initial !important;">
+                      @forelse($materials['process'] as $uli)
+                        <li class="{{$uli['status']}} bread breads mt-3 mb-3" style=" text-align:initial !important;width:auto;"><a class="bread breads" style=" text-align:initial !important;padding-left:25px;margin-right:10px;width:auto;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block; padding-right:20px;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
+                      @empty
+                      <li class="bread" style="text-align:initial !important;"></li>
+                      @endforelse
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <ul class="ulclass">
+                @foreach($boms as $idx => $item)
+                <li class="liclass">
+                  @php
+                      $end_date = ($item['end_date'] == "") ? "" : $item['end_date'];
+                      $start_date = ($item['start_date'] == "") ? "Not Started" : $item['start_date'];
+                      $plan_time = ($item['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($item['planned_start_date'])->format('M d, Y');
+                      if($item['status'] == 'Completed'){
+                                $colorme= '#2ecc71';
+                                $stat= '';
+                              }elseif($item['status'] == 'In Progress'){
+                                $stat= '';
+                                $colorme= '#f5b041 ';
+                              }elseif($item['status'] == 'Unknown Status'){
+                                $stat= $item['status'];
+                                $colorme= '';
+                              }else{
+                                $stat= 'Pending';
+                                $colorme= '#d6dbdf';
+                              }
+                      $prod = ($item['production_order']  == "") ? "No Production Order" : $item['production_order'] ;
+                      $prod_dash = ($item['production_order']  == "") ? "" : " - " ;
+                  @endphp
+                    <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $item['production_order'] }}" class="prod-details-btn">{{ $item['production_order'] }}{{ $prod_dash }}{{ $item['item_code'] }} </span></b><br><i>{{ $item['parts_category'] }}</i><br>
+                      <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $item['produced_qty'] }}</label>
+                      <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $item['qty_to_manufacture'] }} <span style="color: {{ ($item['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $item['available_stock'] }}</b>)</span></label>
+                    </a>
+                    </span>
+                    <div class="details-pane">
+                      <h5 class="title">{{ $item['item_code'] }}</h5>
+                          <p class="desc" style="padding-top: 5px;">
+                            <b>Description:</b> {!! $item['description'] !!}<br>  
+                            <b>Planned Start Date:</b> {{ $plan_time }}<br>    
+                            <b>Production Order : {{ $prod }}</b><br>          
+                          </p>
                     </div>
+                    <br>
+                    <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt;"  class="mx-auto w-auto info">
+                      <tr>
+                        <td><b>BOM: </b></td>
+                        <td>{{ $item['bom_no'] }}</td>
+                      </tr>
+                      <tr style="display: {{ ($item['start_date'] == '') ? 'none' : '' }}">
+                        <td><b>Start Date: </b></td>
+                        <td>{{ $start_date }}</td>
+                      </tr>
+                      <tr style="display: {{ ($item['status'] == 'Completed') ? '': 'none' }}">
+                        <td><b>End Date: </b></td>
+                        <td>{{ $end_date }}</td>
+                      </tr>
+                      <tr style="display: {{ ($item['status'] == 'Completed') ? '': 'none' }}">
+                        <td><b>Duration: </b></td>
+                        <td>{{ $item['duration'] }}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="text-align: center; font-size: 9pt;">
+                          @if( $stat == 'Pending')
+                          <i><span>Pending</span><i>
+                            @elseif ($stat == 'Unknown Status')
+                            <span class="badge badge-danger"> {{ $stat }}</span>
+                          @else
+                            @forelse($item['current_load'] as $row)
+                             {{ $row->workstation }} - {{ $row->process_name }} <br>
+                            @empty
+                           <i><span style="display: {{ ($item['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
+                            @endforelse
+                          @endif
+                        </td>
+                      </tr>
+                    </table>
+                  @if(count($item['child_nodes']) > 0)
                     <ul class="ulclass">
-                      @foreach($boms as $idx => $item)
-                      <li class="liclass">
+                      @foreach($item['child_nodes'] as $child)
                         @php
-                            $end_date = ($item['end_date'] == "") ? "" : $item['end_date'];
-                            $start_date = ($item['start_date'] == "") ? "Not Started" : $item['start_date'];
-                            $plan_time = ($item['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($item['planned_start_date'])->format('M d, Y');
-                            if($item['status'] == 'Completed'){
-                                      $colorme= '#2ecc71';
-                                      $stat= '';
-                                    }elseif($item['status'] == 'In Progress'){
-                                      $stat= '';
-                                      $colorme= '#f5b041 ';
-                                    }elseif($item['status'] == 'Unknown Status'){
-                                      $stat= $item['status'];
-                                      $colorme= '';
-                                    }else{
-                                      $stat= 'Pending';
-                                      $colorme= '#d6dbdf';
-                                    }
-                            $prod = ($item['production_order']  == "") ? "No Production Order" : $item['production_order'] ;
-                            $prod_dash = ($item['production_order']  == "") ? "" : " - " ;
+                          $end_date = ($child['end_date'] == "") ? "" : $child['end_date'];
+                          $start_date = ($child['start_date'] == "") ? "Not Started" : $child['start_date'];
+                          $plan_time = ($child['planned_start_date'] == "") ? "" : Carbon\Carbon::parse($child['planned_start_date'])->format('M d, Y');
+                          if($child['status'] == 'Completed'){
+                                    $colorme= '#2ecc71';
+                                    $stat= '';
+                                  }elseif($child['status'] == 'In Progress'){
+                                    $colorme= '#f5b041 ';
+                                    $stat= '';
+                                  }elseif($child['status'] == 'Unknown Status'){
+                                $stat= $child['status'];
+                                $colorme= '';
+                                  }else{
+                                    $colorme= '#d6dbdf';
+                                    $stat= 'Pending';
+                                  }
+                          $prod = ($child['production_order']  == "") ? "No Production Order" : $child['production_order'] ;
+                          $prod_dash = ($child['production_order']  == "") ? "" : " - " ;
                         @endphp
-                          <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $item['production_order'] }}" class="prod-details-btn">{{ $item['production_order'] }}{{ $prod_dash }}{{ $item['item_code'] }} </span></b><br><i>{{ $item['parts_category'] }}</i><br>
-                            <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $item['produced_qty'] }}</label>
-                            <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $item['qty_to_manufacture'] }} <span style="color: {{ ($item['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $item['available_stock'] }}</b>)</span></label>
-                          </a>
-                          </span>
-                          <div class="details-pane">
-                            <h5 class="title">{{ $item['item_code'] }}</h5>
-                                <p class="desc" style="padding-top: 5px;">
-                                  <b>Description:</b> {!! $item['description'] !!}<br>  
-                                  <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                                  <b>Production Order : {{ $prod }}</b><br>          
-                                </p>
-                          </div>
-                          <br>
-                          <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt;"  class="mx-auto w-auto info">
-                            <tr>
-                              <td><b>BOM: </b></td>
-                              <td>{{ $item['bom_no'] }}</td>
-                            </tr>
-                            <tr style="display: {{ ($item['start_date'] == '') ? 'none' : '' }}">
-                              <td><b>Start Date: </b></td>
-                              <td>{{ $start_date }}</td>
-                            </tr>
-                            <tr style="display: {{ ($item['status'] == 'Completed') ? '': 'none' }}">
-                              <td><b>End Date: </b></td>
-                              <td>{{ $end_date }}</td>
-                            </tr>
-                            <tr style="display: {{ ($item['status'] == 'Completed') ? '': 'none' }}">
-                              <td><b>Duration: </b></td>
-                              <td>{{ $item['duration'] }}</td>
-                            </tr>
-                            <tr>
-                              <td colspan="2" style="text-align: center; font-size: 9pt;">
-                                @if( $stat == 'Pending')
-                                <i><span>Pending</span><i>
-                                  @elseif ($stat == 'Unknown Status')
-                                  <span class="badge badge-danger"> {{ $stat }}</span>
-                                @else
-                                  @forelse($item['current_load'] as $row)
-                                   {{ $row->workstation }} - {{ $row->process_name }} <br>
-                                  @empty
-                                 <i><span style="display: {{ ($item['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
-                                  @endforelse
-                                @endif
-                              </td>
-                            </tr>
-                          </table>
-                        @if(count($item['child_nodes']) > 0)
-                          <ul class="ulclass">
-                            @foreach($item['child_nodes'] as $child)
-                              @php
-                                $end_date = ($child['end_date'] == "") ? "" : $child['end_date'];
-                                $start_date = ($child['start_date'] == "") ? "Not Started" : $child['start_date'];
-                                $plan_time = ($child['planned_start_date'] == "") ? "" : Carbon\Carbon::parse($child['planned_start_date'])->format('M d, Y');
-                                if($child['status'] == 'Completed'){
-                                          $colorme= '#2ecc71';
-                                          $stat= '';
-                                        }elseif($child['status'] == 'In Progress'){
-                                          $colorme= '#f5b041 ';
-                                          $stat= '';
-                                        }elseif($child['status'] == 'Unknown Status'){
-                                      $stat= $child['status'];
-                                      $colorme= '';
-                                        }else{
-                                          $colorme= '#d6dbdf';
-                                          $stat= 'Pending';
-                                        }
-                                $prod = ($child['production_order']  == "") ? "No Production Order" : $child['production_order'] ;
-                                $prod_dash = ($child['production_order']  == "") ? "" : " - " ;
-                              @endphp
-                              <li class="liclass">
-                                  <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $child['production_order'] }}" class="prod-details-btn">{{ $child['production_order'] }}{{ $prod_dash }}{{ $child['item_code'] }} </span></b><br><i>{{ $child['parts_category'] }}</i><br>
-                                    <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $child['produced_qty'] }}</label>
-                                    <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $child['qty_to_manufacture'] }} <span style="color: {{ ($child['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $child['available_stock'] }}</b>)</span></label>
-                                  </a>
-                                  </span>
-                                  <div class="details-pane">
-                                    <h5 class="title">{{ $child['item_code'] }}</h5>
-                                        <p class="desc" style="padding-top: 5px;">
-                                          <b>Description:</b> {!! $child['description'] !!}<br>  
-                                          <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                                          <b>Production Order : {{ $prod }}</b><br>          
-                                        </p>
-                                  </div>
-                                  <br>
-                                  
+                        <li class="liclass">
+                            <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $child['production_order'] }}" class="prod-details-btn">{{ $child['production_order'] }}{{ $prod_dash }}{{ $child['item_code'] }} </span></b><br><i>{{ $child['parts_category'] }}</i><br>
+                              <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $child['produced_qty'] }}</label>
+                              <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $child['qty_to_manufacture'] }} <span style="color: {{ ($child['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $child['available_stock'] }}</b>)</span></label>
+                            </a>
+                            </span>
+                            <div class="details-pane">
+                              <h5 class="title">{{ $child['item_code'] }}</h5>
+                                  <p class="desc" style="padding-top: 5px;">
+                                    <b>Description:</b> {!! $child['description'] !!}<br>  
+                                    <b>Planned Start Date:</b> {{ $plan_time }}<br>    
+                                    <b>Production Order : {{ $prod }}</b><br>          
+                                  </p>
+                            </div>
+                            <br>
+                            
+                            <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt;"  class="mx-auto w-auto info">
+                              <tr>
+                                <td><b>BOM: </b></td>
+                                <td>{{ $child['bom_no'] }}</td>
+                              </tr>
+                              <tr style="display: {{ ($child['start_date'] == '') ? 'none' : '' }}">
+                                <td><b>Start Date: </b></td>
+                                <td>{{ $start_date }}</td>
+                              </tr>
+                              <tr style="display: {{ ($child['status'] == 'Completed') ? '': 'none' }}">
+                                <td><b>End Date: </b></td>
+                                <td>{{ $end_date }}</td>
+                              </tr>
+                              <tr style="display: {{ ($child['status'] == 'Completed') ? '': 'none' }}">
+                                <td><b>Duration: </b></td>
+                                <td>{{ $child['duration'] }}</td>
+                              </tr>
+                              <tr>
+                                <td colspan="2" style="text-align: center; font-size: 9pt;">
+                                  @if( $stat == 'Pending')
+                                  <i><span>Pending</span><i>
+                                    @elseif ($stat == 'Unknown Status')
+                            <span class="badge badge-danger"> {{ $stat }}</span>
+                                  @else
+                                    @forelse($child['current_load'] as $row)
+                                     {{ $row->workstation }} - {{ $row->process_name }} <br>
+                                    @empty
+                                   <i><span style="display: {{ ($child['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
+                                    @endforelse
+                                  @endif
+                                </td>
+                              </tr>
+                            </table>
+                          @if(count($child['child_nodes']) > 0)
+                            <ul class="ulclass">
+                              @foreach($child['child_nodes'] as $child1)
+                                 @php
+                                  $end_date = ($child1['end_date'] == "") ? "" : $child1['end_date'];
+                                  $start_date = ($child1['start_date'] == "") ? "Not Started" : $child1['start_date'];
+                                  $plan_time = ($child1['planned_start_date'] == "") ? "" : Carbon\Carbon::parse($child1['planned_start_date'])->format('M d, Y');
+                                  if($child1['status'] == 'Completed'){
+                                            $colorme= '#2ecc71';
+                                            $stat= '';
+                                          }elseif($child1['status'] == 'In Progress'){
+                                            $colorme= '#f5b041 ';
+                                            $stat= '';
+                                          }elseif($child1['status'] == 'Unknown Status'){
+                                $stat= $child1['status'];
+                                $colorme= '';
+                                          }else{
+                                            $colorme= '#d6dbdf';
+                                            $stat= 'Pending';
+                                          }
+                                  $prod = ($child1['production_order']  == "") ? "No Production Order" : $child1['production_order'] ;
+                                  $prod_dash = ($child1['production_order']  == "") ? "" : " - " ;
+                                @endphp
+                                <li class="liclass">
+                                  <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $child1['production_order'] }}" class="prod-details-btn">{{ $child1['production_order'] }}{{ $prod_dash }}{{ $child1['item_code'] }} </span></b><br><i>{{ $child1['parts_category'] }}</i><br>
+                                  <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $child1['produced_qty'] }}</label>
+                                  <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $child1['qty_to_manufacture'] }} <span style="color: {{ ($child1['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $child1['available_stock'] }}</b>)</span></label>
+                                </a>
+                                </span>
+                                <div class="details-pane">
+                                  <h5 class="title">{{ $child1['item_code'] }}</h5>
+                                      <p class="desc" style="padding-top: 5px;">
+                                        <b>Description:</b> {!! $child1['description'] !!}<br>  
+                                        <b>Planned Start Date:</b> {{ $plan_time }}<br>    
+                                        <b>Production Order : {{ $prod }}</b><br>          
+                                      </p>
+                                </div>
+                                <br>
+
                                   <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt;"  class="mx-auto w-auto info">
                                     <tr>
                                       <td><b>BOM: </b></td>
-                                      <td>{{ $child['bom_no'] }}</td>
+                                      <td>{{ $child1['bom_no'] }}</td>
                                     </tr>
-                                    <tr style="display: {{ ($child['start_date'] == '') ? 'none' : '' }}">
+                                    <tr style="display: {{ ($child1['start_date'] == '') ? 'none' : '' }}">
                                       <td><b>Start Date: </b></td>
                                       <td>{{ $start_date }}</td>
                                     </tr>
-                                    <tr style="display: {{ ($child['status'] == 'Completed') ? '': 'none' }}">
+                                    <tr style="display: {{ ($child1['status'] == 'Completed') ? '': 'none' }}">
                                       <td><b>End Date: </b></td>
                                       <td>{{ $end_date }}</td>
                                     </tr>
-                                    <tr style="display: {{ ($child['status'] == 'Completed') ? '': 'none' }}">
+                                    <tr style="display: {{ ($child1['status'] == 'Completed') ? '': 'none' }}">
                                       <td><b>Duration: </b></td>
-                                      <td>{{ $child['duration'] }}</td>
+                                      <td>{{ $child1['duration'] }}</td>
                                     </tr>
                                     <tr>
                                       <td colspan="2" style="text-align: center; font-size: 9pt;">
                                         @if( $stat == 'Pending')
                                         <i><span>Pending</span><i>
                                           @elseif ($stat == 'Unknown Status')
-                                  <span class="badge badge-danger"> {{ $stat }}</span>
+                            <span class="badge badge-danger"> {{ $stat }}</span>
                                         @else
-                                          @forelse($child['current_load'] as $row)
+                                          @forelse($child1['current_load'] as $row)
                                            {{ $row->workstation }} - {{ $row->process_name }} <br>
                                           @empty
-                                         <i><span style="display: {{ ($child['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
+                                         <i><span style="display: {{ ($child1['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
                                           @endforelse
                                         @endif
                                       </td>
                                     </tr>
                                   </table>
-                                @if(count($child['child_nodes']) > 0)
+                                  @if(count($child1['child_nodes']) > 0)
                                   <ul class="ulclass">
-                                    @foreach($child['child_nodes'] as $child1)
-                                       @php
-                                        $end_date = ($child1['end_date'] == "") ? "" : $child1['end_date'];
-                                        $start_date = ($child1['start_date'] == "") ? "Not Started" : $child1['start_date'];
-                                        $plan_time = ($child1['planned_start_date'] == "") ? "" : Carbon\Carbon::parse($child1['planned_start_date'])->format('M d, Y');
-                                        if($child1['status'] == 'Completed'){
+                                      @foreach($child1['child_nodes'] as $child2)
+                                      @php
+                                        $end_date = ($child2['end_date'] == "") ? "" : $child2['end_date'];
+                                        $start_date = ($child2['start_date'] == "") ? "Not Started" : $child2['start_date'];
+                                        $plan_time = ($child2['planned_start_date'] == "") ? "" : Carbon\Carbon::parse($child2['planned_start_date'])->format('M d, Y');
+                                        if($child2['status'] == 'Completed'){
                                                   $colorme= '#2ecc71';
                                                   $stat= '';
-                                                }elseif($child1['status'] == 'In Progress'){
+                                                }elseif($child2['status'] == 'In Progress'){
                                                   $colorme= '#f5b041 ';
                                                   $stat= '';
-                                                }elseif($child1['status'] == 'Unknown Status'){
-                                      $stat= $child1['status'];
-                                      $colorme= '';
+                                                }elseif($child2['status'] == 'Unknown Status'){
+                                $stat= $child2['status'];
+                                $colorme= '';
                                                 }else{
                                                   $colorme= '#d6dbdf';
                                                   $stat= 'Pending';
                                                 }
-                                        $prod = ($child1['production_order']  == "") ? "No Production Order" : $child1['production_order'] ;
-                                        $prod_dash = ($child1['production_order']  == "") ? "" : " - " ;
+                                        $prod = ($child2['production_order']  == "") ? "No Production Order" : $child2['production_order'] ;
+                                        $prod_dash = ($child2['production_order']  == "") ? "" : " - " ;
                                       @endphp
                                       <li class="liclass">
-                                        <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $child1['production_order'] }}" class="prod-details-btn">{{ $child1['production_order'] }}{{ $prod_dash }}{{ $child1['item_code'] }} </span></b><br><i>{{ $child1['parts_category'] }}</i><br>
-                                        <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $child1['produced_qty'] }}</label>
-                                        <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $child1['qty_to_manufacture'] }} <span style="color: {{ ($child1['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $child1['available_stock'] }}</b>)</span></label>
-                                      </a>
-                                      </span>
-                                      <div class="details-pane">
-                                        <h5 class="title">{{ $child1['item_code'] }}</h5>
-                                            <p class="desc" style="padding-top: 5px;">
-                                              <b>Description:</b> {!! $child1['description'] !!}<br>  
-                                              <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                                              <b>Production Order : {{ $prod }}</b><br>          
-                                            </p>
-                                      </div>
-                                      <br>
+                                        <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $child2['production_order'] }}" class="prod-details-btn">{{ $child2['production_order'] }}{{ $prod_dash }}{{ $child2['item_code'] }} </span></b><br><i>{{ $child2['parts_category'] }}</i><br>
+                                          <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $child2['produced_qty'] }}</label>
+                                          <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $child2['qty_to_manufacture'] }} <span style="color: {{ ($child2['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $child2['available_stock'] }}</b>)</span></label>
+                                        </a>
+                                        </span>
+                                        <div class="details-pane">
+                                          <h5 class="title">{{ $child2['item_code'] }}</h5>
+                                              <p class="desc" style="padding-top: 5px;">
+                                                <b>Description:</b> {!! $child2['description'] !!}<br>  
+                                                <b>Planned Start Date:</b> {{ $plan_time }}<br>    
+                                                <b>Production Order : {{ $prod }}</b><br>          
+                                              </p>
+                                        </div>
+                                        <br>
 
-                                        <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt;"  class="mx-auto w-auto info">
+                                        <table style="padding-top: 10px; text-align: left; line-height: 8pt; font-size: 10pt;"  class="mx-auto w-auto info">
                                           <tr>
                                             <td><b>BOM: </b></td>
-                                            <td>{{ $child1['bom_no'] }}</td>
+                                            <td>{{ $child2['bom_no'] }}</td>
                                           </tr>
-                                          <tr style="display: {{ ($child1['start_date'] == '') ? 'none' : '' }}">
+                                          <tr style="display: {{ ($child2['start_date'] == '') ? 'none' : '' }}">
                                             <td><b>Start Date: </b></td>
                                             <td>{{ $start_date }}</td>
                                           </tr>
-                                          <tr style="display: {{ ($child1['status'] == 'Completed') ? '': 'none' }}">
+                                          <tr style="display: {{ ($child2['status'] == 'Completed') ? '': 'none' }}">
                                             <td><b>End Date: </b></td>
                                             <td>{{ $end_date }}</td>
                                           </tr>
-                                          <tr style="display: {{ ($child1['status'] == 'Completed') ? '': 'none' }}">
+                                          <tr style="display: {{ ($child2['status'] == 'Completed') ? '': 'none' }}">
                                             <td><b>Duration: </b></td>
-                                            <td>{{ $child1['duration'] }}</td>
+                                            <td>{{ $child2['duration'] }}</td>
                                           </tr>
                                           <tr>
                                             <td colspan="2" style="text-align: center; font-size: 9pt;">
                                               @if( $stat == 'Pending')
                                               <i><span>Pending</span><i>
                                                 @elseif ($stat == 'Unknown Status')
-                                  <span class="badge badge-danger"> {{ $stat }}</span>
+                            <span class="badge badge-danger"> {{ $stat }}</span>
                                               @else
-                                                @forelse($child1['current_load'] as $row)
+                                                @forelse($child2['current_load'] as $row)
                                                  {{ $row->workstation }} - {{ $row->process_name }} <br>
                                                 @empty
-                                               <i><span style="display: {{ ($child1['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
+                                               <i><span style="display: {{ ($child2['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
                                                 @endforelse
                                               @endif
                                             </td>
                                           </tr>
                                         </table>
-                                        @if(count($child1['child_nodes']) > 0)
-                                        <ul class="ulclass">
-                                            @foreach($child1['child_nodes'] as $child2)
-                                            @php
-                                              $end_date = ($child2['end_date'] == "") ? "" : $child2['end_date'];
-                                              $start_date = ($child2['start_date'] == "") ? "Not Started" : $child2['start_date'];
-                                              $plan_time = ($child2['planned_start_date'] == "") ? "" : Carbon\Carbon::parse($child2['planned_start_date'])->format('M d, Y');
-                                              if($child2['status'] == 'Completed'){
-                                                        $colorme= '#2ecc71';
-                                                        $stat= '';
-                                                      }elseif($child2['status'] == 'In Progress'){
-                                                        $colorme= '#f5b041 ';
-                                                        $stat= '';
-                                                      }elseif($child2['status'] == 'Unknown Status'){
-                                      $stat= $child2['status'];
-                                      $colorme= '';
-                                                      }else{
-                                                        $colorme= '#d6dbdf';
-                                                        $stat= 'Pending';
-                                                      }
-                                              $prod = ($child2['production_order']  == "") ? "No Production Order" : $child2['production_order'] ;
-                                              $prod_dash = ($child2['production_order']  == "") ? "" : " - " ;
-                                            @endphp
-                                            <li class="liclass">
-                                              <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $child2['production_order'] }}" class="prod-details-btn">{{ $child2['production_order'] }}{{ $prod_dash }}{{ $child2['item_code'] }} </span></b><br><i>{{ $child2['parts_category'] }}</i><br>
-                                                <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $child2['produced_qty'] }}</label>
-                                                <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $child2['qty_to_manufacture'] }} <span style="color: {{ ($child2['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $child2['available_stock'] }}</b>)</span></label>
-                                              </a>
-                                              </span>
-                                              <div class="details-pane">
-                                                <h5 class="title">{{ $child2['item_code'] }}</h5>
-                                                    <p class="desc" style="padding-top: 5px;">
-                                                      <b>Description:</b> {!! $child2['description'] !!}<br>  
-                                                      <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                                                      <b>Production Order : {{ $prod }}</b><br>          
-                                                    </p>
-                                              </div>
-                                              <br>
-
-                                              <table style="padding-top: 10px; text-align: left; line-height: 8pt; font-size: 10pt;"  class="mx-auto w-auto info">
-                                                <tr>
-                                                  <td><b>BOM: </b></td>
-                                                  <td>{{ $child2['bom_no'] }}</td>
-                                                </tr>
-                                                <tr style="display: {{ ($child2['start_date'] == '') ? 'none' : '' }}">
-                                                  <td><b>Start Date: </b></td>
-                                                  <td>{{ $start_date }}</td>
-                                                </tr>
-                                                <tr style="display: {{ ($child2['status'] == 'Completed') ? '': 'none' }}">
-                                                  <td><b>End Date: </b></td>
-                                                  <td>{{ $end_date }}</td>
-                                                </tr>
-                                                <tr style="display: {{ ($child2['status'] == 'Completed') ? '': 'none' }}">
-                                                  <td><b>Duration: </b></td>
-                                                  <td>{{ $child2['duration'] }}</td>
-                                                </tr>
-                                                <tr>
-                                                  <td colspan="2" style="text-align: center; font-size: 9pt;">
-                                                    @if( $stat == 'Pending')
-                                                    <i><span>Pending</span><i>
-                                                      @elseif ($stat == 'Unknown Status')
-                                  <span class="badge badge-danger"> {{ $stat }}</span>
-                                                    @else
-                                                      @forelse($child2['current_load'] as $row)
-                                                       {{ $row->workstation }} - {{ $row->process_name }} <br>
-                                                      @empty
-                                                     <i><span style="display: {{ ($child2['status'] == 'Completed') ? 'none': '' }}">No On-going Process</span><i>
-                                                      @endforelse
-                                                    @endif
-                                                  </td>
-                                                </tr>
-                                              </table>
-                                            </li>
-                                          @endforeach
-                                        </ul>
-                                      @endif
-                                    </li>
-                                  @endforeach
-                                </ul>
-                              @endif
-                            </li>
-                          @endforeach
-                        </ul>
-                      @endif
-                    </li>
-                @endforeach
-                </ul>
+                                      </li>
+                                    @endforeach
+                                  </ul>
+                                @endif
+                              </li>
+                            @endforeach
+                          </ul>
+                        @endif
+                      </li>
+                    @endforeach
+                  </ul>
+                @endif
               </li>
-            </ul>
-            </div>
-          </div>
-        </div>             
+          @endforeach
+          </ul>
+        </li>
+      </ul>
       </div>
     </div>
+  </div>  
+
+     
   </div>
   <div class="col-md-3">
     <div class="card" style="background-color: #0277BD;" >
         <div class="card-body pb-0">
 					<div class="row">
 						<div class="col-md-12 text-center" style="margin-top: -10px;">
-							<h5 class="text-white" style="font-size: 14pt; margin-bottom: 5px;"><b>STATUS DETAILS</b></h5>
+							<h5 class="text-white" style="font-size: 12pt; margin-bottom: 5px;"><b>STATUS DETAILS</b></h5>
 						</div>
 					</div>
           @php
@@ -542,19 +536,19 @@
                       <col style="width: 33.33%;">
                       <tr>
                         <td class="align-top">
-                          <span class="d-block font-weight-bold" style="font-size: 0.8vw;">Total Qty</span>
-                          <span class="d-block font-weight-bold" style="font-size:1.8vw;">{{$required}}</span>
-                          <span class="d-block" style="font-size:0.8vw;">{{$materials['uom']}}</span>
+                          <span class="d-block font-weight-bold text-uppercase" style="font-size: 0.6vw;">Total Qty</span>
+                          <span class="d-block font-weight-bold" style="font-size:1vw;">{{$required}}</span>
+                          <span class="d-block" style="font-size:0.5vw;">{{$materials['uom']}}</span>
                         </td>
                         <td class="align-top">
-                          <span class="d-block font-weight-bold" style="font-size: 0.8vw;">Bal Qty</span>
-                          <span class="d-block font-weight-bold" style="font-size:1.8vw;">{{$bal}}</span>
-                          <span class="d-block" style="font-size:0.8vw;">{{$materials['uom']}}</span>
+                          <span class="d-block font-weight-bold text-uppercase" style="font-size: 0.6vw;">Bal. Qty</span>
+                          <span class="d-block font-weight-bold" style="font-size:1vw;">{{$bal}}</span>
+                          <span class="d-block" style="font-size:0.5vw;">{{$materials['uom']}}</span>
                         </td>
                         <td class="align-top">
-                          <span class="d-block font-weight-bold" style="font-size: 0.8vw;">Del Qty</span>
-                          <span class="d-block font-weight-bold" style="font-size:1.8vw;">{{$feed}}</span>
-                          <span class="d-block" style="font-size:0.8vw;">{{$materials['uom']}}</span>
+                          <span class="d-block font-weight-bold text-uppercase" style="font-size: 0.6vw;">Del. Qty</span>
+                          <span class="d-block font-weight-bold" style="font-size:1vw;">{{$feed}}</span>
+                          <span class="d-block" style="font-size:0.5vw;">{{$materials['uom']}}</span>
                         </td>
                         
                       </tr>
@@ -567,11 +561,11 @@
                       <div class="timeline-action">
                         <h2 class="title">Fabrication</h2>
                         {{--<span style="display:block; font-size:1vw;font-weight:bold;"> {{ $timeline['fab_produced']}} /  {{ $timeline['fab_required']}}</span>--}}
-                        <p style="font-size:0.9vw;"><span class="badge badge-{{$timeline['fab_badge']}}">{{ $fab_status_label }}</span></p>
-                        <span style="display:{{ $display_fab_end}};font-size:0.8vw;"><b>Total Duration:</b> {{ $timeline['fab_duration']}}</span>
+                        <p style="font-size:0.7vw;"><span class="badge badge-{{$timeline['fab_badge']}}">{{ $fab_status_label }}</span></p>
+                        <span style="display:{{ $display_fab_end}};font-size:0.6vw;"><b>Total Duration:</b> {{ $timeline['fab_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
-                        <p style="font-size:0.7vw;display:{{ $display_fab}};"><b>Start Time:</b> <span>{{ $timeline['fab_min']}}</span> </p>
-                        <p style="display:{{ $display_fab_end}}; font-size:0.7vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_fab }}</span></p>
+                        <p style="font-size:0.6vw;display:{{ $display_fab}};"><b>Start Time:</b> <span>{{ $timeline['fab_min']}}</span> </p>
+                        <p style="display:{{ $display_fab_end}}; font-size:0.6vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_fab }}</span></p>
                         </div>
                       </div>
                     </li>
@@ -581,11 +575,11 @@
                         <h2 class="title">Painting</h2>
                         {{--<span style="display:block; font-size:1vw;font-weight:bold;">{{ $timeline['fab_produced']}} /  {{ $timeline['fab_required']}}</span>--}}
                         {{-- <p style="font-size:0.9vw;"><i>{{ $pain_status_label }}</i></p> --}}
-                        <p style="font-size:0.9vw;"><span class="badge badge-{{$timeline['pain_badge']}}" style="font-size:10pt;">{{ $pain_status_label }}</span></p>
-                        <span style="display:{{ $display_pain_end }};font-size:0.8vw;"><b>Total Duration:</b>  {{ $timeline['pain_duration']}}</span>
+                        <p style="font-size:0.7vw;"><span class="badge badge-{{$timeline['pain_badge']}}">{{ $pain_status_label }}</span></p>
+                        <span style="display:{{ $display_pain_end }};font-size:0.6vw;"><b>Total Duration:</b>  {{ $timeline['pain_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
-                        <p style="display:{{ $display_pain }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['pain_min']}}</span> </p>
-                        <p style="display:{{ $display_pain_end }}; font-size:0.7vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_pain }}</span></p>
+                        <p style="display:{{ $display_pain }}; font-size:0.6vw;"><b>Start Time:</b> <span>{{ $timeline['pain_min']}}</span> </p>
+                        <p style="display:{{ $display_pain_end }}; font-size:0.6vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_pain }}</span></p>
                         
 
                         </div>
@@ -596,12 +590,12 @@
                         <h2 class="title">Assembly</h2>
                         <span style="display:block; font-size:1vw;font-weight:bold;"> {{$produced}} /  {{$required}}</span>
                         {{-- <p style="font-size:0.8vw;"><i>{{ $assem_status_label }}</i></p> --}}
-                        <p style="font-size:0.9vw;"><span class="badge badge-{{$timeline['assem_badge']}}" style="font-size:10pt;">{{ $assem_status_label }}</span></p>
+                        <p style="font-size:0.7vw;"><span class="badge badge-{{$timeline['assem_badge']}}">{{ $assem_status_label }}</span></p>
 
-                        <span style="display:{{ $display_assem_end}};font-size:0.8vw;"><b>Total Duration:</b>  {{ $timeline['assem_duration']}}</span>
+                        <span style="display:{{ $display_assem_end}};font-size:0.6vw;"><b>Total Duration:</b>  {{ $timeline['assem_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
-                        <p style="display:{{ $display_assem }}; font-size:0.7vw;"><b>Start Time:</b> <span>{{ $timeline['assem_min']}}</span> </p>
-                        <p style="display:{{ $display_assem_end }}; font-size:0.7vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_assem }}</span></p>
+                        <p style="display:{{ $display_assem }}; font-size:0.6vw;"><b>Start Time:</b> <span>{{ $timeline['assem_min']}}</span> </p>
+                        <p style="display:{{ $display_assem_end }}; font-size:0.6vw;margin-top:-15px;"><b>End Time:</b> <span>{{ $end_time_assem }}</span></p>
                         </div>
                       </div>
                     </li>
@@ -785,7 +779,7 @@
 }
 .timeline-action .title {
   color: #00637d;
-  font-size: 1.2vw;
+  font-size: 0.8vw;
   margin: 0;
 }
 .timeline-action .date {

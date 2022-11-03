@@ -1,37 +1,14 @@
 @extends('layouts.user_app', [
     'namePage' => 'Fabrication',
     'activePage' => 'bom_list',
+    'pageHeader' => 'Bill of Materials',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -20px;">
-   <div class="header text-center">
-    <div class="row">
-         <div class="col-md-12">
-            <table style="text-align: center; width: 100%;">
-               <tr>
-                  <td style="width: 36%; border-right: 5px solid white;">
-                     <h2 class="title">
-                        <div class="pull-right" style="margin-right: 20px;">
-                           <span style="display: block; font-size: 20pt;">{{ date('M-d-Y') }}</span>
-                           <span style="display: block; font-size: 12pt;">{{ date('l') }}</span>
-                        </div>
-                     </h2>
-                  </td>
-                  <td style="width: 14%; border-right: 5px solid white;">
-                     <h2 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h2>
-                  </td>
-                  <td style="width: 50%">
-                     <h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Bill of Materials</h2>
-                  </td>
-               </tr>
-            </table>
-         </div>
-      </div>
-   </div>
+<div class="panel-header">
 </div>
-<div class="content" style="margin-top: -80px;">
-   <div class="row">
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
       <div class="col-md-8 offset-md-2">
           <div class="card" style="background-color: #0277BD;">
               <div class="card-body" style="padding-bottom: 0;">
@@ -54,7 +31,6 @@
           </div>
       </div>
   </div>
-</div>
 
 
 <!-- Modal -->

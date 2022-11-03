@@ -1,53 +1,15 @@
 @extends('layouts.user_app', [
   'namePage' => 'Weekly Rejection Report',
   'activePage' => 'weekly_rejection_report',
+  'pageHeader' => 'Rejection Logs',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -70px;">
-    <div class="header text-center">
-       <div class="row">
-          <div class="col-md-8 text-white">
-             <table style="text-align: center; width: 100%;">
-                <tr>
-                   <td style="width: 30%; border-right: 5px solid white;">
-                      <div class="pull-right title mr-3">
-                         <span class="d-block m-0 p-0" style="font-size: 12pt;">{{ date('M-d-Y') }}</span>
-                         <span class="d-block m-0 p-0" style="font-size: 9pt;">{{ date('l') }}</span>
-                      </div>
-                   </td>
-                   <td style="width: 20%; border-right: 5px solid white;">
-                      <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
-                   </td>
-                   <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 14pt;">{{ $operation }} Rejection Report</h3>
-                   </td>
-                </tr>
-             </table>
-          </div>
-       </div>
-    </div>
-</div>
-
-<div class="container-fluid bg-white">
-    <div class="row" style="margin-top: -120px">
-        <div class="col-12 mx-auto bg-white">
+<div class="panel-header"></div>
+    <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+        <div class="col-12 m-0 bg-white border">
             @php
-                switch($operation){
-                    case 'Fabrication':
-                        $link = 1;
-                        break;
-                    case 'Painting':
-                        $link = 2;
-                        break;
-                    case 'Wiring and Assembly':
-                        $link = 3;
-                        break;
-                    default:
-                        $link = 0;
-                        break;
-                }
-
                 $start = \Carbon\Carbon::now()->subDays(7);
                 $end = \Carbon\Carbon::now();
                 if(request()->has('date')){
@@ -55,29 +17,39 @@
                     $end = isset(explode(' - ', request('date'))[1]) ? \Carbon\Carbon::parse(explode(' - ', request('date'))[1]) : null;
                 }
             @endphp
-            <form action="/weekly_rejection_report/{{ $link }}">
+            <form action="/weekly_rejection_report">
                 <div class="row p-0 m-0">
                     <div class="p-1 mt-1 mb-1 col-3">
                         <small class="d-block">Period:</small>
-                        <span class="d-block font-weight-bold text-center">{{ $start->startOfDay()->format('F d, Y').' - '.$end->endOfDay()->format('F d, Y') }} ({{ $end->diffInDays($start) }} day/s)</span>
+                        <span class="d-block font-weight-bold text-center">{{ $start->startOfDay()->format('M. d, Y').' - '.$end->endOfDay()->format('M. d, Y') }} ({{ $end->diffInDays($start) }} day/s)</span>
                     </div>
-                    <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #27AE60;">
+                    <div class="p-1 mt-1 mb-1 col-2" style="border-left: 10px solid #27AE60;">
                         <small class="d-block" style="font-size: 8pt;">Total Good</small>
                         <h5 class="d-block font-weight-bold m-0">{{ number_format($total_good) }}</h5>
                     </div>
-                    <div class="p-1 mt-1 mb-1 col-3" style="border-left: 10px solid #F40305;">
+                    <div class="p-1 mt-1 mb-1 col-2" style="border-left: 10px solid #F40305;">
                         <small class="d-block" style="font-size: 8pt;">Total Reject</small>
                         <h5 class="d-block font-weight-bold m-0">{{ number_format($total_reject) }}</h5>
                     </div>
-                    <div class="p-1 mt-1 mb-1 col-3">
-                        <div class="row">
-                            <div class="col-8">
-                                <input type="text" class='form-control m-2 rounded' id="daterange" name='date' />
+
+                    <div class="p-1 mt-1 mb-1 col-5">
+                        <div class="d-flex flex-row align-items-center">
+                            <div class="col-5 pt-1 pl-2 pr-2 pb-1">
+                                <select name="operation_id" class="form-control rounded">
+                                    <option value="">Select Operation</option>
+                                    <option value="1" {{ request('operation_id') == 1 ? 'selected' : '' }}>Fabrication</option>
+                                    <option value="2" {{ request('operation_id') == 2 ? 'selected' : '' }}>Painting</option>
+                                    <option value="3" {{ request('operation_id') == 3 ? 'selected' : '' }}>wiring and Assembly</option>
+                                </select>
                             </div>
-                            <div class="col-4">
-                                <button class="btn btn-primary btn-xs p-2 w-100" type="submit">Search</button>
+                            <div class="col-5 pt-1 pl-2 pr-2 pb-1">
+                                <input type="text" class='form-control rounded' id="daterange" name='date' />
+                            </div>
+                            <div class="col-2 p-1">
+                                <button class="btn btn-primary btn-xs p-2 m-0 w-100" type="submit">Search</button>
                             </div>
                         </div>
+         
                     </div>
                 </div>
             </form>
@@ -123,7 +95,6 @@
                 {!! $rejection_logs->appends(request()->query())->links('pagination::bootstrap-4') !!}
             </div>
         </div>
-    </div>
 </div>
 <style>
     .reject-font-size{

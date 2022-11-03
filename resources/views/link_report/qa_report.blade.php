@@ -1,36 +1,14 @@
 @extends('layouts.user_app', [
 	'namePage' => 'MES',
 	'activePage' => 'operation_report',
+  'pageHeader' => 'QA Reports',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -70px;">
-   <div class="header text-center">
-      <div class="row">
-         <div class="col-md-8 text-white">
-            <table class="text-center w-100">
-               <tr>
-                  <td style="width: 30%; border-right: 5px solid white;">
-                     <div class="pull-right title mr-3">
-								<span class="d-block m-0 p-0" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-								<span class="d-block m-0 p-0" style="font-size: 10pt;">{{ date('l') }}</span>
-							</div>
-						</td>
-						<td style="width: 20%; border-right: 5px solid white;">
-							<h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
-						</td>
-						<td style="width: 50%">
-							<h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">QA Reports</h3>
-						</td>
-					</tr>
-				</table>
-         </div>
-      </div>
-   </div>
-</div>
-<br>
-<div class="content">
-	<div class="row" style="margin-top: -145px;">
+<div class="panel-header"></div>
+
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
 		<div class="col-md-12">
       <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
 				<li class="nav-item">
@@ -692,16 +670,21 @@
         </div>
       </div>
     </div>
-  </div>
+  
 
     <div class="modal fade" id="jt-workstations-modal" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document" style="min-width: 90%;">
         <div class="modal-content">
-          <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title font-weight-bold">Modal Title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+          <div class="text-white rounded-top" style="background-color: #0277BD;">
+            <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+              <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+              <div class="float-right">
+                <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+                <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="modal-body" style="min-height: 600px;">
             <div class="row" id="jt-details-col">

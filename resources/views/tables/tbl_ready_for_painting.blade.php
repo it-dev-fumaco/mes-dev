@@ -59,6 +59,12 @@
                 <span class="d-block" style="font-size: 9pt;">( {{ $rows->completed_qty }} )</span>
             </td>
             @endforeach
+            @if (count($row['job_ticket']) < 2)
+            <td class="text-center text-white" style="background-color: #b2babb;">
+                <span class="d-block" style="font-size: 11pt;">Pending</span>
+                <span class="d-block" style="font-size: 9pt;">( 0 )</span>
+            </td>
+            @endif
             <td class="text-center">
                 <span class="d-block font-weight-bold" style="font-size: 10pt;">{{ number_format($row['completed_qty']) }}</span>
                 <span class="d-block" style="font-size: 9pt;">{{ $row['stock_uom'] }}</span>

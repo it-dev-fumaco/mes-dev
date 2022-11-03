@@ -1,180 +1,138 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'item_feedback',
+  'pageHeader' => 'Production Order List',
+  'pageSpan' => Auth::user()->employee_name
 ])
 @section('content')
 @include('modals.item_track_modal')
-<div class="panel-header">
-  <div class="header text-center" style="margin-top: -70px;">
-		<div class="row">
-			<div class="col-md-12">
-				<table style="text-align: center; width: 60%;">
-					<tr>
-						<td style="width: 36%; border-right: 5px solid white;">
-							<h2 class="title">
-								<div class="pull-right" style="margin-right: 20px;">
-									<span style="display: block; font-size: 15pt;">{{ date('M-d-Y') }}</span>
-									<span style="display: block; font-size: 10pt;">{{ date('l') }}</span>
-								</div>
-							</h2>
-						</td>
-						<td style="width: 14%; border-right: 5px solid white;">
-							<h2 class="title" style="margin: auto; font-size: 17pt;"><span id="current-time">--:--:-- --</span></h2>
-						</td>
-						<td style="width: 50%">
-							<h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt; font-size: 19pt;">Production Order(s)</h2>
-						</td>
-					</tr>
-				</table>
-			</div>
-		</div>
-	</div>
-</div>
-<div class="content" style="margin-top: -200px;">
-  <div class="row">
-    <div class="col-md-4 offset-md-8" style="margin-bottom: -50px; z-index: 1;">
-      <div class="pull-right">
-        <button type="button" class="btn btn-secondary" id="reload-list">
-          <i class="now-ui-icons loader_refresh"></i> Refresh List
-        </button>
-        <button type="button" class="btn btn-primary" id="manual-production-create-btn">
-          <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
-        </button>
-      </div>
-    </div>
-    {{--  start  --}}
-    <div class="col-md-12" style="min-height:440px;">
-      <div class="panel panel-default">
-        <div class="panel-body panel-body">
-          <div class="col-sm-12 ticket-status-widget pt-" role="tabpanel" aria-expanded="true" aria-hidden="false">
-            <div class="ui-tab-container ui-tab-default">
-              <div justified="true" class="ui-tab">
-                <ul class="nav nav-tabs nav-justified">
-                  <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
-                    <a data-toggle="tab" href="#tab-production-orders">
-                      <span class="tab-number" id="production-orders-total">0</span> 
-                      <span class="tab-title">Production Order(s)</span> 
-                    </a>
-                  </li>
-                  
-                  <li class="tab search-tab custom-nav-link" heading="Justified">
-                    <a data-toggle="tab" href="#tab-search">
-                      <span class="tab-number" id="item-tracking-total">0</span> 
-                      <span class="tab-title">Order Tracking</span> 
-                    </a>
-                  </li>
+<div class="panel-header"></div>
 
-                  <li class="tab material-status-tab custom-nav-link tab-heading--reddish" heading="Justified">
-                    <a data-toggle="tab" href="#tab-material-status">
-                      <span class="tab-number" id="material-status-total">0</span> 
-                      <span class="tab-title">Material Status</span> 
-                    </a>
-                  </li>
-                </ul>
-  
-                <div class="tab-content">
-                  <div class="tab-pane" id="tab-material-status">
-                    <div class="tab-heading tab-heading--reddish pl-4">
-                      <h4>Production Order Material Status</h4>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white material-status-search" placeholder="Search" id="material-status-search">
+<div class="row p-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="col-md-12 p-0" style="min-height: 440px;">
+    <div class="panel panel-default p-0 m-0">
+      <div class="panel-body panel-body">
+        <div class="col-sm-12 ticket-status-widget pl-2 pr-2 m-0" role="tabpanel" aria-expanded="true" aria-hidden="false">
+          <div class="ui-tab-container ui-tab-default">
+            <div justified="true" class="ui-tab p-0 m-0">
+              <div class="d-flex flex-row m-0">
+                <div class="col-6 p-0 m-0">
+                  <ul class="nav nav-tabs nav-justified">
+                    <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
+                      <a data-toggle="tab" href="#tab-production-orders">
+                        <span class="tab-number" id="production-orders-total">0</span> 
+                        <span class="tab-title">Production Order(s)</span> 
+                      </a>
+                    </li>
+                    <li class="tab search-tab custom-nav-link" heading="Justified">
+                      <a data-toggle="tab" href="#tab-search">
+                        <span class="tab-number" id="item-tracking-total">0</span> 
+                        <span class="tab-title">Order Tracking</span> 
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="text-right p-0 col-6">
+                  <button type="button" class="btn btn-secondary" id="reload-list">
+                    <i class="now-ui-icons loader_refresh"></i> Refresh List
+                  </button>
+                  <button type="button" class="btn btn-primary" id="manual-production-create-btn">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
+                  </button>
+                </div>
+              </div>
+              <div class="tab-content" style="margin-top: -5px;">
+                <div class="tab-pane active" id="tab-production-orders">
+                  {{-- All Production Orders --}}
+                  <div class="tab-heading tab-heading--gray">
+                    <div class="container-fluid p-0 m-0">
+                      <div class="row p-0 m-0">
+                        <div class="col-9 p-0">
+                          <input class='d-none' type="text" value="" id="current-status">
+                          @php
+                            $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed','Closed'];
+                          @endphp
+                          <div class="row p-0 m-0">
+                            @foreach ($status_arr as $status)
+                              <label class="PillList-item mr-2 mb-0">
+                                <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
+                                <span class="PillList-label">{{ $status }}
+                                </span>
+                              </label>
+                            @endforeach
+                          </div>
+                        </div>
+                        <div class="col-3 m-0 p-0">
+                          <div class="form-group m-0 p-0">
+                            <input type="text" id="production-orders-search" class="form-control bg-white search-filter rounded m-0" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
+                          </div>
                         </div>
                       </div>
-                      <div class="col-md-12" id="material-status-div" style="min-height:500px;"></div>
                     </div>
                   </div>
-                  <div class="tab-pane active" id="tab-production-orders">
-                    {{-- All Production Orders --}}
-                    <div class="tab-heading tab-heading--gray">
-                      <div class="container-fluid">
-                        <div class="row">
-                          <div class="col-8">
-                            <input class='d-none' type="text" value="" id="current-status">
-                            @php
-                              $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed','Closed'];
-                            @endphp
-                            <div class="row">
-                              @foreach ($status_arr as $status)
-                                <label class="PillList-item">
-                                  <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
-                                  <span class="PillList-label">{{ $status }}
-                                  </span>
-                                </label>
-                              @endforeach
-                            </div>
-                          </div>
-                          <div class="col-4">
-                            <div class="form-group mr-2">
-                              <input type="text" id="production-orders-search" class="form-control bg-white search-filter" placeholder="Search" data-status="Production Orders" data-div="#production-orders-div">
-                            </div>
-                          </div>
+                  <div class="row p-0 m-0">
+                    <div id="accordion" class="p-0 m-0 w-100">
+                      <div class="card m-0 p-0 w-100">
+                        <div class="card-header p-0 m-0 w-100" id="headingOne">
+                          <button class="btn p-0" id="filter-btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="color: #979797; background-color: #fff; box-shadow: none;">
+                            <i class="now-ui-icons ui-1_simple-add"></i> &nbsp; Advanced Filter
+                          </button>
                         </div>
-                        
-                      </div>
-                    </div>
-                    <div class="row pb-0 pr-3 pl-3">
-                      <div id="accordion" class="pt-0 w-100">
-                        <div class="card pt-0 w-100">
-                          <div class="card-header p-0 w-100" id="headingOne">
-                            <button class="btn p-0" id="filter-btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="color: #979797; background-color: #fff; box-shadow: none;">
-                              <i class="now-ui-icons ui-1_simple-add"></i> &nbsp; Advanced Filter
-                            </button>
-                          </div>
-                      
-                          <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
-                            <div class="card-body">
-                              <div class="row">
-                                <div class="col-3">
-                                  <label>Owner</label>
-                                  <select id="owner-selection" class="form-control" data-div="#production-orders-div">
-                                    <option value="" selected disabled>Select Owner</option>
-                                    <option value="">Select All</option>
-                                    @foreach ($owners as $owner)
-                                        <option value="{{ $owner['email'] }}">{{ $owner['name'] }}</option>
-                                    @endforeach
-                                  </select>
-                                </div>
-                                <div class="col-3">
-                                  <label>Target Warehouse</label>
-                                  <select id="target-warehouse" class="form-control" data-div="#production-orders-div">
-                                    <option value="" selected disabled>Select Target Warehouse</option>
-                                    <option value="">Select All</option>
-                                    @foreach ($target_warehouses as $warehouse)
-                                        <option value="{{ $warehouse }}">{{ $warehouse }}</option>
-                                    @endforeach
-                                  </select>
-                                </div>
-                                <div id='feedback-date-filter' class="col-3 d-none">
-                                  <label>Feedback Date</label>
-                                  <input type="text" name="daterange" id="feedback-date" class="form-control date-range" placeholder="Select Date" value="" data-div="#production-orders-div" />
-                                </div>
+                        <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                          <div class="card-body">
+                            <div class="row">
+                              <div class="col-3">
+                                <label>Owner</label>
+                                <select id="owner-selection" class="form-control" data-div="#production-orders-div">
+                                  <option value="" selected disabled>Select Owner</option>
+                                  <option value="">Select All</option>
+                                  @foreach ($owners as $owner)
+                                      <option value="{{ $owner['email'] }}">{{ $owner['name'] }}</option>
+                                  @endforeach
+                                </select>
+                              </div>
+                              <div class="col-3">
+                                <label>Target Warehouse</label>
+                                <select id="target-warehouse" class="form-control" data-div="#production-orders-div">
+                                  <option value="" selected disabled>Select Target Warehouse</option>
+                                  <option value="">Select All</option>
+                                  @foreach ($target_warehouses as $warehouse)
+                                      <option value="{{ $warehouse }}">{{ $warehouse }}</option>
+                                  @endforeach
+                                </select>
+                              </div>
+                              <div id='feedback-date-filter' class="col-3 d-none">
+                                <label>Feedback Date</label>
+                                <input type="text" name="daterange" id="feedback-date" class="form-control date-range" placeholder="Select Date" value="" data-div="#production-orders-div" />
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div class="row">
-                      <div class="col-12" id="production-orders-div" style="min-height:500px; border-top: 1px solid #D3D7DA;"></div>
-                    </div>
                   </div>
-                  
-                  <div class="tab-pane" id="tab-search">
-                    {{--  item tracking  --}}
-                    <div class="tab-heading tab-heading--ltgray">
-                      <h4>Item Tracking</h4>
-                    </div>
+                  <div class="row p-0 m-0">
+                    <div class="col-12 p-0 m-0" id="production-orders-div" style="border-top: 1px solid #D3D7DA;"></div>
+                  </div>
+                </div>
+                <div class="tab-pane" id="tab-search">
+                  {{--  item tracking  --}}
+                  <div class="tab-heading tab-heading--ltgray">
                     <div class="row">
-                      <div class="col-md-4 offset-md-8" style="margin-top: -50px;">
-                        <div class="form-group mr-2">
-                          <input type="text" class="form-control bg-white item-tracking-search" placeholder="Search">
+                      <div class="col-md-8">
+                        <h5>Item Tracking</h5>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-group m-0">
+                          <input type="text" class="form-control bg-white item-tracking-search rounded m-0" placeholder="Search">
                         </div>
                       </div>
-                      <div class="col-md-12" id="item-tracking-div" style="min-height:500px;"></div>
                     </div>
+                  
+                  </div>
+                  <div class="row">
+                    
+                    <div class="col-md-12" id="item-tracking-div" style="min-height:500px;"></div>
                   </div>
                 </div>
               </div>
@@ -183,8 +141,8 @@
         </div>
       </div>
     </div>
-  </div>  
-</div>  
+  </div>
+</div>
 <div class="modal fade bd-example-modal-lg" id="print_modal_js_ws" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document" style="min-width:60%; width:60%;">
       <div class="modal-content">
@@ -217,7 +175,7 @@
 
   .custom-nav-link{
     padding: 5px;
-    width: 9%;
+    width: 20%;
   }
 
   .custom-nav-link a{
@@ -230,7 +188,7 @@
   
   .tab-heading {
     width: 100%;
-    padding: 1em .5em;
+    padding: .5em;
   }
   .tab-heading h4 {
     margin: 0;
@@ -284,14 +242,14 @@
   li.tab .tab-number {
     color: #FFF;
     font-weight: 800;
-    font-size: 1.2em;
+    font-size: 1.15em;
     display: block;
     text-align: center;
     margin-bottom: .25em;
   }
   li.tab .tab-title {
     color: #FFF;
-    font-size: .8em;
+    font-size: .7em;
     display: block;
     text-align: center;
     text-transform: uppercase;
@@ -451,7 +409,7 @@
   cursor: pointer;
   display: inline-block;
   float: left;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: normal;
   line-height: 20px;
   margin: 0 12px 12px 0;
@@ -649,25 +607,6 @@
             </div>
           </div>
           <div class="row" id="manual-material-operation-row">
-            <!-- <div class="col-md-6">
-              <h6 class="title m-2">Material(s)</h6>
-              <table class="table table-bordered" border="1" style="margin-top: 17px;">
-                <tr>
-                  <th style="width: 30%;" class="text-center">Item Code</th>
-                  <th style="width: 30%;" class="text-center">Source Warehouse</th>
-                  <th style="width: 30%;" class="text-center">Required Qty</th>
-                  <th style="width: 10%;" class="text-center">Action</th>
-                </tr>
-                <tbody id="material-table-tbody"></tbody>
-                <tfoot>
-                  <td colspan="4">
-                    <button class="btn btn-primary" type="button" style="padding: 5px 8px;" id="material-add-row-btn">
-                      <i class="now-ui-icons ui-1_simple-add"></i> Add Row
-                    </button>
-                  </td>
-                </tfoot>
-              </table>
-            </div> -->
 
             <div class="col-md-6 offset-md-3">
               <div class="alert alert-warning text-center" id="manual-prod-note" role="alert">
@@ -1119,43 +1058,8 @@
 <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
-
 <script>
 $(document).ready(function(){
-  function get_production_order_material_status(page){
-    var q = $('#material-status-search').val();
-    $.ajax({
-      url: "/get_production_order_material_status?page=" + page,
-      type:"GET",
-      data: {q},
-      success: function(data){
-        $('#material-status-div').html(data);
-      }
-    });
-  }
-
-  function get_total_production_order_material_status(){
-    $.ajax({
-      url: "/get_production_order_material_status?get_total=1",
-      type:"GET",
-      success: function(data){
-        $('#material-status-total').text(data);
-      }
-    });
-  }
-
-  $(document).on('click', '#tbl-production-order-material-status-pagination a', function(event){
-    event.preventDefault();
-    var page = $(this).attr('href').split('page=')[1];
-    get_production_order_material_status(page);
-  });
-
-  $(document).on('keyup', '#material-status-search', function(){
-    get_production_order_material_status();
-  });
-
   $(document).on('click', '#add-operation-btn', function(){
     var workstation = $('#sel-workstation option:selected').text();
     var wprocess = $('#sel-process').val();
@@ -1369,7 +1273,6 @@ $(document).ready(function(){
       type:"GET",
       success:function(response){
         $('#feedback-production-items').html(response);
-        
       },
       error: function(jqXHR, textStatus, errorThrown) {
         console.log(jqXHR);
@@ -1519,10 +1422,6 @@ $(document).ready(function(){
     item_tracking(0);
     item_tracking(1);
     get_production_order_list(status, '#production-orders-div', 1);
-
-    get_production_order_material_status();
-    get_total_production_order_material_status();
-
     get_production_order_list(status, '#production-orders-div', 1, 1, $('.search-filter').val());
   }
 
@@ -1849,7 +1748,8 @@ $(document).ready(function(){
           $('#manual-production-modal input[name="customer"]').val(response.customer);
           $('#manual-production-modal input[name="project"]').val(response.project);
           $('#manual-production-modal input[name="delivery_date"]').val(response.delivery_date);
-          var classification = (response.custom_purpose) ? response.custom_purpose : 'Customer Order';
+          var classification = (response.purpose) ? response.purpose : response.sales_type;
+          classification = (classification != 'Sample') ? 'Customer Order' : 'Sample';
           $('#manual-production-modal input[name="classification"]').val(classification);
         }
       }

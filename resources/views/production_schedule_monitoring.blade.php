@@ -1,39 +1,22 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'production_schedule_monitoring',
+  'pageHeader' => 'Schedule - ' . $operation_details->operation_name,
+  'pageSpan' => 'Schedule Date : ' . date('F d, Y', strtotime($schedule_date))
 ])
 
 @section('content')
-<div class="panel-header">
-  <div class="header text-center">
-    <div class="row" style="margin-top:-70px;margin-left:140px;">
-      <div class="col-md-12">
-        <table class="text-center" style="width: 100%;">
-          <tr>
-            <td style="width: 25%; border-right: 5px solid white; color:white;">
-              <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">Schedule Date : {{ date('F d, Y', strtotime($schedule_date)) }}</h4>
-            </td>
-            <td style="width: 50%">
-              <h4 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Production Schedule Monitoring - {{ $operation_details->operation_name }}</h4>
-              <span class="title text-left d-block" style="font-size: 11pt;margin-left: 30px;">{{ Auth::user()->employee_name }}</span>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="panel-header"></div>
 
 @include('modals.machine_kanban_modal')
 <input type="hidden" id="schedule-date-val" value="{{ $schedule_date }}">
 <input type="hidden" id="operation-name" value="{{ $operation_details->operation_name }}">
 <input type="hidden" id="operation-id" value="{{ $operation_details->operation_id }}">
 
-<div class="content">
-  <div class="row" style="margin-top: -70px;">
-    <div class="col-md-12">
+<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+    <div class="col-md-12 p-2 m-0">
       <div class="row">
-        <div class="col-md-12" style="margin-top:-110px;">
+        <div class="col-md-12">
           <div class="card">
             <div class="card-body pb-0">
               @php
@@ -88,8 +71,39 @@
                       <div class="card p-0" style="background-color: #0277BD;">
                         <div class="card-body pb-0">
                           <div class="row" style="margin-top: -15px;">
-                            <div class="col-md-8" style="padding: 5px 5px 5px 12px;">
+                            <div class="col-md-1" style="padding: 5px 5px 5px 12px;">
                               <h5 class="text-white font-weight-bold text-left m-2 pl-3" style="font-size: 13pt;">Filter</h5>
+                            </div>
+                            <div class="col-md-7">
+                              <table class="w-100 mt-2 p-0" id="filter-form">
+                                <col style="width: 40%;">
+                                <col style="width: 25%;">
+                                <col style="width: 25%;">
+                                <col style="width: 10%;">
+                                <tr>
+                                  <td>
+                                    <div class="form-group mb-0 mr-1">
+                                      <select class="form-control" id="customer-filter">
+                                      </select>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-group mb-0 mr-1">
+                                      <select class="form-control" id="reference-filter">
+                                      </select>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-group mb-0 mr-1">
+                                      <select class="form-control rounded-0" id="parent-item-filter">
+                                      </select>
+                                    </div>
+                                  </td>
+                                  <td class="pl-2">
+                                    <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
+                                  </td>
+                                </tr>
+                              </table>
                             </div>
                             <div class="col-md-4 m-0" style="padding: 5px;">
                               <table style="width: 100%;">
@@ -153,7 +167,7 @@
                     <div class="col-md-2 p-2">
                       <div class="card m-0" style="background-color:#D5D8DC; min-height: 800px;">
                         <div class="card-header" style="margin-top: -15px;">
-                          <h5 class="card-title text-center font-weight-bold" style="font-size: 15px;">Unassigned Prod. Order(s)</h5>
+                          <h5 class="card-title text-center font-weight-bold" style="font-size: 13px;">Unassigned Prod. Order(s)</h5>
                         </div>
                         <div class="card-body custom-sortable custom-sortable-connected overflow-auto" id="unassigned" style="height: 740px;">
                           @foreach ($production_machine_board['unassigned_production'] as $i => $row)
@@ -180,6 +194,12 @@
                           </div>
                           @endforeach
                         </div>
+                        <div class="card-footer card-footer__events text-white p-0 m-0" style="background-color: #254d78;">
+                          <div class="d-flex flex-row m-0 text-uppercase">
+                            <div class="p-2 col-md-6 text-left" style="font-size: 8pt;">Total Qty: <b>{{ number_format(collect($production_machine_board['unassigned_production'])->sum('qty_to_manufacture')) }}</b></div>
+                            <div class="p-2 col-md-6 text-right" style="font-size: 8pt;">On Queue: <b>{{ number_format(count($production_machine_board['unassigned_production'])) }}</b></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div class="col-md-10 m-0 p-0">
@@ -188,12 +208,12 @@
                         <div class="col-md-2 p-2" style="min-width: 350px !important;">
                           <div class="card m-0" style="background-color:#D5D8DC; min-height: 800px;">
                             <div class="card-header" style="margin-top: -15px;">
-                              <h5 class="card-title text-center font-weight-bold" style="font-size: 15px;">{{ $machine['machine_name'] }}</h5>
+                              <h5 class="card-title text-center font-weight-bold" style="font-size: 13px;">{{ $machine['machine_name'] }}</h5>
                               <div class="pull-right p-1" style="margin-top: -40px;">
                                 <img src="{{ asset('img/print.png') }}" width="25" class="print-schedule" data-machine="{{ $machine['machine_code'] }}">
                               </div>
                             </div>
-                            <div class="card-body custom-sortable custom-sortable-connected overflow-auto" id="{{ $machine['machine_code'] }}" style="height: 740px;">
+                            <div class="card-body custom-sortable custom-sortable-connected overflow-auto mb-0" id="{{ $machine['machine_code'] }}" style="height: 740px;">
                               @foreach ($machine['production_orders'] as $j => $row)
                               @php
                                 $b = 'success text-white';
@@ -222,6 +242,12 @@
                                 </div>
                               </div>
                               @endforeach
+                            </div>
+                            <div class="card-footer card-footer__events text-white p-0 m-0" style="background-color: #254d78;">
+                              <div class="d-flex flex-row m-0 text-uppercase">
+                                <div class="p-2 col-md-6 text-left" style="font-size: 8pt;">Total Qty: <b>{{ number_format(collect($machine['production_orders'])->sum('qty_to_manufacture')) }}</b> unit(s)</div>
+                                <div class="p-2 col-md-6 text-right" style="font-size: 8pt;">On Queue: <b>{{ number_format(count($machine['production_orders'])) }}</b></div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -632,17 +658,97 @@
     var operation_id = $('#operation-id').val();
 
     $(document).on('change', '#filter-form select', function() {
-      filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+      // filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+      filter_schedule_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
     });
 
     $(document).on('click', '#clear-kanban-filters', function(e){
       e.preventDefault();
-    
       $('#customer-filter').val('all').trigger('change');
       $('#reference-filter').val('all').trigger('change');
       $('#parent-item-filter').val('all').trigger('change');
     
       filter_monitoring_table($('#customer-filter').val(), $('#reference-filter').val(), $('#parent-item-filter').val());
+    });
+
+    function filter_schedule_monitoring_table(fltr1, fltr2, fltr3){
+      $.ajax({
+        url: "/production_schedule_monitoring/{{ $operation_details->operation_id }}/{{ $schedule_date }}",
+        type: "GET",
+        data: {
+          customer: fltr1,
+          reference: fltr2,
+          parent: fltr3
+        },
+        success: function (response) {
+          $('#scheduled-production-div').html(response);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    }
+
+    $('#customer-filter').select2({
+      placeholder: 'Select a Customer',
+      ajax: {
+        url: '/production_schedule_monitoring_filters/{{ $operation_details->operation_id }}/{{ $schedule_date }}',
+        method: 'GET',
+        dataType: 'json',
+        data: function (data) {
+          return {
+            search_customer: data.term // search term
+          };
+        },
+        processResults: function (response) {
+          return {
+            results: response.customers
+          };
+        },
+        cache: true
+      }
+    });
+
+    $('#reference-filter').select2({
+      placeholder: 'Select Reference Number',
+      ajax: {
+        url: '/production_schedule_monitoring_filters/{{ $operation_details->operation_id }}/{{ $schedule_date }}',
+        method: 'GET',
+        dataType: 'json',
+        data: function (data) {
+          return {
+            search_reference: data.term // search term
+          };
+        },
+        processResults: function (response) {
+          return {
+            results: response.reference_nos
+          };
+        },
+        cache: true
+      }
+    });
+
+    $('#parent-item-filter').select2({
+      placeholder: 'Select Parent Item Code',
+      ajax: {
+        url: '/production_schedule_monitoring_filters/{{ $operation_details->operation_id }}/{{ $schedule_date }}',
+        method: 'GET',
+        dataType: 'json',
+        data: function (data) {
+          return {
+            search_parent: data.term // search term
+          };
+        },
+        processResults: function (response) {
+          return {
+            results: response.parent
+          };
+        },
+        cache: true
+      }
     });
 
     // start by showing all items
@@ -664,6 +770,8 @@
       if (fltr3 !== 'all') {
         selector =  selector + '[data-parent-item="' + fltr3 + '"]';
       }
+
+      // count rows without d-none
 
       // show all results
       $(selector).removeClass('d-none');

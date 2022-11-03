@@ -84,7 +84,11 @@
                   <div class="input-group" style="margin: 0;">
                      <select class="custom-select" id="{{ $item['id'] }}">
                         @foreach($item['bom_list'] as $bom)
+                        @if ($item['requested_bom'])
+                        <option value="{{ $bom->name }}" {{ ($bom->name == $item['requested_bom']) ? 'selected' : '' }}><b>{{ $bom->name }}</b></option>    
+                        @else
                         <option value="{{ $bom->name }}" {{ ($bom->name == $item['bom']) ? 'selected' : '' }}><b>{{ $bom->name }}</b></option>
+                        @endif
                         @endforeach
                      </select>
                      <div class="input-group-append">

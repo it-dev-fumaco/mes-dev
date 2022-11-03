@@ -1,37 +1,13 @@
 @extends('layouts.user_app', [
     'namePage' => 'Fabrication',
     'activePage' => 'operators_load_utilization',
+    'pageHeader' => 'Operator Load Utilization',
+    'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header">
-	<div class="header text-center" style="margin-top: -70px;">
-		<div class="row">
-			<div class="col-md-12">
-				<table style="text-align: center; width: 60%;">
-					<tr>
-						<td style="width: 36%; border-right: 5px solid white;">
-							<h2 class="title">
-								<div class="pull-right" style="margin-right: 20px;">
-									<span style="display: block; font-size: 15pt;">{{ date('M-d-Y') }}</span>
-									<span style="display: block; font-size: 10pt;">{{ date('l') }}</span>
-								</div>
-							</h2>
-						</td>
-						<td style="width: 14%; border-right: 5px solid white;">
-							<h2 class="title" style="margin: auto; font-size: 17pt;"><span id="current-time">--:--:-- --</span></h2>
-						</td>
-						<td style="width: 50%">
-							<h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt; font-size: 19pt;">Operator Load Utilization</h2>
-						</td>
-					</tr>
-				</table>
-			</div>
-		</div>
-	</div>
-</div>
-<div class="content" style="margin-top: -200px;">
-    <div class="row">
+<div class="panel-header"></div>
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
@@ -40,7 +16,6 @@
             </div>
         </div>
     </div>
-</div>
 
 @endsection
 

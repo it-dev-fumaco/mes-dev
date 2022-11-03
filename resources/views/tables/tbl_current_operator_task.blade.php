@@ -125,9 +125,10 @@
             <td colspan="2" rowspan="2" style="padding: 0;" class="align-top">
               <table style="width: 100%; margin: 15px 0 0 0;">
                 <tr>
-                  <td style="width: 34%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">QTY</span></td>
-                  <td style="width: 33%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">GOOD</span></td>
-                  <td style="width: 33%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">REJECT</span></td>
+                  <td style="width: 25%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">QTY</span></td>
+                  <td style="width: 25%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">GOOD</span></td>
+                  <td style="width: 25%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">REJECT</span></td>
+                  <td style="width: 25%;" class="text-center"><span style="font-size: 12pt; color: #707B7C;">FOR REWORK</span></td>
                 </tr>
                 <tr>
                   <td class="text-center">
@@ -140,6 +141,10 @@
                   </td>
                   <td class="text-center">
                     <span style="font-size: 18pt; font-weight: bold; display: block;">@if(!isset($row['conversion_factor'])){{ $row['total_reject'] }}@else - @endif</span>
+                    <span style="font-size: 9pt;"><b>{{ $row['stock_uom'] }}</b></span>
+                  </td>
+                  <td class="text-center">
+                    <span style="font-size: 18pt; font-weight: bold; display: block;">@if(!isset($row['conversion_factor'])){{ $row['total_rework'] }}@else - @endif</span>
                     <span style="font-size: 9pt;"><b>{{ $row['stock_uom'] }}</b></span>
                   </td>
                 </tr>
@@ -172,7 +177,7 @@
                   @php
                       $disabled_qc = ($row['status'] == 'Pending') ? 'disabled' : '';
                   @endphp
-                  <button type="button" class="btn btn-block quality-inspection-btn" data-timelog-id="{{ $row['time_log_id'] }}" data-production-order="{{ $row['production_order'] }}" data-processid="{{ $row['process_id'] }}" data-inspection-type="Random Inspection" style="height: 100px; background-color: #f57f17; border-radius: 0;" {{ $disabled_qc }}>
+                  <button type="button" class="btn btn-block quality-inspection-btn-op" data-timelog-id="{{ $row['time_log_id'] }}" data-production-order="{{ $row['production_order'] }}" data-processid="{{ $row['process_id'] }}" data-inspection-type="Random Inspection" style="height: 100px; background-color: #f57f17; border-radius: 0;" {{ $disabled_qc }}>
                     <i class="now-ui-icons ui-1_check" style="font-size: 30pt;"></i><br><span style="font-size: 10pt;">Quality Check</span>
                   </button>
                 </td>

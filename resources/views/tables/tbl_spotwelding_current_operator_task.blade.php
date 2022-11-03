@@ -208,7 +208,7 @@
 									@php
 										$disabled_qc = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'Pending') ? 'disabled' : '';
 									@endphp
-									<button type="button" class="btn btn-block quality-inspection-btn rounded-0" data-timelog-id="{{ $row['time_log_id'] }}" data-production-order="{{ $row['production_order'] }}" data-processid="{{ $row['process_id'] }}" data-inspection-type="Random Inspection" style="height: 70px; background-color: #f57f17;" {{ $disabled_qc }}>
+									<button type="button" class="btn btn-block quality-inspection-btn-op rounded-0" data-timelog-id="{{ $row['time_log_id'] }}" data-production-order="{{ $row['production_order'] }}" data-processid="{{ $row['process_id'] }}" data-inspection-type="Random Inspection" style="height: 70px; background-color: #f57f17;" {{ $disabled_qc }}>
 										<i class="now-ui-icons ui-1_check" style="font-size: 15pt;"></i>
 										<span class="d-block" style="font-size: 10pt;">Quality Check</span>
 									</button>

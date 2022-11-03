@@ -1,80 +1,52 @@
 @extends('layouts.user_app', [
     'namePage' => 'Data Export',
-    'activePage' => 'machine_list_export',
-  ])
+   'activePage' => 'machine_list_export',
+   'pageHeader' => 'System Audit Report',
+   'pageSpan' => Auth::user()->employee_name
+])
   
   @section('content')
-  <div class="panel-header" style="margin-top: -70px;">
-      <div class="header text-center">
-         <div class="row">
-            <div class="col-md-8 text-white">
-               <table style="text-align: center; width: 100%;">
-                  <tr>
-                     <td style="width: 30%; border-right: 5px solid white;">
-                        <div class="pull-right title mr-3">
-                           <span class="d-block m-0 p-0" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-                           <span class="d-block m-0 p-0" style="font-size: 10pt;">{{ date('l') }}</span>
-                        </div>
-                     </td>
-                     <td style="width: 20%; border-right: 5px solid white;">
-                        <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
-                     </td>
-                     <td style="width: 50%">
-                        <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">System Audit Report
-                        </h3>
-                     </td>
-                  </tr>
-               </table>
-            </div>
-         </div>
+<div class="panel-header"></div>
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+   <div class="col-12 mx-auto bg-white p-2">
+      <h5 class="text-center font-weight-bold">Job Ticket Completed Qty vs Timelogs Completed Qty for In Progress / Not Started Job Tickets</h5>
+      <div class="pull-right font-weight-bold m-2">
+         Total Record(s): <span class="badge badge-primary" style="font-size: 12pt;">{{ collect($job_ticket_data)->count() }}</span>
       </div>
-  </div>
-  
-  <div class="container-fluid bg-white">
-      <div class="row" style="margin-top: -90px">
-          <div class="col-12 mx-auto bg-white p-2">
-              <h5 class="text-center font-weight-bold">Job Ticket Completed Qty vs Timelogs Completed Qty for In Progress / Not Started Job Tickets</h5>
-              <div class="pull-right font-weight-bold m-2">
-                  Total Record(s): <span class="badge badge-primary" style="font-size: 12pt;">{{ collect($job_ticket_data)->count() }}</span>
-              </div>
-              <table class="table table-bordered">
-                  <thead style="font-size: 7pt;">
-                    <th class="text-center font-weight-bold">Created At</th>
-                    <th class="text-center font-weight-bold">Production Order</th>
-                     <th class="text-center font-weight-bold">Workstation</th>
-                        <th class="text-center font-weight-bold">Completed Qty</th>
-                        <th class="text-center font-weight-bold">Status</th>
-                        <th class="text-center font-weight-bold">Remarks</th>
-                        <th class="text-center font-weight-bold">Timelogs Qty</th>
-                  </thead>
-                  <tbody>
-                      @forelse ($job_ticket_data as $production_order => $row)
-                      <tr>
-                        <td class="text-center p-1">{{ $row['created_at'] }}</td>
-                        <td class="text-center font-weight-bold p-1">{{ $row['production_order'] }}</td>
-                        <td class="text-center p-1">{{ $row['workstation'] }}</td>
-                        <td class="text-center p-1">{{ $row['completed_qty'] }}</td>
-                        <td class="text-center p-1">{{ $row['status'] }}</td>
-                        <td class="text-center p-1">{{ $row['remarks'] }}</td>
-                        <td class="text-center p-1">{{ $row['timelogs_completed_qty'] }}</td>
-                    </tr> 
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center font-weight-bold">No record(s) found.</td>
-                    </tr>
-                    @endforelse
-                
-                  </tbody>
-              </table>
-        </div>
-     </div>
-  </div>
-  @endsection
-  
-  @section('script')
-  
-  <script>
-  $(document).ready(function(){
+      <table class="table table-bordered">
+         <thead style="font-size: 7pt;">
+            <th class="text-center font-weight-bold">Created At</th>
+            <th class="text-center font-weight-bold">Production Order</th>
+            <th class="text-center font-weight-bold">Workstation</th>
+            <th class="text-center font-weight-bold">Completed Qty</th>
+            <th class="text-center font-weight-bold">Status</th>
+            <th class="text-center font-weight-bold">Remarks</th>
+            <th class="text-center font-weight-bold">Timelogs Qty</th>
+         </thead>
+         <tbody>
+            @forelse ($job_ticket_data as $production_order => $row)
+            <tr>
+               <td class="text-center p-1">{{ $row['created_at'] }}</td>
+               <td class="text-center font-weight-bold p-1">{{ $row['production_order'] }}</td>
+               <td class="text-center p-1">{{ $row['workstation'] }}</td>
+               <td class="text-center p-1">{{ $row['completed_qty'] }}</td>
+               <td class="text-center p-1">{{ $row['status'] }}</td>
+               <td class="text-center p-1">{{ $row['remarks'] }}</td>
+               <td class="text-center p-1">{{ $row['timelogs_completed_qty'] }}</td>
+            </tr> 
+            @empty
+            <tr>
+               <td colspan="6" class="text-center font-weight-bold">No record(s) found.</td>
+            </tr>
+            @endforelse
+         </tbody>
+      </table>
+   </div>
+</div>
+@endsection
+@section('script')
+<script>
+   $(document).ready(function(){
       setInterval(updateClock, 1000);
       function updateClock(){
           var currentTime = new Date();

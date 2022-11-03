@@ -1,38 +1,15 @@
 @extends('layouts.user_app', [
   'namePage' => 'MES',
   'activePage' => 'inventory',
+  'pageHeader' => 'Inventory',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -73px;">
-	<div class="header text-center">
-		<div class="row">
-			<div class="col-md-12 text-center">
-				<table style="width: 100%;">
-					<tr>
-						<td style="width: 27%; border-right: 5px solid white;">
-							<h2 class="title">
-								<div class="pull-right" style="margin-right: 20px;">
-									<span style="display: block; font-size: 20pt;">{{ date('M-d-Y') }}</span>
-									<span style="display: block; font-size: 12pt;">{{ date('l') }}</span>
-								</div>
-							</h2>
-						</td>
-						<td style="width: 14%; border-right: 5px solid white;">
-							<h3 class="title" style="margin: auto; font-size: 25pt;"><span id="current-time">--:--:-- --</span></h3>
-						</td>
-						<td style="width: 59%">
-							<h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt;">Inventory</h2>
-						</td>
-					</tr>
-				</table>
-			</div>
-		</div>
-	</div>
+<div class="panel-header">
 </div>
 
-<div class="content" style="margin-top: -118px;">
-  <div class="row">
+<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body p-1">
@@ -1199,7 +1176,6 @@
 			</div>
 		</div>
    </div>
-</div>
 
 <!-- Modal -->
 <div class="modal fade" id="add-stock-entries-adjustment" tabindex="-1" role="dialog">

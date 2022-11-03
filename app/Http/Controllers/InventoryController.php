@@ -288,7 +288,9 @@ class InventoryController extends Controller
     }
     public function tbl_wip_list(){
         $wip_list=  DB::connection('mysql_mes')->table('wip_setup as wip')
-        ->join('operation as op', 'op.operation_id', 'wip.operation_id')->select('wip.*','op.operation_name')->orderBy('wip_id', 'desc')->paginate(10);
+            ->join('operation as op', 'op.operation_id', 'wip.operation_id')
+            ->select('wip.*','op.operation_name')->orderBy('wip_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_wip_list', compact('wip_list'));
     }
     public function edit_wip(Request $request){
@@ -2416,7 +2418,7 @@ class InventoryController extends Controller
     }
 
     public function getAllowedWarehouseFastIssuance() {
-        $list = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->paginate(10);
+        $list = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->paginate(15);
 
         return view('tables.tbl_fast_issuance_warehouse', compact('list'));
     }
@@ -2444,7 +2446,7 @@ class InventoryController extends Controller
     }
 
     public function getAllowedUserFastIssuance() {
-        $list = DB::connection('mysql_mes')->table('fast_issuance_user')->paginate(10);
+        $list = DB::connection('mysql_mes')->table('fast_issuance_user')->paginate(15);
 
         $employee_ids = collect($list->items())->pluck('user_access_id');
         $employee_names = DB::connection('mysql_mes')->table('user')->whereIn('user_access_id', $employee_ids)->pluck('employee_name', 'user_access_id');

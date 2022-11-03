@@ -3,9 +3,37 @@
 	<div class="col-md-12">
 		<div class="alert alert-primary text-center" role="alert">
 			{!! $message !!}
-		  </div>
+		</div>
+	</div>
+	<div class="col-4 offset-4">
+		<form action="/update_parent_code/{{ $production_order }}" method="POST" id="update-parent-code-form">
+			@csrf
+			<div class="form-group p-0 mb-0">
+				<label for="">Select Parent Item Code</label>
+				<select name="parent_item_code" class="form-control rounded border m-0" id="select-parent-custom" required>
+					<option value="">Select Parent Item Code</option>
+					@foreach ($parent_item_codes as $parent => $desc)
+					<option value="{{ $parent }}">{{ $parent .' - '. str_limit(strip_tags($desc), $limit = 100, $end = '...') }}</option>
+					@endforeach
+				</select>
+			</div>
+			<button class="btn btn-primary pull-right m-0" type="button" id="submit-update-parent-code-btn">SUBMIT</button>
+		</form>
 	</div>
 </div>
+<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
+<script>
+	$(function(){
+		$('#select-parent-custom').select2({
+			dropdownAutoWidth: false,
+			width: '100%',
+			cache: false
+		});
+	});
+</script>
 @else
 <div class="row">
 	<div class="col-md-12">

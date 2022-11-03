@@ -20,7 +20,6 @@
   <link href="{{ asset('/css/demo.css') }}" rel="stylesheet" />
   {{-- Daterangepicker --}}
   <link href="{{ asset('/css/daterangepicker.css') }}" rel="stylesheet" />
-  {{-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /> --}}
 </head>
 <style>
   @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
@@ -31,149 +30,243 @@
 </style>
 @yield('style')
 <body class="">
-  <div class="wrapper">
-     <div class="sidebar" data-color="orange">
-      <!--
-        Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
-    -->
-      <div class="logo">
-        {{-- <a href="http://www.creative-tim.com" class="simple-text logo-mini">
-          CT
-        </a> --}}
-        <a href="#" class="simple-text logo-normal text-center">
-          {{--  {{ $namePage }}  --}}
-          MES
-        </a>
-      </div>
-      <div class="sidebar-wrapper" id="sidebar-wrapper">
-        <ul class="nav">
-          @isset($permissions)
-            @php
-            $a = array_intersect($permissions['permitted_modules'], ['Production']);
-            $b = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
-            @endphp
-            @if (count($b) > 0)
-            <li class="{{ $activePage == 'qa_dashboard' ? 'active' : '' }}">
-              <a href="/qa_dashboard">
-                <i class="now-ui-icons business_chart-bar-32"></i>
-                <p>QA Dashboard</p>
-              </a>
-            </li>
-            @endif
-            @if (count($a) > 0)
-            <li class="{{ $activePage == 'main_dashboard' ? 'active' : '' }}">
-              <a href="/main_dashboard">
-                <i class="now-ui-icons business_chart-bar-32"></i>
-                <p>Dashboard</p>
-              </a>
-            </li>
-            <li class="{{ $activePage == 'item_feedback' ? 'active' : '' }}">
-              <a href="/item_feedback">
-                <i class="now-ui-icons education_atom"></i>
-                <p>Production Order(s)</p>
-              </a>
-            </li>
-            <li class="{{ $activePage == 'inventory' ? 'active' : '' }}">
-              <a href="/inventory">
-                <i class="now-ui-icons files_box"></i>
-                <p>Inventory</p>
-              </a>
-            </li>
-            <li class="{{ $activePage == 'production_planning' ? 'active' : '' }}">
-              <a href="/wizard">
-                <i class="now-ui-icons files_paper"></i>
-                <p>Production Planning</p>
-              </a>
-            </li>
-            <li class="{{ $activePage == 'production_planning_assembly' ? 'active' : '' }}">
-              <a href="/assembly/wizard">
-                <i class="now-ui-icons files_paper"></i>
-                <p>Assembly Planning Wizard</p>
-              </a>
-            </li>
-            <li class="{{ $activePage == 'production_schedule_assembly' ? 'active' : '' }}">
-              <a href="/production_schedule/3">
-                <i class="now-ui-icons files_paper"></i>
-                <p>Production Schedule Assembly</p>
-              </a>
-            </li>
-            <li class="{{ $activePage == 'production_schedule' ? 'active' : '' }}">
-              <a href="/production_schedule/1">
-                <i class="now-ui-icons ui-1_calendar-60"></i>
-                <p>Production Schedule</p>
-              </a>
-            </li>
-            @if(in_array('Painting', $permissions['permitted_operations']))
-            <li class="{{ $activePage == 'production_schedule_painting' ? 'active' : '' }}">
-              <a href="/production_schedule/0">
-                <i class="now-ui-icons ui-1_calendar-60"></i>
-                <p>Painting Schedule</p>
-              </a>
-            </li>
-            @endif
-            <li>
-              <a href="#">
-                <i class="now-ui-icons users_single-02"></i>
-                <p>Resources</p>
-              </a>
-            </li>
-            <li>
-              <a href="/maintenance_request">
-                <i class="now-ui-icons ui-2_settings-90"></i>
-                <p>Maintenance Requests</p>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <i class="now-ui-icons location_map-big"></i>
-                <p>Quality Inspection Logs</p>
-              </a>
-            </li>
-            @endif
-          @endisset
-          <li class="{{ $activePage == 'maintenance_machine_list' ? 'active' : null }}">
-            <a href="/maintenance_machine_list">
-              <i class="now-ui-icons design_bullet-list-67"></i>
-              <p>Machine List</p>
-            </a>
-          </li>
-          <li class="{{ $activePage == 'operation_report' ? 'active' : '' }}">
-            <a href="/report_index">
-              <i class="now-ui-icons files_single-copy-04"></i>
-              <p>Reports</p>
-            </a>
-          </li>
-          <li class="{{ $activePage == 'settings_module' ? 'active' : '' }}">
-            <a href="/settings_module">
-              <i class="now-ui-icons ui-1_settings-gear-63"></i>
-              <p>Settings</p>
-            </a>
-          </li>
-        </ul>
+  <div id="wrapper" class="wrapper">
+    <div class="sidebar">
+      <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
     </div>
-  </div>
- 
-  <div class="main-panel" id="main-panel">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute">
-      <div class="container-fluid">
-        <div class="navbar-wrapper">
-          <div class="navbar-toggle">
-            <button type="button" class="navbar-toggler">
-              <span class="navbar-toggler-bar bar1"></span>
-              <span class="navbar-toggler-bar bar2"></span>
-              <span class="navbar-toggler-bar bar3"></span>
-            </button>
-          </div>
-          <a class="navbar-brand" href="#" id="next">MES</a>
-        </div>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-bar navbar-kebab"></span>
-          <span class="navbar-toggler-bar navbar-kebab"></span>
-          <span class="navbar-toggler-bar navbar-kebab"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navigation">
-          <ul class="navbar-nav">
+    <div class="main-panel d-none" id="main-panel"></div>
+    <!-- Sidebar -->
+    @isset($permissions)
+    <nav id="sidebar" class="shadow border" style="background-color: #f4f6f6 ;">
+      <h5 class="text-center font-weight-bolder pt-3 pb-3 mb-3 border-dark" style="background-color: #021434; font-size: 12pt;"><a href="/" class="text-white" style="text-decoration: none;">MES MENU</a></h5>
+      @php
+        $is_production_user = array_intersect($permissions['permitted_modules'], ['Production']);
+        $is_qa_user = array_intersect($permissions['permitted_modules'], ['Quality Assurance']);
+        $is_maintenance_user = array_intersect($permissions['permitted_modules'], ['Maintenance']);
+
+        $is_production_user = count($is_production_user) > 0 ? true : false;
+        $is_qa_user = count($is_qa_user) > 0 ? true : false;
+        $is_maintenance_user = count($is_maintenance_user) > 0 ? true : false;
+
+        $allowed_on_fabrication = array_intersect($permissions['permitted_operations'], ['Fabrication']);
+        $allowed_on_fabrication = count($allowed_on_fabrication) > 0 ? true : false;
+
+        $allowed_on_assembly = array_intersect($permissions['permitted_operations'], ['Wiring and Assembly']);
+        $allowed_on_assembly = count($allowed_on_assembly) > 0 ? true : false;
+
+        $allowed_on_painting = array_intersect($permissions['permitted_operations'], ['Painting']);
+        $allowed_on_painting = count($allowed_on_painting) > 0 ? true : false;
+      @endphp
+      <div class="pl-3 pr-3 pb-0 pt-0 m-0 effect-01">
+      @if ($is_production_user)
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Dashboard</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0">
+          <a href="/" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block"> Dashboard</span>
+          </a>
+        </li>
+        <li class="m-0 align-middle">
+          <a href="/item_feedback" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block"> Production Order(s)</span>
+          </a>
+        </li>
+      </ul>
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0 align-middle">
+          <a href="/order_list" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block"> Open Order(s)</span>
+          </a>
+        </li>
+        <li class="m-0" {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+          <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Fabrication</span>
+          </a>
+        </li>
+        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
+          <a href="/assembly/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Assembly</span>
+          </a>
+        </li>
+      </ul>
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+          <a href="/production_schedule/1" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Fabrication Scheduling</span>
+          </a>
+        </li>
+        <li class="m-0 {{ !$allowed_on_painting ? 'd-none' : '' }}">
+          <a href="/production_schedule/2" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Painting Scheduling</span>
+          </a>
+        </li>
+        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
+          <a href="/production_schedule/3" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Assembly Scheduling</span>
+          </a>
+        </li>
+      </ul>
+      @endif
+      @if ($is_qa_user)
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Quality Assurance</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0">
+          <a href="/qa_dashboard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">QA Dashboard</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/qa_inspection_logs" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Inspection Logs</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/weekly_rejection_report" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Rejection Logs</span>
+          </a>
+        </li>
+      </ul>
+      @endif
+      @if ($is_maintenance_user)
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Maintenance</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0">
+          <a href="/maintenance_request" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Maintenance Request(s)</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/maintenance_machine_list" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Machine List</span>
+          </a>
+        </li>
+      </ul>
+      @endif
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Reports / Analytics</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0">
+          <a href="/report_index" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Reports</span>
+          </a>
+        </li>
+      </ul>
+      <h6 class="text-left font-weight-bold mt-3 border-bottom">Settings</h6>
+      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+        <li class="m-0">
+          <a href="/production_settings" class="d-block m-0 p-1 text-decoration-none">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Production Settings</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/inventory_settings" class="d-block m-0 p-1 text-decoration-none">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">Inventory Settings</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/qa_settings" class="d-block m-0 p-1 text-decoration-none">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">QA Settings</span>
+          </a>
+        </li>
+        <li class="m-0">
+          <a href="/user_settings" class="d-block m-0 p-1 text-decoration-none">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block">User Settings</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <style>
+    .effect-01 ul li  {
+      border-radius: 5px;
+      border: 1px solid rgba(0,0,0,0);
+      margin: 5px 10px;
+    }	
+    .effect-01 ul li:hover {
+      background: rgba(66, 66, 66, 0.108);
+      border-bottom: 1px solid rgba(0,0,0,.2);
+      border-top: 1px solid rgba(255,255,255,.5);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1);
+      position: relative;
+      text-shadow: 1px 1px 1px rgba(255,255,255,.5);
+    }
+    .effect-01 ul li:active {
+      background: rgba(100,100,100,.05);
+      border-bottom-color: rgba(0,0,0,0);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
+      text-shadow: none;
+      top: 1px;
+    }
+    #wrapper {
+      display: flex;
+      width: 100%;
+    }
+    #sidebar {
+      min-height: 100vh;
+      position: fixed;
+      transition: all 0.25s;
+      width: 265px;
+    }
+    #content {
+      min-height: 100vh;
+      padding: 0;
+      position: absolute;
+      right: 0;
+      transition: all 0.25s;
+      width: calc(100% - 265px);
+    }
+    .no-sidebar #sidebar {
+      margin-left: -265px;
+    }
+    .no-sidebar #content {
+      width: 100%;
+    }
+  </style>
+  @endisset
+  <!-- Page Content -->
+  <div id="content">
+    @if (Auth::check())
+    <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width p-1">
+      <div class="container-fluid m-0 p-0" id="next">
+        <div class="collapse navbar-collapse" id="navigation">
+          <ul class="navbar-nav col-7 m-0 p-0">
+            <li class="nav-item active">
+              <div id="sidebar-toggle" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
+            </li>
+            <li class="nav-item active text-center" style="width: 220px;">
+              <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ date('M-d-Y') }}</span>
+              <span class="d-block" style="font-size: 8pt;">{{ date('l') }}</span>
+            </li>
+            <li class="nav-item active text-center" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
+              <span id="current-time" style="font-size: 18pt;">--:--:-- --</span>
+            </li>
+            <li class="nav-item active">
+              <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px;">{{ $pageHeader }}</span>
+              @if (Auth::check())
+              <span class="d-block" style="font-size: 8pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
+              @endif
+            </li>
+          </ul>
+          <ul class="navbar-nav m-0 col-5 justify-content-end p-0">
             @if (in_array($activePage,['production_schedule', 'production_schedule_painting', 'production_schedule_assembly']))
             @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
             <li class="nav-item active dropdown">
@@ -184,22 +277,16 @@
                 </p>
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                  {{--@if ($activePage != 'production_schedule')--}}
-                  @if(in_array('Fabrication', $mes_user_operations))
-                  <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/production_schedule/1">Fabrication</a>
-                  @endif
-                  {{--@endif--}}
-                  @if ($activePage != 'production_schedule_painting')
-                  @if(in_array('Painting', $mes_user_operations))
-                  <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/0">Painting</a>
-                  @endif
-                  @endif
-                  {{--@if ($activePage != 'production_schedule_assembly')
-                  @if(in_array('Wiring and Assembly', $mes_user_operations))--}}
-                  <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/production_schedule/3">Assembly</a>
-                  {{--@endif
-                  @endif--}}
-                </div>
+                @if(in_array('Fabrication', $mes_user_operations))
+                <a class="dropdown-item {{ (request()->segment(2) == '1') ? 'active' : '' }}" href="/production_schedule/1">Fabrication</a>
+                @endif
+                @if ($activePage != 'production_schedule_painting')
+                @if(in_array('Painting', $mes_user_operations))
+                <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/0">Painting</a>
+                @endif
+                @endif
+                <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/production_schedule/3">Assembly</a>
+              </div>
             </li>
             @endif
             @endif
@@ -229,31 +316,6 @@
             @endif
             @endif
 
-            @if (in_array($activePage,['production_planning', 'production_planning_assembly']))
-            @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
-            <li class="nav-item active dropdown">
-              <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="now-ui-icons files_paper"></i> Planning
-                <p>
-                  <span class="d-lg-none d-md-block">Planning</span>
-                </p>
-              </a>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                @if ($activePage != 'production_planning')
-                @if(in_array('Fabrication', $mes_user_operations))
-                <a class="dropdown-item" href="/wizard">Fabrication</a>
-                @endif
-                @endif
-                @if ($activePage != 'production_planning_assembly')
-                @if(in_array('Wiring and Assembly', $mes_user_operations))
-                <a class="dropdown-item" href="/assembly/wizard">Assembly</a>
-                @endif
-                @endif
-              </div>
-            </li>
-            @endif
-            @endif
-            
             @if (in_array($activePage,['production_schedule', 'operators_load_utilization']))
             <li class="nav-item active dropdown">
               <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -270,34 +332,16 @@
               </div>
             </li>
             @endif
-            
-            <li class="nav-item active" {{ (in_array($activePage,['production_planning', 'machine_schedule', 'item_feedback'])  ? '' : 'hidden') }}>
-              <a class="nav-link" href="/production_schedule/1">
-                <i class="now-ui-icons files_paper"></i> Production Schedule
-                <p>
-                  <span class="d-lg-none d-md-block"> Production Schedule</span>
-                </p>
-              </a>
-            </li>
-            <li class="nav-item active" {{ (in_array($activePage,['production_schedule', 'item_feedback'])  ? '' : 'hidden') }}>
-              <a class="nav-link" href="/wizard">
-                <i class="now-ui-icons files_paper"></i> Planning Wizard
-                <p>
-                  <span class="d-lg-none d-md-block"> Planning Wizard</span>
-                </p>
-              </a>
-            </li>
             @if ($activePage == 'main_dashboard')
             <li class="nav-item active">
               <a class="nav-link" href="#" id="get-notifications-btn">
-                <i class="now-ui-icons ui-1_bell-53"></i> Notifications <span class="badge badge-danger" id="notification-badge" style="font-size: 8pt;">0</span>
+                <i class="now-ui-icons ui-1_bell-53"></i> Notifications <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
                 <p>
                   <span class="d-lg-none d-md-block"> Notifications</span>
                 </p>
               </a>
             </li>
             @endif
-
             @if ($activePage == 'main_dashboard')
             <li class="nav-item active">
               <a class="nav-link" href="#" id="view-item-tracking-btn">
@@ -308,7 +352,6 @@
               </a>
             </li>
             @endif
-
             <li class="nav-item active" {{ $activePage == 'login' ? 'hidden' : '' }}>
               <a class="nav-link" href="#" id="jt-search-btn">
                 <i class="now-ui-icons ui-1_zoom-bold"></i> Production Order Search
@@ -317,8 +360,6 @@
                 </p>
               </a>
             </li>
-        
-
             @if(Auth::user())
             <li class="nav-item active">
               <a class="nav-link" href="/logout_user">
@@ -331,9 +372,6 @@
             <li class="nav-item active">
               <a class="nav-link" href="#" data-toggle="modal" data-target="#about-modal">
                 <i class="now-ui-icons travel_info"></i>
-                {{--  <p>
-                  <span class="d-lg-none d-md-block">About</span>
-                </p>  --}}
               </a>
             </li>
             @endif
@@ -341,61 +379,66 @@
         </div>
       </div>
     </nav>
-    <!-- End Navbar -->
-      @yield('content')
-      <footer class="footer">
-        <div class="container-fluid">
-          <div class="copyright" id="copyright">
-            &copy;
-            <script>
-              document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))
-            </script>
-            <a href="#" target="_blank">FUMACO IT Dev. Team</a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  </div>
+    @endif
+         
+    @yield('content')
 
-  <div class="modal fade" id="about-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold"><i class="now-ui-icons travel_info"></i> About</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="copyright" id="copyright">
+          &copy;
+          <script>
+            document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))
+          </script>
+          <a href="#" target="_blank">FUMACO IT Dev. Team</a>
         </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12">
-              <h4 class="text-center title">Manufacturing Execution System</h4>
-              <h5 class="text-center" style="font-style: italic;">version: <b>9.1</b> <span style="font-size: 9pt;">Latest Release: 2022-05-20</span></h5>
-            </div>          
-          </div>
+      </div>
+    </footer>
+  </div>
+</div>
+<div class="sidebar">
+  <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
+</div>
+
+<div class="modal fade" id="about-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title font-weight-bold"><i class="now-ui-icons travel_info"></i> About</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-12">
+            <h4 class="text-center title">Manufacturing Execution System</h4>
+            <h5 class="text-center" style="font-style: italic;">version: <b>10</b> <span style="font-size: 9pt;">Latest Release: 2022-05-20</span></h5>
+          </div>          
         </div>
-        <div class="modal-footer">
-            <span class="text-primary">&copy; 2020 FUMACO IT Dev. Team</span>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="text-primary">&copy; 2022 FUMACO IT Dev. Team</span>
       </div>
     </div>
   </div>
+</div>
 
   <div class="modal fade" id="jt-workstations-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
-          
-      
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+        <div class="text-white rounded-top" style="background-color: #0277BD;">
+          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+            <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+            <div class="float-right">
+              <h5 class="modal-title font-weight-bold prod_title_reset p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="modal-body" style="min-height: 600px;">
-            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
-              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails1" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
-            </div>
           <div id="production-search-content"></div>
         </div>
       </div>
@@ -405,17 +448,18 @@
   <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="min-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;" id="prod_search2">
-          <h5 class="modal-title font-weight-bold prod_title_reset">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+        <div class="text-white rounded-top" style="background-color: #0277BD;">
+          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+            <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+            <div class="float-right">
+              <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="modal-body" style="min-height: 600px;">
-            <div class="pull-right" style="margin-right: 36px;margin-top:-77px;">
-              {{--<button class="btn btn-secondary reset_workstation_btn" data-prodsearch="jtdetails2" data-namemodal="jt-workstations-modal">RESET PRODUCTION ORDER</button>--}}
-
-            </div>
           <div id="production-search-content-modal2"></div>
         </div>
       </div>
@@ -428,7 +472,7 @@
       <form action="/cancel_production_order" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
             <h5 class="modal-title">Modal Title</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -462,10 +506,10 @@
   <!-- Modal Close Production Order -->
   <div class="modal fade" id="close-production-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-      <form action="/cancel_production_order?close_production_order=1" method="POST">
+      <form action="#" method="POST">
         @csrf
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header text-white" style="background-color: #0277BD;">
             <h5 class="modal-title">Modal Title</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -473,7 +517,7 @@
           </div>
           <div class="modal-body">
             <div class="row">
-              <div class="col-md-12">
+              <div class="col-md-10 offset-md-1">
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
                 <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
@@ -868,7 +912,6 @@
     background: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease-in-out;
   }
-
   .numpad:active,
   .numpad:hover {
     cursor: pointer ;
@@ -1058,7 +1101,7 @@
     <div class="modal-content">
       <div class="modal-header p-3 text-white" style="background-color: #0277BD;">
         <h5 class="modal-title">Feedback Override <span id="override-production-order-text" class="font-weight-bold"></span></h5>
-        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1068,6 +1111,24 @@
     </div>
   </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="view-production-order-disassembly-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width: 70%;">
+     <div class="modal-content">
+        <div class="modal-header text-white" style="background-color: #0277BD;">
+           <h5 class="modal-title" id="view-production-order-disassembly-modal-title" style="font-weight: bolder;">Production Order to Disassemble</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <div id="view-production-order-disassembly-modal-body"></div>
+        </div>
+     </div>
+  </div>
+</div>
+
   {{--  <!--   Core JS Files   -->  --}}
   <script src="{{ asset('js/core/ajax.min.js') }}"></script> 
   <script src="{{ asset('js/core/jquery.min.js') }}"></script>
@@ -1152,13 +1213,6 @@
           }else{
             $('#override-production-modal').modal('show');
             $('#override-production-div').html(response);
-
-            $('.op-select').select2({
-              dropdownParent: $("#override-production-order-form"),
-              dropdownAutoWidth: false,
-              width: '100%',
-              cache: false
-            });
           }
         }
       });
@@ -1530,31 +1584,28 @@
     $('#close-production-modal').modal('show');
   });
 
-  @if (!in_array($activePage, ['production_schedule'])) 
-    $('#close-production-modal form').submit(function(e){
-      e.preventDefault();
-      $.ajax({
-        url: '/close_production_order',
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (!data.success) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            location.reload();
-            $('#close-production-modal').modal('hide');
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+  $('#close-production-modal form').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+      url: '/close_production_order',
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (!data.success) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          location.reload();
+          $('#close-production-modal').modal('hide');
         }
-      });
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
     });
-  @endif
-  
+  });
   // Close production Modal and Submit
 
   // Re-open production Modal and Submit
@@ -1874,13 +1925,11 @@
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
       if(!$('#has-no-bom').text()) {
-        $('#change-required-item-modal #change-item-code-warning').removeClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
         $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
         $('#change-required-qty-btn').addClass('d-none');
       } else {
-        $('#change-required-item-modal #change-item-code-warning').addClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
         $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
         $('#change-required-qty-btn').removeAttr('readonly');
@@ -2078,6 +2127,28 @@
     $('#review-bom-modal').modal('show');
   });
 
+  $(document).on('click', '#submit-update-parent-code-btn', function(e){
+    e.preventDefault();
+    if ($('#select-parent-custom').val()) {
+      $.ajax({
+        url: $('#update-parent-code-form').attr('action'),
+        type:"POST",
+        data: $('#update-parent-code-form').serialize(),
+        success:function(response){
+          get_pending_material_transfer_for_manufacture(response.production_order);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    } else {
+      showNotification("danger", 'Please select parent item code', "now-ui-icons travel_info");
+      return false;
+    }
+  });
+
     $(document).on('click', '.create-feedback-btn', function(e){
       e.preventDefault();
   
@@ -2205,6 +2276,8 @@
     });
 
     function get_production_order_items(id){
+      $('#stock-entry-details-modal .modal-title').text(id);
+      $('#stock-entry-details-modal .modal-title').data('production-order', id);
       $.ajax({
         url:"/get_production_order_items/"+ id,
         type:"GET",
@@ -2213,7 +2286,7 @@
           $('#stock-entry-details-modal').modal('show');
         },
         error : function(data) {
-          console.log(data.responseText);
+          showNotification("danger", 'Something went wrong. Please reload the page and try again.', "now-ui-icons travel_info");
         }
       });
     }
@@ -2435,10 +2508,29 @@
     $("#confirm-reset-workstation-modal .modal-title").text("RESET");
     $('#confirm-reset-workstation-modal .reset_reload_tbl').val(reload_tbl);
   });
+
+  setInterval(updateClock, 1000);
+  function updateClock(){
+    var currentTime = new Date();
+    var currentHours = currentTime.getHours();
+    var currentMinutes = currentTime.getMinutes();
+    var currentSeconds = currentTime.getSeconds();
+    // Pad the minutes and seconds with leading zeros, if required
+    currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
+    currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
+    // Choose either "AM" or "PM" as appropriate
+    var timeOfDay = (currentHours < 12) ? "AM" : "PM";
+    // Convert the hours component to 12-hour format if needed
+    currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
+    // Convert an hours component of "0" to "12"
+    currentHours = (currentHours === 0) ? 12 : currentHours;
+    currentHours = (currentHours < 10 ? "0" : "") + currentHours;
+    // Compose the string for display
+    var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
+
+    $("#current-time").html(currentTimeString);
+  }
 </script>
 </body>
-
 </html>
-
 @include('modals.search_productionorder')
-

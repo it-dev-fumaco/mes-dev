@@ -1,99 +1,84 @@
 @extends('layouts.user_app', [
   'namePage' => 'Fabrication',
   'activePage' => 'production_schedule',
-  'operation' => $operation_name_text
+  'operation' => $operation_name_text,
+  'pageHeader' => $operation_name_text . ' Scheduling',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header">
-  <div class="header text-center" style="margin-top: -70px;">
-    <div class="row">
-      <div class="col-md-12">
-        <table style="text-align: center; width: 60%;">
-          <tr>
-            <td style="width: 36%; border-right: 5px solid white;">
-              <h2 class="title">
-                <div class="pull-right" style="margin-right: 20px;">
-                  <span style="display: block; font-size: 15pt;">{{ date('M-d-Y') }}</span>
-                  <span style="display: block; font-size: 10pt;">{{ date('l') }}</span>
-                </div>
-              </h2>
-            </td>
-            <td style="width: 14%; border-right: 5px solid white;">
-              <h2 class="title" style="margin: auto; font-size: 17pt;"><span id="current-time">--:--:-- --</span></h2>
-            </td>
-            <td style="width: 50%">
-              <h2 class="title text-left" style="margin-left: 20px; margin: auto 20pt; font-size: 19pt;">Production Scheduling - {{ $operation_name_text }}</h2>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="panel-header"></div>
 @include('modals.view_for_feedback_list_modal')
-<div class="content" style="margin-top: -200px;">
-  <div class="row">
+  <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
     <div class="card" style="background-color: #a6acaf;">
-      <div class="row m-0">
-
-        <div class="col-md-5 offset-md-3 pl-0 pr-0 pt-2">
-          <table class="w-100 m-0 p-0" id="filter-form">
-            <col style="width: 40%;">
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-            <col style="width: 10%;">
-            <tr>
-              <td>
-                <div class="form-group mb-0 mr-1">
-                  <select class="form-control select-custom" id="customer-filter">
-                    <option value="all">Select Customer</option>
-                    @foreach ($filters['customers'] as $i => $customer)
-                    <option value="{{ $customer }}">{{ $customer }}</option>
-                    @endforeach
-                  </select>
-                </div>
-              </td>
-              <td>
-                <div class="form-group mb-0 mr-1">
-                  <select class="form-control select-custom" id="reference-filter">
-                    <option value="all">Select Reference No.</option>
-                    @foreach ($filters['reference_nos'] as $i => $reference)
-                    <option value="{{ $reference }}">{{ $reference }}</option>
-                    @endforeach
-                  </select>
-                </div>
-              </td>
-              <td>
-                <div class="form-group mb-0 mr-1">
-                  <select class="form-control select-custom" id="parent-item-filter">
-                    <option value="all">Select Parent Item</option>
-                    @foreach ($filters['parent_items'] as $i => $parent_item)
-                    <option value="{{ $parent_item }}">{{ $parent_item }}</option>
-                    @endforeach
-                  </select>
-                </div>
-              </td>
-              <td class="pl-2">
-                <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
-              </td>
-            </tr>
-          </table>
-          
+      <div class="row m-0 p-0">
+        <div class="col-7 p-0">
+          <div class="d-flex flex-row p-0 m-0">
+            <div>
+              <ul class="nav nav-tabs mt-2" id="myTab" role="tablist" style="font-weight: bold;border:none;font-size:12px;">
+                <li class="nav-item">
+                  <a class="nav-link active" id="step1-tab" data-toggle="tab" href="#step1" role="tab" aria-controls="step1" aria-selected="true">Production Schedule</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="step3-tab" data-toggle="tab" href="#step3" role="tab" aria-controls="step3" aria-selected="false">Ready for Painting</a>
+                </li>
+              </ul>
+            </div>
+            <div class="pt-2 m-0">
+              <table class="w-100 m-0 p-0" id="filter-form">
+                <col style="width: 40%;">
+                <col style="width: 25%;">
+                <col style="width: 25%;">
+                <col style="width: 10%;">
+                <tr>
+                  <td>
+                    <div class="form-group mb-0 mr-1">
+                      <select class="form-control select-custom" id="customer-filter">
+                        <option value="all">Select Customer</option>
+                        @foreach ($filters['customers'] as $i => $customer)
+                        <option value="{{ $customer }}">{{ $customer }}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="form-group mb-0 mr-1">
+                      <select class="form-control select-custom" id="reference-filter">
+                        <option value="all">Select Reference No.</option>
+                        @foreach ($filters['reference_nos'] as $i => $reference)
+                        <option value="{{ $reference }}">{{ $reference }}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="form-group mb-0 mr-1">
+                      <select class="form-control select-custom" id="parent-item-filter">
+                        <option value="all">Select Parent Item</option>
+                        @foreach ($filters['parent_items'] as $i => $parent_item)
+                        <option value="{{ $parent_item }}">{{ $parent_item }}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </td>
+                  <td class="pl-2">
+                    <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
         </div>
-
-        <div class="col-md-4 p-0 text-center" style="font-size: 9pt;">
+        <div class="col-5 p-0">
           <input type="hidden" id="primary-operation-id" value="{{ $primary_id }}">
           <input type="hidden" id="reload_point_page">
-          <button type="button" class="btn btn-success m-1" id="ready-for-feedback-btn">
+          <button type="button" class="btn btn-success mr-1 mt-1 mb-0" id="ready-for-feedback-btn">
             Ready for Feedback <span class="badge badge-danger m-0" id="ready-for-feedback-badge" style="font-size: 9pt;">0</span>
           </button>
-
-          <button type="button" class="btn btn-primary m-1" id="btn-prod-sched">
+          <button type="button" class="btn btn-primary mr-1 mt-1 mb-0" id="btn-prod-sched">
             <i class="now-ui-icons ui-1_calendar-60 mr-1"></i> Production Calendar
           </button>
-  
-          <button type="button" class="btn text-center btn-prod-notif m-1">
+          <button type="button" class="btn text-center btn-prod-notif mr-1 mt-1 mb-0">
             <div class="containerbadge d-block" id="badge" style="padding-right:80px;margin-top:-10px;">
               <a class="entypo-bell"></a>
             </div>
@@ -101,24 +86,11 @@
               <span style="display:inline-block; vertical-align: text-bottom;">Notifications</span>
             </div>
           </button>
-
-          <a href="/production_schedule/{{$primary_id}}" class="m-1 p-1" id="btn-prod-refresh" style="color:black;">
+          <a href="/production_schedule/{{$primary_id}}" class="mt-1 p-1" id="btn-prod-refresh" style="color:black;">
             <i class="now-ui-icons arrows-1_refresh-69 btn-refresh-page" style="font-size:25px;font-weight:bolder;color:black; vertical-align: middle;"></i>
           </a>
         </div>
       </div>
-      
-      <ul class="nav nav-tabs" id="myTab" role="tablist" style="display: non1e; ;font-weight: bold;border:none;font-size:12px; margin-top: -45px;">
-        <li class="nav-item">
-          <a class="nav-link active" id="step1-tab" data-toggle="tab" href="#step1" role="tab" aria-controls="step1" aria-selected="true">Production Schedule</a>
-        </li>
-        {{--  <li class="nav-item">
-          <a class="nav-link" id="step2-tab" data-toggle="tab" href="#step2" role="tab" aria-controls="step2" aria-selected="false">Production Schedule per Workstation</a>
-        </li>  --}}
-        <li class="nav-item">
-          <a class="nav-link" id="step3-tab" data-toggle="tab" href="#step3" role="tab" aria-controls="step3" aria-selected="false">Ready for Painting</a>
-        </li>
-      </ul>
       <div class="tab-content" style="min-height: 620px;">
         <div class="tab-pane" id="step3" role="tabpanel" aria-labelledby="step3-tab">
           <div class="row" style="margin-top: 10px;">
@@ -141,8 +113,8 @@
           </div>
         </div>
         <div class="tab-pane active kanban-filtering" id="step1" role="tabpanel" aria-labelledby="step1-tab">
-          <div class="row">
-            <div class="col-md-12">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
               <div class="scrolling outer">
                 <div class="inner" id="inner">
                   <table>
@@ -152,7 +124,7 @@
                           <div class="card-header" style="margin-top: -15px;">
                             <h5 class="card-title text-center" style="font-size: 15px;"><b>Unscheduled Prod. Order(s)</b></h5>
                           </div>
-                          <div class="card-body sortable_list connectedSortable" id="unscheduled" style="height: 750px; position: relative; overflow-y: auto;">
+                          <div class="card-body sortable_list connectedSortable pt-3 pl-2 pb-2 pr-2" id="unscheduled" style="height: 750px; position: relative; overflow-y: auto;">
                             @foreach($unscheduled as $i => $row)
                             @php
                             if( $row['status'] == 'Completed'){
@@ -164,19 +136,19 @@
                             }
                             @endphp
                             <div data-parent-item="{{ $row['parent_item_code'] }}" data-customer="{{ $row['customer'] }}" data-reference-no="{{ $row['sales_order'] }}" class="kanban-card card {{ $row['status'] }}" data-duration="" data-index="{{ $row['id'] }}" data-position="{{ $row['order_no'] }}" data-parentitemcode="{{ $row['parent_item_code'] }}" data-itemcode="{{ $row['item_code'] }}" data-delivery="{{ $row['delivery_date'] }}" data-card="unscheduled" data-name="{{ $row['production_order'] }}" style="margin-top: -13px;background-color: {{$divcolor}};">                              
-                              <div class="card-body" style="font-size: 8pt; margin-top: -3px;">                              
+                              <div class="card-body p-2" style="font-size: 8pt; margin-top: -3px;">                              
                                 <table style="width: 100%;">
                                   <tr>
-                                    <td colspan="4" style="font-size: 10pt;">
-                                      <div class="form-check" style="font-size:8pt;margin-left:-20px;margin-top:-10pt;" id="form-check">
+                                    <td class="align-middle" colspan="4" style="font-size: 10pt;">
+                                      <div class="form-check d-inline-block" style="font-size: 10pt; margin-top:-10px;" id="form-check">
                                         <label class="customcontainer">
                                           <input class="selectbyall" type="checkbox" id="print-{{ $row['name'] }}" value="{{ $row['name'] }}" data-dateslct="" data-checkme="{{ $row['name'] }}">
                                           <span class="checkmark"></span>
                                         </label>
                                       </div>
-                                      <span class="hvrlink" style="padding-left: 30px;">
+                                      <span class="hvrlink">
                                         <a style="color: black;" href="#" class="prod_order_link_to_search" data-prod="{{ $row['name'] }}">
-                                          <b>{{ $row['name'] }}</b><span style="font-size:9pt;"> [{{ $row['status'] }}]</span>
+                                          <b>{{ $row['name'] }}</b><span style="font-size: 8pt;"> [{{ $row['status'] }}]</span>
                                         </a>
                                         @php 
                                         if($row['job_ticket_print'] == "1"  &&  $row['withdrawal_slip_print'] == "1"){
@@ -188,12 +160,8 @@
                                         }else{
                                           $print_stat="";
                                         }
-
+                                        $print_stat="WS Printed";
                                         @endphp
-
-                                        <a style="color: black;font-size:8pt;" href="#" data-prod="{{ $row['name'] }}" class="pull-right">
-                                          <b>{{ $print_stat }}</b>
-                                        </a>
                                       </span>
                                       <div class="details-pane" style="font-size:8pt;">
                                         <h5 class="title">{{ $row['name'] }}</b> [{{ $row['status'] }}]</h5>
@@ -207,45 +175,50 @@
                                   </tr>
                                   @if($row['customer'])
                                   <tr>
-                                    <td colspan="2" width="100" style="padding-top: 5px;"><b>{{ $row['customer'] }}</b></td>
-                                    <td colspan="2" style="text-align: right;">Delivery Date: {{ date('M-d-Y', strtotime($row['delivery_date'])) }}</td>
+                                    <td colspan="4"><b>{{ $row['customer'] }}</b></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="2" class="font-weight-bold">{{ $row['classification'] }}</td>
+                                    <td colspan="2" style="font-size: 7pt;">Del. Date: {{ date('M-d-Y', strtotime($row['delivery_date'])) }}</td>
                                   </tr>
                                   @endif
                                   <tr>
-                                    <td colspan="4" style="font-size: 13px;"><i>{{ $row['production_item'] }} - <span><b>{{  $row['strip'] }}</b></span></i></td>
-                                    {{--<td colspan="2" style="text-align: right;">Qty: <span style="font-size: 9pt;">{{ number_format($row['qty']) }} {{ $row['stock_uom'] }}</span></td>--}}
+                                    <td colspan="4" style="font-size: 12px;"><i>{{ $row['production_item'] }} - <span><b>{{  $row['strip'] }}</b></span></i></td>
                                   </tr>
-                                  {{-- <tr><td colspan="4" style="font-size: 13px;">Cycle Time:<span style="padding-left:3px;"><i></span></i></td></tr> --}}
                                   <tr>
-                                    <td colspan="2"><span style="font-size: 9pt;">{{ number_format($row['produced_qty']) }} / {{ number_format($row['qty']) }}</span></td>
-                                    <td colspan="2"><span class="pull-right"><b>{{ $row['classification'] }}</b></span></td>
+                                    <td><span style="font-size: 7pt">{{ number_format($row['produced_qty']) }} / {{ number_format($row['qty']) }}</span></td>
+                                    <td colspan="2">
+                                      @php
+                                    if($row['process_stat'] == 'Ready'){
+                                      $colorme="#58d68d";
+                                      $margins="-17px";
+                                    }else if($row['process_stat'] == 'Not Started'){
+                                      $colorme="black";
+                                    }else{
+                                      $colorme="black";
+                                    }
+                                    if($row['process_stat'] == "Material For Issue"){
+                                      $stat_badge ="danger";
+                                    }else if($row['process_stat'] == "Material Issued"){
+                                      $stat_badge ="info";
+                                    }else if($row['process_stat'] == "Ready For Feedback"){
+                                      $stat_badge ="success";
+                                    }else{
+                                      $stat_badge ="warning";
+                                    }
+                                    @endphp
+                                      <div class="text-center create-ste-btn"  data-production-order="{{ $row['name'] }}">
+                                        <span class="badge badge-{{$stat_badge}} text-white" style="font-size:8pt;">
+                                          <b>{{ $row['process_stat']}}</b>
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td class="text-center">
+                                      <span style="font-size: 7pt;">{{ $print_stat }}</span>
+                                    </td>
                                   </tr>
                                   <input type="hidden" value="">
                                 </table>
-                                @php
-                                if($row['process_stat'] == 'Ready'){
-                                  $colorme="#58d68d";
-                                  $margins="-17px";
-                                }else if($row['process_stat'] == 'Not Started'){
-                                  $colorme="black";
-                                }else{
-                                  $colorme="black";
-                                }
-                                if($row['process_stat'] == "Material For Issue"){
-                                  $stat_badge ="danger";
-                                }else if($row['process_stat'] == "Material Issued"){
-                                  $stat_badge ="info";
-                                }else if($row['process_stat'] == "Ready For Feedback"){
-                                  $stat_badge ="success";
-                                }else{
-                                  $stat_badge ="warning";
-                                }
-                                @endphp
-                                <div class="col-md-12 text-center create-ste-btn" style="margin-top:-18px;; padding-bottom: -10px;" data-production-order="{{ $row['name'] }}">
-                                  <span class="badge badge-{{$stat_badge}} badge-style text-white" style="text-align: center;font-size:13px;">
-                                    <b>{{ $row['process_stat'] }}</b>
-                                  </span>
-                                </div>
                               </div>
                             </div>
                             @endforeach
@@ -257,60 +230,71 @@
                   <table>
                     <tr id="containers">
                       @foreach($scheduled as $r)
+                      @php
+                        $shift = isset($shift_schedule[$r['schedule']]) ? $shift_schedule[$r['schedule']][0] : [];
+                      @endphp
                       <td class="td unique_container">
-                        <div class="card" style="background-color:#e5e7e9;height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}">
-                          <div class="card-header text-center" style="margin-top: -25px;">
-                            <input type="hidden" id="divcount-{{ $r['schedule'] }}" style="margin-bott0m:20px;" value="">
-                            <h5 class="card-title text-center" style="font-size: 11pt;">
-                              <img src="{{ asset('img/calendar4.png') }}" width="20">
-                              <span class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
-                                {{ date('D, M-d-Y', strtotime($r['schedule'])) }} <span style="font-size: 11pt;"><b>{{ (date('Y-m-d') == date('Y-m-d', strtotime($r['schedule']))) ? '[Today]' : '' }}</b></span>
-                              </span>
-                              @if(date('Y-m-d', strtotime($r['schedule'])) >= date('Y-m-d'))
-                              <img src="{{ asset('img/scheduling.png') }}" width="20" class="goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
-                              <img src="{{ asset('img/print.png') }}" width="20" class="printbtnprint" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/wid.png') }}" width="20" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
-
-
-                              @else
-                              <img src="{{ asset('img/down.png') }}" width="20">
-                              <img src="{{ asset('img/print.png') }}" width="20" class="printbtnprint" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/wid.png') }}" width="20" class="printbtnwidrawal" data-print="{{ $r['schedule'] }}">
-                              <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
-
-                              @endif
-                              @if($r['duplicate_item_code'] < 0)
-                              <i class="now-ui-icons ui-1_bell-53 bell show-merge-modal" style="font-size: 15pt;"></i>
-                              @endif
-                             
-                              <span style="display:none;">
-                                <span style="display:inline-block;font-size:14px;">Estimated Duration:</span>
-                                <span id="duration-{{ $r['schedule'] }}" style="padding-left:3px;font-size:14px;display:inline-block;"></span>
-                              </span>
-                            </h5>
-                            <br>
-                            <div class="form-check" style="margin: -60px 0 20px 0;">
-                              <label class="customcontainer">
-                                <input type="checkbox" id="check-{{ $r['schedule'] }}" class="checkmeall" data-checkall="{{ $r['schedule'] }}">
-                                <span class="checkmark1" style="margin-left: -5px !important;"></span>
-                              </label>
+                        <div class="card" style="background-color:#e5e7e9; height: 800px;" id="id-{{ $r['schedule'] }}-id" data-id="{{ $r['schedule'] }}" data-order-count="{{ count($r['orders']) }}">
+                          <div class="card-header p-1">
+                            <input type="hidden" id="divcount-{{ $r['schedule'] }}" value="">
+                            <div class="d-flex flex-row justify-content-between align-items-middle m-0">
+                              <div class="p-0 goto_machine_kanban" style="cursor: pointer;" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                                <div class="d-flex flex-row align-items-start m-0">
+                                  <span class="p-0" style="float: left; font-size: 25pt; margin-top: -8px;">{{ date('d', strtotime($r['schedule'])) }}</span>
+                                  <div class="ml-1">
+                                    <span class="d-block" style="font-size: 10pt;">{{ date('l', strtotime($r['schedule'])) }} <b>{{ (date('Y-m-d') == date('Y-m-d', strtotime($r['schedule']))) ? '[Today]' : '' }}</b></span>
+                                    <span class="d-block" style="font-size: 8pt;">{{ date('F', strtotime($r['schedule'])) }}</span>
+                                    @if ($shift)
+                                      <span class="d-block" style="font-size: 8pt;">
+                                        {{ $shift->time_in.' - '.$shift->time_out }}
+                                      </span>
+                                    @endif
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="p-0">
+                                <div class="form-check d-inline-block" style="font-size: 10pt;">
+                                  <label class="customcontainer">
+                                    <input type="checkbox" id="check-{{ $r['schedule'] }}" class="checkmeall" data-checkall="{{ $r['schedule'] }}">
+                                    <span class="checkmark1"></span>
+                                  </label>
+                                </div>
+                                @if(date('Y-m-d', strtotime($r['schedule'])) >= date('Y-m-d'))
+                                <div class="btn-group p-0 m-0" role="group">
+                                  <button id="btnGroupDrop1" type="button" class="btn btn-default dropdown-toggle pb-1 pt-1 pl-2 pr-2 m-0" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="{{ asset('img/printpng.png') }}" width="20"> 
+                                  </button>
+                                  <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                    <a class="dropdown-item pb-1 pt-1 pl-2 pr-2 printbtnprint" href="#" data-print="{{ $r['schedule'] }}">Job Ticket</a>
+                                    <a class="dropdown-item pb-1 pt-1 pl-2 pr-2 printbtnwidrawal" href="#" data-print="{{ $r['schedule'] }}">Withdrawal Slip</a>
+                                  </div>
+                                </div>
+                                <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                                @else
+                                <img src="{{ asset('img/down.png') }}" width="20">
+                                <div class="btn-group p-0 m-0" role="group">
+                                  <button id="btnGroupDrop1" type="button" class="btn btn-default dropdown-toggle pb-1 pt-1 pl-2 pr-2 m-0" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="{{ asset('img/printpng.png') }}" width="20"> 
+                                  </button>
+                                  <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                    <a class="dropdown-item pb-1 pt-1 pl-2 pr-2 printbtnprint" href="#" data-print="{{ $r['schedule'] }}">Job Ticket</a>
+                                    <a class="dropdown-item pb-1 pt-1 pl-2 pr-2 printbtnwidrawal" href="#" data-print="{{ $r['schedule'] }}">Withdrawal Slip</a>
+                                  </div>
+                                </div>
+                                <img src="{{ asset('img/shift.png') }}" width="28" class="btnshift" data-print="{{ $r['schedule'] }}" data-date="{{ date('Y-m-d', strtotime($r['schedule'])) }}">
+                                @endif
+                                @if($r['duplicate_item_code'] < 0)
+                                <i class="now-ui-icons ui-1_bell-53 bell show-merge-modal" style="font-size: 15pt;"></i>
+                                @endif
+                                <span style="display:none;">
+                                  <span style="display:inline-block;font-size:14px;">Estimated Duration:</span>
+                                  <span id="duration-{{ $r['schedule'] }}" style="padding-left:3px;font-size:14px;display:inline-block;"></span>
+                                </span>
+                                <input type="hidden" id="tryme-{{ $r['schedule'] }}" class="printbox"></input>
+                              </div>
                             </div>
-                            <input type="hidden" id="tryme-{{ $r['schedule'] }}" class="printbox"></input>
-
-                            @forelse($r['shift'] as $i => $sched)
-                            <div class="text-center" style="font-size:8pt; margin: -20px 0 5px 0;line-height:20px;text-align:center;display:inline;">
-                              <span class="noshift_blink" style="display: {{($sched['shift_type'] == 'No Shift') ? '' : 'none'}}; color:red;font-weight:bold;">-&nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
-                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Regular Shift') ? 'inline' : 'none'}}"> <b>Shift</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
-                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Special Shift') ? 'inline' : 'none'}}"> <b>Shift</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span>
-                              <span class="text-center"  style="display: {{($sched['shift_type'] == 'Overtime Shift') ? 'inline' : 'none'}}">| &nbsp;<span style="background-color:#2980b9  ;color:white;font-weight:bold;"> <b>OT</b> - &nbsp; {{ $sched['time_in'] }}&nbsp;- &nbsp;{{ $sched['time_out'] }}</span></span>
-                              
-                            </div>
-                            @empty
-                            <span class="text-center" style="font-size:8pt;display:block; margin-top: -8px;"></span>
-                            @endforelse
                           </div>
-                          <div class="card-body sortable_list connectedSortable" id="{{ $r['schedule'] }}" style="height: 700px; position: relative; overflow-y: auto;">
+                          <div class="card-body sortable_list connectedSortable pt-3 pl-2 pb-2 pr-2" id="{{ $r['schedule'] }}" style="height: 700px; position: relative; overflow-y: auto; margin-top: -10px;">
                           @foreach($r['orders'] as $i => $order)
                             @php
                             if( $order['status'] == 'Completed'){
@@ -326,7 +310,7 @@
                                 }
                             }
                             @endphp
-                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px;background-color: {{$divcolor}};">                                  
+                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px; background-color: {{$divcolor}};">                                  
                                   <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
                                   <span class="reference-class d-none">{{ $order['sales_order'] }}</span>
@@ -334,11 +318,11 @@
                                   <span class="description-class d-none">{{ $order['description'] }}</span>
                                   <span class="delivery-date-class d-none">{{ $order['delivery_date'] }}</span>
                                   <span class="qty-to-manufacture-class d-none">{{ $order['qty'] }} {{ $order['stock_uom'] }}</span>
-                              <div class="card-body" style="font-size: 8pt;margin-top: -5px;">
+                              <div class="card-body p-2" style="font-size: 8pt; margin-top: -5px;">
                                 <table style="width: 100%;">
                                   <tr>
-                                    <td colspan="3" style="font-size:10pt;">
-                                      <div class="form-check" style="font-size:10pt;margin-left:-20px;margin-top:-10pt;" id="form-check">
+                                    <td class="align-middle" colspan="4" style="font-size:10pt;">
+                                      <div class="form-check d-inline-block" style="font-size: 10pt; margin-top:-10px;" id="form-check">
                                         <label class="customcontainer">
                                           <input class="selectbyall" type="checkbox" id="print-{{ $order['name'] }}" value="{{ $order['name'] }}" data-dateslct="{{ $r['schedule'] }}" data-checkme="{{ $order['name'] }}">
                                           <span class="checkmark"></span>
@@ -355,11 +339,10 @@
                                         }else{
                                           $print_stat="";
                                         }
-
                                         @endphp
-                                        <a href="#" class="prod_order_link_to_search text-dark" data-prod="{{ $order['name'] }}" style="margin-left: 35px;">
+                                        <a href="#" class="prod_order_link_to_search text-dark" data-prod="{{ $order['name'] }}">
                                           <b>{{ $order['name'] }}</b>
-                                          <span style="font-size:9pt;"> [{{ $order['status'] }}]</span>
+                                          <span style="font-size: 8pt;"> [{{ $order['status'] }}]</span>
                                         </a>
                                       </span>
                                       <div class="details-pane" style="font-size:8pt;">
@@ -371,63 +354,61 @@
                                           <i>CTD Qty: <b>{{ $order['produced_qty'] }} {{ $order['stock_uom'] }}</b></i>
                                         </p>
                                       </div>
-                                    </td>
-                                    <td>
-                                      <span style="font-size:8pt;margin-left:-40px;" class="pull-left"><b>{{ $print_stat }}</b></span>
                                       <span class="pull-right badge badge-primary badgecount" style="font-size: 9pt;">{{ $order['order_no'] }}</span>
                                     </td>
                                   </tr>
                                   @if($order['customer'])
                                   <tr>
-                                    <td colspan="2"><b>{{ $order['customer'] }}</b></td>
-                                    <td colspan="2" style="text-align: right;">
-                                      <span style="text-align: right;">Delivery Date:{{ date('M-d-Y', strtotime($order['delivery_date'])) }}</span>
-                                    </td>
+                                    <td colspan="4"><b>{{ $order['customer'] }}</b></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="2" class="font-weight-bold">{{ $order['classification'] }}</td>
+                                    <td colspan="2" style="font-size: 7pt;">Del. Date: {{ date('M-d-Y', strtotime($order['delivery_date'])) }}</td>
                                   </tr>
                                   @endif
                                   <tr>
-                                    <td colspan="4"  style="font-size: 13px;"><i>{{ $order['production_item'] }} - <span><b>{{ $order['strip'] }}</b></span></i></td>
-                                    {{--<td colspan="2" style="text-align: right;">Qty: <span style="font-size: 9pt">{{ number_format($order['qty']) }} {{ $order['stock_uom'] }}</span></td>--}}
+                                    <td colspan="4"  style="font-size: 12px;"><i>{{ $order['production_item'] }} - <span><b>{{ $order['strip'] }}</b></span></i></td>
                                   </tr>
-                                  {{--<tr>
-                                    <td colspan="4" style="font-size: 13px;">Cycle Time:<span style="padding-left:3px;"><i></span></i></td>
-                                  </tr>--}}
                                   <tr>
-                                    <td colspan="2"><span style="font-size: 9pt">{{ number_format($order['produced_qty']) }} / {{ number_format($order['qty']) }}</span></td>
-                                    <td colspan="2"><span class="pull-right"><b>{{ $order['classification'] }}</b></span></td>
+                                    <td><span style="font-size: 7pt">{{ number_format($order['produced_qty']) }} / {{ number_format($order['qty']) }}</span></td>
+                                    <td colspan="2">
+                                      @php
+                                      if($order['process_stat'] == 'Ready'){
+                                        $colorme="#58d68d";
+                                      }else if($order['process_stat'] == 'Not Started'){
+                                        $colorme="black";
+                                      }else{
+                                        $colorme="black";
+                                      }
+                                      
+                                      if($order['process_stat'] == "Material For Issue"){
+                                        $stat_badge ="danger";
+                                      }else if($order['process_stat'] == "Material Issued"){
+                                        $stat_badge ="info";
+                                      }else if($order['process_stat'] == "Cancelled"){
+                                        $stat_badge ="danger";
+                                      }else if($order['process_stat'] == "Ready For Feedback"){
+                                        $stat_badge ="primary";
+                                      }else if($order['process_stat'] == "Partial Feedbacked"){
+                                        $stat_badge ="success";
+                                      }else if($order['process_stat'] == "Feedbacked"){
+                                        $stat_badge ="success";
+                                      }else{
+                                        $stat_badge ="warning";
+                                      }
+                                      @endphp
+                                      <div class="text-center create-ste-btn"  data-production-order="{{ $order['name'] }}">
+                                        <span class="badge badge-{{$stat_badge}} text-white" style="font-size:8pt;">
+                                          <b>{{ $order['process_stat']}}</b>
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td class="text-center">
+                                      <span style="font-size: 7pt;">{{ $print_stat }}</span>
+                                    </td>
                                   </tr>
                                   <input type="hidden" value="" class="counting{{ $r['schedule'] }}">
                                 </table>
-                                @php
-                                if($order['process_stat'] == 'Ready'){
-                                  $colorme="#58d68d";
-                                }else if($order['process_stat'] == 'Not Started'){
-                                  $colorme="black";
-                                }else{
-                                  $colorme="black";
-                                }
-                                
-                                if($order['process_stat'] == "Material For Issue"){
-                                  $stat_badge ="danger";
-                                }else if($order['process_stat'] == "Material Issued"){
-                                  $stat_badge ="info";
-                                }else if($order['process_stat'] == "Cancelled"){
-                                  $stat_badge ="danger";
-                                }else if($order['process_stat'] == "Ready For Feedback"){
-                                  $stat_badge ="primary";
-                                }else if($order['process_stat'] == "Partial Feedbacked"){
-                                  $stat_badge ="success";
-                                }else if($order['process_stat'] == "Feedbacked"){
-                                  $stat_badge ="success";
-                                }else{
-                                  $stat_badge ="warning";
-                                }
-                                @endphp
-                                <div class="col-md-12 text-center create-ste-btn"  data-production-order="{{ $order['name'] }}" style="margin-top:-18px; padding-bottom: -10px; min-width:10%;">
-                                  <span class="badge badge-{{$stat_badge}} badge-style" style="text-align: center;font-size:13px;color:white;">
-                                    <b>{{ $order['process_stat']}}</b>
-                                  </span>
-                                </div>
                               </div>
                             </div>
                             @endforeach
@@ -442,48 +423,9 @@
             </div>
           </div>
         </div>
-        {{--  <div class="tab-pane" id="step2" role="tabpanel" aria-labelledby="step2-tab">
-          <form id="filter-frm">
-            <div class="row" style="margin-top: 8px;">
-              <div class="col-md-2">
-                <div class="form-group">
-                  <select name="select_customer" id="sel-customer" class="form-control sel2">
-                    <option value="">Select Customer</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-2">
-                <div class="form-group">
-                  <select name="select_reference" id="sel-reference" class="form-control sel2">
-                    <option value="">Select Reference No</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-2">
-                <div class="form-group">
-                  <select name="select_parent_item" id="sel-parent-item" class="form-control sel2">
-                    <option value="">Select Parent Item</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-2">
-                <div class="form-group">
-                  <select name="select_item" id="sel-item" class="form-control sel2">
-                    <option value="">Select Item</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-2" style="padding: 0; margin: 0;">
-                <button type="button" class="btn btn-primary" id="clear-filters-btn" style="padding: 8px 10px; margin: 0;">Clear Filters</button>
-              </div>
-            </div>
-          </form>
-          <div id="production-schedule-per-workstation-div"></div>
-        </div>  --}}
       </div>
     </div>
   </div>
-</div>
 
 <div class="modal fade" id="view-notifications-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
@@ -944,10 +886,147 @@
   </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="selectShiftModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #0277BD">
+        <h5 class="modal-title" style="color: #fff;">Select Schedule - <span id="shift-selected-date">Date</span></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/save_shift_schedule" id="shift_schedule_form" method="post">
+        <div class="modal-body">
+          <div class="d-none">
+            <input type="text" name="schedule_date" id="schedule_date" value="">
+            <input type="text" name="operation_id" value="{{ $operation_id }}">
+            <input type="text" name="production_order" id="shift-production-order" value="">
+          </div>
+          <div class="container p-0">
+            <div class="card">
+              <div class="card-body text-center" style="border-left: 10px solid #0277BD">
+                <span style="font-size: 8pt;"><i class="now-ui-icons travel_info"></i>&nbsp;Please select production schedule for this date</span>
+              </div>
+            </div>
+          </div>
+          <select name="selected_shift" class="form-control" id="shift-selection" required>
+            <option selected value="">Select Shift</option>
+            @foreach ($shifts as $shift)
+              <option value="{{ $shift->shift_id }}">
+                {{ $shift->shift_type.' - '.$shift->time_in.' - '.$shift->time_out }}
+              </option>
+            @endforeach
+          </select>
+          <br>
+          <label style="font-size: 9pt">Note</label>
+          <textarea name="remarks" id="shift-remarks" rows="5" class="form-control" placeholder="Remarks..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" id="save-shift-btn" class="btn btn-primary">Save Shift Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div id="loader-wrapper" hidden>
+  <div id="loader"></div>
+  <div class="loader-section section-left"></div>
+  <div class="loader-section section-right"></div>
+</div>
+
 @include('modals.modal_select_item_merge')
 @include('modals.select_late_delivery_reason_modal')
 
 <style type="text/css">
+  #loader-wrapper {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 99999;
+	}
+	#loader {
+		display: block;
+		position: relative;
+		left: 50%;
+		top: 50%;
+		width: 150px;
+		height: 150px;
+		margin: -75px 0 0 -75px;
+		border-radius: 50%;
+		border: 3px solid transparent;
+		border-top-color: #3498db;
+		-webkit-animation: spin 2s linear infinite; /* Chrome, Opera 15+, Safari 5+ */
+		animation: spin 2s linear infinite; /* Chrome, Firefox 16+, IE 10+, Opera */
+		z-index: 999999;
+	}
+	#loader:before {
+		content: "";
+		position: absolute;
+		top: 5px;
+		left: 5px;
+		right: 5px;
+		bottom: 5px;
+		border-radius: 50%;
+		border: 3px solid transparent;
+		border-top-color: #e74c3c;
+		-webkit-animation: spin 3s linear infinite; /* Chrome, Opera 15+, Safari 5+ */
+		animation: spin 3s linear infinite; /* Chrome, Firefox 16+, IE 10+, Opera */
+	}
+	#loader:after {
+		content: "";
+		position: absolute;
+		top: 15px;
+		left: 15px;
+		right: 15px;
+		bottom: 15px;
+		border-radius: 50%;
+		border: 3px solid transparent;
+		border-top-color: #f9c922;
+		-webkit-animation: spin 1.5s linear infinite; /* Chrome, Opera 15+, Safari 5+ */
+		animation: spin 1.5s linear infinite; /* Chrome, Firefox 16+, IE 10+, Opera */
+	}
+	@-webkit-keyframes spin {
+		0%   { 
+			-webkit-transform: rotate(0deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+			-ms-transform: rotate(0deg);  /* IE 9 */
+			transform: rotate(0deg);  /* Firefox 16+, IE 10+, Opera */
+		}
+		100% {
+			-webkit-transform: rotate(360deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+			-ms-transform: rotate(360deg);  /* IE 9 */
+			transform: rotate(360deg);  /* Firefox 16+, IE 10+, Opera */
+		}
+	}
+	@keyframes spin {
+		0%   { 
+			-webkit-transform: rotate(0deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+			-ms-transform: rotate(0deg);  /* IE 9 */
+			transform: rotate(0deg);  /* Firefox 16+, IE 10+, Opera */
+		}
+		100% {
+			-webkit-transform: rotate(360deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+			-ms-transform: rotate(360deg);  /* IE 9 */
+			transform: rotate(360deg);  /* Firefox 16+, IE 10+, Opera */
+		}
+	}
+	#loader-wrapper .loader-section {
+		position: fixed;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background-color:  #e5e7e9 ;
+		z-index: 1000;
+		opacity: 50%;
+		-webkit-transform: translateX(0);  /* Chrome, Opera 15+, Safari 3.1+ */
+		-ms-transform: translateX(0);  /* IE 9 */
+		transform: translateX(0);  /* Firefox 16+, IE 10+, Opera */
+	}
+
  #shift-schedule-modal .form-control{
     border: 1px solid #ccc;
     border-radius: 3px;
@@ -1185,8 +1264,8 @@
   }
 
   .customcontainer {
-    display: block;
-    position: relative;
+    /* display: block; */
+    /* position: relative; */
     cursor: pointer;
     font-size: 22px;
     -webkit-user-select: none;
@@ -1209,9 +1288,9 @@
     position: absolute;
     top: 0;
     left: 0;
-    height: 25px;
-    width: 25px;
-    border-radius: 4px;
+    height: 20px;
+    width: 20px;
+    border-radius: 2px;
     background-color: #eee;
   }
 
@@ -1219,8 +1298,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    height: 25px;
-    width: 25px;
+    height: 20px;
+    width: 20px;
     border-radius: 4px;
     background-color: white;
   }
@@ -1228,8 +1307,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    height: 25px;
-    width: 25px;
+    height: 20px;
+    width: 20px;
     border-radius: 4px;
     background-color: #99a3a4;
   }
@@ -1281,7 +1360,7 @@
   }
   /* Style the checkmark/indicator */
   .customcontainer .checkmark:after {
-    left: 9px;
+    left: 8px;
     top: 5px;
     width: 5px;
     height: 10px;
@@ -1293,7 +1372,7 @@
   }
 
   .customcontainer .checkmark1:after {
-    left: 9px;
+    left: 8px;
     top: 5px;
     width: 5px;
     height: 10px;
@@ -1316,14 +1395,14 @@
   }
   .scrolling .td, .th {
     vertical-align: top;
-    padding: 10px;
-    width: 450px;
+    padding: 5px;
+    width: 320px;
   }
 
   .scrolling .th {
     position: absolute;
     left: 0;
-    width: 450px;
+    width: 320px;
   }
 
   .outer {
@@ -1333,7 +1412,7 @@
   .inner {
     overflow-x: auto;
     overflow-y: visible;
-    margin-left: 450px;
+    margin-left: 320px;
   }
 
   .perc {position:absolute; display:none; top: 0; line-height:20px; right:10px;color:black; font-weight:bold;}
@@ -2075,12 +2154,58 @@
       });
     });
 
-    $('#inner').scrollLeft(450);
+    $('#shift_schedule_form').submit(function(e){
+      e.preventDefault();
+
+      $.ajax({
+        url:"/save_shift_schedule",
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#schedule_date').val('');
+            $('#shift-production-order').val('');
+            $('#shift-selection').val('').trigger('change');
+            $('#shift-remarks').val('');
+            location.reload();
+          }
+        },
+        error : function(data) {
+          console.log(data.responseText);
+        }
+      });
+    });
+
+    var update_sched = 0;
+
+    $('#inner').scrollLeft(320);
     $( ".sortable_list" ).sortable({
       connectWith: ".connectedSortable",
       appendTo: 'body',
       helper: 'clone',
       update:function(event, ui) {
+        if($("#id-" + event.target.id + '-id').length !== 0) {
+          if($("#id-" + event.target.id + '-id').data('order-count') < 1){
+            $('#schedule_date').val(event.target.id);
+            $('#shift-production-order').val(ui.item.data('name'));
+            
+            const monthNames = [
+              "Jan. ", "Feb. ", "Mar. ", "Apr. ", "May. ", "Jun. ",
+              "Jul. ", "Aug. ", "Sep. ", "Oct. ", "Nov. ", "Dec. "
+            ];
+            var formattedDate = new Date(event.target.id);
+            var d = formattedDate.getDate();
+            var m = formattedDate.getMonth();
+            var y = formattedDate.getFullYear();
+
+            $('#shift-selected-date').text(monthNames[m] + d + ", " + y);
+            $('#selectShiftModal').modal('show');
+            return false;
+          }
+        }
         var primary_operation_id = $('#primary-operation-id').val();
         var parent_id = ui.item.attr("data-parentitemcode");
         var item_code_id = ui.item.attr("data-itemcode");
@@ -2166,6 +2291,11 @@
         }
       },
       receive: function(ev, ui) {
+        if($("#id-" + ev.target.id + '-id').length !== 0) {
+          if($("#id-" + ev.target.id + '-id').data('order-count') < 1){
+            return false;
+          }
+        }
         var primary_operation_id = $('#primary-operation-id').val();
         var primary_operation_id = $('#primary-operation-id').val();
         var data_delivery_date =  ui.item.data('delivery');
@@ -2212,8 +2342,6 @@
         var date = $(this).attr('id');
         var prod_id = "#sched-" +  ui.item.data('name');
         $(id_check).attr("data-dateslct", sched); //setter
-
-
           $.ajax({
             url:"/drag_n_drop/"+ prod,
             type:"get",
@@ -2221,16 +2349,12 @@
               if(data.success < 1){
                 ui.sender.sortable("cancel");
                 showNotification("danger", "Unable to rechedule planned start date.       <br><b>Production Order has on-going Process.</b>", "now-ui-icons travel_info");
-                // alert(ui.sender.attr('id'));
               }else{
-
                 if(primary_operation_id == "3"){
                   if($(this).attr('id') == "unscheduled"){
                     $(prod_id).css('background-color', 'white');
-                    // alert(delivery_date);
                   }else if(date > data_delivery_date){
                     $(prod_id).css('background-color', '#e74c3c');
-                    // alert(delivery_date);
                   }else{
                     if(ui.item.data('statdiv') == "not_move"){
                       $(prod_id).css('background-color', '#EB984E');
@@ -2255,7 +2379,6 @@
                     });
                   }
                   $('#reschedule_delivery_frm').submit(function(e){ //FUNCTION ONCE THE SUBMIT BUTTON IS CLICK
-                    // alert(ui.item.data('name'));
                     $.ajax({
                       url:"/update_production_task_schedules",
                       type:"POST",
@@ -2316,6 +2439,11 @@
           });   
       }
     }).disableSelection();
+
+    $('#selectShiftModal').on('hide.bs.modal', function (e) {
+      $( ".sortable_list" ).sortable('cancel');
+      showNotification("danger", "Unable to schedule planned start date.<br><b>Please select shift schedule first.</b>", "now-ui-icons travel_info");
+    });
     
     $.ajaxSetup({
       headers: {
@@ -2421,6 +2549,7 @@ $(document).on('click', '.printbtnprint', function(){
   if(tryval == ''){
     showNotification("danger", "No selected Production Order", "now-ui-icons travel_info");
   }else{
+    $('#loader-wrapper').removeAttr('hidden');
     
     $.ajax({
     url: "/selected_print_job_tickets/" + tryval,
@@ -2431,6 +2560,7 @@ $(document).on('click', '.printbtnprint', function(){
       }else{
       $('#printmodalbody').html(data);
       $('#print_modal_js_ws').modal('show');
+      $('#loader-wrapper').attr('hidden', true);
       }
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -2449,6 +2579,7 @@ $(document).on('click', '.printbtnwidrawal', function(){
   if(tryval == ''){
     showNotification("danger", "No selected Production Order", "now-ui-icons travel_info");
   }else{
+    $('#loader-wrapper').removeAttr('hidden');
     $.ajax({
     url: "/print_withdrawals",
     type:"GET",
@@ -2459,6 +2590,7 @@ $(document).on('click', '.printbtnwidrawal', function(){
       }else{
       $('#printmodalbody').html(data);
       $('#print_modal_js_ws').modal('show');
+      $('#loader-wrapper').attr('hidden', true);
       }
     },
     error: function(jqXHR, textStatus, errorThrown) {

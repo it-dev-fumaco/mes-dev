@@ -1,37 +1,15 @@
 @extends('layouts.user_app', [
   'namePage' => 'Report',
   'activePage' => 'operation_report',
+  'pageHeader' => 'Reports',
+  'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
-<div class="panel-header" style="margin-top: -70px;">
-    <div class="header text-center">
-       <div class="row">
-          <div class="col-md-8 text-white">
-             <table style="text-align: center; width: 100%;">
-                <tr>
-                   <td style="width: 30%; border-right: 5px solid white;">
-                      <div class="pull-right title mr-3">
-                         <span class="d-block m-0 p-0" style="font-size: 14pt;">{{ date('M-d-Y') }}</span>
-                         <span class="d-block m-0 p-0" style="font-size: 10pt;">{{ date('l') }}</span>
-                      </div>
-                   </td>
-                   <td style="width: 20%; border-right: 5px solid white;">
-                      <h3 class="title" style="margin: auto;"><span id="current-time">--:--:-- --</span></h3>
-                   </td>
-                   <td style="width: 50%">
-                      <h3 class="title text-left p-0 ml-3" style="margin: auto 20pt;">Report</h3>
-                   </td>
-                </tr>
-             </table>
-          </div>
-       </div>
-    </div>
+<div class="panel-header">
  </div>
- <br>
- <div class="content" style="margin-top: -100px;">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
+ <div class="row p-3" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+    <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-body" style="min-height:750px;">
                    <div class="row" style="margin-top: 15px;">
@@ -53,12 +31,7 @@
                                 <tr>
                                     <td><a href="/link_fabrication_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
-                                <tr>
-                                    <td><a href="/weekly_rejection_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Rejection Report  </span></a></td>
-                                </tr>
-                               {{-- <tr>
-                                    <td><a href="/link_production_schedule_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Schedule Report  </span></a></td>
-                                </tr> --}}
+                       
                             </tbody>
                         </table>
                       </div>
@@ -82,9 +55,6 @@
                                 <tr>
                                     <td><a href="/link_painting_report/4" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Powder Coat Consumption Report </span></a></td>
                                 </tr>
-                                <tr>
-                                    <td><a href="/weekly_rejection_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Rejection Report  </span></a></td>
-                                </tr>
                             </tbody>
                         </table>
                       </div>
@@ -102,9 +72,6 @@
                                 <tr>
                                     <td><a href="/link_assembly_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
-                                <tr>
-                                    <td><a href="/weekly_rejection_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Rejection Report  </span></a></td>
-                                </tr>
                             </tbody>
                         </table>
                       </div>
@@ -117,10 +84,16 @@
                             </thead>
                             <tbody style=" padding-left:30px; text-align:left;">
                                 <tr>
-                                    <td><a href="/link_qa_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection log Report </span></a></td>
+                                    <td><a href="/qa_inspection_logs" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Inspection Logs Report </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/link_qa_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Report </span></a></td>
+                                    <td><a href="/view_rejection_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> ISO Rejection Report</span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/weekly_rejection_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Logs Report</span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/reject_reasons_report" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Rejection Reasons Report</span></a></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -210,7 +183,7 @@
             </div>
         </div>
     </div>
- </div>
+ 
 
 <div id="active-tab"></div>
 

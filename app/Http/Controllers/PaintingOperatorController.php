@@ -205,9 +205,11 @@ class PaintingOperatorController extends Controller
 
 		$process_details = DB::connection('mysql_mes')->table('process')->where('process_name', 'Loading')->first();
 
+		$operation_id = DB::connection('mysql_mes')->table('operation')->where('operation_name', 'Painting')->pluck('operation_id')->first();
+
 		$machine_status = $this->get_machine_status();
 
-		return view('painting_operator.tasks', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'machine_code'));
+		return view('painting_operator.tasks', compact('process_name', 'machine_details', 'process_details', 'machine_status', 'machine_code', 'operation_id'));
 	}
 
 	// /operator/Painting/{process_name}/{machine_code} - revised

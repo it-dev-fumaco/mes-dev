@@ -305,12 +305,17 @@
 <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
    <div class="modal-dialog" role="document" style="min-width: 90%;">
      <div class="modal-content">
-       <div class="modal-header text-white" style="background-color: #0277BD;">
-         <h5 class="modal-title font-weight-bold">Modal Title</h5>
-         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-           <span aria-hidden="true">&times;</span>
-         </button>
-       </div>
+      <div class="text-white rounded-top" style="background-color: #0277BD;">
+        <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+          <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+          <div class="float-right">
+            <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+            <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        </div>
+      </div>
        <div class="modal-body" style="min-height: 600px;">
          <div id="production-search-content-modal2"></div>
        </div>
@@ -318,7 +323,7 @@
    </div>
  </div>
  <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog" role="document" style="min-width: 90%;">
+  <div class="modal-dialog" role="document" style="min-width: 95%;">
      <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #f57f17;">
            <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
@@ -1050,17 +1055,18 @@
 
     $(document).on('click', '.quality-inspection-btn', function(e){
       e.preventDefault();
-
       $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
 
       var production_order = $(this).data('production-order');
       var process_id = $(this).data('processid');
       var workstation = $(this).data('workstation');
       var inspection_type = $(this).data('inspection-type');
+      var reject_category = $(this).data('reject-cat');
 
       var data = {
         time_log_id: $(this).data('timelog-id'),
-        inspection_type: inspection_type
+        inspection_type,
+        reject_category
       }
       $.ajax({
         url: '/get_checklist/Painting/' + production_order + '/' + process_id,
@@ -1780,14 +1786,7 @@
       }
 
     });
-    $(document).on('change','#present_input', function(){
-      // var valpre = $(this).val();
-      // var valprev = $('#previous_input').val();
-      // var diff = valpre - valprev;
-      // alert(diff);
-      //  $("#incoming_water_discharged").val(diff);
-      console.log('hi');
-    });
+
     $(document).on('click', '#painting_chemical_records_frm .next-tab', function(e){
       e.preventDefault();
 
@@ -2061,7 +2060,6 @@
             
           },
           error: function(data) {
-          alert(data);
           }
         });
     }

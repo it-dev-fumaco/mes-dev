@@ -1,27 +1,27 @@
 <input type="hidden" id="wiring-total" value="{{ $list->total() }}">
-<table class="table table-striped">
-    <thead class="text-primary">
-        <th class="text-center font-weight-bold">Series</th>
-        <th class="text-center font-weight-bold">Machine</th>
-        <th class="text-center font-weight-bold">Category</th>
-        <th class="text-center font-weight-bold">Reason</th>
-        <th class="text-center font-weight-bold">Reported By</th>
-        <th class="text-center font-weight-bold">Date Reported</th>
-        <th class="text-center font-weight-bold">Maintenance Staff</th>
-        <th class="text-center font-weight-bold">Status</th>
-        <th class="text-center font-weight-bold">Actions</th>
+<table class="table table-striped table-bordered table-hover">
+    <thead class="text-primary text-uppercase" style="font-size: 7pt;">
+        <th class="text-center p-2">Series</th>
+        <th class="text-center p-2">Machine</th>
+        <th class="text-center p-2">Category</th>
+        <th class="text-center p-2">Reason</th>
+        <th class="text-center p-2">Reported By</th>
+        <th class="text-center p-2">Date Reported</th>
+        <th class="text-center p-2">Maintenance Staff</th>
+        <th class="text-center p-2">Status</th>
+        <th class="text-center p-2">Action</th>
     </thead>
-    <tbody>
+    <tbody style="font-size: 9pt;">
         @forelse ($list as $row)
         <tr>
-            <td class="text-center">{{ $row->machine_breakdown_id }}</td>
-            <td class="text-center">{{ $row->machine_id }}</td>
-            <td class="text-center">{{ $row->category }}</td>
-            <td class="text-center">{{ $row->breakdown_reason ? $row->breakdown_reason : $row->corrective_reason }}</td>
-            <td class="text-center">{{ $row->reported_by }}</td>
-            <td class="text-center">{{ date('M-d-Y h:i A', strtotime($row->date_reported)) }}</td>
-            <td class="text-center">{{ $row->assigned_maintenance_staff ? $row->assigned_maintenance_staff : 'Unassigned' }}</td>
-            <td class="text-center">
+            <td class="text-center p-2">{{ $row->machine_breakdown_id }}</td>
+            <td class="text-center p-2">{{ $row->machine_id }}</td>
+            <td class="text-center p-2">{{ $row->category }}</td>
+            <td class="text-center p-2">{{ $row->breakdown_reason ? $row->breakdown_reason : $row->corrective_reason }}</td>
+            <td class="text-center p-2">{{ $row->reported_by }}</td>
+            <td class="text-center p-2">{{ date('M-d-Y h:i A', strtotime($row->date_reported)) }}</td>
+            <td class="text-center p-2">{{ $row->assigned_maintenance_staff ? $row->assigned_maintenance_staff : 'Unassigned' }}</td>
+            <td class="text-center p-2">
                 @php
                     if($row->status == 'Pending'){
                         $status = 'danger';
@@ -33,11 +33,11 @@
                         $status = 'primary';
                     }
                 @endphp
-                <span class="badge badge-{{ $status }}" style="font-size: 10pt">{{ $row->status == '' ? 'Done' : $row->status }}</span>
+                <span class="badge badge-{{ $status }}" style="font-size: 8pt;">{{ $row->status == '' ? 'Done' : $row->status }}</span>
             </td>
-            <td class="text-center">
-                <a href="#" data-toggle="modal" data-target="#{{ $row->machine_breakdown_id }}-Modal" class="machine-details" data-breakdown="{{ $row->machine_breakdown_id }}">
-                    <i class="fas fa-edit" style="font-size: 20px; color: #fff; background-color: #000; border-radius: 50%; padding: 5px"></i>
+            <td class="text-center p-2">
+                <a href="#" data-toggle="modal" data-target="#{{ $row->machine_breakdown_id }}-Modal" class="machine-details btn btn-secondary pr-3 pl-3 pt-2 pb-2" data-breakdown="{{ $row->machine_breakdown_id }}">
+                    <i class="now-ui-icons design-2_ruler-pencil"></i>
                 </a>
 
                 <div class="modal fade" id="{{ $row->machine_breakdown_id }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -68,7 +68,7 @@
                                         <div class="col-4"></div>
                                         <div class="col-3">
                                             <label class="pl-2">Assigned Maintenance Staff</label>
-                                            <select class="form-control" name="maintenance_staff">
+                                            <select class="form-control" name="maintenance_staff" id="{{ $row->machine_breakdown_id }}-maintenance-staff">
                                                 <option value="" {{ $row->assigned_maintenance_staff ? null : 'selected' }} disabled>Select Maintenance Staff</option>
                                                 @foreach ($maintenance_staff as $staff)
                                                     <option value="{{ $staff->employee_name }}" {{ $row->assigned_maintenance_staff == $staff->employee_name ? 'selected' : null }}>{{ $staff->employee_name }}</option>

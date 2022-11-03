@@ -243,7 +243,6 @@ $(document).ready(function(){
             }
             reader.readAsDataURL(this.files[0]);
          }
-         alert('hi');
       });  
 </script>
 <script type="text/javascript">

@@ -627,6 +627,42 @@ class SecondaryController extends Controller
         }
     }
 
+    public function saveMaintenanceRequest(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $status = $request->status;
+            DB::connection('mysql_mes')->table('machine_breakdown')->insert([
+                'machine_id' => $request->machine_id,
+                'machine_breakdown_id' => $this->getNextOrderNumber(),
+                'status' => $status,
+                'reported_by' => $request->reported_by,
+                'date_reported' => $request->date_reported,
+                'remarks' => $request->remarks,
+                'date_resolved' => $status == 'Done' ? $request->date_resolved : null,
+                'work_done' => $status == 'Done' ? $request->work_done : null,
+                'assigned_maintenance_staff' => $request->assigned_maintenance_staff,
+                'category' => $request->category,
+                'type' => $request->category,
+                'corrective_reason' => ($request->category == "Corrective") ? $request->corrective_reason : null,
+                'breakdown_reason' => ($request->category == "Breakdown") ? $request->breakdown_reason : null,
+                'created_by' => Auth::user()->email,
+                'last_modified_by' => Auth::user()->email,
+            ]);
+
+            if ($request->category == "Breakdown") {
+                DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_id)->update(['status' => 'Unavailable']);
+            }
+
+            DB::connection('mysql_mes')->commit();
+             
+            return response()->json(['success' => 1, 'message' => 'Maintenance Request has been successfully created.']);
+        } catch (Exception $e) {
+            DB::connection('mysql_mes')->rollback();
+
+            return response()->json(["error" => 'An error occured. Please try again.']);
+        }
+    }
+
     public function timesheet_details_report($id){
         $tasks = DB::connection('mysql')->table('tabTimesheet Detail AS tsd')
                     ->join('tabTimesheet AS ts', 'ts.name', 'tsd.parent')
@@ -1227,11 +1263,9 @@ class SecondaryController extends Controller
 
     }
     public function get_machine_list_data(Request $request){
-        $machine_list= DB::connection('mysql_mes')
-                ->table('machine')
-                ->where('machine_id', $request->id)
-                ->first();
-        // dd($machine_list);
+        $machine_list= DB::connection('mysql_mes')->table('machine')
+                ->where('machine_id', $request->id)->first();
+
         return view('tables.tbl_machine_list', compact('machine_list'));
     }
     public function get_machine_profile($id){
@@ -1254,7 +1288,9 @@ class SecondaryController extends Controller
             ->select('pm.*', 'p.process_name')
             ->get();
 
-        return view('machine_profile', compact('machine_list', 'process_list'));
+        $permissions = $this->get_user_permitted_operation();
+
+        return view('machine_profile', compact('machine_list', 'process_list', 'permissions'));
     }
     public function delete_machine(Request $request){
         $itemissued = Machine::find($request->machine_id);
@@ -1332,6 +1368,7 @@ class SecondaryController extends Controller
 
     }
     public function workstation_profile($id){
+        $permissions = $this->get_user_permitted_operation();
         $list= DB::connection('mysql_mes')
                 ->table('workstation as w')
                 ->join('operation as op','op.operation_id', 'w.operation_id')
@@ -1346,7 +1383,7 @@ class SecondaryController extends Controller
                 ->orderBy('process_name', 'Asc')
                 ->get();
 
-        return view('workstation_profile', compact('list','machine','process_list'));
+                return view('workstation_profile', compact('list','machine','process_list', 'permissions'));
 
     }
     public function getNextIdxMachineWorkstation($id)
@@ -1902,32 +1939,11 @@ class SecondaryController extends Controller
                     ->orWhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('w.*', "op.operation_name as operation")
-            ->orderBy('w.workstation_id', 'desc')->get();
+            ->orderBy('w.workstation_id', 'desc')->paginate(15);
         
-
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-        // dd($process_list);
-        return view('tables.tbl_workstation_process_list', compact('data'));
-
+        return view('tables.tbl_workstation_process_list', compact('list'));
     }
+
     public function get_tbl_assigned_machine_process(Request $request){
       
         $process_list= DB::connection('mysql_mes')->table('machine_process')
@@ -2059,33 +2075,9 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                     $q->orWhere('process_name', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('last_modified_at', 'desc')->get();
+            ->orderBy('last_modified_at', 'desc')->paginate(15);
 
-        $workstation_list= DB::connection('mysql_mes')
-                ->table('workstation')->orderBy('order_no','asc')->get();
-
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($process_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_process_setup', compact('data','workstation_list'));
-
-
+        return view('tables.tbl_process_setup', compact('process_list'));
     }
     public function tbl_machine_setup_list(Request $request){
 
@@ -2422,6 +2414,7 @@ class SecondaryController extends Controller
         
     }
      public function mark_as_done_task(Request $request){
+        DB::connection('mysql')->beginTransaction();
         DB::connection('mysql_mes')->beginTransaction();
         try {
             $now = Carbon::now();
@@ -2456,7 +2449,7 @@ class SecondaryController extends Controller
                 if($logs){
                     $from_time = Carbon::parse($logs->from_time);
                     $duration = $from_time->diffInSeconds($now);
-			        $duration= $duration / 3600;
+                    $duration = $duration / 3600;
 
                     $values['status'] = 'Completed';
                     $values['to_time'] = $now->toDateTimeString();
@@ -2522,6 +2515,7 @@ class SecondaryController extends Controller
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
             }
         } catch (Exception $e) {
+            DB::connection('mysql')->rollback();
             DB::connection('mysql_mes')->rollback();
 
             return response()->json(["error" => $e->getMessage()]);
@@ -2964,7 +2958,7 @@ class SecondaryController extends Controller
             ->join('workstation as work','work.workstation_name','tsd.workstation')
             ->whereIn('tsd.workstation', $permitted_workstation)
             ->where('time_logs.status', 'In Progress')
-            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id');
+            ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','time_logs.machine_code as machine','time_logs.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'time_logs.operator_name', 'time_logs.operator_id', 'time_logs.from_time', 'time_logs.to_time', 'time_logs.machine_code', 'work.workstation_id', 'time_logs.time_log_id', 'tsd.job_ticket_id', 'time_logs.machine_name');
 
         if($request->operation != 2){
             $orders = DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -2975,7 +2969,7 @@ class SecondaryController extends Controller
                 ->join('workstation as work','work.workstation_name','tsd.workstation')
                 ->whereIn('tsd.workstation', $permitted_workstation)
                 ->where('spotwelding_qty.status', 'In Progress')
-                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id')
+                ->select('prod.production_order','prod.qty_to_manufacture','tsd.workstation as workstation_plot','spotwelding_qty.machine_code as machine','spotwelding_qty.job_ticket_id as jtname', 'p.process_name', "tsd.status as stat", 'tsd.item_feedback as item_feed', 'spotwelding_qty.operator_name', 'spotwelding_qty.operator_id', 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', 'spotwelding_qty.machine_code', 'work.workstation_id', 'spotwelding_qty.time_log_id', 'tsd.job_ticket_id', 'spotwelding_qty.machine_name')
                 ->union($orders_1)->get();
         }else{
             $orders = $orders_1->get();
@@ -2998,7 +2992,7 @@ class SecondaryController extends Controller
                 ];
             }
         }
-        
+
         $result = [];
         foreach($orders as $row){
             $reference_type = ($row->workstation_plot == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
@@ -3033,7 +3027,7 @@ class SecondaryController extends Controller
 
             $result[]=[
                 'workstation_plot'=> $row->workstation_plot,
-                'machine' => $row->machine,
+                'machine' => $row->machine_name,
                 'jtname' => $row->jtname,
                 'process_name' => $row->process_name,
                 'stat' => $row->stat,
@@ -3042,9 +3036,6 @@ class SecondaryController extends Controller
                 'from_time' => ($row->from_time == null)? '-' : Carbon::parse($row->from_time)->format('M-d-Y h:i A'),
                 'to_time' => ($row->to_time == null)? '-' : Carbon::parse($row->to_time)->format('M-d-Y h:i A'),
                 'time_log_id'=>$row->time_log_id,
-                // 'qa_inspection_status' => ($qa_table == null) ? 'Pending': $qa_table->status,
-                // 'qa_inspected_by' =>  ($qa_table == null) ? '': $qa_em->employee_name,
-                // 'qa_inspection_date' => ($qa_table == null) ? 'Pending': Carbon::parse($qa_table->qa_inspection_date)->format('M-d-Y h:i A'),
                 'production_order' => $row->production_order,
                 'job_ticket_id' => $row->job_ticket_id,
                 'timelogs_id' => $row->time_log_id,
@@ -3055,7 +3046,8 @@ class SecondaryController extends Controller
                 'unloading_operator' => $unloading_operator,
                 'qty_accepted' => $row->qty_to_manufacture,
                 'workstation_id' =>  $row->workstation_id,
-                'helpers' => $helpers
+                'operator_id' =>  $row->operator_id,
+                'helpers' => $helpers,
             ];
         }
 
@@ -3751,35 +3743,11 @@ class SecondaryController extends Controller
 
     }
     public function tbl_shift_list(Request $request){
-
-        $shift_list= DB::connection('mysql_mes')
-                ->table('shift')
+        $shift_list= DB::connection('mysql_mes')->table('shift')
                 ->join('operation', 'operation.operation_id', 'shift.operation_id')
-                ->select('shift.*','operation.operation_name')
-                ->get();
+                ->select('shift.*','operation.operation_name')->paginate(15);
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($shift_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 7;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_shift_list', compact('data'));
-
-
+        return view('tables.tbl_shift_list', compact('shift_list'));
     }
     public function add_operation(Request $request){
          $now = Carbon::now();
@@ -3844,30 +3812,9 @@ class SecondaryController extends Controller
                     $q->where('operation_name', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('description', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('operation_id', 'desc')->get();
+            ->orderBy('operation_id', 'desc')->paginate(15);
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($shift_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-
-        $data = $paginatedItems;
-
-        return view('tables.tbl_operation_list', compact('data'));
-
-
+        return view('tables.tbl_operation_list', compact('shift_list'));
     }
     public function add_shift_schedule(Request $request){
         $now = Carbon::now();
@@ -4574,6 +4521,7 @@ class SecondaryController extends Controller
     }
     
     public function production_schedule_calendar($operation_id){
+        $permissions = $this->get_user_permitted_operation();
         switch ($operation_id) {
             case 1:
                 $operation_name = 'Fabrication';
@@ -4586,7 +4534,7 @@ class SecondaryController extends Controller
                 break;
         }
 
-        return view('production_schedule_calendar', compact('operation_id','operation_name'));
+        return view('production_schedule_calendar', compact('operation_id','operation_name', 'permissions'));
     }
 
     public function get_production_schedule_calendar($operation_id){
@@ -5319,29 +5267,9 @@ class SecondaryController extends Controller
                     ->orWhere('type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('model', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('machine_id', 'desc')->get();
-        
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($machine_list);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
+            ->orderBy('machine_id', 'desc')->paginate(15);
 
-        $data = $paginatedItems;
-
-        return view('tables.tbl_settings_machine_list', compact('data'));
-
+        return view('tables.tbl_settings_machine_list', compact('machine_list'));
     }
     public function stock_adjustment_entries_page(){
         $attributes = $this->get_item_attributes();
@@ -6218,21 +6146,26 @@ class SecondaryController extends Controller
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')
             ->where('qa_sp.reject_category_id', 1)
-            ->orderBy('lot_size_min', 'asc')->paginate(8);
+            ->orderBy('lot_size_min', 'asc')->paginate(15);
+
         return view('tables.tbl_qa_sampling_plan_visual', compact('sampling_plan'));
     }
+
     public function get_tbl_qa_variable(Request $request){
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')
             ->where('qa_sp.reject_category_id', 2)
-            ->orderBy('lot_size_min', 'asc')->paginate(8);
+            ->orderBy('lot_size_min', 'asc')->paginate(15);
+
         return view('tables.tbl_qa_sampling_plan_variable', compact('sampling_plan'));
     }
+
     public function get_tbl_qa_reliability(Request $request){
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')
             ->where('qa_sp.reject_category_id', 3)
-            ->orderBy('lot_size_min', 'asc')->paginate(8);
+            ->orderBy('lot_size_min', 'asc')->paginate(15);
+
         return view('tables.tbl_qa_sampling_plan_reliability', compact('sampling_plan'));
     }
     public function save_sampling_plan(Request $request){
@@ -6382,8 +6315,16 @@ class SecondaryController extends Controller
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('op.operation_name', 'Fabrication')
             ->where('w.workstation_name','!=','Painting')
+            ->when($request->search_string, function ($query) use ($request){
+                $query->where(function($q) use ($request) {
+                    return $q->where('w.workstation_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rc.reject_category_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_reason', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_checklist', 'like', '%'.$request->search_string.'%');
+                });
+            })
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name')
-            ->orderBy('qa_checklist_id', 'desc')->paginate(9);
+            ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
         return view('tables.tbl_check_list_fabrication', compact('check_list'));
 
@@ -6401,8 +6342,17 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('w.workstation_name','=','Painting')
+            ->when($request->search_string, function ($query) use ($request){
+                $query->where(function($q) use ($request) {
+                    return $q->where('w.workstation_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rc.reject_category_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_reason', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_checklist', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('process.process_name', 'like', '%'.$request->search_string.'%');
+                });
+            })
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
-            ->orderBy('qa_checklist_id', 'desc')->paginate(9);
+            ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
         return view('tables.tbl_check_list_painting', compact('check_list'));
     }
@@ -6413,8 +6363,16 @@ class SecondaryController extends Controller
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where('op.operation_name', 'Wiring and Assembly')
+            ->when($request->search_string, function ($query) use ($request){
+                $query->where(function($q) use ($request) {
+                    return $q->where('w.workstation_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rc.reject_category_name', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_reason', 'like', '%'.$request->search_string.'%')
+                        ->orWhere('rl.reject_checklist', 'like', '%'.$request->search_string.'%');
+                });
+            })
             ->select('w.workstation_name', 'qc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name')
-            ->orderBy('qa_checklist_id', 'desc')->paginate(9);
+            ->orderBy('qa_checklist_id', 'desc')->paginate(15);
 
         return view('tables.tbl_check_list_assembly', compact('check_list'));
 
@@ -6508,7 +6466,7 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('rl.*','rc.reject_category_name', 'reject_material_type.material_type')
-            ->orderBy('reject_list_id', 'desc')->paginate(8);
+            ->orderBy('reject_list_id', 'desc')->paginate(15);
             
         return view('tables.tbl_reject_list', compact('reject_list'));
 
@@ -6517,8 +6475,7 @@ class SecondaryController extends Controller
         $reject_list = DB::connection('mysql_mes')->table('reject_list as rl')
             ->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
             ->leftJoin('reject_material_type', 'reject_material_type.reject_material_type_id', 'rl.reject_material_type_id')
-            ->leftJoin('operation', 'operation.operation_id', 'rl.operation_id')
-            ->where('rl.owner', 'Operator')
+            ->leftJoin('operation', 'operation.operation_id', 'rl.operation_id')->where('rl.owner', 'Operator')
             ->where(function($q) use ($request) {
                 $q->where('rl.reject_reason', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rl.recommended_action', 'LIKE', '%'.$request->search_string.'%')
@@ -6528,11 +6485,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('rl.*','rc.reject_category_name', 'reject_material_type.material_type', 'operation.operation_name')
-            ->orderBy('reject_list_id', 'desc')->paginate(8);
+            ->orderBy('reject_list_id', 'desc')->paginate(15);
             
         return view('tables.tbl_reject_op_list', compact('reject_list'));
-
     }
+
     public function update_reject_list(Request $request){
         $now = Carbon::now();
         // dd($request->all());
@@ -6621,6 +6578,7 @@ class SecondaryController extends Controller
 
         
     }
+
     public function get_tbl_reject_category(Request $request){
         $reject_category = DB::connection('mysql_mes')->table('reject_category as rc')
             ->where(function($q) use ($request) {
@@ -6629,11 +6587,11 @@ class SecondaryController extends Controller
                     ->orWhere('rc.type', 'LIKE', '%'.$request->search_string.'%')
                     ->orWhere('rc.category_description', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reject_category_id', 'desc')->paginate(8);
+            ->orderBy('reject_category_id', 'desc')->paginate(15);
 
         return view('tables.tbl_reject_category', compact('reject_category'));
-
     }
+
     public function update_reject_category(Request $request){
         $now = Carbon::now();
         $reject_category = [];
@@ -6824,9 +6782,11 @@ class SecondaryController extends Controller
                 ->orwhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%');
                 });
             })
-            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(8);
+            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_item_classification_warehouse_fabrication', compact('item_classification'));
     }
+
     public function item_classification_warehouse_tbl_painting(Request $request){
         $item_classification = DB::connection('mysql_mes')->table('item_classification_warehouse as icw')
             ->join('operation', 'operation.operation_id','icw.operation_id')
@@ -6839,9 +6799,11 @@ class SecondaryController extends Controller
                 ->orwhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%');
                 });
             })
-            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(8);
+            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_item_classification_warehouse_painting', compact('item_classification'));
     }
+
     public function item_classification_warehouse_tbl_assembly(Request $request){
         $item_classification = DB::connection('mysql_mes')->table('item_classification_warehouse as icw')
             ->join('operation', 'operation.operation_id','icw.operation_id')
@@ -6854,9 +6816,11 @@ class SecondaryController extends Controller
                 ->orwhere('operation.operation_name', 'LIKE', '%'.$request->search_string.'%');
                 });
             })
-            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(8);
+            ->orderBy('icw.item_classification_warehouse_id', 'desc')->paginate(15);
+
         return view('inventory.tbl_item_classification_warehouse_assembly', compact('item_classification'));
     }
+    
     public function insert_item_classification_warehouse(Request $request){
 
         $now = Carbon::now();
@@ -8076,7 +8040,7 @@ class SecondaryController extends Controller
                     $q->where('email', 'LIKE', '%'.$request->search_string.'%')
                     ->orwhere('email_trans', 'LIKE', '%'.$request->search_string.'%');
                 })
-                ->orderBy('email_trans_recipient_id', 'desc')->paginate(10);
+                ->orderBy('email_trans_recipient_id', 'desc')->paginate(15);
             
             return view('tables.tbl_email_trans', compact('data'));
 
@@ -8150,7 +8114,7 @@ class SecondaryController extends Controller
             })
             ->where('w.workstation_name','!=','Painting')
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','op.operation_name', 'process.process_name')
-            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
+            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(15);
 
         return view('tables.tbl_operator_check_list_fabrication', compact('check_list'));
 
@@ -8169,11 +8133,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('rl.*','rc.reject_category_name', 'rmt.material_type')
-            ->orderBy('reject_list_id', 'desc')->paginate(9);
+            ->orderBy('reject_list_id', 'desc')->paginate(15);
 
         return view('tables.tbl_operator_check_list_assembly', compact('check_list'));
-
     }
+
     public function get_tbl_opchecklist_list_painting(Request $request){
         $check_list = DB::connection('mysql_mes')->table('operator_reject_list_setup as oc')
             ->join('workstation as w','w.workstation_id', 'oc.workstation_id')
@@ -8192,10 +8156,11 @@ class SecondaryController extends Controller
                     ->orWhere('rl.responsible', 'LIKE', '%'.$request->search_string.'%');
             })
             ->select('w.workstation_name', 'oc.*','rc.reject_category_name','rl.reject_reason', 'rl.reject_checklist','w.workstation_name as operation_name', 'process.process_name')
-            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(9);
-        return view('tables.tbl_operator_check_list_painting', compact('check_list'));
+            ->orderBy('operator_reject_list_setup_id', 'desc')->paginate(15);
 
+        return view('tables.tbl_operator_check_list_painting', compact('check_list'));
     }
+
     public function delete_operator_checklist(Request $request){
         DB::connection('mysql_mes')->table('operator_reject_list_setup')->where('operator_reject_list_setup_id', $request->check_list_id)->delete();
         return response()->json(['success' => 1, 'message' => 'Operator reject list setup successfully deleted!', 'reloadtbl' => $request->delete_op_reloadtbl]);
@@ -8228,7 +8193,7 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                 $q->where('reschedule_reason', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reschedule_reason_id', 'desc')->paginate(8);
+            ->orderBy('reschedule_reason_id', 'desc')->paginate(15);
             
         return view('tables.tbl_late_delivery_reason', compact('list'));
 
@@ -8451,11 +8416,11 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                 $q->where('material_type', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reject_material_type_id', 'desc')->paginate(8);
+            ->orderBy('reject_material_type_id', 'desc')->paginate(15);
             
         return view('tables.tbl_material_type', compact('list'));
-
     }
+
     public function update_material_type(Request $request){
         if (DB::connection('mysql_mes')->table('reject_material_type')
             ->where('material_type', $request->edit_material_type)
@@ -8522,10 +8487,9 @@ class SecondaryController extends Controller
             ->where(function($q) use ($request) {
                 $q->where('reason_for_cancellation', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->orderBy('reason_for_cancellation_id', 'desc')->paginate(8);
+            ->orderBy('reason_for_cancellation_id', 'desc')->paginate(15);
             
         return view('tables.tbl_reason_for_cancellation', compact('list'));
-
     }
     public function update_reason_for_cancellation(Request $request){
         if (DB::connection('mysql_mes')->table('reason_for_cancellation_po')

@@ -367,12 +367,17 @@
 <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
    <div class="modal-dialog" role="document" style="min-width: 90%;">
      <div class="modal-content">
-       <div class="modal-header text-white" style="background-color: #0277BD;">
-         <h5 class="modal-title font-weight-bold">Modal Title</h5>
-         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-           <span aria-hidden="true">&times;</span>
-         </button>
-       </div>
+      <div class="text-white rounded-top" style="background-color: #0277BD;">
+        <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+          <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+          <div class="float-right">
+            <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+            <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        </div>
+      </div>
        <div class="modal-body" style="min-height: 600px;">
          <div id="production-search-content-modal2"></div>
        </div>
@@ -380,7 +385,7 @@
    </div>
  </div>
  <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-  <div class="modal-dialog" role="document" style="min-width: 90%;">
+  <div class="modal-dialog" role="document" style="min-width: 95%;">
      <div class="modal-content">
         <div class="modal-header text-white" style="background-color: #f57f17;">
            <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
@@ -631,6 +636,78 @@
       e.preventDefault();
       location.assign($(this).attr('href'));
     });
+
+    function close_modal(modal){
+      $(modal).modal('hide');
+    }
+
+    $(document).on('click', '.maintnenance-access-id-modal-trigger', function(e){
+      e.preventDefault();
+      var machine_id = $(this).data('machine-id');
+      var machine_breakdown_id = $(this).data('machine-breakdown-id');
+      $('#machine-id').val(machine_id);
+      $('#machine-breakdown-id').val(machine_breakdown_id);
+      if($(this).data('maintenance-status') == 'In Process'){
+        $('#is-completed').prop('checked', true);
+      }else{
+        $('#is-completed').prop('checked', false);
+      }
+      $('#maintenance-access-id-modal').modal('show');
+      $('#access-id').val('');
+    });
+    
+    $(document).on('click', '#access-id-numpad .num', function(e){
+        e.preventDefault();
+        var num = $(this).text();
+        var current = $('#access-id').val();
+        var new_input = current + num;
+            
+        $('#access-id').val(new_input);
+    });
+
+    $(document).on('click', '#submit-access-id', function (e){
+      $.ajax({
+        url: '/update_maintenance_task',
+        type:"POST",
+        data: {
+          _token: '{{ csrf_token() }}',
+          user_id: $('#access-id').val(),
+          machine_id: $('#machine-id').val(),
+          machine_breakdown_id: $('#machine-breakdown-id').val(),
+          is_completed: $('#is-completed').is(":checked") ? 1 : 0
+        },
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#maintenance-access-id-modal').modal('hide');
+            get_pending_for_maintenance();
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
+
+    $(document).on('click', '#pending-for-maintenance-trigger', function (){
+      $('#pending-for-maintenance-modal').modal('show');
+      get_pending_for_maintenance();
+    });
+    
+    function get_pending_for_maintenance(){
+      $.ajax({
+        url:"/operator/pending_for_maintenance/{{ $operation_id }}",
+        type:"GET",
+        success:function(data){
+          $('#pending-for-maintenance-tbl').html(data);
+          $('#operation').text($('#operation-placeholder').text());
+        }
+      });
+    }
 
     $(document).on('click', '.get-task', function(e){
       e.preventDefault();
@@ -1130,21 +1207,33 @@
           }
         });
       }
+
+      
+      $(document).on('click', '.quality-inspection-btn-op', function(e){
+        e.preventDefault();
+        var production_order = $(this).data('production-order');
+        var workstation = 'Painting';
+        var time_log_id = $(this).data('timelog-id');
+        get_tasks_for_inspection(workstation, production_order, time_log_id);
+      });
   
       $(document).on('click', '.quality-inspection-btn', function(e){
         e.preventDefault();
-  
+
         $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-  
+
         var production_order = $(this).data('production-order');
         var process_id = $(this).data('processid');
-        var workstation = 'Painting';
+        var workstation = $(this).data('workstation');
         var inspection_type = $(this).data('inspection-type');
-  
+        var reject_category = $(this).data('reject-cat');
+
         var data = {
           time_log_id: $(this).data('timelog-id'),
-          inspection_type: inspection_type
+          inspection_type,
+          reject_category,
         }
+
         $.ajax({
           url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
           type:"GET",
@@ -1160,7 +1249,7 @@
             console.log(textStatus);
             console.log(errorThrown);
           },
-        });  
+        });
       });
   
       $(document).on('submit', '#quality-inspection-frm', function(e){
@@ -2244,14 +2333,7 @@ $('#end-task-frm').submit(function(e){
       }
 
     });
-    $(document).on('change','#present_input', function(){
-      // var valpre = $(this).val();
-      // var valprev = $('#previous_input').val();
-      // var diff = valpre - valprev;
-      // alert(diff);
-      //  $("#incoming_water_discharged").val(diff);
-      console.log('hi');
-    });
+    
     $(document).on('click', '#painting_chemical_records_frm .next-tab', function(e){
       e.preventDefault();
 
@@ -2525,7 +2607,6 @@ $('#end-task-frm').submit(function(e){
             
           },
           error: function(data) {
-          alert(data);
           }
         });
     }
