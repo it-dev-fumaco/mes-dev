@@ -723,7 +723,7 @@
         <div class="modal-content">
           <div class="modal-header text-white p-2" style="background-color: #0277BD;">
               <h5 class="modal-title">
-               <span>Mark as Done1</span>
+               <span>Mark as Done</span>
                <span class="workstation-text font-weight-bold"></span>
               </h5>
                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
