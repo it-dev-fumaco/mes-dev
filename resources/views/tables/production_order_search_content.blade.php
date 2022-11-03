@@ -179,7 +179,7 @@
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>END</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DURATION</b></td>
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>OPERATOR</b></td>
-											@if ($item_details['feedback_qty'] <= 0)
+											@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
 											<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>ACTION</b></td>
 											@endif
 										</thead>
@@ -254,7 +254,7 @@
 													</div>
 													@endif
 												</td>
-												@if ($item_details['feedback_qty'] <= 0)
+												@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 													@if ($process['workstation'] != 'Spotwelding')
 													<span class="d-none">{{ $process['production_order'] }}</span>

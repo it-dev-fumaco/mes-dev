@@ -31,6 +31,7 @@
                         <small class="d-block" style="font-size: 8pt;">Total Reject</small>
                         <h5 class="d-block font-weight-bold m-0">{{ number_format($total_reject) }}</h5>
                     </div>
+
                     <div class="p-1 mt-1 mb-1 col-5">
                         <div class="d-flex flex-row align-items-center">
                             <div class="col-5 pt-1 pl-2 pr-2 pb-1">

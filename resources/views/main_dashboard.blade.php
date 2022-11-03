@@ -364,40 +364,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="mark-done-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="width: 30%;">
-    <form action="/mark_as_done_task" method="POST" id="mark-done-frm">
-      @csrf
-      <div class="modal-content">
-        <div class="modal-header text-white p-2" style="background-color: #0277BD;">
-          <h5 class="modal-title">
-            <span>Mark as Done</span>
-            <span class="workstation-text font-weight-bold"></span>
-          </h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="row m-0">
-              <div class="col-md-12">
-                <h5 class="text-center m-0">Do you want to override task?</h5>
-                <input type="hidden" name="id" required id="jt-index">
-                <input type="hidden" name="qty_accepted" required id="qty-accepted-override">
-                <input type="hidden" name="workstation" required id="workstation-override">
-              </div>
-          </div>
-        </div>
-        <div class="modal-footer pt-1 pb-1 pr-2">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Confirm</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Create STE Production Order -->
 <div class="modal fade" id="create-ste-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <form action="#" method="POST">

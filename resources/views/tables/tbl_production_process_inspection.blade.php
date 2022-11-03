@@ -38,7 +38,6 @@
                 <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="third-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size: 10pt;">{{ count($qa_inspection_logs) }}<span></span>
             </li>
         </ul>
-
         <style>
             .custom-tabs-rcfa .active {
                 background-color: #a6acaf !important;
@@ -99,7 +98,7 @@
             <div class="tab-pane" id="tab{{ $existing_production_order->production_order }}-3" role="tabpanel" aria-labelledby="third-tab">
                 <div class="row" style="min-height: 200px;">
                     <div class="col-md-12">
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px;">
                             <table class="table table-striped text-center">
                                 <thead class="text-primary" style="font-size: 6pt;">
                                     <th class="text-center p-2"><b>PROCESS</b></th>

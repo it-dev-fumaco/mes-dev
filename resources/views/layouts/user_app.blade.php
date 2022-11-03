@@ -521,9 +521,11 @@
                 <input type="hidden" name="id">
                 <input type="hidden" name="production_order">
                 <p style="font-size: 14pt;" class="text-center m-0">Close Production Order <b><span></span></b>?</p>
-                <div class="mt-3">
-                  <label for="" class="text-muted">Please specify reason for closing production order</label>
-                  <textarea class="form-control border rounded p-2" name="reason" cols="30" rows="10" required></textarea>
+                <div class="col-8 mx-auto mt-2 text-center" style="border-left: solid 10px #17A2B8; display: flex; justify-content: center; align-items: center; min-height: 50px;">
+                  <div class="text-center">
+                    Pending Stock Withdrawals For Issue will be cancelled <br>
+                    <small>Note: Once Closed, Production Order can still be Re-open</small>
+                  </div>
                 </div>
               </div>
               <div class="col-md-12" id="items-for-return-table-for-close"></div>
@@ -712,6 +714,41 @@
       </form>
     </div>
   </div>
+
+    
+<div class="modal fade" id="mark-done-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="width: 30%;">
+     <form action="/mark_as_done_task" method="POST" id="mark-done-frm">
+        @csrf
+        <div class="modal-content">
+          <div class="modal-header text-white p-2" style="background-color: #0277BD;">
+              <h5 class="modal-title">
+               <span>Mark as Done1</span>
+               <span class="workstation-text font-weight-bold"></span>
+              </h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">&times;</span>
+               </button>
+           </div>
+           <div class="modal-body">
+              <div class="row m-0">
+                 <div class="col-md-12">
+                   <h5 class="text-center m-0">Do you want to override task?</h5>
+                   <input type="hidden" name="logid" id="log-id">
+                   <input type="hidden" name="id" required id="jt-index">
+                   <input type="hidden" name="qty_accepted" id="qty-accepted-override">
+                   <input type="hidden" name="workstation" required id="workstation-override">
+                 </div>
+              </div>
+           </div>
+           <div class="modal-footer pt-1 pb-1 pr-2">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Confirm</button>
+           </div>
+        </div>
+     </form>
+  </div>
+</div>
 
   <style type="text/css">
     .qc_passed{
@@ -1116,6 +1153,43 @@
   <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
 <script>
   $(document).ready(function(){
+    $(document).on('click', '.mark-done-btn', function(){
+      if ($('#machine_kanban_details #card-status').val() == 'Unassigned') {
+        showNotification("danger", 'Please assigned task to machine first', "now-ui-icons travel_info");
+        return false;
+      }
+
+      if ($('#machine_kanban_details #task-status').val() == 'Completed') {
+        showNotification("danger", 'Unable to Mark as Done.', "now-ui-icons travel_info");
+        return false;
+      }
+
+      var logid= $(this).data('logid');
+      var workstation_id= $(this).attr('data-workstationid');
+      var jtid= $(this).attr('data-jtid');
+      var workstation = $(this).attr('data-workstation');
+      var qty = $(this).attr('data-qtyaccepted');
+
+      $('#mark-done-modal #log-id').val(logid);
+      $('#mark-done-modal #jt-index').val(jtid);
+      $('#mark-done-modal #qty-accepted-override').val(qty);
+      $('#mark-done-modal #workstation-override').val(workstation);
+      $('#mark-done-modal .workstation-text').text('[' + workstation + ']');
+       $.ajax({
+        url:"/get_AssignMachineinProcess_jquery/"+ jtid + "/" + workstation_id,
+        type:"GET",
+        success:function(data){
+          $('#machine_selection').html(data);
+          $('#mark-done-modal').modal('show');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      }); 
+    });
+
     $("#sidebar-toggle").on("click", function () {
         $("#wrapper").toggleClass("no-sidebar");
     });

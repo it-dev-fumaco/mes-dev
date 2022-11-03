@@ -507,37 +507,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="mark-done-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document" style="width: 30%;">
-    <form action="/mark_as_done_task" method="POST" id="mark-done-frm">
-      @csrf
-      <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title">
-            <span>Mark as Done</span>
-            <span class="workstation-text font-weight-bold"></span>
-          </h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-12">
-              <h5 class="text-center">Do you want to override task?</h5>
-              <input type="hidden" name="id" required>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer p-2">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Confirm</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
 <div class="modal fade" id="view-machine-task-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 60%;">
     <div class="modal-content">
@@ -1203,10 +1172,10 @@
   
       $(document).on('click', '#mark-done-btn', function(){
         var workstation = $('#machine_kanban_details .workstation-name').text();
-        var workstation_id = $('#jtname-modal .workstation-id').val();
         var jtid = $('#jtname-modal .job-ticket-id').val();
-  
         $('#mark-done-modal input[name="id"]').val(jtid);
+        $('#mark-done-modal #jt-index').val(jtid);
+        $('#mark-done-modal #workstation-override').val(workstation);
         $('#mark-done-modal .workstation-text').text('[' + workstation + ']');
         $('#mark-done-modal').modal('show');
       });

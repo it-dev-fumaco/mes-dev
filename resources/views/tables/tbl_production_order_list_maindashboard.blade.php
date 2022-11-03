@@ -138,34 +138,6 @@
       }); 
     }
 
-      $('#mark-done-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr('action');
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success) {
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#mark-done-modal').modal('hide');
-            $('#jtname-modal').modal("hide");
-            $('#view-machine-task-modal').modal("hide");
-            load_dashboard();
-            table_po_orders();
-            count_current_production();
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-            return false;
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
-        },
-      }); 
-    });
 </script>
 <script type="text/javascript">
       function showNotification(color, message, icon){
