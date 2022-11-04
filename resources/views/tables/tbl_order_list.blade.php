@@ -213,17 +213,25 @@
                                         $bom = array_key_exists($v->item_code, $default_boms) ? $default_boms[$v->item_code] : [];
                                         $defaultbom = count($bom) > 0 ? $bom[0]->name : null;
 
+                                        $img = 'http://athenaerp.fumaco.local/storage';
+									    $img .= array_key_exists($v->item_code, $item_images) ? "/img/" . $item_images[$v->item_code] : "/icon/no_img.png";
+
                                         $production_order_item = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
                                     @endphp
                                     <tr>
                                         <td class="text-center p-2">
                                             <input type="checkbox" class="form-control" value="{{ $v->item_code }}" name="item[]">
                                         </td>
-                                        <td class="text-justify p-2">
-                                            <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
-                                            @if ($ref_type == 'SO')
-                                            <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
-                                            @endif
+                                        <td class="text-justify p-1">
+                                            <div class="d-flex flex-row">
+                                                <img src="{{ $img }}" alt="{{ $v->item_code }}" class="m-1" style="width: 50px; height: 50px;">
+                                                <div class="m-1">
+                                                    <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
+                                                    @if ($ref_type == 'SO')
+                                                    <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="text-center p-2">
                                             <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>

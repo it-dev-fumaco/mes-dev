@@ -8581,6 +8581,8 @@ class MainController extends Controller
 
 		$item_codes = collect($item_list)->pluck('item_code')->unique();
 
+		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
+
 		$default_boms = DB::connection('mysql')->table('tabBOM')
 			->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
 			->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
@@ -8626,7 +8628,7 @@ class MainController extends Controller
 
 		$reschedule_reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->select('reschedule_reason_id as id', 'reschedule_reason as reason')->get();
 
-		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs', 'reschedule_reason'));
+		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs', 'reschedule_reason', 'item_images'));
 	}
 
 	public function reschedule_delivery(Request $request, $id){
