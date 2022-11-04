@@ -16,7 +16,7 @@
               <span>{{ Carbon\Carbon::parse($date)->format('l') }}</span> <br>
               @if (Carbon\Carbon::parse($date)->endOfDay() < Carbon\Carbon::now()->startOfDay())
                 <span style="color: #E42223">BACKLOG</span>
-              @else
+              @elseif(Carbon\Carbon::parse($date)->startOfDay() == Carbon\Carbon::now()->startOfDay())
                 <span style="color: #1F8C04">TODAY</span>
               @endif
             </div>
