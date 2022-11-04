@@ -8,8 +8,8 @@
 @section('content')
 <div class="panel-header"></div>
  
-   <div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-     <div class="col-md-12">
+   <div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+     <div class="col-md-12 p-2 m-0">
        <ul class="nav nav-tabs" role="tablist" id="qa-dashboard-tabs">
          <li class="nav-item">
             <a class="nav-link {{ (request()->segment(2) == '1') ? 'active' : '' }}" data-toggle="tab" href="#tab0" role="tab" aria-controls="tab0" aria-selected="true">Daily Fabrication Output</a>
@@ -23,86 +23,60 @@
        </ul>
        <div class="tab-content" style="min-height: 500px;">
          <div class="tab-pane {{ (request()->segment(2) == '1') ? 'active' : '' }}" id="tab0" role="tabpanel" aria-labelledby="tab0">
-            <div class="row">
+            <div class="row m-0 p-0 bg-white">
                <div class="col-md-12">
-                  <div class="card" style="border-radius: 0 0 3px 3px;">
-                     <div class="card-body">
-                        <div class="row m-0">
+                  <div class="d-flex flex-row align-items-center p-2">
+                     <div class="col-3">
+                        <h5 class="font-weight-bold p-0 m-0">Daily Fabrication Output</h5>
+                     </div>
+                     <div class="col-4">
+                        <div class="form-group m-0">
+                           <label for="parts_filter" style="font-size: 10pt; display: inline-block; margin-right: 1%;">Item Classification:</label>
+                           <select class="form-control form-control-lg m-0" name="parts_filter" id="parts_filter" style="display: inline-block; width: 60%;">
+                              <option value="All">Select Item Classification</option>
+                              @foreach($item_classification as $rows)
+                              <option value="{{$rows->item_classification}}">{{$rows->item_classification}}</option>
+                              @endforeach
+                           </select>
+                        </div>
+                     </div>
+                     <div class="col-4">
+                        <div class="form-group m-0">
+                           <label for="daterange_report" style="font-size: 10pt; display: inline-block; margin-right: 1%;">Date Range:</label>
+                           <input type="text" class="date form-control form-control-lg m-0" name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%;">
+                        </div>
+                     </div>
+                     <div class="col-1">
+                        <div style="float: right;" id="printthisasap"><img src="{{ asset('img/print.png') }}" width="35" class="printbtnprint" data-print=""></div>
+                     </div>
+                  </div>
+                 
+               </div>
+               <div class="col-md-12" >
+                  <canvas id="fabrication_daily_report_chart" height="50"></canvas>
+               </div>
+               <div class="col-md-12">
+                  <ul class="nav nav-tabs nav-hide mt-4" id="mytab" role="tablist">
+                     <li class="nav-item nav-hide">
+                        <a class="nav-link active" id="tab01-tab" data-toggle="tab" href="#tabclass01" role="tab" aria-controls="tab01" aria-selected="true">Item Classification</a>
+                     </li>
+                     <li class="nav-item nav-hide">
+                        <a class="nav-link" id="tab02-tab" data-toggle="tab" href="#tabcateg02" role="tab" aria-controls="tab02" aria-selected="false"> Parts Category</a>
+                     </li>
+                  </ul>
+                  <!-- Tab panes -->
+                  <div class="tab-content" id="printtbl">
+                     <div class="tab-pane active" id="tabclass01" role="tabpanel" aria-labelledby="tabclass01">
+                        <div class="row" style="margin-top: 12px;">
                            <div class="col-md-12">
-                              <div class="row text-black" style=" padding-top:50px auto;">
-                                 <div class="col-md-5">
-                                    <div class="form-group">
-                                       <h5><b>Daily Fabrication Output</b></h5>
-                                    </div>
-                                 </div>
-                                 <div class="col-md-3 text-center align-middle">
-                                    <div class="form-group row align-middle">
-                                       <label for="parts_filter" class="align-middle" style="font-size: 12pt; color: black; margin-right: 1%;display:inline-block;margin-top:5px;"><b>Item Classification:</b></label>
-											      <div class="col-sm-7 align-middle">
-                                          <select class="form-control form-control-lg text-center" style="display:inline;" name="parts_filter" id="parts_filter">
-                                             <option value="All">Select Item Classification</option>
-                                                @foreach($item_classification as $rows)
-                                                   <option value="{{$rows->item_classification}}">{{$rows->item_classification}}</option>
-                                                @endforeach
-                                          </select>
-                                       </div>
-                                    </div>
-                                 </div>
-                                 <div class="col-md-4 pull-right">
-                                    <div class="row">
-                                       <div class="col-md-10">
-                                          <div class="form-group">
-                                             <label for="daterange_report" style="font-size: 12pt; color: black; display: inline-block; margin-right: 1%;"><b>Date Range:</b></label>
-                                             <input type="text" class="date form-control form-control-lg " name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="daterange_report" value="" style="display: inline-block; width: 60%; font-weight: bolder;">
-                                          </div>
-                                       </div>
-                                       <div class="col-md-2">
-                                          <div style="float: right;" id="printthisasap"><img src="{{ asset('img/print.png') }}" width="35" class="printbtnprint" data-print=""  ></div>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
+                              <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
                            </div>
-                           <div class="col-md-12" >
-                              <div class="card">
-                                 <div class="card-body">
-                                    <div class="col-md-12" >
-                                       <canvas id="fabrication_daily_report_chart" height="50"></canvas>
-                                    </div>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-md-12"  >
-                              <div class="row m-0">
-                                 <div class="col-md-12" style="padding: 0;">
-                                    <ul class="nav nav-tabs nav-hide" id="mytab" role="tablist">
-                                    <li class="nav-item nav-hide">
-                                       <a class="nav-link active" id="tab01-tab" data-toggle="tab" href="#tabclass01" role="tab" aria-controls="tab01" aria-selected="true">Item Classification</a>
-                                    </li>
-                                    <li class="nav-item nav-hide">
-                                       <a class="nav-link" id="tab02-tab" data-toggle="tab" href="#tabcateg02" role="tab" aria-controls="tab02" aria-selected="false"> Parts Category</a>
-                                    </li>
-                                    
-                                    </ul>
-                                    <!-- Tab panes -->
-                                    <div class="tab-content" id="printtbl">
-                                       <div class="tab-pane active" id="tabclass01" role="tabpanel" aria-labelledby="tabclass01">
-                                          <div class="row" style="margin-top: 12px;">
-                                             <div class="col-md-12">
-                                                <div id="tbl_log_report" style="width: 100%;overflow: auto;"></div>
-                                             </div>
-                                          </div>
-                                       </div>
-                                       <div class="tab-pane" id="tabcateg02" role="tabpanel" aria-labelledby="tabcateg02">
-                                          <div class="row" style="margin-top: 12px;">
-                                             <div class="col-md-12">
-                                                <div id="tbl_log_partscateg_report" style="width: 100%;overflow: auto;"></div>
-                                             </div>
-                                          </div>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
+                        </div>
+                     </div>
+                     <div class="tab-pane" id="tabcateg02" role="tabpanel" aria-labelledby="tabcateg02">
+                        <div class="row" style="margin-top: 12px;">
+                           <div class="col-md-12">
+                              <div id="tbl_log_partscateg_report" style="width: 100%;overflow: auto;"></div>
                            </div>
                         </div>
                      </div>
@@ -112,124 +86,104 @@
          </div>
         
          <div class="tab-pane {{ (request()->segment(2) == '2') ? 'active' : '' }}" id="tab1" role="tabpanel" aria-labelledby="tab1">
-            <div class="row">
-               <div class="col-md-12">
-                   <div class="card" style="background-color: #0277BD;">
-                       <div class="card-body" style="padding-bottom: 0;">
-                           <div class="row">
-                           <div id="datepairExample" class="col-md-12" style="font-size:9pt;">
-                           <table class="col-md-12" style="text-align:center;margin-bottom:10px;margin-top:-8px;" id="table-selection">
+            <div class="card" style="background-color: #0277BD;">
+               <div class="card-body" style="padding-bottom: 0;">
+                  <div class="row">
+                     <div id="datepairExample" class="col-md-12" style="font-size:9pt;">
+                        <table class="w-100" style="text-align:center;margin-bottom:10px;margin-top:-8px;" id="table-selection">
                            <col style="width: 13%;">
-                            <col style="width: 13%;">
-                            <col style="width: 13%;">
-                            <col style="width: 13%;">
-                            <col style="width: 12.5%;">
-                            <col style="width: 12.5%;">
-                            <col style="width: 12.5%;">
-                            <col style="width: 12.5%;">
-                            
+                           <col style="width: 13%;">
+                           <col style="width: 13%;">
+                           <col style="width: 13%;">
+                           <col style="width: 12.5%;">
+                           <col style="width: 12.5%;">
+                           <col style="width: 12.5%;">
+                           <col style="width: 12.5%;">
                            <tr>
-                           <td>
-                            <h6 style="display:inline;color:white;" class="text-center;">From Date:</h6>
-                               <input type="text" class="date attendanceFilter" autocomplete="off" placeholder="Select Date From" id="from_Filter_date" value="" style="text-align:center;display:inline-block;width:85%;height:30px;">
-                            </td>
-                            <td>
-                               <h6 style="display:inline; padding:5px;color:white;">To Date:</h6>
-                               <input type="text" class="date attendanceFilter" autocomplete="off"  placeholder="Select Date To" id="to_Filter_date" value="" style="display: inline-block;width:85%;height:30px;text-align:center;" >
-                            </td>
-                            <td>
-                            <h6 style="display:inline; padding:5px;color:white;"> Workstation:</h6>
-                                <select class="form-control" id="workstation_line" name="production_line"  style="background-color: white;font-size: 9pt; width:85%;height:30px;display:inline-block;text-align:center;" onchange="getprocess()">
-                                  <option value="All">All</option>
-                                     @foreach($workstation as $row)
-                                      <option value="{{ $row->workstation_name }}" style="font-size: 9pt;">{{ $row->workstation_name }}</option>
-                                     @endforeach
-                               </select>
-                            </td>
-                            <td>
-                               <h6 style="display:inline;padding:5px;color:white;margin-left:0px;">Process:</h6>
-                               <select class="form-control process_line" id="process_line" name="production_line"  style="background-color: white;font-size: 9pt; width:85%;height:30px;display:inline-block;text-align:center;">
-                                  <option value="All">All</option>
-                               </select>
-                            </td>
-                            <td>
-                               <h6 style="display:inline;padding:5px;color:white;margin-left:0px;">Item Classification:</h6>
-                               <select class="form-control" id="parts_line" name="production_line"  style="background-color: white;font-size: 9pt; width:85%;height:30px;display:inline-block;text-align:center;">
-                                  <option value="All">Select Item Classification</option>
-                                     @foreach($parts as $row)
-                                        <option value="{{ $row->parts_category }}" style="font-size: 9pt;">{{ $row->parts_category }}</option>
-                                     @endforeach
-                               </select>
-                            </td>
-                            <td>
-                               <h6 style="display:inline;padding:5px;color:white;margin-left:0px; text-align:center;">Item Code:</h6>
-                               <select class="form-control sel2" id="itemcode_line" name="production_line"  style="background-color: white;font-size: 9pt; width:85%;height:30px;display:inline-block;text-lign:left;">
-                                  <option value="All">All</option>
-                                     @foreach($sacode as $row)
-                                        <option value="{{ $row->item_code }}" style="font-size: 9pt;">{{ $row->item_code }}</option>
-                                     @endforeach
-                               </select>
-                            </td>
-                            <td style="text-align:center;">
-                            <button type="button" class="btn btn-primary text-center" onclick="productioon_report()">Search</button>
-                            </td>
-                            <td>
-                            
-                            <img style="float:right;" src="{{ asset('img/download.png') }}" width="40" height="40" class="btn-export">
-                            </td>
+                              <td>
+                                 <h6 class="d-inline text-center text-white">From Date</h6>
+                                 <input type="text" class="form-control date rounded attendanceFilter bg-white d-inline-block" autocomplete="off" placeholder="Select Date From" id="from_Filter_date" value="" style="text-align: center; width:85%; height:30px;">
+                              </td>
+                              <td>
+                                 <h6 class="d-inline text-center text-white">To Date</h6>
+                                 <input type="text" class="form-control date rounded attendanceFilter bg-white d-inline-block" autocomplete="off"  placeholder="Select Date To" id="to_Filter_date" value="" style="width: 85%;height:30px; text-align: center;" >
+                              </td>
+                              <td>
+                              <h6 class="d-inline text-center text-white">Workstation</h6>
+                                 <select class="form-control rounded d-inline-block bg-white" id="workstation_line" name="production_line" style="font-size: 9pt; width:85%;height:30px; text-align:center;" onchange="getprocess()">
+                                    <option value="All">All</option>
+                                    @foreach($workstation as $row)
+                                    <option value="{{ $row->workstation_name }}" style="font-size: 9pt;">{{ $row->workstation_name }}</option>
+                                    @endforeach
+                                 </select>
+                              </td>
+                              <td>
+                                 <h6 class="d-inline text-center text-white">Process</h6>
+                                 <select class="form-control rounded process_line d-inline-block bg-white" id="process_line" name="production_line" style="font-size: 9pt; width: 85%; height: 30px; text-align:center;">
+                                    <option value="All">All</option>
+                                 </select>
+                              </td>
+                              <td>
+                                 <h6 class="d-inline text-center text-white">Item Classification</h6>
+                                 <select class="form-control rounded d-inline-block bg-white" id="parts_line" name="production_line" style="font-size: 9pt; width: 85%; height: 30px; text-align:center;">
+                                    <option value="All">Select Item Classification</option>
+                                    @foreach($parts as $row)
+                                    <option value="{{ $row->parts_category }}" style="font-size: 9pt;">{{ $row->parts_category }}</option>
+                                    @endforeach
+                                 </select>
+                              </td>
+                              <td>
+                                 <h6 class="d-inline text-center text-white">Item Code</h6>
+                                 <select class="form-control rounded sel2 bg-white d-inline-block" id="itemcode_line" name="production_line" style="font-size: 9pt; width: 85%; height: 30px; text-align: center;">
+                                    <option value="All">All</option>
+                                    @foreach($sacode as $row)
+                                    <option value="{{ $row->item_code }}" style="font-size: 9pt;">{{ $row->item_code }}</option>
+                                    @endforeach
+                                 </select>
+                              </td>
+                              <td class="text-center">
+                                 <button type="button" class="btn btn-primary text-center" onclick="productioon_report()">Search</button>
+                              </td>
+                              <td>
+                                 <img style="float:right;" src="{{ asset('img/download.png') }}" width="40" height="40" class="btn-export">
+                              </td>
                            </tr>
-                           </table>
-                            </div>
-                           </div>
-                           <div class="row" style="background-color: #ffffff;height: auto; min-height: 600px;">
-                               <div class="col-md-12">
-                               <!-- <div class="col-md-2 text-center" style="float:right;border;margin-right:-30px;">
-                                  <button class="btn btn-default btn-export" style="display: inline;"><b>EXPORT</b></button><br>
-                                  <span style="font-size:7pt;display:block; margin-top:-5px;"> Export Data to Excel </span>
-                               </div> -->
-       
-                                   <div class="table-responsive" id="report_table">
-                                       
-                                   </div>
-       
-                               </div>
-                           </div>
-                       </div>
-                   </div>
+                        </table>
+                     </div>
+                  </div>
+                  <div class="row bg-white" style="height: auto; min-height: 600px;">
+                     <div class="col-md-12">
+                        <div class="table-responsive" id="report_table"></div>
+                     </div>
+                  </div>
                </div>
-           </div>
+            </div>
          </div>
          <div class="tab-pane {{ (request()->segment(2) == '3') ? 'active' : '' }}" id="tab2" role="tabpanel" aria-labelledby="tab2">
-            <div class="row">
-               <div class="col-md-12">
-                  <div class="card">
-                      <div class="card-body" style="min-height: 450px;">
-                        <div class="row">
-                           <div class="col-md-4 offset-md-8">
-                             <div class="form-group row m-0 text-right">
-                                <label for="fltr-date-oploadutil" class="col-sm-4 col-form-label text-dark mt-1 mb-1" style="font-size: 11pt;">Date Range:</label>
-                                <div class="col-sm-8 p-0">
-                                   <input type="text" class="date form-control form-control-lg" name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="fltr-date-oploadutil" style="font-weight: bolder; text-align: center;">
-                                </div>
-                              </div>
+            <div class="card">
+               <div class="card-body" style="min-height: 450px;">
+                  <div class="row">
+                     <div class="col-md-4 offset-md-8">
+                        <div class="form-group row m-0 text-right">
+                           <label for="fltr-date-oploadutil" class="col-sm-4 col-form-label text-dark mt-1 mb-1" style="font-size: 11pt;">Date Range:</label>
+                           <div class="col-sm-8 p-0">
+                              <input type="text" class="date form-control form-control-lg" name="daterange_report" autocomplete="off" placeholder="Select Date From and To" id="fltr-date-oploadutil" style="font-weight: bolder; text-align: center;">
                            </div>
                         </div>
-                          <div id="sked2"></div>
-                      </div>
+                     </div>
                   </div>
-              </div>
-           </div>
+                  <div id="sked2"></div>
+               </div>
+            </div>
          </div>
-       </div>
-     </div>
+      </div>
    </div>
- 
+</div>
  <style type="text/css">
    .sked-tape__event {
       background-color: #5ba044 !important;
       border: 1px solid #5ba044 !important;
    }
-   
    .sked-tape__event--low-gap {
       background-color: #EC6A5E !important;
       border-color: #e32c1b !important;
@@ -245,17 +199,12 @@
 <script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
-
-
 <script type="text/javascript" src="{{ asset('css/datepicker/jquery.timepicker.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/jquery.timepicker.css') }}" />
 <script type="text/javascript" src="{{ asset('css/datepicker/datepair.js') }}"></script>
 <script type="text/javascript" src="{{ asset('css/datepicker/jquery.datepair.js') }}"></script>
 <script type="text/javascript" src="{{ asset('css/datepicker/bootstrap-datepicker.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker/bootstrap-datepicker.css') }}" />
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
-
 <link rel="stylesheet" href="{{ asset('css/jquery.skedTape.css') }}">
 <script src="{{ asset('js/jquery.skedTape.js') }}"></script>
 <script>
@@ -537,7 +486,7 @@ $(document).ready(function(){
             });
          },
          error: function(data) {
-            alert('Error fetching data!');
+            console.log('Error fetching data!');
          }
       });
    }
@@ -574,7 +523,7 @@ $(document).ready(function(){
                
              },
              error: function(data) {
-             alert(data);
+             console.log(data);
              }
            });
    
@@ -617,7 +566,7 @@ $(document).ready(function(){
 
           },
           error: function(response) {
-          alert(response);
+          console.log(response);
           }
         });
       }
