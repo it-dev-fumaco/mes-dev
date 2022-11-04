@@ -2890,8 +2890,12 @@ event.preventDefault();
 var guideid = $(this).attr('data-guideid');
 var itemcode = $(this).attr('data-itemcode');
 $.ajax({
-url: "/get_bom_tracking/" + guideid + "/" + itemcode,
+url: "/get_bom_tracking",
 type:"GET",
+data: {
+  guideid: guideid,
+  itemcode: itemcode
+},
 success:function(data){
 $('#track-view-modal #tbl_flowchart').html(data);
 $('#track-view-modal').modal('show');

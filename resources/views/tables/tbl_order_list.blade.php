@@ -23,8 +23,15 @@
         @forelse ($list as $r)
         @php
             $delivery_date = $r->reschedule_delivery == 1 ? $r->reschedule_delivery_date : $r->delivery_date;
+            $start = \Carbon\Carbon::now()->subMinutes(2);
+		    $end = \Carbon\Carbon::now();
+            $is_modified = false;
+            $check = \Carbon\Carbon::parse($r->modified)->between($start, $end);
+            if ($check) {
+                $is_modified = true;
+            }
         @endphp
-        <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}}">
+        <tr class="{{ !in_array($r->name, $seen_order_logs) ? 'font-weight-bold' : ''}} {{ $is_modified && !in_array($r->name, $seen_order_logs) ? 'is-new-order' : '' }}">
             <td class="p-2">{{ $r->name }}</td>
             <td class="p-2">{{ $r->customer }}</td>
             <td class="p-2">{{ $r->order_type }}</td>
@@ -148,22 +155,36 @@
                 <div class="modal-body pb-2">
                     <table class="w-100 border-0">
                         <tr>
-                            <td class="align-top" style="width: 40%;">
-                                <span class="d-block font-weight-bold" style="font-size: 13pt;">{{ $s->name }}</span>
-                                <span class="d-block font-weight-bold" style="font-size: 11pt;">{{ $s->customer }}</span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Project: <b>{{ $s->project }}</b></span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Sales Person: <b>{{ $s->sales_person }}</b></span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Order Type: <b>{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</b></span>
+                            <td class="align-middle text-right p-1" style="width: 12%;">Order No.:</td>
+                            <td class="align-middle p-1 font-weight-bold" style="width: 26%; font-size: 13pt;">{{ $s->name }}</td>
+                            <td class="align-middle text-right p-1" style="width: 12%;">Delivery Date:</td>
+                            <td class="align-middle p-1 font-weight-bold" style="width: 20%;">{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</td>
+                            <td class="align-top p-1" rowspan="5" style="width: 20%; font-size: 10pt;">
+                                <b>SHIP TO:</b> {!! $s->shipping_address !!}
                             </td>
-                            <td class="align-top" style="width: 40%;">
-                                <span class="d-block mt-1" style="font-size: 10pt;">Delivery Date: <b>{{ \Carbon\Carbon::parse($r->delivery_date)->format('M. d, Y') }}</b></span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Date Approved: <b>{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</b></span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Created by: <b>{{ $s->owner }}</b></span>
-                                <span class="d-block mt-1" style="font-size: 10pt;">Company: <b>{{ $s->company }}</b></span>
+                            <td class="align-top text-right p-1" rowspan="5" style="width: 10%;">
+                                <a href="/print_order/{{ $s->name }}" class="btn btn-info pt-2 pb-2 pl-3 pr-3 m-0 print-order-btn"><img src="{{ asset('/img/print_btn.png') }}" alt="Print" width="20" class="m-0"> Print</a>
                             </td>
-                            <td class="align-top" style="width: 20%;">
-                                <span class="d-block" style="font-size: 10pt;"><b>SHIP TO:</b> {!! $s->shipping_address !!}</span>
-                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle text-right p-1">Customer:</td>
+                            <td class="align-middle p-1 font-weight-bold" style="font-size: 11pt;">{{ $s->customer }}</td>
+                            <td class="align-middle text-right p-1">Date Approved:</td>
+                            <td class="align-middle p-1 font-weight-bold">{{ $s->date_approved ? \Carbon\Carbon::parse($s->date_approved)->format('M. d, Y') : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle text-right p-1">Project:</td>
+                            <td class="align-middle p-1 font-weight-bold" style="font-size: 10pt;">{{ $s->project }}</td>
+                            <td class="align-middle text-right p-1">Company:</td>
+                            <td class="align-middle p-1 font-weight-bold">{{ $s->company }}</td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle text-right p-1">Sales Person:</td>
+                            <td class="align-middle p-1 font-weight-bold" colspan="3" style="font-size: 10pt;">{{ $s->sales_person }}</td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle text-right p-1">Order Type:</td>
+                            <td class="align-middle p-1 font-weight-bold" colspan="3" style="font-size: 10pt;">{{ in_array($s->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $s->order_type }}</td>
                         </tr>
                     </table>
                     <div class="row mt-2">
@@ -192,17 +213,25 @@
                                         $bom = array_key_exists($v->item_code, $default_boms) ? $default_boms[$v->item_code] : [];
                                         $defaultbom = count($bom) > 0 ? $bom[0]->name : null;
 
+                                        $img = 'http://athenaerp.fumaco.local/storage';
+									    $img .= array_key_exists($v->item_code, $item_images) ? "/img/" . $item_images[$v->item_code] : "/icon/no_img.png";
+
                                         $production_order_item = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
                                     @endphp
                                     <tr>
                                         <td class="text-center p-2">
                                             <input type="checkbox" class="form-control" value="{{ $v->item_code }}" name="item[]">
                                         </td>
-                                        <td class="text-justify p-2">
-                                            <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
-                                            @if ($ref_type == 'SO')
-                                            <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
-                                            @endif
+                                        <td class="text-justify p-1">
+                                            <div class="d-flex flex-row">
+                                                <img src="{{ $img }}" alt="{{ $v->item_code }}" class="m-1" style="width: 50px; height: 50px;">
+                                                <div class="m-1">
+                                                    <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
+                                                    @if ($ref_type == 'SO')
+                                                    <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="text-center p-2">
                                             <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
@@ -265,20 +294,21 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                            @php
+                                $notes = strip_tags($s->notes);
+                            @endphp
+                            @if ($notes)
                             <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2 align-items-start" style="font-size: 12px;">
-                                @php
-                                    $notes = strip_tags($s->notes);
-                                @endphp
-                                @if ($notes)
                                 <span class="font-weight-bold d-inline-block m-1">Notes:</span>
                                 <span class="d-inline-block m-1">{!! $s->notes !!}</span>
-                                @endif
                             </div>
+                            @endif
+                            <span class="d-block mt-1 ml-2 font-italic" style="font-size: 8pt;">Created by: <b>{{ $s->owner }}</b></span>
                         </div>
                         @php
                             $seen_logs = array_key_exists($s->name, $seen_logs_per_order) ? $seen_logs_per_order[$s->name] : [];
                         @endphp
-                        <div class="col-12" style="font-size: 8pt;">
+                        <div class="col-12 mt-3" style="font-size: 8pt;">
                             <ul>
                                 @foreach ($seen_logs as $e)
                                 <li>
@@ -290,8 +320,7 @@
                     </div>
                 </div>
                 <div class="border-top pt-2 pb-2 pl-3 pr-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="/print_order/{{ $s->name }}" class="btn btn-info pt-2 pb-2 pl-3 pr-3 print-order-btn"><img src="{{ asset('/img/print_btn.png') }}" alt="Print" width="20" class="m-0"> Print</a>
+                    <div class="d-flex justify-content-end align-items-center">
                         <button class="btn btn-secondary btn-lg float-ri1ght m1-0 disabled" type="submit"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
                     </div>
                 </div>

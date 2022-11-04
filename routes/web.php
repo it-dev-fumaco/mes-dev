@@ -346,6 +346,7 @@ Route::get('/item_status_tracking', 'TrackingController@item_status_tracking_pag
 Route::get('/get_item_status_tracking', 'TrackingController@get_item_status_tracking');
 Route::get('/get_search_information_details', 'TrackingController@get_search_information_details');
 Route::get('/get_bom_tracking', 'TrackingController@get_bom_tracking');
+Route::get('/checkNewOrders', 'MainController@checkNewOrders');
 Route::get('/production_schedule_calendar/{id}', 'SecondaryController@production_schedule_calendar');
 Route::get('/get_production_schedule_calendar/{id}', 'SecondaryController@get_production_schedule_calendar');
 Route::get('/get_production_details_for_edit/{prod}', 'SecondaryController@get_production_details_for_edit');

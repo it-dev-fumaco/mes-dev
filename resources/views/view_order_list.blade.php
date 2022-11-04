@@ -340,6 +340,19 @@ $(document).ready(function(){
 			}
 		});
 	}
+
+	setInterval(checkNewOrders, 30000);
+	function checkNewOrders(){
+        $.ajax({
+            url: "/checkNewOrders",
+            type:"GET",
+            success:function(data){
+				if (data) {
+					loadOrderList();
+				}
+            }
+        });
+    }
 });
 </script>
 @endsection

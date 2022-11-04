@@ -4,11 +4,22 @@
   <div class="container">
      <div class="alert-icon" style="color:black;">
       <i class="now-ui-icons travel_info" style="padding-right:5px;"></i><span style="font-size:13pt;"> <b>Notification Change Code :</b></span> 
-            <span style="font-size:11pt;">Parent Item code was change to </span><span class="ml-1 font-weight-bold">{{$change_code['new_item']}}  </span>
+      <span style="font-size:11pt;">Parent Item code was change to </span><span class="ml-1 font-weight-bold">{{$change_code['new_item']}}  </span>
      </div>
   </div>
-  </div>
+</div>
 @endif
+
+@if (!$production)
+<div class="alert alert-warning text-center" role="alert">
+  <div class="container">
+     <div class="alert-icon" style="color:black;">
+      <i class="now-ui-icons travel_info" style="padding-right:5px;"></i>
+      <span style="font-size:13pt;"> <b>No production order(s) created.</b></span> 
+     </div>
+  </div>
+</div>
+@else
 <div class="content p-0 m-0">
   <div class="row p-0 m-0">
     <div class="col-md-9 p-1">
@@ -36,7 +47,6 @@
           <td style="border: 1px solid #ABB2B9;" colspan="4"><span class="item-code font-weight-bold">{!! $bom->item_code !!} </span>- <span class="desc">{!! $bom->description !!}</span></td>
         </tr>
       </table>
-
       @php
         $end_date = ($materials['end_date'] == "") ? "" : $materials['end_date'];
         $start_date = ($materials['start_date'] == "") ? "Not Started" : $materials['start_date'];
@@ -83,17 +93,16 @@
                       <span class="badge badge-danger">{{ $materials['status'] }}</span>
                       @endif
                       @if($change_code['match'] == "false") <span style="font-size:14pt;">></span> <span style="font-size:16pt;">></span> <span style="font-size:19pt;">></span><span style="font-size:19pt;">{{$change_code['new_item']}}</span>
-                      @endif</b> </span>
-                  <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['description'] !!} </span>
-                  <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
-
+                      @endif</b></span>
+                      <span class="text-center"  style='text-align:center;font-size:12px;display:block;'>{!! $materials['description'] !!} </span>
+                      <span class="text-center" style='text-align:center;font-size:12px;display:block;'>BOM : &nbsp; &nbsp;{!! $materials['bom_no'] !!} </span>
                   </div>
                 </div>
                 <div class="row bread breads row" style="margin-top:5px;display:{{$displayasssembly}}; text-align:initial !important;">
                   <div class="col-md-12 bread breads"  style="margin-bottom:5px;display:{{$displayasssembly}}; text-align:initial !important;width:100%;">
                     <ul class="breadcrumb-css bread breads row align-items-center justify-content-center" id="process-bcss" style="margin-bottom:5px;display:{{$displayasssembly}};  text-align:initial !important;">
                       @forelse($materials['process'] as $uli)
-                        <li class="{{$uli['status']}} bread breads mt-3 mb-3" style=" text-align:initial !important;width:auto;"><a class="bread breads" style=" text-align:initial !important;padding-left:25px;margin-right:10px;width:auto;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block; padding-right:20px;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
+                      <li class="{{$uli['status']}} bread breads mt-3 mb-3" style=" text-align:initial !important;width:auto;"><a class="bread breads" style=" text-align:initial !important;padding-left:25px;margin-right:10px;width:auto;" href="javascript:void(0);">{{$uli['workstation']}} <span style="display:block; padding-right:20px;"> ({{$uli['process_name']}})</span><span style="display:block;"> {{$uli['completed_qty']}}/ {{$uli['required']}}</span></a></li>
                       @empty
                       <li class="bread" style="text-align:initial !important;"></li>
                       @endforelse
@@ -105,37 +114,37 @@
                 @foreach($boms as $idx => $item)
                 <li class="liclass">
                   @php
-                      $end_date = ($item['end_date'] == "") ? "" : $item['end_date'];
-                      $start_date = ($item['start_date'] == "") ? "Not Started" : $item['start_date'];
-                      $plan_time = ($item['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($item['planned_start_date'])->format('M d, Y');
-                      if($item['status'] == 'Completed'){
-                                $colorme= '#2ecc71';
-                                $stat= '';
-                              }elseif($item['status'] == 'In Progress'){
-                                $stat= '';
-                                $colorme= '#f5b041 ';
-                              }elseif($item['status'] == 'Unknown Status'){
-                                $stat= $item['status'];
-                                $colorme= '';
-                              }else{
-                                $stat= 'Pending';
-                                $colorme= '#d6dbdf';
-                              }
-                      $prod = ($item['production_order']  == "") ? "No Production Order" : $item['production_order'] ;
-                      $prod_dash = ($item['production_order']  == "") ? "" : " - " ;
+                    $end_date = ($item['end_date'] == "") ? "" : $item['end_date'];
+                    $start_date = ($item['start_date'] == "") ? "Not Started" : $item['start_date'];
+                    $plan_time = ($item['planned_start_date'] == "") ? "" : \Carbon\Carbon::parse($item['planned_start_date'])->format('M d, Y');
+                    if($item['status'] == 'Completed'){
+                      $colorme= '#2ecc71';
+                      $stat= '';
+                    }elseif($item['status'] == 'In Progress'){
+                      $stat= '';
+                      $colorme= '#f5b041 ';
+                    }elseif($item['status'] == 'Unknown Status'){
+                      $stat= $item['status'];
+                      $colorme= '';
+                    }else{
+                      $stat= 'Pending';
+                      $colorme= '#d6dbdf';
+                    }
+                    $prod = ($item['production_order']  == "") ? "No Production Order" : $item['production_order'] ;
+                    $prod_dash = ($item['production_order']  == "") ? "" : " - " ;
                   @endphp
-                    <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $item['production_order'] }}" class="prod-details-btn">{{ $item['production_order'] }}{{ $prod_dash }}{{ $item['item_code'] }} </span></b><br><i>{{ $item['parts_category'] }}</i><br>
-                      <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $item['produced_qty'] }}</label>
-                      <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $item['qty_to_manufacture'] }} <span style="color: {{ ($item['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $item['available_stock'] }}</b>)</span></label>
+                  <span class="hvrlink" style="margin-bottom: 30px;"><a class="aclass" href="#" style="background-color: {{ $colorme }}"><b><span style="font-size: 9pt;" data-jtno="{{ $item['production_order'] }}" class="prod-details-btn">{{ $item['production_order'] }}{{ $prod_dash }}{{ $item['item_code'] }} </span></b><br><i>{{ $item['parts_category'] }}</i><br>
+                    <label style="float: right;color:black;"><b>Done:</b>&nbsp;{{ $item['produced_qty'] }}</label>
+                    <label style="float: left;color:black;"><b>Qty:</b>&nbsp;{{ $item['qty_to_manufacture'] }} <span style="color: {{ ($item['available_stock'] > 0) ? 'green' : 'red' }}">(<b>{{ $item['available_stock'] }}</b>)</span></label>
                     </a>
                     </span>
                     <div class="details-pane">
                       <h5 class="title">{{ $item['item_code'] }}</h5>
-                          <p class="desc" style="padding-top: 5px;">
-                            <b>Description:</b> {!! $item['description'] !!}<br>  
-                            <b>Planned Start Date:</b> {{ $plan_time }}<br>    
-                            <b>Production Order : {{ $prod }}</b><br>          
-                          </p>
+                      <p class="desc" style="padding-top: 5px;">
+                        <b>Description:</b> {!! $item['description'] !!}<br>  
+                        <b>Planned Start Date:</b> {{ $plan_time }}<br>    
+                        <b>Production Order : {{ $prod }}</b><br>          
+                      </p>
                     </div>
                     <br>
                     <table style="padding-top: 10px; text-align: left; line-height: 10pt; font-size: 8pt;"  class="mx-auto w-auto info">
@@ -560,7 +569,6 @@
                     <li class="timeline-milestone {{$stat}} timeline-start">
                       <div class="timeline-action">
                         <h2 class="title">Fabrication</h2>
-                        {{--<span style="display:block; font-size:1vw;font-weight:bold;"> {{ $timeline['fab_produced']}} /  {{ $timeline['fab_required']}}</span>--}}
                         <p style="font-size:0.7vw;"><span class="badge badge-{{$timeline['fab_badge']}}">{{ $fab_status_label }}</span></p>
                         <span style="display:{{ $display_fab_end}};font-size:0.6vw;"><b>Total Duration:</b> {{ $timeline['fab_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
@@ -623,8 +631,10 @@
     </div>
   </div>
 </div>
+
+@endif
 <style type="text/css">
-#container {
+  #container {
     height: 700px;
     width: 300px;
     position: absolute;
@@ -632,179 +642,165 @@
     left:50%;
     -webkit-transform:translate(-50%,-50%);
     transform:translate(-50%,-50%);
-}
-.content1 {
+  }
+  .content1 {
     height: auto;
     width: 100%;
-    /* position: absolute; */
     top: 50%;
     right:50%;
     left:50%;
     -webkit-transform:translate(-50%,-10%);
     transform:translate(-50%,-10%);
-}
-.timeline {
-  list-style: none;
-  margin: 25px 0 22px;
-  padding: 0;
-  position: relative;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-.timeline:after {
-  border: 6px solid;
-  border-top-width: 13px;
-  border-color: #00637d transparent transparent transparent;
-  content: "";
-  display: block;
-  position: absolute;
-  bottom: -19px;
-  left: 15px;
-}
-
-.timeline-horizontal:after {
-  border-top-width: 6px;
-  border-left-width: 13px;
-  border-color: transparent transparent transparent #00637d;
-  top: 15px;
-  right: 0;
-  bottom: auto;
-  left: auto;
-}
-.timeline-horizontal .timeline-milestone {
-  border-top: 2px solid #00637d;
-  display: inline;
-  float: left;
-  margin: 20px 0 0 0;
-  padding: 40px 0 0 0;
-}
-.timeline-horizontal .timeline-milestone:before {
-  top: -17px;
-  left: auto;
-}
-.timeline-horizontal .timeline-milestone.is-completed:after {
-  top: -17px;
-  left: 0;
-}
-
-.timeline-milestone {
-  border-left: 2px solid #00637d;
-  margin: 0 0 0 20px;
-  padding: 0 0 5px 25px;
-  position: relative;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-.timeline-milestone:before {
-  border: 7px solid #00637d;
-  border-radius: 50%;
-  content: "";
-  display: block;
-  position: absolute;
-  left: -17px;
-  width: 32px;
-  height: 32px;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-.timeline-milestone.is-completed:before {
-  background-color: #00637d;
-}
-.timeline-milestone.is-completed:after {
-  color: #FFF;
-  font-weight: bold;
-  content: "\2713";
-  display: block;
-  line-height: 32px;
-  position: absolute;
-  top: 0;
-  left: -17px;
-  text-align: center;
-  width: 32px;
-  height: 32px;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-.timeline-milestone.is-current:before {
-  background-color: #EEE;
-}
-.timeline-milestone.is-future:before {
-  background-color: #8DACB8;
-  border: 0;
-}
-.timeline-milestone.is-future .timeline-action .title {
-  color: #8DACB8;
-}
-
-.timeline-action {
-  background-color: #FFF;
-  padding: 12px 10px 12px 20px;
-  position: relative;
-  top: -15px;
-}
-.timeline-action.is-expandable .title {
-  cursor: pointer;
-  position: relative;
-}
-.timeline-action.is-expandable .title:focus {
-  outline: 0;
-  text-decoration: underline;
-}
-.timeline-action.is-expandable .title:after {
-  border: 6px solid #666;
-  border-color: transparent transparent transparent #666;
-  content: "";
-  display: block;
-  position: absolute;
-  top: 6px;
-  right: 0;
-}
-.timeline-action.is-expandable .content {
-  display: none;
-}
-.timeline-action.is-expandable.is-expanded .title:after {
-  border-color: #666 transparent transparent transparent;
-  top: 10px;
-  right: 5px;
-}
-.timeline-action.is-expandable.is-expanded .content {
-  display: block;
-}
-.timeline-action .title, .timeline-action .content {
-  word-wrap: break-word;
-}
-.timeline-action .title {
-  color: #00637d;
-  font-size: 0.8vw;
-  margin: 0;
-}
-.timeline-action .date {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 15px;
-}
-.timeline-action .content {
-  font-size: 14px;
-}
-
-.file-list {
-  line-height: 1.4;
-  list-style: none;
-  padding-left: 10px;
-}
-
-
-
-
-
-</style>        
-<style type="text/css">
-
-
+  }
+  .timeline {
+    list-style: none;
+    margin: 25px 0 22px;
+    padding: 0;
+    position: relative;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .timeline:after {
+    border: 6px solid;
+    border-top-width: 13px;
+    border-color: #00637d transparent transparent transparent;
+    content: "";
+    display: block;
+    position: absolute;
+    bottom: -19px;
+    left: 15px;
+  }
+  .timeline-horizontal:after {
+    border-top-width: 6px;
+    border-left-width: 13px;
+    border-color: transparent transparent transparent #00637d;
+    top: 15px;
+    right: 0;
+    bottom: auto;
+    left: auto;
+  }
+  .timeline-horizontal .timeline-milestone {
+    border-top: 2px solid #00637d;
+    display: inline;
+    float: left;
+    margin: 20px 0 0 0;
+    padding: 40px 0 0 0;
+  }
+  .timeline-horizontal .timeline-milestone:before {
+    top: -17px;
+    left: auto;
+  }
+  .timeline-horizontal .timeline-milestone.is-completed:after {
+    top: -17px;
+    left: 0;
+  }
+  .timeline-milestone {
+    border-left: 2px solid #00637d;
+    margin: 0 0 0 20px;
+    padding: 0 0 5px 25px;
+    position: relative;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .timeline-milestone:before {
+    border: 7px solid #00637d;
+    border-radius: 50%;
+    content: "";
+    display: block;
+    position: absolute;
+    left: -17px;
+    width: 32px;
+    height: 32px;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .timeline-milestone.is-completed:before {
+    background-color: #00637d;
+  }
+  .timeline-milestone.is-completed:after {
+    color: #FFF;
+    font-weight: bold;
+    content: "\2713";
+    display: block;
+    line-height: 32px;
+    position: absolute;
+    top: 0;
+    left: -17px;
+    text-align: center;
+    width: 32px;
+    height: 32px;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .timeline-milestone.is-current:before {
+    background-color: #EEE;
+  }
+  .timeline-milestone.is-future:before {
+    background-color: #8DACB8;
+    border: 0;
+  }
+  .timeline-milestone.is-future .timeline-action .title {
+    color: #8DACB8;
+  }
+  .timeline-action {
+    background-color: #FFF;
+    padding: 12px 10px 12px 20px;
+    position: relative;
+    top: -15px;
+  }
+  .timeline-action.is-expandable .title {
+    cursor: pointer;
+    position: relative;
+  }
+  .timeline-action.is-expandable .title:focus {
+    outline: 0;
+    text-decoration: underline;
+  }
+  .timeline-action.is-expandable .title:after {
+    border: 6px solid #666;
+    border-color: transparent transparent transparent #666;
+    content: "";
+    display: block;
+    position: absolute;
+    top: 6px;
+    right: 0;
+  }
+  .timeline-action.is-expandable .content {
+    display: none;
+  }
+  .timeline-action.is-expandable.is-expanded .title:after {
+    border-color: #666 transparent transparent transparent;
+    top: 10px;
+    right: 5px;
+  }
+  .timeline-action.is-expandable.is-expanded .content {
+    display: block;
+  }
+  .timeline-action .title, .timeline-action .content {
+    word-wrap: break-word;
+  }
+  .timeline-action .title {
+    color: #00637d;
+    font-size: 0.8vw;
+    margin: 0;
+  }
+  .timeline-action .date {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+  .timeline-action .content {
+    font-size: 14px;
+  }
+  .file-list {
+    line-height: 1.4;
+    list-style: none;
+    padding-left: 10px;
+  }
   /** detail panel **/
   .dot {
     height: 12px;
@@ -813,259 +809,232 @@
     border-radius: 50%;
     display: inline-block;
   }
-.details-pane {
-display: none;
-  color: #414141;
-  background: #f1f1f1;
-  border: 1px solid #a9a9a9;
-  z-index: 1;
-  width: 300px;
-  padding: 6px 8px;
-  text-align: left;
-  -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
-  -moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
-  box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
-  white-space: normal;
-  position: absolute;
-  top:0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  margin-top: 100px;
-}
-
-.details-pane h5 {
-  font-size: 1.5em;
-  line-height: 1.1em;
-  margin-bottom: 4px;
-  line-height: 15px;
-}
-
-.details-pane h5 span {
-  font-size: 0.40em;
-  font-style: italic;
-  color: #555;
-  padding-left: 15px;
+  .details-pane {
+    display: none;
+    color: #414141;
+    background: #f1f1f1;
+    border: 1px solid #a9a9a9;
+    z-index: 1;
+    width: 300px;
+    padding: 6px 8px;
+    text-align: left;
+    -webkit-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    -moz-box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    box-shadow: 1px 3px 3px rgba(0,0,0,0.4);
+    white-space: normal;
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    margin-top: 100px;
+  }
+  .details-pane h5 {
+    font-size: 1.5em;
+    line-height: 1.1em;
+    margin-bottom: 4px;
     line-height: 15px;
-
-}
-
-.details-pane .desc {
-  font-size: 1.0em;
-  margin-bottom: 6px;
+  }
+  .details-pane h5 span {
+    font-size: 0.40em;
+    font-style: italic;
+    color: #555;
+    padding-left: 15px;
+    line-height: 15px;
+  }
+  .details-pane .desc {
+    font-size: 1.0em;
+    margin-bottom: 6px;
     line-height: 20px;
     height: auto;
-
-}
-
-/** hover styles **/
-span.hvrlink:hover + .details-pane {
-  display: block;
-}
-a.hvrlink:hover + .details-pane {
-  display: block;
-}
-.details-pane:hover {
-  display: block;
-}
+  }
+  /** hover styles **/
+  span.hvrlink:hover + .details-pane {
+    display: block;
+  }
+  a.hvrlink:hover + .details-pane {
+    display: block;
+  }
+  .details-pane:hover {
+    display: block;
+  }
   .info{
     margin-bottom: 38px;
   }
-</style>
-<style type="text/css">
-  
-.breads{
-  text-align:initial !important;
-}
-/* It's supposed to look like a tree diagram */
-.tree .ulclass:not(.bread), .tree .liclass:not(.bread){
+  .breads{
+    text-align:initial !important;
+  }
+  /* It's supposed to look like a tree diagram */
+  .tree .ulclass:not(.bread), .tree .liclass:not(.bread){
     list-style: none;
     margin: 0;
     padding: 0;
     position: relative;
-}
+  }
 
-.tree:not(.bread) {
+  .tree:not(.bread) {
     margin: 0;
-    /* text-align: center; */
-}
-.tree:not(.bread), .tree .ulclass:not(.bread) {
+  }
+  .tree:not(.bread), .tree .ulclass:not(.bread) {
     display: table;
-}
-.tree .ulclass:not(.bread) {
-  width: 100%;
-  text-align:center;
-}
-
-    .tree .liclass:not(.bread) {
-        display: table-cell;
-        padding: 2em 0;
-        vertical-align: top;
-    }
-        /* _________ */
-        .tree .liclass:not(.bread):before {
-            outline: solid 1px #666;
-            content: "";
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-        }
-        .tree .liclass:not(.bread):first-child:before {left: 50%;}
-        .tree .liclass:not(.bread):last-child:before {right: 50%;}
-
-        .tree .aclass:not(.bread){
-            border: solid .1em #666;
-            border-radius: .2em;
-            display: inline-block;
-            margin: 0 .2em .5em;
-            padding: .2em .5em;
-            position: relative;
-            color: black;
-            min-width: 200px;;
-        }
-            /* | */
-            .tree a:not(.bread):before{
-                outline: solid 1px black;
-                color: black;
-                content: "";
-                height: 1.8em;
-                left: 50%;
-                position: absolute;
-              }
-            .tree .ulclass:not(.bread):before{
-                outline: solid 1px black;
-                color: black;
-                content: "";
-                height: 1em;
-                left: 50%;
-                padding-top: 2.5em;
-                position: absolute;
-              }
-            .tree .ulclass:not(.bread):before {
-                top: -2.5em;
-            }
-            .tree a:not(.bread):before{
-                top: -2em;
-            }
-
-/* The root node doesn't connect upwards */
-.tree > li {margin-top: 0;}
-    .tree > li:not(.bread):before,
-    .tree > li:not(.bread):after,
-    .tree > li > a:not(.bread):before,
-    .tree > li > a:not(.bread):before {
-      outline: none;
-    }
-.breadcrumb-css {
-font-size: 8pt;
-font-weight: bold;
-padding: 0;
-background: transparent;
-list-style: none;
-overflow: hidden;
-margin-top: 3px;
-margin-bottom: 3px;
-width: 100%;
-border-radius: 4px;
-}
-
-.breadcrumb-css>li {
-display: table-cell;
-vertical-align: top;
-width: 0.8%;
-}
-
-.breadcrumb-css>li+li:before {
-padding: 0;
-}
-
-.breadcrumb-css li a {
-color: white;
-text-decoration: none;
-padding: 10px 0 10px 5px;
-position: relative;
-display: inline-block;
-width: calc( 100% - 10px );
-background-color: hsla(0, 0%, 83%, 1);
-text-align: center;
-text-transform: capitalize;
-}
-
-.breadcrumb-css li.completed a {
-background: brown;
-background: hsla(153, 57%, 51%, 1);
-}
-
-.breadcrumb-css li.completed a:after {
-border-left: 30px solid hsla(153, 57%, 51%, 1);
-}
-
-.breadcrumb-css li.active a {
-background: #ffc107;
-}
-
-.breadcrumb-css li.active a:after {
-border-left: 30px solid #ffc107;
-}
-
-.breadcrumb-css li:first-child a {
-padding-left: 1px;
-}
-
-.breadcrumb-css li:last-of-type a {
-width: calc( 100% - 38px );
-}
-
-.breadcrumb-css li a:before {
-content: " ";
-display: block;
-width: 0;
-height: 0;
-border-top: 50px solid transparent;
-border-bottom: 50px solid transparent;
-border-left: 30px solid white;
-position: absolute;
-top: 50%;
-margin-top: -50px;
-margin-left: 1px;
-left: 100%;
-z-index: 1;
-}
-
-.breadcrumb-css li a:after {
-content: " ";
-display: block;
-width: 0;
-height: 0;
-border-top: 50px solid transparent;
-border-bottom: 50px solid transparent;
-border-left: 30px solid hsla(0, 0%, 83%, 1);
-position: absolute;
-top: 50%;
-margin-top: -50px;
-left: 100%;
-z-index: 2;
-}
-   
+  }
+  .tree .ulclass:not(.bread) {
+    width: 100%;
+    text-align:center;
+  }
+  .tree .liclass:not(.bread) {
+    display: table-cell;
+    padding: 2em 0;
+    vertical-align: top;
+  }
+  /* _________ */
+  .tree .liclass:not(.bread):before {
+    outline: solid 1px #666;
+    content: "";
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .tree .liclass:not(.bread):first-child:before {left: 50%;}
+  .tree .liclass:not(.bread):last-child:before {right: 50%;}
+  .tree .aclass:not(.bread){
+    border: solid .1em #666;
+    border-radius: .2em;
+    display: inline-block;
+    margin: 0 .2em .5em;
+    padding: .2em .5em;
+    position: relative;
+    color: black;
+    min-width: 200px;;
+  }
+  /* | */
+  .tree a:not(.bread):before{
+    outline: solid 1px black;
+    color: black;
+    content: "";
+    height: 1.8em;
+    left: 50%;
+    position: absolute;
+  }
+  .tree .ulclass:not(.bread):before{
+    outline: solid 1px black;
+    color: black;
+    content: "";
+    height: 1em;
+    left: 50%;
+    padding-top: 2.5em;
+    position: absolute;
+  }
+  .tree .ulclass:not(.bread):before {
+    top: -2.5em;
+  }
+  .tree a:not(.bread):before{
+    top: -2em;
+  }
+  /* The root node doesn't connect upwards */
+  .tree > li {margin-top: 0;}
+  .tree > li:not(.bread):before,
+  .tree > li:not(.bread):after,
+  .tree > li > a:not(.bread):before,
+  .tree > li > a:not(.bread):before {
+    outline: none;
+  }
+  .breadcrumb-css {
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 0;
+    background: transparent;
+    list-style: none;
+    overflow: hidden;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    width: 100%;
+    border-radius: 4px;
+  }
+  .breadcrumb-css>li {
+    display: table-cell;
+    vertical-align: top;
+    width: 0.8%;
+  }
+  .breadcrumb-css>li+li:before {
+    padding: 0;
+  }
+  .breadcrumb-css li a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 0 10px 5px;
+    position: relative;
+    display: inline-block;
+    width: calc( 100% - 10px );
+    background-color: hsla(0, 0%, 83%, 1);
+    text-align: center;
+    text-transform: capitalize;
+  }
+  .breadcrumb-css li.completed a {
+    background: brown;
+    background: hsla(153, 57%, 51%, 1);
+  }
+  .breadcrumb-css li.completed a:after {
+    border-left: 30px solid hsla(153, 57%, 51%, 1);
+  }
+  .breadcrumb-css li.active a {
+    background: #ffc107;
+  }
+  .breadcrumb-css li.active a:after {
+    border-left: 30px solid #ffc107;
+  }
+  .breadcrumb-css li:first-child a {
+    padding-left: 1px;
+  }
+  .breadcrumb-css li:last-of-type a {
+    width: calc( 100% - 38px );
+  }
+  .breadcrumb-css li a:before {
+    content: " ";
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-left: 30px solid white;
+    position: absolute;
+    top: 50%;
+    margin-top: -50px;
+    margin-left: 1px;
+    left: 100%;
+    z-index: 1;
+  }
+  .breadcrumb-css li a:after {
+    content: " ";
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-left: 30px solid hsla(0, 0%, 83%, 1);
+    position: absolute;
+    top: 50%;
+    margin-top: -50px;
+    left: 100%;
+    z-index: 2;
+  }
 </style>
 <script type="text/javascript">
-      function showNotification(color, message, icon){
-      $.notify({
-        icon: icon,
-        message: message
-      },{
-        type: color,
-        timer: 3000,
-        placement: {
-          from: 'top',
-          align: 'center'
-        }
-      });
-    }
-</script>
+  function showNotification(color, message, icon){
+    $.notify({
+      icon: icon,
+      message: message
+    },{
+      type: color,
+      timer: 3000,
+      placement: {
+        from: 'top',
+        align: 'center'
+      }
+    });
+  }
 
-<script>
   $(document).ready(function(){
     $.ajaxSetup({
       headers: {
@@ -1078,26 +1047,5 @@ z-index: 2;
     });
     
     $('.breads').css('text-align','initial');
-    setInterval(updateClock, 1000);
-    function updateClock(){
-      var currentTime = new Date();
-      var currentHours = currentTime.getHours();
-      var currentMinutes = currentTime.getMinutes();
-      var currentSeconds = currentTime.getSeconds();
-      // Pad the minutes and seconds with leading zeros, if required
-      currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-      currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-      // Choose either "AM" or "PM" as appropriate
-      var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-      // Convert the hours component to 12-hour format if needed
-      currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-      // Convert an hours component of "0" to "12"
-      currentHours = (currentHours === 0) ? 12 : currentHours;
-      currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-      // Compose the string for display
-      var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
-
-      $("#current-time").html(currentTimeString);
-    }
   });
 </script>

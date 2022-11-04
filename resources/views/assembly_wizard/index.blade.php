@@ -62,8 +62,8 @@
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
                                           <select class="form-control form-control-lg" id="items-from">
-                                             <option value="Sales Order" {{ request('type') ? (request('type') == 'SO' ? 'selected' : '') : '' }}>Sales Order</option>
-                                             <option value="Material Request" {{ request('type') ? (request('type') == 'MREQ' ? 'selected' : '') : '' }}>Material Request</option>
+                                             <option value="Sales Order" {{ request('ref_type') ? (request('ref_type') == 'SO' ? 'selected' : '') : '' }}>Sales Order</option>
+                                             <option value="Material Request" {{ request('ref_type') ? (request('ref_type') == 'MREQ' ? 'selected' : '') : '' }}>Material Request</option>
                                           </select>
                                        </div>
                                     </td>

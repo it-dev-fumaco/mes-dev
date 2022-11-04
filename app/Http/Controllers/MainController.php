@@ -8537,10 +8537,10 @@ class MainController extends Controller
             })
 			->when(isset($request->reschedule), function ($q){
 				return $q->whereDate(DB::raw('IFNULL(dd.rescheduled_delivery_date, mr.delivery_date)'), '<', Carbon::now()->startOfDay())
-					->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'dd.rescheduled_delivery_date as reschedule_delivery_date', DB::raw('IFNULL(dd.rescheduled_delivery_date, 0) as reschedule_delivery'), 'mr.company');
+					->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'dd.rescheduled_delivery_date as reschedule_delivery_date', DB::raw('IFNULL(dd.rescheduled_delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
 			})
 			->when(!isset($request->reschedule), function ($q){
-				return $q->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company');
+				return $q->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
 			});
 			
 		$list = DB::connection('mysql')->table('tabSales Order as so')
@@ -8567,8 +8567,8 @@ class MainController extends Controller
 			->when(isset($request->reschedule), function ($q){
 				return $q->whereDate(DB::raw('CASE so.reschedule_delivery WHEN 1 THEN so.reschedule_delivery ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
 			})
-			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company')
-			->unionAll($material_requests)->orderBy('date_approved', 'desc')->paginate(15);
+			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
+			->unionAll($material_requests)->orderBy('date_approved', 'desc')->orderBy('modified', 'desc')->paginate(15);
 
 		// get items
 		$references = collect($list->items())->pluck('name');
@@ -8580,6 +8580,8 @@ class MainController extends Controller
 			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
 
 		$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
 
 		$default_boms = DB::connection('mysql')->table('tabBOM')
 			->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
@@ -8626,7 +8628,7 @@ class MainController extends Controller
 
 		$reschedule_reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->select('reschedule_reason_id as id', 'reschedule_reason as reason')->get();
 
-		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs', 'reschedule_reason'));
+		return view('tables.tbl_order_list', compact('list', 'item_list', 'default_boms', 'items_production_orders', 'order_production_status', 'seen_logs_per_order', 'seen_order_logs', 'reschedule_reason', 'item_images'));
 	}
 
 	public function reschedule_delivery(Request $request, $id){
@@ -8938,5 +8940,30 @@ class MainController extends Controller
 		}
 
 		return view('print_order', compact('items', 'details', 'ref_type'));
+	}
+
+	public function checkNewOrders() {
+		$latest_material_requests = DB::connection('mysql')->table('tabMaterial Request')
+			->where('docstatus', 1)->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
+			->where('status', '!=', 'Stopped')->max('modified');
+
+		$start = Carbon::now()->subMinutes(2);
+		$end = Carbon::now();
+
+		$check = Carbon::parse($latest_material_requests)->between($start, $end);
+		if ($check) {
+			return response()->json(true);
+		}
+			
+		$latest_sales_orders = DB::connection('mysql')->table('tabSales Order')
+			->where('docstatus', 1)->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
+			->where('status', '!=', 'Closed')->max('modified');
+
+		$check = Carbon::parse($latest_sales_orders)->between($start, $end);
+		if ($check) {
+			return response()->json(true);
+		}
+
+		return response()->json(false);
 	}
 }
