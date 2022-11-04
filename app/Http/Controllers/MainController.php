@@ -8757,11 +8757,14 @@ class MainController extends Controller
                 
         $employees = DB::connection('mysql_essex')->table('users')->where('user_type', 'Employee')
             ->where('status', 'Active')->get();
-        $module= DB::connection('mysql_mes')->table('user_group')->groupBy('module')->select('module')->get();
+        $user_group_arr = DB::connection('mysql_mes')->table('user_group')->select('module', 'user_role')->get();
+		
+		$module = collect($user_group_arr)->pluck('module')->unique();
+		$user_group = collect($user_group_arr)->groupBy('module');
 
         $operations = DB::connection('mysql_mes')->table('operation')->get();
 
-        return view('settings.user_settings', compact('permissions', 'module', 'employees', 'operations'));
+        return view('settings.user_settings', compact('permissions', 'module', 'employees', 'operations', 'user_group'));
     }
 
 	public function updateParentCode($production_order, Request $request) {

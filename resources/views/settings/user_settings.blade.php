@@ -159,7 +159,7 @@
                  <div class="col-md-12">
                     <div class="form-group">
                        <label>User ID:</label>
-                       <select class="form-control sel2" name="user_access_id" id="sel-user-id-add" >
+                       <select class="form-control sel2" name="user_access_id" id="sel-user-id-add" required>
                           <option value="">Select Employee</option>
                           @foreach($employees as $row)
                           <option value="{{ $row->user_id }}" data-empname="{{ $row->employee_name }}">{{ $row->user_id }} - {{ $row->employee_name }}</option>
@@ -172,21 +172,21 @@
                     </div>
                     <div class="form-group">
                        <label>Module:</label>
-                       <select class="form-control sel2" name="user_group" id="user_group" onchange="change_userrole_add()">
+                       <select class="form-control sel2" name="user_group" id="user_group" required>
                           <option value="">Select Module</option>
                           @foreach($module as $row)
-                          <option value="{{ $row->module }}">{{ $row->module }}</option>
+                          <option value="{{ $row }}">{{ $row }}</option>
                           @endforeach
                        </select>
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       <select class="form-control sel2" name="user_role" id="user_role">
+                       <select class="form-control sel2" name="user_role" id="user_role"> required
                        </select>
                     </div>
                     <div class="form-group">
                        <label>Operation:</label>
-                       <select class="form-control sel2" name="operation">
+                       <select class="form-control sel2" name="operation" required>
                           <option value="">Select Operation</option>
                           @foreach($operations as $row)
                           <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
@@ -221,7 +221,7 @@
                  <div class="col-md-12">
                     <div class="form-group">
                        <label>User ID:</label>
-                       <select class="form-control sel3" name="user_access_id" id="edit_user_id">
+                       <select class="form-control sel3" name="user_access_id" id="edit_user_id" required>
                           <option value="">Select Employee</option>
                           @foreach($employees as $row)
                           <option value="{{ $row->user_id }}" data-empname="{{ $row->employee_name }}">{{ $row->user_id }} - {{ $row->employee_name }}</option>
@@ -230,25 +230,25 @@
                     </div>
                     <div class="form-group">
                        <label>Employee Name:</label>
-                       <input type="text" class="form-control" name="employee_name" required id="edit_employee_name">
+                       <input type="text" class="form-control" name="employee_name" required id="edit_employee_name" required>
                     </div>
                     <div class="form-group">
                        <label>Module:</label>
-                       <select class="form-control sel3" name="user_group" id="edit_user_group" onchange="change_userrole_edit()">
+                       <select class="form-control sel3" name="user_group" id="edit_user_group" required>
                           <option value="">Select Module</option>
                           @foreach($module as $row)
-                          <option value="{{ $row->module }}">{{ $row->module }}</option>
+                          <option value="{{ $row }}">{{ $row }}</option>
                           @endforeach
                        </select>
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       <select class="form-control sel3" name="user_role" id="edit_user_role">
+                       <select class="form-control sel3" name="user_role" id="edit_user_role" required>
                        </select>
                     </div>
                     <div class="form-group">
                        <label>Operation:</label>
-                       <select class="form-control sel3" name="operation" id="edit_user_operation">
+                       <select class="form-control sel3" name="operation" id="edit_user_operation" required>
                           <option value="">Select Operation</option>
                           @foreach($operations as $row)
                           <option value="{{ $row->operation_id }}">{{ $row->operation_name }}</option>
@@ -313,16 +313,17 @@
                  <div class="col-md-12">
                     <div class="form-group">
                        <label>Module:</label>
-                       <select class="form-control sel11" name="add_user_group" id="add_user_group">
+                       <select class="form-control sel11" name="add_user_group" id="add_user_group" required>
                           <option value="">Select Module</option>
                           @foreach($module as $row)
-                          <option value="{{ $row->module }}">{{ $row->module }}</option>
+                          <option value="{{ $row }}">{{ $row }}</option>
                           @endforeach
                        </select>
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       <select class="form-control sel11" name="add_user_role" id="add_user_role">
+                       <select class="form-control sel11" name="add_user_role" id="add_user_role" required>
+                          <option value="">Select User Role</option>
                           <option value="Production Supervisor">Production Supervisor</option>
                           <option value="Production Manager">Production Manager</option>
                           <option value="QA Manager">QA Manager</option>
@@ -363,7 +364,7 @@
                        <select class="form-control sel12" name="edit_user_group_regis" id="edit_user_group_regis">
                           <option value="">Select Module</option>
                           @foreach($module as $row)
-                          <option value="{{ $row->module }}">{{ $row->module }}</option>
+                          <option value="{{ $row }}">{{ $row }}</option>
                           @endforeach
                        </select>
                     </div>
@@ -750,7 +751,6 @@ tbl_email_trans();
 
 
 
-
    $('.sel2').select2({
   dropdownParent: $("#add-user-modal"),
   dropdownAutoWidth: false,
@@ -781,7 +781,7 @@ $('.sel12').select2({
 
 
      
-$('#add-user-btn').click(function(e){
+    $('#add-user-btn').click(function(e){
       e.preventDefault();
       $('#add-user-modal').modal('show'); 
     });
@@ -792,16 +792,21 @@ $('#add-user-btn').click(function(e){
 
     $('#add-user-frm').submit(function(e){
       e.preventDefault();
-      $.ajax({
-        url: $(this).attr('action'),
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          get_users();
-          $('#add-user-modal').modal('hide');
-          showNotification("success", data.message, "now-ui-icons ui-1_check");
-        }
-      });  
+      var form = $('#add-user-frm');
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        $.ajax({
+          url: $(this).attr('action'),
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            get_users();
+            $('#add-user-modal').modal('hide');
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+          }
+        });  
+      }
     });
 
     $('#sel-user-id-add').change(function(e){
@@ -847,7 +852,7 @@ $('#add-user-btn').click(function(e){
       var operation = $(this).attr('data-operation');
       var id = $(this).attr('data-id');
       $('#edit_user_group').val(user_m);
-       $('#edit_user_group').trigger('change');
+      $('#edit_user_group').trigger('change');
       $.ajax({
             url:"/get_user_role_by_module/"+user_m,
             type:"GET",
@@ -874,7 +879,11 @@ $('#add-user-btn').click(function(e){
 
     $('#edit-user-frm').submit(function(e){
       e.preventDefault();
-      $.ajax({
+      var form = $('#edit-user-frm');
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        $.ajax({
         url: $(this).attr('action'),
         type:"POST",
         data: $(this).serialize(),
@@ -883,7 +892,8 @@ $('#add-user-btn').click(function(e){
           $('#edit-user-modal').modal('hide');
           showNotification("success", data.message, "now-ui-icons ui-1_check");
         }
-      });  
+      }); 
+      }
     });
 
     $(document).on('click', '.delete-user-btn', function(e){
@@ -938,12 +948,13 @@ $('#add-user-btn').click(function(e){
       });  
     }
 
+  $(document).on('change', '#user_group', function (){
+    change_userrole_add();
+  });
 
-    function change_userrole_add(){
+  function change_userrole_add(){
     var modules = $("#user_group").val();
-    if (modules =="") {
-
-    }else{
+    if (modules != "") {
        $.ajax({
             url:"/get_user_role_by_module/"+modules,
             type:"GET",
@@ -958,15 +969,16 @@ $('#add-user-btn').click(function(e){
             }
           }); 
     }
-            
- }
+  }
+
+  $(document).on('change', '#edit_user_group', function (){
+    change_userrole_edit();
+  });
 
  function change_userrole_edit(){
     var modules = $("#edit_user_group").val();
     // alert(modules);
-    if (modules =="") {
-
-    }else{
+    if (modules != "") {
             $.ajax({
             url:"/get_user_role_by_module/"+modules,
             type:"GET",
@@ -981,7 +993,6 @@ $('#add-user-btn').click(function(e){
             }
           });
     }
-            
  }
 
  function get_user_group(page, query){
@@ -997,41 +1008,51 @@ $('#add-user-btn').click(function(e){
 
     $('#add-user-group-frm').submit(function(e){
       e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-user-group-modal').modal('hide');
-            $('#add-user-group-frm').trigger('resset');
-            get_user_group();
+      var form = $('#add-user-group-frm');
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        var url = $(this).attr("action");
+        $.ajax({
+          url: url,
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            if (data.success < 1) {
+              showNotification("danger", data.message, "now-ui-icons travel_info");
+            }else{
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+              $('#add-user-group-modal').modal('hide');
+              $('#add-user-group-frm').trigger('resset');
+              get_user_group();
+            }
           }
-        }
-      });
+        });
+      }
     });
 
     $('#edit-user-group-frm').submit(function(e){
       e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#edit-user-group-modal').modal('hide');
-            get_user_group();
+      var form = $('#edit-user-group-frm');
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        var url = $(this).attr("action");
+        $.ajax({
+          url: url,
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(data){
+            if (data.success < 1) {
+              showNotification("danger", data.message, "now-ui-icons travel_info");
+            }else{
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+              $('#edit-user-group-modal').modal('hide');
+              get_user_group();
+            }
           }
-        }
-      });
+        });
+      }
     });
 
     $('#delete-user-group-frm').submit(function(e){
