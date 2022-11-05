@@ -6421,66 +6421,59 @@ class SecondaryController extends Controller
         return view('tables.tbl_user_group', compact('list'));
     }
     public function save_user_group(Request $request){
-        $now = Carbon::now();
-        // dd($request->all());
-        if (DB::connection('mysql_mes')
-                    ->table('user_group')
-                    ->where('module', $request->add_user_group)
-                     ->where('user_role', $request->add_user_role)
-                    ->exists()){
-            return response()->json(['success' => 0,'message' => 'User Group already exists.']);
-                         
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $now = Carbon::now();
+            $checker = DB::connection('mysql_mes')->table('user_group')->where('module', $request->add_user_group)->where('user_role', $request->add_user_role)->exists();
 
-        }else{
-            $data = [
-            'module' => $request->add_user_group,
-            'user_role' => $request->add_user_role,
-            'created_by' => Auth::user()->employee_name,
-            'created_at' => $now->toDateTimeString()
-        ];
-        
-        DB::connection('mysql_mes')->table('user_group')->insert($data);
-
-        return response()->json(['success' => 1,'message' => 'User Group has been saved.']);
-        }
-    }
-    public function update_user_group(Request $request){
-        $now = Carbon::now();
-        // dd($request->all());
-        // dd($request->all());
-        if (DB::connection('mysql_mes')
-                    ->table('user_group')
-                    ->where('module', $request->edit_user_group_regis)
-                    ->where('user_role', $request->edit_user_role_regis)
-                    ->exists()){
-
-
-            if(strtoupper($request->edit_orig_module) == strtoupper($request->edit_user_group_regis) && strtoupper($request->edit_orig_role) == strtoupper($request->edit_user_role_regis)){
-                $data = [
-                    'module' => $request->edit_user_group_regis,
-                    'user_role' => $request->edit_user_role_regis,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
-
-                    DB::connection('mysql_mes')->table('user_group')->where('user_group_id', $request->edit_user_group_regis_id)->update($data);
-                    return response()->json(['success' => 1,'message' => 'User Group has been updated.']);
-
-            }else{
+            if($checker){
                 return response()->json(['success' => 0,'message' => 'User Group already exists.']);
             }
 
-        }else{
             $data = [
-                    'module' => $request->edit_user_group_regis,
-                    'user_role' => $request->edit_user_role_regis,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
+                'module' => $request->add_user_group,
+                'user_role' => $request->add_user_role,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString(),
+                'last_modified_by' => Auth::user()->email,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
+            
+            DB::connection('mysql_mes')->table('user_group')->insert($data);
 
-            DB::connection('mysql_mes')->table('user_group')->where('user_group_id', $request->user_id)->update($data);
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1,'message' => 'User Group has been saved.']);
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0,'message' => 'An error occured. Please try again later.']);
+        }
+    }
+    public function update_user_group(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $now = Carbon::now();
+            $checker = DB::connection('mysql_mes')->table('user_group')->where('module', $request->edit_user_group_regis)->where('user_role', $request->edit_user_role_regis)->exists();
+            
+            if($checker){
+                return response()->json(['success' => 0, 'message' => 'User Group already exists.']);
+            }
 
-           return response()->json(['success' => 1,'message' => 'User Group has been updated.']);
+            $data = [
+                'module' => $request->edit_user_group_regis,
+                'user_role' => $request->edit_user_role_regis,
+                'last_modified_by' => Auth::user()->employee_name,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
+
+            DB::connection('mysql_mes')->table('user_group')->where('user_group_id', $request->edit_user_group_regis_id)->update($data);
+
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1,'message' => 'User Group has been updated.']);
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0,'message' => 'An error occured. Please try again later.']);
         }
     }
     public function delete_user_group(Request $request){

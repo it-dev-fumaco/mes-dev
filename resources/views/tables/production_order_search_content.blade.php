@@ -226,7 +226,7 @@
 												@endphp
 												<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['good']) }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['reject']) }}</b></td>
-												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['rework']) }}</b></td>
+												<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ $loop->last ? number_format($a['rework']) : 0 }}</b></td>
 												<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
 												<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
