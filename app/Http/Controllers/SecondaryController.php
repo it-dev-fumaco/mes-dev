@@ -5023,12 +5023,12 @@ class SecondaryController extends Controller
     public function get_tbl_setting_machine_list(Request $request){
         $machine_list = DB::connection('mysql_mes')->table('machine')
             ->where(function($q) use ($request) {
-                    $q->where('reference_key', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('machine_code', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('machine_name', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('status', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('type', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('model', 'LIKE', '%'.$request->search_string.'%');
+                $q->where('reference_key', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('machine_code', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('machine_name', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('status', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('type', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('model', 'LIKE', '%'.$request->search_string.'%');
             })
             ->orderBy('machine_id', 'desc')->paginate(15);
 
