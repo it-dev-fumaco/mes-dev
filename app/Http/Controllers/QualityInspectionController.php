@@ -204,6 +204,13 @@ class QualityInspectionController extends Controller
                         $good_qty_after_transaction = 0;
                     }
 
+                    $rework_qty = 0;
+                    if($request->qc_remarks == 'For Rework'){
+                        $rework_qty = $job_ticket_details->rework + $request->qty_reject;
+                    }
+
+                    DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['rework' => $rework_qty]);
+
                     $update = [
                         'last_modified_at' => $now->toDateTimeString(),
                         'last_modified_by' => $qa_staff_name,
@@ -1351,11 +1358,18 @@ class QualityInspectionController extends Controller
                         $good_qty_after_transaction = 0;
                     }
 
+                    $rework_qty = 0;
+                    if($request->disposition[$time_log_id] == 'Rework'){
+                        $rework_qty = $job_ticket_details->rework + $request_rejected_qty;
+                    }
+
+                    DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['rework' => $rework_qty]);
+
                     $update = [
                         'last_modified_at' => $now->toDateTimeString(),
                         'last_modified_by' => $qa_staff_name,
                         'good' => $good_qty_after_transaction,
-                        'reject' => $request_rejected_qty,
+                        'reject' => $request_rejected_qty
                     ];
                     
                     $logs_table = $workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
