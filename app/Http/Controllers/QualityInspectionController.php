@@ -204,7 +204,7 @@ class QualityInspectionController extends Controller
                         $good_qty_after_transaction = 0;
                     }
 
-                    $rework_qty = 0;
+                    $rework_qty = $job_ticket_details->rework;
                     if($request->qc_remarks == 'For Rework'){
                         $rework_qty = $job_ticket_details->rework + $request->qty_reject;
                     }
@@ -811,24 +811,26 @@ class QualityInspectionController extends Controller
         $q = DB::connection('mysql_mes')->table('quality_inspection as q')
             ->join('time_logs as t', 't.time_log_id', 'q.reference_id')
             ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+            ->join('process as p', 'j.process_id', 'p.process_id')
             ->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
-            ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id');
+            ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id');
 
         $reject_confirmation_list = DB::connection('mysql_mes')->table('quality_inspection as q')
             ->join('spotwelding_qty as t', 't.job_ticket_id', 'q.reference_id')
             ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+            ->join('process as p', 'j.process_id', 'p.process_id')
             ->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->where('q.reference_type', 'Spotwelding')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
-            ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id')
+            ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id')
             ->union($q)->get();
             
         if ($production_order_details->operation_id == 3) {
@@ -847,7 +849,9 @@ class QualityInspectionController extends Controller
             $checklist = collect($checklist)->groupby('workstation_name')->toArray();
         }
 
-        return view('quality_inspection.tbl_production_order_reject_for_confirmation', compact('production_order_details', 'reject_confirmation_list', 'checklist'));
+        $timelogs = collect($reject_confirmation_list)->pluck('time_log_id')->unique();
+
+        return view('quality_inspection.tbl_production_order_reject_for_confirmation', compact('production_order_details', 'reject_confirmation_list', 'checklist', 'timelogs'));
     }
 
     public function count_reject_for_confirmation(){
@@ -1336,13 +1340,10 @@ class QualityInspectionController extends Controller
                         return response()->json(['success' => 0, 'message' => 'Rejected qty cannot be greater than ' . $prod_details->qty_to_manufacture]);
                     }
 
-                    $reject_reason_id = 0;
-                    $reject_reason = DB::connection('mysql_mes')->table('reject_reason')->where('qa_id', $request_qa_id)->first();
-                    if($reject_reason){
-                        $reject_reason_id = $reject_reason->reject_reason_id;
+                    $reject_reasons = isset($request->reject_type[$time_log_id]) ? $request->reject_type[$time_log_id] : [];
+                    foreach($reject_reasons as $reason_id => $list_id){
+                        DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reason_id)->update(['reject_list_id' => $list_id]);
                     }
-
-                    DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reject_reason_id)->update(['reject_list_id' => $request->reject_type[$time_log_id]]);
 
                     $update = [
                         'qa_inspection_date' => $now->toDateTimeString(),
@@ -1362,7 +1363,7 @@ class QualityInspectionController extends Controller
                         $good_qty_after_transaction = 0;
                     }
 
-                    $rework_qty = 0;
+                    $rework_qty = $job_ticket_details->rework;
                     if($request->disposition[$time_log_id] == 'Rework'){
                         $rework_qty = $job_ticket_details->rework + $request_rejected_qty;
                     }
