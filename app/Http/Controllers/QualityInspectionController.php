@@ -748,6 +748,7 @@ class QualityInspectionController extends Controller
             ->when($operation_id == 2, function ($query) {
                 return $query->where('j.workstation', 'Painting');
             })
+            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
@@ -769,6 +770,7 @@ class QualityInspectionController extends Controller
                 ->orWhere('j.workstation', 'LIKE', '%'.$request->q.'%')
                 ->orWhere('p.item_code', 'LIKE', '%'.$request->q.'%');
             })
+            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
             ->when($operation_id == 1, function ($query) {
                 return $query->where('p.operation_id', 1)->where('j.workstation', '!=', 'Painting');
             })
@@ -857,6 +859,7 @@ class QualityInspectionController extends Controller
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
+            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->select('j.workstation', 'p.production_order', 'p.operation_id')
             ->groupBy('j.workstation', 'p.production_order', 'p.operation_id')
@@ -869,6 +872,7 @@ class QualityInspectionController extends Controller
             ->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->where('q.reference_type', 'Spotwelding')
+            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->select('j.workstation', 'p.production_order', 'p.operation_id')
