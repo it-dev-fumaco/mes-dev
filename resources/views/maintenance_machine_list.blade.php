@@ -11,49 +11,29 @@
 @include('modals.add_machine_modal')
 
 <div class="panel-header"></div>
-<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-    <div class="col-8 mx-auto p-0" style="background-color: #F7F7F9; margin-top: 60px;">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-3 offset-7">
-                    <input type="text" id='machine-list' class="form-control m-3" placeholder="Search">
-                </div>
-                <div class="col-2">
-                    <button type="button" class="btn btn-primary w-100" id="add-machine-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
+<div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+    <div class="col-12 p-2 rounded bg-white">
+        <div class="d-flex flex-row align-items-center">
+            <h5 class="col-6 p-0 mt-0 mb-0 ml-3">Machine List</h5>
+            <div class="col-4 p-0">
+                <div class="form-group p-0 m-0">
+                    <input type="text" id="machine-list" class="form-control rounded d-block" placeholder="Search">
                 </div>
             </div>
-            <div class="row">
-                <div class="col-12 p-3" id="tbl_setting_machine_list"></div>
+            <div class="col-2 text-center">
+                <button type="button" class="btn btn-primary m-0" id="add-machine-button"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
             </div>
+        </div>
+        <div class="row">
+            <div class="col-12 p-3" id="tbl_setting_machine_list"></div>
         </div>
     </div>
 </div>
-
 @endsection
 
 @section('script')
 <script>
     $(document).ready(function(){
-        setInterval(updateClock, 1000);
-        function updateClock(){
-            var currentTime = new Date();
-            var currentHours = currentTime.getHours();
-            var currentMinutes = currentTime.getMinutes();
-            var currentSeconds = currentTime.getSeconds();
-            // Pad the minutes and seconds with leading zeros, if required
-            currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-            currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-            // Choose either "AM" or "PM" as appropriate
-            var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-            // Convert the hours component to 12-hour format if needed
-            currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-            // Convert an hours component of "0" to "12"
-            currentHours = (currentHours === 0) ? 12 : currentHours;
-            currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-            // Compose the string for display
-            var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
-            $("#current-time").html(currentTimeString);
-        }
         setting_machine_list(1, $('#machine-list').val());
         function setting_machine_list(page, query){
             $.ajax({

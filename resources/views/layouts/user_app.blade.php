@@ -1925,11 +1925,13 @@
       $('#change-required-item-modal input[name="production_order_item_id"]').val(production_order_item_id);
 
       if(!$('#has-no-bom').text()) {
+        $('#change-required-item-modal #change-item-code-warning').removeClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
         $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
         $('#change-required-qty-btn').addClass('d-none');
       } else {
+        $('#change-required-item-modal #change-item-code-warning').addClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').removeAttr('readonly');
         $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('readonly');
         $('#change-required-qty-btn').removeAttr('readonly');

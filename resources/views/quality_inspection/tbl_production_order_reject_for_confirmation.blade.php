@@ -29,7 +29,6 @@
     </tbody>
 </table>
 
-
 <form action="/submitRejectConfirmation/{{ $production_order_details->production_order }}" method="POST" id="reject-confirmation-form">
     @csrf
     <table class="table table-bordered mt-3">
@@ -44,8 +43,15 @@
             <th class="p-1 text-center" style="width: 5%;">-</th>
         </thead>
         <tbody style="font-size: 9pt;">
-            @foreach ($reject_confirmation_list as $r)
+            @forelse ($timelogs as $timelog)
             @php
+                $rejection_arr = collect($reject_confirmation_list)->groupBy('time_log_id');
+                $select_arr = $r = [];
+                if(isset($rejection_arr[$timelog])){
+                    $r = $rejection_arr[$timelog][0];
+                    $select_arr = $rejection_arr[$timelog];
+                }
+                
                 if ($production_order_details->operation_id == 3) {
                     $workstation_checklist = $checklist;
                 } else {
@@ -63,13 +69,18 @@
                 <td class="text-center p-1">{{ $r->operator_name }}</td>
                 <td class="text-center p-1">{{ $r->rejected_qty }}</td>
                 <td class="text-center p-1">
-                    <select class="form-control rounded" name="reject_type[{{ $r->time_log_id }}]" required>
-                        @forelse($workstation_checklist as $i)
-                        <option value="{{ $i->reject_list_id }}" {{ ($r->reject_list_id == $i->reject_list_id) ? 'selected' : '' }}>{{ $i->reject_reason }}</option>
-                        @empty
-                        <option value="">No Reject Type(s)</option>
-                        @endforelse
-                    </select>
+                    @foreach ($select_arr as $item)
+                        <div class="p-1">
+                            <select class="form-control rounded" name="reject_type[{{ $timelog }}][{{ $item->reject_reason_id }}]" required>
+                                <option value="" {{ !in_array($item->reject_list_id, collect($workstation_checklist)->pluck('reject_list_id')->toArray()) ? 'selected' : null }} disabled>Select Reject Type</option>
+                                @forelse($workstation_checklist as $i)
+                                    <option value="{{ $i->reject_list_id }}" {{ $item->reject_list_id == $i->reject_list_id ? 'selected' : '' }}>{{ $i->reject_reason }}</option>
+                                @empty
+                                    <option value="">No Reject Type(s)</option>
+                                @endforelse
+                            </select>
+                        </div>
+                    @endforeach
                 </td>
                 <td class="text-center p-1">
                     <input type="text" class="form-control rounded" name="confirmed_reject[{{ $r->time_log_id }}]" required>
@@ -86,11 +97,15 @@
                     <button class="btn btn-danger btn-sm remove-workstation-row">&times;</button>
                 </td>
             </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td class="text-center p-1" colspan="8">No record(s) found</td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
     <div class="pull-right">
-        <button class="btn btn-primary" type="submit">Submit</button>
+        <button class="btn btn-primary" type="submit" {{ count($timelogs) <= 0 ? 'disabled' : null }}>Submit</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
     </div>
 </form>

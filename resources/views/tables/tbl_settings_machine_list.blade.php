@@ -1,12 +1,12 @@
-<table class="table table-striped table-bordered text-center" style="font-size: 7pt;">
+<table class="table table-striped table-bordered text-center text-hover" style="font-size: 7pt;">
   <col style="width: 5%;"><!-- No. -->
   <col style="width: 20%;"><!-- Machine Code -->
   <col style="width: 35%;"><!-- Action(s) -->
   <col style="width: 15%;"><!-- Status -->
   <col style="width: 25%;"><!-- Machine Name -->
-  <thead class="text-primary text-uppercase font-weight-bold">
+  <thead class="text-white text-uppercase bg-secondary font-weight-bold">
     <th class="p-2 text-center"><b>No.</b></th>
-    <th class="p-2 text-left"><b>Machine Code</b></th>
+    <th class="p-2 text-center"><b>Machine Code</b></th>
     <th class="p-2 text-center"><b>Machine Name</b></th>
     <th class="p-2 text-center"><b>Status</b></th>
     <th class="p-2 text-center"><b>Action(s)</b></th>
@@ -36,7 +36,7 @@
               break;
           }
         @endphp
-        <span class="badge badge-{{ $badge }}">{{ $row->status }}</span>
+        <span class="badge badge-{{ $badge }}" style="font-size: 8pt;">{{ $row->status }}</span>
       </td>
       <td class="p-2 text-center">
         <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default btn-edit-machine hover-icon' data-toggle="modal" data-machineid="{{ $row->machine_id }}" data-machinecode="{{ $row->machine_code }}" data-machinename="{{ $row->machine_name }}" data-status="{{ $row->status }}" data-referencekey="{{ $row->reference_key }}" data-type="{{ $row->type}}" data-model="{{$row->model}}" data-image="{{ $row->image }}"><i class='now-ui-icons design-2_ruler-pencil'></i></button>
