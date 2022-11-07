@@ -2258,6 +2258,14 @@ class MainController extends Controller
 						];
 	
 						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
+					} else {
+						$values = [
+							'last_modified_by' => Auth::user()->employee_name,
+							'last_modified_at' => $now->toDateTimeString(),
+							'planned_start_date' => $new_schedule,
+						];
+	
+						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
 					}
 				}
 
