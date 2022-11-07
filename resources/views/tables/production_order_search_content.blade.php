@@ -37,7 +37,7 @@
 										case "Material Issued":
 											$badge_color ="primary";
 											break;
-										case "Ready For Feedback":
+										case "Ready for Feedback":
 											$badge_color ="info";
 											break;
 										case "Partially Feedbacked":

@@ -8586,9 +8586,11 @@ class MainController extends Controller
 
 		$items_production_orders = [];
 		foreach ($production_orders as $r) {
+			$p_status = $r->produced_qty > $r->feedback_qty ? 'Ready for Feedback' : $r->status;
+			$p_status = $r->qty_to_manufacture == $r->feedback_qty ? 'Feedbacked' : $p_status;
 			$items_production_orders[$r->reference][$r->item_code][] = [
 				'production_order' => $r->production_order,
-				'status' => $r->status,
+				'status' => $p_status,
 				'produced_qty' => $r->produced_qty
 			];
 		}
