@@ -273,6 +273,10 @@
                                             <span class="badge badge-warning" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                             @elseif (in_array($po['status'], ['Completed', 'Feedbacked']))
                                             <span class="badge badge-success" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                            @elseif (in_array($po['status'], ['Ready for Feedback', 'For Partial Feedback']))
+                                            <span class="badge badge-info" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                            @elseif (in_array($po['status'], ['Cancelled']))
+                                            <span class="badge badge-danger" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                             @else
                                             <span class="badge badge-secondary" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                             @endif
