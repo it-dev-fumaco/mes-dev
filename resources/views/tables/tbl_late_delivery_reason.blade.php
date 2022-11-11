@@ -1,7 +1,7 @@
 <table class="table table-striped table-bordered text-center" style="font-size: 7pt;">
   <col style="width: 10%;">
-  <col style="width: 80%;">
-  <col style="width: 10%;">
+  <col style="width: 70%;">
+  <col style="width: 20%;">
   <thead class="text-primary text-uppercase font-weight-bold">
     <th class="p-2 text-center"><b>No.</b></th>
     <th class="p-2 text-center"><b>Reschedule Delivery Reason</b></th>                                
@@ -15,6 +15,9 @@
       <td class="p-2 text-center">
         <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon btn_edit_late_delivery' data-id="{{ $row->reschedule_reason_id }}" data-reason="{{ $row->reschedule_reason }}" >
           <i class='now-ui-icons design-2_ruler-pencil'></i>
+        </button>   
+        <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon btn_delete_late_delivery' data-id="{{ $row->reschedule_reason_id }}" data-reason="{{ $row->reschedule_reason }}" >
+          <i class='now-ui-icons ui-1_simple-remove'></i>
         </button>                
       </td>
     </tr> 

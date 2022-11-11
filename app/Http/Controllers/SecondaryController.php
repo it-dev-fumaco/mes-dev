@@ -7991,6 +7991,24 @@ class SecondaryController extends Controller
         return view('reports.tbl_reschedule_delivery_date', compact('prod_details','reason', 'data'));
 
     }
+    public function delete_late_delivery_reason(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $checker = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason', $request->late_deli_reason)->exists();
+            if ($checker){
+                DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason', $request->late_deli_reason)->delete();
+            }else{
+                return response()->json(['success' => 0, 'message' => 'Reschedule delivery reason does already removed.']);
+            }
+
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Reschedule delivery reason successfully removed.']);
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again later.']);
+        }
+    }
     public function update_late_delivery(Request $request){
         if (DB::connection('mysql_mes')->table('delivery_reschedule_reason')
             ->where('reschedule_reason', $request->edit_late_deli_reason)
@@ -8005,7 +8023,7 @@ class SecondaryController extends Controller
                     DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->transid)->update($list);
                     return response()->json(['message' => 'Reschedule Delivery Reason is successfully updated.']);
                 }else{
-                    return response()->json(['success' => 0, 'message' => 'Reschedule Delivery Reason - <b>'.$request->edit_reject_category.'</b> is already exist']);           
+                    return response()->json(['success' => 0, 'message' => 'Reschedule Delivery Reason - <b>'.$request->edit_reject_category.'</b> already exists']);           
 
                 }
         }else{
