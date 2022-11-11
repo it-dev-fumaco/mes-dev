@@ -5533,19 +5533,25 @@ class SecondaryController extends Controller
     public function get_production_schedule_monitoring_list(Request $request,$schedule_date){
         $orders = DB::connection('mysql_mes')->table('production_order as prod')
             ->join('job_ticket as tsd','tsd.production_order','=','prod.production_order')
-            ->whereNotIn('prod.status', ['Cancelled'])
+            ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
             ->where('tsd.planned_start_date', $schedule_date)
             ->where('tsd.workstation', 'Painting')
-            ->where(function($q) use ($request) {
-                $q->where('prod.production_order', 'LIKE', '%'.$request->search_string.'%')
-                ->orWhere('prod.item_code', 'LIKE', '%'.$request->search_string.'%')
-                ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
+            ->when($request->customer && $request->customer != 'Select All', function ($q) use ($request){
+                return $q->where('prod.customer', 'like', '%'.$request->customer.'%');
+            })
+            ->when($request->reference && $request->reference != 'Select All', function ($q) use ($request){
+                return $q->where(function ($x) use ($request){
+                    $x->where('prod.sales_order', 'like', '%'.$request->reference.'%')->orWhere('prod.material_request', 'like', '%'.$request->reference.'%');
+                });
+            })
+            ->when($request->parent && $request->parent != 'Select All', function ($q) use ($request){
+                return $q->where('prod.parent_item_code', 'like', '%'.$request->parent.'%');
             })
             ->distinct('prod.production_order', 'tsd.sequence')
             ->select('prod.*','tsd.sequence', 'tsd.planned_start_date as planned_start')
             ->orderBy('tsd.sequence','asc')
             ->get();
-        
+
         $data = [];
         foreach($orders as $row){
             $reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
@@ -5594,6 +5600,7 @@ class SecondaryController extends Controller
             'reference_nos' => array_unique(array_column($data, 'reference_no')),
             'parent_item_codes' => array_unique(array_column($data, 'parent_item_code'))
         ];
+
         return view('painting.tbl_production_schedule_monitoring', compact('data', 'current_date', 'filters'));
     }
     public function duration_for_completed_painting($prod){

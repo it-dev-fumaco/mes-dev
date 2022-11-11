@@ -672,8 +672,9 @@
     });
 
     function filter_schedule_monitoring_table(fltr1, fltr2, fltr3){
+      var url = '{{ $operation_details->operation_name == "Painting" ? "/get_production_schedule_monitoring_list" : "/production_schedule_monitoring/".$operation_details->operation_id }}';
       $.ajax({
-        url: "/production_schedule_monitoring/{{ $operation_details->operation_id }}/{{ $schedule_date }}",
+        url: url + "/{{ $schedule_date }}",
         type: "GET",
         data: {
           customer: fltr1,

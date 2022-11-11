@@ -1,48 +1,3 @@
-<div class="row">
-  <div class="col-md-6 offset-md-1" style="margin-top: -52px;">
-    <table class="w-100 mt-2 p-0" id="filter-form">
-      <col style="width: 40%;">
-      <col style="width: 25%;">
-      <col style="width: 25%;">
-      <col style="width: 10%;">
-      <tr>
-        <td>
-          <div class="form-group mb-0 mr-1">
-            <select class="form-control select-custom" id="customer-filter">
-              <option value="all">Select Customer</option>
-              @foreach ($filters['customers'] as $i => $customer)
-              <option value="{{ $customer }}">{{ $customer }}</option>
-              @endforeach
-            </select>
-          </div>
-        </td>
-        <td>
-          <div class="form-group mb-0 mr-1">
-            <select class="form-control select-custom" id="reference-filter">
-              <option value="all">Select Reference No.</option>
-              @foreach ($filters['reference_nos'] as $i => $reference)
-              <option value="{{ $reference }}">{{ $reference }}</option>
-              @endforeach
-            </select>
-          </div>
-        </td>
-        <td>
-          <div class="form-group mb-0 mr-1">
-            <select class="form-control select-custom rounded-0" id="parent-item-filter">
-              <option value="all">Select Parent Item</option>
-              @foreach ($filters['parent_item_codes'] as $i => $parent_item)
-              <option value="{{ $parent_item }}">{{ $parent_item }}</option>
-              @endforeach
-            </select>
-          </div>
-        </td>
-        <td class="pl-2">
-          <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
-        </td>
-      </tr>
-    </table>
-  </div>
-</div>
 <table class="table custom-table-striped text-center" id="monitoring-table">
   <col style="width: 8%;">
   <col style="width: 7%;">
@@ -104,7 +59,7 @@
         <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['qty'] }}</span>
         <span class="d-block">{{ $row['stock_uom'] }}</span>
       </td>
-      @foreach($row['job_ticket'] as $rows)
+      @forelse($row['job_ticket'] as $rows)
         @php
         if($rows->status == "Completed"){
           $status="#2ecc71";
@@ -118,7 +73,22 @@
           <span style="font-size: 9pt;">{{ $rows->status }}</span>
           <span class="d-block" style="font-size: 9pt;">( {{ $rows->completed_qty }} )</span>
         </td>
-      @endforeach
+      @empty
+        <td class="text-center text-white" style="background-color: #b2babb;">
+          <span style="font-size: 9pt;">Pending</span>
+          <span class="d-block" style="font-size: 9pt;">( 0 )</span>
+        </td>
+        <td class="text-center text-white" style="background-color: #b2babb;">
+          <span style="font-size: 9pt;">Pending</span>
+          <span class="d-block" style="font-size: 9pt;">( 0 )</span>
+        </td>
+      @endforelse
+      @if (count($row['job_ticket']) == 1)
+        <td class="text-center text-white" style="background-color: #b2babb;">
+          <span style="font-size: 9pt;">Pending</span>
+          <span class="d-block" style="font-size: 9pt;">( 0 )</span>
+        </td>
+      @endif
       <td class="text-center" {!! $rowspan !!}>
         <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $row['completed_qty'] }}</span>
         <span class="d-block">{{ $row['stock_uom'] }}</span>

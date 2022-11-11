@@ -7069,22 +7069,45 @@ class MainController extends Controller
 	}
 
 	public function production_schedule_monitoring_filters($operation, $schedule_date, Request $request){
-		$production_orders = DB::connection('mysql_mes')->table('production_order')
-			->whereNotIn('status', ['Cancelled', 'Closed'])
-			->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
-			->when($request->search_customer, function ($q) use ($request){
-				return $q->where('customer', 'like', '%'.$request->search_customer.'%');
-			})
-			->when($request->search_reference, function ($q) use ($request){
-				return $q->where(function ($x) use ($request){
-					$x->where('sales_order', 'like', '%'.$request->search_reference.'%')->orWhere('material_request', 'like', '%'.$request->search_reference.'%');
-				});
-			})
-			->when($request->search_parent, function ($q) use ($request){
-				return $q->where('parent_item_code', 'like', '%'.$request->search_parent.'%');
-			})
-			->get();
-
+		if($operation == 2){
+			$production_orders = DB::connection('mysql_mes')->table('production_order as prod')
+				->join('job_ticket as tsd','tsd.production_order','=','prod.production_order')
+				->whereNotIn('prod.status', ['Cancelled', 'Closed'])
+				->where('tsd.planned_start_date', $schedule_date)
+				->where('tsd.workstation', 'Painting')
+				->when($request->search_customer, function ($q) use ($request){
+					return $q->where('customer', 'like', '%'.$request->search_customer.'%');
+				})
+				->when($request->search_reference, function ($q) use ($request){
+					return $q->where(function ($x) use ($request){
+						$x->where('sales_order', 'like', '%'.$request->search_reference.'%')->orWhere('material_request', 'like', '%'.$request->search_reference.'%');
+					});
+				})
+				->when($request->search_parent, function ($q) use ($request){
+					return $q->where('parent_item_code', 'like', '%'.$request->search_parent.'%');
+				})
+				->distinct('prod.production_order', 'tsd.sequence')
+				->select('prod.*','tsd.sequence', 'tsd.planned_start_date as planned_start')
+				->orderBy('tsd.sequence','asc')
+				->get();
+		}else{
+			$production_orders = DB::connection('mysql_mes')->table('production_order')
+				->whereNotIn('status', ['Cancelled', 'Closed'])
+				->where('operation_id', $operation)->whereRaw('feedback_qty < qty_to_manufacture')
+				->when($request->search_customer, function ($q) use ($request){
+					return $q->where('customer', 'like', '%'.$request->search_customer.'%');
+				})
+				->when($request->search_reference, function ($q) use ($request){
+					return $q->where(function ($x) use ($request){
+						$x->where('sales_order', 'like', '%'.$request->search_reference.'%')->orWhere('material_request', 'like', '%'.$request->search_reference.'%');
+					});
+				})
+				->when($request->search_parent, function ($q) use ($request){
+					return $q->where('parent_item_code', 'like', '%'.$request->search_parent.'%');
+				})
+				->get();
+		}
+		
 		$customers = $refs = $parent = [];
 		foreach ($production_orders as $row) {
 			$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
