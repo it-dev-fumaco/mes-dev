@@ -311,6 +311,40 @@
 		</form>
 	</div>
  </div>
+ <div class="modal fade" id="delete-late-delivery-modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-md" role="document">
+		<form action="/delete_late_delivery_reason" method="POST" id="delete-late-delivery-frm">
+			@csrf
+			<div class="modal-content">
+				<div class="modal-header text-white" style="background-color: #0277BD;">
+					<h5 class="modal-title" id="modal-title "> Delete Reschedule Delivery Reason<br></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="form-group">
+								<label>Late Delivery Reason:</label>
+                <br>
+                <center>
+                  <span id="late-deli-reason-text"></span>
+                </center>
+								<input type="hidden" name="late_deli_reason" id="late_deli_reason" class="form-control">
+								<input type="hidden" name="transid" id="transid" class="form-control">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</div>
+			</div>
+		</form>
+	</div>
+ </div>
 
  <div class="modal fade" id="add-cancelled-reason-modal" tabindex="-1" role="dialog">
 	<div class="modal-dialog modal-md" role="document">
@@ -1042,6 +1076,29 @@
               }else{
                 showNotification("success", data.message, "now-ui-icons ui-1_check");
                 $('#edit-late-delivery-modal').modal('hide');
+                tbl_late_delivery_date();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+            }
+        });
+    });
+    $('#delete-late-delivery-frm').submit(function(e){
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(data){
+              if (data.success < 1) {
+                showNotification("danger", data.message, "now-ui-icons travel_info");
+              }else{
+                showNotification("success", data.message, "now-ui-icons ui-1_check");
+                $('#delete-late-delivery-modal').modal('hide');
                 tbl_late_delivery_date();
               }
             },
@@ -4006,17 +4063,26 @@ function tbl_wip_list(page, query){
   });
 
   $(document).on('click', '.btn_edit_late_delivery', function(){
-      var edit_late_reason = $(this).data('reason');
-      var id = $(this).data('id');
+    var edit_late_reason = $(this).data('reason');
+    var id = $(this).data('id');
 
-      $('#orig_late_deli_reason').val(edit_late_reason);
-      $('#edit_late_deli_reason').val(edit_late_reason);
-      $('#transid').val(id);
-  
-       $('#edit-late-delivery-modal').modal('show');
+    $('#orig_late_deli_reason').val(edit_late_reason);
+    $('#edit_late_deli_reason').val(edit_late_reason);
+    $('#transid').val(id);
 
-    });
-  
+    $('#edit-late-delivery-modal').modal('show');
+  });
+
+  $(document).on('click', '.btn_delete_late_delivery', function(){
+    var edit_late_reason = $(this).data('reason');
+    var id = $(this).data('id');
+
+    $('#late-deli-reason-text').text(edit_late_reason);
+    $('#late_deli_reason').val(edit_late_reason);
+    $('#transid').val(id);
+
+    $('#delete-late-delivery-modal').modal('show');
+  });
   
   $('#add-late-delivery-button').click(function(e){
          e.preventDefault();

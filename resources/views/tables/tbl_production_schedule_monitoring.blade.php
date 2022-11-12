@@ -118,7 +118,11 @@
       </div>
     </div>
   @empty
-      
+    <div class="card-primary">
+      <div class="card-body">
+        <h4 class="text-center">No result(s) found.</h4>
+      </div>
+    </div>
   @endforelse
 </div>
 

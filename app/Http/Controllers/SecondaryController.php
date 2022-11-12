@@ -5533,19 +5533,25 @@ class SecondaryController extends Controller
     public function get_production_schedule_monitoring_list(Request $request,$schedule_date){
         $orders = DB::connection('mysql_mes')->table('production_order as prod')
             ->join('job_ticket as tsd','tsd.production_order','=','prod.production_order')
-            ->whereNotIn('prod.status', ['Cancelled'])
+            ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
             ->where('tsd.planned_start_date', $schedule_date)
             ->where('tsd.workstation', 'Painting')
-            ->where(function($q) use ($request) {
-                $q->where('prod.production_order', 'LIKE', '%'.$request->search_string.'%')
-                ->orWhere('prod.item_code', 'LIKE', '%'.$request->search_string.'%')
-                ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
+            ->when($request->customer && $request->customer != 'Select All', function ($q) use ($request){
+                return $q->where('prod.customer', 'like', '%'.$request->customer.'%');
+            })
+            ->when($request->reference && $request->reference != 'Select All', function ($q) use ($request){
+                return $q->where(function ($x) use ($request){
+                    $x->where('prod.sales_order', 'like', '%'.$request->reference.'%')->orWhere('prod.material_request', 'like', '%'.$request->reference.'%');
+                });
+            })
+            ->when($request->parent && $request->parent != 'Select All', function ($q) use ($request){
+                return $q->where('prod.parent_item_code', 'like', '%'.$request->parent.'%');
             })
             ->distinct('prod.production_order', 'tsd.sequence')
             ->select('prod.*','tsd.sequence', 'tsd.planned_start_date as planned_start')
             ->orderBy('tsd.sequence','asc')
             ->get();
-        
+
         $data = [];
         foreach($orders as $row){
             $reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
@@ -5594,6 +5600,7 @@ class SecondaryController extends Controller
             'reference_nos' => array_unique(array_column($data, 'reference_no')),
             'parent_item_codes' => array_unique(array_column($data, 'parent_item_code'))
         ];
+
         return view('painting.tbl_production_schedule_monitoring', compact('data', 'current_date', 'filters'));
     }
     public function duration_for_completed_painting($prod){
@@ -7991,6 +7998,24 @@ class SecondaryController extends Controller
         return view('reports.tbl_reschedule_delivery_date', compact('prod_details','reason', 'data'));
 
     }
+    public function delete_late_delivery_reason(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $checker = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason', $request->late_deli_reason)->exists();
+            if ($checker){
+                DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason', $request->late_deli_reason)->delete();
+            }else{
+                return response()->json(['success' => 0, 'message' => 'Reschedule delivery reason does already removed.']);
+            }
+
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Reschedule delivery reason successfully removed.']);
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again later.']);
+        }
+    }
     public function update_late_delivery(Request $request){
         if (DB::connection('mysql_mes')->table('delivery_reschedule_reason')
             ->where('reschedule_reason', $request->edit_late_deli_reason)
@@ -8005,7 +8030,7 @@ class SecondaryController extends Controller
                     DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->transid)->update($list);
                     return response()->json(['message' => 'Reschedule Delivery Reason is successfully updated.']);
                 }else{
-                    return response()->json(['success' => 0, 'message' => 'Reschedule Delivery Reason - <b>'.$request->edit_reject_category.'</b> is already exist']);           
+                    return response()->json(['success' => 0, 'message' => 'Reschedule Delivery Reason - <b>'.$request->edit_reject_category.'</b> already exists']);           
 
                 }
         }else{

@@ -570,6 +570,7 @@ Route::get('/get_tbl_opchecklist_list_assembly', 'SecondaryController@get_tbl_op
 //reschedule delivery date
 Route::post('/update_rescheduled_delivery_date', 'MainController@update_rescheduled_delivery_date');
 Route::post('/edit_late_delivery_reason', 'SecondaryController@update_late_delivery');
+Route::post('/delete_late_delivery_reason', 'SecondaryController@delete_late_delivery_reason');
 Route::get('/get_late_delivery', 'SecondaryController@get_tbl_late_delivery');
 Route::post('/save_late_delivery_reason', 'SecondaryController@save_late_delivery_reason');
 Route::get('/reschedule_prod_details/{production_order}', 'SecondaryController@reschedule_prod_details');
