@@ -16,9 +16,9 @@
         <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon btn_edit_late_delivery' data-id="{{ $row->reschedule_reason_id }}" data-reason="{{ $row->reschedule_reason }}" >
           <i class='now-ui-icons design-2_ruler-pencil'></i>
         </button>   
-        <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon btn_delete_late_delivery' data-id="{{ $row->reschedule_reason_id }}" data-reason="{{ $row->reschedule_reason }}" >
+        {{-- <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon btn_delete_late_delivery' data-id="{{ $row->reschedule_reason_id }}" data-reason="{{ $row->reschedule_reason }}" >
           <i class='now-ui-icons ui-1_simple-remove'></i>
-        </button>                
+        </button>                 --}}
       </td>
     </tr> 
     @empty
