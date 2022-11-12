@@ -28,7 +28,7 @@
         <small class="d-block">{{ $row->stock_uom }}</small>
       </td>
       <td class="text-center p-1">
-        <button type="button" class="btn btn-primary pb-2 pt-2 pr-3 pl-3 reject-for-confirmation-action-btn" data-production-order="{{ $row->production_order }}">Action</button>
+        <button type="button" class="btn btn-primary pb-2 pt-2 pr-3 pl-3 reject-for-confirmation-action-btn" data-production-order="{{ $row->production_order }}" data-operation-id="{{ $operation_id }}">Action</button>
       </td>
     </tr>
     @empty
@@ -38,4 +38,4 @@
     @endforelse
   </tbody>
 </table>
-<div class="text-center mt-2 paginate-reject-confirmation">{{ $list->links() }}</div>
+<div class="text-center mt-2 paginate-reject-confirmation border border-secondary">{{ $list->links() }}</div>

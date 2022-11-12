@@ -234,8 +234,9 @@
     $(document).on('click', '.reject-for-confirmation-action-btn', function(e) {
       e.preventDefault();
       var p = $(this).data('production-order');
+      var operation = $(this).data('operation-id');
       $.ajax({
-        url:"/getProductionOrderRejectForConfirmation/" + p,
+        url:"/getProductionOrderRejectForConfirmation/" + p + "?operation=" + operation,
         type:"GET",
         success:function(data){
           $('#reject-confirmation-div').html(data);

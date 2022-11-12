@@ -802,11 +802,12 @@ class QualityInspectionController extends Controller
 
         $list = $paginatedItems;
 
-        return view('quality_inspection.tbl_reject_confirmation', compact('list'));
+        return view('quality_inspection.tbl_reject_confirmation', compact('list', 'operation_id'));
     }
 
-    public function getProductionOrderRejectForConfirmation($production_order) {
+    public function getProductionOrderRejectForConfirmation(Request $request, $production_order) {
         $production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
+        $operation_id = $request->operation;
 
         $q = DB::connection('mysql_mes')->table('quality_inspection as q')
             ->join('time_logs as t', 't.time_log_id', 'q.reference_id')
@@ -816,6 +817,9 @@ class QualityInspectionController extends Controller
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
+            ->when($operation_id == 2, function ($q){
+                return $q->where('j.workstation', 'Painting');
+            })
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
             ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id');
@@ -828,11 +832,14 @@ class QualityInspectionController extends Controller
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->where('q.reference_type', 'Spotwelding')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
+            ->when($operation_id == 2, function ($q){
+                return $q->where('j.workstation', 'Painting');
+            })
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
             ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id')
             ->union($q)->get();
-            
+
         if ($production_order_details->operation_id == 3) {
             $checklist = DB::connection('mysql_mes')->table('reject_list')
                 ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
@@ -861,9 +868,9 @@ class QualityInspectionController extends Controller
             ->join('production_order as p', 'p.production_order', 'j.production_order')
             ->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
+            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
-            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->select('j.workstation', 'p.production_order', 'p.operation_id')
             ->groupBy('j.workstation', 'p.production_order', 'p.operation_id')
@@ -875,34 +882,23 @@ class QualityInspectionController extends Controller
             ->join('production_order as p', 'p.production_order', 'j.production_order')
             ->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
             ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
-            ->where('q.reference_type', 'Spotwelding')
             ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
+            ->where('q.reference_type', 'Spotwelding')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->select('j.workstation', 'p.production_order', 'p.operation_id')
             ->groupBy('j.workstation', 'p.production_order', 'p.operation_id')
             ->unionAll($q)->get();
 
-        $fabrication = $painting = $assembly = [];
-        foreach ($list as $r) {
-            if ($r->operation_id == 1 && $r->workstation != 'Painting') {
-                array_push($fabrication, $r->production_order);
-            }
-
-            if ($r->workstation == 'Painting') {
-                array_push($painting, $r->production_order);
-            }
-
-            if ($r->operation_id == 3) {
-                array_push($assembly, $r->production_order);
-            }
-        }
+        $assembly = collect($list)->where('operation_id', 3)->where('workstation', '!=', 'Painting')->count();
+        $painting = collect($list)->where('workstation', 'Painting')->count();
+        $fabrication = collect($list)->where('operation_id', 1)->where('workstation', '!=', 'Painting')->count();
 
         return response()->json([
-            'fabrication' => count(array_unique($fabrication)),
-            'painting' => count(array_unique($painting)),
-            'assembly' => count(array_unique($assembly)),
-            'overall' => count(array_unique($fabrication)) + count(array_unique($painting)) + count(array_unique($assembly))
+            'fabrication' => $assembly,
+            'painting' => $painting,
+            'assembly' => $fabrication,
+            'overall' => $assembly + $painting + $fabrication
         ]);
     }
 
