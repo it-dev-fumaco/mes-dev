@@ -8526,6 +8526,62 @@ class MainController extends Controller
 
 		return view('view_order_list', compact('permissions', 'order_types'));
 	}
+
+	public function viewOrderDetails($id) {
+		$ref_type = explode("-", $id)[0];
+
+		if ($ref_type == 'MREQ') {
+			$details = DB::connection('mysql')->table('tabMaterial Request as mr')->where('name', $id)
+				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified')->first();
+		} else {
+			$details = DB::connection('mysql')->table('tabSales Order as so')->where('name', $id)
+				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
+				->first();
+		}
+
+		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note');
+
+		$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
+			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
+
+		$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
+
+		$default_boms = DB::connection('mysql')->table('tabBOM')
+			->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
+			->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
+			->orderBy('creation', 'desc')->get();
+
+		$default_boms = collect($default_boms)->groupBy('item')->toArray();
+
+		$item_list = collect($item_list)->groupBy('parent')->toArray();
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order')
+			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty')
+			->get();
+
+		$items_production_orders = [];
+		foreach ($production_orders as $r) {
+			$p_status = $r->produced_qty > $r->feedback_qty ? 'Ready for Feedback' : $r->status;
+			$p_status = $r->qty_to_manufacture == $r->feedback_qty ? 'Feedbacked' : $p_status;
+			$items_production_orders[$r->reference][$r->item_code][] = [
+				'production_order' => $r->production_order,
+				'status' => $p_status,
+				'produced_qty' => $r->produced_qty
+			];
+		}
+
+		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
+			->where('created_by', Auth::user()->email)->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
+		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
+		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
+
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order'));
+	}
 	
 	// /get_order_list
 	public function getOrderList(Request $request) {
