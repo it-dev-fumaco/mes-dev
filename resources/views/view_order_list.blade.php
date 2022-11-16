@@ -68,6 +68,13 @@
 </div>
 
 <!-- Modal -->
+<div class="modal fade" id="view-order-details-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="min-width: 85%;">
+        <div id="view-order-modal-content"></div>
+    </div>
+</div>
+
+<!-- Modal -->
 <div class="modal fade" id="view-bom-modal" tabindex="-1" role="dialog">
 	<div class="modal-dialog" role="document" style="min-width: 50%;">
 		<div class="modal-content">
@@ -211,6 +218,24 @@
 @section('script')
 <script>
 $(document).ready(function(){
+	$(document).on('click', '.view-order-details-btn', function(e) {
+		e.preventDefault();
+		$('#view-order-details-modal').modal('show');
+		$('#view-order-modal-content').empty();
+		var id = $(this).data('id');
+		$.ajax({
+            url: "/view_order_detail/" + id,
+            type:"GET",
+            success:function(data){
+                $('#view-order-modal-content').html(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if(jqXHR.status == 401) {
+                    showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                }
+            },
+        });
+	});
 	$(document).on('click', '.print-order-btn', function(e){
       e.preventDefault();
 	  $("#iframe-print-order").attr("src", $(this).attr('href'));
