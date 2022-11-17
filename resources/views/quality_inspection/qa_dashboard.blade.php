@@ -200,7 +200,7 @@
   <div class="modal-dialog modal-lg" role="document" style="min-width: 80%;">
      <div class="modal-content">
         <div class="text-white rounded-top" style="background-color: #f57f17;">
-          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+          <div class="d-flex flex-row justify-content-between p-2 align-items-center">
             <h5 class="font-weight-bold m-0 p-0">QA Reject Confirmation</h5>
             <div class="float-right">
               <h5 class="modal-title font-weight-bold prod_title_reset p-0 mr-5 font-italic d-inline-block" id="reject-for-confirmation-production-order">PROM-47694</h5>

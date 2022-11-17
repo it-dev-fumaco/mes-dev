@@ -895,9 +895,9 @@ class QualityInspectionController extends Controller
         $fabrication = collect($list)->where('operation_id', 1)->where('workstation', '!=', 'Painting')->count();
 
         return response()->json([
-            'fabrication' => $assembly,
+            'fabrication' => $fabrication,
             'painting' => $painting,
-            'assembly' => $fabrication,
+            'assembly' => $assembly,
             'overall' => $assembly + $painting + $fabrication
         ]);
     }
