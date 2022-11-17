@@ -12,13 +12,13 @@
             </button>
         </div>
         <div class="modal-body pb-2">
-            <table class="w-100 border-0">
+            <table class="w-100 border-0" style="font-size: 9pt;">
                 <tr>
                     <td class="align-middle text-right p-1" style="width: 12%;">Order No.:</td>
-                    <td class="align-middle p-1 font-weight-bold" style="width: 26%; font-size: 13pt;">{{ $details->name }}</td>
+                    <td class="align-middle p-1 font-weight-bold" style="width: 26%;">{{ $details->name }}</td>
                     <td class="align-middle text-right p-1" style="width: 12%;">Delivery Date:</td>
                     <td class="align-middle p-1 font-weight-bold" style="width: 20%;">{{ \Carbon\Carbon::parse($details->delivery_date)->format('M. d, Y') }}</td>
-                    <td class="align-top p-1" rowspan="5" style="width: 20%; font-size: 10pt;">
+                    <td class="align-top p-1" rowspan="5" style="width: 20%;">
                         <b>SHIP TO:</b> {!! $details->shipping_address !!}
                     </td>
                     <td class="align-top text-right p-1" rowspan="5" style="width: 10%;">
@@ -27,23 +27,23 @@
                 </tr>
                 <tr>
                     <td class="align-middle text-right p-1">Customer:</td>
-                    <td class="align-middle p-1 font-weight-bold" style="font-size: 11pt;">{{ $details->customer }}</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
                     <td class="align-middle text-right p-1">Date Approved:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->date_approved ? \Carbon\Carbon::parse($details->date_approved)->format('M. d, Y') : '-' }}</td>
                 </tr>
                 <tr>
                     <td class="align-middle text-right p-1">Project:</td>
-                    <td class="align-middle p-1 font-weight-bold" style="font-size: 10pt;">{{ $details->project }}</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->project }}</td>
                     <td class="align-middle text-right p-1">Company:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->company }}</td>
                 </tr>
                 <tr>
                     <td class="align-middle text-right p-1">Sales Person:</td>
-                    <td class="align-middle p-1 font-weight-bold" colspan="3" style="font-size: 10pt;">{{ $details->sales_person }}</td>
+                    <td class="align-middle p-1 font-weight-bold" colspan="3">{{ $details->sales_person }}</td>
                 </tr>
                 <tr>
                     <td class="align-middle text-right p-1">Order Type:</td>
-                    <td class="align-middle p-1 font-weight-bold" colspan="3" style="font-size: 10pt;">{{ in_array($details->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $details->order_type }}</td>
+                    <td class="align-middle p-1 font-weight-bold" colspan="3">{{ in_array($details->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $details->order_type }}</td>
                 </tr>
             </table>
             <div class="row mt-2">
