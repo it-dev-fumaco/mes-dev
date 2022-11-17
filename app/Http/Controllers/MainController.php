@@ -8424,6 +8424,7 @@ class MainController extends Controller
 						'image' => $image,
 						'idle_time' => $total_duration,
 						'last_transaction' => $last_transaction,
+						'cycle_time_in_seconds' => $cycle_time_in_seconds
 					];
 
 					$temp[] = $row->operator_id;
@@ -8431,7 +8432,7 @@ class MainController extends Controller
 			}
 		}
 
-		$list = collect($operators_list)->sortBy('name')->toArray();
+		$list = collect($operators_list)->sortBy('cycle_time_in_seconds')->toArray();
 
 		return view('dashboard_idle_operators', compact('list'));
 	}
@@ -9031,7 +9032,7 @@ class MainController extends Controller
 			$start = Carbon::now()->subMinutes(2);
 			$end = Carbon::now();
 	
-			$check = Carbon::parse($latest_material_requests)->between($start, $end);
+			$check = Carbon::parse($latest_material_requests->modified)->between($start, $end);
 			if ($check) {
 				return response()->json(true);
 			}
@@ -9044,7 +9045,7 @@ class MainController extends Controller
 
 		$has_production_order = DB::connection('mysql_mes')->table('production_order')->where('sales_order', $latest_sales_orders->name)->exists();
 		if (!$has_production_order) {
-			$check = Carbon::parse($latest_sales_orders)->between($start, $end);
+			$check = Carbon::parse($latest_sales_orders->modified)->between($start, $end);
 			if ($check) {
 				return response()->json(true);
 			}
