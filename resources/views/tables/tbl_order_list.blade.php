@@ -27,7 +27,7 @@
 		    $end = \Carbon\Carbon::now();
             $is_modified = false;
             $check = \Carbon\Carbon::parse($r->modified)->between($start, $end);
-            if ($check) {
+            if ($check && (!array_key_exists($r->name, $order_production_status))) {
                 $is_modified = true;
             }
         @endphp

@@ -9024,25 +9024,32 @@ class MainController extends Controller
 	public function checkNewOrders() {
 		$latest_material_requests = DB::connection('mysql')->table('tabMaterial Request')
 			->where('docstatus', 1)->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
-			->where('status', '!=', 'Stopped')->max('modified');
+			->where('status', '!=', 'Stopped')->select('name', 'modified')->orderBy('modified', 'desc')->first();
 
-		$start = Carbon::now()->subMinutes(2);
-		$end = Carbon::now();
-
-		$check = Carbon::parse($latest_material_requests)->between($start, $end);
-		if ($check) {
-			return response()->json(true);
+		$has_production_order = DB::connection('mysql_mes')->table('production_order')->where('material_request', $latest_material_requests->name)->exists();
+		if (!$has_production_order) {
+			$start = Carbon::now()->subMinutes(2);
+			$end = Carbon::now();
+	
+			$check = Carbon::parse($latest_material_requests)->between($start, $end);
+			if ($check) {
+				return response()->json(true);
+			}
 		}
+
 			
 		$latest_sales_orders = DB::connection('mysql')->table('tabSales Order')
 			->where('docstatus', 1)->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
-			->where('status', '!=', 'Closed')->max('modified');
+			->where('status', '!=', 'Closed')->select('name', 'modified')->orderBy('modified', 'desc')->first();
 
-		$check = Carbon::parse($latest_sales_orders)->between($start, $end);
-		if ($check) {
-			return response()->json(true);
+		$has_production_order = DB::connection('mysql_mes')->table('production_order')->where('sales_order', $latest_sales_orders->name)->exists();
+		if (!$has_production_order) {
+			$check = Carbon::parse($latest_sales_orders)->between($start, $end);
+			if ($check) {
+				return response()->json(true);
+			}
+	
+			return response()->json(false);
 		}
-
-		return response()->json(false);
 	}
 }
