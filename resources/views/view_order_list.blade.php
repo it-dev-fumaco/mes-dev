@@ -235,7 +235,14 @@ $(document).ready(function(){
                 }
             },
         });
+
+		$.ajax({
+            url: "/createViewOrderLog",
+            type:"POST",
+            data: {order_no: id, _token: '{{ csrf_token() }}'},
+        });
 	});
+
 	$(document).on('click', '.print-order-btn', function(e){
       e.preventDefault();
 	  $("#iframe-print-order").attr("src", $(this).attr('href'));
@@ -256,16 +263,6 @@ $(document).ready(function(){
 			'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
 		}
     }); 
-
-    $(document).on('click', '.view-order-btn', function(e) {
-        e.preventDefault();
-
-        $.ajax({
-            url: "/createViewOrderLog",
-            type:"POST",
-            data: {order_no: $(this).data('order'), _token: '{{ csrf_token() }}'},
-        });
-    });
 
     loadOrderList();
     loadOrderTypes();
