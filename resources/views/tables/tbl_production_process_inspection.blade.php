@@ -51,21 +51,28 @@
                     <div class="col-md-12">
                         <div class="table-responsive" style="max-height: 400px;">
                             <table class="table table-striped">
-                                <col style="width: 15%;">
-                                <col style="width: 20%;">
-                                <col style="width: 19%;">
-                                <col style="width: 15%;">
-                                <col style="width: 11%;">
-                                <col style="width: 10%;">
-                                <col style="width: 10%;">
+                                <col style="width: 15%;"><!-- BATCH DATE -->
+                                <col style="width: 20%;"><!-- MACHINE -->
+                                <col style="width: 19%;"><!-- PROCESS -->
+                                <col style="width: 15%;"><!-- OPERATOR -->
+                                <col style="width: 7%;"><!-- GOOD QTY -->
+                                <col style="width: 7%;"><!-- INSPECTED QTY -->
+                                <col style="width: 7%;"><!-- REJECTED QTY -->
+                                <col style="width: 10%;"><!-- ACTION -->
                                 <thead class="text-primary text-uppercase" style="font-size: 5pt;">
-                                    <th class="text-center p-1 font-weight-bold">BATCH DATE</th>
-                                    <th class="text-center p-1 font-weight-bold">MACHINE</th>
-                                    <th class="text-center p-1 font-weight-bold">PROCESS</th>
-                                    <th class="text-center p-1 font-weight-bold">OPERATOR</th>
-                                    <th class="text-center p-1 font-weight-bold">INSPECTED QTY</th>
-                                    <th class="text-center p-1 font-weight-bold">REJECTED QTY</th>
-                                    <th class="text-center p-1 font-weight-bold">ACTION</th>
+                                    <tr>
+                                        <th rowspan=2 class="text-center p-1 font-weight-bold">BATCH DATE</th>
+                                        <th rowspan=2 class="text-center p-1 font-weight-bold">MACHINE</th>
+                                        <th rowspan=2 class="text-center p-1 font-weight-bold">PROCESS</th>
+                                        <th rowspan=2 class="text-center p-1 font-weight-bold">OPERATOR</th>
+                                        <th colspan=3 class="text-center p-1 font-weight-bold">QTY</th>
+                                        <th rowspan=2 class="text-center p-1 font-weight-bold">ACTION</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center p-1 font-weight-bold">GOOD</th>
+                                        <th class="text-center p-1 font-weight-bold">INSPECTED</th>
+                                        <th class="text-center p-1 font-weight-bold">REJECTED</th>
+                                    </tr>
                                 </thead>
                                 <tbody style="font-size: 9pt;">
                                     @php
@@ -77,6 +84,7 @@
                                         <td class="text-center p-1 font-weight-bold">{{ $row['machine'] }}</td>
                                         <td class="text-center p-1 font-weight-bold">{{ $row['process'] }}</td>
                                         <td class="text-center p-1 font-weight-bold">{{ $row['operator_name'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" style="font-size: 13pt !important;">{{ $row['good'] }}</td>
                                         <td class="text-center p-1 font-weight-bold" style="font-size: 13pt !important;">{{ $row['inspected_qty'] }}</td>
                                         <td class="text-center p-1 font-weight-bold" style="font-size: 13pt !important;">{{ $row['rejected_qty'] }}</td>
                                         <td class="text-center p-1">

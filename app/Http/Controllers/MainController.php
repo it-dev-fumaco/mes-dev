@@ -4410,7 +4410,7 @@ class MainController extends Controller
 					$a->where('time_logs.time_log_id', $request->timelogid);
 				})
 				->whereIn('time_logs.status', ['In Progress', 'Completed'])
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', 'time_logs.to_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id', 'time_logs.machine_name')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'time_logs.from_time', 'time_logs.to_time', DB::raw('time_logs.good + time_logs.reject AS completed_qty'), 'time_logs.good as tl_good', 'operator_name', 'time_logs.status', 'time_logs.time_log_id', 'time_logs.reject','job_ticket.workstation', 'job_ticket.process_id', 'time_logs.machine_name')
 				->orderBy('idx', 'asc')->get();
 
 			$qa_logs = DB::connection('mysql_mes')->table('quality_inspection as q')
@@ -4465,7 +4465,7 @@ class MainController extends Controller
 					$a->where('spotwelding_qty.time_log_id', $request->timelogid);
 				})
 				->whereIn('spotwelding_qty.status', ['In Progress', 'Completed'])
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id', 'spotwelding_qty.machine_name')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'spotwelding_qty.from_time', 'spotwelding_qty.to_time', DB::raw('spotwelding_qty.good + spotwelding_qty.reject AS completed_qty'), 'spotwelding_qty.good as tl_good', 'operator_name', 'spotwelding_qty.status', 'spotwelding_qty.time_log_id', 'spotwelding_qty.reject','job_ticket.workstation', 'job_ticket.process_id', 'spotwelding_qty.machine_name')
 				->orderBy('idx', 'asc')->get();
 
 			$qa_logs = DB::connection('mysql_mes')->table('quality_inspection as q')
@@ -4528,6 +4528,7 @@ class MainController extends Controller
 					'operator_name' => $r->operator_name,
 					'completed_qty' => $r->completed_qty,
 					'machine' => $r->machine_name,
+					'good' => $r->tl_good,
 					'inspected_qty' => $inspected_qty,
 					'rejected_qty' => $rejected_qty,
 					'status' => $r->status,
