@@ -265,8 +265,8 @@ class SpotweldingController extends Controller
 						->where('item_code', $item_code)->update($data);
 			}else{
 				$description = DB::connection('mysql_mes')->table('production_order')
-					->where('item_code', $item_code)->first()->description;
-
+					->where('item_code', $item_code)->first();
+				$description = $description ? $description->description : null;
 				$insert = [
 					'item_code' => $item_code,
 					'description' => $description,
