@@ -627,11 +627,16 @@ class MainController extends Controller
 		$total_planned_qty = DB::connection('mysql_mes')->table('production_order')->where('sales_order', $details->sales_order)->where('item_code', $details->item_code)->whereNotIn('status', ['Cancelled', 'Closed'])->sum('qty_to_manufacture');
 
         $sales_order_qty = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $details->sales_order)->where('item_code', $details->parent_item_code)->pluck('qty')->first();
-		$sales_order_qty = $sales_order_qty ? number_format($sales_order_qty) : 0;
+		$sales_order_qty = $sales_order_qty ? ($sales_order_qty * 1) : 0;
 
 		$bom = DB::connection('mysql')->table('tabBOM')->where('item', $details->sub_parent_item_code)->where('is_default', 1)->orderBy('modified', 'desc')->first();
-		$bom_details = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom->name)->where('item_code', $details->item_code)->first();
-		$qty_to_manufacture = ($bom_details ? $bom_details->qty : 0) * $sales_order_qty;
+		
+		$bom_details = [];
+		$qty_to_manufacture = 0;
+		if($bom){
+			$bom_details = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom->name)->where('item_code', $details->item_code)->first();
+			$qty_to_manufacture = ($bom_details ? ($bom_details->qty * 1) : 0) * $sales_order_qty;
+		}
 
 		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs', 'painting_duration', 'total_planned_qty', 'qty_to_manufacture'));
 	}
