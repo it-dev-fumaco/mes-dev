@@ -633,6 +633,7 @@ class MainController extends Controller
 		
 		$bom_details = [];
 		$qty_to_manufacture = 0;
+
 		if($bom){
 			$bom_details = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom->name)->where('item_code', $details->item_code)->first();
 			$qty_to_manufacture = ($bom_details ? ($bom_details->qty * 1) : 0) * $sales_order_qty;
