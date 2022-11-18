@@ -7,7 +7,13 @@
   {{-- <link rel="icon" type="image/png" href="../assets/img/favicon.png"> --}}
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>MES</title>
+  <title>
+    @if (isset($pageHeader))
+        {{ $pageHeader }}
+    @else
+        MES
+    @endif
+  </title>
   <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
   {{--  <!--     Fonts and icons     -->  --}}
   <link href="{{ asset('/css/fontsgoogleapis.css') }}" rel="stylesheet" />
