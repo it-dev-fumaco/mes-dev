@@ -4512,11 +4512,21 @@ class MainController extends Controller
 				$qa_qty_per_timelog[$reference_id] = $qa_per_category_arr;
 			}
 		}
+		
+		// inspected logs from version 9 and below
+		$inspected_logs_without_cat_id = collect($qa_logs)->where('reject_category_id', '');
+		$inspected_logs_without_cat_id = collect($inspected_logs_without_cat_id)->groupBy('reference_id');
 
 		$task_random_inspection_arr = [];
 		foreach ($task_random_inspection as $r) {
 			$batch_date = $r->process == 'Unloading' ? $r->to_time : $r->from_time;
 			$batch_date = Carbon::parse($batch_date)->format('M-d-Y h:i A');
+
+			$rejected_qty_without_cat_id = $inspected_qty_without_cat_id = 0;
+			if(isset($inspected_logs_without_cat_id[$r->time_log_id])){
+				$inspected_qty_without_cat_id = collect($inspected_logs_without_cat_id[$r->time_log_id])->sum('actual_qty_checked');
+				$rejected_qty_without_cat_id = collect($inspected_logs_without_cat_id[$r->time_log_id])->sum('rejected_qty');
+			}
 
 			foreach ($reject_category_per_workstation as $rc) {
 				$qtys = array_key_exists($r->time_log_id, $qa_qty_per_timelog) ? $qa_qty_per_timelog[$r->time_log_id] : [];
@@ -4529,8 +4539,8 @@ class MainController extends Controller
 					'completed_qty' => $r->completed_qty,
 					'machine' => $r->machine_name,
 					'good' => $r->tl_good,
-					'inspected_qty' => $inspected_qty,
-					'rejected_qty' => $rejected_qty,
+					'inspected_qty' => $inspected_qty + $inspected_qty_without_cat_id,
+					'rejected_qty' => $rejected_qty + $rejected_qty_without_cat_id,
 					'status' => $r->status,
 					'time_log_id' => $r->time_log_id,
 					'workstation' => $r->workstation,
