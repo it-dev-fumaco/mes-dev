@@ -53,25 +53,22 @@
                             <table class="table table-striped">
                                 <col style="width: 15%;"><!-- BATCH DATE -->
                                 <col style="width: 20%;"><!-- MACHINE -->
-                                <col style="width: 19%;"><!-- PROCESS -->
+                                <col style="width: 16%;"><!-- PROCESS -->
                                 <col style="width: 15%;"><!-- OPERATOR -->
-                                <col style="width: 7%;"><!-- GOOD QTY -->
-                                <col style="width: 7%;"><!-- INSPECTED QTY -->
-                                <col style="width: 7%;"><!-- REJECTED QTY -->
+                                <col style="width: 8%;"><!-- GOOD QTY -->
+                                <col style="width: 8%;"><!-- INSPECTED QTY -->
+                                <col style="width: 8%;"><!-- REJECTED QTY -->
                                 <col style="width: 10%;"><!-- ACTION -->
                                 <thead class="text-primary text-uppercase" style="font-size: 5pt;">
                                     <tr>
-                                        <th rowspan=2 class="text-center p-1 font-weight-bold">BATCH DATE</th>
-                                        <th rowspan=2 class="text-center p-1 font-weight-bold">MACHINE</th>
-                                        <th rowspan=2 class="text-center p-1 font-weight-bold">PROCESS</th>
-                                        <th rowspan=2 class="text-center p-1 font-weight-bold">OPERATOR</th>
-                                        <th colspan=3 class="text-center p-1 font-weight-bold">QTY</th>
-                                        <th rowspan=2 class="text-center p-1 font-weight-bold">ACTION</th>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-center p-1 font-weight-bold">GOOD</th>
-                                        <th class="text-center p-1 font-weight-bold">INSPECTED</th>
-                                        <th class="text-center p-1 font-weight-bold">REJECTED</th>
+                                        <th class="text-center p-1 font-weight-bold">BATCH DATE</th>
+                                        <th class="text-center p-1 font-weight-bold">MACHINE</th>
+                                        <th class="text-center p-1 font-weight-bold">PROCESS</th>
+                                        <th class="text-center p-1 font-weight-bold">OPERATOR</th>
+                                        <th class="text-center p-1 font-weight-bold">GOOD QTY</th>
+                                        <th class="text-center p-1 font-weight-bold">INSPECTED QTY</th>
+                                        <th class="text-center p-1 font-weight-bold">REJECTED QTY</th>
+                                        <th class="text-center p-1 font-weight-bold">ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 9pt;">
