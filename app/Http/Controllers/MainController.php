@@ -8460,7 +8460,8 @@ class MainController extends Controller
 		}
 
 		$quality_inspection_created = DB::connection('mysql_mes')->table('quality_inspection')
-			->whereBetween('qa_inspection_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])->count();
+			->whereDate('qa_inspection_date', '>=', $now->startOfDay())
+			->whereDate('qa_inspection_date', '<=', $now->endOfDay())->count();
 
 		$for_feedback = DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Cancelled', 'Closed'])->where('produced_qty', '>', 0)
 			->whereRaw('produced_qty > feedback_qty')->whereRaw('qty_to_manufacture > feedback_qty')->count();
