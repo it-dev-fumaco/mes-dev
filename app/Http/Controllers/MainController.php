@@ -2466,9 +2466,31 @@ class MainController extends Controller
 
 		$unscheduled_prod = collect($unscheduled_prod)->unique('production_order');
 
+		$unescheduled_items = collect($unscheduled_prod)->unique('item_code')->pluck('item_code');
+		$unescheduled_items_cycle_time = DB::connection('mysql_mes')->table('item_cycle_time_per_process')->whereIn('item_code', $unescheduled_items)
+			->selectRaw('item_code, SUM(cycle_time_in_seconds) as total_cycle_time')->groupBy('item_code')
+			->pluck('total_cycle_time', 'item_code')->toArray();
+
     	$unscheduled = [];
     	foreach ($unscheduled_prod as $row) {
 			$stripfromcomma =strtok($row->description, ",");
+			$item_cycle_time = array_key_exists($row->item_code, $unescheduled_items_cycle_time) ? $unescheduled_items_cycle_time[$row->item_code] : 0;
+			$item_total_cycle_time = $row->qty_to_manufacture * $item_cycle_time;
+
+			$seconds = $item_total_cycle_time%60;
+			$minutes = floor(($item_total_cycle_time%3600)/60);
+			$hours = floor(($item_total_cycle_time%86400)/3600);
+			$days = floor(($item_total_cycle_time%2592000)/86400);
+			$months = floor($item_total_cycle_time/2592000);
+			
+			$dur_months = ($months > 0) ? $months .'M' : null;
+			$dur_days = ($days > 0) ? $days .'d' : null;
+			$dur_hours = ($hours > 0) ? $hours .'h' : null;
+			$dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+			$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+
+			$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes;// . ' ' . $dur_seconds;
+
 			$unscheduled[] = [
 				'id' => $row->production_order,
 				'status' => $row->status,
@@ -2491,7 +2513,8 @@ class MainController extends Controller
 				'sales_order' =>($row->sales_order == null) ? $row->material_request: $row->sales_order,
 				'batch' => null,
 				'item_code' => $row->item_code,
-				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
+				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture, $row->feedback_qty, $row->produced_qty),
+				'approximate_cycle_time' => trim($total_duration),
 			];
 		}
 
@@ -2546,6 +2569,11 @@ class MainController extends Controller
 			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty','pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
 			->orderBy('pro.created_at', 'desc')->get();
 
+		$prod_items = collect($jobtickets_production)->unique('item_code')->pluck('item_code');
+		$prod_items_cycle_time = DB::connection('mysql_mes')->table('item_cycle_time_per_process')->whereIn('item_code', $prod_items)
+			->selectRaw('item_code, SUM(cycle_time_in_seconds) as total_cycle_time')->groupBy('item_code')
+			->pluck('total_cycle_time', 'item_code')->toArray();
+
 		$unscheduled = [];
 		foreach ($jobtickets_production as $row) {
 			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')->where('production_order',  $row->production_order)->get();
@@ -2565,6 +2593,23 @@ class MainController extends Controller
 			}
 							
 			$stripfromcomma =strtok($row->description, ",");
+
+			$item_cycle_time = array_key_exists($row->item_code, $prod_items_cycle_time) ? $prod_items_cycle_time[$row->item_code] : 0;
+			$item_total_cycle_time = $row->qty_to_manufacture * $item_cycle_time;
+
+			$seconds = $item_total_cycle_time%60;
+			$minutes = floor(($item_total_cycle_time%3600)/60);
+			$hours = floor(($item_total_cycle_time%86400)/3600);
+			$days = floor(($item_total_cycle_time%2592000)/86400);
+			$months = floor($item_total_cycle_time/2592000);
+			
+			$dur_months = ($months > 0) ? $months .'M' : null;
+			$dur_days = ($days > 0) ? $days .'d' : null;
+			$dur_hours = ($hours > 0) ? $hours .'h' : null;
+			$dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+			$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+
+			$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes;// . ' ' . $dur_seconds;
 			
 			$unscheduled[] = [
 				'id' => $row->production_order,
@@ -2588,7 +2633,8 @@ class MainController extends Controller
 				'prod_status' => $row->status,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
 				'order_no' =>$row->sequence,
-				'item_code' => $row->item_code
+				'item_code' => $row->item_code,
+				'approximate_cycle_time' => trim($total_duration),
 			];
 		}
 
@@ -2607,12 +2653,9 @@ class MainController extends Controller
 			$parent_items = array_merge($parent_items, array_column($orders, 'parent_item_code'));
 
 			$shift_sched = $this->get_prod_shift_sched($date->format('Y-m-d'), $operation_id);
-			// $total_seconds= collect($orders)->sum('cycle_in_seconds');
 			$scheduled[] = [
 				'shift'=> $shift_sched,
 				'schedule' => $date->format('Y-m-d'),
-				// 'estimates' => $this->format_for_estimates($total_seconds),
-				// 'estimates_in_seconds' => $total_seconds,
 				'duplicate_item_code' => 0,
 				'orders' => $orders,
 			];
@@ -2628,78 +2671,94 @@ class MainController extends Controller
 			'scheduled' => $scheduled,
 			'filters' => $filters,
 		];
-
-		// return view('production_schedule_painting', compact('unscheduled', 'scheduled'));
 	}
 
 	public function get_scheduled_painting($schedule_date){
 		$orders = DB::connection('mysql_mes')->table('production_order as pro')
-		->join('job_ticket as jt', 'pro.production_order','jt.production_order')
-		->leftJoin('delivery_date', function($join){
-            $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
-            $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
-		})
-		->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
-		->whereNotIn('pro.status', ['Completed', 'Cancelled', 'Closed'])
-		->where('jt.workstation', 'Painting')
-		->whereDate('jt.planned_start_date', $schedule_date)
-		->distinct('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
-		->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
-		->orderBy('jt.sequence', 'asc')
-		->get();
-	
-	
-	
-			$scheduled = [];
-			foreach($orders as $row){
-							$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
-								->where('production_order',  $row->production_order)->get();
-							$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')
-								->where('production_order',  $row->production_order)->first();
-							$total_process = collect($jt)->where('workstation','Painting')->count();
-							$total_pending = collect($jt)->where('workstation','Painting')->where('status', 'Pending')->count();
-							$total_inprogress = collect($jt)->where('workstation','Painting')->where('status', '!=', 'Completed')->count();
-		
-							if ($total_process == $total_pending) {
-								$status= 'Not Started';
-							}else{
-								if ($total_inprogress > 0) {
-									$status= 'In Progress';
-								}else{
-									$status= 'Completed';
-								}
-		
-							}
-							
+			->join('job_ticket as jt', 'pro.production_order','jt.production_order')
+			->leftJoin('delivery_date', function($join){
+				$join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
+				$join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
+			})
+			->whereRaw('pro.qty_to_manufacture > pro.feedback_qty')
+			->whereNotIn('pro.status', ['Completed', 'Cancelled', 'Closed'])
+			->where('jt.workstation', 'Painting')
+			->whereDate('jt.planned_start_date', $schedule_date)
+			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
+			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
+			->orderBy('jt.sequence', 'asc')->get();
 
-				$stripfromcomma =strtok($row->description, ",");
-				$scheduled[] = [
-					'id' => $row->production_order,
-					'name' => $row->production_order,
-					'status' => $status,
-					'customer' => $row->customer,
-					'delivery_date' => ($row->rescheduled_delivery_date == null)? $row->delivery_date: $row->rescheduled_delivery_date, // show reschedule delivery date/ existing delivery date based on the validation 
-					'production_item' => $row->item_code,
-					'description' => $row->description,
-					'strip' => $stripfromcomma,
-					'parts_category' => $row->parts_category,
-					'parent_item_code' => $row->parent_item_code,
-					'qty' => $row->qty_to_manufacture,
-					'stock_uom' => $row->stock_uom,
-					'produced_qty' => $row->produced_qty,
-					'classification' => $row->classification,
-					'withdrawal_slip_print' => $row->withdrawal_slip_print,
-					'job_ticket_print' => $row->job_ticket_print,
-					'production_order' => $row->production_order,
-					'sales_order' =>($row->sales_order == null) ? $row->material_request:$row->sales_order,
-					'prod_status' => $row->status,
-					'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
-					'order_no' => $row->sequence,
-					'item_code' => $row->item_code
-				];
-			}
+		$prod_items = collect($orders)->unique('item_code')->pluck('item_code');
+		$prod_items_cycle_time = DB::connection('mysql_mes')->table('item_cycle_time_per_process')->whereIn('item_code', $prod_items)
+			->selectRaw('item_code, SUM(cycle_time_in_seconds) as total_cycle_time')->groupBy('item_code')
+			->pluck('total_cycle_time', 'item_code')->toArray();
 	
-			return $scheduled;
+		$scheduled = [];
+		foreach($orders as $row){
+			$jt = DB::connection('mysql_mes')->table('job_ticket as jt')
+				->where('production_order',  $row->production_order)->get();
+			$prod_stat = DB::connection('mysql_mes')->table('production_order as prod')
+				->where('production_order',  $row->production_order)->first();
+			$total_process = collect($jt)->where('workstation','Painting')->count();
+			$total_pending = collect($jt)->where('workstation','Painting')->where('status', 'Pending')->count();
+			$total_inprogress = collect($jt)->where('workstation','Painting')->where('status', '!=', 'Completed')->count();
+
+			if ($total_process == $total_pending) {
+				$status= 'Not Started';
+			}else{
+				if ($total_inprogress > 0) {
+					$status= 'In Progress';
+				}else{
+					$status= 'Completed';
+				}
+			}
+							
+			$stripfromcomma =strtok($row->description, ",");
+			
+		$item_cycle_time = array_key_exists($row->item_code, $prod_items_cycle_time) ? $prod_items_cycle_time[$row->item_code] : 0;
+		$item_total_cycle_time = $row->qty_to_manufacture * $item_cycle_time;
+
+		$seconds = $item_total_cycle_time%60;
+		$minutes = floor(($item_total_cycle_time%3600)/60);
+		$hours = floor(($item_total_cycle_time%86400)/3600);
+		$days = floor(($item_total_cycle_time%2592000)/86400);
+		$months = floor($item_total_cycle_time/2592000);
+		
+		$dur_months = ($months > 0) ? $months .'M' : null;
+		$dur_days = ($days > 0) ? $days .'d' : null;
+		$dur_hours = ($hours > 0) ? $hours .'h' : null;
+		$dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+		$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+
+		$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes;// . ' ' . $dur_seconds;
+			$scheduled[] = [
+				'id' => $row->production_order,
+				'name' => $row->production_order,
+				'status' => $status,
+				'customer' => $row->customer,
+				'delivery_date' => ($row->rescheduled_delivery_date == null)? $row->delivery_date: $row->rescheduled_delivery_date, // show reschedule delivery date/ existing delivery date based on the validation 
+				'production_item' => $row->item_code,
+				'description' => $row->description,
+				'strip' => $stripfromcomma,
+				'parts_category' => $row->parts_category,
+				'parent_item_code' => $row->parent_item_code,
+				'qty' => $row->qty_to_manufacture,
+				'stock_uom' => $row->stock_uom,
+				'produced_qty' => $row->produced_qty,
+				'classification' => $row->classification,
+				'withdrawal_slip_print' => $row->withdrawal_slip_print,
+				'job_ticket_print' => $row->job_ticket_print,
+				'production_order' => $row->production_order,
+				'sales_order' =>($row->sales_order == null) ? $row->material_request:$row->sales_order,
+				'prod_status' => $row->status,
+				'process_stat'=> $this->material_status_stockentry($row->production_order, $prod_stat->status,  $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
+				'order_no' => $row->sequence,
+				'item_code' => $row->item_code,
+				'approximate_cycle_time' => trim($total_duration),
+			];
+		}
+	
+		return $scheduled;
 	}
 
 	public function format_for_estimates($cycle_time_in_seconds){
@@ -2823,11 +2882,33 @@ class MainController extends Controller
 			->where("production_order.operation_id", $operation_id)
 			->whereRaw('production_order.qty_to_manufacture > production_order.feedback_qty')
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
-    		->orderBy('production_order.order_no', 'asc')->orderBy('production_order.order_no', 'asc')->orderBy('production_order.created_at', 'desc')
-    		->get();
+    		->orderBy('production_order.order_no', 'asc')->orderBy('production_order.order_no', 'asc')
+			->orderBy('production_order.created_at', 'desc')->get();
+
+		$orders_items = collect($orders)->unique('item_code')->pluck('item_code');
+		$orders_items_cycle_time = DB::connection('mysql_mes')->table('item_cycle_time_per_process')->whereIn('item_code', $orders_items)
+			->selectRaw('item_code, SUM(cycle_time_in_seconds) as total_cycle_time')->groupBy('item_code')
+			->pluck('total_cycle_time', 'item_code')->toArray();
     	$scheduled = [];
     	foreach($orders as $row){
     		$stripfromcomma =strtok($row->description, ",");
+			$item_cycle_time = array_key_exists($row->item_code, $orders_items_cycle_time) ? $orders_items_cycle_time[$row->item_code] : 0;
+			$item_total_cycle_time = $row->qty_to_manufacture * $item_cycle_time;
+
+			$seconds = $item_total_cycle_time%60;
+			$minutes = floor(($item_total_cycle_time%3600)/60);
+			$hours = floor(($item_total_cycle_time%86400)/3600);
+			$days = floor(($item_total_cycle_time%2592000)/86400);
+			$months = floor($item_total_cycle_time/2592000);
+			
+			$dur_months = ($months > 0) ? $months .'M' : null;
+			$dur_days = ($days > 0) ? $days .'d' : null;
+			$dur_hours = ($hours > 0) ? $hours .'h' : null;
+			$dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+			$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
+
+			$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes;// . ' ' . $dur_seconds;
+
 			$scheduled[] = [
 				'id' => $row->production_order,
 				'status' => $row->status,
@@ -2851,6 +2932,7 @@ class MainController extends Controller
 				'batch' => null,
 				'item_code' => $row->item_code,
 				'process_stat'=> $this->material_status_stockentry($row->production_order, $row->status, $row->qty_to_manufacture,$row->feedback_qty, $row->produced_qty),
+				'approximate_cycle_time' => trim($total_duration),
 			];
     	}
 		

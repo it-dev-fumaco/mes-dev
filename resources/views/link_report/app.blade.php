@@ -95,7 +95,7 @@
            </li>
            @if(in_array('Painting', $permissions['permitted_operations']))
            <li class="{{ $activePage == 'production_schedule_painting' ? 'active' : '' }}">
-             <a href="/production_schedule/0">
+             <a href="/production_schedule/2">
                <i class="now-ui-icons ui-1_calendar-60"></i>
                <p>Painting Schedule</p>
              </a>

@@ -288,7 +288,7 @@
                 @endif
                 @if ($activePage != 'production_schedule_painting')
                 @if(in_array('Painting', $mes_user_operations))
-                <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/0">Painting</a>
+                <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/2">Painting</a>
                 @endif
                 @endif
                 <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/production_schedule/3">Assembly</a>

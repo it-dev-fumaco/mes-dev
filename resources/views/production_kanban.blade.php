@@ -217,6 +217,11 @@
                                       <span style="font-size: 7pt;">{{ $print_stat }}</span>
                                     </td>
                                   </tr>
+                                  @if ($row['approximate_cycle_time'] && $row['approximate_cycle_time'] != '')
+                                  <tr>
+                                    <td colspan="4" class="text-center" style="font-size: 7pt;">Approx. Duration: {{ $row['approximate_cycle_time'] }}</td>
+                                  </tr>
+                                  @endif
                                   <input type="hidden" value="">
                                 </table>
                               </div>
@@ -406,6 +411,11 @@
                                     <td class="text-center">
                                       <span style="font-size: 7pt;">{{ $print_stat }}</span>
                                     </td>
+                                    @if ($order['approximate_cycle_time'] && $order['approximate_cycle_time'] != '')
+                                    <tr>
+                                      <td colspan="4" class="text-center" style="font-size: 7pt;">Approx. Duration: {{ $order['approximate_cycle_time'] }}</td>
+                                    </tr>
+                                    @endif
                                   </tr>
                                   <input type="hidden" value="" class="counting{{ $r['schedule'] }}">
                                 </table>

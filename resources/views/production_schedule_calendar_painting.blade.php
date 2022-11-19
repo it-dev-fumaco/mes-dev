@@ -33,7 +33,7 @@
           <div class="card-header">
             <div class="row">
               <div class="col-md-8">
-                <a href="/production_schedule/0" class="pull-left">
+                <a href="/production_schedule/2" class="pull-left">
               <img src="{{ asset('storage/back.png') }}"  width="40" height="40"/>
             </a>
                   <h5 class="text-black font-weight-bold align-middle" style="padding-left: 60px;">Production Calendar - Painting</h5>
