@@ -217,6 +217,8 @@ class MainController extends Controller
 
 				// attempt to do the login
 				if(Auth::attempt($user_data)){
+					DB::connection('mysql_mes')->table('user')->where('user_access_id', $user_data['user_id'])->update(['last_login' => Carbon::now()->toDateTimeString()]);
+
 					return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
 				} else {        
 					// validation not successful, send back to form 
@@ -254,6 +256,8 @@ class MainController extends Controller
 
             if ($user) {
                 if(Auth::loginUsingId($user->id)){
+					DB::connection('mysql_mes')->table('user')->where('user_access_id', $user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
+
                     return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait..."]);
                 } 
             } else {        
@@ -3963,6 +3967,8 @@ class MainController extends Controller
 
         if ($user) {
             if(Auth::loginUsingId($user->id)){
+				DB::connection('mysql_mes')->table('user')->where('user_access_id', $user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
+
                 return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'details' => $details]);
             } 
         } else {        
