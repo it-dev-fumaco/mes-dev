@@ -3,6 +3,7 @@
     $production_orders = array_key_exists($details->name, $items_production_orders) ? $items_production_orders[$details->name] : [];
 @endphp
 
+
 <form action="/assembly/wizard" class="order-items-form">
     <div class="modal-content">
         <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
@@ -179,6 +180,16 @@
                         </li>
                         @endforeach
                     </ul>
+                    
+                    @if (count($comments) > 0)
+                    <span class="d-block mt-1 mb-1 ml-2 text-uppercase" style="font-size: 9pt;">Comment(s)</span>
+                    @foreach ($comments as $c)
+                    <div class="border-bottom p-1 ml-2 mr-2 rounded">
+                        <p class="font-weight-bold m-0">{{ $c->comment_by }} <small class="font-italic">{{ \Carbon\Carbon::parse($c->creation)->format('M. d, Y h:i A') }}</small></p>
+                        <div class="d-block m-0 p-0">{!! $c->content !!}</div>
+                    </div>
+                    @endforeach
+                    @endif
                 </div>
             </div>
         </div>

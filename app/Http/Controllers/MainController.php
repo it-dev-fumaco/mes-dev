@@ -8601,7 +8601,11 @@ class MainController extends Controller
 		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
 		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
 
-		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order'));
+		$comments = DB::connection('mysql')->table('tabComment')->where('reference_name', $id)
+			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
+			->orderBy('creation', 'desc')->get();
+
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments'));
 	}
 	
 	// /get_order_list
