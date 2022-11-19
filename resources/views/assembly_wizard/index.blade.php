@@ -911,7 +911,7 @@
 
             var disable_sel = (prod_order) ? 'disabled' : null;
 
-            var disabled = parseInt($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : null;
+            // var disabled = parseInt($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : null;
 
             var actual_qty = $(this).find('.actual-qty').eq(0).text();
             if(actual_qty > 0){
@@ -935,7 +935,7 @@
                '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + t_wh + '</select></div></td>' +
                '<td class="text-center">' +
                   '<div class="btn-group">' +
-                     '<button type="button" class="btn btn-primary create-production-btn" ' + disabled + ' >' +
+                     '<button type="button" class="btn btn-primary create-production-btn">' +
                         '<i class="now-ui-icons ui-1_simple-add"></i> Production Order' +
                      '</button>' +
                   '</div>' +
