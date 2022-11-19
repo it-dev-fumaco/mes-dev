@@ -2998,6 +2998,8 @@ class MainController extends Controller
     public function operatorpage($id){
 		if (strtolower($id) == 'spotwelding') {
 			return redirect('/operator/Spotwelding');
+		}else if(strtolower($id) == 'painting'){
+			return redirect('/operator/Painting/Loading');
 		}
    
 		$tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $id)
