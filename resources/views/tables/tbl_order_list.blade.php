@@ -36,7 +36,12 @@
             <td class="p-2">{{ $r->customer }}</td>
             <td class="p-2">{{ $r->order_type }}</td>
             <td class="p-2">{{ $r->project }}</td>
-            <td class="p-2">{{ $r->delivery_date ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</td>
+            <td class="p-2">
+                <span class="d-block">{{ $r->date_approved ? \Carbon\Carbon::parse($r->date_approved)->format('M. d, Y') : '-' }}</span>
+                @if ($r->date_approved)
+                <small class="d-block">{{ \Carbon\Carbon::parse($r->date_approved)->format('Y-m-d') == \Carbon\Carbon::now()->format('Y-m-d') ? 'TODAY' : '' }}</small>
+                @endif
+            </td>
             <td class="p-2">
                 @if ($delivery_date)
                 <span class="badge badge-{{ Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() ? 'danger' : 'info' }}" style="font-size: 7pt;">

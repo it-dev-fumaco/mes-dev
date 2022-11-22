@@ -8385,8 +8385,44 @@ class MainController extends Controller
 					->orWhere('d.department', 'LIKE', '%assembly%')
 					->orWhere('d.department', 'LIKE', '%fabrication%');
 			})
-			->select('u.user_id as operator_id', 'u.employee_name')
+			->select('u.user_id as operator_id', 'u.employee_name', 'd.department')
 			->orderBy('u.employee_name', 'asc')->get();
+
+		$shift_schedules = DB::connection('mysql_mes')->table('shift as s')
+			->join('shift_schedule as ss', 's.shift_id', 's.shift_id')
+			->whereDate('ss.date', Carbon::now()->format('Y-m-d'))
+			->select('s.time_in', 's.time_out', 's.operation_id')->get();
+
+		$fabrication_schedule = $painting_schedule = $assembly_schedule = [];
+		foreach ($shift_schedules as $r) {
+			if ($r->operation_id == 1) {
+				$fabrication_schedule[] = [
+					'time_in' => Carbon::parse($r->time_in)->format('H:i:s'),
+					'time_out' => Carbon::parse($r->time_out)->format('H:i:s'),
+				];
+			}
+
+			if ($r->operation_id == 2) {
+				$painting_schedule[] = [
+					'time_in' => Carbon::parse($r->time_in)->format('H:i:s'),
+					'time_out' => Carbon::parse($r->time_out)->format('H:i:s'),
+				];
+			}
+
+			if ($r->operation_id == 3) {
+				$assembly_schedule[] = [
+					'time_in' => Carbon::parse($r->time_in)->format('H:i:s'),
+					'time_out' => Carbon::parse($r->time_out)->format('H:i:s'),
+				];
+			}
+		}
+
+		$fabrication_in = collect($fabrication_schedule)->min('time_in');
+		// return $fabrication_out = collect($fabrication_schedule)->max('time_out');
+		$painting_in = collect($painting_schedule)->min('time_in');
+		// return $painting_out = collect($painting_schedule)->max('time_out');
+		$assembly_in = collect($assembly_schedule)->min('time_in');
+		// return $assembly_out = collect($assembly_schedule)->max('time_out');
 
 		$wip_operators = DB::connection('mysql_mes')->table('time_logs')
 			->where('status', 'In Progress')->whereNotNull('operator_id')
@@ -8411,15 +8447,42 @@ class MainController extends Controller
 			->orderBy('to_time', 'desc')->unionAll($operators_idle_time_spotwelding)->pluck('last_transaction', 'operator_id')->toArray();
 
 		$operators_list = $temp = [];
-		foreach ($operators as $row) {
+		foreach ($operators as $row) {			
 			if (!in_array($row->operator_id, $temp)) {
 				$image = array_key_exists($row->operator_id, $operator_images) ? $operator_images[$row->operator_id] : null;
 				$image = $image ? 'https://essex.fumaco.local/' . $image : null;
 				if (!in_array($row->operator_id, $wip_operators)) {
 
-					$last_transaction = array_key_exists($row->operator_id, $operators_idle_time) ? $operators_idle_time[$row->operator_id] : null;
+					$last_transaction = array_key_exists($row->operator_id, $operators_idle_time) ? Carbon::parse($operators_idle_time[$row->operator_id]) : null;
+					if ($last_transaction) {
+						if (Carbon::now()->format('Y-m-d') == Carbon::parse($last_transaction)->format('Y-m-d')) {
+							$last_transaction = $last_transaction;
+						} else {
+							if (strpos(strtolower($row->department), 'fabrication') > -1) {
+								$last_transaction = $fabrication_in ? Carbon::parse($fabrication_in) : null;
+							}
+							if (strpos(strtolower($row->department), 'assembly') > -1) {
+								$last_transaction = $assembly_in ? Carbon::parse($assembly_in) : null;
+							}
+							if (strpos(strtolower($row->department), 'painting') > -1) {
+								$last_transaction = $painting_in ? Carbon::parse($painting_in) : null;
+							}
+						}
+					}
 
-					$cycle_time_in_seconds = Carbon::now()->diffInSeconds(Carbon::parse($last_transaction));
+					if (!$last_transaction) {
+						if (strpos(strtolower($row->department), 'fabrication') > -1) {
+							$last_transaction = $fabrication_in ? Carbon::parse($fabrication_in) : null;
+						}
+						if (strpos(strtolower($row->department), 'assembly') > -1) {
+							$last_transaction = $assembly_in ? Carbon::parse($assembly_in) : null;
+						}
+						if (strpos(strtolower($row->department), 'painting') > -1) {
+							$last_transaction = $painting_in ? Carbon::parse($painting_in) : null;
+						}
+					}
+
+					$cycle_time_in_seconds = Carbon::now()->diffInSeconds($last_transaction);
 
 					$seconds = $cycle_time_in_seconds%60;
 					$minutes = floor(($cycle_time_in_seconds%3600)/60);
@@ -8434,15 +8497,18 @@ class MainController extends Controller
 					$dur_seconds = ($seconds > 0) ? $seconds .'s' : null;
 
 					$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds;
+					$total_duration = trim($total_duration) ? trim($total_duration) : null;
 
-					$operators_list[] = [
-						'id' => $row->operator_id,
-						'name' => $row->employee_name,
-						'image' => $image,
-						'idle_time' => $total_duration,
-						'last_transaction' => $last_transaction,
-						'cycle_time_in_seconds' => $cycle_time_in_seconds
-					];
+					if ($total_duration) {
+						$operators_list[] = [
+							'id' => $row->operator_id,
+							'name' => $row->employee_name,
+							'image' => $image,
+							'idle_time' => $total_duration,
+							'last_transaction' => $last_transaction,
+							'cycle_time_in_seconds' => $cycle_time_in_seconds
+						];
+					}
 
 					$temp[] = $row->operator_id;
 				}
