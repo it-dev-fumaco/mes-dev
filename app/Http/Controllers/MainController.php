@@ -8478,12 +8478,12 @@ class MainController extends Controller
 				$image = $image ? 'https://essex.fumaco.local/' . $image : null;
 				if (!in_array($row->operator_id, $wip_operators)) {
 					// last transaction as operator
-					$last_transaction_as_operator = array_key_exists($row->operator_id, $operators_last_transaction) ? $operators_last_transaction[$row->operator_id][0]->last_transaction : null;
+					$last_transaction_as_operator = array_key_exists($row->operator_id, $operators_last_transaction) ? Carbon::parse($operators_last_transaction[$row->operator_id][0]->last_transaction) : null;
 					// last transaction as helper
-					$last_transaction_as_helper = array_key_exists($row->operator_id, $helpers_last_transaction) ? $helpers_last_transaction[$row->operator_id][0]->last_transaction : null;
+					$last_transaction_as_helper = array_key_exists($row->operator_id, $helpers_last_transaction) ? Carbon::parse($helpers_last_transaction[$row->operator_id][0]->last_transaction) : null;
 					// get max last transaction based on operator id
 					if ($last_transaction_as_helper && $last_transaction_as_operator) {
-						$last_transaction = Carbon::parse($last_transaction_as_helper)->gt(Carbon::parse($last_transaction_as_operator)) ? $last_transaction_as_helper : $last_transaction_as_helper;
+						$last_transaction = Carbon::parse($last_transaction_as_helper)->gt(Carbon::parse($last_transaction_as_operator)) ? $last_transaction_as_helper : $last_transaction_as_operator;
 					} elseif ($last_transaction_as_operator) {
 						$last_transaction = $last_transaction_as_operator;
 					} else {
@@ -8492,7 +8492,7 @@ class MainController extends Controller
 
 					$last_transaction = $last_transaction ? Carbon::parse($last_transaction) : null;
 					if ($last_transaction) {
-						if (Carbon::now()->format('Y-m-d') == Carbon::parse($last_transaction)->format('Y-m-d')) {
+						if (Carbon::now()->format('Y-m-d') === Carbon::parse($last_transaction)->format('Y-m-d')) {
 							$last_transaction = $last_transaction;
 						} else {
 							if (strpos(strtolower($row->department), 'fabrication') > -1) {
@@ -8555,7 +8555,7 @@ class MainController extends Controller
 								'image' => $image,
 								'idle_time' => $total_duration,
 								'last_transaction' => $last_transaction,
-								'cycle_time_in_seconds' => $cycle_time_in_seconds
+								'cycle_time_in_seconds' => $cycle_time_in_seconds,
 							];
 						}
 					}
