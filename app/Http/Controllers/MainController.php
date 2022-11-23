@@ -8455,13 +8455,28 @@ class MainController extends Controller
 			->orderBy('to_time', 'desc')->unionAll($operators_idle_time_spotwelding)->pluck('last_transaction', 'operator_id')->toArray();
 
 		$operators_list = $temp = [];
-		foreach ($operators as $row) {
+		foreach ($operators as $row) {			
 			if (!in_array($row->operator_id, $temp)) {
 				$image = array_key_exists($row->operator_id, $operator_images) ? $operator_images[$row->operator_id] : null;
 				$image = $image ? 'https://essex.fumaco.local/' . $image : null;
 				if (!in_array($row->operator_id, $wip_operators)) {
 
-					$last_transaction = array_key_exists($row->operator_id, $operators_idle_time) ? $operators_idle_time[$row->operator_id] : null;
+					$last_transaction = array_key_exists($row->operator_id, $operators_idle_time) ? Carbon::parse($operators_idle_time[$row->operator_id]) : null;
+					if ($last_transaction) {
+						if (Carbon::now()->format('Y-m-d') == Carbon::parse($last_transaction)->format('Y-m-d')) {
+							$last_transaction = $last_transaction;
+						} else {
+							if (strpos(strtolower($row->department), 'fabrication') > -1) {
+								$last_transaction = $fabrication_in ? Carbon::parse($fabrication_in) : null;
+							}
+							if (strpos(strtolower($row->department), 'assembly') > -1) {
+								$last_transaction = $assembly_in ? Carbon::parse($assembly_in) : null;
+							}
+							if (strpos(strtolower($row->department), 'painting') > -1) {
+								$last_transaction = $painting_in ? Carbon::parse($painting_in) : null;
+							}
+						}
+					}
 
 					if (!$last_transaction) {
 						if (strpos(strtolower($row->department), 'fabrication') > -1) {
@@ -8485,7 +8500,7 @@ class MainController extends Controller
 					if (strpos(strtolower($row->department), 'painting') > -1) {
 						$out = $painting_out ? Carbon::parse($painting_out) : null;
 					}
-
+          
 					$cycle_time_in_seconds = Carbon::now()->diffInSeconds($last_transaction);
 
 					$seconds = $cycle_time_in_seconds%60;
