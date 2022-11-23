@@ -24,7 +24,7 @@
                     </tr>
                     @empty 
                     <tr>
-                        <td colspan="2" class="text-center text-uppercase text-muted">No operator(s) found</td>
+                        <td colspan="2" class="text-center text-uppercase text-muted">No idle operator(s) found</td>
                     </tr>
                     @endforelse
                 </tbody>
