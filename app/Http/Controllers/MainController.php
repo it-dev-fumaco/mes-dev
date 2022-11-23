@@ -8389,9 +8389,9 @@ class MainController extends Controller
 			->orderBy('u.employee_name', 'asc')->get();
 
 		$shift_schedules = DB::connection('mysql_mes')->table('shift as s')
-			->join('shift_schedule as ss', 's.shift_id', 's.shift_id')
+			->join('shift_schedule as ss', 'ss.shift_id', 's.shift_id')
 			->whereDate('ss.date', Carbon::now()->format('Y-m-d'))
-			->select('s.time_in', 's.time_out', 's.operation_id')->get();
+			->select('s.time_in', 's.time_out', 's.operation_id', 'ss.date')->get();
 
 		$fabrication_schedule = $painting_schedule = $assembly_schedule = [];
 		foreach ($shift_schedules as $r) {
@@ -8446,22 +8446,51 @@ class MainController extends Controller
 			->whereNotNull('image')->whereIn('user_id', collect($operators)->pluck('operator_id'))
 			->pluck('image', 'user_id')->toArray();
 
-		$operators_idle_time_spotwelding = DB::connection('mysql_mes')->table('time_logs')->where('status', '!=', 'In Progress')
-			->whereNotNull('operator_id')->select('operator_id', DB::raw('MAX(to_time) as last_transaction'))->groupBy('operator_id')
+		$helpers_idle_time = DB::connection('mysql_mes')->table('time_logs as t')->join('helper as h', 't.time_log_id', 'h.time_log_id')
+			->where('t.status', '!=', 'In Progress')->whereBetween('h.created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])
+			->whereNotNull('h.operator_id')->select('h.operator_id', DB::raw('MAX(t.to_time) as last_transaction'))
+			->groupBy('h.operator_id')->orderBy('t.to_time', 'desc');
+
+		$helpers_idle_time_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty as t')->join('helper as h', 't.time_log_id', 'h.time_log_id')
+			->where('t.status', '!=', 'In Progress')->whereBetween('h.created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])
+			->whereNotNull('h.operator_id')->select('h.operator_id', DB::raw('MAX(t.to_time) as last_transaction'))->groupBy('h.operator_id')
+			->orderBy('t.to_time', 'desc')->orderBy('to_time', 'desc')->unionAll($helpers_idle_time)->get();
+
+		$helpers_last_transaction = collect($helpers_idle_time_spotwelding)->groupBy('operator_id')->toArray();
+
+		$operators_idle_time_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->where('status', '!=', 'In Progress')
+			->whereNotNull('operator_id')->whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])
+			->select('operator_id', DB::raw('MAX(to_time) as last_transaction'))->groupBy('operator_id')
 			->orderBy('to_time', 'desc');
 
 		$operators_idle_time = DB::connection('mysql_mes')->table('time_logs')->where('status', '!=', 'In Progress')
-			->whereNotNull('operator_id')->select('operator_id', DB::raw('MAX(to_time) as last_transaction'))->groupBy('operator_id')
-			->orderBy('to_time', 'desc')->unionAll($operators_idle_time_spotwelding)->pluck('last_transaction', 'operator_id')->toArray();
+			->whereNotNull('operator_id')->whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])
+			->select('operator_id', DB::raw('MAX(to_time) as last_transaction'))->groupBy('operator_id')
+			->orderBy('to_time', 'desc')->unionAll($operators_idle_time_spotwelding)->get();
+
+		$operators_last_transaction = collect($operators_idle_time)->groupBy('operator_id')->toArray();
 
 		$operators_list = $temp = [];
-		foreach ($operators as $row) {			
+		foreach ($operators as $row) {		
+			$last_transaction = null;	
 			if (!in_array($row->operator_id, $temp)) {
 				$image = array_key_exists($row->operator_id, $operator_images) ? $operator_images[$row->operator_id] : null;
 				$image = $image ? 'https://essex.fumaco.local/' . $image : null;
 				if (!in_array($row->operator_id, $wip_operators)) {
+					// last transaction as operator
+					$last_transaction_as_operator = array_key_exists($row->operator_id, $operators_last_transaction) ? $operators_last_transaction[$row->operator_id][0]->last_transaction : null;
+					// last transaction as helper
+					$last_transaction_as_helper = array_key_exists($row->operator_id, $helpers_last_transaction) ? $helpers_last_transaction[$row->operator_id][0]->last_transaction : null;
+					// get max last transaction based on operator id
+					if ($last_transaction_as_helper && $last_transaction_as_operator) {
+						$last_transaction = Carbon::parse($last_transaction_as_helper)->gt(Carbon::parse($last_transaction_as_operator)) ? $last_transaction_as_helper : $last_transaction_as_helper;
+					} elseif ($last_transaction_as_operator) {
+						$last_transaction = $last_transaction_as_operator;
+					} else {
+						$last_transaction = $last_transaction_as_helper;
+					}
 
-					$last_transaction = array_key_exists($row->operator_id, $operators_idle_time) ? Carbon::parse($operators_idle_time[$row->operator_id]) : null;
+					$last_transaction = $last_transaction ? Carbon::parse($last_transaction) : null;
 					if ($last_transaction) {
 						if (Carbon::now()->format('Y-m-d') == Carbon::parse($last_transaction)->format('Y-m-d')) {
 							$last_transaction = $last_transaction;
