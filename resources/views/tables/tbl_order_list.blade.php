@@ -23,7 +23,7 @@
         @forelse ($list as $r)
         @php
             $delivery_date = $r->reschedule_delivery == 1 ? $r->reschedule_delivery_date : $r->delivery_date;
-            $start = \Carbon\Carbon::now()->subMinutes(2);
+            $start = \Carbon\Carbon::now()->subMinutes(5);
 		    $end = \Carbon\Carbon::now();
             $is_modified = false;
             $check = \Carbon\Carbon::parse($r->modified)->between($start, $end);

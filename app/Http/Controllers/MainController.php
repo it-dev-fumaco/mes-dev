@@ -8418,21 +8418,29 @@ class MainController extends Controller
 		}
 
 		$fabrication_in = collect($fabrication_schedule)->min('time_in');
-		// return $fabrication_out = collect($fabrication_schedule)->max('time_out');
+		$fabrication_out = collect($fabrication_schedule)->max('time_out');
 		$painting_in = collect($painting_schedule)->min('time_in');
-		// return $painting_out = collect($painting_schedule)->max('time_out');
+		$painting_out = collect($painting_schedule)->max('time_out');
 		$assembly_in = collect($assembly_schedule)->min('time_in');
-		// return $assembly_out = collect($assembly_schedule)->max('time_out');
+		$assembly_out = collect($assembly_schedule)->max('time_out');
 
 		$wip_operators = DB::connection('mysql_mes')->table('time_logs')
 			->where('status', 'In Progress')->whereNotNull('operator_id')
-			->pluck('operator_id');
+			->select('operator_id', 'time_log_id')->get();
+		
+		$wip_time_logs = collect($wip_operators)->pluck('time_log_id');
+		$wip_operators = collect($wip_operators)->pluck('operator_id');
+		$wip_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $wip_time_logs)->distinct()->pluck('operator_id');
 
 		$spowtwelding_wip_operators = DB::connection('mysql_mes')->table('spotwelding_qty')
 			->whereNotNull('operator_id')->where('status', 'In Progress')
-			->whereNotNull('operator_id')->pluck('operator_id');
+			->whereNotNull('operator_id')->select('operator_id', 'time_log_id')->get();
 
-		$wip_operators = collect($wip_operators)->merge($spowtwelding_wip_operators)->toArray();
+		$spotwelding_wip_time_logs = collect($spowtwelding_wip_operators)->pluck('time_log_id');
+		$spowtwelding_wip_operators = collect($spowtwelding_wip_operators)->pluck('operator_id');
+		$spotwelding_wip_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $spotwelding_wip_time_logs)->distinct()->pluck('operator_id');
+
+		$wip_operators = collect($wip_operators)->merge($spowtwelding_wip_operators)->merge($wip_helpers)->merge($spotwelding_wip_helpers)->toArray();
 
 		$operator_images = DB::connection('mysql_essex')->table('users')
 			->whereNotNull('image')->whereIn('user_id', collect($operators)->pluck('operator_id'))
@@ -8482,6 +8490,17 @@ class MainController extends Controller
 						}
 					}
 
+					$out = null;
+					if (strpos(strtolower($row->department), 'fabrication') > -1) {
+						$out = $fabrication_out ? Carbon::parse($fabrication_out) : null;
+					}
+					if (strpos(strtolower($row->department), 'assembly') > -1) {
+						$out = $assembly_out ? Carbon::parse($assembly_out) : null;
+					}
+					if (strpos(strtolower($row->department), 'painting') > -1) {
+						$out = $painting_out ? Carbon::parse($painting_out) : null;
+					}
+          
 					$cycle_time_in_seconds = Carbon::now()->diffInSeconds($last_transaction);
 
 					$seconds = $cycle_time_in_seconds%60;
@@ -8499,17 +8518,19 @@ class MainController extends Controller
 					$total_duration = $dur_months . ' '. $dur_days . ' ' .$dur_hours . ' '. $dur_minutes . ' ' . $dur_seconds;
 					$total_duration = trim($total_duration) ? trim($total_duration) : null;
 
-					if ($total_duration) {
-						$operators_list[] = [
-							'id' => $row->operator_id,
-							'name' => $row->employee_name,
-							'image' => $image,
-							'idle_time' => $total_duration,
-							'last_transaction' => $last_transaction,
-							'cycle_time_in_seconds' => $cycle_time_in_seconds
-						];
+					if (!$out || !Carbon::now()->gt(Carbon::parse($out))) {
+						if ($total_duration) {
+							$operators_list[] = [
+								'id' => $row->operator_id,
+								'name' => $row->employee_name,
+								'image' => $image,
+								'idle_time' => $total_duration,
+								'last_transaction' => $last_transaction,
+								'cycle_time_in_seconds' => $cycle_time_in_seconds
+							];
+						}
 					}
-
+					
 					$temp[] = $row->operator_id;
 				}
 			}
@@ -8661,7 +8682,7 @@ class MainController extends Controller
 		}
 
 		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
-			->where('created_by', Auth::user()->email)->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
+			->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
 		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
 		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
 
@@ -9113,7 +9134,7 @@ class MainController extends Controller
 
 		$has_production_order = DB::connection('mysql_mes')->table('production_order')->where('material_request', $latest_material_requests->name)->exists();
 		if (!$has_production_order) {
-			$start = Carbon::now()->subMinutes(2);
+			$start = Carbon::now()->subMinutes(5);
 			$end = Carbon::now();
 	
 			$check = Carbon::parse($latest_material_requests->modified)->between($start, $end);
