@@ -8556,8 +8556,6 @@ class MainController extends Controller
 								'idle_time' => $total_duration,
 								'last_transaction' => $last_transaction,
 								'cycle_time_in_seconds' => $cycle_time_in_seconds,
-								// 's' => $last_transaction_as_operator,
-								// 't' => Carbon::parse($last_transaction_as_helper)->gt(Carbon::parse($last_transaction_as_operator))
 							];
 						}
 					}
