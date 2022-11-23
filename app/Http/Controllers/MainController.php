@@ -8682,7 +8682,7 @@ class MainController extends Controller
 		}
 
 		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
-			->where('created_by', Auth::user()->email)->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
+			->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
 		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
 		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
 
