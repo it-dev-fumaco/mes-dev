@@ -120,7 +120,8 @@ class QualityInspectionController extends Controller
 
             $qa_user = DB::table('essex.users as essex')
                 ->join('mes.user as mes', 'essex.user_id', 'mes.user_access_id')
-                ->where('essex.status', 'Active')->whereIn('mes.user_group_id', [3,4])->where('essex.user_id', $request->inspected_by)
+                ->join('mes.user_group as group', 'group.user_group_id', 'mes.user_group_id')
+                ->where('essex.status', 'Active')->where('essex.user_id', $request->inspected_by)->where('group.module', 'Quality Assurance')
                 ->select('essex.*')->first();
 
             if (!$qa_user) {
