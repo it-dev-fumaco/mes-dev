@@ -118,8 +118,10 @@ class QualityInspectionController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Please tap Authorized QC Employee ID.']);
             }
 
-            $qa_user = DB::connection('mysql_essex')->table('users')
-                ->where('user_id', $request->inspected_by)->first();
+            $qa_user = DB::table('essex.users as essex')
+                ->join('mes.user as mes', 'essex.user_id', 'mes.user_access_id')
+                ->where('essex.status', 'Active')->whereIn('mes.user_group_id', [3,4])->where('essex.user_id', $request->inspected_by)
+                ->select('essex.*')->first();
 
             if (!$qa_user) {
                 return response()->json(['success' => 0, 'message' => 'Authorized QA Employee ID not found.']);
