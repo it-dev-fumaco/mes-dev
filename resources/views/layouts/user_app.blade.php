@@ -288,7 +288,7 @@
                 @endif
                 @if ($activePage != 'production_schedule_painting')
                 @if(in_array('Painting', $mes_user_operations))
-                <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/0">Painting</a>
+                <a class="dropdown-item {{ (request()->segment(2) == '0') ? 'active' : '' }}" href="/production_schedule/2">Painting</a>
                 @endif
                 @endif
                 <a class="dropdown-item {{ (request()->segment(2) == '3') ? 'active' : '' }}" href="/production_schedule/3">Assembly</a>
@@ -419,7 +419,7 @@
         <div class="row">
           <div class="col-md-12">
             <h4 class="text-center title">Manufacturing Execution System</h4>
-            <h5 class="text-center" style="font-style: italic;">version: <b>10</b> <span style="font-size: 9pt;">Latest Release: 2022-05-20</span></h5>
+            <h5 class="text-center" style="font-style: italic;">version: <b>10</b> <span style="font-size: 9pt;">Latest Release: 2022-11-17</span></h5>
           </div>          
         </div>
       </div>
