@@ -4704,23 +4704,27 @@ class MainController extends Controller
 			$status = explode(',', $request->status);
 		}
 
-		$view = null;
-		if($request->operation == 1){
-			$view = 'maintenance_request_fabrication';
-		}else if($request->operation == 2){
-			$view = 'maintenance_request_painting';
-		}else if($request->operation == 3){
-			$view = 'maintenance_request_wiring';
+		switch ($request->operation) {
+			case 2:
+				$operation = 'painting';
+				break;
+			case 3:
+				$operation = 'wiring';
+				break;
+			default:
+				$operation = 'fabrication';
+				break;
 		}
 
 		$list = DB::connection('mysql_mes')->table('machine_breakdown')
 			->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
 			->join('operation', 'operation.operation_id', 'machine.operation_id')
 			->when($search_string, function ($q) use ($search_string){
-				$q->where('machine_breakdown.machine_breakdown_id', 'LIKE', '%'.$search_string.'%')
+				$q->where('machine.machine_name', 'LIKE', '%'.$search_string.'%')
 					->orWhere('machine_breakdown.machine_id', 'LIKE', '%'.$search_string.'%')
 					->orWhere('machine_breakdown.category', 'LIKE', '%'.$search_string.'%')
-					->orWhere('machine_breakdown.reported_by', 'LIKE', '%'.$search_string.'%');
+					->orWhere('machine_breakdown.reported_by', 'LIKE', '%'.$search_string.'%')
+					->orWhere('machine_breakdown.machine_breakdown_id', 'LIKE', '%'.$search_string.'%');
 			})
 			->when($request->status != 'All', function ($q) use ($status){
 				$q->whereIn('machine_breakdown.status', $status)
@@ -4740,7 +4744,7 @@ class MainController extends Controller
 			->join('user_group as grp', 'user.user_group_id', 'grp.user_group_id')
 			->where('grp.user_role', 'Maintenance Staff')->get();
 
-		return view($view, compact('list', 'permissions', 'maintenance_staff'));
+		return view('maintenance_request_tbl', compact('list', 'permissions', 'maintenance_staff', 'operation'));
 	}
 	
 	public function update_maintenance_request($machine_breakdown_id, Request $request){
