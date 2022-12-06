@@ -54,14 +54,16 @@
                                         <h5 class="modal-title">{{ $row->machine_breakdown_id }}</h5>
                                     </div>
                                     <div class="col-6 text-right">
-                                        <h6 class="modal-title">Date Reported: {{ date('M-d-Y h:i A', strtotime($row->date_reported)) }}</h5>
+                                        <h6 class="modal-title">
+                                            Date Reported: {{ date('M-d-Y h:i A', strtotime($row->date_reported)) }} 
+                                        </h6>
                                     </div>
                                 </div>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body">
+                            <div id="{{ $row->machine_breakdown_id }}-container" class="modal-body">
                                 <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post">
                                     @csrf
                                     <div class="row">
@@ -158,7 +160,12 @@
                                             </div>
                                             <small class="d-none" id="{{ $row->machine_breakdown_id }}-info" style="color: red">Only 255 characters are allowed.</small>
                                             <br>
-                                            <button type="submit" class="btn btn-primary float-right" id="{{ $row->machine_breakdown_id }}-submit-btn">Submit</button>
+                                            <div class="float-right d-print-none">
+                                                <button type="button" class="btn btn-primary printBtn" data-print-area="{{ $row->machine_breakdown_id }}-container">
+                                                    <i class="now-ui-icons education_paper"></i> Print
+                                                </button>&nbsp;
+                                                <button type="submit" class="btn btn-primary" id="{{ $row->machine_breakdown_id }}-submit-btn">Submit</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>
@@ -189,6 +196,12 @@
 </div>
 <script>
     $('.hid').slideUp();
+
+    $('.printBtn').on('click', function (){
+        var print_area = '#' + $(this).data('print-area');
+
+        $(print_area).printThis();
+    });
 
     $('.char-count').keyup(function(){
         enable_submit($(this).data('machine-id'));

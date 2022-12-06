@@ -444,6 +444,7 @@
 </style>
 @endsection
 @section('script')
+<script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 <script>
   $('#sel-machine-id').change(function(e) {
     e.preventDefault();
