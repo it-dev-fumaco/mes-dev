@@ -70,60 +70,62 @@
                                                 <img src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
                                             </center>
                                         </div>
-                                        <div class="col-4"></div>
-                                        <div class="col-3">
-                                            <label class="pl-2">Assigned Maintenance Staff</label>
-                                            <select class="form-control" name="maintenance_staff" id="{{ $row->machine_breakdown_id }}-maintenance-staff">
-                                                <option value="" {{ $row->assigned_maintenance_staff ? null : 'selected' }} disabled>Select Maintenance Staff</option>
-                                                @foreach ($maintenance_staff as $staff)
-                                                    <option value="{{ $staff->employee_name }}" {{ $row->assigned_maintenance_staff == $staff->employee_name ? 'selected' : null }}>{{ $staff->employee_name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-3">
-                                            @php
-                                                $statuses = array('Pending', 'On Hold', 'In Process', 'Done');
-                                                $current_status = $row->status == '' ? 'Done' : $row->status;
-
-                                                $start = $row->work_started ? Carbon\Carbon::parse($row->work_started) : null;
-                                                $end = $row->date_resolved ? Carbon\Carbon::parse($row->date_resolved) : null;
-                                                $duration = null;
-
-                                                if($start and $end){
-                                                    $days = $start->diffInDays($end);
-                                                    $hours = $start->copy()->addDays($days)->diffInHours($end);
-                                                    $minutes = $start->copy()->addDays($days)->addHours($hours)->diffInMinutes($end);
-                                                    $dur_days = ($days > 0) ? $days .'d' : null;
-                                                    $dur_hours = ($hours > 0) ? $hours .'h' : null;
-                                                    $dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
-
-                                                    $duration = $dur_days .' '. $dur_hours . ' '. $dur_minutes;
-                                                }
-                                            @endphp
-                                            <label class="pl-2">Status</label>
-                                            <select class="form-control" name="status_update" id="{{ $row->machine_breakdown_id }}-status" onchange="status_check('{{ $row->machine_breakdown_id }}')" required>
-                                                <option value="" disabled>Select a Status</option>
-                                                @foreach ($statuses as $status)
-                                                    <option value="{{ $status }}" {{ $current_status == $status ? 'selected' : null }}>{{ $status }}</option>
-                                                @endforeach
-                                            </select>
+                                        <div class="col-10">
+                                            <div class="row">
+                                                <div class="col-3 offset-6">
+                                                    <label class="pl-2">Assigned Maintenance Staff</label>
+                                                    <select class="form-control" name="maintenance_staff" id="{{ $row->machine_breakdown_id }}-maintenance-staff">
+                                                        <option value="" {{ $row->assigned_maintenance_staff ? null : 'selected' }} disabled>Select Maintenance Staff</option>
+                                                        @foreach ($maintenance_staff as $staff)
+                                                            <option value="{{ $staff->employee_name }}" {{ $row->assigned_maintenance_staff == $staff->employee_name ? 'selected' : null }}>{{ $staff->employee_name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    @php
+                                                        $statuses = array('Pending', 'On Hold', 'In Process', 'Done');
+                                                        $current_status = $row->status == '' ? 'Done' : $row->status;
+        
+                                                        $start = $row->work_started ? Carbon\Carbon::parse($row->work_started) : null;
+                                                        $end = $row->date_resolved ? Carbon\Carbon::parse($row->date_resolved) : null;
+                                                        $duration = null;
+        
+                                                        if($start and $end){
+                                                            $days = $start->diffInDays($end);
+                                                            $hours = $start->copy()->addDays($days)->diffInHours($end);
+                                                            $minutes = $start->copy()->addDays($days)->addHours($hours)->diffInMinutes($end);
+                                                            $dur_days = ($days > 0) ? $days .'d' : null;
+                                                            $dur_hours = ($hours > 0) ? $hours .'h' : null;
+                                                            $dur_minutes = ($minutes > 0) ? $minutes .'m' : null;
+        
+                                                            $duration = $dur_days .' '. $dur_hours . ' '. $dur_minutes;
+                                                        }
+                                                    @endphp
+                                                    <label class="pl-2">Status</label>
+                                                    <select class="form-control" name="status_update" id="{{ $row->machine_breakdown_id }}-status" onchange="status_check('{{ $row->machine_breakdown_id }}')" required>
+                                                        <option value="" disabled>Select a Status</option>
+                                                        @foreach ($statuses as $status)
+                                                            <option value="{{ $status }}" {{ $current_status == $status ? 'selected' : null }}>{{ $status }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            @if($row->work_started or $row->date_resolved)
+                                                <div class="row p-2 h-100">
+                                                    <div class="col">
+                                                        <b>Work Started:</b> {{ $row->work_started ? Carbon\Carbon::parse($row->work_started)->format('M d, Y h:i A') : null }}
+                                                    </div>
+                                                    <div class="col">   
+                                                        <b>Date Resolved:</b> {{ $row->date_resolved ? Carbon\Carbon::parse($row->date_resolved)->format('M d, Y h:i A') : null }}
+                                                    </div>
+                                                    <div class="col">
+                                                        <b>Work Duration:</b> {{ $duration }}
+                                                    </div>
+                                                </div>
+                                                <br>
+                                            @endif
                                         </div>
                                     </div>
-                                    @if($row->work_started or $row->date_resolved)
-                                        <div class="row" style="margin-top: -25px">
-                                            <div class="col-2"></div>
-                                            <div class="col">
-                                                <b>Work Started:</b> {{ $row->work_started ? Carbon\Carbon::parse($row->work_started)->format('M d, Y h:i A') : null }}
-                                            </div>
-                                            <div class="col">   
-                                                <b>Date Resolved:</b> {{ $row->date_resolved ? Carbon\Carbon::parse($row->date_resolved)->format('M d, Y h:i A') : null }}
-                                            </div>
-                                            <div class="col">
-                                                <b>Work Duration:</b> {{ $duration }}
-                                            </div>
-                                        </div>
-                                        <br>
-                                    @endif
                                     <div class="row">
                                         <div class="col-4">
                                             <p><b>Series: </b>{{ $row->machine_breakdown_id }}</p>

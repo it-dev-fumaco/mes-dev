@@ -62,7 +62,7 @@
                               </div>
                               <div class="fileUpload btn btn-warning upload-btn">
                               <span>Choose File..</span>
-                              <input type="file" name="machineImage" class="upload" />
+                              <input type="file" name="machineImage" class="upload" enctype="multipart/form-data"/>
                            </div>                  
                        </div>
                     </div>
