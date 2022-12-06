@@ -1268,25 +1268,13 @@ class SecondaryController extends Controller
 
         return view('tables.tbl_machine_list', compact('machine_list'));
     }
+
     public function get_machine_profile($id){
-        $machine_list= DB::connection('mysql_mes')
-            ->table('machine')
-            ->where('machine_id', $id)
-            ->first();
+        $machine_list = DB::connection('mysql_mes')->table('machine')->where('machine_id', $id)->first();
 
-        $machine_process= DB::connection('mysql_mes')
-            ->table('machine AS m')
-            ->join('workstation_machine AS wm', 'wm.machine_code','m.machine_code')
-            ->where('wm.machine_code', $machine_list->machine_code)
-            ->select('wm.workstation','wm.workstation_machine_id')
-            ->first();
-
-        $process_list=DB::connection('mysql_mes')
-            ->table('process_assignment AS pm')
-            ->join('process AS p', 'p.process_id', 'pm.process_id')
-            ->where('pm.machine_id', $machine_list->machine_id)
-            ->select('pm.*', 'p.process_name')
-            ->get();
+        $process_list = DB::connection('mysql_mes')->table('process_assignment AS pm')
+            ->join('process AS p', 'p.process_id', 'pm.process_id')->where('pm.machine_id', $machine_list->machine_id)
+            ->select('pm.*', 'p.process_name')->get();
 
         $permissions = $this->get_user_permitted_operation();
 

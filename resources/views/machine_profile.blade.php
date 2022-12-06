@@ -8,16 +8,14 @@
 @section('content')
 @include('modals.edit_machine_modal')
 <div class="panel-header"></div>
-<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-  <div class="col-md-12">
+<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+  <div class="col-md-12 p-2">
     <div class="card">
       <div class="card-body">
         <div class="row">
           <div class="col-md-8 offset-md-2">
             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#edit-machine-modal" style="float: right;"><i class="now-ui-icons design-2_ruler-pencil"></i> Edit</button>
-            
           </div>
-
           <div class="col-md-4" style="margin-top: -30px;">
             <div class="form-group" style="float: right;">
               <div style="text-align: center;" id="machine_test">
@@ -51,68 +49,53 @@
             </table>
             <table style="width: 80%;">
               <tbody>
-
                 <tr>
                   <td style="width: 15%; line-height: 25px;"><b>Machine Code:</b></td>
                   <td style="width: 25%;text-align: left; line-height: 25px;">{{ $machine_list->machine_code }}</td>
-                  
                 </tr>
                 <tr>
-                  <td style="width: 15%;line-height: 25px;"><b>Machine Id:</b></td>
+                  <td style="width: 15%;line-height: 25px;"><b>Machine ID:</b></td>
                   <td style="width: 25%;text-align: left; line-height: 25px;">{{ $machine_list->machine_id }}</td>
                   <td style="width: 10%;line-height: 25px;"><b>Type:</b></td>
                   <td style="width: 20%;text-align: left; line-height: 25px;">{{ $machine_list->type }}</td>
                 </tr>
                 <tr>
-                   <td style="width: 15%;line-height: 25px;"><b>Machine Name:</b></td>
+                  <td style="width: 15%;line-height: 25px;"><b>Machine Name:</b></td>
                   <td style="width: 25%;text-align: left; line-height: 25px;">{{ $machine_list->machine_name }}</td>
                   <td style="width: 10%;line-height: 25px;"><b>Model:</b></td>
                   <td style="width: 20%;text-align: left; line-height: 25px;">{{ $machine_list->model }}</td>
                 </tr>
-                
-
               </tbody>
-              
             </table>
-            
           </div>
           <div class="col-md-8 offset-md-2">
             <h5 style="padding-left: 30px;">Machine Breakdown History</h5>
-              <div id="tbl_machine_profile" style="padding-left: 30px;"></div>
+            <div id="tbl_machine_profile" style="padding-left: 30px;"></div>
           </div>
-      
           <div class="col-md-8 offset-md-2">
             <h5 style="padding-left: 30px;">Machine Process</h5>
             <div style="padding-left: 30px;">
               <table class="table table-bordered" style="font-size: 12px; width: 100%;">
-              <thead>
-                <tr style="font-size: 10px;" class="text-center">
-                  <th scope="col" style="font-weight: bold;"><b>#</b></th>
-                  <th scope="col" style="font-weight: bold;"><b>Process</b></th>
-                  
-                  
-                </tr>
-              </thead>
-              <tbody>
-                @forelse($process_list as $rows)
-                     
-                     <tr>
-                     
-                        <td class="text-center">{{ $rows->process_id }}</td>
-                        <td class="text-center">{{ $rows->process_name }}</td>
-                     
-                     </tr>
-                     
-                     @empty
-                     <tr>
-                        <td colspan="10" class="text-center">No record found.</td>
-                     </tr>
-                     @endforelse
-                
-              </tbody>
-            </table>
+                <thead>
+                  <tr style="font-size: 10px;" class="text-center">
+                    <th scope="col" style="font-weight: bold;"><b>#</b></th>
+                    <th scope="col" style="font-weight: bold;"><b>Process</b></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @forelse($process_list as $rows)
+                  <tr>
+                    <td class="text-center">{{ $rows->process_id }}</td>
+                    <td class="text-center">{{ $rows->process_name }}</td>
+                  </tr>
+                  @empty
+                  <tr>
+                    <td colspan="2" class="text-center">No record found.</td>
+                  </tr>
+                  @endforelse
+                </tbody>
+              </table>
             </div>
-                          
           </div>  
          </div>
         </div>
