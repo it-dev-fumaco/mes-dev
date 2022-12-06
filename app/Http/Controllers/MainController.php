@@ -3169,7 +3169,8 @@ class MainController extends Controller
 			}
 		$breaktime_data= collect($breaktime);
 		$operation_id = $tabWorkstation->operation_id;
-        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id', 'breaktime_data'));
+        $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
+        return view('operator_workstation_dashboard', compact('workstation','workstation_name', 'day_name', 'date', 'workstation_list', 'workstation_id', 'operation_id', 'breaktime_data', 'operation'));
     }
 
 	public function update_maintenance_task(Request $request){
@@ -3201,11 +3202,16 @@ class MainController extends Controller
 			}
 
 			$now = Carbon::now();
-
-			$status = 'In Process';
-			$timelog_status = 'In Progress';
-			if($request->is_completed == 1){
-				$status = $breakdown_details->hold_reason ? 'On Hold' : 'Pending';
+			
+			if($breakdown_details->status != 'In Process'){
+				$status = 'In Process';
+				$timelog_status = 'In Progress';
+				if($request->is_completed == 1){
+					$status = $breakdown_details->hold_reason ? 'On Hold' : 'Pending';
+					$timelog_status = 'Completed';
+				}
+			}else{
+				$status = 'Pending';
 				$timelog_status = 'Completed';
 			}
 

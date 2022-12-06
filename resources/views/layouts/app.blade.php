@@ -44,6 +44,14 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <ul class="navbar-nav">
               @if($activePage == 'main_dashboard')
+              <li class="nav-item active">
+                <a class="nav-link text-center" href="#" id="pending-for-maintenance-trigger">
+                  <i class="now-ui-icons ui-2_settings-90"></i> Maintenance Request
+                  <p hidden>
+                    <span class="d-lg-none d-md-block">Maintenance Request</span>
+                  </p>
+                </a>
+              </li>
               @if(isset($operation_id) && $operation_id == 3)
               <li class="nav-item active">
                 <a class="nav-link" href="#" id="view-schedule-btn">

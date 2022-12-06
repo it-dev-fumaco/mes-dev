@@ -8568,4 +8568,30 @@ class SecondaryController extends Controller
         }
 
     }
+
+    public function get_machines_pending_for_maintenance(Request $request, $operation_id){
+        $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
+
+		$workstations = DB::connection('mysql_mes')->table('workstation')->where('operation_id', $operation_id)->distinct()->pluck('workstation_name')->toArray();
+
+		$w_machines = DB::connection('mysql_mes')->table('workstation_machine')
+            ->when($operation != 'Painting', function ($q) use ($workstations){
+                return $q->whereIn('workstation', $workstations);
+            })
+            ->when($operation == 'Painting', function ($q){
+                return $q->where('workstation', 'Painting');
+            })
+            ->distinct()->pluck('machine_code');
+
+		$machine_breakdown = DB::connection('mysql_mes')->table('machine as m')
+			->join('machine_breakdown as mb', 'm.machine_code', 'mb.machine_id')
+			->whereIn('m.status', ['Unavailable', 'On-going Maintenance'])->whereIn('m.machine_code', $w_machines)->where('mb.status', '!=','Done')
+            ->when($operation != 'Painting', function ($q){
+                return $q->where('m.machine_name', '!=', 'Painting Machine');
+            })
+			->select('m.*', 'mb.category', 'mb.date_reported','mb.type', 'mb.breakdown_reason', 'mb.corrective_reason', 'mb.findings', 'mb.work_done', 'mb.date_resolved', 'mb.machine_breakdown_id', 'mb.status as breakdown_status')->orderByRaw("FIELD(mb.status, 'In Process', 'Pending', 'On Hold') ASC")
+			->get();
+
+        return view('tables.tbl_machines_pending_for_maintenance', compact('machine_breakdown', 'operation'));
+    }
 }
