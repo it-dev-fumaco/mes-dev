@@ -4776,15 +4776,23 @@ class MainController extends Controller
 				'last_modified_at' => Carbon::now()->toDateTimeString()
 			];
 
+			$breakdown_timelog = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $machine_breakdown_id)->where('status', 'In Progress')->first();
+
 			if($request->status_update == 'In Process'){
 				$update['work_started'] = Carbon::now()->toDateTimeString();
-			}
 
-			if($request->status_update == 'Done'){
-				$update['date_resolved'] = Carbon::now()->toDateTimeString();
-
-				$breakdown_timelog = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $machine_breakdown_id)->where('status', 'In Progress')->first();
-
+				if(!$breakdown_timelog){
+					DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->insert([
+						'machine_breakdown_id' => $machine_breakdown_id,
+						'machine_id' => $breakdown_details->machine_id,
+						'start_time' => Carbon::now()->toDateTimeString(),
+						'operator_id' => Auth::user()->user_id,
+						'operator_name' => Auth::user()->employee_name,
+						'status' => 'In Progress',
+						'created_by' => Auth::user()->employee_name
+					]);
+				}
+			}else{
 				// update machine breakdown timelog
 				if($breakdown_timelog){
 					$start_time = Carbon::parse($breakdown_timelog->start_time);
@@ -4798,6 +4806,10 @@ class MainController extends Controller
 						'last_modified_at' => Carbon::now()->toDateTimeString()
 					]);
 				}
+			}
+
+			if($request->status_update == 'Done'){
+				$update['date_resolved'] = Carbon::now()->toDateTimeString();
 			}
 
             if($request->hasFile('file')){

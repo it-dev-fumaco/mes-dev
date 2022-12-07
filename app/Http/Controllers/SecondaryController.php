@@ -8571,21 +8571,12 @@ class SecondaryController extends Controller
 
     public function get_machines_pending_for_maintenance(Request $request, $operation_id){
         $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
-
-		$workstations = DB::connection('mysql_mes')->table('workstation')->where('operation_id', $operation_id)->distinct()->pluck('workstation_name')->toArray();
-
-		$w_machines = DB::connection('mysql_mes')->table('workstation_machine')
-            ->when($operation != 'Painting', function ($q) use ($workstations){
-                return $q->whereIn('workstation', $workstations);
-            })
-            ->when($operation == 'Painting', function ($q){
-                return $q->where('workstation', 'Painting');
-            })
-            ->distinct()->pluck('machine_code');
+        
+        $machines = DB::connection('mysql_mes')->table('machine')->where('operation_id', $operation_id)->pluck('machine_code');
 
 		$machine_breakdown = DB::connection('mysql_mes')->table('machine as m')
 			->join('machine_breakdown as mb', 'm.machine_code', 'mb.machine_id')
-			->whereIn('m.status', ['Unavailable', 'On-going Maintenance'])->whereIn('m.machine_code', $w_machines)->where('mb.status', '!=','Done')
+			->whereIn('m.status', ['Unavailable', 'On-going Maintenance'])->whereIn('m.machine_code', $machines)->where('mb.status', '!=','Done')
             ->when($operation != 'Painting', function ($q){
                 return $q->where('m.machine_name', '!=', 'Painting Machine');
             })
