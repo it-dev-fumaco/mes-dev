@@ -46,7 +46,7 @@
                 </a>
 
                 <div class="modal fade" id="{{ $row->machine_breakdown_id }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-xl" role="document">
+                    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
                         <div class="modal-content text-left">
                             <div class="modal-header">
                                 <div class="row w-100">
@@ -64,7 +64,7 @@
                                 </button>
                             </div>
                             <div id="{{ $row->machine_breakdown_id }}-container" class="modal-body">
-                                <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post">
+                                <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post" enctype="multipart/form-data">
                                     @csrf
                                     <div class="row">
                                         <div class="col-2">
@@ -74,7 +74,14 @@
                                         </div>
                                         <div class="col-10">
                                             <div class="row">
-                                                <div class="col-3 offset-6">
+                                                <div class="col-4 offset-2 p-2 d-print-none">
+                                                    <div class="custom-file p-1">
+                                                        <input type="file" class="custom-file-input" id="customFile" name="file">
+                                                        <label class="custom-file-label" for="customFile">Choose File</label>
+                                                    </div>
+                                                </div>
+                                                <div class="d-none d-print-inline col-6"></div><!-- filler -->
+                                                <div class="col-3">
                                                     <label class="pl-2">Assigned Maintenance Staff</label>
                                                     <select class="form-control" name="maintenance_staff" id="{{ $row->machine_breakdown_id }}-maintenance-staff">
                                                         <option value="" {{ $row->assigned_maintenance_staff ? null : 'selected' }} disabled>Select Maintenance Staff</option>
@@ -160,11 +167,52 @@
                                             </div>
                                             <small class="d-none" id="{{ $row->machine_breakdown_id }}-info" style="color: red">Only 255 characters are allowed.</small>
                                             <br>
-                                            <div class="float-right d-print-none">
-                                                <button type="button" class="btn btn-primary printBtn" data-print-area="{{ $row->machine_breakdown_id }}-container">
-                                                    <i class="now-ui-icons education_paper"></i> Print
-                                                </button>&nbsp;
-                                                <button type="submit" class="btn btn-primary" id="{{ $row->machine_breakdown_id }}-submit-btn">Submit</button>
+                                            <div class="row d-print-none">
+                                                @if ($row->attached_files)
+                                                    <div class="col-6">
+                                                        <h6>Attachments:</h6>
+                                                        <ul>
+                                                            @foreach (explode(',', $row->attached_files) as $file)
+                                                                <li>
+                                                                    <a href="{{ asset('files/maintenance/'.$row->machine_breakdown_id.'/'.$file) }}" target="_blank">{{ $file }}</a>
+                                                                    &nbsp;
+                                                                    <a href="#" class="text-danger" data-toggle="modal" data-target="#removeFileModal" style="text-decoration: none; text-transform: none;">
+                                                                        <i class="now-ui-icons ui-1_simple-remove font-weight-bold" style="cursor: pointer"></i>
+                                                                    </a>
+
+                                                                    <!-- Modal -->
+                                                                    <div class="modal fade" id="removeFileModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                                                            <div class="modal-content">
+                                                                                <div class="modal-header">
+                                                                                <h5 class="modal-title" id="exampleModalLabel">Remove File</h5>
+                                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                                    <span aria-hidden="true">&times;</span>
+                                                                                </button>
+                                                                                </div>
+                                                                                <div class="modal-body">
+                                                                                    Remove {{ $file }}?
+                                                                                </div>
+                                                                                <div class="modal-footer">
+                                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>&nbsp;
+                                                                                    <a href="/remove_file?file={{ $file }}&id={{ $row->machine_breakdown_id }}" class="btn btn-primary">Confirm</a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
+                                                <div class="col-6 {{ $row->attached_files ? null : 'offset-6' }}">
+                                                    <div class="float-right">
+                                                        <button type="button" class="btn btn-secondary printBtn" data-print-area="{{ $row->machine_breakdown_id }}-container">
+                                                            <i class="now-ui-icons education_paper"></i> Print
+                                                        </button>
+                                                        <button type="submit" class="btn btn-primary" id="{{ $row->machine_breakdown_id }}-submit-btn">Submit</button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -194,8 +242,19 @@
 <div class="float-right mt-4 custom-{{ $operation }}-pagination">
     {{ $list->appends(request()->query())->links('pagination::bootstrap-4') }}
 </div>
+<style>
+    .modal{
+        background-color: rgba(0,0,0,0.4);
+    }
+</style>
 <script>
     $('.hid').slideUp();
+
+    // Add the following code if you want the name of the file appear on select
+    $(".custom-file-input").change(function() {
+        var fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
 
     $('.printBtn').on('click', function (){
         var print_area = '#' + $(this).data('print-area');

@@ -446,6 +446,9 @@
 @section('script')
 <script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 <script>
+  @if(session()->has('error'))
+      showNotification("danger", "{{ session()->get('error') }}", "now-ui-icons ui-1_check");
+  @endif
   $('#sel-machine-id').change(function(e) {
     e.preventDefault();
     $('#sel-machine-name').val($(this).find(':selected').data('name'));
