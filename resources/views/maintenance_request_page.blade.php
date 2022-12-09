@@ -112,7 +112,40 @@
   </div>
   <div class="col-3 pl-2 pr-2">
     <div class="text-right">
+      <button class="btn btn-secondary mr-0 ml-0 mb-1" data-toggle="modal" data-target="#importModal">Import</button>
       <button class="btn btn-primary mr-0 ml-0 mb-1" data-toggle="modal" data-target="#add-mr-modal">Add Maintenance Request</button>
+
+      <!-- Modal -->
+      <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLongTitle">Import a File</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form action="/machine_breakdown/import" method="post" enctype="multipart/form-data">
+              @csrf
+              <div class="modal-body">
+                <div class="custom-file p-1 text-left">
+                  <input type="file" class="custom-file-input" id="customFile" name="file" required>
+                  <label class="custom-file-label" for="customFile">Choose File</label>
+                </div>
+                <div class="container-fluid text-left mt-2">
+                  <span>Download Template: <a href="{{ asset('/files/Machine-Breakdown-Import-Template.xlsx') }}">Machine-Breakdown-Import-Template.xlsx</a></span>
+                  <br><br>
+                  <span class="font-italic">* Red columns are required fields</span>
+                </div>
+              </div>
+              <div class="modal-footer p-1">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Import</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
     <div style="background-color: #F7F7F9; margin-top: 2px;">
       <div class="container p-2">
@@ -449,6 +482,13 @@
   @if(session()->has('error'))
       showNotification("danger", "{{ session()->get('error') }}", "now-ui-icons ui-1_check");
   @endif
+
+  // Add the following code if you want the name of the file appear on select
+  $(".custom-file-input").change(function() {
+    var fileName = $(this).val().split("\\").pop();
+    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+  });
+
   $('#sel-machine-id').change(function(e) {
     e.preventDefault();
     $('#sel-machine-name').val($(this).find(':selected').data('name'));
