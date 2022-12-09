@@ -560,6 +560,12 @@
       });
     }
 
+    $(document).on('click', '.custom-production-pagination a', function(event){
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      get_for_feedback_production(page);
+    });
+
     $('#reschedule_delivery_frm').submit(function(e){
       e.preventDefault();
       var url = $(this).attr("action");
