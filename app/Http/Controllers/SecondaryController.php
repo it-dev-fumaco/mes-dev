@@ -2419,85 +2419,42 @@ class SecondaryController extends Controller
                 if ($request->logid) {
                     $logs = DB::connection('mysql_mes')->table($logs_table)
                         ->where('time_log_id', $request->logid)->where('status', 'In Progress')->first();
-
-                    if(!$logs){
-                        return response()->json(['success' => 0, 'message' => 'Task not found. Please reload the page.']);
-                    }
                 } else {
                     $logs = DB::connection('mysql_mes')->table($logs_table)
                         ->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
                 }
 
-                $values = [
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
+                if(!$logs){
+                    return response()->json(['success' => 0, 'message' => 'Task not found. Please reload the page.']);
+                }
 
                 // update and save timelogs
-                if($logs){
-                    $from_time = Carbon::parse($logs->from_time);
-                    $duration = $from_time->diffInSeconds($now);
-                    $duration = $duration / 3600;
+                $from_time = Carbon::parse($logs->from_time);
+                $duration = $from_time->diffInSeconds($now);
+                $duration = $duration / 3600;
 
-                    $values['status'] = 'Completed';
-                    $values['to_time'] = $now->toDateTimeString();
-                    $values['good'] = $pending;
-                    $values['duration'] = $duration;
-
-                    if ($request->logid) {
-                        DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)
-                            ->where('status', 'In Progress')->update($values);
-                    } else {
-                        DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $job_ticket_details->job_ticket_id)
-                            ->where('status', 'In Progress')->update($values);
-                    }                   
-                }
-
-                // reset values array
-                unset($values['duration']);
-                unset($values['to_time']);
-
-                // update and save job ticket
-                $jt_completed = $job_ticket_details->completed_qty + $pending;
-
-                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-                    ->where('job_ticket_id', $request->id)->selectRaw('SUM(good) as total_good')
-                    ->groupBy('spotwelding_part_id')->get();
-
-                $values['remarks'] = 'Override';
-                $values['completed_qty'] = $request->workstation == 'Spotwelding' ? $total_good_spotwelding->min('total_good') : $jt_completed;
-                $values['actual_end_date'] = $now->toDateTimeString();
-
-                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->update($values);
-
-                // reset values array
-                unset($values['status']);
-                unset($values['remarks']);
-                unset($values['completed_qty']);
-                unset($values['good']);
-
-                // check, update and save production order
-                $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
-                    ->where('production_order', $job_ticket_details->production_order)->min('completed_qty');
-                
-                $values['status'] = $produced_qty == $qty_to_manufacture ? 'Completed' : 'In Progress';
-                $values['produced_qty'] = $produced_qty;
-
-                DB::connection('mysql_mes')->table('production_order')
-                    ->where('production_order', $job_ticket_details->production_order)->update($values);
+                $values = [
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'status' => 'Completed',
+                    'to_time' => $now->toDateTimeString(),
+                    'good' => $pending,
+                    'duration' => $duration
+                ];
 
                 if ($request->logid) {
-                    $check_wip_timelog = DB::connection('mysql_mes')->table($logs_table)
-                        ->where('time_log_id', $request->logid)->where('status', 'In Progress')->first();
+                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)
+                        ->where('status', 'In Progress')->update($values);
                 } else {
-                    $check_wip_timelog = DB::connection('mysql_mes')->table($logs_table)
-                        ->where('job_ticket_id', $job_ticket_details->job_ticket_id)->where('status', 'In Progress')->first();
-                }
-            
-                if($check_wip_timelog){
-                    return response()->json(['success' => 0, 'message' => 'Task not updated. Please reload the page and try again.']);
+                    DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $job_ticket_details->job_ticket_id)
+                        ->where('status', 'In Progress')->update($values);
                 }
 
+                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['remarks' => 'Override']);
+
+                $this->update_job_ticket($job_ticket_details->job_ticket_id);
+
+                DB::connection('mysql')->commit();
                 DB::connection('mysql_mes')->commit();
 
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);

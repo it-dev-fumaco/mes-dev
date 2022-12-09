@@ -421,7 +421,12 @@
             $('#mark-done-modal').modal('hide');
             $('#jtname-modal').modal("hide");
             $('#view-machine-task-modal').modal("hide");
-            loadwip();
+            $( "#on-going-production-orders-content .tab-pane" ).each(function( index ) {
+              const operation = $(this).data('operation');
+              const el = $(this);
+              
+              get_ongoing_production_orders(operation, el);
+            });
           }else{
             showNotification("danger", data.message, "now-ui-icons travel_info");
             return false;
