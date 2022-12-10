@@ -4709,7 +4709,7 @@ class MainController extends Controller
 		$status = [];
 
 		if($request->status != 'All'){
-			$status = explode(',', $request->status);
+			$status = array_filter(explode(',', $request->status));
 		}
 
 		switch ($request->operation) {
@@ -4728,11 +4728,13 @@ class MainController extends Controller
 			->join('machine', 'machine.machine_code', 'machine_breakdown.machine_id')
 			->join('operation', 'operation.operation_id', 'machine.operation_id')
 			->when($search_string, function ($q) use ($search_string){
-				$q->where('machine.machine_name', 'LIKE', '%'.$search_string.'%')
-					->orWhere('machine_breakdown.machine_id', 'LIKE', '%'.$search_string.'%')
-					->orWhere('machine_breakdown.category', 'LIKE', '%'.$search_string.'%')
-					->orWhere('machine_breakdown.reported_by', 'LIKE', '%'.$search_string.'%')
-					->orWhere('machine_breakdown.machine_breakdown_id', 'LIKE', '%'.$search_string.'%');
+				$q->where(function ($query) use ($search_string){
+					return $query->where('machine.machine_name', 'LIKE', '%'.$search_string.'%')
+						->orWhere('machine_breakdown.machine_id', 'LIKE', '%'.$search_string.'%')
+						->orWhere('machine_breakdown.category', 'LIKE', '%'.$search_string.'%')
+						->orWhere('machine_breakdown.reported_by', 'LIKE', '%'.$search_string.'%')
+						->orWhere('machine_breakdown.machine_breakdown_id', 'LIKE', '%'.$search_string.'%');
+				});
 			})
 			->when($request->status != 'All', function ($q) use ($status){
 				$q->whereIn('machine_breakdown.status', $status)
@@ -4746,13 +4748,26 @@ class MainController extends Controller
 			->orderBy('created_at', 'desc')
 			->paginate(15);
 
+		$assigned_staffs = DB::connection('mysql_mes')->table('machine_breakdown_personnel')->whereIn('machine_breakdown_id', collect($list->items())->pluck('machine_breakdown_id'))->get();
+		$assigned_staffs = collect($assigned_staffs)->groupBy('machine_breakdown_id');
+
 		$permissions = $this->get_user_permitted_operation();
 
-		$maintenance_staff = DB::connection('mysql_mes')->table('user')
-			->join('user_group as grp', 'user.user_group_id', 'grp.user_group_id')
-			->where('grp.user_role', 'Maintenance Staff')->get();
+		$operators = DB::connection('mysql_essex')->table('users as u')
+			->join('departments as d', 'd.department_id', 'u.department_id')
+			->where('u.status', 'Active')->where('u.user_type', 'Employee')
+			->where(function($q) use ($request) {
+				$q->where('d.department', 'LIKE', '%painting%')
+					->orWhere('d.department', 'LIKE', '%assembly%')
+					->orWhere('d.department', 'LIKE', '%fabrication%')
+					->orWhere('d.department', 'LIKE', '%engineering%')
+					->orWhere('d.department', 'LIKE', '%production%')
+					->orWhere('d.department', 'LIKE', '%Plant Services%');
+			})
+			->select('u.user_id as operator_id', 'u.employee_name', 'd.department')
+			->orderBy('u.employee_name', 'asc')->get();
 
-		return view('maintenance_request_tbl', compact('list', 'permissions', 'maintenance_staff', 'operation'));
+		return view('maintenance_request_tbl', compact('list', 'permissions', 'operation', 'operators', 'assigned_staffs'));
 	}
 	
 	public function update_maintenance_request($machine_breakdown_id, Request $request){
@@ -4764,25 +4779,47 @@ class MainController extends Controller
 				return redirect()->back()->with('error', 'Maintenance Request ID not found.');
 			}
 
-			$hold_reason = $request->status_update == 'On Hold' ? $request->hold_reason : null;
-			$findings = in_array($request->status_update, ['On Hold', 'In Process', 'Done']) ? $request->findings : null;
-			$work_done = $request->status_update == 'Done' ? $request->work_done : null;
-
 			$update = [
 				'status' => $request->status_update,
-				'assigned_maintenance_staff' => $request->maintenance_staff,
-				'hold_reason' => $hold_reason,
-				'findings' => $findings,
-				'work_done' => $work_done,
-				'last_modified_by' => Auth::user()->employee_name,
+				'complaints' => $request->complaints,
+				'findings' => $request->findings,
+				'work_started' => Carbon::parse($request->date_started)->toDateTimeString(),
+				'last_modified_by' => Auth::user()->email,
 				'last_modified_at' => Carbon::now()->toDateTimeString()
 			];
+
+			switch ($request->status_update) {
+				case 'Done':
+					$update['work_done'] = $request->work_done;
+					$update['date_resolved'] = Carbon::parse($request->date_resolved)->toDateTimeString();
+					break;
+				case 'On Hold':
+					$update['hold_reason'] = $request->hold_reason;
+					break;
+				default:
+					break;
+			}
+
+			DB::connection('mysql_mes')->table('machine_breakdown_personnel')->where('machine_breakdown_id', $machine_breakdown_id)->delete();
+			
+			if($request->maintenance_staff){
+				$employee_details = DB::connection('mysql_essex')->table('users')->whereIn('user_id', $request->maintenance_staff)->get();
+                $employee_details = collect($employee_details)->groupBy('user_id');
+
+				foreach(array_filter($request->maintenance_staff) as $staff){
+                    DB::connection('mysql_mes')->table('machine_breakdown_personnel')->insert([
+                        'machine_breakdown_id' => $machine_breakdown_id,
+                        'user_id' => $staff,
+                        'email' => isset($employee_details[$staff]) ? $employee_details[$staff][0]->email : null,
+                        'created_by' => Auth::user()->email,
+                        'last_modified_by' => Auth::user()->email
+                    ]);
+                }
+			}
 
 			$breakdown_timelog = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $machine_breakdown_id)->where('status', 'In Progress')->first();
 
 			if($request->status_update == 'In Process'){
-				$update['work_started'] = Carbon::now()->toDateTimeString();
-
 				if(!$breakdown_timelog){
 					DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->insert([
 						'machine_breakdown_id' => $machine_breakdown_id,
@@ -4791,7 +4828,7 @@ class MainController extends Controller
 						'operator_id' => Auth::user()->user_id,
 						'operator_name' => Auth::user()->employee_name,
 						'status' => 'In Progress',
-						'created_by' => Auth::user()->employee_name
+						'created_by' => Auth::user()->email
 					]);
 				}
 			}else{
@@ -4804,14 +4841,10 @@ class MainController extends Controller
 					DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $machine_breakdown_id)->where('status', 'In Progress')->update([
 						'status' => 'Completed',
 						'duration_in_hours' => $duration,
-						'last_modified_by' => Auth::user()->employee_name,
+						'last_modified_by' => Auth::user()->email,
 						'last_modified_at' => Carbon::now()->toDateTimeString()
 					]);
 				}
-			}
-
-			if($request->status_update == 'Done'){
-				$update['date_resolved'] = Carbon::now()->toDateTimeString();
 			}
 
             if($request->hasFile('file')){
@@ -4832,7 +4865,7 @@ class MainController extends Controller
                     Storage::disk('public')->makeDirectory('/files/maintenance/'.$machine_breakdown_id);
                 }
                 
-				$attached_file->move(public_path('/files/maintenance/'.$machine_breakdown_id), $attached_file_name);
+				$attached_file->move(public_path('/storage/files/maintenance/'.$machine_breakdown_id), $attached_file_name);
 
                 $update['attached_files'] = $breakdown_details->attached_files ? $breakdown_details->attached_files.','.$attached_file_name : $attached_file_name;
             }
@@ -4888,7 +4921,6 @@ class MainController extends Controller
 						}
 					}
 				}
-				// Excel::import(new MachineBreakdownImport, $request->file('file'));
 			}
 
 			DB::connection('mysql_mes')->commit();
@@ -4906,7 +4938,7 @@ class MainController extends Controller
 			$files_arr = $attached_files ? explode(',', $attached_files) : [];
 
 			if(Storage::disk('public')->exists('/files/maintenance/'.$request->id.'/'.$request->file)){
-				unlink(public_path('/files/maintenance/'.$request->id.'/'.$request->file));
+				unlink(public_path('/storage/files/maintenance/'.$request->id.'/'.$request->file));
 			}
 
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $request->id)->update([

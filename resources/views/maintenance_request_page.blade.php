@@ -133,7 +133,7 @@
                   <label class="custom-file-label" for="customFile">Choose File</label>
                 </div>
                 <div class="container-fluid text-left mt-2">
-                  <span>Download Template: <a href="{{ asset('/files/Machine-Breakdown-Import-Template.xlsx') }}">Machine-Breakdown-Import-Template.xlsx</a></span>
+                  <span>Download Template: <a href="{{ asset('/storage/files/Machine-Breakdown-Import-Template.xlsx') }}">Machine-Breakdown-Import-Template.xlsx</a></span>
                   <br><br>
                   <span class="font-italic">* Red columns are required fields</span>
                 </div>
@@ -183,7 +183,7 @@
         <div class="modal-header text-white" style="background-color: #0277BD;">
           <h5 class="modal-title">Maintenance Request</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" style="color: #fff;">&times;</span>
           </button>
         </div>
         <div class="modal-body">
@@ -202,6 +202,21 @@
                 <div class="col-6 mb-2">
                   <small class="m-1">Machine Name</small>
                   <input type="text" class="form-control rounded" id="sel-machine-name" readonly>
+                </div>
+                <div class="col-6 mb-2">
+                  <small class="m-1">Building/Equipment</small>
+                  <input type="text" class="form-control rounded" name="building" required>
+                </div>
+                <div class="col-6 mb-2">
+                  @php
+                      $selection_arr = ['Planned', 'Emergency', 'New Installation', 'Transfer of Facilities', 'Outside Repair'];
+                  @endphp
+                  <small class="m-1">Type</small>
+                  <select class="form-control rounded" name="type" required>
+                    @foreach ($selection_arr as $item)
+                      <option value="{{ $item }}">{{ $item }}</option>
+                    @endforeach
+                  </select>
                 </div>
                 <div class="col-6 mb-2">
                   <small class="m-1">Breakdown Type</small>
@@ -225,6 +240,10 @@
                     <option value="Mechanical Issue">Mechanical Issue</option>
                     <option value="Electrical Issue">Electrical Issue</option>
                   </select>
+                </div>
+                <div class="col-12 mb-2">
+                  <small class="m-1">Complaints/Problems</small>
+                  <textarea class="form-control rounded border" name="complaints"></textarea>
                 </div>
                 <div class="col-12 mb-2">
                   <small class="m-1">Findings</small>
@@ -273,16 +292,31 @@
                   <input type="date" class="form-control rounded" name="date_resolved" id="sel-date-resolved">
                 </div>
                 <div class="col-12 mb-2">
-                  <small class="m-1">Assigned Maintenance Staff</small>
                   @php
                       $maintenance_staffs = collect($operators)->where('department', 'Plant Services');
                   @endphp
-                  <select class="form-control rounded" name="assigned_maintenance_staff" id="sel-assigned-maintenance-staff">
-                    <option value="">Select Maintenance Staff</option>
-                    @foreach ($maintenance_staffs as $e)
-                    <option value="{{ $e->employee_name }}">{{ $e->employee_name }}</option>
-                    @endforeach
-                  </select>
+                  <div class="row">
+                    <select class="d-none form-control rounded" id="sel-assigned-maintenance-staff">
+                      <option value="">Select Maintenance Staff</option>
+                      @foreach ($maintenance_staffs as $e)
+                      <option value="{{ $e->operator_id }}">{{ $e->employee_name }}</option>
+                      @endforeach
+                    </select>
+                    <div class="container-fluid mx-auto">
+                      <br/>
+                      <table class="table table-bordered" id="maintenance-table" style="font-size: 9pt;">
+                        <thead>
+                            <tr>
+                                <td scope="col" class="text-center p-2">Maintenenance Staff</td>
+                                <td class="text-center p-2" style="width: 10%;">
+                                    <button type="button" class="btn btn-outline-primary btn-sm add-row-btn" id="add-staff-btn" data-table="#maintenance-table" data-select="#sel-assigned-maintenance-staff">Add</button>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -483,6 +517,32 @@
       showNotification("danger", "{{ session()->get('error') }}", "now-ui-icons ui-1_check");
   @endif
 
+  function clone_table(table, select){
+    var clone_select = $(select).html();
+    var row = '<tr class="staff-row">' +
+      '<td class="p-2">' +
+        '<select name="maintenance_staff[]" class="form-control w-100" style="width: 100%;" required>' + clone_select + '</select>' +
+      '</td>' +
+      '<td class="text-center d-print-none">' +
+        '<button type="button" class="btn btn-outline-danger btn-sm remove-td-row"><i class="now-ui-icons ui-1_simple-remove font-weight-bold" style="cursor: pointer; font-size: 9pt;"></i></button>' +
+      '</td>' +
+    '</tr>';
+
+    $(table).append(row);
+  }
+
+  $(document).on('click', '.add-row-btn', function (e){
+    e.preventDefault();
+    var table = $(this).data('table') + ' tbody';
+    var select = $(this).data('select');
+    clone_table(table, select);
+  });
+
+  $(document).on('click', '.remove-td-row', function(e){
+    e.preventDefault();
+    $(this).closest("tr").remove();
+  });
+
   // Add the following code if you want the name of the file appear on select
   $(".custom-file-input").change(function() {
     var fileName = $(this).val().split("\\").pop();
@@ -554,6 +614,7 @@
           var status = $('#wiring-current-status').val() ? $('#wiring-current-status').val() : 'All';
           get_maintenance_request_list(1, status, $('.wiring-search-filter').val(),'#wiring-div');
 
+          $('.staff-row').remove();
           $("#save-maintenance-request-form").trigger("reset");
         } else {
           showNotification("danger", data.message, "now-ui-icons ui-1_check");
@@ -596,6 +657,8 @@
       $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', false);
     }else if($('#'+machine_breakdown_id+'-status').val() == 'In Process'){
       $('#'+machine_breakdown_id+'-findings-container').slideDown();
+      $('#'+machine_breakdown_id+'-date-started').slideDown();
+      $('#'+machine_breakdown_id+'-date-resolved').slideUp();
       $('#'+machine_breakdown_id+'-work-done-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
       $('#'+machine_breakdown_id+'-findings').prop('required', true);
@@ -605,12 +668,16 @@
     }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
       $('#'+machine_breakdown_id+'-work-done-container').slideDown();
       $('#'+machine_breakdown_id+'-findings-container').slideDown();
+      $('#'+machine_breakdown_id+'-date-started').slideDown();
+      $('#'+machine_breakdown_id+'-date-resolved').slideDown();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
       $('#'+machine_breakdown_id+'-work-done').prop('required', true);
       $('#'+machine_breakdown_id+'-findings').prop('required', true);
       $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', true);
     }else{
+      $('#'+machine_breakdown_id+'-date-started').slideUp();
+      $('#'+machine_breakdown_id+'-date-resolved').slideUp();
       $('#'+machine_breakdown_id+'-work-done-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
       $('#'+machine_breakdown_id+'-findings-container').slideUp();

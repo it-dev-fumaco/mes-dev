@@ -631,9 +631,11 @@ class SecondaryController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             $status = $request->status;
+            $new_id = $this->getNextOrderNumber();
+
             DB::connection('mysql_mes')->table('machine_breakdown')->insert([
                 'machine_id' => $request->machine_id,
-                'machine_breakdown_id' => $this->getNextOrderNumber(),
+                'machine_breakdown_id' => $new_id,
                 'status' => $status,
                 'reported_by' => $request->reported_by,
                 'date_reported' => $request->date_reported,
@@ -641,16 +643,35 @@ class SecondaryController extends Controller
                 'date_resolved' => $status == 'Done' ? $request->date_resolved : null,
                 'work_done' => $status == 'Done' ? $request->work_done : null,
                 'assigned_maintenance_staff' => $request->assigned_maintenance_staff,
+                'hold_reason' => $request->hold_reason,
+                'findings' => $request->findings,
+                'complaints' => $request->complaints,
+                'building' => $request->building,
                 'category' => $request->category,
-                'type' => $request->category,
+                'type' => $request->type,
                 'corrective_reason' => ($request->category == "Corrective") ? $request->corrective_reason : null,
                 'breakdown_reason' => ($request->category == "Breakdown") ? $request->breakdown_reason : null,
                 'created_by' => Auth::user()->email,
-                'last_modified_by' => Auth::user()->email,
+                'last_modified_by' => Auth::user()->email
             ]);
 
             if ($request->category == "Breakdown") {
                 DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_id)->update(['status' => 'Unavailable']);
+            }
+
+            if($request->maintenance_staff){
+                $employee_details = DB::connection('mysql_essex')->table('users')->whereIn('user_id', $request->maintenance_staff)->get();
+                $employee_details = collect($employee_details)->groupBy('user_id');
+
+                foreach(array_filter($request->maintenance_staff) as $staff){
+                    DB::connection('mysql_mes')->table('machine_breakdown_personnel')->insert([
+                        'machine_breakdown_id' => $new_id,
+                        'user_id' => $staff,
+                        'email' => isset($employee_details[$staff]) ? $employee_details[$staff][0]->email : null,
+                        'created_by' => Auth::user()->email,
+                        'last_modified_by' => Auth::user()->email
+                    ]);
+                }
             }
 
             DB::connection('mysql_mes')->commit();
@@ -659,7 +680,7 @@ class SecondaryController extends Controller
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
 
-            return response()->json(["error" => 'An error occured. Please try again.']);
+            return response()->json(['success' => 0, "message" => 'An error occured. Please try again.']);
         }
     }
 
