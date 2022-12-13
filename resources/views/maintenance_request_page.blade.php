@@ -112,6 +112,7 @@
   </div>
   <div class="col-3 pl-2 pr-2">
     <div class="text-right">
+      <button class="btn btn-secondary mr-0 ml-0 mb-1" data-toggle="modal" data-target="#importModal">Import</button>
       <button class="btn btn-primary mr-0 ml-0 mb-1" data-toggle="modal" data-target="#add-mr-modal">Add Maintenance Request</button>
 
       <!-- Modal -->

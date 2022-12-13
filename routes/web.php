@@ -280,6 +280,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/getProductionOrderRejectForConfirmation/{production_order}', 'QualityInspectionController@getProductionOrderRejectForConfirmation');
 	Route::post('/submitRejectConfirmation/{production_order}', 'QualityInspectionController@submitRejectConfirmation');
 	
+	Route::post('/machine_breakdown/import', 'MainController@machineBreakdownImport');
 	Route::get('/remove_file', 'MainController@removeFile');
 });
 //painting_calendar
