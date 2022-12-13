@@ -9023,8 +9023,11 @@ class MainController extends Controller
         $permissions = $this->get_user_permitted_operation();
 
         $operation_list=DB::connection('mysql_mes')->table('operation')->get();
-        
-        return view('settings.production_settings', compact('permissions', 'operation_list'));
+		$workstation_list = DB::connection('mysql_mes')->table('workstation')
+			// ->where('operation_id', $tabWorkstation->operation_id)
+        	->orderBy('order_no', 'asc')->get();
+
+        return view('settings.production_settings', compact('permissions', 'operation_list', 'workstation_list'));
     }
 
 	public function inventorySettings(){

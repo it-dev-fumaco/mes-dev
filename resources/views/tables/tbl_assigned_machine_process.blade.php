@@ -1,4 +1,3 @@
-
             <table class="table table-bordered" style="font-size: 12px; width: 100%;">
               <thead>
                 <tr style="font-size: 10px;" class="text-center">

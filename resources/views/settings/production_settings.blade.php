@@ -21,6 +21,7 @@
 @include('modals.delete_workstation_modal')
 @include('modals.edit_machineList_modal')
 @include('modals.delete_machineList_modal')
+@include('modals.process_assignment_modal')
 <div class="panel-header"></div>
 <div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
 	<div class="col-2 p-2">
@@ -1342,6 +1343,53 @@ $(document).ready(function(){
   tbl_operation_list();
   workstation_list();
   setting_machine_list();
+  get_machine_assign();
+  
+  function get_machine_assign(){
+    var workstation = $('#workstation_id_assign').val();
+        $.ajax({
+          url:"/get_machine_assignment_jquery/"+ workstation,
+          type:"GET",
+          success:function(data){
+            $('#machine_assignment').html(data);
+          }
+        }); 
+  }
+
+  function showNotification(color, message, icon){
+    $.notify({
+      icon: icon,
+      message: message
+    },{
+      type: color,
+      timer: 3000,
+      placement: {
+        from: 'top',
+        align: 'center'
+      }
+    });
+  }
+
+  $('#add-assign-machine-workstation-to-process-frm').submit(function(e){
+    e.preventDefault();
+    var url = $(this).attr("action");
+    $.ajax({
+      url: url,
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        console.log(data.message);
+        if (data.success < 1) {
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }else{
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          $('#process-assignment-modal').modal('hide');
+          tbl_process_assigned_process();
+          // getAssignedTasks();
+        }
+      }
+    });
+  });
 
   $('.schedule-date').datepicker({
     'format': 'yyyy-mm-dd',
@@ -1747,29 +1795,6 @@ $('.sel9').select2({
           }
         }); 
   }
-</script>
-<script type="text/javascript">
-
-    $('#add-assign-machine-workstation-to-process-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          console.log(data.message);adsasd
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#process-assignment-modal').modal('hide');
-            tbl_process_assigned_process();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
 </script>
 <script type="text/javascript">
     $(document).on('click', '#assigned_machine_process a', function(event){
