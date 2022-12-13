@@ -22,6 +22,7 @@
 @include('modals.edit_machineList_modal')
 @include('modals.delete_machineList_modal')
 @include('modals.process_assignment_modal')
+@include('modals.delete_assigned_machine_to_process_modal')
 <div class="panel-header"></div>
 <div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
 	<div class="col-2 p-2">
