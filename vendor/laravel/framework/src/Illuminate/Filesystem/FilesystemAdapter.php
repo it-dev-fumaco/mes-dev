@@ -4,7 +4,6 @@ namespace Illuminate\Filesystem;
 
 use RuntimeException;
 use Illuminate\Http\File;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\Support\Carbon;
@@ -51,39 +50,27 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     /**
      * Assert that the given file exists.
      *
-     * @param  string|array  $path
-     * @return $this
+     * @param  string  $path
+     * @return void
      */
     public function assertExists($path)
     {
-        $paths = Arr::wrap($path);
-
-        foreach ($paths as $path) {
-            PHPUnit::assertTrue(
-                $this->exists($path), "Unable to find a file at path [{$path}]."
-            );
-        }
-
-        return $this;
+        PHPUnit::assertTrue(
+            $this->exists($path), "Unable to find a file at path [{$path}]."
+        );
     }
 
     /**
      * Assert that the given file does not exist.
      *
-     * @param  string|array  $path
-     * @return $this
+     * @param  string  $path
+     * @return void
      */
     public function assertMissing($path)
     {
-        $paths = Arr::wrap($path);
-
-        foreach ($paths as $path) {
-            PHPUnit::assertFalse(
-                $this->exists($path), "Found unexpected file at path [{$path}]."
-            );
-        }
-
-        return $this;
+        PHPUnit::assertFalse(
+            $this->exists($path), "Found unexpected file at path [{$path}]."
+        );
     }
 
     /**

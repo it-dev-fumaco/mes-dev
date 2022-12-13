@@ -21,8 +21,6 @@ Route::get('/get_machine_breakdown', 'ProductionFloorController@get_machine_brea
 Route::get('/view_conveyor_schedule/{workstation}', 'MainController@view_conveyor_schedule');
 
 Route::get('/', 'MainController@index');
-Route::get('/testing', 'MainController@testing');
-Route::post('/import_testing', 'MainController@import');
 
 Route::get('/get_checklist/{workstation_name}/{production_order}/{process_id}', 'QualityInspectionController@get_checklist');
 Route::post('/submit_quality_inspection', 'QualityInspectionController@submit_quality_inspection');
@@ -283,7 +281,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/submitRejectConfirmation/{production_order}', 'QualityInspectionController@submitRejectConfirmation');
 	
 	Route::get('/remove_file', 'MainController@removeFile');
-	Route::post('/machine_breakdown/import', 'MainController@machineBreakdownImport');
 });
 //painting_calendar
 Route::group(['middleware' => 'auth'], function(){

@@ -29,7 +29,7 @@ interface ExpectationInterface
     public function getOrderNumber();
 
     /**
-     * @return LegacyMockInterface|MockInterface
+     * @return MockInterface
      */
     public function getMock();
 

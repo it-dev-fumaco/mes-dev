@@ -451,7 +451,7 @@ class Gate implements GateContract
      * @param  string  $ability
      * @param  array  $arguments
      * @param  bool  $result
-     * @return bool|null
+     * @return void
      */
     protected function callAfterCallbacks($user, $ability, array $arguments, $result)
     {
@@ -490,6 +490,7 @@ class Gate implements GateContract
         }
 
         return function () {
+            return null;
         };
     }
 
@@ -579,7 +580,7 @@ class Gate implements GateContract
     protected function callPolicyBefore($policy, $user, $ability, $arguments)
     {
         if (! method_exists($policy, 'before')) {
-            return;
+            return null;
         }
 
         if ($this->canBeCalledWithUser($user, $policy, 'before')) {
@@ -606,7 +607,7 @@ class Gate implements GateContract
         }
 
         if (! is_callable([$policy, $method])) {
-            return;
+            return null;
         }
 
         if ($this->canBeCalledWithUser($user, $policy, $method)) {

@@ -23,7 +23,7 @@ class XmlResponseHandler extends Handler
 
     /**
      * @param  bool|null  $returnFrames
-     * @return bool|static
+     * @return bool|$this
      */
     public function addTraceToOutput($returnFrames = null)
     {
@@ -47,7 +47,7 @@ class XmlResponseHandler extends Handler
             ),
         ];
 
-        echo self::toXml($response);
+        echo $this->toXml($response);
 
         return Handler::QUIT;
     }

@@ -20,7 +20,7 @@
 
 namespace Mockery\Adapter\Phpunit\Legacy;
 
-if (class_exists('PHPUnit_Framework_TestCase') && ! class_exists('PHPUnit\Util\Blacklist')) {
+if (class_exists('PHPUnit_Framework_TestCase') && ! class_exists('PHPUnit\Framework\TestCase')) {
     class_alias('PHPUnit_Framework_ExpectationFailedException', 'PHPUnit\Framework\ExpectationFailedException');
     class_alias('PHPUnit_Framework_Test', 'PHPUnit\Framework\Test');
     class_alias('PHPUnit_Framework_TestCase', 'PHPUnit\Framework\TestCase');
@@ -85,11 +85,6 @@ class TestListenerTrait
 
     public function startTestSuite()
     {
-        if (method_exists(Blacklist::class, 'addDirectory')) {
-            (new BlackList())->getBlacklistedDirectories();
-            Blacklist::addDirectory(\dirname((new \ReflectionClass(\Mockery::class))->getFileName()));
-        } else {
-            Blacklist::$blacklistedClassNames[\Mockery::class] = 1;
-        }
+        Blacklist::$blacklistedClassNames[\Mockery::class] = 1;
     }
 }

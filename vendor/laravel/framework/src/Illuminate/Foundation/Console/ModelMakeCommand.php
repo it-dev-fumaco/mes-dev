@@ -37,7 +37,7 @@ class ModelMakeCommand extends GeneratorCommand
     public function handle()
     {
         if (parent::handle() === false && ! $this->option('force')) {
-            return false;
+            return;
         }
 
         if ($this->option('all')) {
@@ -71,7 +71,7 @@ class ModelMakeCommand extends GeneratorCommand
 
         $this->call('make:factory', [
             'name' => "{$factory}Factory",
-            '--model' => $this->qualifyClass($this->getNameInput()),
+            '--model' => $this->argument('name'),
         ]);
     }
 

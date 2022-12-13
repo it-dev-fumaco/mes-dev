@@ -46,7 +46,7 @@ class UrlGenerator implements UrlGeneratorContract
     protected $forcedRoot;
 
     /**
-     * The forced scheme for URLs.
+     * The forced schema for URLs.
      *
      * @var string
      */
@@ -60,9 +60,8 @@ class UrlGenerator implements UrlGeneratorContract
     protected $cachedRoot;
 
     /**
-     * A cached copy of the URL scheme for the current request.
+     * A cached copy of the URL schema for the current request.
      *
-     * @deprecated In 5.8, this will change to $cachedScheme
      * @var string|null
      */
     protected $cachedSchema;
@@ -312,7 +311,7 @@ class UrlGenerator implements UrlGeneratorContract
      *
      * @param  string  $name
      * @param  array  $parameters
-     * @param  \DateTimeInterface|\DateInterval|int  $expiration
+     * @param  \DateTimeInterface|int  $expiration
      * @param  bool  $absolute
      * @return string
      */
@@ -337,7 +336,7 @@ class UrlGenerator implements UrlGeneratorContract
      * Create a temporary signed route URL for a named route.
      *
      * @param  string  $name
-     * @param  \DateTimeInterface|\DateInterval|int  $expiration
+     * @param  \DateTimeInterface|int  $expiration
      * @param  array  $parameters
      * @param  bool  $absolute
      * @return string
@@ -362,7 +361,7 @@ class UrlGenerator implements UrlGeneratorContract
             Arr::except($request->query(), 'signature')
         ), '?');
 
-        $expires = $request->query('expires');
+        $expires = Arr::get($request->query(), 'expires');
 
         $signature = hash_hmac('sha256', $original, call_user_func($this->keyResolver));
 
@@ -579,14 +578,14 @@ class UrlGenerator implements UrlGeneratorContract
     /**
      * Force the scheme for URLs.
      *
-     * @param  string  $scheme
+     * @param  string  $schema
      * @return void
      */
-    public function forceScheme($scheme)
+    public function forceScheme($schema)
     {
         $this->cachedSchema = null;
 
-        $this->forceScheme = $scheme.'://';
+        $this->forceScheme = $schema.'://';
     }
 
     /**

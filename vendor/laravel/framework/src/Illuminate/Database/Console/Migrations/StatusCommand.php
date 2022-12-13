@@ -52,7 +52,7 @@ class StatusCommand extends BaseCommand
         $this->migrator->setConnection($this->option('database'));
 
         if (! $this->migrator->repositoryExists()) {
-            return $this->error('Migration table not found.');
+            return $this->error('No migrations found.');
         }
 
         $ran = $this->migrator->getRepository()->getRan();

@@ -22,7 +22,7 @@ class InputStream implements \IteratorAggregate
 {
     /** @var callable|null */
     private $onEmpty = null;
-    private $input = [];
+    private $input = array();
     private $open = true;
 
     /**
@@ -36,8 +36,8 @@ class InputStream implements \IteratorAggregate
     /**
      * Appends an input to the write buffer.
      *
-     * @param resource|string|int|float|bool|\Traversable|null $input The input to append as scalar,
-     *                                                                stream resource or \Traversable
+     * @param resource|string|int|float|bool|\Traversable|null The input to append as scalar,
+     *                                                         stream resource or \Traversable
      */
     public function write($input)
     {
@@ -45,7 +45,7 @@ class InputStream implements \IteratorAggregate
             return;
         }
         if ($this->isClosed()) {
-            throw new RuntimeException(sprintf('"%s" is closed.', static::class));
+            throw new RuntimeException(sprintf('%s is closed', static::class));
         }
         $this->input[] = ProcessUtils::validateInput(__METHOD__, $input);
     }
@@ -66,10 +66,6 @@ class InputStream implements \IteratorAggregate
         return !$this->open;
     }
 
-    /**
-     * @return \Traversable
-     */
-    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         $this->open = true;
@@ -82,7 +78,9 @@ class InputStream implements \IteratorAggregate
             $current = array_shift($this->input);
 
             if ($current instanceof \Iterator) {
-                yield from $current;
+                foreach ($current as $cur) {
+                    yield $cur;
+                }
             } else {
                 yield $current;
             }

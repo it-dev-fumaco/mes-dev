@@ -49,11 +49,6 @@ class PlainTextHandler extends Handler
     /**
      * @var bool
      */
-    private $addPreviousToOutput = true;
-
-    /**
-     * @var bool
-     */
     private $loggerOnly = false;
 
     /**
@@ -97,18 +92,17 @@ class PlainTextHandler extends Handler
      * Set var dumper callback function.
      *
      * @param  callable $dumper
-     * @return static
+     * @return void
      */
     public function setDumper(callable $dumper)
     {
         $this->dumper = $dumper;
-        return $this;
     }
 
     /**
      * Add error trace to output.
      * @param  bool|null  $addTraceToOutput
-     * @return bool|static
+     * @return bool|$this
      */
     public function addTraceToOutput($addTraceToOutput = null)
     {
@@ -121,25 +115,10 @@ class PlainTextHandler extends Handler
     }
 
     /**
-     * Add previous exceptions to output.
-     * @param  bool|null $addPreviousToOutput
-     * @return bool|static
-     */
-    public function addPreviousToOutput($addPreviousToOutput = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->addPreviousToOutput;
-        }
-
-        $this->addPreviousToOutput = (bool) $addPreviousToOutput;
-        return $this;
-    }
-
-    /**
      * Add error trace function arguments to output.
      * Set to True for all frame args, or integer for the n first frame args.
      * @param  bool|integer|null $addTraceFunctionArgsToOutput
-     * @return static|bool|integer
+     * @return null|bool|integer
      */
     public function addTraceFunctionArgsToOutput($addTraceFunctionArgsToOutput = null)
     {
@@ -152,7 +131,6 @@ class PlainTextHandler extends Handler
         } else {
             $this->addTraceFunctionArgsToOutput = $addTraceFunctionArgsToOutput;
         }
-        return $this;
     }
 
     /**
@@ -160,12 +138,10 @@ class PlainTextHandler extends Handler
      * If the limit is reached, the var_dump output is discarded.
      * Prevent memory limit errors.
      * @var integer
-     * @return static
      */
     public function setTraceFunctionArgsOutputLimit($traceFunctionArgsOutputLimit)
     {
         $this->traceFunctionArgsOutputLimit = (integer) $traceFunctionArgsOutputLimit;
-        return $this;
     }
 
     /**
@@ -175,18 +151,14 @@ class PlainTextHandler extends Handler
     public function generateResponse()
     {
         $exception = $this->getException();
-        $message = $this->getExceptionOutput($exception);
-
-        if ($this->addPreviousToOutput) {
-            $previous = $exception->getPrevious();
-            while ($previous) {
-                $message .= "\n\nCaused by\n" . $this->getExceptionOutput($previous);
-                $previous = $previous->getPrevious();
-            }
-        }
-
-
-        return $message . $this->getTraceOutput() . "\n";
+        return sprintf(
+            "%s: %s in file %s on line %d%s\n",
+            get_class($exception),
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine(),
+            $this->getTraceOutput()
+        );
     }
 
     /**
@@ -203,7 +175,7 @@ class PlainTextHandler extends Handler
     /**
      * Only output to logger.
      * @param  bool|null $loggerOnly
-     * @return static|bool
+     * @return null|bool
      */
     public function loggerOnly($loggerOnly = null)
     {
@@ -212,7 +184,6 @@ class PlainTextHandler extends Handler
         }
 
         $this->loggerOnly = (bool) $loggerOnly;
-        return $this;
     }
 
     /**
@@ -311,22 +282,6 @@ class PlainTextHandler extends Handler
         }
 
         return $response;
-    }
-
-    /**
-     * Get the exception as plain text.
-     * @param \Throwable $exception
-     * @return string
-     */
-    private function getExceptionOutput($exception)
-    {
-        return sprintf(
-            "%s: %s in file %s on line %d",
-            get_class($exception),
-            $exception->getMessage(),
-            $exception->getFile(),
-            $exception->getLine()
-        );
     }
 
     /**

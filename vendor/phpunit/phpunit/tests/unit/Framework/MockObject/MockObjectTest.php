@@ -272,7 +272,7 @@ class MockObjectTest extends TestCase
 
         $mock->expects($this->once())
              ->method('doSomething')
-             ->will($this->returnCallback('FunctionCallbackWrapper::functionCallback'));
+             ->will($this->returnCallback('functionCallback'));
 
         $this->assertEquals('pass', $mock->doSomething('foo', 'bar'));
 
@@ -282,7 +282,7 @@ class MockObjectTest extends TestCase
 
         $mock->expects($this->once())
              ->method('doSomething')
-             ->willReturnCallback('FunctionCallbackWrapper::functionCallback');
+             ->willReturnCallback('functionCallback');
 
         $this->assertEquals('pass', $mock->doSomething('foo', 'bar'));
     }
@@ -1000,7 +1000,7 @@ class MockObjectTest extends TestCase
         /** @var PHPUnit\Framework\MockObject\MockObject|StringableClass $mock */
         $mock = $this->getMockBuilder(StringableClass::class)->getMock();
 
-        $this->assertIsString((string) $mock);
+        $this->assertInternalType('string', (string) $mock);
     }
 
     public function testStringableClassCanBeMocked(): void
@@ -1110,18 +1110,11 @@ class MockObjectTest extends TestCase
         $this->assertInstanceOf(stdClass::class, $stub->methodWithObjectReturnTypeDeclaration());
     }
 
-    public function testTraitCanBeDoubled(): void
+    public function testGetObjectForTrait(): void
     {
         $object = $this->getObjectForTrait(ExampleTrait::class);
 
         $this->assertSame('ohHai', $object->ohHai());
-    }
-
-    public function testTraitWithConstructorCanBeDoubled(): void
-    {
-        $object = $this->getObjectForTrait(TraitWithConstructor::class, ['value']);
-
-        $this->assertSame('value', $object->value());
     }
 
     private function resetMockObjects(): void

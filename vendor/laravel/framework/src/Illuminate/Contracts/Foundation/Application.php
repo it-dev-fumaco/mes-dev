@@ -83,7 +83,7 @@ interface Application extends Container
     /**
      * Register a new boot listener.
      *
-     * @param  callable  $callback
+     * @param  mixed  $callback
      * @return void
      */
     public function booting($callback);
@@ -91,7 +91,7 @@ interface Application extends Container
     /**
      * Register a new "booted" listener.
      *
-     * @param  callable  $callback
+     * @param  mixed  $callback
      * @return void
      */
     public function booted($callback);

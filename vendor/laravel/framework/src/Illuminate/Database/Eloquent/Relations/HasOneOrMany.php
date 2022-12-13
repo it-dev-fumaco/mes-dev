@@ -255,8 +255,8 @@ abstract class HasOneOrMany extends Relation
     /**
      * Attach a collection of models to the parent instance.
      *
-     * @param  iterable  $models
-     * @return iterable
+     * @param  \Traversable|array  $models
+     * @return \Traversable|array
      */
     public function saveMany($models)
     {
@@ -308,6 +308,21 @@ abstract class HasOneOrMany extends Relation
     protected function setForeignAttributesForCreate(Model $model)
     {
         $model->setAttribute($this->getForeignKeyName(), $this->getParentKey());
+    }
+
+    /**
+     * Perform an update on all the related models.
+     *
+     * @param  array  $attributes
+     * @return int
+     */
+    public function update(array $attributes)
+    {
+        if ($this->related->usesTimestamps() && ! is_null($this->relatedUpdatedAt())) {
+            $attributes[$this->relatedUpdatedAt()] = $this->related->freshTimestampString();
+        }
+
+        return $this->query->update($attributes);
     }
 
     /**
@@ -406,15 +421,5 @@ abstract class HasOneOrMany extends Relation
     public function getQualifiedForeignKeyName()
     {
         return $this->foreignKey;
-    }
-
-    /**
-     * Get the local key for the relationship.
-     *
-     * @return string
-     */
-    public function getLocalKeyName()
-    {
-        return $this->localKey;
     }
 }

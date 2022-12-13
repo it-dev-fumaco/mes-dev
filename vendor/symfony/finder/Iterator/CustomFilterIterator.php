@@ -21,7 +21,7 @@ namespace Symfony\Component\Finder\Iterator;
  */
 class CustomFilterIterator extends \FilterIterator
 {
-    private $filters = [];
+    private $filters = array();
 
     /**
      * @param \Iterator  $iterator The Iterator to filter
@@ -46,13 +46,12 @@ class CustomFilterIterator extends \FilterIterator
      *
      * @return bool true if the value should be kept, false otherwise
      */
-    #[\ReturnTypeWillChange]
     public function accept()
     {
         $fileinfo = $this->current();
 
         foreach ($this->filters as $filter) {
-            if (false === $filter($fileinfo)) {
+            if (false === \call_user_func($filter, $fileinfo)) {
                 return false;
             }
         }

@@ -2,7 +2,6 @@
 
 namespace Illuminate\Foundation\Testing\Concerns;
 
-use Illuminate\Support\Arr;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\Constraints\HasInDatabase;
 use PHPUnit\Framework\Constraint\LogicalNot as ReverseConstraint;
@@ -85,14 +84,12 @@ trait InteractsWithDatabase
     /**
      * Seed a given database connection.
      *
-     * @param  array|string  $class
+     * @param  string  $class
      * @return $this
      */
     public function seed($class = 'DatabaseSeeder')
     {
-        foreach (Arr::wrap($class) as $class) {
-            $this->artisan('db:seed', ['--class' => $class, '--no-interaction' => true]);
-        }
+        $this->artisan('db:seed', ['--class' => $class, '--no-interaction' => true]);
 
         return $this;
     }

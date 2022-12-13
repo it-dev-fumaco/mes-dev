@@ -7,7 +7,7 @@ Expectation Declarations
 .. note::
 
     In order for our expectations to work we MUST call ``Mockery::close()``,
-    preferably in a callback method such as ``tearDown`` or ``_after``
+    preferably in a callback method such as ``tearDown`` or ``_before``
     (depending on whether or not we're integrating Mockery with another
     framework). This static call cleans up the Mockery container used by the
     current test, and run any verification tasks needed for our expectations.
@@ -135,32 +135,6 @@ arguments make the closure evaluate to true:
     $mock->foo(4); // matches the expectation
     $mock->foo(3); // throws a NoMatchingExpectationException
 
-Argument matching with some of given values
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-We can provide expected arguments that match passed arguments when mocked method
-is called.
-
-.. code-block:: php
-
-    $mock = \Mockery::mock('MyClass');
-    $mock->shouldReceive('name_of_method')
-        ->withSomeOfArgs(arg1, arg2, arg3, ...);
-
-The given expected arguments order doesn't matter.
-Check if expected values are included or not, but type should be matched:
-
-.. code-block:: php
-
-    $mock = \Mockery::mock('MyClass');
-    $mock->shouldReceive('foo')
-        ->withSomeOfArgs(1, 2);
-
-    $mock->foo(1, 2, 3);  // matches the expectation
-    $mock->foo(3, 2, 1);  // matches the expectation (passed order doesn't matter)
-    $mock->foo('1', '2'); // throws a NoMatchingExpectationException (type should be matched) 
-    $mock->foo(3);        // throws a NoMatchingExpectationException 
-
 Any, or no arguments
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -262,23 +236,9 @@ method which accepts one or more closure:
 
 Closures can be queued by passing them as extra parameters as for ``andReturn()``.
 
-Occasionally, it can be useful to echo back one of the arguments that a method
-is called with. In this case we can use the ``andReturnArg()`` method; the
-argument to be returned is specified by its index in the arguments list:
-
-.. code-block:: php
-
-    $mock = \Mockery::mock('MyClass');
-    $mock->shouldReceive('name_of_method')
-        ->andReturnArg(1);
-
-This returns the second argument (index #1) from the list of arguments when the
-method is called.
-
 .. note::
 
-    We cannot currently mix ``andReturnUsing()`` or ``andReturnArg`` with
-    ``andReturn()``.
+    We cannot currently mix ``andReturnUsing()`` with ``andReturn()``.
 
 If we are mocking fluid interfaces, the following method will be helpful:
 
@@ -299,18 +259,18 @@ We can tell the method of mock objects to throw exceptions:
 
     $mock = \Mockery::mock('MyClass');
     $mock->shouldReceive('name_of_method')
-        ->andThrow(new Exception);
+        ->andThrow(Exception);
 
 It will throw the given ``Exception`` object when called.
 
-Rather than an object, we can pass in the ``Exception`` class, message and/or code to
+Rather than an object, we can pass in the ``Exception`` class and message to
 use when throwing an ``Exception`` from the mocked method:
 
 .. code-block:: php
 
     $mock = \Mockery::mock('MyClass');
     $mock->shouldReceive('name_of_method')
-        ->andThrow('exception_name', 'message', 123456789);
+        ->andThrow(exception_name, message);
 
 .. _expectations-setting-public-properties:
 

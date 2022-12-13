@@ -20,11 +20,8 @@
 
 namespace Mockery\Generator;
 
-use Mockery\Reflector;
-
 class Method
 {
-    /** @var \ReflectionMethod */
     private $method;
 
     public function __construct(\ReflectionMethod $method)
@@ -37,21 +34,43 @@ class Method
         return call_user_func_array(array($this->method, $method), $args);
     }
 
-    /**
-     * @return Parameter[]
-     */
     public function getParameters()
     {
-        return array_map(function (\ReflectionParameter $parameter) {
+        return array_map(function ($parameter) {
             return new Parameter($parameter);
         }, $this->method->getParameters());
     }
 
-    /**
-     * @return string|null
-     */
     public function getReturnType()
     {
-        return Reflector::getReturnType($this->method);
+        if (defined('HHVM_VERSION') && method_exists($this->method, 'getReturnTypeText') && $this->method->hasReturnType()) {
+            // Available in HHVM
+            $returnType = $this->method->getReturnTypeText();
+
+            // Remove tuple, ImmVector<>, ImmSet<>, ImmMap<>, array<>, anything with <>, void, mixed which cause eval() errors
+            if (preg_match('/(\w+<.*>)|(\(.+\))|(HH\\\\(void|mixed|this))/', $returnType)) {
+                return '';
+            }
+
+            // return directly without going through php logic.
+            return $returnType;
+        }
+
+        if (version_compare(PHP_VERSION, '7.0.0-dev') >= 0 && $this->method->hasReturnType()) {
+            $returnType = (string) $this->method->getReturnType();
+
+            if ('self' === $returnType) {
+                $returnType = "\\".$this->method->getDeclaringClass()->getName();
+            } elseif (!\Mockery::isBuiltInType($returnType)) {
+                $returnType = '\\'.$returnType;
+            }
+
+            if (version_compare(PHP_VERSION, '7.1.0-dev') >= 0 && $this->method->getReturnType()->allowsNull()) {
+                $returnType = '?'.$returnType;
+            }
+
+            return $returnType;
+        }
+        return '';
     }
 }

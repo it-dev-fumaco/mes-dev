@@ -5,7 +5,6 @@ namespace Illuminate\Queue;
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\Job as PheanstalkJob;
 use Illuminate\Queue\Jobs\BeanstalkdJob;
-use Pheanstalk\Contract\PheanstalkInterface;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 
 class BeanstalkdQueue extends Queue implements QueueContract
@@ -118,11 +117,7 @@ class BeanstalkdQueue extends Queue implements QueueContract
     {
         $queue = $this->getQueue($queue);
 
-        $this->pheanstalk->watchOnly($queue);
-
-        $job = interface_exists(PheanstalkInterface::class)
-                    ? $this->pheanstalk->reserveWithTimeout(0)
-                    : $this->pheanstalk->reserve(0);
+        $job = $this->pheanstalk->watchOnly($queue)->reserve(0);
 
         if ($job instanceof PheanstalkJob) {
             return new BeanstalkdJob(

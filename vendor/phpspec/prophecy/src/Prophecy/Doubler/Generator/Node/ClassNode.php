@@ -25,7 +25,6 @@ class ClassNode
     private $interfaces  = array();
     private $properties  = array();
     private $unextendableMethods = array();
-    private $readOnly = false;
 
     /**
      * @var MethodNode[]
@@ -166,21 +165,5 @@ class ClassNode
     public function isExtendable($method)
     {
         return !in_array($method, $this->unextendableMethods);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isReadOnly()
-    {
-        return $this->readOnly;
-    }
-
-    /**
-     * @param bool $readOnly
-     */
-    public function setReadOnly($readOnly)
-    {
-        $this->readOnly = $readOnly;
     }
 }

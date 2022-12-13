@@ -559,9 +559,7 @@ class BelongsToMany extends Relation
      */
     public function getResults()
     {
-        return ! is_null($this->parent->{$this->parentKey})
-                ? $this->get()
-                : $this->related->newCollection();
+        return $this->get();
     }
 
     /**
@@ -681,32 +679,6 @@ class BelongsToMany extends Relation
     }
 
     /**
-     * Chunk the results of a query by comparing numeric IDs.
-     *
-     * @param  int  $count
-     * @param  callable  $callback
-     * @param  string|null  $column
-     * @param  string|null  $alias
-     * @return bool
-     */
-    public function chunkById($count, callable $callback, $column = null, $alias = null)
-    {
-        $this->query->addSelect($this->shouldSelect());
-
-        $column = $column ?? $this->getRelated()->qualifyColumn(
-            $this->getRelatedKeyName()
-        );
-
-        $alias = $alias ?? $this->getRelatedKeyName();
-
-        return $this->query->chunkById($count, function ($results) use ($callback) {
-            $this->hydratePivotRelation($results->all());
-
-            return $callback($results);
-        }, $column, $alias);
-    }
-
-    /**
      * Execute a callback over each item while chunking.
      *
      * @param  callable  $callback
@@ -821,7 +793,7 @@ class BelongsToMany extends Relation
         // the related model's timestamps, to make sure these all reflect the changes
         // to the parent models. This will help us keep any caching synced up here.
         if (count($ids = $this->allRelatedIds()) > 0) {
-            $this->getRelated()->newQueryWithoutRelationships()->whereIn($key, $ids)->update($columns);
+            $this->getRelated()->newModelQuery()->whereIn($key, $ids)->update($columns);
         }
     }
 
@@ -1050,16 +1022,6 @@ class BelongsToMany extends Relation
     }
 
     /**
-     * Get the parent key for the relationship.
-     *
-     * @return string
-     */
-    public function getParentKeyName()
-    {
-        return $this->parentKey;
-    }
-
-    /**
      * Get the fully qualified parent key name for the relation.
      *
      * @return string
@@ -1067,16 +1029,6 @@ class BelongsToMany extends Relation
     public function getQualifiedParentKeyName()
     {
         return $this->parent->qualifyColumn($this->parentKey);
-    }
-
-    /**
-     * Get the related key for the relationship.
-     *
-     * @return string
-     */
-    public function getRelatedKeyName()
-    {
-        return $this->relatedKey;
     }
 
     /**

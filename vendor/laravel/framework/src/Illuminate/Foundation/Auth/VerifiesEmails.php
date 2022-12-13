@@ -36,10 +36,6 @@ trait VerifiesEmails
             throw new AuthorizationException;
         }
 
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect($this->redirectPath());
-        }
-
         if ($request->user()->markEmailAsVerified()) {
             event(new Verified($request->user()));
         }

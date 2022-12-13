@@ -21,9 +21,9 @@ class AcceptHeaderItem
     private $value;
     private $quality = 1.0;
     private $index = 0;
-    private $attributes = [];
+    private $attributes = array();
 
-    public function __construct(string $value, array $attributes = [])
+    public function __construct(string $value, array $attributes = array())
     {
         $this->value = $value;
         foreach ($attributes as $name => $value) {
@@ -157,7 +157,7 @@ class AcceptHeaderItem
      */
     public function getAttribute($name, $default = null)
     {
-        return $this->attributes[$name] ?? $default;
+        return isset($this->attributes[$name]) ? $this->attributes[$name] : $default;
     }
 
     /**

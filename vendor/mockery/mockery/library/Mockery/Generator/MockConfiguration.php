@@ -26,6 +26,8 @@ namespace Mockery\Generator;
  */
 class MockConfiguration
 {
+    protected static $mockCounter = 0;
+
     /**
      * A class that we'd like to mock
      */
@@ -318,15 +320,7 @@ class MockConfiguration
         }
 
         if (class_exists($this->targetClassName)) {
-            $alias = null;
-            if (strpos($this->targetClassName, '@') !== false) {
-                $alias = (new MockNameBuilder())
-                    ->addPart('anonymous_class')
-                    ->addPart(md5($this->targetClassName))
-                    ->build();
-                class_alias($this->targetClassName, $alias);
-            }
-            $dtc = DefinedTargetClass::factory($this->targetClassName, $alias);
+            $dtc = DefinedTargetClass::factory($this->targetClassName);
 
             if ($this->getTargetObject() == false && $dtc->isFinal()) {
                 throw new \Mockery\Exception(
@@ -369,7 +363,7 @@ class MockConfiguration
         foreach ($this->targetInterfaceNames as $targetInterface) {
             if (!interface_exists($targetInterface)) {
                 $this->targetInterfaces[] = UndefinedTargetClass::factory($targetInterface);
-                continue;
+                return;
             }
 
             $dtc = DefinedTargetClass::factory($targetInterface);
@@ -424,23 +418,24 @@ class MockConfiguration
      */
     public function generateName()
     {
-        $nameBuilder = new MockNameBuilder();
+        $name = 'Mockery_' . static::$mockCounter++;
 
         if ($this->getTargetObject()) {
-            $className = get_class($this->getTargetObject());
-            $nameBuilder->addPart(strpos($className, '@') !== false ? md5($className) : $className);
+            $name .= "_" . str_replace("\\", "_", get_class($this->getTargetObject()));
         }
 
         if ($this->getTargetClass()) {
-            $className = $this->getTargetClass()->getName();
-            $nameBuilder->addPart(strpos($className, '@') !== false ? md5($className) : $className);
+            $name .= "_" . str_replace("\\", "_", $this->getTargetClass()->getName());
         }
 
-        foreach ($this->getTargetInterfaces() as $targetInterface) {
-            $nameBuilder->addPart($targetInterface->getName());
+        if ($this->getTargetInterfaces()) {
+            $name .= array_reduce($this->getTargetInterfaces(), function ($tmpname, $i) {
+                $tmpname .= '_' . str_replace("\\", "_", $i->getName());
+                return $tmpname;
+            }, '');
         }
 
-        return $nameBuilder->build();
+        return $name;
     }
 
     public function getShortName()

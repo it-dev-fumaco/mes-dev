@@ -22,9 +22,7 @@
         "illuminate/filesystem": "5.7.*",
         "illuminate/mail": "5.7.*",
         "illuminate/queue": "5.7.*",
-        "illuminate/support": "5.7.*",
-        "laravel/nexmo-notification-channel": "^1.0",
-        "laravel/slack-notification-channel": "^1.0"
+        "illuminate/support": "5.7.*"
     },
     "autoload": {
         "psr-4": {
@@ -37,7 +35,9 @@
         }
     },
     "suggest": {
-        "illuminate/database": "Required to use the database transport (5.7.*)."
+        "guzzlehttp/guzzle": "Required to use the Slack transport (^6.0)",
+        "illuminate/database": "Required to use the database transport (5.7.*).",
+        "nexmo/client": "Required to use the Nexmo transport (^1.0)."
     },
     "config": {
         "sort-packages": true

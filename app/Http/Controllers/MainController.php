@@ -21,8 +21,6 @@ use Session;
 
 use Illuminate\Support\Facades\Route;
 
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\MachineBreakdownImport;
 
 class MainController extends Controller
 {
@@ -4879,58 +4877,6 @@ class MainController extends Controller
         }
 	}
 
-	public function machineBreakdownImport(Request $request){
-		DB::connection('mysql_mes')->beginTransaction();
-        try {
-            if($request->hasFile('file')){
-				$attached_file = $request->file('file');
-
-				$array = Excel::toArray(new MachineBreakdownImport, $attached_file);
-
-				$latest_id = DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', 'like', '%mr%')->orderBy('machine_breakdown_id', 'desc')->pluck('machine_breakdown_id')->first();
-				$latest_id_exploded = explode("-", $latest_id);
-				$new_id = (($latest_id) ? $latest_id_exploded[1] : 0) + 1;
-
-				if (isset($array[0])) {
-					foreach ($array[0] as $i => $row) {
-						if(max($array[0][$i])){
-							$insert = [
-								'machine_breakdown_id' => 'MR-'.str_pad($new_id++, 5, '0', STR_PAD_LEFT),
-								'machine_id' => $row['machine_id'],
-								'status' => $row['status'],
-								'hold_reason' => $row['hold_reason'],
-								'reported_by' => $row['reported_by'],
-								'date_reported' => $row['date_reported'] ? Carbon::parse($row['date_reported'])->format('Y-m-d h:i:s') : null,
-								'work_started' => $row['work_started'] ? Carbon::parse($row['work_started'])->format('Y-m-d h:i:s') : null,
-								'remarks' => $row['remarks'],
-								'date_resolved' => $row['date_resolved'] ? Carbon::parse($row['date_resolved'])->format('Y-m-d h:i:s') : null,
-								'work_done' => $row['work_done'],
-								'findings' => $row['findings'],
-								'assigned_maintenance_staff' => $row['assigned_maintenance_staff'],
-								'type' => $row['type'],
-								'corrective_reason' => $row['corrective_reason'],
-								'breakdown_reason' => $row['breakdown_reason'],
-								'category' => $row['category'],
-								'created_by' => Auth::user()->employee_name,
-								'created_at' => Carbon::now()->toDateTimeString(),
-								'last_modified_by' => Auth::user()->employee_name,
-								'last_modified_at' => Carbon::now()->toDateTimeString()
-							];
-
-							DB::connection('mysql_mes')->table('machine_breakdown')->insert($insert);
-						}
-					}
-				}
-			}
-
-			DB::connection('mysql_mes')->commit();
-            return redirect('/maintenance_request')->with('success', $request->id.' Maintenance Request Imported');
-		} catch (Exception $e) {
-            DB::connection('mysql_mes')->rollback();
-            return redirect()->back()->with('error', 'An error occured. Please try again.');
-        }
-	}
-
 	public function removeFile(Request $request){
 		DB::connection('mysql_mes')->beginTransaction();
         try {
@@ -4953,6 +4899,7 @@ class MainController extends Controller
             DB::connection('mysql_mes')->rollback();
             return redirect()->back()->with('error', 'An error occured. Please try again.');
         }
+		
 	}
 
 	public function stock_entry(){

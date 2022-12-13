@@ -20,7 +20,7 @@ use Symfony\Component\Finder\Comparator\NumberComparator;
  */
 class SizeRangeFilterIterator extends \FilterIterator
 {
-    private $comparators = [];
+    private $comparators = array();
 
     /**
      * @param \Iterator          $iterator    The Iterator to filter
@@ -38,7 +38,6 @@ class SizeRangeFilterIterator extends \FilterIterator
      *
      * @return bool true if the value should be kept, false otherwise
      */
-    #[\ReturnTypeWillChange]
     public function accept()
     {
         $fileinfo = $this->current();
