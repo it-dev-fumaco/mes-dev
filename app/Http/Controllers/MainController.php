@@ -4885,7 +4885,19 @@ class MainController extends Controller
             if($request->hasFile('file')){
 				$attached_file = $request->file('file');
 
-				$array = Excel::toArray(new MachineBreakdownImport, $attached_file);
+				$allowed_extensions = ['xlsx', 'csv', 'tsv', 'ods', 'xls', 'slk', 'xml'];
+
+				$file_ext = pathinfo($attached_file->getClientOriginalName(), PATHINFO_EXTENSION);
+
+				if(!in_array($file_ext, $allowed_extensions)){
+					return response()->json(['status' => 0, 'message' => 'Sorry, only xlsx, csv, tsv, ods, xls, slk, and xml files are allowed.']);
+				}
+
+				try {
+					$array = Excel::toArray(new MachineBreakdownImport, $attached_file);
+				} catch (\Throwable $th) {
+					return response()->json(['status' => 0, 'message' => 'Sorry, cannot read file. Please download and use the template provided.']);
+				}
 
 				$latest_id = DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', 'like', '%mr%')->orderBy('machine_breakdown_id', 'desc')->pluck('machine_breakdown_id')->first();
 				$latest_id_exploded = explode("-", $latest_id);
@@ -4894,7 +4906,7 @@ class MainController extends Controller
 				if (isset($array[0])) {
 					foreach ($array[0] as $i => $row) {
 						if(max($array[0][$i])){
-							$insert = [
+							$insert[] = [
 								'machine_breakdown_id' => 'MR-'.str_pad($new_id++, 5, '0', STR_PAD_LEFT),
 								'machine_id' => $row['machine_id'],
 								'status' => $row['status'],
@@ -4916,18 +4928,23 @@ class MainController extends Controller
 								'last_modified_by' => Auth::user()->employee_name,
 								'last_modified_at' => Carbon::now()->toDateTimeString()
 							];
+						}
+					}
 
+					if($insert){
+						try {
 							DB::connection('mysql_mes')->table('machine_breakdown')->insert($insert);
+						} catch (\Throwable $th) {
+							return response()->json(['status' => 0, 'message' => 'Please fill-out ALL required fields.']);
 						}
 					}
 				}
 			}
-
 			DB::connection('mysql_mes')->commit();
-            return redirect('/maintenance_request')->with('success', $request->id.' Maintenance Request Imported');
+			return response()->json(['status' => 1, 'message' => 'Data Imported']);
 		} catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
-            return redirect()->back()->with('error', 'An error occured. Please try again.');
+			return response()->json(['status' => 0, 'message' => 'An error occured. Please try again.']);
         }
 	}
 
