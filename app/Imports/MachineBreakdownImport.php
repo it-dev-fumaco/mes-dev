@@ -21,7 +21,7 @@ class MachineBreakdownImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         return new MachineBreakdownImportModel([
-            'machine_breakdown_id' => 'XR-',
+            'machine_breakdown_id' => 'MR-',
             'machine_id' => $row['machine_id'],
             'status' => $row['status'],
             'hold_reason' => $row['hold_reason'],
