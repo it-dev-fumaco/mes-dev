@@ -62,32 +62,32 @@
                                 </button>
                             </div>
                             <div id="{{ $row->machine_breakdown_id }}-container" class="modal-body">
-                                <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post" enctype="multipart/form-data">
-                                    @csrf
-                                    <div class="row">
-                                        <div class="col-2">
-                                            <center>
-                                                <img src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
-                                            </center>
-                                        </div>
-                                        <div class="col-10">
-                                            <h5 class="mb-0"><b>{{ $row->machine_id }}</b> - {{ $row->machine_name }}</h5>
-                                            <div class="row p-0">
-                                                <div class="col-6">
-                                                    <span><b>Building/Equipment: </b>{{ $row->building }}</span><br>
-                                                    <span><b>Type: </b>{{ $row->type }}</span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <span><b>Category: </b>{{ $row->category }}</span><br>
-                                                    @if ($row->category == 'Corrective')
-                                                        <span><b>Corrective Reason: </b>{{ $row->corrective_reason }}</span>
-                                                    @else
-                                                        <span><b>Breakdown Reason: </b>{{ $row->breakdown_reason }}</span>
-                                                    @endif
-                                                </div>
+                                <div class="row">
+                                    <div class="col-2">
+                                        <center>
+                                            <img src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
+                                        </center>
+                                    </div>
+                                    <div class="col-10">
+                                        <h5 class="mb-0"><b>{{ $row->machine_id }}</b> - {{ $row->machine_name }}</h5>
+                                        <div class="row p-0">
+                                            <div class="col-6">
+                                                <span><b>Building/Equipment: </b>{{ $row->building }}</span><br>
+                                                <span><b>Type: </b>{{ $row->type }}</span>
+                                            </div>
+                                            <div class="col-6">
+                                                <span><b>Category: </b>{{ $row->category }}</span><br>
+                                                @if ($row->category == 'Corrective')
+                                                    <span><b>Corrective Reason: </b>{{ $row->corrective_reason }}</span>
+                                                @else
+                                                    <span><b>Breakdown Reason: </b>{{ $row->breakdown_reason }}</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post" enctype="multipart/form-data">
+                                    @csrf
                                     <div class="row pt-2">
                                         <div class="col-8">
                                             <div>
@@ -210,47 +210,30 @@
                                                 </div>
                                             </div>
                                             <div class="row d-print-none">
-                                                <div class="custom-file m-3 text-left">
-                                                    <input type="file" class="custom-file-input" id="customFile" name="file">
-                                                    <label class="custom-file-label" for="customFile">Attach File</label>
-                                                </div>
-                                                @if ($row->attached_files)
-                                                    <div class="col-12">
+                                                <div class="col-12 row pr-0" id="file-attachments">
+                                                    <div class="col-6 pt-2">
                                                         <h6>Attachments:</h6>
-                                                        <ul>
-                                                            @foreach (explode(',', $row->attached_files) as $file)
-                                                                <li>
-                                                                    <a href="{{ asset('/storage/files/maintenance/'.$row->machine_breakdown_id.'/'.$file) }}" target="_blank">{{ $file }}</a>
-                                                                    &nbsp;
-                                                                    <a href="#" class="text-danger" data-toggle="modal" data-target="#removeFileModal" style="text-decoration: none; text-transform: none;">
-                                                                        <i class="now-ui-icons ui-1_simple-remove font-weight-bold" style="cursor: pointer"></i>
-                                                                    </a>
-
-                                                                    <!-- Modal -->
-                                                                    <div class="modal fade" id="removeFileModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                                        <div class="modal-dialog modal-dialog-centered" role="document">
-                                                                            <div class="modal-content">
-                                                                                <div class="modal-header">
-                                                                                <h5 class="modal-title" id="exampleModalLabel">Remove File</h5>
-                                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                                    <span aria-hidden="true">&times;</span>
-                                                                                </button>
-                                                                                </div>
-                                                                                <div class="modal-body">
-                                                                                    Remove {{ $file }}?
-                                                                                </div>
-                                                                                <div class="modal-footer">
-                                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>&nbsp;
-                                                                                    <a href="/remove_file?file={{ $file }}&id={{ $row->machine_breakdown_id }}" class="btn btn-primary">Confirm</a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </li>
-                                                            @endforeach
-                                                        </ul>
                                                     </div>
-                                                @endif
+                                                    <div class="col-4 offset-2 p-0 text-right">
+                                                        <form action="/attach_file" method="post">
+                                                            <label class="btn btn-secondary btn-file">
+                                                                Attach File <input type="file" class="attach-file" style="display: none" data-machine-breakdown-id="{{ $row->machine_breakdown_id }}">
+                                                            </label>
+                                                            <div class="d-none">
+                                                                <input type="text" value="maintenance" name="module">
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <ul>
+                                                        @foreach (array_filter(explode(',', $row->attached_files)) as $file)
+                                                            <li class="p-1">
+                                                                <a href="{{ asset('/storage/files/maintenance/'.$row->machine_breakdown_id.'/'.$file) }}" target="_blank">
+                                                                {{ $file }}</a>&nbsp;&nbsp;
+                                                                <i class="now-ui-icons ui-1_simple-remove font-weight-bold remove-file float-right p-1" data-id="{{ $row->machine_breakdown_id }}" data-file="{{ $file }}" style="cursor: pointer; font-size: 8pt;"></i>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -296,12 +279,6 @@
 </style>
 <script>
     $('.hid').slideUp();
-
-    // Add the following code if you want the name of the file appear on select
-    $(".custom-file-input").change(function() {
-        var fileName = $(this).val().split("\\").pop();
-        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
-    });
 
     $('.printBtn').on('click', function (){
         var print_area = '#' + $(this).data('print-area');

@@ -518,6 +518,60 @@
       showNotification("danger", "{{ session()->get('error') }}", "now-ui-icons ui-1_check");
   @endif
 
+  $(document).on('click', '.remove-file', function (){
+        var element = $(this);
+        $.ajax({
+            type: 'get',
+            url: '/remove_file',
+            data : {
+                file: $(this).data('file'),
+                id: $(this).data('id')
+            },
+            success: function(response){
+                if(response.success){
+                    showNotification("success", response.message, "now-ui-icons ui-1_check");
+                    element.closest('li').remove();
+                }else{
+                    showNotification("danger", response.message, "now-ui-icons ui-1_check");
+                }
+            },
+        });
+    });
+
+    $(document).on('change', '.attach-file', function (e){
+        var machine_breakdown_id = $(this).data('machine-breakdown-id');
+        var element = $(this);
+
+        var formData = new FormData();
+        formData.append('module', 'maintenance');
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('file', $(this)[0].files[0]);
+        formData.append('machine_breakdown_id', machine_breakdown_id);
+
+        $.ajax({
+            type: 'post',
+            url: '/attach_file',
+            data : formData,
+            processData: false,
+            contentType: false,
+            success: function(response){
+                if(response.success){
+                    showNotification("success", response.message, "now-ui-icons ui-1_check");
+                    var row = '<li class="p-1">' + 
+                        '<a href="{{ asset("/storage/files/maintenance") }}/' + machine_breakdown_id + '/' + response.file + '" target="_blank">' +
+                        response.file + '</a>&nbsp;&nbsp;' +
+                        '<i class="now-ui-icons ui-1_simple-remove font-weight-bold remove-file float-right p-1" data-id="' + machine_breakdown_id + '" data-file="' + response.file + '" style="cursor: pointer; font-size: 8pt;"></i>' +
+                        '</li>';
+                    element.val('');
+
+                    $('#file-attachments ul').append(row);
+                }else{
+                    showNotification("danger", response.message, "now-ui-icons ui-1_check");
+                }
+            },
+        });
+    });
+
   function clone_table(table, select){
     var clone_select = $(select).html();
     var row = '<tr class="staff-row">' +

@@ -4847,29 +4847,6 @@ class MainController extends Controller
 				}
 			}
 
-            if($request->hasFile('file')){
-                $attached_file = $request->file('file');
-
-                $file_name = pathinfo($attached_file->getClientOriginalName(), PATHINFO_FILENAME);
-			    $file_ext = pathinfo($attached_file->getClientOriginalName(), PATHINFO_EXTENSION);
-
-                $file_name = Str::slug($file_name, '-');
-
-				$attached_file_name = $file_name.".".$file_ext;
-
-				if(in_array($attached_file_name, explode(',', $breakdown_details->attached_files))){
-					return redirect()->back()->with('error', 'File already exists.');
-				}
-
-				if(!Storage::disk('public')->exists('/files/maintenance/'.$machine_breakdown_id)){
-                    Storage::disk('public')->makeDirectory('/files/maintenance/'.$machine_breakdown_id);
-                }
-                
-				$attached_file->move(public_path('/storage/files/maintenance/'.$machine_breakdown_id), $attached_file_name);
-
-                $update['attached_files'] = $breakdown_details->attached_files ? $breakdown_details->attached_files.','.$attached_file_name : $attached_file_name;
-            }
-
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->update($update);
 			DB::connection('mysql_mes')->commit();
             return redirect('/maintenance_request')->with('success', $machine_breakdown_id.' Maintenance Request Updated');
@@ -4948,6 +4925,52 @@ class MainController extends Controller
         }
 	}
 
+	public function attachFile(Request $request){
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			if($request->hasFile('file')){
+				$machine_breakdown_id = $request->machine_breakdown_id;
+				$breakdown_details = DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->first();
+
+				if(!$breakdown_details){
+					return response()->json(['success' => 0, 'message' => 'Machine Breakdown ID not found.']);
+				}
+
+				$attached_file = $request->file('file');
+
+				$file_name = pathinfo($attached_file->getClientOriginalName(), PATHINFO_FILENAME);
+				$file_ext = pathinfo($attached_file->getClientOriginalName(), PATHINFO_EXTENSION);
+
+				$file_name = Str::slug($file_name, '-');
+
+				$attached_file_name = $file_name.".".$file_ext;
+
+				if(in_array($attached_file_name, explode(',', $breakdown_details->attached_files))){
+					return response()->json(['success' => 0, 'message' => 'File already exists.']);
+				}
+
+				if(!Storage::disk('public')->exists('/files/'.$request->module.'/'.$machine_breakdown_id)){
+					Storage::disk('public')->makeDirectory('/files/'.$request->module.'/'.$machine_breakdown_id);
+				}
+				
+				$attached_file->move(public_path('/storage/files/'.$request->module.'/'.$machine_breakdown_id), $attached_file_name);
+
+				$attached_files = $breakdown_details->attached_files ? $breakdown_details->attached_files.','.$attached_file_name : $attached_file_name;
+				DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->update([
+					'attached_files' => $attached_files,
+					'last_modified_by' => Auth::user()->email,
+					'last_modified_at' => Carbon::now()->toDateTimeString()
+				]);
+
+				DB::connection('mysql_mes')->commit();
+				return response()->json(['success' => 1, 'message' => 'File Imported.', 'file' => $attached_file_name]);
+			}
+		} catch (\Throwable $th) {
+			DB::connection('mysql_mes')->rollback();
+			return response()->json(['success' => 0, 'message' => 'An error occured. Please try again later.']);
+		}
+	}
+
 	public function removeFile(Request $request){
 		DB::connection('mysql_mes')->beginTransaction();
         try {
@@ -4965,12 +4988,11 @@ class MainController extends Controller
 			]);
 
 			DB::connection('mysql_mes')->commit();
-            return redirect('/maintenance_request')->with('success', $request->id.' Maintenance Request Updated');
+			return response()->json(['success' => 1, 'message' => $request->id.' Maintenance Request Updated.']);
 		} catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
-            return redirect()->back()->with('error', 'An error occured. Please try again.');
+			return response()->json(['success' => 0, 'message' => 'An error occured. Please try again later.']);
         }
-		
 	}
 
 	public function stock_entry(){

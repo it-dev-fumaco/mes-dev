@@ -282,6 +282,7 @@ Route::group(['middleware' => 'auth'], function(){
 	
 	Route::post('/machine_breakdown/import', 'MainController@machineBreakdownImport');
 	Route::get('/remove_file', 'MainController@removeFile');
+	Route::post('/attach_file', 'MainController@attachFile');
 });
 //painting_calendar
 Route::group(['middleware' => 'auth'], function(){
