@@ -631,9 +631,11 @@ class SecondaryController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             $status = $request->status;
+            $new_id = $this->getNextOrderNumber();
+
             DB::connection('mysql_mes')->table('machine_breakdown')->insert([
                 'machine_id' => $request->machine_id,
-                'machine_breakdown_id' => $this->getNextOrderNumber(),
+                'machine_breakdown_id' => $new_id,
                 'status' => $status,
                 'reported_by' => $request->reported_by,
                 'date_reported' => $request->date_reported,
@@ -641,16 +643,35 @@ class SecondaryController extends Controller
                 'date_resolved' => $status == 'Done' ? $request->date_resolved : null,
                 'work_done' => $status == 'Done' ? $request->work_done : null,
                 'assigned_maintenance_staff' => $request->assigned_maintenance_staff,
+                'hold_reason' => $request->hold_reason,
+                'findings' => $request->findings,
+                'complaints' => $request->complaints,
+                'building' => $request->building,
                 'category' => $request->category,
-                'type' => $request->category,
+                'type' => $request->type,
                 'corrective_reason' => ($request->category == "Corrective") ? $request->corrective_reason : null,
                 'breakdown_reason' => ($request->category == "Breakdown") ? $request->breakdown_reason : null,
                 'created_by' => Auth::user()->email,
-                'last_modified_by' => Auth::user()->email,
+                'last_modified_by' => Auth::user()->email
             ]);
 
             if ($request->category == "Breakdown") {
                 DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_id)->update(['status' => 'Unavailable']);
+            }
+
+            if($request->maintenance_staff){
+                $employee_details = DB::connection('mysql_essex')->table('users')->whereIn('user_id', $request->maintenance_staff)->get();
+                $employee_details = collect($employee_details)->groupBy('user_id');
+
+                foreach(array_filter($request->maintenance_staff) as $staff){
+                    DB::connection('mysql_mes')->table('machine_breakdown_personnel')->insert([
+                        'machine_breakdown_id' => $new_id,
+                        'user_id' => $staff,
+                        'email' => isset($employee_details[$staff]) ? $employee_details[$staff][0]->email : null,
+                        'created_by' => Auth::user()->email,
+                        'last_modified_by' => Auth::user()->email
+                    ]);
+                }
             }
 
             DB::connection('mysql_mes')->commit();
@@ -659,7 +680,7 @@ class SecondaryController extends Controller
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
 
-            return response()->json(["error" => 'An error occured. Please try again.']);
+            return response()->json(['success' => 0, "message" => 'An error occured. Please try again.']);
         }
     }
 
@@ -1268,25 +1289,13 @@ class SecondaryController extends Controller
 
         return view('tables.tbl_machine_list', compact('machine_list'));
     }
+
     public function get_machine_profile($id){
-        $machine_list= DB::connection('mysql_mes')
-            ->table('machine')
-            ->where('machine_id', $id)
-            ->first();
+        $machine_list = DB::connection('mysql_mes')->table('machine')->where('machine_id', $id)->first();
 
-        $machine_process= DB::connection('mysql_mes')
-            ->table('machine AS m')
-            ->join('workstation_machine AS wm', 'wm.machine_code','m.machine_code')
-            ->where('wm.machine_code', $machine_list->machine_code)
-            ->select('wm.workstation','wm.workstation_machine_id')
-            ->first();
-
-        $process_list=DB::connection('mysql_mes')
-            ->table('process_assignment AS pm')
-            ->join('process AS p', 'p.process_id', 'pm.process_id')
-            ->where('pm.machine_id', $machine_list->machine_id)
-            ->select('pm.*', 'p.process_name')
-            ->get();
+        $process_list = DB::connection('mysql_mes')->table('process_assignment AS pm')
+            ->join('process AS p', 'p.process_id', 'pm.process_id')->where('pm.machine_id', $machine_list->machine_id)
+            ->select('pm.*', 'p.process_name')->get();
 
         $permissions = $this->get_user_permitted_operation();
 
@@ -2431,85 +2440,42 @@ class SecondaryController extends Controller
                 if ($request->logid) {
                     $logs = DB::connection('mysql_mes')->table($logs_table)
                         ->where('time_log_id', $request->logid)->where('status', 'In Progress')->first();
-
-                    if(!$logs){
-                        return response()->json(['success' => 0, 'message' => 'Task not found. Please reload the page.']);
-                    }
                 } else {
                     $logs = DB::connection('mysql_mes')->table($logs_table)
                         ->where('job_ticket_id', $request->id)->where('status', 'In Progress')->first();
                 }
 
-                $values = [
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
+                if(!$logs){
+                    return response()->json(['success' => 0, 'message' => 'Task not found. Please reload the page.']);
+                }
 
                 // update and save timelogs
-                if($logs){
-                    $from_time = Carbon::parse($logs->from_time);
-                    $duration = $from_time->diffInSeconds($now);
-                    $duration = $duration / 3600;
+                $from_time = Carbon::parse($logs->from_time);
+                $duration = $from_time->diffInSeconds($now);
+                $duration = $duration / 3600;
 
-                    $values['status'] = 'Completed';
-                    $values['to_time'] = $now->toDateTimeString();
-                    $values['good'] = $pending;
-                    $values['duration'] = $duration;
-
-                    if ($request->logid) {
-                        DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)
-                            ->where('status', 'In Progress')->update($values);
-                    } else {
-                        DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $job_ticket_details->job_ticket_id)
-                            ->where('status', 'In Progress')->update($values);
-                    }                   
-                }
-
-                // reset values array
-                unset($values['duration']);
-                unset($values['to_time']);
-
-                // update and save job ticket
-                $jt_completed = $job_ticket_details->completed_qty + $pending;
-
-                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-                    ->where('job_ticket_id', $request->id)->selectRaw('SUM(good) as total_good')
-                    ->groupBy('spotwelding_part_id')->get();
-
-                $values['remarks'] = 'Override';
-                $values['completed_qty'] = $request->workstation == 'Spotwelding' ? $total_good_spotwelding->min('total_good') : $jt_completed;
-                $values['actual_end_date'] = $now->toDateTimeString();
-
-                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->update($values);
-
-                // reset values array
-                unset($values['status']);
-                unset($values['remarks']);
-                unset($values['completed_qty']);
-                unset($values['good']);
-
-                // check, update and save production order
-                $produced_qty = DB::connection('mysql_mes')->table('job_ticket')
-                    ->where('production_order', $job_ticket_details->production_order)->min('completed_qty');
-                
-                $values['status'] = $produced_qty == $qty_to_manufacture ? 'Completed' : 'In Progress';
-                $values['produced_qty'] = $produced_qty;
-
-                DB::connection('mysql_mes')->table('production_order')
-                    ->where('production_order', $job_ticket_details->production_order)->update($values);
+                $values = [
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'status' => 'Completed',
+                    'to_time' => $now->toDateTimeString(),
+                    'good' => $pending,
+                    'duration' => $duration
+                ];
 
                 if ($request->logid) {
-                    $check_wip_timelog = DB::connection('mysql_mes')->table($logs_table)
-                        ->where('time_log_id', $request->logid)->where('status', 'In Progress')->first();
+                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)
+                        ->where('status', 'In Progress')->update($values);
                 } else {
-                    $check_wip_timelog = DB::connection('mysql_mes')->table($logs_table)
-                        ->where('job_ticket_id', $job_ticket_details->job_ticket_id)->where('status', 'In Progress')->first();
-                }
-            
-                if($check_wip_timelog){
-                    return response()->json(['success' => 0, 'message' => 'Task not updated. Please reload the page and try again.']);
+                    DB::connection('mysql_mes')->table($logs_table)->where('job_ticket_id', $job_ticket_details->job_ticket_id)
+                        ->where('status', 'In Progress')->update($values);
                 }
 
+                DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['remarks' => 'Override']);
+
+                $this->update_job_ticket($job_ticket_details->job_ticket_id);
+
+                DB::connection('mysql')->commit();
                 DB::connection('mysql_mes')->commit();
 
                 return response()->json(['success' => 1, 'message' => 'Task Overridden.']);
@@ -8579,5 +8545,22 @@ class SecondaryController extends Controller
             return view('reports.tbl_reschedule_delivery_date_and_planstartdate', compact('prod_orders','reason', 'trans_history', 'prod_implode', 'planned_start_date'));
         }
 
+    }
+
+    public function get_machines_pending_for_maintenance(Request $request, $operation_id){
+        $operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $operation_id)->pluck('operation_name')->first();
+        
+        $machines = DB::connection('mysql_mes')->table('machine')->where('operation_id', $operation_id)->pluck('machine_code');
+
+		$machine_breakdown = DB::connection('mysql_mes')->table('machine as m')
+			->join('machine_breakdown as mb', 'm.machine_code', 'mb.machine_id')
+			->whereIn('m.status', ['Unavailable', 'On-going Maintenance'])->whereIn('m.machine_code', $machines)->where('mb.status', '!=','Done')
+            ->when($operation != 'Painting', function ($q){
+                return $q->where('m.machine_name', '!=', 'Painting Machine');
+            })
+			->select('m.*', 'mb.category', 'mb.date_reported','mb.type', 'mb.breakdown_reason', 'mb.corrective_reason', 'mb.findings', 'mb.work_done', 'mb.date_resolved', 'mb.machine_breakdown_id', 'mb.status as breakdown_status')->orderByRaw("FIELD(mb.status, 'In Process', 'Pending', 'On Hold') ASC")
+			->get();
+
+        return view('tables.tbl_machines_pending_for_maintenance', compact('machine_breakdown', 'operation'));
     }
 }

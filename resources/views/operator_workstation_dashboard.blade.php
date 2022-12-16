@@ -559,6 +559,24 @@
   </div>
 </div>
 
+<!-- Maintenance Modal -->
+<div class="modal fade" id="pending-for-maintenance-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #6A1B9A;">
+        <h5 class="modal-title" id="exampleModalLabel" style="color: #fff">Maintenance Request[<b>{{ $operation }}</b>]</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="pending-for-maintenance-tbl"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Maintenance Modal -->
+
 @endsection
 
 @section('script')
@@ -566,6 +584,16 @@
 <link rel="stylesheet" href="{{ asset('/css/datepicker/landscape.css') }}" type="text/css" media="print" />
 <script>
   $(document).ready(function(){
+    function get_pending_for_maintenance(){
+      $.ajax({
+        url:"/operator/pending_for_maintenance/{{ $operation_id }}",
+        type:"GET",
+        success:function(data){
+          $('#pending-for-maintenance-tbl').html(data);
+        }
+      });
+    }
+
     $(document).on('click', '#quality-inspection-modal .select-item-for-inspection-btn', function(e) {
       e.preventDefault();
       var img = $(this).data('img');
@@ -643,17 +671,6 @@
       $('#pending-for-maintenance-modal').modal('show');
       get_pending_for_maintenance();
     });
-    
-    function get_pending_for_maintenance(){
-      $.ajax({
-        url:"/operator/pending_for_maintenance/{{ $operation_id }}",
-        type:"GET",
-        success:function(data){
-          $('#pending-for-maintenance-tbl').html(data);
-          $('#operation').text($('#operation-placeholder').text());
-        }
-      });
-    }
 
     $(document).on('change', '.select-all-checklist-per-tab', function(e){
       e.preventDefault();

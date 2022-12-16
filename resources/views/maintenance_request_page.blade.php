@@ -112,7 +112,41 @@
   </div>
   <div class="col-3 pl-2 pr-2">
     <div class="text-right">
+      <button class="btn btn-secondary mr-0 ml-0 mb-1" data-toggle="modal" data-target="#importModal">Import Data</button>
       <button class="btn btn-primary mr-0 ml-0 mb-1" data-toggle="modal" data-target="#add-mr-modal">Add Maintenance Request</button>
+
+      <!-- Modal -->
+      <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: #0277BD; color: #fff;">
+              <h5 class="modal-title" id="exampleModalLongTitle">Import Data</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: inherit">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form id="importForm" action="/machine_breakdown/import" method="post" enctype="multipart/form-data">
+              @csrf
+              <div class="modal-body">
+                <div class="custom-file p-1 text-left">
+                  <input type="file" class="custom-file-input" id="customFile" name="file" required>
+                  <label class="custom-file-label" for="customFile">Attach File</label>
+                </div>
+              </div>
+              <div class="modal-footer p-1">
+                <div class="container float-left text-left">
+                  <a href="{{ asset('/storage/files/Machine-Breakdown-Import-Template.xlsx') }}" class="btn btn-info">Download Template</a>
+                </div>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">
+                  <span class="import-text">Import</span>
+                  <div class="spinner-border spinner-border-sm spinner d-none"></div>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
     <div style="background-color: #F7F7F9; margin-top: 2px;">
       <div class="container p-2">
@@ -150,7 +184,7 @@
         <div class="modal-header text-white" style="background-color: #0277BD;">
           <h5 class="modal-title">Maintenance Request</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" style="color: #fff;">&times;</span>
           </button>
         </div>
         <div class="modal-body">
@@ -169,6 +203,21 @@
                 <div class="col-6 mb-2">
                   <small class="m-1">Machine Name</small>
                   <input type="text" class="form-control rounded" id="sel-machine-name" readonly>
+                </div>
+                <div class="col-6 mb-2">
+                  <small class="m-1">Building/Equipment</small>
+                  <input type="text" class="form-control rounded" name="building" required>
+                </div>
+                <div class="col-6 mb-2">
+                  @php
+                      $selection_arr = ['Planned', 'Emergency', 'New Installation', 'Transfer of Facilities', 'Outside Repair'];
+                  @endphp
+                  <small class="m-1">Type</small>
+                  <select class="form-control rounded" name="type" required>
+                    @foreach ($selection_arr as $item)
+                      <option value="{{ $item }}">{{ $item }}</option>
+                    @endforeach
+                  </select>
                 </div>
                 <div class="col-6 mb-2">
                   <small class="m-1">Breakdown Type</small>
@@ -192,6 +241,10 @@
                     <option value="Mechanical Issue">Mechanical Issue</option>
                     <option value="Electrical Issue">Electrical Issue</option>
                   </select>
+                </div>
+                <div class="col-12 mb-2">
+                  <small class="m-1">Complaints/Problems</small>
+                  <textarea class="form-control rounded border" name="complaints"></textarea>
                 </div>
                 <div class="col-12 mb-2">
                   <small class="m-1">Findings</small>
@@ -240,16 +293,31 @@
                   <input type="date" class="form-control rounded" name="date_resolved" id="sel-date-resolved">
                 </div>
                 <div class="col-12 mb-2">
-                  <small class="m-1">Assigned Maintenance Staff</small>
                   @php
                       $maintenance_staffs = collect($operators)->where('department', 'Plant Services');
                   @endphp
-                  <select class="form-control rounded" name="assigned_maintenance_staff" id="sel-assigned-maintenance-staff">
-                    <option value="">Select Maintenance Staff</option>
-                    @foreach ($maintenance_staffs as $e)
-                    <option value="{{ $e->employee_name }}">{{ $e->employee_name }}</option>
-                    @endforeach
-                  </select>
+                  <div class="row">
+                    <select class="d-none form-control rounded" id="sel-assigned-maintenance-staff">
+                      <option value="">Select Maintenance Staff</option>
+                      @foreach ($maintenance_staffs as $e)
+                      <option value="{{ $e->operator_id }}">{{ $e->employee_name }}</option>
+                      @endforeach
+                    </select>
+                    <div class="container-fluid mx-auto">
+                      <br/>
+                      <table class="table table-bordered" id="maintenance-table" style="font-size: 9pt;">
+                        <thead>
+                            <tr>
+                                <td scope="col" class="text-center p-2">Maintenenance Staff</td>
+                                <td class="text-center p-2" style="width: 10%;">
+                                    <button type="button" class="btn btn-outline-primary btn-sm add-row-btn" id="add-staff-btn" data-table="#maintenance-table" data-select="#sel-assigned-maintenance-staff">Add</button>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -444,7 +512,138 @@
 </style>
 @endsection
 @section('script')
+<script type="text/javascript" src="{{  asset('js/printThis.js') }}"></script>
 <script>
+  @if(session()->has('error'))
+      showNotification("danger", "{{ session()->get('error') }}", "now-ui-icons ui-1_check");
+  @endif
+
+  $(document).on('click', '.remove-file', function (){
+        var element = $(this);
+        $.ajax({
+            type: 'get',
+            url: '/remove_file',
+            data : {
+                file: $(this).data('file'),
+                id: $(this).data('id')
+            },
+            success: function(response){
+                if(response.success){
+                    showNotification("success", response.message, "now-ui-icons ui-1_check");
+                    element.closest('li').remove();
+                }else{
+                    showNotification("danger", response.message, "now-ui-icons ui-1_check");
+                }
+            },
+        });
+    });
+
+    $(document).on('change', '.attach-file', function (e){
+        var machine_breakdown_id = $(this).data('machine-breakdown-id');
+        var element = $(this);
+
+        var formData = new FormData();
+        formData.append('module', 'maintenance');
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('file', $(this)[0].files[0]);
+        formData.append('machine_breakdown_id', machine_breakdown_id);
+
+        $.ajax({
+            type: 'post',
+            url: '/attach_file',
+            data : formData,
+            processData: false,
+            contentType: false,
+            success: function(response){
+                if(response.success){
+                    showNotification("success", response.message, "now-ui-icons ui-1_check");
+                    var row = '<li class="p-1">' + 
+                        '<a href="{{ asset("/storage/files/maintenance") }}/' + machine_breakdown_id + '/' + response.file + '" target="_blank">' +
+                        response.file + '</a>&nbsp;&nbsp;' +
+                        '<i class="now-ui-icons ui-1_simple-remove font-weight-bold remove-file float-right p-1" data-id="' + machine_breakdown_id + '" data-file="' + response.file + '" style="cursor: pointer; font-size: 8pt;"></i>' +
+                        '</li>';
+                    element.val('');
+
+                    $('#file-attachments ul').append(row);
+                }else{
+                    showNotification("danger", response.message, "now-ui-icons ui-1_check");
+                }
+            },
+        });
+    });
+
+  function clone_table(table, select){
+    var clone_select = $(select).html();
+    var row = '<tr class="staff-row">' +
+      '<td class="p-2">' +
+        '<select name="maintenance_staff[]" class="form-control w-100" style="width: 100%;" required>' + clone_select + '</select>' +
+      '</td>' +
+      '<td class="text-center d-print-none">' +
+        '<button type="button" class="btn btn-outline-danger btn-sm remove-td-row"><i class="now-ui-icons ui-1_simple-remove font-weight-bold" style="cursor: pointer; font-size: 9pt;"></i></button>' +
+      '</td>' +
+    '</tr>';
+
+    $(table).append(row);
+  }
+
+  $(document).on('click', '#submitImport', function (e){
+    $('#importForm').submit();
+  });
+
+  $(document).on('submit', '#importForm', function (e){
+    e.preventDefault();
+
+    var formData = new FormData(this);
+    $('.spinner').removeClass('d-none');
+    $('.import-text').addClass('d-none');
+
+    $.ajax({
+      type: 'POST',
+      url: $(this).attr('action'),
+      data : formData,
+      processData: false,
+      contentType: false,
+      success: function(response){
+        if (response.status) {
+          $('#importModal').modal('hide');
+          var status = $('#fabrication-current-status').val() ? $('#fabrication-current-status').val() : 'All';
+          get_maintenance_request_list(1, status, $('.fabrication-search-filter').val(),'#fabrication-div');
+          var status = $('#painting-current-status').val() ? $('#painting-current-status').val() : 'All';
+          get_maintenance_request_list(1, status, $('.painting-search-filter').val(),'#painting-div');
+          var status = $('#wiring-current-status').val() ? $('#wiring-current-status').val() : 'All';
+          get_maintenance_request_list(1, status, $('.wiring-search-filter').val(),'#wiring-div');
+
+          $('#customFile').val('');
+          $('.custom-file-label').text('Attach File');
+
+          showNotification("success", response.message, "now-ui-icons ui-1_check");
+        }else{
+          showNotification("danger", response.message, "now-ui-icons ui-1_check");
+        }
+        $('.import-text').removeClass('d-none');
+        $('.spinner').addClass('d-none');
+      },
+    });
+  });
+
+  $(document).on('click', '.add-row-btn', function (e){
+    e.preventDefault();
+    var table = $(this).data('table') + ' tbody';
+    var select = $(this).data('select');
+    clone_table(table, select);
+  });
+
+  $(document).on('click', '.remove-td-row', function(e){
+    e.preventDefault();
+    $(this).closest("tr").remove();
+  });
+
+  // Add the following code if you want the name of the file appear on select
+  $(".custom-file-input").change(function() {
+    var fileName = $(this).val().split("\\").pop();
+    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+  });
+
   $('#sel-machine-id').change(function(e) {
     e.preventDefault();
     $('#sel-machine-name').val($(this).find(':selected').data('name'));
@@ -506,10 +705,11 @@
           var status = $('#fabrication-current-status').val() ? $('#fabrication-current-status').val() : 'All';
           get_maintenance_request_list(1, status, $('.fabrication-search-filter').val(),'#fabrication-div');
           var status = $('#painting-current-status').val() ? $('#painting-current-status').val() : 'All';
-          get_maintenance_request_list(1, status, $('.painting-search-filter').val(),'#painting-div');
+          get_maintenance_request_list(2, status, $('.painting-search-filter').val(),'#painting-div');
           var status = $('#wiring-current-status').val() ? $('#wiring-current-status').val() : 'All';
-          get_maintenance_request_list(1, status, $('.wiring-search-filter').val(),'#wiring-div');
+          get_maintenance_request_list(3, status, $('.wiring-search-filter').val(),'#wiring-div');
 
+          $('.staff-row').remove();
           $("#save-maintenance-request-form").trigger("reset");
         } else {
           showNotification("danger", data.message, "now-ui-icons ui-1_check");
@@ -552,6 +752,8 @@
       $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', false);
     }else if($('#'+machine_breakdown_id+'-status').val() == 'In Process'){
       $('#'+machine_breakdown_id+'-findings-container').slideDown();
+      $('#'+machine_breakdown_id+'-date-started').slideDown();
+      $('#'+machine_breakdown_id+'-date-resolved').slideUp();
       $('#'+machine_breakdown_id+'-work-done-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
       $('#'+machine_breakdown_id+'-findings').prop('required', true);
@@ -561,12 +763,16 @@
     }else if($('#'+machine_breakdown_id+'-status').val() == 'Done'){
       $('#'+machine_breakdown_id+'-work-done-container').slideDown();
       $('#'+machine_breakdown_id+'-findings-container').slideDown();
+      $('#'+machine_breakdown_id+'-date-started').slideDown();
+      $('#'+machine_breakdown_id+'-date-resolved').slideDown();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-reason').prop('required', false);
       $('#'+machine_breakdown_id+'-work-done').prop('required', true);
       $('#'+machine_breakdown_id+'-findings').prop('required', true);
       $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', true);
     }else{
+      $('#'+machine_breakdown_id+'-date-started').slideUp();
+      $('#'+machine_breakdown_id+'-date-resolved').slideUp();
       $('#'+machine_breakdown_id+'-work-done-container').slideUp();
       $('#'+machine_breakdown_id+'-hold-container').slideUp();
       $('#'+machine_breakdown_id+'-findings-container').slideUp();

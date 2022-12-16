@@ -101,6 +101,7 @@
                   <a class="dropdown-item"  id="view-chemical-records-btn" href="#">Painting Chemical Records</a>
                   <a class="dropdown-item"  id="view-water-Monitoring-btn" href="#">Water Discharged Monitoring</a>
                   <a class="dropdown-item"  id="view-powder-Monitoring-btn" href="#">Powder Coating Monitoring</a>
+                  <a class="dropdown-item"  id="pending-for-maintenance-trigger" href="#">Pending for Maintenance</a>
                   @if (Auth::user())
                     <a class="dropdown-item"  id="machine-breakdown-modal-btn" href="#">Maintenance Request</a>
                   @endif

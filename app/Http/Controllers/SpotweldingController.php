@@ -215,13 +215,28 @@ class SpotweldingController extends Controller
 				'cycle_time_in_seconds' => $cycle_time_in_seconds,
 				'breaktime_in_mins' => $breaktime
 			];
+
+			$qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->pluck('qty_to_manufacture')->first();
+			$count_by_part_id = DB::connection('mysql_mes')->table('spotwelding_qty')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->sum('good');
+
+			if(($count_by_part_id + $good_qty) > $qty_to_manufacture){
+				return response()->json(['success' => 0, 'message' => 'Good qty cannot exceed Qty to manufacture']);
+			}
 			
 			DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->update($update);
 
-			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->first()->process_id;
+			$process_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->first();
+			$process_id = $process_id ? $process_id->process_id : null;
 			
-			$this->update_job_ticket($current_task->job_ticket_id);
-			$ho_bom = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first()->bom_no;
+			$bom_parts = $this->get_production_order_bom_parts($request->production_order);
+			$spotwelding_parts_count = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->count();
+
+			if(count($bom_parts) == $spotwelding_parts_count){
+				$this->update_job_ticket($current_task->job_ticket_id);
+			}
+
+			$ho_bom = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			$ho_bom = $ho_bom ? $ho_bom->bom_no : null;
 
 			$parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->get();
 			foreach ($parts as $part) {
@@ -768,30 +783,43 @@ class SpotweldingController extends Controller
     }
     
 	public function get_spotwelding_part_remaining_qty(Request $request){
+		// return $request->all();
 		$job_ticket_detail = DB::connection('mysql_mes')->table('job_ticket')
             ->join('production_order', 'production_order.production_order', 'job_ticket.production_order')
             ->where('job_ticket_id', $request->job_ticket_id)
 			->select('job_ticket.*', 'production_order.qty_to_manufacture', 'production_order.status as production_order_status', 'production_order.bom_no')->first();
 
+		$spotwelding_parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $job_ticket_detail->production_order)->get();
+		$spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id');
+
 		$bom_parts = DB::connection('mysql')->table('tabBOM Item')->where('parent', $job_ticket_detail->bom_no)->count();
+
+		$completed_spotwelding = [];
+		$incomplete_spotwelding = [];
+		foreach ($spotwelding_parts as $part_id => $array) {
+			if(isset($spotwelding_parts[$part_id])){
+				if(count($spotwelding_parts[$part_id]) == $bom_parts){
+					$completed_spotwelding[] = $part_id;
+				}else{
+					$incomplete_spotwelding[] = $part_id;
+				}
+			}
+		}
+
 		$processed_parts = DB::connection('mysql_mes')->table('spotwelding_part')->join('spotwelding_qty', 'spotwelding_qty.spotwelding_part_id', 'spotwelding_part.spotwelding_part_id')
                 ->where('spotwelding_qty.job_ticket_id', $request->job_ticket_id)->distinct()->pluck('spotwelding_part.part_code');
 
 		$spotwelding_completed_qty = 0;
 		if ($bom_parts == count($processed_parts)) {
-			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-				->where('job_ticket_id', $request->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
-				->groupBy('spotwelding_part_id')->get();
+			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $completed_spotwelding)
+				->where('job_ticket_id', $request->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->first();
 
-			$spotwelding_completed_qty = $total_good_spotwelding->min('total_good');
+			$spotwelding_completed_qty = $total_good_spotwelding->total_good ? $total_good_spotwelding->total_good : 0;
 		} else {
-			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')
-				->where('job_ticket_id', $request->job_ticket_id)
-				->where('spotwelding_part_id', $request->spotwelding_part_id)
-				->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
-				->groupBy('spotwelding_part_id')->get();
+			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $incomplete_spotwelding)
+				->where('job_ticket_id', $request->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->first();
 
-			$spotwelding_completed_qty = $total_good_spotwelding->min('total_good');
+			$spotwelding_completed_qty = $total_good_spotwelding->total_good ? $total_good_spotwelding->total_good : 0;
 		}
 			
 		return ((float)$request->qty_to_manufacture - $spotwelding_completed_qty);

@@ -245,7 +245,7 @@
 					</td>
 					<td class="border-top-0 text-center">
 						<span class="badge {{ $item_status_badge }} hvrlink" style="font-size: 9pt;">{{ ($a['remarks'] == 'Fast Issued' && $a['status'] != 'For Checking') ? $a['remarks'] : $a['status'] }}</span>
-						@if (in_array($a['source_warehouse'], $fast_issuance_warehouse) && ($component['required_qty'] * 1) <= ($a['actual_qty'] * 1) && $is_fast_issuance_user && !$a['ste_docstatus'])
+						@if (in_array($a['source_warehouse'], $fast_issuance_warehouse) && ($balance * 1) <= ($a['actual_qty'] * 1) && $is_fast_issuance_user && !$a['ste_docstatus'])
 						<button type="button" class="btn btn-primary btn-sm issue-now-btn" data-id="{{ $a['id'] }}" data-production-order="{{ $details->production_order }}"><span style="font-size: 7pt;">Issue Now</span></button>
 						@endif
 						<div class="details-pane" style="font-size:8pt;">

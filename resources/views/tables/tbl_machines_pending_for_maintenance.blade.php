@@ -38,7 +38,7 @@
                         @endisset
                     </div>
                     <div class="col-3 d-flex flex-row justify-content-start align-items-center">
-                        @if ($machine->status != 'In Process') 
+                        @if (!in_array($machine->breakdown_status, ['In Process', 'In Progress'])) 
                             <button type="button" class="btn btn-block btn-danger btn-lg text-uppercase pl-0 pr-0 maintnenance-access-id-modal-trigger" style="font-size: 11pt;"
                             data-machine-breakdown-id="{{ $machine->machine_breakdown_id }}"
                             data-maintenance-status="{{ $machine->status }}"

@@ -126,6 +126,7 @@ Route::post('/update_machine_img', 'MainController@update_machine_path');
 Route::get('/machine_overview/details_overview', 'SecondaryController@machine_details_tbl');
 Route::get('/machine_overview/machine_details_chart/breakdown/{id}', 'SecondaryController@machine_breakdown');
 Route::get('/machine_overview/machine_details_chart/corrective/{id}', 'SecondaryController@machine_corrective');
+Route::get('/operator/pending_for_maintenance/{id}', 'SecondaryController@get_machines_pending_for_maintenance');
 //operator dashboard
 Route::get('/operator/Spotwelding', 'SpotweldingController@operator_spotwelding_dashboard');
 Route::get('/operator/{id}', 'MainController@operatorpage');
@@ -279,6 +280,9 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/getProductionOrderRejectForConfirmation/{production_order}', 'QualityInspectionController@getProductionOrderRejectForConfirmation');
 	Route::post('/submitRejectConfirmation/{production_order}', 'QualityInspectionController@submitRejectConfirmation');
 	
+	Route::post('/machine_breakdown/import', 'MainController@machineBreakdownImport');
+	Route::get('/remove_file', 'MainController@removeFile');
+	Route::post('/attach_file', 'MainController@attachFile');
 });
 //painting_calendar
 Route::group(['middleware' => 'auth'], function(){
