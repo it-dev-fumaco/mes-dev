@@ -751,7 +751,9 @@ class QualityInspectionController extends Controller
             ->when($operation_id == 2, function ($query) {
                 return $query->where('j.workstation', 'Painting');
             })
-            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
+            ->when(!$request->q, function ($query) {
+                return $query->whereRaw('p.feedback_qty < p.qty_to_manufacture');
+            })
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
@@ -773,7 +775,9 @@ class QualityInspectionController extends Controller
                 ->orWhere('j.workstation', 'LIKE', '%'.$request->q.'%')
                 ->orWhere('p.item_code', 'LIKE', '%'.$request->q.'%');
             })
-            ->whereRaw('p.feedback_qty < p.qty_to_manufacture')
+            ->when(!$request->q, function ($query) {
+                return $query->whereRaw('p.feedback_qty < p.qty_to_manufacture');
+            })
             ->when($operation_id == 1, function ($query) {
                 return $query->where('p.operation_id', 1)->where('j.workstation', '!=', 'Painting');
             })
