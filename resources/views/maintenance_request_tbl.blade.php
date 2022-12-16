@@ -89,6 +89,46 @@
                                         </div>
                                     </div>
                                     <div class="row pt-2">
+                                        <div class="col-8">
+                                            <div>
+                                                <label for="remarks"><b>Complaints/Problems</b></label>
+                                                <textarea name="complaints" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->complaints }}</textarea>
+                                            </div>
+                                            <br>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <span><b>Requested By: </b>{{ $row->reported_by }}</span><br>
+                                                    <span><b>Date Reported: </b>{{ $row->date_reported ? Carbon\Carbon::parse($row->date_reported)->format('M d, Y h:i A') : null }}</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <span><b>Approved By: </b>{{ $row->created_by }}</span><br>
+                                                    <span><b>Date: </b>{{ $row->created_at ? Carbon\Carbon::parse($row->created_at)->format('M d, Y h:i A') : null }}</span>
+                                                </div>
+                                            </div>
+                                            <br>
+                                            <center>
+                                                <p><b>For Plant Services (Maintenance Dept.) Only</b></p>
+                                            </center>
+                                            <div class="mt-3">
+                                                <label for="findings"><b>Findings</b></label>
+                                                <textarea name="findings" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->findings }}</textarea>
+                                            </div>
+
+                                            <div id="{{ $row->machine_breakdown_id }}-hold-container" class="hid mt-4">
+                                                <label for="hold_reason"><b>Reason for Hold</b></label>
+                                                <textarea name="hold_reason" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->findings }}</textarea>
+                                            </div>
+
+                                            <div id="{{ $row->machine_breakdown_id }}-work-done-container" class="hid mt-4">
+                                                <label for="work_done"><b>Work Done</b></label>
+                                                <textarea name="work_done" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->findings }}</textarea>
+                                            </div>
+                                            
+                                            <div class="mt-4">
+                                                <label for="remarks"><b>Remarks</b></label>
+                                                <textarea name="remarks" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->remarks }}</textarea>
+                                            </div>
+                                        </div>
                                         <div class="col-4">
                                             <div class="mb-1">
                                                 @php
@@ -143,7 +183,7 @@
                                                     <table class="table table-bordered" id="{{ $row->machine_breakdown_id }}-staff-table" style="font-size: 9pt !important;">
                                                         <thead>
                                                             <tr>
-                                                                <td scope="col" class="text-center p-2 font-weight-bold">Maintenenance Staff</td>
+                                                                <td scope="col" class="text-center p-2 font-weight-bold">Assign Maintenenance Staff</td>
                                                                 <td class="text-center p-2 d-print-none" style="width: 10%;">
                                                                     <button type="button" class="btn btn-outline-primary btn-sm add-row-btn" id="add-staff-btn" data-table="#{{ $row->machine_breakdown_id }}-staff-table" data-select="#{{ $row->machine_breakdown_id }}-staff-select" style="font-size: 9pt !important;">Add</button>
                                                                 </td>
@@ -172,7 +212,7 @@
                                             <div class="row d-print-none">
                                                 <div class="custom-file m-3 text-left">
                                                     <input type="file" class="custom-file-input" id="customFile" name="file">
-                                                    <label class="custom-file-label" for="customFile">Choose File</label>
+                                                    <label class="custom-file-label" for="customFile">Attach File</label>
                                                 </div>
                                                 @if ($row->attached_files)
                                                     <div class="col-12">
@@ -211,46 +251,6 @@
                                                         </ul>
                                                     </div>
                                                 @endif
-                                            </div>
-                                        </div>
-                                        <div class="col-8">
-                                            <div>
-                                                <label for="remarks"><b>Complaints/Problems</b></label>
-                                                <textarea name="complaints" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->complaints }}</textarea>
-                                            </div>
-                                            <br>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <span><b>Requested By: </b>{{ $row->reported_by }}</span><br>
-                                                    <span><b>Date Reported: </b>{{ $row->date_reported ? Carbon\Carbon::parse($row->date_reported)->format('M d, Y h:i A') : null }}</span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <span><b>Approved By: </b>{{ $row->created_by }}</span><br>
-                                                    <span><b>Date: </b>{{ $row->created_at ? Carbon\Carbon::parse($row->created_at)->format('M d, Y h:i A') : null }}</span>
-                                                </div>
-                                            </div>
-                                            <br>
-                                            <center>
-                                                <p><b>For Plant Services (Maintenance Dept.) Only</b></p>
-                                            </center>
-                                            <div class="mt-3">
-                                                <label for="findings"><b>Findings</b></label>
-                                                <textarea name="findings" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->findings }}</textarea>
-                                            </div>
-
-                                            <div id="{{ $row->machine_breakdown_id }}-hold-container" class="hid mt-4">
-                                                <label for="hold_reason"><b>Reason for Hold</b></label>
-                                                <textarea name="hold_reason" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->findings }}</textarea>
-                                            </div>
-
-                                            <div id="{{ $row->machine_breakdown_id }}-work-done-container" class="hid mt-4">
-                                                <label for="work_done"><b>Work Done</b></label>
-                                                <textarea name="work_done" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->findings }}</textarea>
-                                            </div>
-                                            
-                                            <div class="mt-4">
-                                                <label for="remarks"><b>Remarks</b></label>
-                                                <textarea name="remarks" rows="4" class="form-control rounded" style="border: 1px solid #CED4DA;">{{ $row->remarks }}</textarea>
                                             </div>
                                         </div>
                                     </div>
