@@ -733,8 +733,41 @@
 
   $(document).on('click', '.machine-details', function(e){
     status_check($(this).data('breakdown'));
-    enable_submit($(this).data('breakdown'));
   });
+
+  $(document).on('click', '.submit-edit-form', function (e){
+    e.preventDefault();
+    var form = $(this).data('form-id');
+    $(form).submit();
+  });
+
+  $(document).on('submit', '.edit-form', function(e){
+    e.preventDefault();
+    $.ajax({
+      url: $(this).attr('action'),
+      type:"POST",
+      data: $(this).serialize(),
+      success:function(data){
+        if (data.success) {
+          $('.modal').modal('hide');
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          var status = $('#fabrication-current-status').val() ? $('#fabrication-current-status').val() : 'All';
+          get_maintenance_request_list(1, status, $('.fabrication-search-filter').val(),'#fabrication-div');
+          var status = $('#painting-current-status').val() ? $('#painting-current-status').val() : 'All';
+          get_maintenance_request_list(2, status, $('.painting-search-filter').val(),'#painting-div');
+          var status = $('#wiring-current-status').val() ? $('#wiring-current-status').val() : 'All';
+          get_maintenance_request_list(3, status, $('.wiring-search-filter').val(),'#wiring-div');
+        } else {
+          showNotification("danger", data.message, "now-ui-icons ui-1_check");
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
+    });
 
   // tabs
   function changeTab(operation, op){
@@ -780,19 +813,6 @@
       $('#'+machine_breakdown_id+'-work-done').prop('required', false);
       $('#'+machine_breakdown_id+'-findings').prop('required', false);
       $('#'+machine_breakdown_id+'-maintenance-staff').prop('required', false);
-    }
-  }
-
-  function enable_submit(machine_breakdown_id){
-    var findings = parseInt($('#'+machine_breakdown_id+'-findings').val().length);
-    var work_done = parseInt($('#'+machine_breakdown_id+'-work-done').val().length);
-    var hold_reason = parseInt($('#'+machine_breakdown_id+'-hold-reason').val().length);
-    if(findings > 255 || work_done > 255 || hold_reason > 255){
-      $('#'+machine_breakdown_id+'-submit-btn').prop('disabled', true);
-      $('#'+machine_breakdown_id+'-info').removeClass('d-none');
-    }else{
-      $('#'+machine_breakdown_id+'-submit-btn').prop('disabled', false);
-      $('#'+machine_breakdown_id+'-info').addClass('d-none');
     }
   }
 
