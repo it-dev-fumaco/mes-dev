@@ -149,8 +149,8 @@ class LinkReportController extends Controller
         $permissions = $this->get_user_permitted_operation();
         $operation_id = $request->operation_id;
 
-        $start_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[0]) : Carbon::now()->subDays(7))->startOfDay()->format('Y-m-d');
-        $end_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[1]) : Carbon::now())->endOfDay()->format('Y-m-d');
+        $start_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[0]) : Carbon::now()->subDays(7))->startOfDay();
+        $end_date = ($request->date ? Carbon::parse(explode(' - ', $request->date)[1]) : Carbon::now())->endOfDay();
 
         $rejection_logs = DB::connection('mysql_mes')->table('time_logs as t')
             ->join('job_ticket as j', 't.job_ticket_id', 'j.job_ticket_id')

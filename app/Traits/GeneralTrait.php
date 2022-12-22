@@ -1002,4 +1002,42 @@ trait GeneralTrait
             }
         }
     }
+
+    public function get_production_order_bom_parts($production_order){
+		// temporary
+		$production_order_details = DB::connection('mysql_mes')->table('production_order')
+			->where('production_order', $production_order)->first();
+
+		$bom_parts = DB::connection('mysql_mes')->table('production_order')
+			->where('parent_item_code', $production_order_details->parent_item_code)
+			->where('sub_parent_item_code', $production_order_details->item_code)
+			->where('sales_order', $production_order_details->sales_order)
+			->where('material_request', $production_order_details->material_request)
+			// ->select('production_order', 'parent_item_code', 'sub_parent_item_code', 'item_code')
+			->get();
+
+		$bom_parts_arr = [];
+		foreach($bom_parts as $part){
+			$time_log = DB::connection('mysql_mes')->table('job_ticket')
+				->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+				->where('job_ticket.production_order', $production_order)
+				->where('time_logs.process_description', 'LIKE', "%".$part->item_code."%")
+				->orderByRaw("FIELD(time_logs.status, 'In Progress', 'Completed') ASC")
+				->first();
+
+			$status = 'Not Started';
+			if ($time_log) {
+				$status = $time_log->status;
+			}
+
+			$bom_parts_arr[] = [
+				'item_code' => $part->item_code,
+				'production_order' => $part->production_order,
+				'parts_category' => $part->parts_category,
+				'status' => $status,
+			];
+		}
+
+		return $bom_parts_arr;
+	}
 }
