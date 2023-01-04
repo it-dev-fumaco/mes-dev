@@ -828,7 +828,12 @@ class MainController extends Controller
 			$rework_qty = $rework_qty > $request->completed_qty ? $rework_qty - $request->completed_qty : 0;
 			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $current_task->job_ticket_id)->update(['rework' => $rework_qty]);
 
-			$update_job_ticket = $this->update_job_ticket($current_task->job_ticket_id);
+			try {
+				$update_job_ticket = $this->update_job_ticket($current_task->job_ticket_id);
+			} catch (\Throwable $th) {
+				//throw $th;
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please contact administrator. <br/>'.$th->getMessage()]);
+			}
 
 			if($update_job_ticket == 1){
 				DB::connection('mysql')->commit();
