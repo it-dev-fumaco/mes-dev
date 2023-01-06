@@ -38,4 +38,4 @@
     @endforelse
   </tbody>
 </table>
-<div class="text-center mt-2 paginate-reject-confirmation border border-secondary">{{ $list->links() }}</div>
+<div class="text-center mt-2 paginate-reject-confirmation">{{ $list->links() }}</div>
