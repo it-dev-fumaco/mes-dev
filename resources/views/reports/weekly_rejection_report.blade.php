@@ -65,7 +65,6 @@
                         <th class="text-center p-1" style="font-size: 10pt;">Good</th>
                         <th class="text-center p-1" style="font-size: 10pt;">Reject</th>
                         <th class="text-center p-1" style="font-size: 10pt;">Reason</th>
-                        <th class="text-center p-1" style="font-size: 10pt;">Operator</th>
                         <th class="text-center p-1" style="font-size: 10pt;">Status</th>
                     </tr>
                 </thead>
@@ -81,7 +80,6 @@
                             <td class="p-2 reject-font-size text-center">{{ $reject['good'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['reject'] }}</td>
                             <td class="p-2 reject-font-size text-center">{!! $reject['reject_reason'] !!}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['operator_name'] }}</td>
                             <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
                         </tr>
                     @empty
