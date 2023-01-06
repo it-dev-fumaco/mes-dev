@@ -23,27 +23,28 @@ trait GeneralTrait
         $logs = DB::connection('mysql_mes')->table($time_logs_table)->where('job_ticket_id', $job_ticket_id)->get();
         $logs = collect($logs);
 
-        $bom_parts = $this->get_production_order_bom_parts($job_ticket_detail->production_order);
-
-        $spotwelding_parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $job_ticket_detail->production_order)->get();
-        $spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id');
-
-        $completed_spotwelding = [];
-        foreach ($spotwelding_parts as $part_id => $array) {
-            if(isset($spotwelding_parts[$part_id])){
-                if(count($spotwelding_parts[$part_id]) == count($bom_parts)){
-                    $completed_spotwelding[] = $part_id;
-                }
-            }
-        }
-
-        $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $completed_spotwelding)
-			->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
-            ->where('status', 'Completed')->first();
         $current_process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_detail->process_id)->pluck('process_name')->first();
 
         // get total good, total reject, actual start and end date
         if ($job_ticket_detail->workstation == 'Spotwelding') {
+            $bom_parts = $this->get_production_order_bom_parts($job_ticket_detail->production_order);
+
+            $spotwelding_parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $job_ticket_detail->production_order)->get();
+            $spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id');
+
+            $completed_spotwelding = [];
+            foreach ($spotwelding_parts as $part_id => $array) {
+                if(isset($spotwelding_parts[$part_id])){
+                    if(count($spotwelding_parts[$part_id]) == count($bom_parts)){
+                        $completed_spotwelding[] = $part_id;
+                    }
+                }
+            }
+
+            $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $completed_spotwelding)
+                ->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
+                ->where('status', 'Completed')->first();
+                
             $total_reject = $logs->sum('reject');
             $total_good = $total_good_spotwelding ? $total_good_spotwelding->total_good : 0;
         } else {
@@ -52,7 +53,7 @@ trait GeneralTrait
         }
         
         $job_ticket_actual_start_date = $logs->min('from_time');
-        $job_ticket_actual_end_date = $logs->min('to_time');
+        $job_ticket_actual_end_date = $logs->max('to_time');
 
         $total_good = $total_good == null ? 0 : $total_good;
         $total_good = $total_good < 0 ? 0 : $total_good;
@@ -68,6 +69,11 @@ trait GeneralTrait
         }else{
             $job_ticket_status = 'Pending';
         }
+
+        if (!$job_ticket_actual_end_date || $job_ticket_actual_end_date == null || $job_ticket_actual_end_date == '') {
+            return 0;
+        }
+
         // update job ticket details
         $job_ticket_values = [
             'completed_qty' => $total_good,
@@ -121,6 +127,7 @@ trait GeneralTrait
         }
 
         $job_ticket_values['status'] = $job_ticket_status;
+
         DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->update($job_ticket_values);
 
         // update production order operation in ERP
@@ -130,7 +137,7 @@ trait GeneralTrait
         $operation_time = $operation_time / 60;
 
         $production_order_operation_values = [
-            'status' => ($job_ticket_detail->qty_to_manufacture <= $total_good) ? "Completed" : "Pending",
+            'status' => $job_ticket_status,
             'completed_qty' => $total_good,
             'actual_start_time' => $job_ticket_actual_start_date,
             'actual_end_time' => $job_ticket_actual_end_date,
