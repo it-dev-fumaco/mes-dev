@@ -4849,10 +4849,10 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $machine_breakdown_id)->update($update);
 			DB::connection('mysql_mes')->commit();
-            return redirect('/maintenance_request')->with('success', $machine_breakdown_id.' Maintenance Request Updated');
+			return response()->json(['success' => 1, 'message' => $machine_breakdown_id.' Maintenance Request Updated']);
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
-            return redirect()->back()->with('error', 'An error occured. Please try again.');
+			return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
         }
 	}
 

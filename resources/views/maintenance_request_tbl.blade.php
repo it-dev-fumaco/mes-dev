@@ -86,7 +86,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" method="post" enctype="multipart/form-data">
+                                <form action="/update_maintenance_request/{{ $row->machine_breakdown_id }}" id="edit-form-{{ $row->machine_breakdown_id }}" class="edit-form" method="post" enctype="multipart/form-data">
                                     @csrf
                                     <div class="row pt-2">
                                         <div class="col-8">
@@ -243,7 +243,7 @@
                                                 <button type="button" class="btn btn-secondary printBtn" data-print-area="{{ $row->machine_breakdown_id }}-container">
                                                     <i class="now-ui-icons education_paper"></i> Print
                                                 </button>
-                                                <button type="submit" class="btn btn-primary" id="{{ $row->machine_breakdown_id }}-submit-btn">Submit</button>
+                                                <button type="submit" class="btn btn-primary submit-edit-form" id="{{ $row->machine_breakdown_id }}-submit-btn" data-form-id="#edit-form-{{ $row->machine_breakdown_id }}" data-modal="#{{ $row->machine_breakdown_id }}-Modal" data-action="/update_maintenance_request/{{ $row->machine_breakdown_id }}">Submit</button>
                                             </div>
                                         </div>
                                     </div>
@@ -284,14 +284,5 @@
         var print_area = '#' + $(this).data('print-area');
 
         $(print_area).printThis();
-    });
-
-    $('.char-count').keyup(function(){
-        enable_submit($(this).data('machine-id'));
-        if(parseInt($(this).val().length) > 255){
-            $(this).css('border', '1px solid red');
-        }else{
-            $(this).css('border', '1px solid #8F8F9D');
-        }
     });
 </script>
