@@ -1321,10 +1321,10 @@
     $(document).on('submit', '#scan-production-order-step3-modal form', function(e){
       e.preventDefault();
       var data = {
-        production_order: $('#scan-production-order-step3-modal form input[name="production_order"').val(),
-        process_id: $('#scan-production-order-step3-modal form input[name="process_id"').val(),
-        machine_code: $('#scan-production-order-step3-modal form input[name="machine_code"').val(),
-        operator_id: $('#scan-production-order-step3-modal form input[name="operator_id"').val(),
+        production_order: $('#scan-production-order-step3-modal form input[name="production_order"]').val(),
+        process_id: $('#scan-production-order-step3-modal form input[name="process_id"]').val(),
+        machine_code: $('#scan-production-order-step3-modal form input[name="machine_code"]').val(),
+        operator_id: $('#scan-production-order-step3-modal form input[name="operator_id"]').val(),
         _token: '{{ csrf_token() }}'
       }
 
