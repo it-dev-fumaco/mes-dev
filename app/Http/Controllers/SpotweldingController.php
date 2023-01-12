@@ -309,50 +309,61 @@ class SpotweldingController extends Controller
 	}
 	
 	public function restart_task(Request $request){
-    	$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')
-			->where('time_log_id', $request->id)->first();
-			
-    	DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->delete();
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+        try {
+			$spotwelding_qty_det = DB::connection('mysql_mes')->table('spotwelding_qty')
+				->where('time_log_id', $request->id)->first();
+				
+			DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->delete();
 
-    	$existing = DB::connection('mysql_mes')->table('spotwelding_qty')
-    		->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->exists();
+			$existing = DB::connection('mysql_mes')->table('spotwelding_qty')
+				->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->exists();
 
-    	if (!$existing) {
-    		DB::connection('mysql_mes')->table('spotwelding_part')
-    			->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->delete();
-    	}
-
-		$existing_spotwelding_logs = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->exists();
-		if (!$existing_spotwelding_logs) {
-			DB::connection('mysql_mes')->table('job_ticket')
-    			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->update(['status' => 'Pending']);
-
-			$update_job_ticket = $this->update_job_ticket($spotwelding_qty_det->job_ticket_id);
-
-			if(!$update_job_ticket){
-				DB::connection('mysql')->rollback();
-				DB::connection('mysql_mes')->rollback();
-
-				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			if (!$existing) {
+				DB::connection('mysql_mes')->table('spotwelding_part')
+					->where('spotwelding_part_id', $spotwelding_qty_det->spotwelding_part_id)->delete();
 			}
 
-			$jt = DB::connection('mysql_mes')->table('job_ticket')
-    			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->first();
+			$existing_spotwelding_logs = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->id)->exists();
+			if (!$existing_spotwelding_logs) {
+				DB::connection('mysql_mes')->table('job_ticket')
+					->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->update(['status' => 'Pending']);
 
-			if ($jt) {
-				$started_jt = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $jt->production_order)->where('status', '!=', 'Pending')->exists();
-				if (!$started_jt) {
-					DB::connection('mysql_mes')->table('production_order')
-						->where('production_order', $jt->production_order)->update(['status' => 'Not Started']);
+				$update_job_ticket = $this->update_job_ticket($spotwelding_qty_det->job_ticket_id);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
+
+				$jt = DB::connection('mysql_mes')->table('job_ticket')
+					->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->first();
+
+				if ($jt) {
+					$started_jt = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $jt->production_order)->where('status', '!=', 'Pending')->exists();
+					if (!$started_jt) {
+						DB::connection('mysql_mes')->table('production_order')
+							->where('production_order', $jt->production_order)->update(['status' => 'Not Started']);
+					}
 				}
 			}
-		}
 
-    	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+		} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
+            return response()->json(["error" => $e->getMessage()]);
+        }
     }
 
    	public function update_task_reject(Request $request){
-		try {
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+        try {
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 			}
@@ -456,6 +467,9 @@ class SpotweldingController extends Controller
 
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
         } catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
             return response()->json(["error" => $e->getMessage()]);
         }
 	}
@@ -901,7 +915,9 @@ class SpotweldingController extends Controller
 	}
 
 	public function continue_log_task($time_log_id, Request $request){
-    	try {
+    	DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+        try {
 			$now = Carbon::now();
 	    	$operator = DB::connection('mysql_essex')->table('users')->where('user_id', Auth::user()->user_id)->first();
 	    	if (!$operator) {
@@ -979,8 +995,11 @@ class SpotweldingController extends Controller
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.']);
     	} catch (Exception $e) {
-    		return response()->json(["success" => 0, "message" => $e->getMessage()]);
-    	}
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
+            return response()->json(["error" => $e->getMessage()]);
+        }
 	}
 
 }

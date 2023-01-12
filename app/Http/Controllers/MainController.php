@@ -3416,95 +3416,60 @@ class MainController extends Controller
     }
 
     public function submit_quality_check(Request $request){
-		$now = Carbon::now(); 	
-    	if (!$request->inspected_by) {
-    		return response()->json(['success' => 0, 'message' => 'Please tap Authorized QC Employee ID.']);
-		}
-		
-		if ($request->qc_inspection_status == 'QC Failed') {
-			if (!$request->rejection_type) {
-				return response()->json(['success' => 0, 'message' => 'Please select Rejection Type']);
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+        try {
+			$now = Carbon::now(); 	
+			if (!$request->inspected_by) {
+				return response()->json(['success' => 0, 'message' => 'Please tap Authorized QC Employee ID.']);
 			}
-		}
-
-    	$qa_user = DB::connection('mysql_essex')->table('users')
-    		->where('user_id', $request->inspected_by)->first();
-
-    	if (!$qa_user) {
-    		return response()->json(['success' => 0, 'message' => 'Authorized QA Employee ID not found.']);
-    	}
-
-    	$qa_staff_name = $qa_user->employee_name;
-    	if ($request->id) {
-    		$qc_remarks = ($request->rework_qty && $request->rework_qty > 0) ? 'For Rework' : 'Scrap';
-	    	$qc_remarks = ($request->qc_inspection_status == 'QC Failed') ? $qc_remarks : null;
-    		if ($request->qc_type == 'Random Inspection') {
-    			// request id = time log id
-    			$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-	    			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-	    			->where('time_logs.time_log_id', $request->id)->first();
-
-	    		$production_order = $job_ticket_details->production_order;
-	    		$workstation = $job_ticket_details->workstation;
-	    		$insert = [
-	    			'time_log_id' => $request->id,
-	    			'qa_inspection_type' => $request->qc_type,
-	    			'qa_inspection_date' => $now->toDateTimeString(),
-	    			'qa_staff_id' => $request->inspected_by,
-	    			'sampling_qty' => $request->sampling_qty,
-	    			'rejected_qty' => $request->reject_qty,
-	    			'for_rework_qty' => ($request->rework_qty) ? $request->rework_qty : 0,
-	    			'status' => $request->qc_inspection_status,
-	    			'qc_remarks' => $qc_remarks,
-	    			'rejection_id' => $request->rejection_type,
-	    			'remarks' => $request->rejection_type,
-	    			'created_by' => $qa_staff_name,
-	    			'created_at' => $now->toDateTimeString()
-	    		];
-
-	    		$good_qty_after_transaction = $job_ticket_details->good - $request->reject_qty;
-	
-				if($good_qty_after_transaction < 0){
-					$good_qty_after_transaction = 0;
+			
+			if ($request->qc_inspection_status == 'QC Failed') {
+				if (!$request->rejection_type) {
+					return response()->json(['success' => 0, 'message' => 'Please select Rejection Type']);
 				}
+			}
 
-				$update = [
-					'last_modified_at' => $now->toDateTimeString(),
-					'last_modified_by' => $qa_staff_name,
-					'good' => $good_qty_after_transaction,
-					'reject' => $request->reject_qty,
-				];
-				
-				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-	    		DB::connection('mysql_mes')->table('quality_inspection')->insert($insert);
-    		}
+			$qa_user = DB::connection('mysql_essex')->table('users')
+				->where('user_id', $request->inspected_by)->first();
 
-			if ($request->qc_type == 'Reject Confirmation') {
-				// request id = qa id
-				$time_log_details = DB::connection('mysql_mes')->table('time_logs')
-						->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-		    			->join('quality_inspection', 'quality_inspection.time_log_id', 'time_logs.time_log_id')
-		    			->where('qa_id', $request->qa_id)->first();
+			if (!$qa_user) {
+				return response()->json(['success' => 0, 'message' => 'Authorized QA Employee ID not found.']);
+			}
 
-		    	$production_order = $time_log_details->production_order;
-	    		$workstation = $time_log_details->workstation;
+			$qa_staff_name = $qa_user->employee_name;
+			if ($request->id) {
+				$qc_remarks = ($request->rework_qty && $request->rework_qty > 0) ? 'For Rework' : 'Scrap';
+				$qc_remarks = ($request->qc_inspection_status == 'QC Failed') ? $qc_remarks : null;
+				if ($request->qc_type == 'Random Inspection') {
+					// request id = time log id
+					$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
+						->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+						->where('time_logs.time_log_id', $request->id)->first();
 
-				$update_rejection_type = [
-					'last_modified_at' => $now->toDateTimeString(),
-					'last_modified_by' => $qa_staff_name,
-	    			'qa_staff_id' => $request->inspected_by,
-	    			'sampling_qty' => $request->sampling_qty,
-	    			'rejected_qty' => $request->reject_qty,
-	    			'qa_inspection_date' => $now->toDateTimeString(),
-	    			'for_rework_qty' => ($request->rework_qty) ? $request->rework_qty : 0,
-	    			'status' => $request->qc_inspection_status,
-	    			'qc_remarks' => $qc_remarks,
-	    			'rejection_id' => $request->rejection_type,
-	    			'remarks' => $request->rejection_type,
-				];
+					$production_order = $job_ticket_details->production_order;
+					$workstation = $job_ticket_details->workstation;
+					$insert = [
+						'time_log_id' => $request->id,
+						'qa_inspection_type' => $request->qc_type,
+						'qa_inspection_date' => $now->toDateTimeString(),
+						'qa_staff_id' => $request->inspected_by,
+						'sampling_qty' => $request->sampling_qty,
+						'rejected_qty' => $request->reject_qty,
+						'for_rework_qty' => ($request->rework_qty) ? $request->rework_qty : 0,
+						'status' => $request->qc_inspection_status,
+						'qc_remarks' => $qc_remarks,
+						'rejection_id' => $request->rejection_type,
+						'remarks' => $request->rejection_type,
+						'created_by' => $qa_staff_name,
+						'created_at' => $now->toDateTimeString()
+					];
 
-				if ($request->qc_inspection_status == 'QC Passed') {
-					$good_qty_after_transaction = $time_log_details->good + $time_log_details->reject;
+					$good_qty_after_transaction = $job_ticket_details->good - $request->reject_qty;
+		
+					if($good_qty_after_transaction < 0){
+						$good_qty_after_transaction = 0;
+					}
 
 					$update = [
 						'last_modified_at' => $now->toDateTimeString(),
@@ -3513,27 +3478,71 @@ class MainController extends Controller
 						'reject' => $request->reject_qty,
 					];
 					
-					DB::connection('mysql_mes')->table('time_logs')
-						->where('time_log_id', $time_log_details->time_log_id)->update($update);
+					DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
+					DB::connection('mysql_mes')->table('quality_inspection')->insert($insert);
 				}
 
-				DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request->qa_id)
-					->update($update_rejection_type);
+				if ($request->qc_type == 'Reject Confirmation') {
+					// request id = qa id
+					$time_log_details = DB::connection('mysql_mes')->table('time_logs')
+							->join('job_ticket', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+							->join('quality_inspection', 'quality_inspection.time_log_id', 'time_logs.time_log_id')
+							->where('qa_id', $request->qa_id)->first();
+
+					$production_order = $time_log_details->production_order;
+					$workstation = $time_log_details->workstation;
+
+					$update_rejection_type = [
+						'last_modified_at' => $now->toDateTimeString(),
+						'last_modified_by' => $qa_staff_name,
+						'qa_staff_id' => $request->inspected_by,
+						'sampling_qty' => $request->sampling_qty,
+						'rejected_qty' => $request->reject_qty,
+						'qa_inspection_date' => $now->toDateTimeString(),
+						'for_rework_qty' => ($request->rework_qty) ? $request->rework_qty : 0,
+						'status' => $request->qc_inspection_status,
+						'qc_remarks' => $qc_remarks,
+						'rejection_id' => $request->rejection_type,
+						'remarks' => $request->rejection_type,
+					];
+
+					if ($request->qc_inspection_status == 'QC Passed') {
+						$good_qty_after_transaction = $time_log_details->good + $time_log_details->reject;
+
+						$update = [
+							'last_modified_at' => $now->toDateTimeString(),
+							'last_modified_by' => $qa_staff_name,
+							'good' => $good_qty_after_transaction,
+							'reject' => $request->reject_qty,
+						];
+						
+						DB::connection('mysql_mes')->table('time_logs')
+							->where('time_log_id', $time_log_details->time_log_id)->update($update);
+					}
+
+					DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request->qa_id)
+						->update($update_rejection_type);
+				}
+
+				$process_id = ($request->qc_type == 'Random Inspection') ? $job_ticket_details->process_id : $time_log_details->process_id;
+
+				$update_job_ticket = $this->update_job_ticket($time_log_details->job_ticket_id);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
+
+				return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
 			}
+		} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
 
-			$process_id = ($request->qc_type == 'Random Inspection') ? $job_ticket_details->process_id : $time_log_details->process_id;
-
-			$update_job_ticket = $this->update_job_ticket($time_log_details->job_ticket_id);
-
-			if(!$update_job_ticket){
-				DB::connection('mysql')->rollback();
-				DB::connection('mysql_mes')->rollback();
-
-				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
-			}
-
-			return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
-		}
+            return response()->json(["error" => $e->getMessage()]);
+        }
     }
 
     public function get_qa_inspection_status($reference_type, $reference_id){
@@ -3754,6 +3763,8 @@ class MainController extends Controller
     }
 
     public function start_unassigned_task(Request $request){
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
     	try {
     		if (!$request->operator_id) {
     			return response()->json(['success' => 0, 'message' => 'Please enter Operator ID.']);
@@ -3943,9 +3954,12 @@ class MainController extends Controller
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert started process log in activity logs
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
-    	} catch (Exception $e) {
-    		return response()->json(["success" => 0, "message" => $e->getMessage()]);
-    	}
+		} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
+            return response()->json(["error" => $e->getMessage()]);
+        }
 	}
 
     public function validate_workstation_machine($machine_id, $workstation){
