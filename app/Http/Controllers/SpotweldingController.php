@@ -165,7 +165,14 @@ class SpotweldingController extends Controller
 				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
 
-			$this->update_job_ticket($request->job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($request->job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
@@ -232,7 +239,14 @@ class SpotweldingController extends Controller
 			$spotwelding_parts_count = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->count();
 
 			if(count($bom_parts) == $spotwelding_parts_count){
-				$this->update_job_ticket($current_task->job_ticket_id);
+				$update_job_ticket = $this->update_job_ticket($current_task->job_ticket_id);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
 			}
 
 			$ho_bom = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
@@ -313,7 +327,14 @@ class SpotweldingController extends Controller
 			DB::connection('mysql_mes')->table('job_ticket')
     			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->update(['status' => 'Pending']);
 
-			$this->update_job_ticket($spotwelding_qty_det->job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($spotwelding_qty_det->job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			$jt = DB::connection('mysql_mes')->table('job_ticket')
     			->where('job_ticket_id', $spotwelding_qty_det->job_ticket_id)->first();
@@ -370,7 +391,14 @@ class SpotweldingController extends Controller
 						DB::connection('mysql_mes')->table('spotwelding_reject')->insert($reject_values);
 					}
 
-					$this->update_job_ticket($time_log->job_ticket_id);
+					$update_job_ticket = $this->update_job_ticket($time_log->job_ticket_id);
+
+					if(!$update_job_ticket){
+						DB::connection('mysql')->rollback();
+						DB::connection('mysql_mes')->rollback();
+
+						return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+					}
 				}
 			}else{
 				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->first();
@@ -415,7 +443,14 @@ class SpotweldingController extends Controller
 		
 					}
 
-					$this->update_job_ticket($time_log->job_ticket_id);
+					$update_job_ticket = $this->update_job_ticket($time_log->job_ticket_id);
+
+					if(!$update_job_ticket){
+						DB::connection('mysql')->rollback();
+						DB::connection('mysql_mes')->rollback();
+
+						return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+					}
 				}
 			}
 
@@ -931,8 +966,15 @@ class SpotweldingController extends Controller
 				if ($production_order && $production_order->status == 'Not Started') {
 					DB::connection('mysql_mes')->table('production_order')->where('production_order', $time_log_detail->production_order)->update(['status' => 'In Progress']);
 				}
-	
-				$this->update_job_ticket($time_log_detail->job_ticket_id);
+
+				$update_job_ticket = $this->update_job_ticket($time_log_detail->job_ticket_id);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
 			}
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.']);

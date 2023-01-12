@@ -3523,7 +3523,14 @@ class MainController extends Controller
 
 			$process_id = ($request->qc_type == 'Random Inspection') ? $job_ticket_details->process_id : $time_log_details->process_id;
 
-			$this->update_job_ticket($time_log_details->job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($time_log_details->job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
 		}
@@ -3900,7 +3907,15 @@ class MainController extends Controller
 				DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update(['status' => 'In Progress']);
 			}
 
-			$this->update_job_ticket($request->job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($request->job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
+			
 	    	$operation = DB::connection('mysql_mes')->table('process')->where('process_id', $request->process_id)->first();
 
 			$activity_logs = [
@@ -4419,8 +4434,15 @@ class MainController extends Controller
 			if($request->workstation != 'Spotwelding'){
 				DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
 			}
-			
-			$this->update_job_ticket($time_log->job_ticket_id);
+
+			$update_job_ticket = $this->update_job_ticket($time_log->job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			$activity_logs = [
 				'action' => 'Reject Entry',
@@ -8312,7 +8334,14 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->delete();
 
-			$this->update_job_ticket($job_ticket_id, $authorized_user);
+			$update_job_ticket = $this->update_job_ticket($job_ticket_id, $authorized_user);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			$activity_logs = [
 				'action' => 'Reset Time Log',
@@ -8394,7 +8423,14 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)->where('time_log_id', $timelog_id)->update(['good' => $qty]);
 
-			$this->update_job_ticket($job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			DB::connection('mysql_mes')->commit();
 			DB::connection('mysql')->commit();
@@ -8599,7 +8635,14 @@ class MainController extends Controller
 			}
 
 			foreach($job_ticket_ids as $jtid) {
-				$this->update_job_ticket($jtid);
+				$update_job_ticket = $this->update_job_ticket($jtid);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
 			}
 
 			$jt_exceeding_production = DB::connection('mysql_mes')->table('job_ticket as jt')

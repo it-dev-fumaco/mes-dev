@@ -260,7 +260,14 @@ class QualityInspectionController extends Controller
                         DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
                     }
                     
-                    $this->update_job_ticket($job_ticket_details->job_ticket_id);
+                    $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
+
+                    if(!$update_job_ticket){
+                        DB::connection('mysql')->rollback();
+                        DB::connection('mysql_mes')->rollback();
+
+                        return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                    }
 
                     $process_name = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->pluck('process_name')->first();
 
@@ -334,7 +341,14 @@ class QualityInspectionController extends Controller
                     $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
                     DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request->time_log_id)->update($update);
 
-                    $this->update_job_ticket($job_ticket_details->job_ticket_id);
+                    $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
+
+                    if(!$update_job_ticket){
+                        DB::connection('mysql')->rollback();
+                        DB::connection('mysql_mes')->rollback();
+
+                        return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                    }
 
                     // 
                     if ($request->qa_disposition == 'Scrap') {
@@ -1375,7 +1389,14 @@ class QualityInspectionController extends Controller
                     $logs_table = $workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
                     DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $time_log_id)->update($update);
 
-                    $this->update_job_ticket($job_ticket_details->job_ticket_id);
+                    $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
+
+                    if(!$update_job_ticket){
+                        DB::connection('mysql')->rollback();
+                        DB::connection('mysql_mes')->rollback();
+
+                        return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                    }
 
                     if ($request->disposition[$time_log_id] == 'Scrap') {
                         if ($prod_details->item_classification == 'SA - Sub Assembly') {
