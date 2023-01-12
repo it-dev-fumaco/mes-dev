@@ -3535,6 +3535,9 @@ class MainController extends Controller
 					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 				}
 
+				DB::connection('mysql')->commit();
+				DB::connection('mysql_mes')->commit();
+
 				return response()->json(['success' => 1, 'message' => 'Task updated.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation]]);
 			}
 		} catch (Exception $e) {
@@ -3952,6 +3955,9 @@ class MainController extends Controller
 			$activity_logs['action'] = 'Started Process';
 
 			DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs); // insert started process log in activity logs
+
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.', 'details' => $details]);
 		} catch (Exception $e) {
