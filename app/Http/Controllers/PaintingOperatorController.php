@@ -624,6 +624,7 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $current_task->time_log_id)->update([
 				'last_modified_at' => $now->toDateTimeString(),
 				'last_modified_by' => $operator->employee_name,
+				'to_time' => $now->toDateTimeString(),
 				'good' => $request->completed_qty,
 				'status' => 'Completed'
 			]);
