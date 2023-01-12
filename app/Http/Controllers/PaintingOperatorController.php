@@ -929,6 +929,9 @@ class PaintingOperatorController extends Controller
 					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 				}
 			}
+
+			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
 	
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
 		} catch (Exception $e) {
