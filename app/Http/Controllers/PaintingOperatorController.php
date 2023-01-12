@@ -344,7 +344,14 @@ class PaintingOperatorController extends Controller
 				if($unloading_tl){
 					DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_tl->time_log_id)->update($update);
 
-					$this->update_job_ticket($unloading_tl->job_ticket_id);
+					$update_job_ticket = $this->update_job_ticket($unloading_tl->job_ticket_id);
+
+					if(!$update_job_ticket){
+						DB::connection('mysql')->rollback();
+						DB::connection('mysql_mes')->rollback();
+
+						return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+					}
 				}else{
 					$seconds = $now->diffInSeconds(Carbon::parse($time_log->from_time));
 					$duration= $seconds / 3600;
@@ -370,11 +377,25 @@ class PaintingOperatorController extends Controller
 						'created_at' => $now->toDateTimeString(),
 					]);
 
-					$this->update_job_ticket($unloading_jt->job_ticket_id);
+					$update_job_ticket = $this->update_job_ticket($unloading_jt->job_ticket_id);
+
+					if(!$update_job_ticket){
+						DB::connection('mysql')->rollback();
+						DB::connection('mysql_mes')->rollback();
+
+						return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+					}
 				}
 			}
 
-			$this->update_job_ticket($job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
             return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
@@ -515,7 +536,14 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('time_logs')->insert($values);
 
-			$this->update_job_ticket($request->job_ticket_id);
+			$update_job_ticket = $this->update_job_ticket($request->job_ticket_id);
+
+			if(!$update_job_ticket){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
@@ -600,8 +628,15 @@ class PaintingOperatorController extends Controller
 				'status' => 'Completed'
 			]);
 
-			$this->update_job_ticket($current_task->job_ticket_id);
-			$this->update_job_ticket($unloading_jt->job_ticket_id);
+			$update_jt1 = $this->update_job_ticket($current_task->job_ticket_id);
+			$update_jt2 = $this->update_job_ticket($unloading_jt->job_ticket_id);
+
+			if(!$update_jt1 || !$update_jt2){
+				DB::connection('mysql')->rollback();
+				DB::connection('mysql_mes')->rollback();
+
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 			// get completed qty in painting workstation
 			$painting_completed_qty = DB::connection('mysql_mes')->table('job_ticket')
 				->where('production_order', $request->production_order)
@@ -624,7 +659,14 @@ class PaintingOperatorController extends Controller
 					->whereIn('status', ['In Progress', 'Pending'])
 					->update($values);
 
-				$this->update_job_ticket($unloading_jt->job_ticket_id);
+				$update_job_ticket = $this->update_job_ticket($unloading_jt->job_ticket_id);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
 			}
 
 			DB::connection('mysql_mes')->commit();
@@ -867,18 +909,34 @@ class PaintingOperatorController extends Controller
 	}
 
 	public function restart_task(Request $request){
-		$qry = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
-		if(!$qry){
-			return response()->json(['success' => 0, 'message' => 'Task not found.']);
-		}
+		DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql')->beginTransaction();
+        try {
+			$qry = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
+			if(!$qry){
+				return response()->json(['success' => 0, 'message' => 'Task not found.']);
+			}
 
-		DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
-		
-		if($qry){
-			$this->update_job_ticket($qry->job_ticket_id);
-		}
- 
-    	return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
+			
+			if($qry){
+				$update_job_ticket = $this->update_job_ticket($qry->job_ticket_id);
+
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
+
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+				}
+			}
+	
+			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+		} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
+
+            return response()->json(["error" => $e->getMessage()]);
+        }
     }
 
     public function create_stock_entry(Request $request, $production_order){
