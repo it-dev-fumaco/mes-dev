@@ -2429,11 +2429,21 @@ class SecondaryController extends Controller
             $now = Carbon::now();
             if ($request->id) {
                 $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
-                if($job_ticket_details->status == 'Completed'){
-                    return response()->json(['success' => 0, 'message' => 'Task already Completed']);
-                }
-
+                
                 $qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->sum('qty_to_manufacture');
+                if ($job_ticket_details->workstation != 'Spotwelding') {
+                    $tl_total_qty =  DB::connection('mysql_mes')->table('time_logs')
+                        ->where('job_ticket_id', $job_ticket_details->job_ticket_id)->where('status', 'Completed')->sum('good');
+
+                    if ($tl_total_qty == $qty_to_manufacture) {
+                        return response()->json(['success' => 0, 'message' => 'Task already Completed']);
+                    }
+                } else {
+                    if($job_ticket_details->status == 'Completed'){
+                        return response()->json(['success' => 0, 'message' => 'Task already Completed']);
+                    }
+                }
+                
                 $pending = $qty_to_manufacture - $job_ticket_details->completed_qty;
 
                 $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
