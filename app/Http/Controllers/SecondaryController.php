@@ -2443,8 +2443,8 @@ class SecondaryController extends Controller
                         return response()->json(['success' => 0, 'message' => 'Task already Completed']);
                     }
                 }
-                
-                $pending = $qty_to_manufacture - $job_ticket_details->completed_qty;
+
+                $pending = $job_ticket_details->workstation == 'Painting' ? $job_ticket_details->completed_qty : $qty_to_manufacture - $job_ticket_details->completed_qty;
 
                 $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
                 if ($request->logid) {
