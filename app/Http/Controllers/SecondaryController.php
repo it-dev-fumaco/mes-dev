@@ -2481,6 +2481,45 @@ class SecondaryController extends Controller
                         ->where('status', 'In Progress')->update($values);
                 }
 
+                if($job_ticket_details->workstation == 'Painting'){
+                    $unloading_jt = DB::connection('mysql_mes')->table('job_ticket as jt')
+                        ->join('process as p', 'p.process_id', 'jt.process_id')
+                        ->where('jt.production_order', $job_ticket_details->production_order)->where('p.process_name', 'Unloading')->first();
+
+                    if(!$unloading_jt){
+                        return response()->json(['success' => 0, 'message' => 'Unloading task not found.']);
+                    }
+
+                    $seconds = $now->diffInSeconds(Carbon::parse($logs->from_time));
+                    $cycle_time_in_seconds = $seconds > 0 && $pending > 0 ? $seconds / $pending : 0;
+
+                    DB::connection('mysql_mes')->table('time_logs')->insert([
+                        'job_ticket_id' => $unloading_jt->job_ticket_id,
+                        'to_time' => $now->toDateTimeString(),
+                        'duration' => $duration,
+                        'good' => $pending,
+                        'reject' => 0,
+                        'machine_code' => 'M00200',
+                        'machine_name' => 'Painting Machine',
+                        'operator_id' => $logs->operator_id,
+                        'operator_name' => $logs->operator_name,
+                        'status' => 'Completed',
+                        'cycle_time_in_seconds' => $cycle_time_in_seconds,
+                        'created_by' => Auth::user()->employee_name,
+                        'created_at' => $now->toDateTimeString()
+                    ]);
+
+                    DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $unloading_jt->job_ticket_id)->update(['remarks' => 'Override']);
+
+                    $update_unloading_jt = $this->update_job_ticket($unloading_jt->job_ticket_id);
+                    if(!$update_unloading_jt){
+                        DB::connection('mysql')->rollback();
+                        DB::connection('mysql_mes')->rollback();
+
+                        return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                    }
+                }
+
                 DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['remarks' => 'Override']);
 
                 $updated_timelog_details = DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)->first();
