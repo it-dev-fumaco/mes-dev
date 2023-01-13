@@ -9634,7 +9634,7 @@ class MainController extends Controller
 					'last_modified_at' => Carbon::now()->toDateTimeString(),
 				];
 				if ($total_good > 0) {
-					if ($total_good != $value->good) {
+					if ($total_good != $value->good || $total_good != $value->completed_qty) {
 						$job_ticket_values['good'] = $total_good;
 						$job_ticket_values['completed_qty'] = $total_good;
 					}
