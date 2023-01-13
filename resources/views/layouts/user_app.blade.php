@@ -2517,6 +2517,49 @@
     $('#confirm-reset-workstation-modal .reset_reload_tbl').val(reload_tbl);
   });
 
+  $(document).on('click', '#sync-job-ticket-btn', function(e) {
+    e.preventDefault();
+    var id = $(this).data('production-order');
+    $.ajax({
+      url: '/syncJobTicket/' + id,
+      type:"POST",
+      success:function(data){
+        if(data.status){
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+          $('#process-bc').empty();
+          $('#jt-details-tbl tbody').empty();
+          $.ajax({
+            url:"/get_jt_details/" + id,
+            type:"GET",
+            success:function(response){
+              if (response.success < 1) {
+                showNotification("danger", response.message, "now-ui-icons travel_info");
+              }else{
+                $('#production-search-content').html(response);
+              }
+            }
+          });
+          $('#edit-log-modal').modal('hide');
+        }else{
+          showNotification("danger", data.message, "now-ui-icons travel_info");
+        }
+      }
+    });
+  });
+  function showNotification(color, message, icon){
+    $.notify({
+      icon: icon,
+      message: message
+    },{
+      type: color,
+      timer: 5000,
+      placement: {
+        from: 'top',
+        align: 'center'
+      }
+    });
+  }
+
   setInterval(updateClock, 1000);
   function updateClock(){
     var currentTime = new Date();
