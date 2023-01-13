@@ -71,6 +71,10 @@ trait GeneralTrait
         if ($has_wip) {
             $job_ticket_status = 'In Progress';
         }
+
+        if ($job_ticket_detail->qty_to_manufacture > $total_good && $total_good > 0) {
+            $job_ticket_status = 'In Progress';
+        }
         
         if ($job_ticket_status == 'Completed') {
             if (!$job_ticket_actual_end_date || $job_ticket_actual_end_date == null || $job_ticket_actual_end_date == '') {
