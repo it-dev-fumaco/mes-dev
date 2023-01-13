@@ -2483,8 +2483,16 @@ class SecondaryController extends Controller
 
                 DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['remarks' => 'Override']);
 
-                $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
+                $updated_timelog_details = DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $logs->time_log_id)->first();
+                if (!$updated_timelog_details) {
+                    return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                }
+                
+                if (!$updated_timelog_details->to_time) {
+                    return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                }
 
+                $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
                 if(!$update_job_ticket){
                     DB::connection('mysql')->rollback();
                     DB::connection('mysql_mes')->rollback();
