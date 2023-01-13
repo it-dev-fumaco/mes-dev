@@ -9659,6 +9659,7 @@ class MainController extends Controller
 				'actual_end_date' => $job_ticket_actual_end_date,
 				'last_modified_by' => Auth::check() ? Auth::user()->employee_name : null,
 				'last_modified_at' => Carbon::now()->toDateTimeString(),
+				'status' => $production_order->status
 			];
 			$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $id)->get();
 			$produced_qty = collect($job_ticket)->min('completed_qty');
