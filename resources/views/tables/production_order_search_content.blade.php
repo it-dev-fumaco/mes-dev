@@ -57,7 +57,7 @@
 									<span class="badge badge-{{$badge_color}} m-2 text-center text-white" style="font-size:16px;">{{ $item_details['production_order_status'] }}</span>
 									@if (Auth::check())
 									@if (!in_array($item_details['production_order_status'], ['Cancelled', 'Partially Feedbacked', 'Feedbacked', 'Closed']))
-									<button type="button" class="btn btn-primary ml-2 mb-1 mt-1" id="sync-job-ticket-btn" data-production-order="{{ $production_order_no }}">Sync Job Ticket</button>
+									<i class="now-ui-icons arrows-1_refresh-69" id="sync-job-ticket-btn" style="font-size:25px;font-weight:bolder;color:black; vertical-align: middle; cursor: pointer;" data-production-order="{{ $production_order_no }}"></i>
 									@endif
 									@endif
 								</div>
