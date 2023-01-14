@@ -9575,15 +9575,20 @@ class MainController extends Controller
 			if (in_array($production_order->status, ['Feedbacked', 'Partially Feedbacked'])) {
 				return response()->json(['status' => 0, 'message' => 'Production order has been already feedbacked.']);
 			}
+
 			if ($production_order->feedback_qty > 0) {
 				return response()->json(['status' => 0, 'message' => 'Production order has been already feedbacked.']);
 			}
+
 			$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $id)->get();
 			$job_ticket_ids = collect($job_ticket)->pluck('job_ticket_id');
+
 			$time_logs = DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', $job_ticket_ids)->get();
 			$time_logs_by_job_ticket = collect($time_logs)->groupBy('job_ticket_id')->toArray();
+
 			$spotwelding_time_logs = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('job_ticket_id', $job_ticket_ids)->get();
 			$spotwelding_time_logs_by_job_ticket = collect($spotwelding_time_logs)->groupBy('job_ticket_id')->toArray();
+
 			foreach ($job_ticket as $key => $value) {
 				$logs = [];
 				$total_reject = $total_good = 0;
@@ -9621,11 +9626,13 @@ class MainController extends Controller
 						$total_reject = collect($logs)->where('status', 'Completed')->sum('reject');
 					}
 				}
+
 				$job_ticket_actual_start_date = $job_ticket_actual_end_date = null;
 				if (collect($logs)->count() > 0) {       
 					$job_ticket_actual_start_date = collect($logs)->min('from_time');
 					$job_ticket_actual_end_date = collect($logs)->max('to_time');
 				}
+
 				// update job ticket details
 				$job_ticket_values = [
 					'actual_start_date' => $job_ticket_actual_start_date,
@@ -9633,17 +9640,20 @@ class MainController extends Controller
 					'last_modified_by' => Auth::check() ? Auth::user()->employee_name : null,
 					'last_modified_at' => Carbon::now()->toDateTimeString(),
 				];
+
 				if ($total_good > 0) {
 					if ($total_good != $value->good || $total_good != $value->completed_qty) {
 						$job_ticket_values['good'] = $total_good;
 						$job_ticket_values['completed_qty'] = $total_good;
 					}
 				}
+
 				if ($total_reject > 0) {
 					if ($total_reject != $value->reject) {
 						$job_ticket_values['reject'] = $total_good;
 					}
 				}
+
 				$job_ticket_values['status'] = 'Pending';
 				if (count($logs) > 0) {
 					$job_ticket_values['status'] = 'In Progress';
@@ -9651,9 +9661,11 @@ class MainController extends Controller
 						$job_ticket_values['status'] = 'Completed';
 					}
 				}
+
 				DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
 					->update($job_ticket_values);
 			}
+
 			$production_order_values = [
 				'actual_start_date' => $job_ticket_actual_start_date,
 				'actual_end_date' => $job_ticket_actual_end_date,
@@ -9661,39 +9673,52 @@ class MainController extends Controller
 				'last_modified_at' => Carbon::now()->toDateTimeString(),
 				'status' => $production_order->status
 			];
+
 			$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $id)->get();
+
 			$produced_qty = collect($job_ticket)->min('completed_qty');
+
 			$production_order_values['produced_qty'] = $produced_qty;
 			$production_order_values['actual_start_date'] = collect($job_ticket)->min('actual_start_date');
 			$production_order_values['actual_end_date'] = collect($job_ticket)->max('actual_end_date');
+
 			$completed_job_ticket = collect($job_ticket)->where('status', 'Completed')->count();
 			if (count($job_ticket) == $completed_job_ticket) {
 				$production_order_values['status'] = 'Completed';
 			}
+
 			$wip_job_ticket = collect($job_ticket)->where('status', 'In Progress')->count();
 			if ($wip_job_ticket) {
 				$production_order_values['status'] = 'In Progress';
 			}
+
 			$pending_job_ticket = collect($job_ticket)->where('status', 'Pending')->count();
 			if (count($job_ticket) == $pending_job_ticket) {
 				$production_order_values['status'] = 'Not Started';
 			}
+
 			DB::connection('mysql_mes')->table('production_order')->where('production_order', $id)
 				->update($production_order_values);
+
 			// for erp
 			$values = [
 				'actual_start_date' => $production_order_values['actual_start_date'],
 				'actual_end_date' => $production_order_values['actual_end_date']
 			];
+
 			$values['status'] = ($production_order_values['status'] == 'In Progress') ? 'In Process' : $production_order_values['status'];
+
 			DB::connection('mysql')->table('tabWork Order')->where('name', $id)
 				->update($values);
+
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
+
 			return response()->json(['status' => 1, 'message' => 'Production order has been updated.']);
 		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
+
 			return response()->json(['status' => 0, 'message' => 'Something went wrong. Please try again.']);
 		}
 	}

@@ -350,7 +350,6 @@ class QualityInspectionController extends Controller
                         return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
                     }
 
-                    // 
                     if ($request->qa_disposition == 'Scrap') {
                         if ($prod_details->item_classification == 'SA - Sub Assembly') {
                             $uom_details = DB::connection('mysql_mes')->table('uom')->where('uom_name', 'like', '%kilogram%')->first();

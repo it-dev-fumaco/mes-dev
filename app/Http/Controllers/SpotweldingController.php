@@ -366,7 +366,8 @@ class SpotweldingController extends Controller
    	public function update_task_reject(Request $request){
 		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
-        try {
+		try {
+
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 			}
@@ -472,7 +473,7 @@ class SpotweldingController extends Controller
 			DB::connection('mysql_mes')->commit();
 
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
-        } catch (Exception $e) {
+		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
 
@@ -921,9 +922,9 @@ class SpotweldingController extends Controller
 	}
 
 	public function continue_log_task($time_log_id, Request $request){
-    	DB::connection('mysql_mes')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
-        try {
+    	try {
 			$now = Carbon::now();
 	    	$operator = DB::connection('mysql_essex')->table('users')->where('user_id', Auth::user()->user_id)->first();
 	    	if (!$operator) {
@@ -1003,7 +1004,7 @@ class SpotweldingController extends Controller
 			DB::connection('mysql_mes')->commit();
 
 	    	return response()->json(['success' => 1, 'message' => 'Task Updated.']);
-    	} catch (Exception $e) {
+		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
 

@@ -2526,6 +2526,7 @@
       success:function(data){
         if(data.status){
           showNotification("success", data.message, "now-ui-icons ui-1_check");
+
           $('#process-bc').empty();
           $('#jt-details-tbl tbody').empty();
           $.ajax({
@@ -2539,6 +2540,7 @@
               }
             }
           });
+
           $('#edit-log-modal').modal('hide');
         }else{
           showNotification("danger", data.message, "now-ui-icons travel_info");
@@ -2546,6 +2548,7 @@
       }
     });
   });
+
   function showNotification(color, message, icon){
     $.notify({
       icon: icon,

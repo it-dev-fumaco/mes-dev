@@ -21,8 +21,7 @@ trait GeneralTrait
         $time_logs_table = ($job_ticket_detail->workstation == 'Spotwelding') ? 'spotwelding_qty' : 'time_logs';
         // get job_ticket operator time logs
         $logs = DB::connection('mysql_mes')->table($time_logs_table)->where('job_ticket_id', $job_ticket_id)->get();
-        $logs = collect($logs);
-
+      
         $current_process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_detail->process_id)->pluck('process_name')->first();
 
         // get total good, total reject, actual start and end date
@@ -45,33 +44,42 @@ trait GeneralTrait
                 ->where('job_ticket_id', $job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
                 ->where('status', 'Completed')->first();
                 
-            $total_reject = $logs->sum('reject');
+            $total_reject = collect($logs)->sum('reject');
             $total_good = $total_good_spotwelding ? $total_good_spotwelding->total_good : 0;
         } else {
-            $total_good = $logs->sum('good');
-            $total_reject = $logs->sum('reject');
+            $total_good = collect($logs)->sum('good');
+            $total_reject = collect($logs)->sum('reject');
+        }
+
+        $job_ticket_actual_start_date = $job_ticket_actual_end_date = null;
+        if (collect($logs)->count() > 0) {       
+            $job_ticket_actual_start_date = collect($logs)->min('from_time');
+            $job_ticket_actual_end_date = collect($logs)->max('to_time');
         }
         
-        $job_ticket_actual_start_date = $logs->min('from_time');
-        $job_ticket_actual_end_date = $logs->max('to_time');
-
         $total_good = $total_good == null ? 0 : $total_good;
         $total_good = $total_good < 0 ? 0 : $total_good;
 
         // set job ticket status
-        if($job_ticket_detail->qty_to_manufacture <= $total_good && $current_process != 'Loading'){
+        $job_ticket_status = 'Pending';
+        if ($job_ticket_detail->qty_to_manufacture <= $total_good) {
             $job_ticket_status = 'Completed';
-        }else if(count($logs) > 0){
-            $job_ticket_status = 'In Progress';
-            if($job_ticket_detail->workstation == 'Painting' && $total_good <= 0){
-                $job_ticket_status = 'Pending';
-            }
-        }else{
-            $job_ticket_status = 'Pending';
         }
 
-        if (!$job_ticket_actual_end_date || $job_ticket_actual_end_date == null || $job_ticket_actual_end_date == '') {
-            return 0;
+        $has_wip = DB::connection('mysql_mes')->table($time_logs_table)->where('job_ticket_id', $job_ticket_id)
+            ->whereIn('status', ['In Progress', 'In Process'])->exists();
+        if ($has_wip) {
+            $job_ticket_status = 'In Progress';
+        }
+
+        if ($job_ticket_detail->qty_to_manufacture > $total_good && $total_good > 0) {
+            $job_ticket_status = 'In Progress';
+        }
+        
+        if ($job_ticket_status == 'Completed') {
+            if (!$job_ticket_actual_end_date || $job_ticket_actual_end_date == null || $job_ticket_actual_end_date == '') {
+                return 0;
+            }
         }
 
         // update job ticket details
@@ -82,9 +90,9 @@ trait GeneralTrait
             'actual_start_date' => $job_ticket_actual_start_date,
             'actual_end_date' => $job_ticket_actual_end_date,
             'last_modified_by' => Auth::check() ? Auth::user()->employee_name : null,
-            'last_modified_at' => Carbon::now()->toDateTimeString()
+            'last_modified_at' => Carbon::now()->toDateTimeString(),
         ];
-        
+
         if($job_ticket_detail->workstation == 'Painting'){
             if($current_process == 'Unloading'){
                 $loading_jt = DB::connection('mysql_mes')->table('job_ticket')
@@ -94,7 +102,7 @@ trait GeneralTrait
 
                 $loading_tl = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $loading_jt->job_ticket_id)->get();
 
-                $loaded_qty = $loading_jt ? $loading_jt->completed_qty : 0;
+                $loaded_qty = collect($loading_tl)->sum('good');
                 if($total_good == $loaded_qty && $job_ticket_detail->qty_to_manufacture > $total_good){
                     $job_ticket_status = 'Pending';
                 }

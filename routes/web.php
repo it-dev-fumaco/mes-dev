@@ -328,7 +328,8 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('/add_shift_schedule', 
         ['uses' => 'SecondaryController@add_shift_schedule', 'as' => 'fabrication.ajax_update']);
 
-	Route::post('/syncJobTicket/{id}', 'MainController@syncJobTicket');
+	Route::post('/syncJobTicket/{id}', 'MainController@syncJobTicket');	
+
 });
 Route::post('/add_shift_schedule_prod', 'SecondaryController@add_shift_schedule');
 Route::get('/maintenance_schedules_per_operation/{operation_id}', 'MainController@maintenance_schedules_per_operation');

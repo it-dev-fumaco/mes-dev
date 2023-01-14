@@ -52,6 +52,7 @@
 											break;
 									}
 								@endphp
+
 								<div class="pull-right p-0" style="margin-top:-60px;">
 									<span class="badge badge-{{$badge_color}} m-2 text-center text-white" style="font-size:16px;">{{ $item_details['production_order_status'] }}</span>
 									@if (Auth::check())
