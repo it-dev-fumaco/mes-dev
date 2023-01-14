@@ -155,8 +155,6 @@ class LinkReportController extends Controller
         $rejection_logs = DB::connection('mysql_mes')->table('time_logs as t')
             ->join('job_ticket as j', 't.job_ticket_id', 'j.job_ticket_id')
             ->join('production_order as p', 'p.production_order', 'j.production_order')
-            ->join('reject_reason as rr', 'rr.job_ticket_id', 'j.job_ticket_id')
-            ->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
             ->whereBetween('t.from_time', [$start_date, $end_date])->where('j.workstation', '!=', 'Spotwelding')
             ->where('t.reject', '>', 0)
             ->when($operation_id == 3, function($q){
@@ -168,8 +166,21 @@ class LinkReportController extends Controller
             ->when($operation_id == 2, function($q){
                 $q->where('j.workstation', 'Painting');
             })
-            ->select('j.job_ticket_id', 'p.production_order', 'p.sales_order', 'p.customer', 'p.material_request', 'p.status as po_status', 'p.operation_id', 'j.workstation', 't.from_time', 't.to_time', 't.good', 't.reject', 't.operator_name', 't.status', DB::raw('GROUP_CONCAT(DISTINCT rl.reject_reason SEPARATOR "<br>") as reject_reasons'))
-            ->groupBy('j.job_ticket_id', 'p.production_order', 'p.sales_order', 'p.customer', 'p.material_request', 'p.status', 'p.operation_id', 'j.workstation', 't.from_time', 't.to_time', 't.good', 't.reject', 't.operator_name', 't.status')->orderBy('t.from_time', 'asc')->get();
+            ->select('p.production_order', 'p.sales_order', 'p.customer', 'p.material_request', 'p.status as po_status', 'p.operation_id', 'j.workstation', DB::raw('MIN(t.from_time) as from_time'), DB::raw('MAX(t.to_time) as to_time'), DB::raw('SUM(t.good) as good'), DB::raw('SUM(t.reject) as reject'), 't.status', DB::raw('GROUP_CONCAT(DISTINCT j.job_ticket_id SEPARATOR ",") as job_ticket_ids'))
+            ->groupBy('p.production_order', 'p.sales_order', 'p.customer', 'p.material_request', 'p.status', 'p.operation_id', 'j.workstation', 't.status')
+            ->orderBy('t.from_time', 'asc')->get();
+
+        $job_ticket_ids = [];
+        foreach ($rejection_logs as $j) {
+            $jt_ids = explode(',', $j->job_ticket_ids);
+            foreach ($jt_ids as $jt_id) {
+                $job_ticket_ids[] = $jt_id;
+            }
+        }
+
+        $reject_reasons = DB::connection('mysql_mes')->table('reject_reason as rr')->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
+            ->whereIn('rr.job_ticket_id', $job_ticket_ids)->select('rl.reject_reason', 'rl.reject_list_id', 'rr.job_ticket_id')->get();
+        $reject_reasons = collect($reject_reasons)->groupBy('job_ticket_id')->toArray();
 
         $total_good = collect($rejection_logs)->sum('good');
         $total_reject = collect($rejection_logs)->sum('reject');
@@ -189,9 +200,18 @@ class LinkReportController extends Controller
 
         $reject_arr = [];
         foreach($rejection_logs as $reject){
+            $reasons = [];
+            $jts = explode(',', $reject->job_ticket_ids);
+            foreach ($jts as $jt) {
+                if (array_key_exists($jt, $reject_reasons)) {
+                    foreach ($reject_reasons[$jt] as $reason) {
+                        $reasons[] = $reason;
+                    }
+                }
+            }
+
             $reject_arr[] = [
                 'production_order' => $reject->production_order,
-                'job_ticket_id' => $reject->job_ticket_id,
                 'sales_order' => $reject->sales_order,
                 'customer' => $reject->customer,
                 'material_request' => $reject->material_request,
@@ -200,9 +220,8 @@ class LinkReportController extends Controller
                 'to_time' => Carbon::parse($reject->to_time)->format('M. d, Y h:i A'),
                 'good' => $reject->good,
                 'reject' => $reject->reject,
-                'operator_name' => $reject->operator_name,
                 'status' => $reject->status,
-                'reject_reason' => $reject->reject_reasons
+                'reject_reason' => implode('<br>', array_unique(array_column($reasons, 'reject_reason')))
             ];
         }
 

@@ -2530,7 +2530,7 @@ class SecondaryController extends Controller
                 if (!$updated_timelog_details->to_time) {
                     return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
                 }
-                
+
                 $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
                 if(!$update_job_ticket){
                     DB::connection('mysql')->rollback();

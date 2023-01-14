@@ -2519,9 +2519,7 @@
 
   $(document).on('click', '#sync-job-ticket-btn', function(e) {
     e.preventDefault();
-
     var id = $(this).data('production-order');
-
     $.ajax({
       url: '/syncJobTicket/' + id,
       type:"POST",

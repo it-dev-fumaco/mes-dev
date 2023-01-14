@@ -367,6 +367,7 @@ class SpotweldingController extends Controller
 		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
 		try {
+
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 			}
