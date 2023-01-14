@@ -58,7 +58,7 @@
       @endif
       <td class="text-center p-0">{{ $row['machine'] }}</td>
       <td>
-        <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" style="padding: 10px;">Mark as Done</button>
+        <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" data-logid="{{ $row['timelogs_id'] }}" style="padding: 10px;">Mark as Done</button>
       </td>
     </tr>
     @empty
@@ -85,6 +85,7 @@
     var jtid= $(this).attr('data-jtid');
     var workstation = $(this).attr('data-workstation');
     var qty = $(this).attr('data-qtyaccepted');
+    var timelog_id = $(this).data('logid');
       $.ajax({
       url:"/get_AssignMachineinProcess_jquery/"+ jtid + "/" + workstation_id,
       type:"GET",
@@ -93,6 +94,7 @@
         $('#mark-done-modal #jt-index').val(jtid);
         $('#mark-done-modal #qty-accepted-override').val(qty);
         $('#mark-done-modal #workstation-override').val(workstation);
+        $('#mark-done-modal #log-id').val(timelog_id);
         
         $('#mark-done-modal .workstation-text').text('[' + workstation + ']');
         $('#mark-done-modal').modal('show');
