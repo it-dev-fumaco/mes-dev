@@ -851,13 +851,10 @@ class SpotweldingController extends Controller
 		$bom_parts = DB::connection('mysql')->table('tabBOM Item')->where('parent', $job_ticket_detail->bom_no)->count();
 
 		$completed_spotwelding = [];
-		$incomplete_spotwelding = [];
 		foreach ($spotwelding_parts as $part_id => $array) {
 			if(isset($spotwelding_parts[$part_id])){
 				if(count($spotwelding_parts[$part_id]) == $bom_parts){
 					$completed_spotwelding[] = $part_id;
-				}else{
-					$incomplete_spotwelding[] = $part_id;
 				}
 			}
 		}
@@ -872,8 +869,8 @@ class SpotweldingController extends Controller
 
 			$spotwelding_completed_qty = $total_good_spotwelding->total_good ? $total_good_spotwelding->total_good : 0;
 		} else {
-			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $incomplete_spotwelding)
-				->where('job_ticket_id', $request->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->first();
+			$time_log_details = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->time_log_id)->first();
+			$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->where('spotwelding_part_id', $time_log_details->spotwelding_part_id)->where('job_ticket_id', $request->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')->first();
 
 			$spotwelding_completed_qty = $total_good_spotwelding->total_good ? $total_good_spotwelding->total_good : 0;
 		}
