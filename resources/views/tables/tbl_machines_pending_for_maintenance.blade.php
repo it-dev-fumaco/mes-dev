@@ -82,7 +82,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #112C4E; color: #fff;">
-                <h5 class="modal-title" id="exampleModalLabel">Maintenenance</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Maintenance</h5>
                 <button type="button" class="close" onclick="$('#maintenance-access-id-modal').modal('hide');" style="color: #fff;">
                     <span aria-hidden="true">&times;</span>
                 </button>

@@ -308,7 +308,7 @@
                       <table class="table table-bordered" id="maintenance-table" style="font-size: 9pt;">
                         <thead>
                             <tr>
-                                <td scope="col" class="text-center p-2">Maintenenance Staff</td>
+                                <td scope="col" class="text-center p-2">Maintenance Staff</td>
                                 <td class="text-center p-2" style="width: 10%;">
                                     <button type="button" class="btn btn-outline-primary btn-sm add-row-btn" id="add-staff-btn" data-table="#maintenance-table" data-select="#sel-assigned-maintenance-staff">Add</button>
                                 </td>
