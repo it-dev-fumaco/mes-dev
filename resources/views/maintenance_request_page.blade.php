@@ -36,7 +36,7 @@
       <div class="tab-pane active" id="tab-fabrication">
         <div class="tab-heading tab-heading--gray p-1">
           <div class="row p-0 m-0">
-            <div class="col-6 p-0">
+            <div class="col-8 p-0">
               <input class="d-none" type="text" value="All" id="fabrication-current-status">
               <div class="row m-0 p-1">
                 @foreach ($status_arr as $status)
@@ -47,7 +47,7 @@
                 @endforeach
               </div>
             </div>
-            <div class="col-6 p-0 text-right">
+            <div class="col-4 p-0 text-right">
               <div class="form-group d-inline-block m-1">
                 <input type="text" data-div="fabrication" data-op="1" class="form-control bg-white fabrication-search-filter maintenance-search rounded" placeholder="Search">
               </div>
@@ -61,7 +61,7 @@
       <div class="tab-pane" id="tab-painting">
         <div class="tab-heading tab-heading--blue p-1">
           <div class="row p-0 m-0">
-            <div class="col-6 p-0">
+            <div class="col-8 p-0">
               <input class="d-none" type="text" value="All" id="painting-current-status">
               <div class="row m-0 p-1">
                 @foreach ($status_arr as $status)
@@ -72,7 +72,7 @@
                 @endforeach
               </div>
             </div>
-            <div class="col-6 p-0 text-right">
+            <div class="col-4 p-0 text-right">
               <div class="form-group d-inline-block m-1">
                 <input type="text" data-div="painting" data-op="2" class="form-control bg-white painting-search-filter maintenance-search rounded" placeholder="Search">
               </div>
@@ -86,7 +86,7 @@
       <div class="tab-pane" id="tab-wiring">
         <div class="tab-heading tab-heading--green p-1">
           <div class="row p-0 m-0">
-            <div class="col-6 p-0">
+            <div class="col-8 p-0">
               <input class="d-none" type="text" value="All" id="wiring-current-status">
               <div class="row m-0 p-1">
                 @foreach ($status_arr as $status)
@@ -97,7 +97,7 @@
                 @endforeach
               </div>
             </div>
-            <div class="col-6 p-0 text-right">
+            <div class="col-4 p-0 text-right">
               <div class="form-group d-inline-block m-1">
                 <input type="text" data-div="wiring" data-op="3" class="form-control bg-white wiring-search-filter maintenance-search rounded" placeholder="Search">
               </div>
@@ -471,8 +471,6 @@
     background-color: #F96332;
     border: 1px solid #F96332;
     color: #fff;
-    padding-right: 16px;
-    padding-left: 16px;
   }
   .PillList-label {
     border: 1px solid #FFF;
