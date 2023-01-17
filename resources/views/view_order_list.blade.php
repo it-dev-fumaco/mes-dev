@@ -33,28 +33,37 @@
                         </div>
                     </div>
                     <div class="col-md-12 p-2">
-                        <form id="order-list-form">
-                            <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Open Order(s)</h6>
-                                <div class="pt-2 pb-2">
-                                    @foreach ($order_types as $order_type)
-                                    <label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
-                                        <input type="checkbox" class="order-types-chk" value="{{ $order_type['id'] }}" name="order_types[]">
-                                        <span class="pill-chk-label">{{ $order_type['type'] }}</span>
-                                    </label>
-                                    @endforeach
-                                </div>
-                                <div class="p-2 m-0">
+                        <form id="order-list-form" class="pl-2 pr-2">
+                            <div class="row rounded-top align-items-center pt-2 pb-2" style="background-color: #0277BD;">
+								<div class="col-1 p-0">
+									<h6 class="m-2 text-uppercase text-white text-center" style="white-space: nowrap !important;">Open Order(s)</h6>
+								</div>
+								<div class="col-5 p-0">
+									<div>
+										@foreach ($order_types as $order_type)
+										<label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
+											<input type="checkbox" class="order-types-chk" value="{{ $order_type['id'] }}" name="order_types[]">
+											<span class="pill-chk-label">{{ $order_type['type'] }}</span>
+										</label>
+										@endforeach
+									</div>
+								</div>
+								<div class="col-3">
 									<div class="row">
-										<div class="col-5">
-											<div class="custom-control custom-checkbox pt-2">
-												<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
-												<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
-											</div>
+										<div class="offset-6 col-6">
+											<input type="text" id="date-approved-filter" class="form-control date-range" placeholder="Approved Date" value="" style="background-color: rgba(0,0,0,0) !important; color: #fff !important;"/>
 										</div>
-										<div class="col-7">
-											<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
+									</div>
+                                </div>
+                                <div class="col-3 p-0 row">
+									<div class="col-6">
+										<div class="custom-control custom-checkbox pt-2">
+											<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
+											<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
 										</div>
+									</div>
+									<div class="col-6">
+										<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
 									</div>
                                 </div>
                             </div>
@@ -100,6 +109,18 @@
 </div>
 
 <style>
+	#date-approved-filter::-webkit-input-placeholder,
+	#date-approved-filter:-ms-input-placeholder
+	#date-approved-filter::-ms-input-placeholder
+	#date-approved-filter::placeholder{ /* WebKit, Blink, Edge, Internet Explorer 10-11, Microsoft Edge, Most modern browsers support this now. */
+    	color:    #fff;
+	}
+	#date-approved-filter:-moz-placeholder,
+	#date-approved-filter::-moz-placeholder { /* Mozilla Firefox 4 to 18, Mozilla Firefox 19+ */
+		color:    #fff;
+		opacity:  1;
+	}
+
 	.pill-chk-item {
 		cursor: pointer;
 		display: inline-block;
@@ -218,6 +239,31 @@
 @section('script')
 <script>
 $(document).ready(function(){
+	$('.date-range').daterangepicker({
+		autoUpdateInput: false,
+		autoApply: true,
+		locale: {
+			cancelLabel: 'Clear'
+		},
+		opens: 'left'
+	});
+
+	$('.date-range').on('apply.daterangepicker', function(ev, picker) {
+		$(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+
+		loadOrderList(1, $(this).val());
+	});
+
+	$('.date-range').on('cancel.daterangepicker', function(ev, picker) {
+		$(this).val('');
+
+		loadOrderList(1);
+	});
+
+	$('.date-range').on('keyup', function(){
+		loadOrderList(1, $(this).val());
+	});
+
 	$(document).on('click', '.view-order-details-btn', function(e) {
 		e.preventDefault();
 		$('#view-order-details-modal').modal('show');
@@ -323,10 +369,15 @@ $(document).ready(function(){
         });
     });
     
-    function loadOrderList(page){
+    function loadOrderList(page, date = null){
+		var date_filter = $('#date-approved-filter').val() ? '&date_approved=' + $('#date-approved-filter').val() : '';
+		if(date){
+			date_filter = '&date_approved=' + date;
+		}
+
         $('#loader-wrapper').removeAttr('hidden');
         $.ajax({
-            url: "/get_order_list?page=" + page,
+            url: "/get_order_list?page=" + page + date_filter,
             type:"GET",
             data: $('#order-list-form').serialize(),
             success:function(data){

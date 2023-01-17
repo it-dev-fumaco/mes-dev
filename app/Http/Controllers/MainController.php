@@ -9101,6 +9101,17 @@ class MainController extends Controller
 	
 	// /get_order_list
 	public function getOrderList(Request $request) {
+		$date_approved = $request->date_approved ? explode(' - ', $request->date_approved) : [];
+
+		$start_date = $end_date = null;
+		try {
+			$start_date = Carbon::parse($date_approved[0])->startOfDay();
+			$end_date = Carbon::parse($date_approved[1])->endOfDay();
+		} catch (\Throwable $th) {
+			$start_date = $end_date = null;
+			$date_approved = [];
+		}
+
 		$material_requests = DB::table('_3f2ec5a818bccb73.tabMaterial Request as mr')
 			->when(isset($request->reschedule), function ($q){
 				return $q->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name');
@@ -9129,6 +9140,9 @@ class MainController extends Controller
 				return $q->whereDate(DB::raw('IFNULL(dd.rescheduled_delivery_date, mr.delivery_date)'), '<', Carbon::now()->startOfDay())
 					->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'dd.rescheduled_delivery_date as reschedule_delivery_date', DB::raw('IFNULL(dd.rescheduled_delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
 			})
+			->when($date_approved, function ($q) use ($start_date, $end_date){
+				return $q->whereDate('mr.modified', '>=', $start_date)->whereDate('mr.modified', '<=', $end_date);
+			})
 			->when(!isset($request->reschedule), function ($q){
 				return $q->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
 			});
@@ -9156,6 +9170,9 @@ class MainController extends Controller
             })
 			->when(isset($request->reschedule), function ($q){
 				return $q->whereDate(DB::raw('CASE so.reschedule_delivery WHEN 1 THEN so.reschedule_delivery ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
+			})
+			->when($date_approved, function ($q) use ($start_date, $end_date){
+				return $q->whereDate('so.date_approved', '>=', $start_date)->whereDate('so.date_approved', '<=', $end_date);
 			})
 			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
 			->unionAll($material_requests)->orderBy('modified', 'desc')->orderBy('date_approved', 'desc')->paginate(15);
