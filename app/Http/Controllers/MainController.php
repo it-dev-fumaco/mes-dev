@@ -3192,7 +3192,7 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'User not found or not allowed.']);
 			}
 
-			$operator_in_progress_task = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', '!=', $request->machine_breakdown_id)->where('status', 'In Progress')->exists();
+			$operator_in_progress_task = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', '!=', $request->machine_breakdown_id)->where('operator_id', $request->user_id)->where('status', 'In Progress')->exists();
 
 			if($operator_in_progress_task){
 				return response()->json(['success' => 0, 'message' => 'User has In progress task.']);
@@ -3229,7 +3229,7 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $request->machine_breakdown_id)->update($update);
 
-			$in_progress_log = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $request->machine_breakdown_id)->where('status', 'In Progress')->orderBy('created_at', 'desc')->first();
+			$in_progress_log = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $request->machine_breakdown_id)->where('operator_id', $request->user_id)->where('status', 'In Progress')->orderBy('created_at', 'desc')->first();
 
 			if($in_progress_log){
 				$start_time = Carbon::parse($in_progress_log->start_time);

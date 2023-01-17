@@ -9,6 +9,8 @@
                     $badge = 'warning';
                     break;
                 case 'On Hold':
+                case 'Cancelled':
+                case 'Unavailable':
                     $badge = 'secondary';
                     break;
                 default:
@@ -36,6 +38,9 @@
                             @endphp
                             [<span class="font-weight-bold">{{ $imploded }}</span>]
                         @endisset
+                        @if (in_array($machine->breakdown_status, ['In Process', 'In Progress']) && isset($in_process_timelogs[$machine->machine_breakdown_id]))
+                            <span>Maintenance Personnel: {{ $in_process_timelogs[$machine->machine_breakdown_id][0]->operator_name }}</span>
+                        @endif
                     </div>
                     <div class="col-3 d-flex flex-row justify-content-start align-items-center">
                         @if (!in_array($machine->breakdown_status, ['In Process', 'In Progress'])) 

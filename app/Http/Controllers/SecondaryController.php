@@ -8618,13 +8618,23 @@ class SecondaryController extends Controller
 
 		$machine_breakdown = DB::connection('mysql_mes')->table('machine as m')
 			->join('machine_breakdown as mb', 'm.machine_code', 'mb.machine_id')
-			->whereIn('m.status', ['Unavailable', 'On-going Maintenance'])->whereIn('m.machine_code', $machines)->where('mb.status', '!=','Done')
+			->whereIn('m.status', ['Unavailable', 'On-going Maintenance'])->whereIn('m.machine_code', $machines)->whereNotIn('mb.status', ['Done', 'Cancelled'])
             ->when($operation != 'Painting', function ($q){
                 return $q->where('m.machine_name', '!=', 'Painting Machine');
             })
 			->select('m.*', 'mb.category', 'mb.date_reported','mb.type', 'mb.breakdown_reason', 'mb.corrective_reason', 'mb.findings', 'mb.work_done', 'mb.date_resolved', 'mb.machine_breakdown_id', 'mb.status as breakdown_status')->orderByRaw("FIELD(mb.status, 'In Process', 'Pending', 'On Hold') ASC")
 			->get();
 
-        return view('tables.tbl_machines_pending_for_maintenance', compact('machine_breakdown', 'operation'));
+        $in_process_maintenance = collect($machine_breakdown)->groupBy('breakdown_status');
+        $in_process_maintenance = isset($in_process_maintenance['In Process']) ? collect($in_process_maintenance['In Process'])->pluck('machine_breakdown_id') : [];
+
+        $in_process_timelogs = [];
+        if($in_process_maintenance){
+            $in_process_timelogs = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->whereIn('status', ['In Process', 'In Progress'])->whereIn('machine_breakdown_id', $in_process_maintenance)->get();
+
+            $in_process_timelogs = collect($in_process_timelogs)->groupBy('machine_breakdown_id');
+        }
+
+        return view('tables.tbl_machines_pending_for_maintenance', compact('machine_breakdown', 'operation', 'in_process_timelogs'));
     }
 }
