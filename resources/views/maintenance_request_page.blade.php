@@ -10,7 +10,7 @@
 <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
   <div class="col-9 p-0">
     @php
-      $status_arr = array('Pending', 'On Hold', 'In Process', 'Done');;
+      $status_arr = ['Pending', 'On Hold', 'In Process', 'Done', 'Cancelled'];
     @endphp
     <ul class="nav nav-tabs nav-justified">
       <li class="tab custom-nav-link col-2" heading="Justified" style="background-color: #808495 !important">

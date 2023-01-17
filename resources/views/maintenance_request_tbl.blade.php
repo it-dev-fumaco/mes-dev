@@ -29,6 +29,7 @@
                             $status = 'success';
                             break;
                         case 'On Hold':
+                        case 'Cancelled':
                             $status = 'secondary';
                             break;
                         default:
@@ -132,7 +133,13 @@
                                         <div class="col-4">
                                             <div class="mb-1">
                                                 @php
-                                                    $statuses = array('Pending', 'On Hold', 'In Process', 'Done');
+                                                    $statuses = ['Pending', 'On Hold', 'In Process', 'Done', 'Cancel'];
+                                                    if(isset($tl_array[$row->machine_breakdown_id])){
+                                                        if(in_array('Completed', array_unique($tl_array[$row->machine_breakdown_id])) || in_array('In Progress', array_unique($tl_array[$row->machine_breakdown_id]))){
+                                                            unset($statuses[4]);
+                                                        }
+                                                    }
+
                                                     $current_status = $row->status == '' ? 'Done' : $row->status;
     
                                                     $start = $row->work_started ? Carbon\Carbon::parse($row->work_started) : null;
@@ -154,7 +161,7 @@
                                                 <select class="form-control rounded" name="status_update" id="{{ $row->machine_breakdown_id }}-status" data-container="#{{ $row->machine_breakdown_id }}-container" onchange="status_check('{{ $row->machine_breakdown_id }}')" required>
                                                     <option value="" disabled>Select a Status</option>
                                                     @foreach ($statuses as $status)
-                                                        <option value="{{ $status }}" {{ $current_status == $status ? 'selected' : null }}>{{ $status }}</option>
+                                                        <option value="{{ $status == 'Cancel' ? 'Cancelled' : $status }}" {{ $current_status == $status ? 'selected' : null }}>{{ $status }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -183,7 +190,7 @@
                                                     <table class="table table-bordered" id="{{ $row->machine_breakdown_id }}-staff-table" style="font-size: 9pt !important;">
                                                         <thead>
                                                             <tr>
-                                                                <td scope="col" class="text-center p-2 font-weight-bold">Assign Maintenenance Staff</td>
+                                                                <td scope="col" class="text-center p-2 font-weight-bold">Assign Maintenance Staff</td>
                                                                 <td class="text-center p-2 d-print-none" style="width: 10%;">
                                                                     <button type="button" class="btn btn-outline-primary btn-sm add-row-btn" id="add-staff-btn" data-table="#{{ $row->machine_breakdown_id }}-staff-table" data-select="#{{ $row->machine_breakdown_id }}-staff-select" style="font-size: 9pt !important;">Add</button>
                                                                 </td>
