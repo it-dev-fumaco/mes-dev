@@ -9183,10 +9183,6 @@ class MainController extends Controller
 			if(!$request->sort_by){
 				$list = $list->orderBy('modified', 'desc');
 			}
-
-			if($request->sort_by == 'customer'){
-				$list = $list->orderByRaw('ISNULL(customer), customer ASC');
-			}
 			
 			$list = $list->orderBy($sort_by, $order_by)->paginate(15);
 
