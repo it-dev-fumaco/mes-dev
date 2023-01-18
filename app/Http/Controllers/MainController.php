@@ -3192,7 +3192,7 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'User not found or not allowed.']);
 			}
 
-			$operator_in_progress_task = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', '!=', $request->machine_breakdown_id)->where('status', 'In Progress')->exists();
+			$operator_in_progress_task = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', '!=', $request->machine_breakdown_id)->where('operator_id', $request->user_id)->where('status', 'In Progress')->exists();
 
 			if($operator_in_progress_task){
 				return response()->json(['success' => 0, 'message' => 'User has In progress task.']);
@@ -3229,7 +3229,7 @@ class MainController extends Controller
 
 			DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_breakdown_id', $request->machine_breakdown_id)->update($update);
 
-			$in_progress_log = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $request->machine_breakdown_id)->where('status', 'In Progress')->orderBy('created_at', 'desc')->first();
+			$in_progress_log = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->where('machine_breakdown_id', $request->machine_breakdown_id)->where('operator_id', $request->user_id)->where('status', 'In Progress')->orderBy('created_at', 'desc')->first();
 
 			if($in_progress_log){
 				$start_time = Carbon::parse($in_progress_log->start_time);
@@ -4786,9 +4786,15 @@ class MainController extends Controller
 			})
 			->where('operation.operation_id', $request->operation)
 			->select('machine_breakdown.*', 'machine.image', 'machine.machine_name', 'machine.machine_code', 'operation.operation_name', 'operation.operation_id')
-			->orderByRaw("FIELD(machine_breakdown.status, 'In Process', 'Pending', 'On Hold', 'Done', '')asc")
+			->orderByRaw("FIELD(machine_breakdown.status, 'In Process', 'Pending', 'On Hold', 'Done', 'Cancelled') asc")
 			->orderBy('created_at', 'desc')
 			->paginate(15);
+
+		$breakdown_timelogs = DB::connection('mysql_mes')->table('machine_breakdown_timelogs')->whereIn('machine_breakdown_id', collect($list->items())->pluck('machine_breakdown_id'))->get();
+		$tl_array = [];
+		foreach($breakdown_timelogs as $tl){
+			$tl_array[$tl->machine_breakdown_id][] = $tl->status;
+		}
 
 		$assigned_staffs = DB::connection('mysql_mes')->table('machine_breakdown_personnel')->whereIn('machine_breakdown_id', collect($list->items())->pluck('machine_breakdown_id'))->get();
 		$assigned_staffs = collect($assigned_staffs)->groupBy('machine_breakdown_id');
@@ -4809,7 +4815,7 @@ class MainController extends Controller
 			->select('u.user_id as operator_id', 'u.employee_name', 'd.department')
 			->orderBy('u.employee_name', 'asc')->get();
 
-		return view('maintenance_request_tbl', compact('list', 'permissions', 'operation', 'operators', 'assigned_staffs'));
+		return view('maintenance_request_tbl', compact('list', 'permissions', 'operation', 'operators', 'assigned_staffs', 'tl_array'));
 	}
 	
 	public function update_maintenance_request($machine_breakdown_id, Request $request){
@@ -9095,6 +9101,20 @@ class MainController extends Controller
 	
 	// /get_order_list
 	public function getOrderList(Request $request) {
+		$date_approved = $request->date_approved ? explode(' - ', $request->date_approved) : [];
+
+		$start_date = $end_date = null;
+		try {
+			$start_date = Carbon::parse($date_approved[0])->startOfDay();
+			$end_date = Carbon::parse($date_approved[1])->endOfDay();
+		} catch (\Throwable $th) {
+			$start_date = $end_date = null;
+			$date_approved = [];
+		}
+
+		$sort_by = $request->sort_by ? $request->sort_by : 'date_approved';
+		$order_by = $request->order_by ? $request->order_by : 'desc';
+
 		$material_requests = DB::table('_3f2ec5a818bccb73.tabMaterial Request as mr')
 			->when(isset($request->reschedule), function ($q){
 				return $q->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name');
@@ -9122,6 +9142,9 @@ class MainController extends Controller
 			->when(isset($request->reschedule), function ($q){
 				return $q->whereDate(DB::raw('IFNULL(dd.rescheduled_delivery_date, mr.delivery_date)'), '<', Carbon::now()->startOfDay())
 					->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'dd.rescheduled_delivery_date as reschedule_delivery_date', DB::raw('IFNULL(dd.rescheduled_delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
+			})
+			->when($date_approved, function ($q) use ($start_date, $end_date){
+				return $q->whereDate('mr.modified', '>=', $start_date)->whereDate('mr.modified', '<=', $end_date);
 			})
 			->when(!isset($request->reschedule), function ($q){
 				return $q->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
@@ -9151,8 +9174,17 @@ class MainController extends Controller
 			->when(isset($request->reschedule), function ($q){
 				return $q->whereDate(DB::raw('CASE so.reschedule_delivery WHEN 1 THEN so.reschedule_delivery ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
 			})
+			->when($date_approved, function ($q) use ($start_date, $end_date){
+				return $q->whereDate('so.date_approved', '>=', $start_date)->whereDate('so.date_approved', '<=', $end_date);
+			})
 			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
-			->unionAll($material_requests)->orderBy('modified', 'desc')->orderBy('date_approved', 'desc')->paginate(15);
+			->unionAll($material_requests);
+
+			if(!$request->sort_by){
+				$list = $list->orderBy('modified', 'desc');
+			}
+			
+			$list = $list->orderBy($sort_by, $order_by)->paginate(15);
 
 		// get items
 		$references = collect($list->items())->pluck('name');

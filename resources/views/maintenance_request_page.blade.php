@@ -10,7 +10,7 @@
 <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
   <div class="col-9 p-0">
     @php
-      $status_arr = array('Pending', 'On Hold', 'In Process', 'Done');;
+      $status_arr = ['Pending', 'On Hold', 'In Process', 'Done', 'Cancelled'];
     @endphp
     <ul class="nav nav-tabs nav-justified">
       <li class="tab custom-nav-link col-2" heading="Justified" style="background-color: #808495 !important">
@@ -36,7 +36,7 @@
       <div class="tab-pane active" id="tab-fabrication">
         <div class="tab-heading tab-heading--gray p-1">
           <div class="row p-0 m-0">
-            <div class="col-6 p-0">
+            <div class="col-8 p-0">
               <input class="d-none" type="text" value="All" id="fabrication-current-status">
               <div class="row m-0 p-1">
                 @foreach ($status_arr as $status)
@@ -47,7 +47,7 @@
                 @endforeach
               </div>
             </div>
-            <div class="col-6 p-0 text-right">
+            <div class="col-4 p-0 text-right">
               <div class="form-group d-inline-block m-1">
                 <input type="text" data-div="fabrication" data-op="1" class="form-control bg-white fabrication-search-filter maintenance-search rounded" placeholder="Search">
               </div>
@@ -61,7 +61,7 @@
       <div class="tab-pane" id="tab-painting">
         <div class="tab-heading tab-heading--blue p-1">
           <div class="row p-0 m-0">
-            <div class="col-6 p-0">
+            <div class="col-8 p-0">
               <input class="d-none" type="text" value="All" id="painting-current-status">
               <div class="row m-0 p-1">
                 @foreach ($status_arr as $status)
@@ -72,7 +72,7 @@
                 @endforeach
               </div>
             </div>
-            <div class="col-6 p-0 text-right">
+            <div class="col-4 p-0 text-right">
               <div class="form-group d-inline-block m-1">
                 <input type="text" data-div="painting" data-op="2" class="form-control bg-white painting-search-filter maintenance-search rounded" placeholder="Search">
               </div>
@@ -86,7 +86,7 @@
       <div class="tab-pane" id="tab-wiring">
         <div class="tab-heading tab-heading--green p-1">
           <div class="row p-0 m-0">
-            <div class="col-6 p-0">
+            <div class="col-8 p-0">
               <input class="d-none" type="text" value="All" id="wiring-current-status">
               <div class="row m-0 p-1">
                 @foreach ($status_arr as $status)
@@ -97,7 +97,7 @@
                 @endforeach
               </div>
             </div>
-            <div class="col-6 p-0 text-right">
+            <div class="col-4 p-0 text-right">
               <div class="form-group d-inline-block m-1">
                 <input type="text" data-div="wiring" data-op="3" class="form-control bg-white wiring-search-filter maintenance-search rounded" placeholder="Search">
               </div>
@@ -308,7 +308,7 @@
                       <table class="table table-bordered" id="maintenance-table" style="font-size: 9pt;">
                         <thead>
                             <tr>
-                                <td scope="col" class="text-center p-2">Maintenenance Staff</td>
+                                <td scope="col" class="text-center p-2">Maintenance Staff</td>
                                 <td class="text-center p-2" style="width: 10%;">
                                     <button type="button" class="btn btn-outline-primary btn-sm add-row-btn" id="add-staff-btn" data-table="#maintenance-table" data-select="#sel-assigned-maintenance-staff">Add</button>
                                 </td>
@@ -471,8 +471,6 @@
     background-color: #F96332;
     border: 1px solid #F96332;
     color: #fff;
-    padding-right: 16px;
-    padding-left: 16px;
   }
   .PillList-label {
     border: 1px solid #FFF;

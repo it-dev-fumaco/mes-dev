@@ -423,7 +423,7 @@
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #6A1B9A;">
-        <h5 class="modal-title" id="exampleModalLabel" style="color: #fff">Maintenance Request[<b>Painting</b>]</h5>
+        <h5 class="modal-title" id="exampleModalLabel" style="color: #fff">Maintenance Request [<b>Painting</b>]</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
           <span aria-hidden="true">&times;</span>
         </button>

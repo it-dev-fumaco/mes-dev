@@ -33,27 +33,65 @@
                         </div>
                     </div>
                     <div class="col-md-12 p-2">
-                        <form id="order-list-form">
-                            <div class="d-flex flex-row rounded-top align-items-center justify-content-between" style="background-color: #0277BD;">
-                                <h6 class="m-2 p-2 text-uppercase text-white text-center">Open Order(s)</h6>
-                                <div class="pt-2 pb-2">
-                                    @foreach ($order_types as $order_type)
-                                    <label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
-                                        <input type="checkbox" class="order-types-chk" value="{{ $order_type['id'] }}" name="order_types[]">
-                                        <span class="pill-chk-label">{{ $order_type['type'] }}</span>
-                                    </label>
-                                    @endforeach
-                                </div>
-                                <div class="p-2 m-0">
-									<div class="row">
-										<div class="col-5">
-											<div class="custom-control custom-checkbox pt-2">
-												<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
-												<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
-											</div>
+                        <form id="order-list-form" class="pl-2 pr-2">
+                            <div class="row rounded-top align-items-center pt-2 pb-2 pr-0 mr-0" style="background-color: #0277BD;">
+								<div class="col-1 p-0">
+									<h6 class="m-2 text-uppercase text-white text-center" style="white-space: nowrap !important;">Open Order(s)</h6>
+								</div>
+								<div class="col-5 p-0">
+									<div>
+										@foreach ($order_types as $order_type)
+										<label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
+											<input type="checkbox" class="order-types-chk" value="{{ $order_type['id'] }}" name="order_types[]">
+											<span class="pill-chk-label">{{ $order_type['type'] }}</span>
+										</label>
+										@endforeach
+									</div>
+								</div>
+                                <div class="col-3 p-0 row">
+									<div class="col-6">
+										<div class="custom-control custom-checkbox pt-2">
+											<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
+											<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
 										</div>
-										<div class="col-7">
-											<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
+									</div>
+									<div class="col-6">
+										<input type="text" id="date-approved-filter" class="form-control rounded bg-white m-0 date-range" placeholder="Approved Date" value="" style="color: #000 !important"/>
+									</div>
+                                </div>
+								<div class="col-3 mr-0 row">
+									<div class="col-6">
+										<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
+									</div>
+									<div class="col-6 p-0">
+										@php
+											$sort_arr = [
+												[
+													'display' => 'Date Approved',
+													'value' => 'date_approved'
+												],
+												[
+													'display' => 'Customer',
+													'value' => 'customer'
+												],
+												[
+													'display' => 'Delivery Date',
+													'value' => 'delivery_date'
+												]
+											];
+										@endphp
+										<div class="row p-0">
+											<div class="col-10">
+												<select class="form-control rounded bg-white m-0 w-100" id="sort-selection">
+													<option value="" style="color: #000" selected disabled>Sort By</option>
+													@foreach ($sort_arr as $sort)
+														<option value="{{ $sort['value'] }}" style="color: #000">{{ $sort['display'] }}</option>
+													@endforeach
+												</select>
+											</div>
+											<div class="col-2" id="ctrl-sorting" data-sort='desc' style="display: flex; justify-content: center; align-items: center; color: #fff; z-index: 90;">
+												<i class="fa fa-sort-amount-desc"></i>
+											</div>
 										</div>
 									</div>
                                 </div>
@@ -98,7 +136,7 @@
     <div class="loader-section section-left"></div>
     <div class="loader-section section-right"></div>
 </div>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
 	.pill-chk-item {
 		cursor: pointer;
@@ -218,6 +256,53 @@
 @section('script')
 <script>
 $(document).ready(function(){
+	$(document).on('change', '#sort-selection', function (e){
+		e.preventDefault();
+
+		loadOrderList();
+	});
+
+	$(document).on('click', '#ctrl-sorting', function (e){
+		e.preventDefault();
+
+		if($(this).data('sort') == 'asc'){
+			$(this).data('sort', 'desc');
+			$(this).find('i').addClass('fa-sort-amount-desc').removeClass('fa-sort-amount-asc');
+		}else{
+			$(this).data('sort', 'asc');
+			$(this).find('i').addClass('fa-sort-amount-asc').removeClass('fa-sort-amount-desc');
+		}
+
+		var order_by = $(this).data('sort');
+
+		loadOrderList();
+	});
+
+	$('.date-range').daterangepicker({
+		autoUpdateInput: false,
+		autoApply: true,
+		locale: {
+			cancelLabel: 'Clear'
+		},
+		opens: 'left'
+	});
+
+	$('.date-range').on('apply.daterangepicker', function(ev, picker) {
+		$(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+
+		loadOrderList();
+	});
+
+	$('.date-range').on('cancel.daterangepicker', function(ev, picker) {
+		$(this).val('');
+
+		loadOrderList();
+	});
+
+	$('.date-range').on('keyup', function(){
+		loadOrderList();
+	});
+
 	$(document).on('click', '.view-order-details-btn', function(e) {
 		e.preventDefault();
 		$('#view-order-details-modal').modal('show');
@@ -324,9 +409,14 @@ $(document).ready(function(){
     });
     
     function loadOrderList(page){
+		var date_filter = $('#date-approved-filter').val() ? '&date_approved=' + $('#date-approved-filter').val() : '';
+
+		var sort_by = $('#sort-selection').val() ? '&sort_by=' + $('#sort-selection').val() : '';
+		var order_by = $('#ctrl-sorting').data('sort') ? '&order_by=' + $('#ctrl-sorting').data('sort') : '';
+
         $('#loader-wrapper').removeAttr('hidden');
         $.ajax({
-            url: "/get_order_list?page=" + page,
+            url: "/get_order_list?page=" + page + date_filter + sort_by + order_by,
             type:"GET",
             data: $('#order-list-form').serialize(),
             success:function(data){

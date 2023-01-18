@@ -66,26 +66,33 @@
                         <th class="text-center p-1" style="font-size: 10pt;">Reject</th>
                         <th class="text-center p-1" style="font-size: 10pt;">Reason</th>
                         <th class="text-center p-1" style="font-size: 10pt;">Status</th>
+                        <th class="text-center p-1" style="font-size: 10pt;">Rejection Rate</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($reject_arr as $reject)
-                        <tr>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['production_order'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['customer'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['workstation'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['from_time'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['to_time'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['good'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['reject'] }}</td>
-                            <td class="p-2 reject-font-size text-center">{!! $reject['reject_reason'] !!}</td>
-                            <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
-                        </tr>
+                    <tr>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['production_order'] }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['customer'] }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['workstation'] }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['from_time'] }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['to_time'] }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ number_format($reject['good']) }}</td>
+                        <td class="p-2 reject-font-size text-center">{{ number_format($reject['reject']) }}</td>
+                        <td class="p-2 reject-font-size text-center">{!! $reject['reject_reason'] !!}</td>
+                        <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
+                        <td class="p-2 reject-font-size text-center">
+                            @php
+                                $rejection_rate = (($reject['reject']) > 0) ? (($reject['reject']) / ($reject['good'])) * 100 : 0;
+                            @endphp
+                            {{ number_format($rejection_rate, 2) }}%
+                        </td>
+                    </tr>
                     @empty
-                        <tr>
-                            <td colspan="12" class="text-center">No result(s) found.</td>
-                        </tr>
+                    <tr>
+                        <td colspan="12" class="text-center text-uppercase text-muted">No result(s) found.</td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>

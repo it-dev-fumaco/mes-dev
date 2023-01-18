@@ -1159,6 +1159,10 @@
   <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
 <script>
   $(document).ready(function(){
+    $(document).on('click', '.close-modal', function(){
+      $($(this).data('target')).modal('hide');
+    }); 
+
     $(document).on('click', '.mark-done-btn', function(){
       if ($('#machine_kanban_details #card-status').val() == 'Unassigned') {
         showNotification("danger", 'Please assigned task to machine first', "now-ui-icons travel_info");

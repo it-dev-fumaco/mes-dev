@@ -9,6 +9,8 @@
                     $badge = 'warning';
                     break;
                 case 'On Hold':
+                case 'Cancelled':
+                case 'Unavailable':
                     $badge = 'secondary';
                     break;
                 default:
@@ -36,6 +38,9 @@
                             @endphp
                             [<span class="font-weight-bold">{{ $imploded }}</span>]
                         @endisset
+                        @if (in_array($machine->breakdown_status, ['In Process', 'In Progress']) && isset($in_process_timelogs[$machine->machine_breakdown_id]))
+                            <span>Maintenance Personnel: {{ $in_process_timelogs[$machine->machine_breakdown_id][0]->operator_name }}</span>
+                        @endif
                     </div>
                     <div class="col-3 d-flex flex-row justify-content-start align-items-center">
                         @if (!in_array($machine->breakdown_status, ['In Process', 'In Progress'])) 
@@ -77,7 +82,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #112C4E; color: #fff;">
-                <h5 class="modal-title" id="exampleModalLabel">Maintenenance</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Maintenance</h5>
                 <button type="button" class="close" onclick="$('#maintenance-access-id-modal').modal('hide');" style="color: #fff;">
                     <span aria-hidden="true">&times;</span>
                 </button>
