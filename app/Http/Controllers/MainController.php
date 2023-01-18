@@ -9112,6 +9112,9 @@ class MainController extends Controller
 			$date_approved = [];
 		}
 
+		$sort_by = $request->sort_by ? $request->sort_by : 'date_approved';
+		$order_by = $request->order_by ? $request->order_by : 'desc';
+
 		$material_requests = DB::table('_3f2ec5a818bccb73.tabMaterial Request as mr')
 			->when(isset($request->reschedule), function ($q){
 				return $q->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name');
@@ -9175,7 +9178,17 @@ class MainController extends Controller
 				return $q->whereDate('so.date_approved', '>=', $start_date)->whereDate('so.date_approved', '<=', $end_date);
 			})
 			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
-			->unionAll($material_requests)->orderBy('modified', 'desc')->orderBy('date_approved', 'desc')->paginate(15);
+			->unionAll($material_requests);
+
+			if(!$request->sort_by){
+				$list = $list->orderBy('modified', 'desc');
+			}
+
+			if($request->sort_by == 'customer'){
+				$list = $list->orderByRaw('ISNULL(customer), customer ASC');
+			}
+			
+			$list = $list->orderBy($sort_by, $order_by)->paginate(15);
 
 		// get items
 		$references = collect($list->items())->pluck('name');
