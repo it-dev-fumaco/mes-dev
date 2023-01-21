@@ -84,7 +84,7 @@
                         <td class="p-2 reject-font-size text-center">{{ $reject['status'] }}</td>
                         <td class="p-2 reject-font-size text-center">
                             @php
-                                $rejection_rate = (($reject['reject']) > 0) ? (($reject['reject']) / ($reject['good'])) * 100 : 0;
+                                $rejection_rate = (($reject['reject']) > 0) && ($reject['good']) > 0 ? (($reject['reject']) / ($reject['good'])) * 100 : 0;
                             @endphp
                             {{ number_format($rejection_rate, 2) }}%
                         </td>
