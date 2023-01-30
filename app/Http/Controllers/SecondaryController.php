@@ -5904,44 +5904,56 @@ class SecondaryController extends Controller
                             
     }
     public function submit_painting_chemical_records(Request $request){
-        $now = Carbon::now();
-        if (DB::connection('mysql_mes')
-                        ->table('chemical_monitoring')
-                        ->whereDate('date', $now->format('Y-m-d'))
-                        ->exists()){
-                        return response()->json(['success' => 0, 'message' => 'Painting chemical record for today already exist.']);
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $now = Carbon::now();
+            if (DB::connection('mysql_mes')
+                ->table('chemical_monitoring')
+                ->whereDate('date', $now->format('Y-m-d'))
+                ->exists()){
+                    return response()->json(['success' => 0, 'message' => 'Painting chemical record for today already exist.']);
             }else{
-                $email= DB::connection('mysql_essex')
-                        ->table('users')
-                        ->where('users.user_id', $request->inspected_by)
-                        ->select('users.email')
-                        ->first();
-                    $data=[];
-                    $chem_monitoring=[];
-                        $chem_monitoring = [
-                        'date' =>  $now->toDateTimeString(),
-                        'degreasing_freealkali' => $request->deg_freealkali,
-                        'degrasing_point' =>  $request->degreasing_type,
-                        'degreasing_increase_type' => ($request->degreasing_type_input == null)? "": $request->degreasing_type_input,
-                        'degreasing_status' => "Good",
-                        'phospating_acid' => $request->replenshing,
-                        'phospating_acid_point' => $request->replenshing_type,
-                        'phospating_increase_type' => ($request->replenshing_type_input == null)? "":$request->replenshing_type_input,
-                        'phospating_acid_status' => "Good",
-                        'phospating_accelerator' => $request->accelerator,
-                        'accelerator_increase_point' => $request->accelerator_type,
-                        'accelerator_increase_type' => ($request->accelerator_type_input == null)? "": $request->accelerator_type_input,
-                        'phospating_accelerator_status' => "Good",
-                        'last_modified_by' => $email->email,
-                        'created_by' => $email->email,
-                        'created_at' => $now->toDateTimeString()
-                    ];
-    
-                    DB::connection('mysql_mes')->table('chemical_monitoring')->insert($chem_monitoring);
-                                    
-                    return response()->json(['success' => 1,'message' => 'Painting chemical record for today successfully inserted.']);
+                $email= DB::connection('mysql_essex')->table('users')
+                    ->where('users.user_id', $request->inspected_by)->select('users.email', 'users.employee_name')->first();
+
+                if (!$email) {
+                    return response()->json(['success'=> 0, 'message' => 'Employee ID not found.']);
+                }
+        
+                $data=[];
+                $chem_monitoring=[];
+                $chem_monitoring = [
+                    'date' =>  $now->toDateTimeString(),
+                    'degreasing_freealkali' => $request->deg_freealkali,
+                    'degrasing_point' =>  $request->degreasing_type,
+                    'degreasing_increase_type' => ($request->degreasing_type_input == null)? "": $request->degreasing_type_input,
+                    'degreasing_status' => "Good",
+                    'phospating_acid' => $request->replenshing,
+                    'phospating_acid_point' => $request->replenshing_type,
+                    'phospating_increase_type' => ($request->replenshing_type_input == null)? "":$request->replenshing_type_input,
+                    'phospating_acid_status' => "Good",
+                    'phospating_accelerator' => $request->accelerator,
+                    'accelerator_increase_point' => $request->accelerator_type,
+                    'accelerator_increase_type' => ($request->accelerator_type_input == null)? "": $request->accelerator_type_input,
+                    'phospating_accelerator_status' => "Good",
+                    'last_modified_by' => $email->email ? $email->email : $email->employee_name,
+                    'created_by' => $email->email ? $email->email : $email->employee_name,
+                    'created_at' => $now->toDateTimeString()
+                ];
+
+                DB::connection('mysql_mes')->table('chemical_monitoring')->insert($chem_monitoring);
+
+                DB::connection('mysql_mes')->commit();
+                                
+                return response()->json(['success' => 1,'message' => 'Painting chemical record for today successfully inserted.']);
             }
+        } catch (Exception $th) {
+            DB::connection('mysql_mes')->rollback();
+            
+            return response()->json(['success'=> 0, 'message' => 'Something went wrong. Please contact your system administrator.']);
         }
+    }
+
     public function get_tbl_qa_visual(Request $request){
         $sampling_plan = DB::connection('mysql_mes')->table('qa_sampling_plan as qa_sp')
             ->join('reject_category as rc','qa_sp.reject_category_id', 'rc.reject_category_id')

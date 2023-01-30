@@ -7050,9 +7050,13 @@ class MainController extends Controller
 					->first();
 
 				if (!$is_with_alternative_item) {
-					DB::connection('mysql')->table('tabWork Order Item')
-						->where('parent', $production_order)->where('item_code', $request->item_code)
-						->delete();
+					$count_work_order_items = DB::connection('mysql')->table('tabWork Order Item')
+						->where('parent', $production_order)->count();
+					if ($count_work_order_items > 1) {
+						DB::connection('mysql')->table('tabWork Order Item')
+							->where('parent', $production_order)->where('item_code', $request->item_code)
+							->delete();
+					}
 				}
 			}
 			
