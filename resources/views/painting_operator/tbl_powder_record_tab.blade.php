@@ -118,7 +118,7 @@
                   <div class="col-md-12 text-center" id="prm-enter-operator">
                      <h5 class="text-center">Scan Authorized Employee ID</h5>
                      <div class="form-group">
-                        <input type="password" class="form-control form-control-lg" name="inspected_by" readonly style="text-align: center; font-size: 20pt; font-weight: bolder;margin:0 auto;width:400px;text-align: center;" id="inspected-by">
+                        <input type="password" class="form-control form-control-lg" name="inspected_by" readonly style="text-align: center; font-size: 20pt; font-weight: bolder;margin:0 auto;width:400px;text-align: center;" id="pcm-inspected-by">
                      </div>
                      <div class="col-md-12" style="margin-bottom: 10px;margin:0 auto;text-align: center;">
                        <button type="button" class="toggle-manual-input" style="margin-bottom: 10px;margin:0 auto;text-align: center;">Tap here for Manual Entry</button>
@@ -126,24 +126,24 @@
                     <div class="col-md-8 offset-md-2">
                       <div class="text-center numpad-div manual col-md-12" style="display: none;">
                         <div class="row1">
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '1';">1</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '2';">2</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '3';">3</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '1';">1</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '2';">2</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '3';">3</span>
                         </div>
                         <div class="row1">
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '4';">4</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '5';">5</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '6';">6</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '4';">4</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '5';">5</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '6';">6</span>
                         </div>
                         <div class="row1">
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '7';">7</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '8';">8</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '9';">9</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '7';">7</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '8';">8</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '9';">9</span>
                         </div>
                         <div class="row1">
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value.slice(0, -1);"><</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value=document.getElementById('inspected-by').value + '0';">0</span>
-                           <span class="numpad" onclick="document.getElementById('inspected-by').value='';">Clear</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value.slice(0, -1);"><</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value=document.getElementById('pcm-inspected-by').value + '0';">0</span>
+                           <span class="numpad" onclick="document.getElementById('pcm-inspected-by').value='';">Clear</span>
                         </div>
                      </div>
                     </div>
