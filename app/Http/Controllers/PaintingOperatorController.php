@@ -1466,7 +1466,7 @@ class PaintingOperatorController extends Controller
 				->first();
 
 			if (!$email) {
-				return response()->json(['success'=> 0, 'message' => 'Employee not allowed.']);
+				return response()->json(['success'=> 0, 'message' => 'Employee ID not found.']);
 			}
 				
 			$arr = $request->item_code;
@@ -1500,8 +1500,8 @@ class PaintingOperatorController extends Controller
 								'operator_id' => $request->inspected_by,
 								'operator' => $email->employee_name,
 								'date' =>  $now->toDateTimeString(),
-								'last_modified_by' =>$email->email,
-								'created_by' => $email->email,
+								'last_modified_by' => $email->email ? $email->email : $email->employee_name,
+								'created_by' => $email->email ? $email->email : $email->employee_name,
 								'created_at' => $now->toDateTimeString()
 							];
 
