@@ -72,7 +72,9 @@
                 <tbody>
                     @forelse($reject_arr as $reject)
                     <tr>
-                        <td class="p-2 reject-font-size text-center">{{ $reject['production_order'] }}</td>
+                        <td class="p-2 reject-font-size text-center">
+                            <a href="#" data-jtno="{{ $reject['production_order'] }}" class="prod-details-btn">{{ $reject['production_order'] }}</a>
+                        </td>
                         <td class="p-2 reject-font-size text-center">{{ $reject['sales_order'] ? $reject['sales_order'] : $reject['material_request'] }}</td>
                         <td class="p-2 reject-font-size text-center">{{ $reject['customer'] }}</td>
                         <td class="p-2 reject-font-size text-center">{{ $reject['workstation'] }}</td>
