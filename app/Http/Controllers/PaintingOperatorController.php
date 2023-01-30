@@ -1451,31 +1451,33 @@ class PaintingOperatorController extends Controller
                         
 	}
 	public function submit_powder_record_monitoring(Request $request){
-        $now = Carbon::now();
-		$data = $request->all();
-		$item_code = $data['item_code'];
-		$current = $data['current'];
-		$consum = $data['consum'];
-		$bal = $data['bal'];
-		$email= DB::connection('mysql_essex')
-                ->table('users')
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			$now = Carbon::now();
+			$data = $request->all();
+			$item_code = $data['item_code'];
+			$current = $data['current'];
+			$consum = $data['consum'];
+			$bal = $data['bal'];
+			
+			$email= DB::connection('mysql_essex')->table('users')
                 ->where('users.user_id', $request->inspected_by)
-                ->select('users.email', 'users.employee_name')
+				->select('users.email', 'users.employee_name')
 				->first();
-				
-				$arr = $request->item_code;
 
-				$ar=array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
-				if(!empty($ar)){
-					foreach($ar as $i => $r){
-						
-						$row= $i +1;
-		
-						return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
-		
-					}
-					
-				}else{
+			if (!$email) {
+				return response()->json(['success'=> 0, 'message' => 'Employee not allowed.']);
+			}
+				
+			$arr = $request->item_code;
+			$ar = array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
+			if(!empty($ar)){
+				foreach($ar as $i => $r){
+					$row= $i +1;
+
+					return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);	
+				}
+			}else{
 				if ($request->item_code) { 
 				   foreach($item_code as $i => $row){
 						if (DB::connection('mysql_mes')
@@ -1486,13 +1488,10 @@ class PaintingOperatorController extends Controller
 								return response()->json(['success' => 0, 'message' => 'Powder Coat  Variant '.$row.' for today already exist.']);
 						}elseif($row == 'none'){
 								return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
-	
-					
 						}elseif($consum[$i] == 'none'){
 								return response()->json(['success' => 0, 'message' => 'Please Indicate consumed qty']);
-	
 						}else{
-								$data = [
+							$data = [
 								'operating_hrs' => $request->operating_hrs,
 								'current_qty' =>$current[$i],
 								'consumed_qty' => $consum[$i],
@@ -1504,14 +1503,23 @@ class PaintingOperatorController extends Controller
 								'last_modified_by' =>$email->email,
 								'created_by' => $email->email,
 								'created_at' => $now->toDateTimeString()
-								];
-								DB::connection('mysql_mes')->table('powder_coating')->insert($data);
-								DB::connection('mysql_mes')->table('fabrication_inventory')->where('item_code', $row)->update(['balance_qty' => $bal[$i], 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $email->employee_name]);						
+							];
+
+							DB::connection('mysql_mes')->table('powder_coating')->insert($data);
+							DB::connection('mysql_mes')->table('fabrication_inventory')->where('item_code', $row)
+								->update(['balance_qty' => $bal[$i], 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $email->employee_name]);						
 						} 
 					}
 				}
-	
-			return response()->json(['success'=>1, 'message' => 'Record Successfuly inserted.']);
+
+				DB::connection('mysql_mes')->commit();
+		
+				return response()->json(['success'=>1, 'message' => 'Record Successfuly inserted.']);
+			}
+		} catch (Exception $th) {
+			DB::connection('mysql_mes')->rollback();
+
+			return response()->json(['success'=> 0, 'message' => 'Something went wrong. Please contact your system administrator.']);
 		}
 	}
 }
