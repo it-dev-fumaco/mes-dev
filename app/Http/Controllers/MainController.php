@@ -3083,15 +3083,25 @@ class MainController extends Controller
     }
 	// END PPC STAFF
     // Operator
-    public function operatorpage($id){
+    public function operatorpage($id = null){
 		if (strtolower($id) == 'spotwelding') {
 			return redirect('/operator/Spotwelding');
 		}else if(strtolower($id) == 'painting'){
 			return redirect('/operator/Painting/Loading');
 		}
-   
+
 		$tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $id)
 			->select('workstation_name', 'workstation_id', 'operation_id')->first();
+			
+		if(!$tabWorkstation || !$id){
+			$workstations = DB::connection('mysql_mes')->table('workstation')
+				->join('operation', 'operation.operation_id', 'workstation.operation_id')
+				->select('operation.operation_id', 'operation.operation_name', 'workstation.workstation_id', 'workstation.workstation_name')
+				->get();
+			$workstations = collect($workstations)->groupBy('operation_name');
+
+			return view('workstation_dashboard', compact('workstations'));
+		}
 
 		$workstation_list = DB::connection('mysql_mes')->table('workstation')
 			->where('operation_id', $tabWorkstation->operation_id)

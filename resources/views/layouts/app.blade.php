@@ -24,7 +24,7 @@
       <!-- Navbar -->
       <nav class="navbar navbar-expand-lg navbar-transparent  bg-primary  navbar-absolute">
         <div class="container-fluid">
-          @if($activePage != 'operator_dashboard')
+          @if(!in_array($activePage, ['operator_dashboard', 'operator_workstation_dashboard']))
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
               <button type="button" class="navbar-toggler" disabled>
@@ -139,9 +139,10 @@
     </div>
   </div>
 
-  @include('modals.qc_rejects')
-  @include('modals.qc_machine_setup_random')
-
+  @if (!in_array($activePage, ['operator_workstation_dashboard']))
+    @include('modals.qc_rejects')
+    @include('modals.qc_machine_setup_random')
+  @endif
   
 <!-- Modal -->
 <div class="modal fade" id="reset-log-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
