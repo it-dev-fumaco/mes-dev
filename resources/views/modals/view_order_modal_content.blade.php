@@ -54,13 +54,16 @@
                     <table class="table table-bordered table-striped">
                         <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                             <th class="p-2" style="width: 3%;">-</th>
-                            <th class="p-2" style="width: 40%;">Item Description</th>
+                            <th class="p-2" style="width: 32%;">Item Description</th>
                             <th class="p-2" style="width: 5%;">Ordered</th>
                             @if (count($production_orders) > 0)
                             <th class="p-2" style="width: 5%;">Manufactured</th>
                             @endif
+                            @if ($details->delivery_percentage > 0)
                             <th class="p-2" style="width: 5%;">Delivered</th>
+                            @endif
                             <th class="p-2" style="width: 15%;">BOM No.</th>
+                            <th class="p-2" style="width: 8%;">Delivery Date</th>
                             <th class="p-2" style="width: 8%;">Ship by</th>
                             @if (count($production_orders) > 0)
                             <th class="p-2" style="width: 8%;">Prod. Order</th>
@@ -124,10 +127,25 @@
                                     <span>-- No BOM --</span>
                                     @endif
                                 </td>
+                                @if ($details->delivery_percentage > 0)
+                                <td class="text-center p-2">
+                                    @if (array_key_exists($v->item_code, $actual_delivery_date_per_item))
+                                        @foreach ($actual_delivery_date_per_item[$v->item_code] as $addpi)
+                                            {{ \Carbon\Carbon::parse($addpi->actual_delivery_date)->format('M. d, Y') }}
+                                        @endforeach
+                                    @endif
+                                </td>
+                                @endif
                                 <td class="text-center p-2">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
+                                @php
+                                    $prod = null;
+                                @endphp
                                 @if (count($production_orders) > 0)
                                 <td class="text-center p-2">
                                     @forelse ($production_order_item as $po)
+                                    @php
+                                        $prod = $po['production_order'];
+                                    @endphp
                                     <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
                                     @if ($po['status'] == 'In Progress')
                                     <span class="badge badge-warning" style="font-size: 7pt;">{{ $po['status'] }}</span>
@@ -150,7 +168,7 @@
                                         Track Order
                                     </button>
 
-                                    <a class="btn btn-primary btn-ico1n create-ste-btn w-100" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
+                                    <a class="btn btn-primary btn-ico1n create-ste-btn w-100" style="padding: 7px 8px;" href="#" data-production-order="{{ $prod }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
                                         View Materials
                                     </a>
                                 </td>

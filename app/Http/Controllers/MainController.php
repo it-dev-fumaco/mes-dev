@@ -9067,21 +9067,34 @@ class MainController extends Controller
 
 		if ($ref_type == 'MREQ') {
 			$details = DB::connection('mysql')->table('tabMaterial Request as mr')->where('name', $id)
-				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified')->first();
+				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified', 'mr.per_ordered as delivery_percentage')->first();
+
+			$item_list = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note')
+				->orderBy('idx', 'asc')->get();
+
+			$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabStock Entry as ste')->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+				->where('ste.material_request', $id)->where('ste.docstatus', 1)->whereIn('sted.item_code', $item_codes)->where('ste.stock_entry_type', 'Material Transfer')
+				->select('ste.name', 'sted.item_code', 'sted.qty', 'ste.posting_date as actual_delivery_date')->get();
 		} else {
 			$details = DB::connection('mysql')->table('tabSales Order as so')->where('name', $id)
-				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
+				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified', 'so.per_delivered as delivery_percentage')
 				->first();
+			
+			$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
+				->orderBy('idx', 'asc')->get();
+
+			$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabDelivery Note as dr')->join('tabDelivery Note Item as dri', 'dr.name', 'dri.parent')
+				->where('dr.reference', $id)->where('dr.docstatus', 1)->whereIn('dri.item_code', $item_codes)
+				->select('dr.name', 'dri.item_code', 'dri.qty', 'dr.posting_date as actual_delivery_date')->get();
 		}
 
-		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note');
-
-		$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
-			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
-
-		$item_codes = collect($item_list)->pluck('item_code')->unique();
+		$actual_delivery_date_per_item = collect($actual_delivery_date_per_item)->groupBy('item_code')->toArray();
 
 		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
 
@@ -9119,7 +9132,7 @@ class MainController extends Controller
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
 
-		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments'));
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item'));
 	}
 	
 	// /get_order_list
@@ -9590,22 +9603,21 @@ class MainController extends Controller
 	}
 
 	public function checkNewOrders() {
+		$start = Carbon::now()->subMinutes(5);
+		$end = Carbon::now();
+
 		$latest_material_requests = DB::connection('mysql')->table('tabMaterial Request')
 			->where('docstatus', 1)->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
 			->where('status', '!=', 'Stopped')->select('name', 'modified')->orderBy('modified', 'desc')->first();
 
 		$has_production_order = DB::connection('mysql_mes')->table('production_order')->where('material_request', $latest_material_requests->name)->exists();
 		if (!$has_production_order) {
-			$start = Carbon::now()->subMinutes(5);
-			$end = Carbon::now();
-	
 			$check = Carbon::parse($latest_material_requests->modified)->between($start, $end);
 			if ($check) {
 				return response()->json(true);
 			}
 		}
 
-			
 		$latest_sales_orders = DB::connection('mysql')->table('tabSales Order')
 			->where('docstatus', 1)->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
 			->where('status', '!=', 'Closed')->select('name', 'modified')->orderBy('modified', 'desc')->first();
