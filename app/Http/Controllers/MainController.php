@@ -18,6 +18,7 @@ use App\Mail\SendMail_feedbacking;
 use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
 use Session;
+use App\LdapClasses\adLDAP;
 
 use Illuminate\Support\Facades\Route;
 
@@ -166,10 +167,18 @@ class MainController extends Controller
 
 	public function loginUserId(Request $request){
 		try {
+			$email = str_contains($request->user_id, '@fumaco.local') ? $request->user_id : $request->user_id.'@fumaco.local';
+			$essex_user = DB::connection('mysql_essex')->table('users')->where('email', $email)->first();
+			if(!$essex_user){
+				return response()->json(['success' => 0, 'message' => '<b>Invalid login credentials!</b>']);
+			}
+
+			$email = str_replace('@fumaco.local', null, $email);
+
 			// check if user exist in user table in MES
 			$mes_user = DB::connection('mysql_mes')->table('user')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-				->where('user_access_id', $request->user_id)->get();
+				->where('user_access_id', $essex_user->user_id)->get();
 
 			if(count($mes_user) <= 0){
 				return response()->json(['success' => 0, 'message' => '<b>User not allowed!</b>']);
@@ -211,21 +220,21 @@ class MainController extends Controller
 				return redirect()->back()->withErrors($validator)
 					->withInput(Input::except('user_id', 'password'));
 			}else{
-				// create our user data for the authentication
-				$user_data = array(
-					'user_id'  => Input::get('user_id'),
-					'password'  => Input::get('password')
-				);
 
-				// attempt to do the login
-				if(Auth::attempt($user_data)){
-					DB::connection('mysql_mes')->table('user')->where('user_access_id', $user_data['user_id'])->update(['last_login' => Carbon::now()->toDateTimeString()]);
+				$adldap = new adLDAP();
+                $authUser = $adldap->user()->authenticate($email, $request->password);
+				if($authUser == true){
+					if(Auth::loginUsingId($essex_user->id)){
+						DB::connection('mysql_mes')->table('user')->where('user_access_id', $essex_user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
 
-					return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
-				} else {        
-					// validation not successful, send back to form 
-					return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
+						return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
+					} else {        
+						// validation not successful, send back to form 
+						return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again 1.']);
+					}
 				}
+
+				return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 			}
 		} catch (\Exception $e) {
 			return response()->json(['success' => 0, 'message' => '<b>No connection to authentication server.</b>']);
