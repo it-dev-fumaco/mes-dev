@@ -65,7 +65,7 @@
                             @if (count($production_orders) > 0)
                             <th class="p-2" style="width: 8%;">Prod. Order</th>
                             @endif
-                            <th class="p-1" style="width: 7%;">Track Order</th>
+                            <th class="p-1" style="width: 7%;">Action</th>
                         </thead>
                         <tbody style="font-size: 8pt;">
                             @forelse ($items as $v)
@@ -146,9 +146,13 @@
                                 </td>
                                 @endif
                                 <td class="text-center p-2">
-                                    <button class="btn btn-info btn-icon btn_trackmodal" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}">
-                                        <i class="now-ui-icons ui-1_zoom-bold"></i>
+                                    <button class="btn btn-info btn-icon1 btn_trackmodal w-100 mb-2" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}">
+                                        Track Order
                                     </button>
+
+                                    <a class="btn btn-primary btn-ico1n create-ste-btn w-100" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
+                                        View Materials
+                                    </a>
                                 </td>
                             </tr>
                             @empty
