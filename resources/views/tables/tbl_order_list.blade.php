@@ -51,7 +51,13 @@
                 -
                 @endif
             </td>
-            <td class="p-2">{{ $r->status }}</td>
+            <td class="p-2">
+                @if ($r->status == 'Partially Ordered')
+                Partially Delivered
+                @else
+                {{ $r->status }}
+                @endif
+            </td>
             <td class="p-2">
                 @if (array_key_exists($r->name, $order_production_status))
                 @php
