@@ -9076,8 +9076,17 @@ class MainController extends Controller
 			$item_codes = collect($item_list)->pluck('item_code')->unique();
 
 			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabStock Entry as ste')->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-				->where('ste.material_request', $id)->where('ste.docstatus', 1)->whereIn('sted.item_code', $item_codes)->where('ste.stock_entry_type', 'Material Transfer')
-				->select('ste.name', 'sted.item_code', 'sted.qty', 'ste.posting_date as actual_delivery_date')->get();
+				->join('tabMaterial Request Item as mri', 'mri.item_code', 'sted.item_code')
+				->where('mri.parent', $id)->where('ste.material_request', $id)->where('ste.docstatus', 1)->whereIn('sted.item_code', $item_codes)
+				->where('ste.stock_entry_type', 'Material Transfer')
+				->select('ste.name', 'sted.item_code', DB::raw('SUM(sted.qty) as delivered_qty'), 'ste.delivery_date as actual_delivery_date', 'ste.reference_no as dr_ref_no', 'mri.qty as ordered_qty', 'mri.stock_uom', 'sted.date_modified', 'ste.posting_date', 'ste.owner', 'sted.session_user')
+				->groupBy('ste.name', 'sted.item_code', 'ste.delivery_date', 'ste.reference_no', 'mri.qty', 'mri.stock_uom', 'sted.date_modified', 'ste.posting_date', 'ste.owner', 'sted.session_user')->get();
+
+			$picking_slip_arr = [];
+			foreach ($actual_delivery_date_per_item as $ps_row) {
+				$picking_slip_arr[$ps_row->name][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->posting_date)->format('M. d, Y');
+				$picking_slip_arr[$ps_row->name][$ps_row->item_code]['user'] = $ps_row->session_user;
+			}
 		} else {
 			$details = DB::connection('mysql')->table('tabSales Order as so')->where('name', $id)
 				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified', 'so.per_delivered as delivery_percentage')
@@ -9089,9 +9098,21 @@ class MainController extends Controller
 
 			$item_codes = collect($item_list)->pluck('item_code')->unique();
 
-			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabDelivery Note as dr')->join('tabDelivery Note Item as dri', 'dr.name', 'dri.parent')
-				->where('dr.reference', $id)->where('dr.docstatus', 1)->whereIn('dri.item_code', $item_codes)
-				->select('dr.name', 'dri.item_code', 'dri.qty', 'dr.posting_date as actual_delivery_date')->get();
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabDelivery Note as dr')
+				->join('tabDelivery Note Item as dri', 'dr.name', 'dri.parent')->join('tabSales Order Item as soi', 'soi.item_code', 'dri.item_code')
+				->where('dr.reference', $id)->where('soi.parent', $id)->where('dr.docstatus', 1)->whereIn('dri.item_code', $item_codes)
+				->select('dr.name', 'dri.item_code', DB::raw('SUM(dri.qty) as delivered_qty'), 'dr.delivery_date as actual_delivery_date', 'dr.dr_ref_no', 'soi.qty as ordered_qty', 'dri.stock_uom', 'dr.owner')
+				->groupBy('dr.name', 'dri.item_code', 'dr.delivery_date', 'dr.dr_ref_no', 'soi.qty', 'dri.stock_uom', 'dr.owner')->get();
+
+			$picking_slips = DB::connection('mysql')->table('tabPacking Slip as ps')->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
+				->whereIn('ps.delivery_note', collect($actual_delivery_date_per_item)->pluck('name'))
+				->whereIn('psi.item_code', $item_codes)->select('ps.delivery_note', 'psi.item_code', 'psi.date_modified', 'ps.modified', 'psi.session_user')->get();
+
+			$picking_slip_arr = [];
+			foreach ($picking_slips as $ps_row) {
+				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->modified)->format('M. d, Y');
+				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['user'] = $ps_row->session_user;
+			}
 		}
 
 		$actual_delivery_date_per_item = collect($actual_delivery_date_per_item)->groupBy('item_code')->toArray();
@@ -9110,7 +9131,7 @@ class MainController extends Controller
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
 			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty')
-			->get();
+			->orderBy('created_at', 'desc')->get();
 
 		$items_production_orders = [];
 		foreach ($production_orders as $r) {
@@ -9119,7 +9140,8 @@ class MainController extends Controller
 			$items_production_orders[$r->reference][$r->item_code][] = [
 				'production_order' => $r->production_order,
 				'status' => $p_status,
-				'produced_qty' => $r->produced_qty
+				'produced_qty' => $r->produced_qty,
+				'qty_to_manufacture' => $r->qty_to_manufacture,
 			];
 		}
 
@@ -9132,7 +9154,7 @@ class MainController extends Controller
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
 
-		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item'));
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr'));
 	}
 	
 	// /get_order_list
