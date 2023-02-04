@@ -20,12 +20,12 @@
                      </div>
                      <div class="card-body">
                         <div class="form-group">
-                           <label>User ID</label>
-                           <input type="text" class="form-control" name="user_id" placeholder="Enter User ID" required>
+                           <label>Email</label>
+                           <input type="text" class="form-control rounded" name="user_id" placeholder="Enter Email" required>
                         </div>
                         <div class="form-group">
                            <label>Password</label>
-                           <input type="password" class="form-control" name="password" placeholder="Enter Password" required>
+                           <input type="password" class="form-control rounded" name="password" placeholder="Enter Password" required>
                         </div>
                         <button type="submit" class="btn btn-primary btn-block">LOGIN</button>
                      </div>

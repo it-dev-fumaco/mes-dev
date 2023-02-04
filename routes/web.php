@@ -129,7 +129,7 @@ Route::get('/machine_overview/machine_details_chart/corrective/{id}', 'Secondary
 Route::get('/operator/pending_for_maintenance/{id}', 'SecondaryController@get_machines_pending_for_maintenance');
 //operator dashboard
 Route::get('/operator/Spotwelding', 'SpotweldingController@operator_spotwelding_dashboard');
-Route::get('/operator/{id}', 'MainController@operatorpage');
+Route::get('/operator/{id?}', 'MainController@operatorpage');
 Route::get('/operator/header_total_data/{id}', 'MainController@current_data_operator');
 Route::get('/operator/header_table_data/{id}/{name}', 'MainController@operators_workstation_TaskList');
 Route::get('/operator/available_machine/{id}', 'SecondaryController@available_machine');

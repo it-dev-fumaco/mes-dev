@@ -18,6 +18,7 @@ use App\Mail\SendMail_feedbacking;
 use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
 use Session;
+use App\LdapClasses\adLDAP;
 
 use Illuminate\Support\Facades\Route;
 
@@ -166,10 +167,18 @@ class MainController extends Controller
 
 	public function loginUserId(Request $request){
 		try {
+			$email = str_contains($request->user_id, '@fumaco.local') ? $request->user_id : $request->user_id.'@fumaco.local';
+			$essex_user = DB::connection('mysql_essex')->table('users')->where('email', $email)->first();
+			if(!$essex_user){
+				return response()->json(['success' => 0, 'message' => '<b>Invalid login credentials!</b>']);
+			}
+
+			$email = str_replace('@fumaco.local', null, $email);
+
 			// check if user exist in user table in MES
 			$mes_user = DB::connection('mysql_mes')->table('user')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-				->where('user_access_id', $request->user_id)->get();
+				->where('user_access_id', $essex_user->user_id)->get();
 
 			if(count($mes_user) <= 0){
 				return response()->json(['success' => 0, 'message' => '<b>User not allowed!</b>']);
@@ -211,21 +220,21 @@ class MainController extends Controller
 				return redirect()->back()->withErrors($validator)
 					->withInput(Input::except('user_id', 'password'));
 			}else{
-				// create our user data for the authentication
-				$user_data = array(
-					'user_id'  => Input::get('user_id'),
-					'password'  => Input::get('password')
-				);
 
-				// attempt to do the login
-				if(Auth::attempt($user_data)){
-					DB::connection('mysql_mes')->table('user')->where('user_access_id', $user_data['user_id'])->update(['last_login' => Carbon::now()->toDateTimeString()]);
+				$adldap = new adLDAP();
+                $authUser = $adldap->user()->authenticate($email, $request->password);
+				if($authUser == true){
+					if(Auth::loginUsingId($essex_user->id)){
+						DB::connection('mysql_mes')->table('user')->where('user_access_id', $essex_user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
 
-					return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
-				} else {        
-					// validation not successful, send back to form 
-					return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
+						return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
+					} else {        
+						// validation not successful, send back to form 
+						return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again 1.']);
+					}
 				}
+
+				return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 			}
 		} catch (\Exception $e) {
 			return response()->json(['success' => 0, 'message' => '<b>No connection to authentication server.</b>']);
@@ -3083,15 +3092,25 @@ class MainController extends Controller
     }
 	// END PPC STAFF
     // Operator
-    public function operatorpage($id){
+    public function operatorpage($id = null){
 		if (strtolower($id) == 'spotwelding') {
 			return redirect('/operator/Spotwelding');
 		}else if(strtolower($id) == 'painting'){
 			return redirect('/operator/Painting/Loading');
 		}
-   
+
 		$tabWorkstation= DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $id)
 			->select('workstation_name', 'workstation_id', 'operation_id')->first();
+			
+		if(!$tabWorkstation || !$id){
+			$workstations = DB::connection('mysql_mes')->table('workstation')
+				->join('operation', 'operation.operation_id', 'workstation.operation_id')
+				->select('operation.operation_id', 'operation.operation_name', 'workstation.workstation_id', 'workstation.workstation_name')
+				->get();
+			$workstations = collect($workstations)->groupBy('operation_name');
+
+			return view('workstation_dashboard', compact('workstations'));
+		}
 
 		$workstation_list = DB::connection('mysql_mes')->table('workstation')
 			->where('operation_id', $tabWorkstation->operation_id)
@@ -9048,21 +9067,55 @@ class MainController extends Controller
 
 		if ($ref_type == 'MREQ') {
 			$details = DB::connection('mysql')->table('tabMaterial Request as mr')->where('name', $id)
-				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified')->first();
+				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified', 'mr.per_ordered as delivery_percentage')->first();
+
+			$item_list = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note')
+				->orderBy('idx', 'asc')->get();
+
+			$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabStock Entry as ste')->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+				->join('tabMaterial Request Item as mri', 'mri.item_code', 'sted.item_code')
+				->where('mri.parent', $id)->where('ste.material_request', $id)->where('ste.docstatus', 1)->whereIn('sted.item_code', $item_codes)
+				->where('ste.stock_entry_type', 'Material Transfer')
+				->select('ste.name', 'sted.item_code', DB::raw('SUM(sted.qty) as delivered_qty'), 'ste.delivery_date as actual_delivery_date', 'ste.reference_no as dr_ref_no', 'mri.qty as ordered_qty', 'mri.stock_uom', 'sted.date_modified', 'ste.posting_date', 'ste.owner', 'sted.session_user')
+				->groupBy('ste.name', 'sted.item_code', 'ste.delivery_date', 'ste.reference_no', 'mri.qty', 'mri.stock_uom', 'sted.date_modified', 'ste.posting_date', 'ste.owner', 'sted.session_user')->get();
+
+			$picking_slip_arr = [];
+			foreach ($actual_delivery_date_per_item as $ps_row) {
+				$picking_slip_arr[$ps_row->name][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->posting_date)->format('M. d, Y');
+				$picking_slip_arr[$ps_row->name][$ps_row->item_code]['user'] = $ps_row->session_user;
+			}
 		} else {
 			$details = DB::connection('mysql')->table('tabSales Order as so')->where('name', $id)
-				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
+				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified', 'so.per_delivered as delivery_percentage')
 				->first();
+			
+			$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
+				->orderBy('idx', 'asc')->get();
+
+			$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabDelivery Note as dr')
+				->join('tabDelivery Note Item as dri', 'dr.name', 'dri.parent')->join('tabSales Order Item as soi', 'soi.item_code', 'dri.item_code')
+				->where('dr.reference', $id)->where('soi.parent', $id)->where('dr.docstatus', 1)->whereIn('dri.item_code', $item_codes)
+				->select('dr.name', 'dri.item_code', DB::raw('SUM(dri.qty) as delivered_qty'), 'dr.delivery_date as actual_delivery_date', 'dr.dr_ref_no', 'soi.qty as ordered_qty', 'dri.stock_uom', 'dr.owner')
+				->groupBy('dr.name', 'dri.item_code', 'dr.delivery_date', 'dr.dr_ref_no', 'soi.qty', 'dri.stock_uom', 'dr.owner')->get();
+
+			$picking_slips = DB::connection('mysql')->table('tabPacking Slip as ps')->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
+				->whereIn('ps.delivery_note', collect($actual_delivery_date_per_item)->pluck('name'))
+				->whereIn('psi.item_code', $item_codes)->select('ps.delivery_note', 'psi.item_code', 'psi.date_modified', 'ps.modified', 'psi.session_user')->get();
+
+			$picking_slip_arr = [];
+			foreach ($picking_slips as $ps_row) {
+				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->modified)->format('M. d, Y');
+				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['user'] = $ps_row->session_user;
+			}
 		}
 
-		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note');
-
-		$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
-			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
-			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
-
-		$item_codes = collect($item_list)->pluck('item_code')->unique();
+		$actual_delivery_date_per_item = collect($actual_delivery_date_per_item)->groupBy('item_code')->toArray();
 
 		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
 
@@ -9078,7 +9131,7 @@ class MainController extends Controller
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
 			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty')
-			->get();
+			->orderBy('created_at', 'desc')->get();
 
 		$items_production_orders = [];
 		foreach ($production_orders as $r) {
@@ -9087,7 +9140,8 @@ class MainController extends Controller
 			$items_production_orders[$r->reference][$r->item_code][] = [
 				'production_order' => $r->production_order,
 				'status' => $p_status,
-				'produced_qty' => $r->produced_qty
+				'produced_qty' => $r->produced_qty,
+				'qty_to_manufacture' => $r->qty_to_manufacture,
 			];
 		}
 
@@ -9100,7 +9154,7 @@ class MainController extends Controller
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
 
-		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments'));
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr'));
 	}
 	
 	// /get_order_list
@@ -9571,22 +9625,21 @@ class MainController extends Controller
 	}
 
 	public function checkNewOrders() {
+		$start = Carbon::now()->subMinutes(5);
+		$end = Carbon::now();
+
 		$latest_material_requests = DB::connection('mysql')->table('tabMaterial Request')
 			->where('docstatus', 1)->whereIn('custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
 			->where('status', '!=', 'Stopped')->select('name', 'modified')->orderBy('modified', 'desc')->first();
 
 		$has_production_order = DB::connection('mysql_mes')->table('production_order')->where('material_request', $latest_material_requests->name)->exists();
 		if (!$has_production_order) {
-			$start = Carbon::now()->subMinutes(5);
-			$end = Carbon::now();
-	
 			$check = Carbon::parse($latest_material_requests->modified)->between($start, $end);
 			if ($check) {
 				return response()->json(true);
 			}
 		}
 
-			
 		$latest_sales_orders = DB::connection('mysql')->table('tabSales Order')
 			->where('docstatus', 1)->whereIn('sales_type', ['Regular Sales', 'Sales DR'])
 			->where('status', '!=', 'Closed')->select('name', 'modified')->orderBy('modified', 'desc')->first();

@@ -107,7 +107,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="view-order-details-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 85%;">
+    <div class="modal-dialog" role="document" style="min-width: 90%;">
         <div id="view-order-modal-content"></div>
     </div>
 </div>
