@@ -16,7 +16,7 @@
                   @csrf
                   <div class="card">
                      <div class="card-header">
-                        <h4 class="card-title">Login</h4>
+                        <h4 class="card-title">Your Windows Login (LDAP)</h4>
                      </div>
                      <div class="card-body">
                         <div class="form-group">
@@ -25,7 +25,7 @@
                         </div>
                         <div class="form-group">
                            <label>Password</label>
-                           <input type="password" class="form-control rounded" name="password" placeholder="Enter Password" required>
+                           <input type="password" class="form-control rounded" name="password" placeholder="Enter your Windows Password" required>
                         </div>
                         <button type="submit" class="btn btn-primary btn-block">LOGIN</button>
                      </div>
