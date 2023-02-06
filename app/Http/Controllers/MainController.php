@@ -5682,6 +5682,14 @@ class MainController extends Controller
 			}
 
 			$item_codes = array_column($production_order_items, 'item_code');
+			// get raw materials current qty in wip warehouse before submission of stock entry (for double checking of stocks after transaction)
+			$raw_materials_current_bin = DB::connection('mysql')->table('tabBin')->whereIn('item_code', $item_codes)
+				->where('warehouse', $production_order_details->wip_warehouse)->pluck('actual_qty', 'item_code')->toArray();
+
+			// get finished good current qty in target warehouse before submission of stock entry (for double checking of stocks after transaction)
+			$fg_current_bin = DB::connection('mysql')->table('tabBin')->where('item_code', $production_order_details->production_item)
+				->where('warehouse', $mes_production_order_details->fg_warehouse)->pluck('actual_qty', 'item_code')->toArray();
+
 			$stock_reservation = DB::connection('mysql')->table('tabStock Reservation')->whereIn('item_code', $item_codes)
 				->where('warehouse', $production_order_details->wip_warehouse)->where('status', 'Active')
 				->selectRaw('SUM(reserve_qty) as total_reserved_qty, SUM(consumed_qty) as total_consumed_qty, item_code')
@@ -5708,8 +5716,14 @@ class MainController extends Controller
 	
 			$at_total_issued = collect($at_total_issued)->groupBy('item_code')->toArray();
 
-			$stock_entry_detail = [];
+			$stock_entry_detail = $rm_temp_bin_arr = $fg_temp_bin_arr = [];
 			foreach ($production_order_items as $index => $row) {
+				$qty = $row['required_qty'];
+				$qty_before_transaction_temp = isset($raw_materials_current_bin[$row['item_code']]) ? $raw_materials_current_bin[$row['item_code']] : 0;
+				$expected_qty_after_transaction = $qty_before_transaction_temp - $qty;
+			
+				$rm_temp_bin_arr[$row['item_code']]['expected_qty_after_transaction'] = number_format($expected_qty_after_transaction, 6, '.', '');
+
 				$bom_material = DB::connection('mysql')->table('tabBOM Item')
 					->where('parent', $production_order_details->bom_no)
 					->where('item_code', $row['item_code'])->first();
@@ -5723,7 +5737,6 @@ class MainController extends Controller
 
 				$base_rate = ($bom_material) ? $bom_material->base_rate : $valuation_rate;
 
-				$qty = $row['required_qty'];
 				if($qty > 0){
 					$is_uom_whole_number = DB::connection('mysql')->table('tabUOM')->where('name', $row['stock_uom'])->first();
 					if($is_uom_whole_number && $is_uom_whole_number->must_be_whole_number == 1){
@@ -5834,6 +5847,11 @@ class MainController extends Controller
 
 			$rm_amount = collect($stock_entry_detail)->sum('basic_amount');
 			$rate = $rm_amount / $request->fg_completed_qty;
+
+			$qty_before_transaction_temp = isset($fg_current_bin[$production_order_details->production_item]) ? $fg_current_bin[$production_order_details->production_item] : 0;
+			$expected_qty_after_transaction = $qty_before_transaction_temp + $request->fg_completed_qty;
+		
+			$fg_temp_bin_arr[$production_order_details->production_item]['expected_qty_after_transaction'] = number_format($expected_qty_after_transaction, 6, '.', '');
 
 			$stock_entry_detail[] = [
 				'name' =>  uniqid(),
@@ -5992,6 +6010,38 @@ class MainController extends Controller
 				}
 				$this->create_stock_ledger_entry($new_id);
 				$this->create_gl_entry($new_id);
+			}
+
+			// get raw materials qty in wip warehouse AFTER submission of stock entry (for double checking of stocks after transaction)
+			$raw_materials_current_bin = DB::connection('mysql')->table('tabBin')->whereIn('item_code', $item_codes)
+				->where('warehouse', $production_order_details->wip_warehouse)->pluck('actual_qty', 'item_code')->toArray();
+
+			// check for stock discrepancy for raw materials
+			foreach ($raw_materials_current_bin as $rm_item_code => $rm_qty) {
+				$expected_qty_after_transaction = isset($rm_temp_bin_arr[$rm_item_code]['expected_qty_after_transaction']) ? $rm_temp_bin_arr[$rm_item_code]['expected_qty_after_transaction'] : null;
+				if ($expected_qty_after_transaction == null) {
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
+				}
+
+				if ($expected_qty_after_transaction != $rm_qty) {
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
+				}
+			}
+
+			// get finished good qty in target warehouse AFTER submission of stock entry (for double checking of stocks after transaction)
+			$fg_current_bin = DB::connection('mysql')->table('tabBin')->where('item_code', $production_order_details->production_item)
+				->where('warehouse', $mes_production_order_details->fg_warehouse)->pluck('actual_qty', 'item_code')->toArray();
+			
+			// check for stock discrepancy for finished good
+			foreach ($fg_current_bin as $fg_item_code => $fg_qty) {
+				$expected_qty_after_transaction = isset($fg_temp_bin_arr[$fg_item_code]['expected_qty_after_transaction']) ? $fg_temp_bin_arr[$fg_item_code]['expected_qty_after_transaction'] : null;
+				if ($expected_qty_after_transaction == null) {
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
+				}
+
+				if ($expected_qty_after_transaction != $fg_qty) {
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
+				}
 			}
 
 			$is_feedbacked = DB::connection('mysql')->table('tabStock Entry')
