@@ -6020,11 +6020,11 @@ class MainController extends Controller
 			foreach ($raw_materials_current_bin as $rm_item_code => $rm_qty) {
 				$expected_qty_after_transaction = isset($rm_temp_bin_arr[$rm_item_code]['expected_qty_after_transaction']) ? $rm_temp_bin_arr[$rm_item_code]['expected_qty_after_transaction'] : null;
 				if ($expected_qty_after_transaction == null) {
-					return response()->json(['success' => 0, 'message' => 'There was a problem create feedback. Please reload the page and try again.']);
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 
 				if ($expected_qty_after_transaction != $rm_qty) {
-					return response()->json(['success' => 0, 'message' => 'There was a problem create feedback. Please reload the page and try again.']);
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 			}
 
@@ -6036,11 +6036,11 @@ class MainController extends Controller
 			foreach ($fg_current_bin as $fg_item_code => $fg_qty) {
 				$expected_qty_after_transaction = isset($fg_temp_bin_arr[$fg_item_code]['expected_qty_after_transaction']) ? $fg_temp_bin_arr[$fg_item_code]['expected_qty_after_transaction'] : null;
 				if ($expected_qty_after_transaction == null) {
-					return response()->json(['success' => 0, 'message' => 'There was a problem create feedback. Please reload the page and try again.']);
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 
 				if ($expected_qty_after_transaction != $fg_qty) {
-					return response()->json(['success' => 0, 'message' => 'There was a problem create feedback. Please reload the page and try again.']);
+					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 			}
 
