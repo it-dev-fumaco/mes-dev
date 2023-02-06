@@ -3901,6 +3901,7 @@ class MainController extends Controller
 				->where('job_ticket_id', $values['job_ticket_id'])
 				->where('machine_code', $values['machine_code'])
 				->where('operator_id', $values['operator_id'])
+				->where('status', 'In Progress')
 				->first();
 
 			if ($timelog_wip_existing) {
