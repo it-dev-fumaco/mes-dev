@@ -87,13 +87,16 @@
                                     <table class="table table-bordered">
                                         <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                             <th class="p-2" style="width: 3%;">-</th>
-                                            <th class="p-2" style="width: 35%;">Item Description</th>
-                                            <th class="p-2" style="width: 5%;">Ordered</th>
+                                            <th class="p-2" style="width: 15%;">Item Description</th>
+                                            <th class="p-2" style="width: 10%;">Ordered</th>
                                             <th class="p-2" style="width: 7%;">Ship by</th>
+                                            <th class="p-1" style="width: 5%;">Track Order</th>
                                             <th class="p-2" style="width: 10%;">BOM No.</th>
                                             <th class="p-2" style="width: 10%;">Prod. Order</th>
                                             <th class="p-2" style="width: 10%;">Qty to Manufacture</th>
                                             <th class="p-2" style="width: 10%;">Produced Qty</th>
+                                            <th class="p-2" style="width: 10%;">Status</th>
+                                          
                                             <th class="p-1" style="width: 7%;">Action</th>
                                         </thead>
                                         <tbody style="font-size: 8pt;">
@@ -126,8 +129,9 @@
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
+                                                <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
-                                                    {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
+                                                    <button class="btn btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
                                                 </td>
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
                                                     @if(count($bom) > 0)
@@ -149,28 +153,6 @@
                                                 @forelse ($production_order_item as $po)
                                                 <td class="text-center p-2">
                                                     <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
-                                                    @php
-                                                        switch($po['status']){
-                                                            case 'In Progress':
-                                                                $badge = 'warning';
-                                                                break;
-                                                            case 'Completed':
-                                                            case 'Feedbacked':
-                                                                $badge = 'success';
-                                                                break;
-                                                            case 'Ready for Feedback':
-                                                            case 'For Partial Feedback':
-                                                                $badge = 'info';
-                                                                break;
-                                                            case 'Cancelled':
-                                                                $badge = 'danger';
-                                                                break;
-                                                            default:
-                                                                $badge = 'secondary';
-                                                                break;
-                                                        }
-                                                    @endphp
-                                                    <span class="badge badge-{{ $badge }}" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                                 </td>
                                                 <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold">{{ $po['qty_to_manufacture'] }}</span>
@@ -178,10 +160,22 @@
                                                 <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold">{{ $po['produced_qty'] }}</span>
                                                 </td>
+                                                <td class="text-center p-2">
+                                                    @if ($po['status'] == 'In Progress')
+                                                    <span class="badge badge-warning" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                    @elseif (in_array($po['status'], ['Completed', 'Feedbacked']))
+                                                    <span class="badge badge-success" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                    @elseif (in_array($po['status'], ['Ready for Feedback', 'For Partial Feedback']))
+                                                    <span class="badge badge-info" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                    @elseif (in_array($po['status'], ['Cancelled']))
+                                                    <span class="badge badge-danger" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                    @else
+                                                    <span class="badge badge-secondary" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                    @endif
+                                                </td>
                                                 <td class="text-center p-1">
-                                                    <button class="btn btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
-                                                    <a class="btn btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
-                                                        <i class="fa fa-eye"></i>
+                                                    <a class="btn btn-primary create-ste-btn w-100" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
+                                                        View Materials
                                                     </a>
                                                 </td>
                                             </tr>
