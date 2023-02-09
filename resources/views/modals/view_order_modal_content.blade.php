@@ -19,41 +19,44 @@
 </style>
 <form action="/assembly/wizard" class="order-items-form">
     <div class="modal-content">
-        <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">{{ $ref_type == 'SO' ? 'Sales Order' : 'Material Request - ' . $details->order_type }}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+        <div class="pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
+            <div class="row m-0 p-0">
+                <div class="col-8 m-0 p-0">
+                    <h5 class="modal-title m-0">{{ $ref_type == 'SO' ? 'Sales Order' : 'Material Request - ' . $details->order_type }}</h5>
+                </div>
+                <div class="col-4 m-0 p-0 text-right">
+                    <h5 class="d-inline-block mb-0 mr-5 font-italic">{{ $details->name }}</h5>
+                    <button type="button" class="close d-inline-block" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="modal-body pb-2">
             <table class="w-100 border-0" style="font-size: 9pt;">
                 <tr>
-                    <td class="align-middle text-right p-1" style="width: 12%;">Order No.:</td>
-                    <td class="align-middle p-1 font-weight-bold" style="width: 26%;">{{ $details->name }}</td>
+                    <td class="align-middle text-right p-1">Customer:</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
                     <td class="align-middle text-right p-1" style="width: 12%;">Delivery Date:</td>
                     <td class="align-middle p-1 font-weight-bold" style="width: 20%;">{{ \Carbon\Carbon::parse($details->delivery_date)->format('M. d, Y') }}</td>
-                    <td class="align-top p-1" rowspan="5" style="width: 20%;">
+                    <td class="align-top p-1" rowspan="4" style="width: 20%;">
                         <b>SHIP TO:</b> {!! $details->shipping_address !!}
                     </td>
-                    <td class="align-top text-right p-1" rowspan="5" style="width: 10%;">
+                    <td class="align-top text-right p-1" rowspan="4" style="width: 10%;">
                         <a href="/print_order/{{ $details->name }}" class="btn btn-info pt-2 pb-2 pl-3 pr-3 m-0 print-order-btn"><img src="{{ asset('/img/print_btn.png') }}" alt="Print" width="20" class="m-0"> Print</a>
                     </td>
                 </tr>
                 <tr>
-                    <td class="align-middle text-right p-1">Customer:</td>
-                    <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
+                    <td class="align-middle text-right p-1">Project:</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->project }}</td>
                     <td class="align-middle text-right p-1">Date Approved:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->date_approved ? \Carbon\Carbon::parse($details->date_approved)->format('M. d, Y') : '-' }}</td>
                 </tr>
                 <tr>
-                    <td class="align-middle text-right p-1">Project:</td>
-                    <td class="align-middle p-1 font-weight-bold">{{ $details->project }}</td>
+                    <td class="align-middle text-right p-1">Sales Person:</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->sales_person }}</td>
                     <td class="align-middle text-right p-1">Company:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->company }}</td>
-                </tr>
-                <tr>
-                    <td class="align-middle text-right p-1">Sales Person:</td>
-                    <td class="align-middle p-1 font-weight-bold" colspan="3">{{ $details->sales_person }}</td>
                 </tr>
                 <tr>
                     <td class="align-middle text-right p-1">Order Type:</td>
