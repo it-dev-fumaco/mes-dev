@@ -182,7 +182,9 @@
                                                     <span class="d-block font-weight-bold">{{ $po['produced_qty'] }}</span>
                                                 </td>
                                                 <td class="text-center p-1">
-                                                    <button class="btn btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    @if(count($bom) > 0)
+                                                        <button class="btn btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    @endif
                                                     <a class="btn btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
                                                         <i class="fa fa-eye"></i>
                                                     </a>
