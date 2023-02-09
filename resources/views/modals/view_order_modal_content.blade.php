@@ -97,9 +97,10 @@
                                             <th class="p-2" style="width: 7%;">Ship by</th>
                                             <th class="p-2" style="width: 10%;">BOM No.</th>
                                             <th class="p-2" style="width: 10%;">Prod. Order</th>
+                                            <th class="p-2" style="width: 5%;">Status</th>
                                             <th class="p-2" style="width: 10%;">Qty to Manufacture</th>
-                                            <th class="p-2" style="width: 10%;">Produced Qty</th>
-                                            <th class="p-1" style="width: 7%;">Action</th>
+                                            <th class="p-2" style="width: 5%;">Produced Qty</th>
+                                            <th class="p-1" style="width: 5%;">Action</th>
                                         </thead>
                                         <tbody style="font-size: 8pt;">
                                             @forelse ($items as $v)
@@ -175,7 +176,10 @@
                                                                 break;
                                                         }
                                                     @endphp
-                                                    <span class="badge badge-{{ $badge }}" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                    <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span><br>
+                                                </td>
+                                                <td class="text-center p-2">
+                                                    <span class="badge badge-{{ $badge }} mt-1" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                                 </td>
                                                 <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold">{{ $po['qty_to_manufacture'] }}</span>
@@ -185,9 +189,9 @@
                                                 </td>
                                                 <td class="text-center p-1">
                                                     @if(count($bom) > 0)
-                                                        <button class="btn btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                        <button class="btn btn-sm btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
                                                     @endif
-                                                    <a class="btn btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
+                                                    <a class="btn btn-sm btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
                                                         <i class="fa fa-eye"></i>
                                                     </a>
                                                 </td>
