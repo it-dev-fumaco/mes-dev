@@ -9192,8 +9192,7 @@ class MainController extends Controller
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
-			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty')
-			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'created_at')
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'created_at', 'created_by')
 			->orderBy('created_at', 'desc')->get();
 
 		$items_production_orders = [];
@@ -9205,7 +9204,8 @@ class MainController extends Controller
 				'status' => $p_status,
 				'produced_qty' => $r->produced_qty,
 				'qty_to_manufacture' => $r->qty_to_manufacture,
-				'created_at' => $r->created_at
+				'created_at' => $r->created_at,
+				'created_by' => $r->created_by
 			];
 		}
 

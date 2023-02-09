@@ -176,7 +176,8 @@
                                                                 break;
                                                         }
                                                     @endphp
-                                                    <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span><br>
+                                                    <span style="font-size: 7pt;">{{ $po['created_by'] }}</span><br>
+                                                    <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span>
                                                 </td>
                                                 <td class="text-center p-2">
                                                     <span class="badge badge-{{ $badge }} mt-1" style="font-size: 7pt;">{{ $po['status'] }}</span>
