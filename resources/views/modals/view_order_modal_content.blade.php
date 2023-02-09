@@ -175,8 +175,15 @@
                                                                 $badge = 'secondary';
                                                                 break;
                                                         }
+                                                        $name = str_replace('@fumaco.local', null, $po['created_by']);
+
+                                                        $exploded_name = explode('.', $name);
+                                                        $first_name = isset($exploded_name[0]) ? $exploded_name[0] : null;
+                                                        $last_name = isset($exploded_name[1]) ? $exploded_name[1] : null;
                                                     @endphp
-                                                    <span style="font-size: 7pt;">{{ $po['created_by'] }}</span><br>
+                                                    <span style="font-size: 7pt;">
+                                                        <span style="text-transform: capitalize !important">{{ $first_name }}</span>&nbsp;<span style="text-transform: capitalize !important">{{ $last_name }}</span>
+                                                    </span><br>
                                                     <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span>
                                                 </td>
                                                 <td class="text-center p-2">
