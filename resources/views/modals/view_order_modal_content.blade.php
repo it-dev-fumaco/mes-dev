@@ -2,8 +2,21 @@
     $items = array_key_exists($details->name, $item_list) ? $item_list[$details->name] : [];
     $production_orders = array_key_exists($details->name, $items_production_orders) ? $items_production_orders[$details->name] : [];
 @endphp
-
-
+<style>
+    #orders-tab-1 .custom-nav-link {
+        padding: 10px 20px;
+        color: #2c3e50;
+    }
+    #orders-tab-1 {
+        border-bottom: 3px solid #ebedef;
+        padding: 10px 0 10px 0;
+    }
+    #orders-tab-1 .nav-item .active {
+        color: #f96332;
+        font-weight: bolder;
+        border-bottom: 3px solid #f96332;
+    }
+</style>
 <form action="/assembly/wizard" class="order-items-form">
     <div class="modal-content">
         <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
@@ -54,19 +67,18 @@
 
                     <div class="nav-tabs-navigation mt-2">
                         <div class="nav-tabs-wrapper">
-                            <ul class="nav nav-tabs" data-tabs="tabs">
+                            <ul class="nav nav-tabs" data-tabs="tabs" id="orders-tab-1">
                                 <li class="nav-item">
-                                    <a class="nav-link active show" href="#icw_fabrication" data-toggle="tab">Order Item(s)</a>
+                                    <a class="custom-nav-link active show text-decoration-none" href="#icw_fabrication" data-toggle="tab">Order Item(s)</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link show" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
+                                    <a class="custom-nav-link show text-decoration-none" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
                                 </li>
                             </ul>
                         </div>
                     </div>
 
-
-                    <div class="tab-content text-center">
+                    <div class="tab-content text-center mt-1">
                         <div class="tab-pane active show" id="icw_fabrication">
                             <div class="row p-0 m-0 w-100">
                                 <div class="col-md-12 p-0 m-0">
