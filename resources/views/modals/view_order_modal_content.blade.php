@@ -87,15 +87,25 @@
                         <div class="tab-pane active show" id="icw_fabrication">
                             <div class="row p-0 m-0 w-100">
                                 <div class="col-md-12 p-0 m-0">
-                                
+                                    @php
+                                        $i = 0;
+                                        foreach($items as $b){
+                                            if(isset($default_boms[$b->item_code]) && count($default_boms[$b->item_code]) > 0){
+                                               $i += 1; 
+                                            }
+                                        }
 
+                                        $has_bom = $i > 0 ? 1 : 0;
+                                    @endphp
                                     <table class="table table-bordered">
                                         <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                             <th class="p-2" style="width: 3%;">-</th>
                                             <th class="p-2" style="width: 35%;">Item Description</th>
                                             <th class="p-2" style="width: 5%;">Ordered</th>
                                             <th class="p-2" style="width: 7%;">Ship by</th>
-                                            <th class="p-2" style="width: 10%;">BOM No.</th>
+                                            @if($has_bom)
+                                                <th class="p-2" style="width: 10%;">BOM No.</th>
+                                            @endif
                                             <th class="p-2" style="width: 10%;">Prod. Order</th>
                                             <th class="p-2" style="width: 5%;">Status</th>
                                             <th class="p-2" style="width: 10%;">Qty to Manufacture</th>
@@ -135,23 +145,25 @@
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
                                                     {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
                                                 </td>
-                                                <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
-                                                    @if(count($bom) > 0)
-                                                    <div class="input-group m-0">
-                                                        <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
-                                                            @foreach($bom as $b)
-                                                            <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
-                                                            @endforeach
-                                                        </select>
-                                                        <div class="input-group-append">
-                                                            <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                @if($has_bom)                                                    
+                                                    <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
+                                                        @if(count($bom) > 0)
+                                                        <div class="input-group m-0">
+                                                            <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
+                                                                @foreach($bom as $b)
+                                                                <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
+                                                                @endforeach
+                                                            </select>
+                                                            <div class="input-group-append">
+                                                                <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    @else
-                                                    <input type="hidden" name="bom[{{ $v->item_code }}]">
-                                                    <span>-- No BOM --</span>
-                                                    @endif
-                                                </td>
+                                                        @else
+                                                        <input type="hidden" name="bom[{{ $v->item_code }}]">
+                                                        <span>-- No BOM --</span>
+                                                        @endif
+                                                    </td>
+                                                @endif
                                                 @forelse ($production_order_item as $po)
                                                 <td class="text-center p-2">
                                                     <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
