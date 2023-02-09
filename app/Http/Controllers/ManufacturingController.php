@@ -1589,6 +1589,19 @@ class ManufacturingController extends Controller
                 'operation_id' => $operation_details->operation_id
             ];
 
+            $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
+                ->where('parent_item_code', $data_mes['parent_item_code'])
+                ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
+                ->where('item_code', $data_mes['item_code'])
+                ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
+                ->where('sales_order', $data_mes['sales_order'])
+                ->where('material_request', $data_mes['material_request'])
+                ->first();
+            
+            if ($check_existing_production_order) {
+                return response()->json(['success' => 0, 'message' => 'Production Order for this item already exists. (' . $check_existing_production_order->production_order . ')']);
+            }
+
             DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
             $this->save_production_operations($new_id, $request->bom, ($request->planned_date) ? $request->planned_date : null, 'mes');
 
@@ -3773,6 +3786,19 @@ class ManufacturingController extends Controller
                 'operation_id' => $operation_id,
                 'is_stock_item' => $request->is_stock_item
             ];
+
+            $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
+                ->where('parent_item_code', $data_mes['parent_item_code'])
+                ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
+                ->where('item_code', $data_mes['item_code'])
+                ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
+                ->where('sales_order', $data_mes['sales_order'])
+                ->where('material_request', $data_mes['material_request'])
+                ->first();
+            
+            if ($check_existing_production_order) {
+                return response()->json(['success' => 0, 'message' => 'Production Order for this item already exists. (' . $check_existing_production_order->production_order . ')']);
+            }
 
             DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
             if($request->custom_bom){
