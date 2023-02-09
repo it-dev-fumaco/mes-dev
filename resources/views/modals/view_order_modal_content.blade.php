@@ -74,9 +74,11 @@
                                 <li class="nav-item">
                                     <a class="custom-nav-link active show text-decoration-none" href="#icw_fabrication" data-toggle="tab">Order Item(s)</a>
                                 </li>
+                                @if(count($actual_delivery_date_per_item) > 0)
                                 <li class="nav-item">
                                     <a class="custom-nav-link show text-decoration-none" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
                                 </li>
+                                @endif
                             </ul>
                         </div>
                     </div>
