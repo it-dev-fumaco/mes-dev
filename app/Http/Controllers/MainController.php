@@ -400,6 +400,14 @@ class MainController extends Controller
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
 		}
 
+		$item_group = DB::connection('mysql')->table('tabItem')->where('name', $details->item_code)->pluck('item_group')->first();
+
+		$description = $details->description;
+		if($item_group == 'Sub Assemblies'){
+			$description = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $details->item_code)->orderBy('idx', 'asc')->pluck('attribute_value')->implode(' ');
+			$description = $description ? $description : $details->description;
+		}
+
 		$process = $this->getTimesheetProcess($details->production_order);
 
 		$planned_start = Carbon::parse($details->planned_start_date);
@@ -426,7 +434,7 @@ class MainController extends Controller
 			'qty_to_manufacture' => $details->qty_to_manufacture,
 			'delivery_date' => ($details->rescheduled_delivery_date == null)? $details->delivery_date: $details->rescheduled_delivery_date, //link new rescchedule delivery date 
 			'item_code' => $details->item_code,
-			'description' => $details->description,
+			'description' => $description,
 			'status' => $task_status,
 			'owner' => $owner,
 			'feedback_qty' => $details->feedback_qty,
