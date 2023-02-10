@@ -9318,7 +9318,7 @@ class MainController extends Controller
 				return $query->whereIn('so.sales_type', $request->order_types);
             })
 			->when(isset($request->reschedule), function ($q){
-				return $q->whereDate(DB::raw('CASE so.reschedule_delivery WHEN 1 THEN so.reschedule_delivery ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
+				return $q->whereDate(DB::raw('CASE WHEN so.reschedule_delivery = 1 THEN so.reschedule_delivery_date ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
 			})
 			->when($date_approved, function ($q) use ($start_date, $end_date){
 				return $q->whereDate('so.date_approved', '>=', $start_date)->whereDate('so.date_approved', '<=', $end_date);
