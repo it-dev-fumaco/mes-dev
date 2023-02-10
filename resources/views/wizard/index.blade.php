@@ -192,7 +192,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="view-bom-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="min-width: 50%;">
+   <div class="modal-dialog modal-xl" role="document" style="min-width: 50%;">
       <div class="modal-content">
          <div class="modal-header">
             <h5 class="modal-title" style="font-weight: bolder;">Modal Title</h5>
