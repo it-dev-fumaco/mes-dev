@@ -48,20 +48,20 @@
 										@endforeach
 									</div>
 								</div>
-                                <div class="col-3 p-0 row">
-									<div class="col-6">
+                                <div class="col-4 p-0 row">
+									<div class="col-5">
 										<div class="custom-control custom-checkbox pt-2">
 											<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
 											<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
 										</div>
 									</div>
-									<div class="col-6">
-										<input type="text" id="date-approved-filter" class="form-control rounded bg-white m-0 date-range" placeholder="Approved Date" value="" style="color: #000 !important"/>
+									<div class="col-7">
+										<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
 									</div>
                                 </div>
-								<div class="col-3 mr-0 row">
+								<div class="col-2 mr-0 row">
 									<div class="col-6">
-										<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
+										<input type="text" id="date-approved-filter" class="form-control rounded bg-white m-0 date-range" placeholder="Approved Date" value="" style="color: #000 !important"/>
 									</div>
 									<div class="col-6 p-0">
 										@php
@@ -81,7 +81,7 @@
 											];
 										@endphp
 										<div class="row p-0">
-											<div class="col-10">
+											<div class="col-9">
 												<select class="form-control rounded bg-white m-0 w-100" id="sort-selection">
 													<option value="" style="color: #000" selected disabled>Sort By</option>
 													@foreach ($sort_arr as $sort)
@@ -162,7 +162,7 @@
 		border-radius: 20px;
 		color: #FFF;
 		display: block;
-		padding: 5px 25px;
+		padding: 3px 10px;
 		text-decoration: none;
 	}
 	#loader-wrapper {
