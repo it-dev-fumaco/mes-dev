@@ -1930,9 +1930,21 @@ class MainController extends Controller
 		$manufacture_entries_q = DB::connection('mysql')->table('tabStock Entry')->where('docstatus', 1)->whereIn('work_order', $filtered_production_orders)->where('purpose', 'Manufacture')->get();
 		$manufacture_entries = collect($manufacture_entries_q)->groupBy('work_order');
 
+		$item_group_query = DB::connection('mysql')->table('tabItem as item')
+			->join('tabItem Variant Attribute as iva', 'iva.parent', 'item.name')
+			->where('item.item_group', 'Sub Assemblies')->whereIn('item.name', collect($production_orders->items())->pluck('item_code'))
+			->select('item.name', 'iva.attribute_value', 'iva.idx')->orderBy('iva.idx', 'asc')->get();
+		$item_details = collect($item_group_query)->groupBy('name');
+
 		$production_order_list = [];
 		foreach ($production_orders as $row) {
 			$prod_status = 'Unknown Status';
+
+			$description = $row->description;
+			if(isset($item_details[$row->item_code])){
+				$description = collect($item_details[$row->item_code])->pluck('attribute_value')->implode(' ');
+				$description = $description ? $description : $row->description;
+			}
 
 			if($row->status == 'Not Started'){
 				if (isset($work_order_details[$row->production_order]) and $work_order_details[$row->production_order][0]->material_transferred_for_manufacturing > 0) {
@@ -1994,7 +2006,7 @@ class MainController extends Controller
 				'production_order' => $row->production_order,
 				'production_order_status' => $row->status,
 				'item_code' => $row->item_code,
-				'description' => $row->description,
+				'description' => $description,
 				'qty' => $row->qty_to_manufacture,
 				'produced_qty' => $row->produced_qty,
 				'feedback_qty' => $row->feedback_qty,
