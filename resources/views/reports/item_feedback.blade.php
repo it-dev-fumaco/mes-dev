@@ -50,7 +50,7 @@
                         <div class="col-9 p-0">
                           <input class='d-none' type="text" value="" id="current-status">
                           @php
-                            $status_arr = ['Not Started','In Progress','Task Queue','Cancelled','Ready for Feedback','Completed','Closed'];
+                            $status_arr = ['Not Started','In Progress','Task Queue','Ready for Feedback','Completed','Closed','Cancelled'];
                           @endphp
                           <div class="row p-0 m-0">
                             @foreach ($status_arr as $status)
