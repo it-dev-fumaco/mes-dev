@@ -9257,9 +9257,12 @@ class MainController extends Controller
 		$sort_by = $request->sort_by ? $request->sort_by : 'date_approved';
 		$order_by = $request->order_by ? $request->order_by : 'desc';
 
-		$material_requests = DB::table('_3f2ec5a818bccb73.tabMaterial Request as mr')
+		$athena_db = ENV('DB_DATABASE_ERP');
+		$mes_db = ENV('DB_DATABASE_MES');
+
+		$material_requests = DB::table($athena_db.'.tabMaterial Request as mr')
 			->when(isset($request->reschedule), function ($q){
-				return $q->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name');
+				return $q->join($mes_db.'.delivery_date as dd', 'dd.reference_no', 'mr.name');
 			})
 			->where('mr.docstatus', 1)
 			->whereIn('mr.custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
