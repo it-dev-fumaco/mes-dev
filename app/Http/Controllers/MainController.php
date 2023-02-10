@@ -1928,11 +1928,14 @@ class MainController extends Controller
 		$manufacture_entries_q = DB::connection('mysql')->table('tabStock Entry')->where('docstatus', 1)->whereIn('work_order', $filtered_production_orders)->where('purpose', 'Manufacture')->get();
 		$manufacture_entries = collect($manufacture_entries_q)->groupBy('work_order');
 
-		$item_group_query = DB::connection('mysql')->table('tabItem as item')
-			->join('tabItem Variant Attribute as iva', 'iva.parent', 'item.name')
-			->where('item.item_group', 'Sub Assemblies')->whereIn('item.name', collect($production_orders->items())->pluck('item_code'))
-			->select('item.name', 'iva.attribute_value', 'iva.idx')->orderBy('iva.idx', 'asc')->get();
-		$item_details = collect($item_group_query)->groupBy('name');
+		$sub_assemblies = collect($production_orders->items())->map(function ($q){
+			if(false !== stripos($q->item_classification, 'SA - ')){
+				return $q->item_code;
+			}
+		})->filter()->values()->all();
+
+		$item_details = DB::connection('mysql')->table('tabItem Variant Attribute')->whereIn('parent', $sub_assemblies)->orderBy('idx', 'asc')->get();
+		$item_details = collect($item_details)->groupBy('parent');
 
 		$production_order_list = [];
 		foreach ($production_orders as $row) {
