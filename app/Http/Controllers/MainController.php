@@ -400,10 +400,8 @@ class MainController extends Controller
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
 		}
 
-		$item_group = DB::connection('mysql')->table('tabItem')->where('name', $details->item_code)->pluck('item_group')->first();
-
 		$description = $details->description;
-		if($item_group == 'Sub Assemblies'){
+		if(false !== stripos($details->item_classification, 'SA - ')){
 			$description = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $details->item_code)->orderBy('idx', 'asc')->pluck('attribute_value')->implode(' ');
 			$description = $description ? $description : $details->description;
 		}
