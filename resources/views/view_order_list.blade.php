@@ -76,7 +76,7 @@
 												],
 												[
 													'display' => 'Delivery Date',
-													'value' => 'delivery_date_sort'
+													'value' => 'delivery_date'
 												]
 											];
 										@endphp

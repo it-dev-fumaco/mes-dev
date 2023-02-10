@@ -9293,7 +9293,7 @@ class MainController extends Controller
 				return $q->whereDate('mr.modified', '>=', $start_date)->whereDate('mr.modified', '<=', $end_date);
 			})
 			->when(!isset($request->reschedule), function ($q){
-				return $q->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified', DB::raw('IFNULL(mr.delivery_date, 0) as delivery_date_sort'));
+				return $q->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
 			});
 			
 		$list = DB::connection('mysql')->table('tabSales Order as so')
@@ -9323,7 +9323,7 @@ class MainController extends Controller
 			->when($date_approved, function ($q) use ($start_date, $end_date){
 				return $q->whereDate('so.date_approved', '>=', $start_date)->whereDate('so.date_approved', '<=', $end_date);
 			})
-			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified', DB::raw('(CASE WHEN so.reschedule_delivery = 1 THEN so.reschedule_delivery_date ELSE so.delivery_date END) as delivery_date_sort'))
+			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
 			->unionAll($material_requests);
 
 			if(!$request->sort_by){
