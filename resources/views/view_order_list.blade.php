@@ -33,7 +33,7 @@
                         </div>
                     </div>
                     <div class="col-md-12 p-2">
-                        <form id="order-list-form" class="pl-2 m-0">
+                        <form id="order-list-form" class="pl-3 m-0">
                             <div class="row rounded-top align-items-center pt-2 pb-2 pr-0 mr-0" style="background-color: #0277BD;">
 								<div class="col-1 p-0">
 									<h6 class="m-2 text-uppercase text-white text-center" style="white-space: nowrap !important;">Open Order(s)</h6>
