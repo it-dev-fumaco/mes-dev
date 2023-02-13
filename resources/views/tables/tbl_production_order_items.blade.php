@@ -104,52 +104,68 @@
 @if(count($required_items) <= 0)
    <h5 class="text-center m-4">No withdrawal slip(s) created.</h5>
 @else
-	<ul class="nav nav-tabs mt-2 font-weight-bold" role="tablist">
+	<style>
+		#s-tab-1 .custom-nav-link {
+			padding: 10px 20px;
+			color: #2c3e50;
+			text-decoration: none;
+		}
+		#s-tab-1 {
+			border-bottom: 3px solid #ebedef;
+			padding: 10px 0 10px 0;
+		}
+		#s-tab-1 .nav-item .active {
+			color: #f96332;
+			font-weight: bolder;
+			border-bottom: 3px solid #f96332;
+		}
+	</style>
+	<ul class="nav nav-tabs mt-2 font-weight-bold" role="tablist" id="s-tab-1">
 		@if(count($components) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ $tab1 }}" data-toggle="tab" href="#wtpoi1" role="tab" aria-controls="home" aria-selected="true">
+			<a class="custom-nav-link {{ $tab1 }}" data-toggle="tab" href="#wtpoi1" role="tab" aria-controls="home" aria-selected="true">
 				<span class="badge badge-info mr-2">{{ count($components) }}</span> Component(s) 
 			</a>
 		</li>
 		@endif
 		@if(count($parts) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ $tab2 }}"  data-toggle="tab" href="#wtpoi2" role="tab" aria-controls="profile" aria-selected="false">
+			<a class="custom-nav-link {{ $tab2 }}"  data-toggle="tab" href="#wtpoi2" role="tab" aria-controls="profile" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($parts) }}</span>	Part(s) 
 			</a>
 		</li>
 		@endif
 		@if(count($items_return) > 0)
 		<li class="nav-item">
-			<a class="nav-link {{ $tab3 }}" data-toggle="tab" href="#wtpoi3" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="custom-nav-link {{ $tab3 }}" data-toggle="tab" href="#wtpoi3" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($items_return) }}</span> Item Return(s)
 			</a> 
 		</li>
 		@endif
 		@if(count($feedbacked_logs) > 0)
 		<li class="nav-item">
-			<a class="nav-link" data-toggle="tab" href="#wtpoi4" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="custom-nav-link" data-toggle="tab" href="#wtpoi4" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($feedbacked_logs) }}</span> Feedbacked Log(s)
 			</a> 
 		</li>
 		@endif
 		@if (count($activity_logs) > 0)
 		<li class="nav-item create-feedback-tab">
-			<a class="nav-link" data-toggle="tab" href="#wtpoi5" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="custom-nav-link" data-toggle="tab" href="#wtpoi5" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($activity_logs) }}</span> Activity Log(s)
 			</a> 
 		</li>
 		@endif
 		@if (count($qa_array) > 0)
 		<li class="nav-item create-feedback-tab">
-			<a class="nav-link" data-toggle="tab" href="#wtpoi6" role="tab" aria-controls="messages" aria-selected="false">
+			<a class="custom-nav-link" data-toggle="tab" href="#wtpoi6" role="tab" aria-controls="messages" aria-selected="false">
 				<span class="badge badge-info mr-2">{{ count($qa_array) }}</span> Quality Inspection Log(s)
 			</a> 
 		</li>
 		@endif
 	</ul>
 
-	<div class="tab-content bg-light" style="border: 1px solid #f2f3f4;">
+	<div class="tab-content bg-light mt-1" style="border: 1px solid #f2f3f4;">
 		<div class="tab-pane {{ $tab1 }}" id="wtpoi1" role="tabpanel" aria-labelledby="w1-tab">
 			@if(count($components) > 0)
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">

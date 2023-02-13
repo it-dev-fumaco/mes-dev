@@ -171,15 +171,35 @@ class ManufacturingController extends Controller
         try {
             $bom = DB::connection('mysql')->table('tabBOM Item')->where('docstatus', '<', 2)->where('parent', $bom)->orderBy('idx', 'asc')->get();
 
+            $item_details = DB::connection('mysql')->table('tabItem')->whereIn('name', collect($bom)->pluck('item_code'))->get();
+
+            $sub_assemblies = collect($item_details)->map(function ($q){
+                if(false !== stripos($q->item_classification, 'SA - ')){
+                    return $q->name;
+                }
+            })->filter()->values()->all();
+            
+            $item_details = collect($item_details)->groupBy('name');
+
+            $default_bom_arr = DB::connection('mysql')->table('tabBOM')->where('docstatus', '<', 2)->where('is_default', 1)->whereIn('item', collect($bom)->pluck('item_code'))->get();
+            $default_bom_arr = collect($default_bom_arr)->groupBy('item');
+
+            $attributes_arr = [];
+            if($sub_assemblies){
+                $attributes_query = DB::connection('mysql')->table('tabItem Variant Attribute')->whereIn('parent', $sub_assemblies)->orderBy('idx', 'asc')->get();
+                foreach ($attributes_query as $attribute) {
+                    $attributes_arr[$attribute->parent][$attribute->attribute] = $attribute->attribute_value;
+                }
+            }
+
             $materials = [];
             foreach ($bom as $item) {
-                $default_bom = DB::connection('mysql')->table('tabBOM')->where('docstatus', '<', 2)
-                    ->where('is_default', 1)->where('item', $item->item_code)->first();
+                $default_bom = isset($default_bom_arr[$item->item_code]) ? $default_bom_arr[$item->item_code][0] : [];
 
-                $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
-                $item_description = ($item_details) ? $item_details->description : '';
-                $item_classification = ($item_details) ? $item_details->item_classification : '';
-                $item_group = ($item_details) ? $item_details->item_group : '';
+                $item_detail = isset($item_details[$item->item_code]) ? $item_details[$item->item_code][0] : [];
+                $item_description = ($item_detail) ? $item_detail->description : '';
+                $item_classification = ($item_detail) ? $item_detail->item_classification : '';
+                $item_group = ($item_detail) ? $item_detail->item_group : '';
                 $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
 
                 $materials[] = [
@@ -190,6 +210,7 @@ class ManufacturingController extends Controller
                     'qty' => $item->qty,
                     'bom_no' => $child_bom,
                     'uom' => $item->uom,
+                    'attributes' => isset($attributes_arr[$item->item_code]) ? $attributes_arr[$item->item_code] : [],
                     'child_nodes' => $this->get_bom($child_bom)
                 ];
             }
@@ -1588,6 +1609,19 @@ class ManufacturingController extends Controller
                 'created_at' => $now->toDateTimeString(),
                 'operation_id' => $operation_details->operation_id
             ];
+
+            $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
+                ->where('parent_item_code', $data_mes['parent_item_code'])
+                ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
+                ->where('item_code', $data_mes['item_code'])
+                ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
+                ->where('sales_order', $data_mes['sales_order'])
+                ->where('material_request', $data_mes['material_request'])
+                ->first();
+            
+            if ($check_existing_production_order) {
+                return response()->json(['success' => 0, 'message' => 'Production Order for this item already exists. (' . $check_existing_production_order->production_order . ')']);
+            }
 
             DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
             $this->save_production_operations($new_id, $request->bom, ($request->planned_date) ? $request->planned_date : null, 'mes');
@@ -3773,6 +3807,19 @@ class ManufacturingController extends Controller
                 'operation_id' => $operation_id,
                 'is_stock_item' => $request->is_stock_item
             ];
+
+            $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
+                ->where('parent_item_code', $data_mes['parent_item_code'])
+                ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
+                ->where('item_code', $data_mes['item_code'])
+                ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
+                ->where('sales_order', $data_mes['sales_order'])
+                ->where('material_request', $data_mes['material_request'])
+                ->first();
+            
+            if ($check_existing_production_order) {
+                return response()->json(['success' => 0, 'message' => 'Production Order for this item already exists. (' . $check_existing_production_order->production_order . ')']);
+            }
 
             DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
             if($request->custom_bom){

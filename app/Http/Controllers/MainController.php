@@ -400,6 +400,12 @@ class MainController extends Controller
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
 		}
 
+		$description = $details->description;
+		if(false !== stripos($details->item_classification, 'SA - ')){
+			$description = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $details->item_code)->orderBy('idx', 'asc')->pluck('attribute_value')->implode(' ');
+			$description = $description ? $description : $details->description;
+		}
+
 		$process = $this->getTimesheetProcess($details->production_order);
 
 		$planned_start = Carbon::parse($details->planned_start_date);
@@ -426,7 +432,7 @@ class MainController extends Controller
 			'qty_to_manufacture' => $details->qty_to_manufacture,
 			'delivery_date' => ($details->rescheduled_delivery_date == null)? $details->delivery_date: $details->rescheduled_delivery_date, //link new rescchedule delivery date 
 			'item_code' => $details->item_code,
-			'description' => $details->description,
+			'description' => $description,
 			'status' => $task_status,
 			'owner' => $owner,
 			'feedback_qty' => $details->feedback_qty,
@@ -1922,9 +1928,24 @@ class MainController extends Controller
 		$manufacture_entries_q = DB::connection('mysql')->table('tabStock Entry')->where('docstatus', 1)->whereIn('work_order', $filtered_production_orders)->where('purpose', 'Manufacture')->get();
 		$manufacture_entries = collect($manufacture_entries_q)->groupBy('work_order');
 
+		$sub_assemblies = collect($production_orders->items())->map(function ($q){
+			if(false !== stripos($q->item_classification, 'SA - ')){
+				return $q->item_code;
+			}
+		})->filter()->values()->all();
+
+		$item_details = DB::connection('mysql')->table('tabItem Variant Attribute')->whereIn('parent', $sub_assemblies)->orderBy('idx', 'asc')->get();
+		$item_details = collect($item_details)->groupBy('parent');
+
 		$production_order_list = [];
 		foreach ($production_orders as $row) {
 			$prod_status = 'Unknown Status';
+
+			$description = $row->description;
+			if(isset($item_details[$row->item_code])){
+				$description = collect($item_details[$row->item_code])->pluck('attribute_value')->implode(' ');
+				$description = $description ? $description : $row->description;
+			}
 
 			if($row->status == 'Not Started'){
 				if (isset($work_order_details[$row->production_order]) and $work_order_details[$row->production_order][0]->material_transferred_for_manufacturing > 0) {
@@ -1986,7 +2007,7 @@ class MainController extends Controller
 				'production_order' => $row->production_order,
 				'production_order_status' => $row->status,
 				'item_code' => $row->item_code,
-				'description' => $row->description,
+				'description' => $description,
 				'qty' => $row->qty_to_manufacture,
 				'produced_qty' => $row->produced_qty,
 				'feedback_qty' => $row->feedback_qty,
@@ -9192,7 +9213,7 @@ class MainController extends Controller
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
-			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty')
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'created_at', 'created_by')
 			->orderBy('created_at', 'desc')->get();
 
 		$items_production_orders = [];
@@ -9204,6 +9225,8 @@ class MainController extends Controller
 				'status' => $p_status,
 				'produced_qty' => $r->produced_qty,
 				'qty_to_manufacture' => $r->qty_to_manufacture,
+				'created_at' => $r->created_at,
+				'created_by' => $r->created_by
 			];
 		}
 
@@ -9235,9 +9258,12 @@ class MainController extends Controller
 		$sort_by = $request->sort_by ? $request->sort_by : 'date_approved';
 		$order_by = $request->order_by ? $request->order_by : 'desc';
 
-		$material_requests = DB::table('_3f2ec5a818bccb73.tabMaterial Request as mr')
-			->when(isset($request->reschedule), function ($q){
-				return $q->join('mes.delivery_date as dd', 'dd.reference_no', 'mr.name');
+		$erp_db = ENV('DB_DATABASE_ERP');
+		$mes_db = ENV('DB_DATABASE_MES');
+
+		$material_requests = DB::table($erp_db.'.tabMaterial Request as mr')
+			->when(isset($request->reschedule), function ($q) use ($mes_db){
+				return $q->join($mes_db.'.delivery_date as dd', 'dd.reference_no', 'mr.name');
 			})
 			->where('mr.docstatus', 1)
 			->whereIn('mr.custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])
@@ -9292,7 +9318,7 @@ class MainController extends Controller
 				return $query->whereIn('so.sales_type', $request->order_types);
             })
 			->when(isset($request->reschedule), function ($q){
-				return $q->whereDate(DB::raw('CASE so.reschedule_delivery WHEN 1 THEN so.reschedule_delivery ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
+				return $q->whereDate(DB::raw('CASE WHEN so.reschedule_delivery = 1 THEN so.reschedule_delivery_date ELSE so.delivery_date END'), '<', Carbon::now()->startOfDay());
 			})
 			->when($date_approved, function ($q) use ($start_date, $end_date){
 				return $q->whereDate('so.date_approved', '>=', $start_date)->whereDate('so.date_approved', '<=', $end_date);

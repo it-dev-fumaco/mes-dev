@@ -33,12 +33,12 @@
                         </div>
                     </div>
                     <div class="col-md-12 p-2">
-                        <form id="order-list-form" class="pl-2 pr-2">
+                        <form id="order-list-form" class="pl-3 m-0">
                             <div class="row rounded-top align-items-center pt-2 pb-2 pr-0 mr-0" style="background-color: #0277BD;">
 								<div class="col-1 p-0">
 									<h6 class="m-2 text-uppercase text-white text-center" style="white-space: nowrap !important;">Open Order(s)</h6>
 								</div>
-								<div class="col-5 p-0">
+								<div class="col-4 p-0">
 									<div>
 										@foreach ($order_types as $order_type)
 										<label class="pill-chk-item mr-1 ml-1 mb-0 mt-0">
@@ -48,49 +48,53 @@
 										@endforeach
 									</div>
 								</div>
-                                <div class="col-3 p-0 row">
-									<div class="col-6">
-										<div class="custom-control custom-checkbox pt-2">
-											<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
-											<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
+                                <div class="col-4 p-0">
+									<div class="row">
+										<div class="col-4">
+											<div class="custom-control custom-checkbox pt-2" style="white-space: nowrap">
+												<input type="checkbox" name="reschedule" class="custom1-control-input" id="reschedule-checkbox">
+												<label class="custom-cont6rol-label font-weight-bold" for="reschedule-checkbox" style="color: #fff">For Rescheduling</label>
+											</div>
+										</div>
+										<div class="col-8">
+											<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
 										</div>
 									</div>
-									<div class="col-6">
-										<input type="text" id="date-approved-filter" class="form-control rounded bg-white m-0 date-range" placeholder="Approved Date" value="" style="color: #000 !important"/>
-									</div>
                                 </div>
-								<div class="col-3 mr-0 row">
-									<div class="col-6">
-										<input type="text" name="q" class="form-control rounded bg-white m-0 order-list-search" placeholder="Search" value="{{ request('q') }}" autocomplete="off">
-									</div>
-									<div class="col-6 p-0">
-										@php
-											$sort_arr = [
-												[
-													'display' => 'Date Approved',
-													'value' => 'date_approved'
-												],
-												[
-													'display' => 'Customer',
-													'value' => 'customer'
-												],
-												[
-													'display' => 'Delivery Date',
-													'value' => 'delivery_date'
-												]
-											];
-										@endphp
-										<div class="row p-0">
-											<div class="col-10">
-												<select class="form-control rounded bg-white m-0 w-100" id="sort-selection">
-													<option value="" style="color: #000" selected disabled>Sort By</option>
-													@foreach ($sort_arr as $sort)
-														<option value="{{ $sort['value'] }}" style="color: #000">{{ $sort['display'] }}</option>
-													@endforeach
-												</select>
-											</div>
-											<div class="col-2" id="ctrl-sorting" data-sort='desc' style="display: flex; justify-content: center; align-items: center; color: #fff; z-index: 90;">
-												<i class="fa fa-sort-amount-desc"></i>
+								<div class="col-3">
+									<div class="row">
+										<div class="col-7">
+											<input type="text" id="date-approved-filter" class="form-control rounded bg-white m-0 date-range" placeholder="Approved Date" value="" style="color: #000 !important"/>
+										</div>
+										<div class="col-4 p-0 m-0">
+											@php
+												$sort_arr = [
+													[
+														'display' => 'Date Approved',
+														'value' => 'date_approved'
+													],
+													[
+														'display' => 'Customer',
+														'value' => 'customer'
+													],
+													[
+														'display' => 'Delivery Date',
+														'value' => 'delivery_date'
+													]
+												];
+											@endphp
+											<div class="row p-0">
+												<div class="col-9">
+													<select class="form-control rounded bg-white m-0 w-100" id="sort-selection">
+														<option value="" style="color: #000" selected disabled>Sort By</option>
+														@foreach ($sort_arr as $sort)
+															<option value="{{ $sort['value'] }}" style="color: #000">{{ $sort['display'] }}</option>
+														@endforeach
+													</select>
+												</div>
+												<div class="col-3" id="ctrl-sorting" data-sort='desc' style="display: flex; justify-content: center; align-items: center; color: #fff; z-index: 90;">
+													<i class="fa fa-sort-amount-desc"></i>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -162,7 +166,7 @@
 		border-radius: 20px;
 		color: #FFF;
 		display: block;
-		padding: 5px 25px;
+		padding: 3px 10px;
 		text-decoration: none;
 	}
 	#loader-wrapper {

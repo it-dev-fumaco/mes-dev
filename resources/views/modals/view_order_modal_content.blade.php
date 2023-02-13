@@ -2,45 +2,61 @@
     $items = array_key_exists($details->name, $item_list) ? $item_list[$details->name] : [];
     $production_orders = array_key_exists($details->name, $items_production_orders) ? $items_production_orders[$details->name] : [];
 @endphp
-
-
+<style>
+    #orders-tab-1 .custom-nav-link {
+        padding: 10px 20px;
+        color: #2c3e50;
+    }
+    #orders-tab-1 {
+        border-bottom: 3px solid #ebedef;
+        padding: 10px 0 10px 0;
+    }
+    #orders-tab-1 .nav-item .active {
+        color: #f96332;
+        font-weight: bolder;
+        border-bottom: 3px solid #f96332;
+    }
+</style>
 <form action="/assembly/wizard" class="order-items-form">
     <div class="modal-content">
-        <div class="modal-header pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">{{ $ref_type == 'SO' ? 'Sales Order' : 'Material Request - ' . $details->order_type }}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+        <div class="pt-2 pl-3 pb-2 pr-3 text-white" style="background-color: #0277BD;">
+            <div class="row m-0 p-0">
+                <div class="col-8 m-0 p-0">
+                    <h5 class="modal-title m-0">{{ $ref_type == 'SO' ? 'Sales Order' : 'Material Request - ' . $details->order_type }}</h5>
+                </div>
+                <div class="col-4 m-0 p-0 text-right">
+                    <h5 class="d-inline-block mb-0 mr-5 font-italic">{{ $details->name }}</h5>
+                    <button type="button" class="close d-inline-block" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="modal-body pb-2">
             <table class="w-100 border-0" style="font-size: 9pt;">
                 <tr>
-                    <td class="align-middle text-right p-1" style="width: 12%;">Order No.:</td>
-                    <td class="align-middle p-1 font-weight-bold" style="width: 26%;">{{ $details->name }}</td>
+                    <td class="align-middle text-right p-1">Customer:</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
                     <td class="align-middle text-right p-1" style="width: 12%;">Delivery Date:</td>
                     <td class="align-middle p-1 font-weight-bold" style="width: 20%;">{{ \Carbon\Carbon::parse($details->delivery_date)->format('M. d, Y') }}</td>
-                    <td class="align-top p-1" rowspan="5" style="width: 20%;">
+                    <td class="align-top p-1" rowspan="4" style="width: 20%;">
                         <b>SHIP TO:</b> {!! $details->shipping_address !!}
                     </td>
-                    <td class="align-top text-right p-1" rowspan="5" style="width: 10%;">
+                    <td class="align-top text-right p-1" rowspan="4" style="width: 10%;">
                         <a href="/print_order/{{ $details->name }}" class="btn btn-info pt-2 pb-2 pl-3 pr-3 m-0 print-order-btn"><img src="{{ asset('/img/print_btn.png') }}" alt="Print" width="20" class="m-0"> Print</a>
                     </td>
                 </tr>
                 <tr>
-                    <td class="align-middle text-right p-1">Customer:</td>
-                    <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
+                    <td class="align-middle text-right p-1">Project:</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->project }}</td>
                     <td class="align-middle text-right p-1">Date Approved:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->date_approved ? \Carbon\Carbon::parse($details->date_approved)->format('M. d, Y') : '-' }}</td>
                 </tr>
                 <tr>
-                    <td class="align-middle text-right p-1">Project:</td>
-                    <td class="align-middle p-1 font-weight-bold">{{ $details->project }}</td>
+                    <td class="align-middle text-right p-1">Sales Person:</td>
+                    <td class="align-middle p-1 font-weight-bold">{{ $details->sales_person }}</td>
                     <td class="align-middle text-right p-1">Company:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->company }}</td>
-                </tr>
-                <tr>
-                    <td class="align-middle text-right p-1">Sales Person:</td>
-                    <td class="align-middle p-1 font-weight-bold" colspan="3">{{ $details->sales_person }}</td>
                 </tr>
                 <tr>
                     <td class="align-middle text-right p-1">Order Type:</td>
@@ -54,38 +70,47 @@
 
                     <div class="nav-tabs-navigation mt-2">
                         <div class="nav-tabs-wrapper">
-                            <ul class="nav nav-tabs" data-tabs="tabs">
+                            <ul class="nav nav-tabs" data-tabs="tabs" id="orders-tab-1">
                                 <li class="nav-item">
-                                    <a class="nav-link active show" href="#icw_fabrication" data-toggle="tab">Order Item(s)</a>
+                                    <a class="custom-nav-link active show text-decoration-none" href="#icw_fabrication" data-toggle="tab">Order Item(s)</a>
                                 </li>
+                                @if(count($actual_delivery_date_per_item) > 0)
                                 <li class="nav-item">
-                                    <a class="nav-link show" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
+                                    <a class="custom-nav-link show text-decoration-none" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
                                 </li>
+                                @endif
                             </ul>
                         </div>
                     </div>
 
-
-                    <div class="tab-content text-center">
+                    <div class="tab-content text-center mt-1">
                         <div class="tab-pane active show" id="icw_fabrication">
                             <div class="row p-0 m-0 w-100">
                                 <div class="col-md-12 p-0 m-0">
-                                
+                                    @php
+                                        $i = 0;
+                                        foreach($items as $b){
+                                            if(isset($default_boms[$b->item_code]) && count($default_boms[$b->item_code]) > 0){
+                                               $i += 1; 
+                                            }
+                                        }
 
+                                        $has_bom = $i > 0 ? 1 : 0;
+                                    @endphp
                                     <table class="table table-bordered">
                                         <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                             <th class="p-2" style="width: 3%;">-</th>
-                                            <th class="p-2" style="width: 15%;">Item Description</th>
-                                            <th class="p-2" style="width: 10%;">Ordered</th>
+                                            <th class="p-2" style="width: 35%;">Item Description</th>
+                                            <th class="p-2" style="width: 5%;">Ordered</th>
                                             <th class="p-2" style="width: 7%;">Ship by</th>
-                                            <th class="p-1" style="width: 5%;">Track Order</th>
-                                            <th class="p-2" style="width: 10%;">BOM No.</th>
+                                            @if($has_bom)
+                                                <th class="p-2" style="width: 10%;">BOM No.</th>
+                                            @endif
                                             <th class="p-2" style="width: 10%;">Prod. Order</th>
+                                            <th class="p-2" style="width: 5%;">Status</th>
                                             <th class="p-2" style="width: 10%;">Qty to Manufacture</th>
-                                            <th class="p-2" style="width: 10%;">Produced Qty</th>
-                                            <th class="p-2" style="width: 10%;">Status</th>
-                                          
-                                            <th class="p-1" style="width: 7%;">Action</th>
+                                            <th class="p-2" style="width: 5%;">Produced Qty</th>
+                                            <th class="p-1" style="width: 5%;">Action</th>
                                         </thead>
                                         <tbody style="font-size: 8pt;">
                                             @forelse ($items as $v)
@@ -117,30 +142,64 @@
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
-                                                <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">{{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}</td>
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
-                                                    <button class="btn btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
                                                 </td>
-                                                <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
-                                                    @if(count($bom) > 0)
-                                                    <div class="input-group m-0">
-                                                        <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
-                                                            @foreach($bom as $b)
-                                                            <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
-                                                            @endforeach
-                                                        </select>
-                                                        <div class="input-group-append">
-                                                            <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                @if($has_bom)                                                    
+                                                    <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
+                                                        @if(count($bom) > 0)
+                                                        <div class="input-group m-0">
+                                                            <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
+                                                                @foreach($bom as $b)
+                                                                <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
+                                                                @endforeach
+                                                            </select>
+                                                            <div class="input-group-append">
+                                                                <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    @else
-                                                    <input type="hidden" name="bom[{{ $v->item_code }}]">
-                                                    <span>-- No BOM --</span>
-                                                    @endif
-                                                </td>
+                                                        @else
+                                                        <input type="hidden" name="bom[{{ $v->item_code }}]">
+                                                        <span>-- No BOM --</span>
+                                                        @endif
+                                                    </td>
+                                                @endif
                                                 @forelse ($production_order_item as $po)
                                                 <td class="text-center p-2">
                                                     <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
+                                                    @php
+                                                        switch($po['status']){
+                                                            case 'In Progress':
+                                                                $badge = 'warning';
+                                                                break;
+                                                            case 'Completed':
+                                                            case 'Feedbacked':
+                                                                $badge = 'success';
+                                                                break;
+                                                            case 'Ready for Feedback':
+                                                            case 'For Partial Feedback':
+                                                                $badge = 'info';
+                                                                break;
+                                                            case 'Cancelled':
+                                                                $badge = 'danger';
+                                                                break;
+                                                            default:
+                                                                $badge = 'secondary';
+                                                                break;
+                                                        }
+                                                        $name = str_replace('@fumaco.local', null, $po['created_by']);
+
+                                                        $exploded_name = explode('.', $name);
+                                                        $first_name = isset($exploded_name[0]) ? $exploded_name[0] : null;
+                                                        $last_name = isset($exploded_name[1]) ? $exploded_name[1] : null;
+                                                    @endphp
+                                                    <span style="font-size: 7pt;">
+                                                        <span style="text-transform: capitalize !important">{{ $first_name }}</span>&nbsp;<span style="text-transform: capitalize !important">{{ $last_name }}</span>
+                                                    </span><br>
+                                                    <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span>
+                                                </td>
+                                                <td class="text-center p-2">
+                                                    <span class="badge badge-{{ $badge }} mt-1" style="font-size: 7pt;">{{ $po['status'] }}</span>
                                                 </td>
                                                 <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold">{{ $po['qty_to_manufacture'] }}</span>
@@ -148,27 +207,16 @@
                                                 <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold">{{ $po['produced_qty'] }}</span>
                                                 </td>
-                                                <td class="text-center p-2">
-                                                    @if ($po['status'] == 'In Progress')
-                                                    <span class="badge badge-warning" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                                    @elseif (in_array($po['status'], ['Completed', 'Feedbacked']))
-                                                    <span class="badge badge-success" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                                    @elseif (in_array($po['status'], ['Ready for Feedback', 'For Partial Feedback']))
-                                                    <span class="badge badge-info" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                                    @elseif (in_array($po['status'], ['Cancelled']))
-                                                    <span class="badge badge-danger" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                                    @else
-                                                    <span class="badge badge-secondary" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                                    @endif
-                                                </td>
                                                 <td class="text-center p-1">
-                                                    <a class="btn btn-primary create-ste-btn w-100" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
-                                                        View Materials
+                                                    @if(count($bom) > 0)
+                                                        <button class="btn btn-sm btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    @endif
+                                                    <a class="btn btn-sm btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
+                                                        <i class="fa fa-eye"></i>
                                                     </a>
                                                 </td>
                                             </tr>
                                             @empty
-                                            <td>-</td>
                                             <td>-</td>
                                             <td>-</td>
                                             <td>-</td>
