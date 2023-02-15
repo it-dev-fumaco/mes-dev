@@ -8737,10 +8737,12 @@ class MainController extends Controller
 								'created_at' => $now->toDateTimeString(),
 							];
 						} else {
+							$spotwelding_part_id = uniqid();
 							$spotwelding_logs[] = [
 								'job_ticket_id' => $job_ticket_id,
 								'from_time' => Carbon::parse($value['start_time'])->toDateTimeString(),
 								'to_time' => Carbon::parse($value['end_time'])->toDateTimeString(),
+								'spotwelding_part_id' => $spotwelding_part_id,
 								'duration' => $duration,
 								'good' => $value['good'],
 								'reject' => $value['reject'],
@@ -8753,6 +8755,29 @@ class MainController extends Controller
 								'created_by' => Auth::user()->employee_name,
 								'created_at' => $now->toDateTimeString(),
 							];
+
+							$bom_operation_id = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)->pluck('bom_operation_id');
+							$bom_items = DB::connection('mysql')->table('tabBOM Operation as op')
+								->join('tabBOM Item as item', 'op.parent', 'item.parent')
+								->join('tabBOM as bom', 'bom.name', 'item.parent')
+								->where('op.name', $bom_operation_id)
+								->select('item.*', 'bom.item as housing_code')->get();
+								
+							$spotwelding_part_arr = [];
+							foreach ($bom_items as $item) {
+								$spotwelding_part_arr[] = [
+									'housing_production_order' => $request->production_order,
+									'spotwelding_part_id' => $spotwelding_part_id,
+									'housing_code' => $item->housing_code,
+									'reference_no' => $production_order_details->sales_order ? $production_order_details->sales_order : $production_order_details->material_request,
+									'part_category' => isset(explode(' - ', $item->item_classification)[1]) ? explode(' - ', $item->item_classification)[1] : null,
+									'part_code' => $item->item_code,
+									'created_by' => Auth::user()->email,
+									'created_at' => Carbon::now()->toDateTimeString()
+								];
+							}
+
+							DB::connection('mysql_mes')->table('spotwelding_part')->insert($spotwelding_part_arr);
 						}
 					}
 				}
