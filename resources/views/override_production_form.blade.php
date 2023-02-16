@@ -91,12 +91,12 @@
                         </td>
                         <td class="text-center p-2" style="border: 1px solid #ABB2B9;">
                             <div class="form-group m-0">
-                                <input type="datetime-local" class="form-control rounded" name="job_ticket[{{ $row->job_ticket_id }}][{{ $log->time_log_id }}][start_time]" value="{{ $log->from_time }}" required>
+                                <input type="text" class="form-control rounded date-range" placeholder='mm / dd / yyyy , -- : -- --' name="job_ticket[{{ $row->job_ticket_id }}][{{ $log->time_log_id }}][start_time]" value="{{ Carbon\Carbon::parse($log->from_time)->format('m/d/Y , h:i A') }}" required>
                             </div>
                         </td>
                         <td class="text-center p-2" style="border: 1px solid #ABB2B9;">
                             <div class="form-group m-0">
-                                <input type="datetime-local" class="form-control rounded" name="job_ticket[{{ $row->job_ticket_id }}][{{ $log->time_log_id }}][end_time]" value="{{ $log->to_time }}" required>
+                                <input type="text" class="form-control rounded date-range" placeholder='mm / dd / yyyy , -- : -- --' name="job_ticket[{{ $row->job_ticket_id }}][{{ $log->time_log_id }}][end_time]" value="{{ Carbon\Carbon::parse($log->to_time)->format('m/d/Y , h:i A') }}" required>
                             </div>
                         </td>
                         <td class="text-center p-2" style="border: 1px solid #ABB2B9;">
@@ -136,11 +136,11 @@
                             </div>
                         </td>
                         <td class="text-center p-2" style="border: 1px solid #ABB2B9;">
-                            <div class="form-group border border-danger m-0">
+                            <div class="form-group m-0">
                                 <input type="text" name="job_ticket[{{ $row->job_ticket_id }}][start_time]" class="form-control rounded date-range" placeholder='mm / dd / yyyy , -- : -- --' required/>
                             </div></td>
                         <td class="text-center p-2" style="border: 1px solid #ABB2B9;">
-                            <div class="form-group border border-danger m-0">
+                            <div class="form-group m-0">
                                 <input type="text" class="form-control rounded date-range" name="job_ticket[{{ $row->job_ticket_id }}][end_time]" placeholder='mm / dd / yyyy , -- : -- --' required>
                             </div>
                         </td>
