@@ -144,7 +144,7 @@
     </div>
     @else
         <div class="col-12 p-0 mt-5">
-            <h5 class="text-center text-muted">Inspection criteria not found for this workstation.<br/>Please inform QA Department.</h5>
+            <h5 class="text-center text-muted">No Inspection Criteria configured for this workstation.<br/>Please contact QA Department.</h5>
         </div>
     @endif
  </div>
