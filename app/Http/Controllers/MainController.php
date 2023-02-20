@@ -8629,13 +8629,7 @@ class MainController extends Controller
 
 		$operators = DB::connection('mysql_essex')->table('users as u')
 			->join('departments as d', 'd.department_id', 'u.department_id')
-			->when($operation_name, function ($query) use ($operation_name) {
-				return $query->where(function($q) use ($operation_name) {
-					foreach ($operation_name as $str) {
-						$q->orWhere('d.department', 'LIKE', "%".$str."%");
-					}
-				});
-			})
+			->whereIn('d.department', ['Production', 'Fabrication', 'Assembly', 'Painting'])
 			->where('u.user_type', 'Employee')->where('u.status', 'Active')
 			->orderBy('employee_name', 'asc')->pluck('u.employee_name', 'u.user_id');
 		
