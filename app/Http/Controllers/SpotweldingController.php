@@ -236,8 +236,7 @@ class SpotweldingController extends Controller
 			$process_id = $process_id ? $process_id->process_id : null;
 			
 			$bom_parts = $this->get_production_order_bom_parts($request->production_order);
-			$spotwelding_parts_count = DB::connection('mysql_mes')->table('spotwelding_part')->where('spotwelding_part_id', $current_task->spotwelding_part_id)->count();
-
+			$spotwelding_parts_count = DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $request->production_order)->distinct()->pluck('part_code')->count();
 			if(count($bom_parts) == $spotwelding_parts_count){
 				$update_job_ticket = $this->update_job_ticket($current_task->job_ticket_id);
 

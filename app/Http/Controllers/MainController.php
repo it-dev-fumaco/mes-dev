@@ -9802,23 +9802,23 @@ class MainController extends Controller
 						$bom_parts = $this->get_production_order_bom_parts($value->production_order);
 			
 						$spotwelding_parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $value->production_order)->get();
-						$spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id');
+						$spotwelding_part_codes = collect($spotwelding_parts)->groupBy('part_code')->toArray();
+						$spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id')->toArray();
 			
-						$completed_spotwelding = [];
-						foreach ($spotwelding_parts as $part_id => $array) {
-							if(isset($spotwelding_parts[$part_id])){
-								if(count($spotwelding_parts[$part_id]) == count($bom_parts)){
-									$completed_spotwelding[] = $part_id;
-								}
-							}
+						if (count(array_diff(array_column($bom_parts, 'item_code'), array_keys($spotwelding_part_codes))) <= 0) {
+							$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', array_keys($spotwelding_parts))
+								->where('job_ticket_id', $job_ticket_id)->selectRaw('spotwelding_part_id, SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
+								->where('status', 'Completed')->get();
+								
+							$total_good_spotwelding = collect($total_good_spotwelding)->map(function ($q){
+								return $q->total_good > $q->total_reject ? $q->total_good - $q->total_reject : 0;
+							})->min();
+						} else {
+							$total_good_spotwelding = 0;
 						}
-			
-						$total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $completed_spotwelding)
-							->where('job_ticket_id', $value->job_ticket_id)->selectRaw('SUM(good) as total_good, SUM(reject) as total_reject')
-							->where('status', 'Completed')->first();
 							
 						$total_reject = collect($logs)->where('status', 'Completed')->sum('reject');
-						$total_good = $total_good_spotwelding ? $total_good_spotwelding->total_good : 0;
+						$total_good = $total_good_spotwelding;
 					}
 				} else {
 					if (array_key_exists($job_ticket_id, $time_logs_by_job_ticket)) {

@@ -29,25 +29,21 @@ trait GeneralTrait
             $bom_parts = $this->get_production_order_bom_parts($job_ticket_detail->production_order);
 
             $spotwelding_parts = DB::connection('mysql_mes')->table('spotwelding_part')->where('housing_production_order', $job_ticket_detail->production_order)->get();
+            $spotwelding_part_codes = collect($spotwelding_parts)->groupBy('part_code')->toArray();
             $spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id')->toArray();
 
-            // $completed_spotwelding = [];
-            // foreach ($spotwelding_parts as $part_id => $array) {
-            //     if(isset($spotwelding_parts[$part_id])){
-            //         if(count($spotwelding_parts[$part_id]) == count($bom_parts)){
-            //             $completed_spotwelding[] = $part_id;
-            //         }
-            //     }
-            // }
+            if (count(array_diff(array_column($bom_parts, 'item_code'), array_keys($spotwelding_part_codes))) <= 0) {
+                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', array_keys($spotwelding_parts))
+                    ->where('job_ticket_id', $job_ticket_id)->selectRaw('spotwelding_part_id, SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
+                    ->where('status', 'Completed')->get();
+                    
+                $total_good_spotwelding = collect($total_good_spotwelding)->map(function ($q){
+                    return $q->total_good > $q->total_reject ? $q->total_good - $q->total_reject : 0;
+                })->min();
+            } else {
+                $total_good_spotwelding = 0;
+            }
 
-            $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', array_keys($spotwelding_parts))
-                ->where('job_ticket_id', $job_ticket_id)->selectRaw('spotwelding_part_id, SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
-                ->where('status', 'Completed')->get();
-                
-            $total_good_spotwelding = collect($total_good_spotwelding)->map(function ($q){
-                return $q->total_good > $q->total_reject ? $q->total_good - $q->total_reject : 0;
-            })->min();
-                
             $total_reject = collect($logs)->sum('reject');
             $total_good = $total_good_spotwelding;
         } else {
@@ -74,6 +70,14 @@ trait GeneralTrait
             ->whereIn('status', ['In Progress', 'In Process'])->exists();
         if ($has_wip) {
             $job_ticket_status = 'In Progress';
+        }
+
+        if ($time_logs_table == 'spotwelding_qty') {
+            $has_wip_spotwelding = DB::connection('mysql_mes')->table($time_logs_table)->where('job_ticket_id', $job_ticket_id)
+                ->whereIn('status', ['In Progress', 'In Process', 'Completed'])->exists();
+            if ($has_wip_spotwelding && $job_ticket_status != 'Completed') {
+                $job_ticket_status = 'In Progress';
+            }
         }
 
         if ($job_ticket_detail->qty_to_manufacture > $total_good && $total_good > 0) {
