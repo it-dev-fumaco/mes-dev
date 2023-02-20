@@ -4462,7 +4462,9 @@ class MainController extends Controller
 			if ($time_log) {
 				$is_feedbacked = DB::connection('mysql_mes')->table('production_order as p')
 					->join('job_ticket as j', 'p.production_order', 'j.production_order')
-					->where('j.job_ticket_id', $time_log->job_ticket_id)->where('p.feedback_qty', '>', 0)->exists();
+					->where('j.job_ticket_id', $time_log->job_ticket_id)
+					->whereRaw('p.feedback_qty = p.qty_to_manufacture')
+					->exists();
 
 				if ($is_feedbacked) {
 					return response()->json(['success' => 0, 'message' => 'Production Order Feedbacked must be cancelled first to register item reject(s).']);

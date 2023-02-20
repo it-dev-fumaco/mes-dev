@@ -1617,6 +1617,7 @@ class ManufacturingController extends Controller
                 ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
                 ->where('sales_order', $data_mes['sales_order'])
                 ->where('material_request', $data_mes['material_request'])
+                ->where('status', '!=', 'Cancelled')
                 ->first();
             
             if ($check_existing_production_order) {
@@ -3815,6 +3816,7 @@ class ManufacturingController extends Controller
                 ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
                 ->where('sales_order', $data_mes['sales_order'])
                 ->where('material_request', $data_mes['material_request'])
+                ->where('status', '!=', 'Cancelled')
                 ->first();
             
             if ($check_existing_production_order) {
