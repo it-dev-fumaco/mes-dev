@@ -7348,8 +7348,48 @@ class MainController extends Controller
 			];
 		}
 
+		$wip_prods = collect($list)->filter(function ($value, $key) {
+			return $value['status'] == 'In Progress';
+		})->pluck('production_order')->toArray();
+
+		// MES-1280 - Display production order in progress in multiple machines for assembly operator scheduling
+		$wip_orders = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
+			->join('production_order as po', 'aca.production_order', 'po.production_order')
+			->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+			->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+			->whereNotIn('po.status', ['Cancelled', 'Feedbacked', 'Completed', 'Closed'])
+			->where('tl.status', 'In Progress')->where('tl.machine_code', $conveyor)
+			->whereDate('scheduled_date', '<=', $schedule_date)
+			->whereNotIn('po.production_order', $wip_prods)
+			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'tl.status', 'po.project', 'po.classification')
+			->groupBy('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'tl.status', 'po.project', 'po.classification')
+			->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc')->get();
+
+		if (count($wip_orders) > 0) {
+			foreach ($wip_orders as $row) {
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+				$list[] = [
+					'scheduled_date' => $row->scheduled_date,
+					'production_order' => $row->production_order,
+					'status' => $row->status,
+					'customer' => $row->customer,
+					'project' => $row->project,
+					'reference_no' => $conveyor,
+					'qty_to_manufacture' => $row->qty_to_manufacture,
+					'item_code' => $row->item_code,
+					'description' => $row->description,
+					'stock_uom' => $row->stock_uom,
+					'order_no' => $row->order_no,
+					'good' => $row->produced_qty,
+					'balance' => $row->qty_to_manufacture - $row->produced_qty,
+					'classification' => $row->classification
+				];
+			}
+		}
+
 		return collect($list)->sortBy('order_no');
 	}
+
 	public function drag_n_drop($name){
 		if(DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
