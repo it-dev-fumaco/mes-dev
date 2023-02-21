@@ -30,7 +30,7 @@ class QualityInspectionController extends Controller
         }
 
         $production_order_items = $item_images = $inspected_component_qtys = [];
-        if ($operation_id == 3) {
+        if ($operation_id == 3 || strtolower($workstation_name) == 'spotwelding') {
             $production_order_items = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)
                 ->select('item_code', 'description', 'required_qty')->get();
 

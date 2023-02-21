@@ -90,7 +90,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="7" class="text-center text-uppercase text-muted">No Task for Random Inspection</td>
+                                        <td colspan="8" class="text-center text-uppercase text-muted">No Task for Random Inspection</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

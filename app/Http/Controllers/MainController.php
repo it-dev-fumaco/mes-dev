@@ -6058,7 +6058,7 @@ class MainController extends Controller
 					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 
-				if ($expected_qty_after_transaction != $rm_qty) {
+				if (number_format($expected_qty_after_transaction, 4, '.', '') != number_format($rm_qty, 4, '.', '')) {
 					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 			}
