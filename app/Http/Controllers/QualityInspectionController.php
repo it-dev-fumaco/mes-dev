@@ -1350,7 +1350,10 @@ class QualityInspectionController extends Controller
 
                     $reject_reasons = isset($request->reject_type[$time_log_id]) ? $request->reject_type[$time_log_id] : [];
                     foreach($reject_reasons as $reason_id => $list_id){
-                        DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reason_id)->update(['reject_list_id' => $list_id]);
+                        DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reason_id)->update([
+                            'reject_list_id' => $list_id,
+                            'reject_qty' => $request->reject_type_qty[$time_log_id]
+                        ]);
                     }
 
                     $update = [
