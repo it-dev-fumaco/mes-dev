@@ -88,7 +88,7 @@
             <span class="d-inline-block"> New Incoming Order(s)</span>
           </a>
         </li>
-        <li class="m-0" {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+        <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
           <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
             <span class="d-inline-block">Fabrication</span>
@@ -777,175 +777,175 @@
       animation: blinkingBackground 2.5s linear infinite;
     }
 
-  @keyframes blinkingBackground{
-    0%    { background-color: #ffffff;}
-    25%   { background-color: #FFC107;}
-    50%   { background-color: #ffffff;}
-    75%   { background-color: #FFC107;}
-    100%  { background-color: #ffffff;}
-  }
-  
-  .breadcrumb-c {
-    font-size: 8pt;
-    font-weight: bold;
-    padding: 0;
-    background: transparent;
-    list-style: none;
-    overflow: hidden;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    width: 100%;
-    border-radius: 4px;
-  }
+    @keyframes blinkingBackground{
+      0%    { background-color: #ffffff;}
+      25%   { background-color: #FFC107;}
+      50%   { background-color: #ffffff;}
+      75%   { background-color: #FFC107;}
+      100%  { background-color: #ffffff;}
+    }
+    
+    .breadcrumb-c {
+      font-size: 8pt;
+      font-weight: bold;
+      padding: 0;
+      background: transparent;
+      list-style: none;
+      overflow: hidden;
+      margin-top: 3px;
+      margin-bottom: 3px;
+      width: 100%;
+      border-radius: 4px;
+    }
 
-  .breadcrumb-c>li {
-    display: table-cell;
-    vertical-align: top;
-    width: 0.8%;
-  }
+    .breadcrumb-c>li {
+      display: table-cell;
+      vertical-align: top;
+      width: 0.8%;
+    }
 
-  .breadcrumb-c>li+li:before {
-    padding: 0;
-  }
+    .breadcrumb-c>li+li:before {
+      padding: 0;
+    }
 
-  .breadcrumb-c li a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 0 10px 5px;
-    position: relative;
-    display: inline-block;
-    width: calc( 100% - 10px );
-    background-color: hsla(0, 0%, 83%, 1);
-    text-align: center;
-    text-transform: capitalize;
-  }
+    .breadcrumb-c li a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 0 10px 5px;
+      position: relative;
+      display: inline-block;
+      width: calc( 100% - 10px );
+      background-color: hsla(0, 0%, 83%, 1);
+      text-align: center;
+      text-transform: capitalize;
+    }
 
-  .breadcrumb-c li.completed a {
-    background: brown;
-    background: hsla(153, 57%, 51%, 1);
-  }
+    .breadcrumb-c li.completed a {
+      background: brown;
+      background: hsla(153, 57%, 51%, 1);
+    }
 
-  .breadcrumb-c li.completed a:after {
-    border-left: 30px solid hsla(153, 57%, 51%, 1);
-  }
+    .breadcrumb-c li.completed a:after {
+      border-left: 30px solid hsla(153, 57%, 51%, 1);
+    }
 
-  .breadcrumb-c li.active a {
-    background: #ffc107;
-  }
+    .breadcrumb-c li.active a {
+      background: #ffc107;
+    }
 
-  .breadcrumb-c li.active a:after {
-    border-left: 30px solid #ffc107;
-  }
+    .breadcrumb-c li.active a:after {
+      border-left: 30px solid #ffc107;
+    }
 
-  .breadcrumb-c li:first-child a {
-    padding-left: 1px;
-  }
+    .breadcrumb-c li:first-child a {
+      padding-left: 1px;
+    }
 
-  .breadcrumb-c li:last-of-type a {
-    width: calc( 100% - 38px );
-  }
+    .breadcrumb-c li:last-of-type a {
+      width: calc( 100% - 38px );
+    }
 
-  .breadcrumb-c li a:before {
-    content: " ";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 50px solid transparent;
-    border-bottom: 50px solid transparent;
-    border-left: 30px solid white;
-    position: absolute;
-    top: 50%;
-    margin-top: -50px;
-    margin-left: 1px;
-    left: 100%;
-    z-index: 1;
-  }
+    .breadcrumb-c li a:before {
+      content: " ";
+      display: block;
+      width: 0;
+      height: 0;
+      border-top: 50px solid transparent;
+      border-bottom: 50px solid transparent;
+      border-left: 30px solid white;
+      position: absolute;
+      top: 50%;
+      margin-top: -50px;
+      margin-left: 1px;
+      left: 100%;
+      z-index: 1;
+    }
 
-  .breadcrumb-c li a:after {
-    content: " ";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 50px solid transparent;
-    border-bottom: 50px solid transparent;
-    border-left: 30px solid hsla(0, 0%, 83%, 1);
-    position: absolute;
-    top: 50%;
-    margin-top: -50px;
-    left: 100%;
-    z-index: 2;
-  }
+    .breadcrumb-c li a:after {
+      content: " ";
+      display: block;
+      width: 0;
+      height: 0;
+      border-top: 50px solid transparent;
+      border-bottom: 50px solid transparent;
+      border-left: 30px solid hsla(0, 0%, 83%, 1);
+      position: absolute;
+      top: 50%;
+      margin-top: -50px;
+      left: 100%;
+      z-index: 2;
+    }
 
-  .truncate {
-    white-space: nowrap;
-    /*overflow: hidden;*/
-    text-overflow: ellipsis;
-  }
+    .truncate {
+      white-space: nowrap;
+      /*overflow: hidden;*/
+      text-overflow: ellipsis;
+    }
 
-  .scrolltbody tbody {
-    display:block;
-    height:300px;
-    overflow:auto;
-  }
-  .scrolltbody thead, .scrolltbody tbody tr {
-      display:table;
-      width:100%;
-      table-layout:fixed;
-  }
-  .scrolltbody thead {
-      width: calc(100%)
-  }
-    .numpad-div .row1{
-    -webkit-user-select: none; /* Chrome/Safari */        
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE10+ */
-    /* Not implemented yet */
-    -o-user-select: none;
-    user-select: none;   
-  }
+    .scrolltbody tbody {
+      display:block;
+      height:300px;
+      overflow:auto;
+    }
+    .scrolltbody thead, .scrolltbody tbody tr {
+        display:table;
+        width:100%;
+        table-layout:fixed;
+    }
+    .scrolltbody thead {
+        width: calc(100%)
+    }
+      .numpad-div .row1{
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Not implemented yet */
+      -o-user-select: none;
+      user-select: none;   
+    }
 
-  .numpad{
-    display: inline-block;
-    border: 1px solid #333;
-    border-radius: 5px;
-    text-align: center;
-    width: 27%;
-    height: 27%;
-    line-height: 60px;
-    margin: 3px;
-    font-size: 15pt;
-    color: inherit;
-    background: rgba(255, 255, 255, 0.7);
-    transition: all 0.3s ease-in-out;
-  }
-  .numpad:active,
-  .numpad:hover {
-    cursor: pointer ;
-    box-shadow: inset 0 0 2px #000000;
-  }
+    .numpad{
+      display: inline-block;
+      border: 1px solid #333;
+      border-radius: 5px;
+      text-align: center;
+      width: 27%;
+      height: 27%;
+      line-height: 60px;
+      margin: 3px;
+      font-size: 15pt;
+      color: inherit;
+      background: rgba(255, 255, 255, 0.7);
+      transition: all 0.3s ease-in-out;
+    }
+    .numpad:active,
+    .numpad:hover {
+      cursor: pointer ;
+      box-shadow: inset 0 0 2px #000000;
+    }
 
-  .modal-ste .form-control {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-shadow: none;
-    margin-bottom: 15px;
-  }
-  .modal-ste .form-control:hover, .modal-ste .form-control:focus, .modal-ste .form-control:active {
-    box-shadow: none;
-  }
-  .modal-ste .form-control:focus {
-    border: 1px solid #34495e;
-  }
+    .modal-ste .form-control {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-shadow: none;
+      margin-bottom: 15px;
+    }
+    .modal-ste .form-control:hover, .modal-ste .form-control:focus, .modal-ste .form-control:active {
+      box-shadow: none;
+    }
+    .modal-ste .form-control:focus {
+      border: 1px solid #34495e;
+    }
 
-  .modal { overflow: auto !important; }
-  #reschedule-delivery-modal .form-control {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-shadow: none;
-    margin-bottom: 15px;
-  }
+    .modal { overflow: auto !important; }
+    #reschedule-delivery-modal .form-control {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-shadow: none;
+      margin-bottom: 15px;
+    }
 
-  [data-notify] { z-index: 9999 !important; }
+    [data-notify] { z-index: 9999 !important; }
   </style>
 
   <div class="modal fade" id="view-bundle-modal" tabindex="-1" role="dialog">
