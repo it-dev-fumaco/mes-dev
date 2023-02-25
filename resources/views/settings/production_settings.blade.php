@@ -1790,7 +1790,7 @@ $('.sel9').select2({
         $.ajax({
           url:"/get_tbl_process_setup_list/?page="+page,
           type:"GET",
-          data: {search_string: query},
+          data: {search_string: $('#search-production-process').val()},
           success:function(data){
             $('#tbl_process_setup_list_div').html(data);
           }
@@ -2061,7 +2061,7 @@ function workstation_list(page, query){
     $.ajax({
           url:"/get_tbl_workstation_list?page=" + page,
           type:"GET",
-          data: {search_string: query},
+          data: {search_string: $('#search_workstation_setup').val()},
           success:function(data){
             
             $('#tbl_workstation_list').html(data);
@@ -2108,7 +2108,7 @@ function workstation_list(page, query){
 function setting_machine_list(page, query){
     $.ajax({
           url:"/get_tbl_setting_machine_list?page=" + page,
-          data: {search_string: query},
+          data: {search_string: $('#search_machine_setup').val()},
           type:"GET",
           success:function(data){
             
@@ -4139,7 +4139,7 @@ tbl_late_delivery_date();
   function tbl_late_delivery_date(page, query){
         $.ajax({
           url:"/get_late_delivery?page="+page,
-          data: {search_string: query},
+          data: {search_string: $('#search_late_delivery_setup').val()},
           type:"GET",
           success:function(data){
             $('#tbl_late_delivery_list').html(data);
@@ -4528,7 +4528,7 @@ $(document).on('click', '#late_delivery_pagination a', function(event){
   function tbl_reason_for_cancellation_po(page, query){
     $.ajax({
       url:"/tbl_reason_for_cancellation_po?page="+page,
-      data: {search_string: query},
+      data: {search_string: $('#search_reason_cancelled_po').val()},
       type:"GET",
       success:function(data){
         $('#tbl_reason_for_cancellation_po').html(data);
