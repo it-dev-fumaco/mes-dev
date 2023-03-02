@@ -35,7 +35,10 @@
             </li>
             @endforeach
             <li class="nav-item font-weight-bold pull-right">
-                <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="third-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size: 10pt;">{{ count($qa_inspection_logs) }}<span></span>
+                <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="fourth-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-4"  data-production-order="{{ $existing_production_order->production_order }}" data-operation="{{ $operation }}" role="tab" aria-controls="tab4" aria-selected="false">Pending for Confirmation <span class="badge" id="reject-confirmation-count" style="font-size: 10pt; background-color: #F96332; color: #fff">0<span></span>
+            </li>
+            <li class="nav-item font-weight-bold pull-right">
+                <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="third-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size:">{{ count($qa_inspection_logs) }}<span></span>
             </li>
         </ul>
         <style>
@@ -140,6 +143,8 @@
                     </div>
                 </div>
             </div>
+
+            <div class="tab-pane overflow-auto" id="tab{{ $existing_production_order->production_order }}-4" role="tabpanel" aria-labelledby="fourth-tab" style="max-height: 350px;"></div>
         </div>
     </div>
     @else
@@ -147,4 +152,23 @@
             <h5 class="text-center text-muted">No Inspection Criteria configured for this workstation.<br/>Please contact QA Department.</h5>
         </div>
     @endif
- </div>
+</div>
+
+<script>
+    $(document).ready(function (){
+        get_reject_for_confirmation_count();
+        function get_reject_for_confirmation_count(){
+            $.ajax({
+                url:"/getProductionOrderRejectForConfirmation/{{ $existing_production_order->production_order }}",
+                type:"GET",
+                data: {
+                    operation: '{{ $operation }}',
+                    get_qty: 1
+                },
+                success:function(response){
+                    $('#reject-confirmation-count').html(response.message);
+                }
+            });
+        }
+    });
+</script>

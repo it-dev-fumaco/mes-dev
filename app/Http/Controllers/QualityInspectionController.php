@@ -740,6 +740,24 @@ class QualityInspectionController extends Controller
         ];
     }
 
+    public function verifyQAStaff(Request $request){
+        try {
+            $authorized = DB::connection('mysql_mes')->table('user')
+                ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+                ->where('user_group.module', 'Quality Assurance')->where('user.user_access_id', $request->id)->exists();
+
+            $user = DB::connection('mysql_essex')->table('users')->where('user_id', $request->id)->first();
+
+            if($authorized && $user && Auth::loginUsingId($user->id)){
+                return response()->json(['success' => 1, 'message' => 'Authorized.']);
+            }else{
+                return response()->json(['success' => 0, 'message' => 'Please enter Authorized Staff ID.']);
+            }
+        } catch (\Throwable $th) {
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+        }
+    }
+
     public function get_reject_for_confirmation($operation_id, Request $request){
         $q = DB::connection('mysql_mes')->table('quality_inspection as q')
             ->join('time_logs as t', 't.time_log_id', 'q.reference_id')
@@ -763,6 +781,9 @@ class QualityInspectionController extends Controller
             })
             ->when($operation_id == 2, function ($query) {
                 return $query->where('j.workstation', 'Painting');
+            })
+            ->when($request->production_order, function ($q) use ($request){
+                return $q->where('p.production_order', $request->production_order);
             })
             ->where('q.reference_type', 'Time Logs')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
@@ -793,6 +814,9 @@ class QualityInspectionController extends Controller
             })
             ->when(!in_array($operation_id, [1, 3]), function ($query) {
                 return $query->where('j.workstation', 'Painting');
+            })
+            ->when($request->production_order, function ($q) use ($request){
+                return $q->where('p.production_order', $request->production_order);
             })
             ->where('q.reference_type', 'Spotwelding')
             ->where('q.qa_inspection_type', 'Reject Confirmation')
@@ -871,6 +895,10 @@ class QualityInspectionController extends Controller
         }
 
         $timelogs = collect($reject_confirmation_list)->pluck('time_log_id')->unique();
+
+        if($request->get_qty){
+            return response()->json(['success' => 1, 'message' => count($timelogs)]);
+        }
 
         return view('quality_inspection.tbl_production_order_reject_for_confirmation', compact('production_order_details', 'reject_confirmation_list', 'checklist', 'timelogs'));
     }

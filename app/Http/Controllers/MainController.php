@@ -4595,6 +4595,8 @@ class MainController extends Controller
 			->select('rc.reject_category_id','rc.reject_category_name')->distinct('rc.reject_category_id')
 			->orderBy('rc.reject_category_id', 'asc')->get();
 
+		$operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $existing_production_order->operation_id)->pluck('operation_name')->first();
+
 		if($workstation != 'Spotwelding'){
 			$task_random_inspection = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -4745,7 +4747,7 @@ class MainController extends Controller
 
 		$task_random_inspection_arr = collect($task_random_inspection_arr)->sortBy('inspected_qty')->toArray();
 
-		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation'));
+		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation', 'workstation', 'operation'));
 	}
 
 	public function maintenance_request(Request $request){

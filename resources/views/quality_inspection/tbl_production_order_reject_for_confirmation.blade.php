@@ -1,4 +1,4 @@
-<table style="width: 100%; border-color: #D5D8DC;">
+<table id="header-table" style="width: 100%; border-color: #D5D8DC;">
     <col style="width: 15%;">
     <col style="width: 27%;">
     <col style="width: 23%;">
