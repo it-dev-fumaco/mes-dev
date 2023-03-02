@@ -617,11 +617,7 @@ class QualityInspectionController extends Controller
     public function viewRejectionReport(){
         $permissions = $this->get_user_permitted_operation();
 
-        if(!in_array('Quality Assurance', $permissions['permitted_modules'])){
-            return redirect('/main_dashboard');
-        }
-
-        $reject_category= DB::connection('mysql_mes')->table('reject_category')->get();
+        $reject_category = DB::connection('mysql_mes')->table('reject_category')->get();
 
         return view('quality_inspection.view_rejection_report', compact('permissions', 'reject_category'));
     }
