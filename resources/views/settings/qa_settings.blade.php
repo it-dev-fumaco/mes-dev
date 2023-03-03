@@ -1418,8 +1418,6 @@
       });
     }
 
-    $('.checklist-selection').select2();
-   
     $.ajaxSetup({
       headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1854,7 +1852,7 @@
           var tblrow = '<tr>' +
             '<td>'+len2+'</td>' +
             '<td><select name="new_checklist_r_type[]" class="form-control onchange-selection count-row sel16"  data-idcolumn='+id_unique+' required>'+row+'</select></td>' +
-            '<td><select name="new_checklist_r_desc[]" class="form-control checklist-selection sel16" id='+id_unique+' required multiple="multiple"></select></td>' +
+            '<td><select name="new_checklist_r_desc[]" class="form-control sel16" id='+id_unique+' required></select></td>' +
             '<td><a class="delete"><i class="now-ui-icons ui-1_simple-remove" style="color: red;"></i></a></td>' +
             '</tr>';
 
@@ -1870,14 +1868,6 @@
           console.log('Error fetching Designation!');
         }
       });
-    });
-
-    $(document).on('change', '.checklist-selection', function (e){
-      e.preventDefault();
-      // console.log($(this).find('option:selected').val());
-      if($(this).find('option:selected').val() == 'All'){
-        $('#first-selection').find('option').prop('selected', 'selected');
-      }
     });
      
     $(document).on('change', '.onchange-selection', function(){
