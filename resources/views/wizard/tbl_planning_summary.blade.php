@@ -19,6 +19,7 @@
 		@if ($has_unplanned > 0)
 		<th class="text-center"><b>Unplanned Qty</b></th>
 		@endif
+		<th class="text-center"><b>Planned Prod. Orders</b></th>
 		@if($has_scheduled > 0)
 		<th class="text-center"><b>Planned Start Date</b></th>
 		@endif
@@ -39,6 +40,13 @@
 				<span class="d-block">{{ $prod['stock_uom'] }}</span>
 			</td>
 			@endif
+			<td class="text-left">
+				@forelse ($prod['planned_production_orders'] as $production_order)
+					<span class="d-block">{{ $production_order->production_order.' ('.$production_order->qty_to_manufacture.')' }}</span>
+				@empty
+					<span class="d-block">-</span>
+				@endforelse
+			</td>
 			@if($has_scheduled > 0)
 			<td class="text-center font-weight-bold">{{ ($prod['is_scheduled'] == 1) ? date('Y-m-d', strtotime($prod['planned_start_date'])) : 'Unscheduled' }}</td>
 			@endif

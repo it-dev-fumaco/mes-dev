@@ -29,18 +29,22 @@
    </table>
 </div>
 <table class="table table-hover table-bordered" id="item-list" style="font-size: 9pt;">
-   <col style="width: 5%;">
-   <col style="width: 45%;">
-   <col style="width: 10%;">
-   <col style="width: 13%;">
-   <col style="width: 12%;">
-   <col style="width: 15%;">
+   <col style="width: 5%;"><!-- No. -->
+   <col style="width: 45%;"><!-- Item Description -->
+   <col style="width: 5%;"><!-- Planned Qty -->
+   <col style="width: 5%;"><!-- Qty to Manufacture -->
+   <col style="width: 10%;"><!-- Planned Start Date -->
+   <col style="width: 10%;"><!-- Target Warehouse -->
+   <col style="width: 10%;"><!-- List -->
+   <col style="width: 10%;"><!-- Create Production Order -->
    <thead class="text-white bg-secondary" style="font-size: 7pt;">
       <th class="text-center"><b>No.</b></th>
       <th class="text-center"><b>Item Description</b></th>
-      <th class="text-center"><b>Qty</b></th>
+      <th class="text-center"><b>Planned Qty</b></th>
+      <th class="text-center"><b>Qty to Manufacture</b></th>
       <th class="text-center"><b>Planned Start Date</b></th>
       <th class="text-center"><b>Target Warehouse</b></th>
+      <th class="text-center"><b>Planned Prod. Orders</b></th>
       <th class="text-center"><b>Create Production Order</b></th>
    </thead>
    <tbody>
@@ -50,6 +54,13 @@
          $div_hide = ( $item['match'] == "false") ? "" : "none";
          $div_parent = ( $item['match'] == "false") ?  $item['new_code'] : "";
          $div_orig = ( $item['match'] == "false") ?  $item['origl_code'] : "";
+         $unplanned_qty = 0;
+         $disabled = 'disabled';
+
+         if((float)$item['qty'] > collect($item['production_order'])->sum()){
+            $unplanned_qty = (float)$item['qty'] - collect($item['production_order'])->sum();
+            $disabled = null;
+         }
       @endphp
       <tr class="{{$div_color}}">
          <td class="text-center"><b>{{ $item['idx'] }}</b></td>
@@ -73,14 +84,17 @@
             <span class="qty" style="display: none;">{{ $item['qty'] }}</span>
             <b><span>{{ number_format($item['qty']) }}</span><br>{{ $item['uom'] }}</b>
          </td>
+         <td class="text-center" style="font-size: 11pt;">
+            <input type="text" class="form-control rounded qty-to-manufacture text-center" placeholder="Qty" value="{{ $unplanned_qty }}">
+         </td>
          <td class="text-center">
             <div class="form-group" style="margin: 0;">
-               <input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center;" placeholder="Planned Start Date" value="{{ $item['planned_start_date'] }}" {{ ($item['production_order']) ? 'disabled' : '' }}>
+               <input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center;" placeholder="Planned Start Date" value="{{ $item['planned_start_date'] }}" {{ $disabled }}>
             </div>
          </td>
          <td class="text-center">
             <div class="form-group" style="margin: 0;">
-               <select class="form-control form-control-lg target" {{ ($item['production_order']) ? 'disabled' : '' }}>
+               <select class="form-control form-control-lg target" {{ $disabled }}>
                   @forelse ($item_warehouses as $target_warehouse)
                   <option value="{{ $target_warehouse }}" {{ ($item['fg_warehouse']) ? ($item['fg_warehouse'] == $target_warehouse ? 'selected' : '') : ('Finished Goods - FI' == $target_warehouse ? 'selected' : '') }}>{{ $target_warehouse }}</option>
                   @empty
@@ -89,18 +103,23 @@
                </select>
             </div>
          </td>
+         <td class="text-center">
+            @foreach ($item['production_order'] as $production_order => $qty)
+               <span class="block">{{ $production_order.'('.(float)$qty.')' }}</span>
+            @endforeach
+         </td>
          <td class="td-actions text-center">
             <span class="item-reference-id d-none">{{ $item['id'] }}</span>
-            @if ($item['production_order'])
-            <button type="button" class="btn btn-success production-order-no" disabled><i class="now-ui-icons ui-1_check"></i> {{ $item['production_order'] }}</button>
-            <button type="button" rel="tooltip" class="btn btn-danger" disabled>
-               <i class="now-ui-icons ui-1_simple-remove"></i>
-            </button>
+            @if ($disabled)
+               <button type="button" class="btn btn-success production-order-no" disabled><i class="now-ui-icons ui-1_check"></i> OK</button>
+               <button type="button" rel="tooltip" class="btn btn-danger" disabled>
+                  <i class="now-ui-icons ui-1_simple-remove"></i>
+               </button>
             @else
-            <button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
-            <button type="button" rel="tooltip" class="btn btn-danger delete-row">
-               <i class="now-ui-icons ui-1_simple-remove"></i>
-            </button>
+               <button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
+               <button type="button" rel="tooltip" class="btn btn-danger delete-row">
+                  <i class="now-ui-icons ui-1_simple-remove"></i>
+               </button>
             @endif
          </td>
       </tr>

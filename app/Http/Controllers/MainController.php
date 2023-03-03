@@ -653,7 +653,7 @@ class MainController extends Controller
 		$bom = DB::connection('mysql')->table('tabBOM')->where('item', $details->sub_parent_item_code)->where('is_default', 1)->orderBy('modified', 'desc')->first();
 		
 		$bom_details = [];
-		$qty_to_manufacture = 0;
+		$qty_to_manufacture = $sales_order_qty;
 
 		if($bom){
 			$bom_details = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom->name)->where('item_code', $details->item_code)->first();
