@@ -1,4 +1,4 @@
-<table style="width: 100%; border-color: #D5D8DC;">
+<table id="header-table" style="width: 100%; border-color: #D5D8DC;">
     <col style="width: 15%;">
     <col style="width: 27%;">
     <col style="width: 23%;">
@@ -33,11 +33,11 @@
     @csrf
     <table class="table table-bordered mt-3">
         <thead class="bg-secondary text-white text-uppercase" style="font-size: 7pt;">
-            <th class="p-1 text-center" style="width: 15%;">Workstation</th>
-            <th class="p-1 text-center" style="width: 15%;">Date Reported</th>
-            <th class="p-1 text-center" style="width: 18%;">Operator Name</th>
+            <th class="p-1 text-center" style="width: 12%;">Workstation</th>
+            <th class="p-1 text-center" style="width: 13%;">Date Reported</th>
+            <th class="p-1 text-center" style="width: 15%;">Operator Name</th>
             <th class="p-1 text-center" style="width: 10%;">Declared Reject</th>
-            <th class="p-1 text-center" style="width: 15%;">Reject Type</th>
+            <th class="p-1 text-center" style="width: 23%;">Reject Type & Qty</th>
             <th class="p-1 text-center" style="width: 12%;">Confirmed Reject Qty</th>
             <th class="p-1 text-center" style="width: 10%;">Disposition</th>
             <th class="p-1 text-center" style="width: 5%;">-</th>
@@ -70,23 +70,28 @@
                 <td class="text-center p-1">{{ $r->rejected_qty }}</td>
                 <td class="text-center p-1">
                     @foreach ($select_arr as $item)
-                        <div class="p-1">
-                            <select class="form-control rounded" name="reject_type[{{ $timelog }}][{{ $item->reject_reason_id }}]" required>
-                                <option value="" {{ !in_array($item->reject_list_id, collect($workstation_checklist)->pluck('reject_list_id')->toArray()) ? 'selected' : null }} disabled>Select Reject Type</option>
-                                @forelse($workstation_checklist as $i)
-                                    <option value="{{ $i->reject_list_id }}" {{ $item->reject_list_id == $i->reject_list_id ? 'selected' : '' }}>{{ $i->reject_reason }}</option>
-                                @empty
-                                    <option value="">No Reject Type(s)</option>
-                                @endforelse
-                            </select>
+                        <div class="p-0 row m-0">
+                            <div class="col-8 p-1">
+                                <select class="form-control rounded" name="reject_type[{{ $timelog }}][{{ $item->reject_reason_id }}]" required>
+                                    <option value="" {{ !in_array($item->reject_list_id, collect($workstation_checklist)->pluck('reject_list_id')->toArray()) ? 'selected' : null }} disabled>Select Reject Type</option>
+                                    @forelse($workstation_checklist as $i)
+                                        <option value="{{ $i->reject_list_id }}" {{ $item->reject_list_id == $i->reject_list_id ? 'selected' : '' }}>{{ $i->reject_reason }}</option>
+                                    @empty
+                                        <option value="">No Reject Type(s)</option>
+                                    @endforelse
+                                </select>
+                            </div>
+                            <div class="col-4 p-1">
+                                <input type="text" class="form-control rounded" name="reject_type_qty[{{ $timelog }}]" data-type="Reject Type" placeholder="Reject Qty" required>
+                            </div>
                         </div>
                     @endforeach
                 </td>
                 <td class="text-center p-1">
-                    <input type="text" class="form-control rounded" name="confirmed_reject[{{ $r->time_log_id }}]" required>
+                    <input type="text" class="form-control rounded" name="confirmed_reject[{{ $r->time_log_id }}]" placeholder="Confirmed Reject Qty" required>
                 </td>
                 <td class="text-center p-1">
-                    <select class="form-control rounded" name="disposition[{{ $r->time_log_id }}]" required>
+                    <select class="form-control rounded" name="disposition[{{ $r->time_log_id }}]" data-type="Disposition" required>
                         <option value="">Select Disposition</option>
                         <option value="Use As Is">"Use As Is"</option>
                         <option value="Rework">For Rework</option>

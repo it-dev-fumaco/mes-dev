@@ -348,7 +348,109 @@
     </form>
   </div>
 </div>
-    
+
+<div class="modal fade" id="qa-login-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #F57F17; color: #fff;">
+        <h5 class="modal-title" id="exampleModalLabel">QA Reject Confirmation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/verify_qa_staff" id="qa-login-form" method="post">
+          <div class="form-group text-center">
+            <label class="font-weight-bold">Enter Authorized Staff ID</label>
+            <div class="form-group">
+              @csrf
+              <input type="password" class="form-control" id="qa-login-id" name="id" style="font-size: 18pt; text-align: center;" required>
+            </div>
+          </div>
+        
+          <div class="text-center numpad-div">
+            <div class="row1">
+              <span class="numpad num-key" data-input="#qa-login-id">1</span>
+              <span class="numpad num-key" data-input="#qa-login-id">2</span>
+              <span class="numpad num-key" data-input="#qa-login-id">3</span>
+            </div>
+            <div class="row1">
+              <span class="numpad num-key" data-input="#qa-login-id">4</span>
+              <span class="numpad num-key" data-input="#qa-login-id">5</span>
+              <span class="numpad num-key" data-input="#qa-login-id">6</span>
+            </div>
+            <div class="row1">
+              <span class="numpad num-key" data-input="#qa-login-id">7</span>
+              <span class="numpad num-key" data-input="#qa-login-id">8</span>
+              <span class="numpad num-key" data-input="#qa-login-id">9</span>
+            </div>
+            <div class="row1">
+              <span class="numpad num-key" data-input="#qa-login-id"><</span>
+              <span class="numpad num-key" data-input="#qa-login-id">0</span>
+              <span class="numpad num-key" data-input="#qa-login-id">Clear</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-8 offset-md-2">
+              <button type="submit" class="btn btn-lg btn-block btn-primary" id="qa-login">CONFIRM</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="general-keypad" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #F57F17; color: #fff;">
+        <h5 class="modal-title" id="exampleModalLabel">QA Reject Confirmation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group text-center">
+          <span id="reject-type-text" class="font-weight-bold mb-2 d-block" style="font-size: 12pt"></span>
+          <label class="font-weight-bold" id="modal-label">Enter Qty</label>
+          <div class="form-group">
+            <input type="text" class="form-control" id="general-keypad-input" style="font-size: 18pt; text-align: center;" required>
+          </div>
+        </div>
+
+        <div class="text-center numpad-div">
+          <div class="row1">
+            <span class="numpad num-key" data-input="#general-keypad-input">1</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">2</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">3</span>
+          </div>
+          <div class="row1">
+            <span class="numpad num-key" data-input="#general-keypad-input">4</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">5</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">6</span>
+          </div>
+          <div class="row1">
+            <span class="numpad num-key" data-input="#general-keypad-input">7</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">8</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">9</span>
+          </div>
+          <div class="row1">
+            <span class="numpad num-key" data-input="#general-keypad-input"><</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">0</span>
+            <span class="numpad num-key" data-input="#general-keypad-input">Clear</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-8 offset-md-2">
+            <button type="submit" class="btn btn-lg btn-block btn-primary" id="enter-key">CONFIRM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   <style type="text/css">
     .numpad{
       font-weight: bolder;
@@ -372,6 +474,129 @@
       function close_modal(modal){
         $(modal).modal('hide');
       }
+
+      $(document).on('click', '.num-key', function (e){
+        var input = $(this).data('input');
+        var val = $(input).val();
+        switch ($(this).text()) {
+          case 'Clear':
+            val = '';
+            break;
+          case '<':
+            val = val.slice(0, -1);
+            break;
+          default:
+            val = val + $(this).text();
+            break;
+        }
+
+        $(input).val(val);
+      });
+
+      var reject_qty = reject_type = '';
+      $(document).on('click', '#reject-confirmation-form input', function (e){
+        e.preventDefault();
+        reject_qty = $(this);
+        reject_type = '';
+        if($(this).parent().prev().find('select').find(":selected").val()){
+          $(this).parent().prev().find('select').removeClass('border').removeClass('border-danger');
+          reject_type = $(this).parent().prev().find('select').find(":selected").text();
+
+          if($(this).data('type') == 'Reject Type'){
+            $('#reject-type-text').removeClass('d-none');
+            $('#reject-type-text').text('Reject Type: ' + reject_type);
+            $('#modal-label').text('Enter Qty');
+          }else{
+            $('#modal-label').text('Enter Confirmed Reject Qty');
+          }
+
+          $("#general-keypad-input").val($(this).val());
+          $('#general-keypad').modal('show');
+
+          $(document).on('click', '#enter-key', function(event){
+            event.preventDefault();
+            reject_qty.val($("#general-keypad-input").val());
+            $('#general-keypad').modal('hide');
+          });
+        }else{
+          $(this).parent().prev().find('select').addClass('border').addClass('border-danger');
+          showNotification("danger", 'Please select reject type.', "now-ui-icons travel_info");
+        }
+      });
+
+      $('#general-keypad').on('hidden.bs.modal', function (e) {
+        $('#reject-type-text').addClass('d-none');
+      });
+
+      $(document).on('click', '.remove-workstation-row', function(e) {
+        e.preventDefault();
+        $(this).closest("tr").remove();
+      });
+
+      $(document).on('click', '#fourth-tab', function (e){
+        e.preventDefault();
+        get_reject_for_confirmation($(this).data('production-order'), $(this).data('operation'));
+      });
+
+      function get_reject_for_confirmation(production_order, operation){
+        $.ajax({
+          url:"/getProductionOrderRejectForConfirmation/" + production_order,
+          type:"GET",
+          data: {
+            operation: operation,
+          },
+          success:function(response){
+            $('#tab' + production_order + '-4').html(response);
+            $('#header-table').addClass('d-none');
+          }
+        });
+      }
+
+      $(document).on('submit', '#reject-confirmation-form', function(e) {
+        e.preventDefault();
+        $('#qa-login-modal').modal('show');
+
+        var reject_form = $(this);
+
+        $(document).on('submit', '#qa-login-form', function (e){
+          e.preventDefault();
+          var id = $('#qa-login-id').val();
+          
+          $.ajax({
+            url: $(this).attr('action'),
+            type:"POST",
+            data: $(this).serialize(),
+            success:function(response){
+              if(response.success){
+                $('#qa-login-modal').modal('hide');
+
+                $.ajax({
+                  url: reject_form.attr('action'),
+                  type:"POST",
+                  data: reject_form.serialize(),
+                  success:function(data){
+                    if (data.success) {
+                      showNotification("success", data.message, "now-ui-icons ui-1_check");
+                      $('#reject-confirmation-modal').modal('hide');
+                      $('#fourth-tab').trigger('click');
+                    }else{
+                      showNotification("danger", data.message, "now-ui-icons travel_info");
+                    }
+                  },
+                  error: function(response) {
+                    showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+                  }
+                });
+              }else{
+                showNotification("danger", response.message, "now-ui-icons travel_info");
+              }
+            },
+            error: function(response) {
+              showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+            }
+          });
+        });
+      });
       
       $(document).on('click', '.edit-time-log-btn', function(e) {
         e.preventDefault();

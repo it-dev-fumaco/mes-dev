@@ -197,7 +197,7 @@
 
 {{-- Reject Confirmation Modal --}}
 <div class="modal fade" id="reject-confirmation-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document" style="min-width: 80%;">
+  <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
      <div class="modal-content">
         <div class="text-white rounded-top" style="background-color: #f57f17;">
           <div class="d-flex flex-row justify-content-between p-2 align-items-center">

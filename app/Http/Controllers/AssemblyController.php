@@ -62,7 +62,7 @@ class AssemblyController extends Controller
                 $reference_material_request = ($reference_type == 'Material Request') ? $reference_details->name : null;
                 $existing_production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('production_item', $reference_order_items)
                     ->where('sales_order', $reference_sales_order)->where('material_request', $reference_material_request)
-                    ->where('docstatus', 1)->select('name', 'production_item', 'planned_start_date', 'fg_warehouse')->get();
+                    ->where('docstatus', 1)->select('name', 'production_item', 'qty', 'planned_start_date', 'fg_warehouse')->orderBy('creation', 'desc')->get();
 
                 $existing_production_orders = collect($existing_production_orders)->groupBy('production_item')->toArray();
             }
@@ -90,6 +90,22 @@ class AssemblyController extends Controller
                         $new_code= $item->item_code;
                     }
                 }
+
+                $production_orders = [];
+                $production_order = $planned_start_date = $fg_warehouse = $requested_bom = null;
+                if($request->no_bom){
+                    if(isset($existing_production_orders[$item->item_code])){
+                        foreach ($existing_production_orders[$item->item_code] as $d) {
+                            $production_orders[$d->name] = $d->qty;
+                        }
+                    }
+                }else{
+                    $production_order = array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->name : null;
+                    $planned_start_date = array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->planned_start_date : null;
+                    $fg_warehouse = array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->fg_warehouse : null;
+                    $requested_bom = array_key_exists($item->item_code, $requested_bom) ? $requested_bom[$item->item_code] : null;
+                }
+                
                 $item_list[] = [
                     'id' => $item->name,
                     'idx' => $item->idx,
@@ -108,10 +124,10 @@ class AssemblyController extends Controller
                     'match'=> $match,
                     'origl_code' => $origl_code,
                     'new_code' => $new_code,
-                    'production_order' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->name : null,
-                    'planned_start_date' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->planned_start_date : null,
-                    'fg_warehouse' => array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->fg_warehouse : null,
-                    'requested_bom' => array_key_exists($item->item_code, $requested_bom) ? $requested_bom[$item->item_code] : null
+                    'production_order' => $request->no_bom ? $production_orders : $production_order,
+                    'planned_start_date' => $planned_start_date,
+                    'fg_warehouse' => $fg_warehouse,
+                    'requested_bom' => $requested_bom
                 ];
             }
 
@@ -472,7 +488,7 @@ class AssemblyController extends Controller
 
                 $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
 
-               $ste = DB::connection('mysql')->table('tabStock Entry AS se')->join('tabStock Entry Detail AS sed', 'se.name', 'sed.parent')
+                $ste = DB::connection('mysql')->table('tabStock Entry AS se')->join('tabStock Entry Detail AS sed', 'se.name', 'sed.parent')
                     ->where('se.docstatus', '<', 2)->where('se.work_order', $item->parent)
                     ->where('se.sales_order_no', $prod->sales_order_no)
                     ->where('sed.item_code', $item->item_code)->select('se.*')->first();

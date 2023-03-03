@@ -69,12 +69,12 @@
                               </table>
                            </form>
                         </div>
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div id="so-item-list-div"></div>
                         </div>
                      </div>
                      <div class="row btn-div" hidden>
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div class="pull-right">
                               <button id="get-parts" class="btn btn-lg btn-primary">Next</button>
                            </div>
@@ -84,13 +84,13 @@
                   <div class="tab-pane" id="step2" role="tabpanel" aria-labelledby="step2-tab">
                      <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">2. Create Item Withdrawal Slip</h4>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div class="so-details-div"></div>
                            <div id="material-planning-div"></div>
                         </div>
                      </div>
                      <div class="row">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div class="pull-right">
                               <button class="btn btn-lg btn-primary prev-btn" data-target='a1'>Previous</button>
                               <button class="btn btn-lg btn-primary get-parts-prodorder">Next</button>
@@ -101,13 +101,13 @@
                   <div class="tab-pane" id="step3" role="tabpanel" aria-labelledby="step3-tab">
                      <h4 class="title text-center" style="margin-left: 20px; margin: auto 20pt;">3. Enter Workstation / Process</h4>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div class="so-details-div"></div>
                            <div id="view-operations-div"></div>
                         </div>
                      </div>
                      <div class="row">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div class="pull-right">
                               <button class="btn btn-lg btn-primary prev-btn" id="create-prod-prev-btn" data-target='a2'>Previous</button>
                               <button class="btn btn-lg btn-primary finish-btn">Finish</button>
@@ -123,13 +123,13 @@
                         </a>
                      </div>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-10 offset-md-1" id="last-tab">
+                        <div class="col-12" id="last-tab">
                            <div class="so-details-div"></div>
                            <div id="planning-summary-div"></div>
                         </div>
                      </div>
                      <div class="row">
-                        <div class="col-md-10 offset-md-1">
+                        <div class="col-12">
                            <div class="pull-right">
                               <button class="btn btn-lg btn-primary prev-btn" data-target='a3'>Previous</button>
                               <button class="btn btn-lg btn-primary close-wizard-btn">Close</button>
@@ -598,6 +598,7 @@
             planned_date: $row.find('.planned-date').val(),
             target: $row.find('.target').val(),
             item_reference_id: $row.find('.item-reference-id').text(),
+            qty_to_manufacture: $row.find('.qty-to-manufacture').val()
          }
 
          $btn.attr('disabled', true);

@@ -319,32 +319,110 @@
   </div>
 </div>
 
+<div class="modal fade" id="pending-rejects-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-operation="{{ $operation }}">
+  <div class="modal-dialog modal-xl" role="document" style="max-width: 90% !important;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #F57F17; color: #fff;">
+        <h5 class="modal-title" id="exampleModalLabel"><b>QA Reject Confirmation</b></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="pending-rejects-tbl" style="max-height: 650px;" class="overflow-auto border border-danger pt-2 mb-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="reject-confirmation-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
+     <div class="modal-content">
+        <div class="text-white rounded-top" style="background-color: #f57f17;">
+          <div class="d-flex flex-row justify-content-between p-2 align-items-center">
+            <h5 class="font-weight-bold m-0 p-0">QA Reject Confirmation</h5>
+            <div class="float-right">
+              <h5 class="modal-title font-weight-bold prod_title_reset p-0 mr-5 font-italic d-inline-block" id="reject-for-confirmation-production-order"></h5>
+              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body">
+           <div id="reject-confirmation-div"></div>
+        </div>
+     </div>
+  </div>
+</div>
+
+<div class="modal fade" id="view-conveyor-schedule-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document" style="min-width: 95%;">
+    <div class="modal-content">
+      <div class="modal-header text-white pb-2 pt-2" style="background-color: #0277BD;">
+        <h5 class="modal-title m-0 font-weight-bold">Conveyor Schedule [{{ date('l, d-M-Y') }}]</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="row" style="margin-top: -1%; min-height: 630px;">
+              <div class="col-md-12">
+                <div id="view-scheduled-task-tbl"></div>
+              </div>               
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Maintenance Modal -->
+<div class="modal fade" id="pending-for-maintenance-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #6A1B9A;">
+        <h5 class="modal-title" id="exampleModalLabel" style="color: #fff">Maintenance Request [<b>{{ $operation }}</b>]</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="pending-for-maintenance-tbl"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Maintenance Modal -->
 <style type="text/css">
-    @-webkit-keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    @-moz-keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    @-o-keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    @keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    
-    .blink_break{
-      text-decoration: blink;
-      -webkit-animation-name: blinker;
-      -webkit-animation-duration: 3s;
-      -webkit-animation-iteration-count:infinite;
-      -webkit-animation-timing-function:ease-in-out;
-      -webkit-animation-direction: alternate;
-    }
+  @-webkit-keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  @-moz-keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  @-o-keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  @keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  
+  .blink_break{
+    text-decoration: blink;
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 3s;
+    -webkit-animation-iteration-count:infinite;
+    -webkit-animation-timing-function:ease-in-out;
+    -webkit-animation-direction: alternate;
+  }
 
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
@@ -359,7 +437,7 @@
     background-repeat: no-repeat;
     background-position: center; 
   }
-  
+
   .tap_here {
     animation: bounce 1s linear infinite;
   }
@@ -533,50 +611,10 @@
   .scrolltbody thead {
     width: calc(100%)
   }
+  .modal{
+    background-color: rgba(0,0,0,.4);
+  }
 </style>
-
-<div class="modal fade" id="view-conveyor-schedule-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document" style="min-width: 95%;">
-    <div class="modal-content">
-      <div class="modal-header text-white pb-2 pt-2" style="background-color: #0277BD;">
-        <h5 class="modal-title m-0 font-weight-bold">Conveyor Schedule [{{ date('l, d-M-Y') }}]</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="col-md-12">
-            <div class="row" style="margin-top: -1%; min-height: 630px;">
-              <div class="col-md-12">
-                <div id="view-scheduled-task-tbl"></div>
-              </div>               
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Maintenance Modal -->
-<div class="modal fade" id="pending-for-maintenance-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #6A1B9A;">
-        <h5 class="modal-title" id="exampleModalLabel" style="color: #fff">Maintenance Request [<b>{{ $operation }}</b>]</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="pending-for-maintenance-tbl"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Maintenance Modal -->
-
 @endsection
 
 @section('script')

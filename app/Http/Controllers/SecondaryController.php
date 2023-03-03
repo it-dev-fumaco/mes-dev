@@ -6190,27 +6190,18 @@ class SecondaryController extends Controller
 
     }
     public function get_workstation_list_from_checklist($id){
-        $output="";
-            if ($id == "Painting") {
-                $workstation= DB::connection('mysql_mes')->table('workstation as w')
-                ->join('operation as op','op.operation_id', 'w.operation_id')
-                ->where('w.workstation_name', "Painting")
-                ->select('op.operation_name as operation','w.workstation_id', 'w.workstation_name')
-                ->get();
-            }else{
-                $operation = ($id == "Fabrication")? '1':'3';
-                $workstation= DB::connection('mysql_mes')->table('workstation as w')
-                ->join('operation as op','op.operation_id', 'w.operation_id')
-                ->where('w.operation_id', $operation)
-                ->where('w.workstation_name', '!=', "Painting")
-                ->select('op.operation_name as operation','w.workstation_id', 'w.workstation_name')
-                ->get();
-            }
+        $output = "<option value=''>-- Select Workstation --</option>";
+        $workstation = DB::connection('mysql_mes')->table('workstation as w')
+            ->join('operation as op','op.operation_id', 'w.operation_id')
+            ->where('w.workstation_name', ($id == 'Painting' ? '=' : '!='), 'Painting')
+            ->when($id != 'Painting', function ($q) use ($id){
+                return $q->where('w.operation_id', ($id == 'Fabrication' ? 1 : 3));
+            })
+            ->select('op.operation_name as operation','w.workstation_id', 'w.workstation_name')->get();
             
-            foreach($workstation as $row)
-                 {
-                $output .= '<option value="'.$row->workstation_id.'">'.$row->workstation_name.'</option>';
-                 }
+        foreach($workstation as $row){
+            $output .= '<option value="'.$row->workstation_id.'">'.$row->workstation_name.'</option>';
+        }
             
         return $output;
     }
@@ -6550,29 +6541,21 @@ class SecondaryController extends Controller
         return  DB::connection('mysql_mes')->table('reject_category')->get();
     }
     public function get_reject_desc($reject_type, $id, $operation){
-        $output="";
-        $operation_id= ($operation == "Painting")? '2':'1';
-        if($id == "Operator"){
-            $reject_desc =DB::connection('mysql_mes')->table('reject_list')
-            ->where('reject_category_id', $reject_type)
-            ->where('owner', $id)
-            ->where('operation_id', $operation_id)
-            ->get();
-            
-            foreach($reject_desc as $row){
-                $output .= '<option value="'.$row->reject_list_id.'">'.$row->reject_reason.'</option>';
-            }
+        $output = "<option value='All'>Select All</option>";
+        $operation_id = $operation == "Painting" ? 2 : 1;
 
-        }else{
-            $reject_desc =DB::connection('mysql_mes')->table('reject_list')
+        $reject_desc =DB::connection('mysql_mes')->table('reject_list')
             ->where('reject_category_id', $reject_type)
             ->where('owner', $id)
+            ->when($id == 'Operator', function ($q) use ($operation_id){
+                return $q->where('operation_id', $operation_id);
+            })
             ->get();
             
-            foreach($reject_desc as $row){
-                $output .= '<option value="'.$row->reject_list_id.'">'.$row->reject_reason.'</option>';
-            }
+        foreach($reject_desc as $row){
+            $output .= '<option value="'.$row->reject_list_id.'">'.$row->reject_reason.'</option>';
         }
+
         return $output;
     }
     public function item_classification_warehouse_tbl_fabrication(Request $request){

@@ -32,6 +32,9 @@
 							</tr>
 						</thead>
 						<tbody style="font-size: 8pt;">
+							@php
+								$idx = 1;
+							@endphp
 							@forelse ($row['production_orders'] as $r)
 							@php
 								$c = '';
@@ -48,7 +51,7 @@
 							@endphp
 							<tr class="{{ $c }}">
 								<td class="text-center align-middle">
-									<h4 class="m-0 font-weight-bold">{{ $r['order_no'] }}</h4>
+									<h4 class="m-0 font-weight-bold">{{ $idx++ }}</h4>
 								</td>
 								<td class="text-center font-weight-bold">
 									<span class="badge badge-{{ $b }} view-prod-details-btn" style="font-size: 9pt;">{{ $r['production_order'] }}</span>
