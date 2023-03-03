@@ -8465,13 +8465,20 @@ class MainController extends Controller
 				return response()->json(['status' => 0, 'message' => 'Job ticket not found.']);
 			}
 
+			$timelog_table = ($job_ticket_details->workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
+
 			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->first();
 			if (!$production_order_details) {
 				return response()->json(['status' => 0, 'message' => 'Production Order not found.']);
 			}
 
-			if ($production_order_details->feedback_qty > 0) {
-				return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been partially / fully feedbacked.']);
+			$wip_timelog = DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)
+				->where('time_log_id', $timelog_id)->where('status', 'In Progress')->exists();
+
+			if (!$wip_timelog) {
+				if ($production_order_details->feedback_qty > 0) {
+					return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been partially / fully feedbacked.']);
+				}
 			}
 
 			if ($request->is_operator) {
@@ -8491,8 +8498,6 @@ class MainController extends Controller
 				'created_at' => Carbon::now()->toDateTimeString(),
 				'created_by' => $authorized_user
 			]);
-
-			$timelog_table = ($job_ticket_details->workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
 
 			$process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->first();
 
