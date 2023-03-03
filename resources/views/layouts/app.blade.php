@@ -412,7 +412,8 @@
       </div>
       <div class="modal-body">
         <div class="form-group text-center">
-          <label class="font-weight-bold">Enter Qty</label>
+          <span id="reject-type-text" class="font-weight-bold mb-2 d-block" style="font-size: 12pt"></span>
+          <label class="font-weight-bold" id="modal-label">Enter Qty</label>
           <div class="form-group">
             <input type="text" class="form-control" id="general-keypad-input" style="font-size: 18pt; text-align: center;" required>
           </div>
@@ -492,19 +493,40 @@
         $(input).val(val);
       });
 
-      var reject_qty = '';
+      var reject_qty = reject_type = '';
       $(document).on('click', '#reject-confirmation-form input', function (e){
         e.preventDefault();
         reject_qty = $(this);
-        $("#general-keypad-input").val($(this).val());
-        $('#general-keypad').modal('show');
+        reject_type = '';
+        if($(this).parent().prev().find('select').find(":selected").val()){
+          $(this).parent().prev().find('select').removeClass('border').removeClass('border-danger');
+          reject_type = $(this).parent().prev().find('select').find(":selected").text();
 
-        $(document).on('click', '#enter-key', function(event){
-          event.preventDefault();
-          reject_qty.val($("#general-keypad-input").val());
-          $('#general-keypad').modal('hide');
-        });
+          if($(this).data('type') == 'Reject Type'){
+            $('#reject-type-text').removeClass('d-none');
+            $('#reject-type-text').text('Reject Type: ' + reject_type);
+            $('#modal-label').text('Enter Qty');
+          }else{
+            $('#modal-label').text('Enter Confirmed Reject Qty');
+          }
+
+          $("#general-keypad-input").val($(this).val());
+          $('#general-keypad').modal('show');
+
+          $(document).on('click', '#enter-key', function(event){
+            event.preventDefault();
+            reject_qty.val($("#general-keypad-input").val());
+            $('#general-keypad').modal('hide');
+          });
+        }else{
+          $(this).parent().prev().find('select').addClass('border').addClass('border-danger');
+          showNotification("danger", 'Please select reject type.', "now-ui-icons travel_info");
+        }
       });
+
+      $('#general-keypad').on('hidden.bs.modal', function (e) {
+        $('#reject-type-text').addClass('d-none');
+      })
 
       $(document).on('click', '.remove-workstation-row', function(e) {
         e.preventDefault();

@@ -82,7 +82,7 @@
                                 </select>
                             </div>
                             <div class="col-4 p-1">
-                                <input type="text" class="form-control rounded" name="reject_type_qty[{{ $timelog }}]" placeholder="Reject Qty" required>
+                                <input type="text" class="form-control rounded" name="reject_type_qty[{{ $timelog }}]" data-type="Reject Type" placeholder="Reject Qty" required>
                             </div>
                         </div>
                     @endforeach
@@ -91,7 +91,7 @@
                     <input type="text" class="form-control rounded" name="confirmed_reject[{{ $r->time_log_id }}]" placeholder="Confirmed Reject Qty" required>
                 </td>
                 <td class="text-center p-1">
-                    <select class="form-control rounded" name="disposition[{{ $r->time_log_id }}]" required>
+                    <select class="form-control rounded" name="disposition[{{ $r->time_log_id }}]" data-type="Disposition" required>
                         <option value="">Select Disposition</option>
                         <option value="Use As Is">"Use As Is"</option>
                         <option value="Rework">For Rework</option>
