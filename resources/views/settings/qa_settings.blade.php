@@ -738,7 +738,7 @@
                              </select>
                           </td>
                           <td>
-                             <select name="new_checklist_r_desc[]" class="form-control second-selection-only checklist-selection" id="" multiple="multiple">
+                             <select name="new_checklist_r_desc[]" class="form-control second-selection-only" id="">
                                 <option value="">--Description--</option>
                              </select>
                           </td>
