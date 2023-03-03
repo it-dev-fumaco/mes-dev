@@ -1835,9 +1835,10 @@ class LinkReportController extends Controller
 
             return view('reports.inaccurate_operator_feedback_tbl', compact('report'));
         }
+		$permissions = $this->get_user_permitted_operation();
 
         $operations = DB::connection('mysql_mes')->table('operation')->get();
 
-        return view('reports.inaccurate_operator_feedback', compact('operations'));
+        return view('reports.inaccurate_operator_feedback', compact('operations', 'permissions'));
     }
 }

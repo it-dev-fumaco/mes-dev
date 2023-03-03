@@ -11,17 +11,31 @@
 <div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
         <div class="col-12 mx-auto bg-white">
             <div class="row">
-                <div class="col-10 pt-3 mx-auto">
+                <div class="col-12 pt-3 mx-auto">
                     <div class="row">
                         <div class="col-3 offset-6">
-                            <input type="text" class="form-control tbl-filter daterange" id="date-range">
+                            <div class="row">
+                                <div class="col-3 p-0" style="display: flex; justify-content: center; align-items: center;">
+                                    <b>Date Filter</b>
+                                </div>
+                                <div class="col-9 p-0">
+                                    <input type="text" class="form-control tbl-filter daterange p-2 rounded" id="date-range">
+                                </div>
+                            </div>
                         </div>
                         <div class="col-3">
-                            <select class="form-control tbl-filter" id="operation">
-                                @foreach ($operations as $operation)
-                                    <option value="{{ $operation->operation_id }}">{{ $operation->operation_name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="row">
+                                <div class="col-3 p-0" style="display: flex; justify-content: center; align-items: center;">
+                                    <b>Operation</b>
+                                </div>
+                                <div class="col-9 p-0">
+                                    <select class="form-control tbl-filter rounded" id="operation">
+                                        @foreach ($operations as $operation)
+                                            <option value="{{ $operation->operation_id }}">{{ $operation->operation_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
