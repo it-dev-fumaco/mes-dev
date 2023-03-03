@@ -3809,21 +3809,43 @@ class ManufacturingController extends Controller
                 'is_stock_item' => $request->is_stock_item
             ];
 
-            $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
-                ->where('parent_item_code', $data_mes['parent_item_code'])
-                ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
-                ->where('item_code', $data_mes['item_code'])
-                ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
-                ->where('sales_order', $data_mes['sales_order'])
-                ->where('material_request', $data_mes['material_request'])
-                ->where('status', '!=', 'Cancelled')
-                ->first();
+            DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
             
-            if ($check_existing_production_order) {
-                return response()->json(['success' => 0, 'message' => 'Production Order for this item already exists. (' . $check_existing_production_order->production_order . ')']);
+            if (!$data_mes['bom_no']) {
+                if ($request->reference_type == 'SO') {
+                    $ordered_item = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $reference_name)->where('item_code', $data_mes['item_code'])->first();
+                } else {
+                    $ordered_item = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $reference_name)->where('item_code', $data_mes['item_code'])->first();
+                }
+    
+                if (!$ordered_item) {
+                    return response()->json(['success' => 0, 'message' => 'Item code ' . $data_mes['item_code'] . ' does not exist in ' . (($request->reference_type == 'SO') ? 'Sales Order' : 'Material Request') . ' items. (' . $reference_name . ')']);
+                }
+
+                $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
+                    ->where('parent_item_code', $data_mes['parent_item_code'])
+                    ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
+                    ->where('item_code', $data_mes['item_code'])
+                    ->where('sales_order', $data_mes['sales_order'])
+                    ->where('material_request', $data_mes['material_request'])
+                    ->where('status', '!=', 'Cancelled')->get();
+
+                $existing_prod_qty = collect($check_existing_production_order)->sum('qty_to_manufacture');
+                $existing_prods = '<br><br>';
+                $existing_pros = [];
+                foreach($check_existing_production_order as $cepo) {
+                    $existing_pros[$cepo->production_order] = $cepo->qty_to_manufacture;
+                    if ($cepo->production_order != $data_mes['production_order']) {
+                        $existing_prods .= $cepo->production_order . ' - ' . $cepo->qty_to_manufacture . ' ' . $cepo->stock_uom . '<br>';
+                    }
+                }
+
+                unset($existing_pros[$data_mes['production_order']]);
+                if ((float)$existing_prod_qty > (float)$ordered_item->qty) {
+                    return response()->json(['success' => 0, 'message' => 'Qty to produce for <b>' . $data_mes['item_code'] . '</b> cannot be greater than <b>' . (float)$ordered_item->qty . '</b> ' . $ordered_item->stock_uom . $existing_prods]);
+                }
             }
 
-            DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
             if($request->custom_bom){
                 $mes_custom_operations = [];
                 foreach($request->workstation_id as $p => $w_id){
