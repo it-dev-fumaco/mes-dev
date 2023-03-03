@@ -526,7 +526,7 @@
 
       $('#general-keypad').on('hidden.bs.modal', function (e) {
         $('#reject-type-text').addClass('d-none');
-      })
+      });
 
       $(document).on('click', '.remove-workstation-row', function(e) {
         e.preventDefault();
