@@ -653,7 +653,7 @@ class MainController extends Controller
 		$bom = DB::connection('mysql')->table('tabBOM')->where('item', $details->sub_parent_item_code)->where('is_default', 1)->orderBy('modified', 'desc')->first();
 		
 		$bom_details = [];
-		$qty_to_manufacture = 0;
+		$qty_to_manufacture = $sales_order_qty;
 
 		if($bom){
 			$bom_details = DB::connection('mysql')->table('tabBOM Item')->where('parent', $bom->name)->where('item_code', $details->item_code)->first();
@@ -4595,6 +4595,8 @@ class MainController extends Controller
 			->select('rc.reject_category_id','rc.reject_category_name')->distinct('rc.reject_category_id')
 			->orderBy('rc.reject_category_id', 'asc')->get();
 
+		$operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $existing_production_order->operation_id)->pluck('operation_name')->first();
+
 		if($workstation != 'Spotwelding'){
 			$task_random_inspection = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
@@ -4745,7 +4747,7 @@ class MainController extends Controller
 
 		$task_random_inspection_arr = collect($task_random_inspection_arr)->sortBy('inspected_qty')->toArray();
 
-		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation'));
+		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation', 'workstation', 'operation'));
 	}
 
 	public function maintenance_request(Request $request){
@@ -6058,7 +6060,7 @@ class MainController extends Controller
 					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 
-				if ($expected_qty_after_transaction != $rm_qty) {
+				if (number_format($expected_qty_after_transaction, 4, '.', '') != number_format($rm_qty, 4, '.', '')) {
 					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 			}
@@ -7348,8 +7350,48 @@ class MainController extends Controller
 			];
 		}
 
+		$wip_prods = collect($list)->filter(function ($value, $key) {
+			return $value['status'] == 'In Progress';
+		})->pluck('production_order')->toArray();
+
+		// MES-1280 - Display production order in progress in multiple machines for assembly operator scheduling
+		$wip_orders = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
+			->join('production_order as po', 'aca.production_order', 'po.production_order')
+			->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+			->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+			->whereNotIn('po.status', ['Cancelled', 'Feedbacked', 'Completed', 'Closed'])
+			->where('tl.status', 'In Progress')->where('tl.machine_code', $conveyor)
+			->whereDate('scheduled_date', '<=', $schedule_date)
+			->whereNotIn('po.production_order', $wip_prods)
+			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'tl.status', 'po.project', 'po.classification')
+			->groupBy('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'tl.status', 'po.project', 'po.classification')
+			->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc')->get();
+
+		if (count($wip_orders) > 0) {
+			foreach ($wip_orders as $row) {
+				$reference_no = ($row->sales_order) ? $row->sales_order : $row->material_request;
+				$list[] = [
+					'scheduled_date' => $row->scheduled_date,
+					'production_order' => $row->production_order,
+					'status' => $row->status,
+					'customer' => $row->customer,
+					'project' => $row->project,
+					'reference_no' => $conveyor,
+					'qty_to_manufacture' => $row->qty_to_manufacture,
+					'item_code' => $row->item_code,
+					'description' => $row->description,
+					'stock_uom' => $row->stock_uom,
+					'order_no' => $row->order_no,
+					'good' => $row->produced_qty,
+					'balance' => $row->qty_to_manufacture - $row->produced_qty,
+					'classification' => $row->classification
+				];
+			}
+		}
+
 		return collect($list)->sortBy('order_no');
 	}
+
 	public function drag_n_drop($name){
 		if(DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
@@ -8423,13 +8465,20 @@ class MainController extends Controller
 				return response()->json(['status' => 0, 'message' => 'Job ticket not found.']);
 			}
 
+			$timelog_table = ($job_ticket_details->workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
+
 			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $job_ticket_details->production_order)->first();
 			if (!$production_order_details) {
 				return response()->json(['status' => 0, 'message' => 'Production Order not found.']);
 			}
 
-			if ($production_order_details->feedback_qty > 0) {
-				return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been partially / fully feedbacked.']);
+			$wip_timelog = DB::connection('mysql_mes')->table($timelog_table)->where('job_ticket_id', $job_ticket_id)
+				->where('time_log_id', $timelog_id)->where('status', 'In Progress')->exists();
+
+			if (!$wip_timelog) {
+				if ($production_order_details->feedback_qty > 0) {
+					return response()->json(['status' => 0, 'message' => 'Cannot reset time logs. Production Order has been partially / fully feedbacked.']);
+				}
 			}
 
 			if ($request->is_operator) {
@@ -8449,8 +8498,6 @@ class MainController extends Controller
 				'created_at' => Carbon::now()->toDateTimeString(),
 				'created_by' => $authorized_user
 			]);
-
-			$timelog_table = ($job_ticket_details->workstation != 'Spotwelding') ? 'time_logs' : 'spotwelding_qty';
 
 			$process = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->first();
 
@@ -8629,13 +8676,7 @@ class MainController extends Controller
 
 		$operators = DB::connection('mysql_essex')->table('users as u')
 			->join('departments as d', 'd.department_id', 'u.department_id')
-			->when($operation_name, function ($query) use ($operation_name) {
-				return $query->where(function($q) use ($operation_name) {
-					foreach ($operation_name as $str) {
-						$q->orWhere('d.department', 'LIKE', "%".$str."%");
-					}
-				});
-			})
+			->whereIn('d.department', ['Production', 'Fabrication', 'Assembly', 'Painting'])
 			->where('u.user_type', 'Employee')->where('u.status', 'Active')
 			->orderBy('employee_name', 'asc')->pluck('u.employee_name', 'u.user_id');
 		

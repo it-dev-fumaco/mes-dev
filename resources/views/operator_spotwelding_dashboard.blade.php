@@ -506,6 +506,23 @@
       $(modal).modal('hide');
     }
 
+    $(document).on('click', '#quality-inspection-modal .select-item-for-inspection-btn', function(e) {
+      e.preventDefault();
+      var img = $(this).data('img');
+      var item_code = $(this).data('item-code');
+      var item_description = $(this).data('item-desc');
+      var required_qty = $(this).data('required-qty');
+
+      $('#quality-inspection-modal .selected-item-image').attr('src', img).attr('alt', item_code);
+      $('#quality-inspection-modal .selected-item-code').text(item_code);
+      $('#quality-inspection-modal .selected-item-description').text(item_description);
+      $('#quality-inspection-modal .selected-item-required-qty').val(required_qty);
+      $('#quality-inspection-modal .selected-item-tbl-cell').removeClass('d-none');
+      $('#quality-inspection-modal .selected-item-code-val').val(item_code);
+
+      $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
+    });
+
     $(document).on('click', '.maintnenance-access-id-modal-trigger', function(e){
       e.preventDefault();
       var machine_id = $(this).data('machine-id');

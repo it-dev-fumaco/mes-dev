@@ -3730,6 +3730,7 @@ class ManufacturingController extends Controller
             $new_id = 'PROM-'.$new_id;
 
             $existing_id = DB::connection('mysql_mes')->table('production_order')->where('production_order', $new_id)->first();
+
             if ($existing_id) {
                 return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $new_id . '</b> already exist.']);
             }
@@ -3845,7 +3846,6 @@ class ManufacturingController extends Controller
                     return response()->json(['success' => 0, 'message' => 'Qty to produce for <b>' . $data_mes['item_code'] . '</b> cannot be greater than <b>' . (float)$ordered_item->qty . '</b> ' . $ordered_item->stock_uom . $existing_prods]);
                 }
             }
-
             if($request->custom_bom){
                 $mes_custom_operations = [];
                 foreach($request->workstation_id as $p => $w_id){
@@ -4808,6 +4808,10 @@ class ManufacturingController extends Controller
 
         $production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('production_order', $request->production_orders)->whereNotIn('status', ['Cancelled', 'Closed'])->orderBy('production_order', 'asc')->get();
 
+        $somr_arr = collect($production_orders)->map(function ($q){
+            return $q->sales_order ? $q->sales_order : $q->material_request;
+        });
+
         $production_item_codes = collect($production_orders)->pluck('item_code')->unique();
         $sub_parent_item_codes = collect($production_orders)->pluck('sub_parent_item_code')->unique();
 
@@ -4819,6 +4823,14 @@ class ManufacturingController extends Controller
                 $sub_parent_bom_array[$q->item_code] = [$q->bom_no];
             }
         }
+
+        $production_orders_arr = DB::connection('mysql_mes')->table('production_order')
+            ->where(function ($q) use ($somr_arr){
+                return $q->whereIn('sales_order', $somr_arr)->orWhereIn('material_request', $somr_arr);
+            })->whereNotIn('status', ['Cancelled', 'Closed'])->whereNotIn('production_order', collect($request->production_orders)->filter()->values()->all())->get();
+
+        $production_orders_arr = collect($production_orders_arr)->groupBy('item_code');
+
         // get bom of parent item codes
         $parent_bom = DB::connection('mysql')->table('tabBOM')->whereIn('item', $parent_item_code)->where('is_default', 1)->where('is_active', 1)->where('docstatus', 1)->select('item', 'name', 'quantity')->get();
         $parent_bom_array = collect($parent_bom)->pluck('name');
@@ -4845,10 +4857,12 @@ class ManufacturingController extends Controller
 
         $production_order_list = [];
         foreach ($production_orders as $prod) {
-            $conversion_qty = isset($bom_reference[$prod->item_code]) ? $bom_reference[$prod->item_code][0]->qty * 1 : 0;
+            $conversion_qty = isset($bom_reference[$prod->item_code]) ? $bom_reference[$prod->item_code][0]->qty * 1 : 1;
             if($conversion_qty <= 0){
-                $conversion_qry = DB::connection('mysql')->table('tabBOM Item')->where('item_code', $prod->item_code)->where('bom_no', $prod->bom_no)->first();
-                $conversion_qty = $conversion_qry ? $conversion_qry->qty * 1 : 0;
+                $conversion_qry = DB::connection('mysql')->table('tabBOM as bom')
+                    ->join('tabBOM Item as item', 'bom.name', 'item.parent')
+                    ->where('bom.item', $prod->parent_item_code)->where('item.item_code', $prod->item_code)->where('item.bom_no', $prod->bom_no)->pluck('item.qty');
+                $conversion_qty = $conversion_qry ? $conversion_qry->qty * 1 : 1;
             }
 
             $so_order_qty = isset($sales_order_item[$prod->parent_item_code]) ? $sales_order_item[$prod->parent_item_code][0]->qty * 1 : 0;
@@ -4864,6 +4878,7 @@ class ManufacturingController extends Controller
                 'bom_no' => $prod->bom_no,
                 'qty' => $prod->qty_to_manufacture,
                 'unplanned_qty' => ($so_order_qty * $conversion_qty) - $total_planned,
+                'planned_production_orders' => isset($production_orders_arr[$prod->item_code]) ? $production_orders_arr[$prod->item_code] : [],
                 'stock_uom' => $prod->stock_uom,
                 'planned_start_date' => $prod->planned_start_date,
                 'is_scheduled' => $prod->is_scheduled
@@ -5626,8 +5641,8 @@ class ManufacturingController extends Controller
 
             $reference_table = ($request->reference_type == 'Sales Order') ? 'tabSales Order' : 'tabMaterial Request';
             $reference_name = $request->reference_no;
-            $reference_details = DB::connection('mysql')->table($reference_table)
-                ->where('name', $reference_name)->first();
+            $reference_details = DB::connection('mysql')->table($reference_table)->where('name', $reference_name)->first();
+
             if(!$reference_details){
                 return response()->json(['success' => 0, 'message' => $reference_name . ' does not exist.']);
             }
@@ -5664,7 +5679,6 @@ class ManufacturingController extends Controller
             }
             
             $wip = $wip_wh['message'];
-            
       
             $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
             $latest_pro_exploded = explode("-", $latest_pro);
@@ -5680,6 +5694,19 @@ class ManufacturingController extends Controller
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
 
+            $qty_to_manufacture = DB::connection('mysql')->table($reference_table.' Item')->where('parent', $request->reference_no)->where('item_code', $request->item_code)->where('docstatus', '<', 2)->pluck('qty')->first();
+
+            $ref_col = $request->reference_type == 'Sales Order' ? 'sales_order' : 'material_request';
+            $mes_total = DB::connection('mysql_mes')->table('production_order')
+                ->where($ref_col, $request->reference_no)->where('item_code', $request->item_code)->whereNotIn('status', ['Cancelled', 'Closed'])
+                ->selectRaw($ref_col.', item_code, sum(qty_to_manufacture) as qty_to_manufacture')
+                ->groupBy($ref_col, 'item_code')->first();
+
+            $requested_qty_to_manufacture = $request->qty_to_manufacture + $mes_total->qty_to_manufacture;
+            if($requested_qty_to_manufacture > $qty_to_manufacture){
+                return response()->json(['success' => 0, 'message' => 'Qty cannot exceed qty to manufacture.']);
+            }
+
             $classification = ($request->reference_type == 'Sales Order') ? (($reference_details->sales_type == 'Sample') ? 'Sample' : 'Customer Order') : $reference_details->purpose;
 
             $data = [
@@ -5690,7 +5717,7 @@ class ManufacturingController extends Controller
                 'owner' => Auth::user()->email,
                 'docstatus' => 1,
                 'idx' => 0,
-                'qty' => $request->qty,
+                'qty' => $request->qty_to_manufacture,
                 'fg_warehouse' => $request->target,
                 'use_multi_level_bom' => 0,
                 'material_transferred_for_manufacturing' => 0,
@@ -5731,7 +5758,7 @@ class ManufacturingController extends Controller
                 'description' => $request->description,
                 'parts_category' => $item_details->parts_category,
                 'item_classification' => $item_details->item_classification,
-                'qty_to_manufacture' => $request->qty,
+                'qty_to_manufacture' => $request->qty_to_manufacture,
                 'classification' => $classification,
                 'order_no' => 0,
                 'cutting_size' => ($params) ? $params->attribute_value : null,
@@ -5859,7 +5886,7 @@ class ManufacturingController extends Controller
                         'description' => $req_item_detail->description,
                         'item_name' => $req_item_detail->item_name,
                         'item_code' => $req_item_detail->item_code,
-                        'required_qty' => $request->qty,
+                        'required_qty' => $request->qty_to_manufacture,
                         'transferred_qty' => 0,
                         'available_qty_at_source_warehouse' => 0,
                         'available_qty_at_wip_warehouse' => 0,
@@ -5890,7 +5917,7 @@ class ManufacturingController extends Controller
                             'description' => $req_item_detail->description,
                             'item_name' => $req_item_detail->item_name,
                             'item_code' => $req_item_detail->item_code,
-                            'required_qty' => $v->qty * $request->qty,
+                            'required_qty' => $v->qty * $request->qty_to_manufacture,
                             'transferred_qty' => 0,
                             'available_qty_at_source_warehouse' => 0,
                             'available_qty_at_wip_warehouse' => 0,

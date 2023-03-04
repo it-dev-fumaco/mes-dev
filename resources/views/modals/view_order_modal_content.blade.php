@@ -107,10 +107,12 @@
                                                 <th class="p-2" style="width: 10%;">BOM No.</th>
                                             @endif
                                             <th class="p-2" style="width: 10%;">Prod. Order</th>
-                                            <th class="p-2" style="width: 5%;">Status</th>
-                                            <th class="p-2" style="width: 10%;">Qty to Manufacture</th>
-                                            <th class="p-2" style="width: 5%;">Produced Qty</th>
-                                            <th class="p-1" style="width: 5%;">Action</th>
+                                            @if($items_production_orders)
+                                                <th class="p-2" style="width: 5%;">Status</th>
+                                                <th class="p-2" style="width: 10%;">Qty to Manufacture</th>
+                                                <th class="p-2" style="width: 5%;">Produced Qty</th>
+                                                <th class="p-1" style="width: 5%;">Action</th>
+                                            @endif
                                         </thead>
                                         <tbody style="font-size: 8pt;">
                                             @forelse ($items as $v)
@@ -164,64 +166,69 @@
                                                         @endif
                                                     </td>
                                                 @endif
-                                                @forelse ($production_order_item as $po)
-                                                <td class="text-center p-2">
-                                                    <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
-                                                    @php
-                                                        switch($po['status']){
-                                                            case 'In Progress':
-                                                                $badge = 'warning';
-                                                                break;
-                                                            case 'Completed':
-                                                            case 'Feedbacked':
-                                                                $badge = 'success';
-                                                                break;
-                                                            case 'Ready for Feedback':
-                                                            case 'For Partial Feedback':
-                                                                $badge = 'info';
-                                                                break;
-                                                            case 'Cancelled':
-                                                                $badge = 'danger';
-                                                                break;
-                                                            default:
-                                                                $badge = 'secondary';
-                                                                break;
-                                                        }
-                                                        $name = str_replace('@fumaco.local', null, $po['created_by']);
+                                                @if($items_production_orders)
+                                                    @forelse ($production_order_item as $po)
+                                                        <td class="text-center p-2">
+                                                            <a href="#" data-jtno="{{ $po['production_order'] }}" class="text-decoration-none prod-details-btn d-block">{{ $po['production_order'] }}</a>
+                                                            @php
+                                                                switch($po['status']){
+                                                                    case 'In Progress':
+                                                                        $badge = 'warning';
+                                                                        break;
+                                                                    case 'Completed':
+                                                                    case 'Feedbacked':
+                                                                        $badge = 'success';
+                                                                        break;
+                                                                    case 'Ready for Feedback':
+                                                                    case 'For Partial Feedback':
+                                                                        $badge = 'info';
+                                                                        break;
+                                                                    case 'Cancelled':
+                                                                        $badge = 'danger';
+                                                                        break;
+                                                                    default:
+                                                                        $badge = 'secondary';
+                                                                        break;
+                                                                }
+                                                                $name = str_replace('@fumaco.local', null, $po['created_by']);
 
-                                                        $exploded_name = explode('.', $name);
-                                                        $first_name = isset($exploded_name[0]) ? $exploded_name[0] : null;
-                                                        $last_name = isset($exploded_name[1]) ? $exploded_name[1] : null;
-                                                    @endphp
-                                                    <span style="font-size: 7pt;">
-                                                        <span style="text-transform: capitalize !important">{{ $first_name }}</span>&nbsp;<span style="text-transform: capitalize !important">{{ $last_name }}</span>
-                                                    </span><br>
-                                                    <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span>
-                                                </td>
-                                                <td class="text-center p-2">
-                                                    <span class="badge badge-{{ $badge }} mt-1" style="font-size: 7pt;">{{ $po['status'] }}</span>
-                                                </td>
-                                                <td class="text-center p-2">
-                                                    <span class="d-block font-weight-bold">{{ $po['qty_to_manufacture'] }}</span>
-                                                </td>
-                                                <td class="text-center p-2">
-                                                    <span class="d-block font-weight-bold">{{ $po['produced_qty'] }}</span>
-                                                </td>
-                                                <td class="text-center p-1">
-                                                    @if(count($bom) > 0)
-                                                        <button class="btn btn-sm btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
-                                                    @endif
-                                                    <a class="btn btn-sm btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
-                                                        <i class="fa fa-eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <td>-</td>
-                                            <td>-</td>
-                                            <td>-</td>
-                                            <td>-</td>
-                                            @endforelse
+                                                                $exploded_name = explode('.', $name);
+                                                                $first_name = isset($exploded_name[0]) ? $exploded_name[0] : null;
+                                                                $last_name = isset($exploded_name[1]) ? $exploded_name[1] : null;
+                                                            @endphp
+                                                            <span style="font-size: 7pt;">
+                                                                <span style="text-transform: capitalize !important">{{ $first_name }}</span>&nbsp;<span style="text-transform: capitalize !important">{{ $last_name }}</span>
+                                                            </span><br>
+                                                            <span style="font-size: 7pt;">{{ Carbon\Carbon::parse($po['created_at'])->format('M. d, Y h:i a') }}</span>
+                                                        </td>
+                                                        <td class="text-center p-2">
+                                                            <span class="badge badge-{{ $badge }} mt-1" style="font-size: 7pt;">{{ $po['status'] }}</span>
+                                                        </td>
+                                                        <td class="text-center p-2">
+                                                            <span class="d-block font-weight-bold">{{ $po['qty_to_manufacture'] }}</span>
+                                                        </td>
+                                                        <td class="text-center p-2">
+                                                            <span class="d-block font-weight-bold">{{ $po['produced_qty'] }}</span>
+                                                        </td>
+                                                        <td class="text-center p-1">
+                                                            @if(count($bom) > 0)
+                                                                <button class="btn btn-sm btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                            @endif
+                                                            <a class="btn btn-sm btn-primary btn-icon create-ste-btn" style="padding: 7px 8px;" href="#" data-production-order="{{ $po['production_order'] }}" data-item-code="{{ $v->item_code }}" data-qty="{{ number_format($v->qty) }}" data-uom="{{ $v->stock_uom }}">
+                                                                <i class="fa fa-eye"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    @empty
+                                                        <td>No Production Order(s) Created</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    @endforelse 
+                                                @else
+                                                    <td>No Production Order(s) Created</td>
+                                                @endif
                                             </tr>
                                             @empty
                                             <tr>
