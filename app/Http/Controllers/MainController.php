@@ -9281,6 +9281,7 @@ class MainController extends Controller
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
+			->where('status', '!=', 'Cancelled')
 			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'created_at', 'created_by')
 			->orderBy('created_at', 'desc')->get();
 
