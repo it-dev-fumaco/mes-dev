@@ -30,22 +30,22 @@
 </div>
 <table class="table table-hover table-bordered" id="item-list" style="font-size: 9pt;">
    <col style="width: 5%;"><!-- No. -->
-   <col style="width: 45%;"><!-- Item Description -->
-   <col style="width: 5%;"><!-- Planned Qty -->
-   <col style="width: 5%;"><!-- Qty to Manufacture -->
+   <col style="width: 25%;"><!-- Item Description -->
+   <col style="width: 10%;"><!-- Planned Qty -->
+   <col style="width: 10%;"><!-- Qty to Manufacture -->
    <col style="width: 10%;"><!-- Planned Start Date -->
    <col style="width: 10%;"><!-- Target Warehouse -->
    <col style="width: 10%;"><!-- List -->
-   <col style="width: 10%;"><!-- Create Production Order -->
+   <col style="width: 15%;"><!-- Create Production Order -->
    <thead class="text-white bg-secondary" style="font-size: 7pt;">
-      <th class="text-center"><b>No.</b></th>
+      <th class="text-center"><b>No</b></th>
       <th class="text-center"><b>Item Description</b></th>
       <th class="text-center"><b>Planned Qty</b></th>
       <th class="text-center"><b>Qty to Manufacture</b></th>
       <th class="text-center"><b>Planned Start Date</b></th>
       <th class="text-center"><b>Target Warehouse</b></th>
       <th class="text-center"><b>Planned Prod. Orders</b></th>
-      <th class="text-center"><b>Create Production Order</b></th>
+      <th class="text-center"><b>Create Prod. Order</b></th>
    </thead>
    <tbody>
       @forelse($item_list as $idx => $item)
@@ -110,17 +110,19 @@
          </td>
          <td class="td-actions text-center">
             <span class="item-reference-id d-none">{{ $item['id'] }}</span>
-            @if ($disabled)
-               <button type="button" class="btn btn-success production-order-no" disabled><i class="now-ui-icons ui-1_check"></i> OK</button>
-               <button type="button" rel="tooltip" class="btn btn-danger" disabled>
-                  <i class="now-ui-icons ui-1_simple-remove"></i>
-               </button>
-            @else
-               <button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
-               <button type="button" rel="tooltip" class="btn btn-danger delete-row">
-                  <i class="now-ui-icons ui-1_simple-remove"></i>
-               </button>
-            @endif
+            <div class="btn-group" role="group">
+               @if ($disabled)
+                  <button type="button" class="btn btn-success production-order-no" disabled><i class="now-ui-icons ui-1_check"></i> OK</button>
+                  <button type="button" rel="tooltip" class="btn btn-danger" disabled>
+                     <i class="now-ui-icons ui-1_simple-remove"></i>
+                  </button>
+               @else
+                  <button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>
+                  <button type="button" rel="tooltip" class="btn btn-danger delete-row">
+                     <i class="now-ui-icons ui-1_simple-remove"></i>
+                  </button>
+               @endif
+            </div>
          </td>
       </tr>
       @empty

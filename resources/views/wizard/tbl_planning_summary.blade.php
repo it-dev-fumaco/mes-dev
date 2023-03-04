@@ -12,16 +12,16 @@
 	<col style="width: 12%;">
 	@endif
 	<thead class="text-white bg-secondary">
-		<th class="text-center"><b>Parent Code</b></th>
-		<th class="text-center"><b>Production Order</b></th>
-		<th class="text-center"><b>Item Code</b></th>
-		<th class="text-center"><b>Planned Qty</b></th>
-		@if ($has_unplanned > 0)
-		<th class="text-center"><b>Unplanned Qty</b></th>
+		<th class="text-center" style="font-size: 9pt;"><b>Parent Code</b></th>
+		<th class="text-center" style="font-size: 9pt;"><b>Production Order</b></th>
+		<th class="text-center" style="font-size: 9pt;"><b>Item Code</b></th>
+		<th class="text-center" style="font-size: 9pt;"><b>Planned Qty</b></th>
+		@if ($has_unplanned > 0) style="font-size: 9pt;"
+		<th class="text-center" style="font-size: 9pt;"><b>Unplanned Qty</b></th>
 		@endif
-		<th class="text-center"><b>Planned Prod. Orders</b></th>
+		<th class="text-center" style="font-size: 9pt;"><b>Planned Prod. Orders</b></th>
 		@if($has_scheduled > 0)
-		<th class="text-center"><b>Planned Start Date</b></th>
+		<th class="text-center" style="font-size: 9pt;"><b>Planned Start Date</b></th>
 		@endif
 	</thead>
 	<tbody style="font-size: 9pt;">
@@ -44,7 +44,9 @@
 				@forelse ($prod['planned_production_orders'] as $production_order)
 					<span class="d-block">{{ $production_order->production_order.' ('.$production_order->qty_to_manufacture.')' }}</span>
 				@empty
-					<span class="d-block">-</span>
+					<center>
+						<span class="d-block">-</span>
+					</center>
 				@endforelse
 			</td>
 			@if($has_scheduled > 0)

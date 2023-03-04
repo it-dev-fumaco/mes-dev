@@ -91,8 +91,8 @@ class AssemblyController extends Controller
                     }
                 }
 
-                $production_orders = [];
-                $production_order = $planned_start_date = $fg_warehouse = $requested_bom = null;
+                $production_orders = $requested_bom = [];
+                $production_order = $planned_start_date = $fg_warehouse = null;
                 if($request->no_bom){
                     if(isset($existing_production_orders[$item->item_code])){
                         foreach ($existing_production_orders[$item->item_code] as $d) {
@@ -103,9 +103,9 @@ class AssemblyController extends Controller
                     $production_order = array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->name : null;
                     $planned_start_date = array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->planned_start_date : null;
                     $fg_warehouse = array_key_exists($item->item_code, $existing_production_orders) ? $existing_production_orders[$item->item_code][0]->fg_warehouse : null;
-                    $requested_bom = array_key_exists($item->item_code, $requested_bom) ? $requested_bom[$item->item_code] : null;
+                    $requested_bom = array_key_exists($item->item_code, $requested_bom) ? $requested_bom[$item->item_code] : [];
                 }
-                
+
                 $item_list[] = [
                     'id' => $item->name,
                     'idx' => $item->idx,
