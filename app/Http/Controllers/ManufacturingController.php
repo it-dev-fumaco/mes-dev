@@ -1419,15 +1419,15 @@ class ManufacturingController extends Controller
 
             $now = Carbon::now();
 
+            if (!$request->qty) {
+                return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
+            }
+
+            if ($request->qty <= 0) {
+                return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
+            }
+
             if ($request->reference_type) {
-                if (!$request->qty) {
-                    return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
-                }
-
-                if ($request->qty <= 0) {
-                    return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
-                }
-
                 $item = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
                 if (!$item) {
                     return response()->json(['success' => 0, 'message' => 'Item ' .$request->item_code. ' not found.']);

@@ -18,10 +18,10 @@
   <tbody style="font-size: 9pt;">
     @forelse($parts as $idx => $item)
     @php 
-    $qty = $item['planned_qty'] - $item['available_stock'];
-    $qty = ($qty < 0) ? 0 : $qty;
     $qty = $item['planned_qty'];
+    $qty = ($qty < 0) ? 0 : $qty;
     $production_balance_qty = $qty - $item['production_order_qty'];
+    $production_balance_qty = ($production_balance_qty < 0) ? 0 : $production_balance_qty;
     @endphp
     <tr>
       <td class="text-center">

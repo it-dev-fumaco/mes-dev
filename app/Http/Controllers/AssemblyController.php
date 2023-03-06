@@ -62,7 +62,7 @@ class AssemblyController extends Controller
                 $reference_material_request = ($reference_type == 'Material Request') ? $reference_details->name : null;
                 $existing_production_orders = DB::connection('mysql')->table('tabWork Order')->whereIn('production_item', $reference_order_items)
                     ->where('sales_order', $reference_sales_order)->where('material_request', $reference_material_request)
-                    ->where('docstatus', 1)->select('name', 'production_item', 'qty', 'planned_start_date', 'fg_warehouse')->orderBy('creation', 'desc')->get();
+                    ->where('docstatus', 1)->select('name', 'production_item', 'qty', 'planned_start_date', 'fg_warehouse', 'status')->orderBy('creation', 'desc')->get();
 
                 $existing_production_orders = collect($existing_production_orders)->groupBy('production_item')->toArray();
             }
@@ -96,7 +96,9 @@ class AssemblyController extends Controller
                 if($request->no_bom){
                     if(isset($existing_production_orders[$item->item_code])){
                         foreach ($existing_production_orders[$item->item_code] as $d) {
-                            $production_orders[$d->name] = $d->qty;
+                            if(!in_array($d->status, ['Cancelled', 'Closed'])){
+                                $production_orders[$d->name] = $d->qty;
+                            }
                         }
                     }
                 }else{
@@ -187,7 +189,7 @@ class AssemblyController extends Controller
             $existing_po_from_mreq = DB::connection('mysql_mes')->table('production_order')->whereIn('material_request', $request->so)->whereIn('bom_no', $request->bom)->where('status', '!=', 'Cancelled')->selectRaw('material_request as id, bom_no, sum(qty_to_manufacture) as qty')->groupBy('id', 'bom_no')->get();
 
             $existing_po = collect($existing_po_from_so)->merge($existing_po_from_mreq)->groupBy('id');
-
+ 
             $parts = [];
             foreach ($request->bom as $idx => $bom) {
                 $item_reference_id = $request->item_reference_id[$idx];

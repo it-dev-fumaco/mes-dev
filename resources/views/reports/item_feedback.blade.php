@@ -1680,6 +1680,7 @@ $(document).ready(function(){
     $('#material-table-tbody').empty();
     $('#manual-material-operation-row').hide();
     $('#manual-production-modal').modal('show');
+    $('#target-wh').empty();
   });
 
   $('#sel-reference-type').change(function(){
