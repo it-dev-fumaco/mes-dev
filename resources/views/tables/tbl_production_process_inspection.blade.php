@@ -37,9 +37,11 @@
             <li class="nav-item font-weight-bold pull-right">
                 <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="fourth-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-4"  data-production-order="{{ $existing_production_order->production_order }}" data-operation="{{ $operation }}" role="tab" aria-controls="tab4" aria-selected="false">Pending for Confirmation <span class="badge" id="reject-confirmation-count" style="font-size: 10pt; background-color: #F96332; color: #fff">0<span></span>
             </li>
+            @if (count($qa_inspection_logs) > 0)
             <li class="nav-item font-weight-bold pull-right">
                 <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="third-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-3" role="tab" aria-controls="tab3" aria-selected="false">QA Inspection Log(s) <span class="badge badge-primary" style="font-size:">{{ count($qa_inspection_logs) }}<span></span>
             </li>
+            @endif
         </ul>
         <style>
             .custom-tabs-rcfa .active {
@@ -166,7 +168,12 @@
                     get_qty: 1
                 },
                 success:function(response){
-                    $('#reject-confirmation-count').html(response.message);
+                    if (response.message <= 0) {
+                        $('#reject-confirmation-count').parent().addClass('d-none');
+                    } else {
+                        $('#reject-confirmation-count').html(response.message);
+                        $('#reject-confirmation-count').parent().removeClass('d-none');
+                    }
                 }
             });
         }
