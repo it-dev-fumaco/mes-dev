@@ -5703,7 +5703,7 @@ class ManufacturingController extends Controller
                 ->selectRaw($ref_col.', item_code, sum(qty_to_manufacture) as qty_to_manufacture')
                 ->groupBy($ref_col, 'item_code')->first();
 
-            $requested_qty_to_manufacture = $request->qty_to_manufacture + $mes_total->qty_to_manufacture;
+            $requested_qty_to_manufacture = $request->qty_to_manufacture + ($mes_total ? $mes_total->qty_to_manufacture : 0);
             if($requested_qty_to_manufacture > $qty_to_manufacture){
                 return response()->json(['success' => 0, 'message' => 'Qty cannot exceed qty to manufacture.']);
             }
