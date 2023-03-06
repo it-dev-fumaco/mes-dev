@@ -91,7 +91,7 @@ class AssemblyController extends Controller
                     }
                 }
 
-                $production_orders = $requested_bom = [];
+                $production_orders = [];
                 $production_order = $planned_start_date = $fg_warehouse = null;
                 if($request->no_bom){
                     if(isset($existing_production_orders[$item->item_code])){
@@ -237,9 +237,15 @@ class AssemblyController extends Controller
                             ->when($reference_pref == 'MREQ', function ($query) use ($reference_no){
                                 return $query->where('material_request', $reference_no);
                             })
+                            ->where('docstatus', 1)
                             ->where('production_item', $parent_part['item_code'])
                             ->where('parent_item_code', $bom_details->item)
-                            ->first();
+                            ->get();
+
+                        $po_ref_qty = collect($existing_prod1)->pluck('qty', 'name');
+                        $production_references = collect($existing_prod1)->implode('name', ',');
+                        $total_production_order_qty = collect($existing_prod1)->sum('qty');
+                        $existing_prod1 = collect($existing_prod1)->first();
 
                         $s_warehouse = null;
                         if ($existing_prod1) {
@@ -266,8 +272,8 @@ class AssemblyController extends Controller
                             'reference_no' => $reference_no,
                             'planned_start_date' => ($existing_prod1) ? $planned_start_date1 : null,
                             'production_order' => ($existing_prod1) ? $existing_prod1->name : null,
-                            'production_order_qty' => 0,
-                            'production_references' => null,
+                            'production_order_qty' => ($existing_prod1) ? $total_production_order_qty : 0,
+                            'production_references' => ($existing_prod1) ? $production_references : null,
                             'po_ref_qty' => [],
                             's_warehouse' => $s_warehouse,
                             'wip_warehouse' => ($existing_prod1) ? $existing_prod1->wip_warehouse : null,
