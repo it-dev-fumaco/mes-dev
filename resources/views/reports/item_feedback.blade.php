@@ -1777,6 +1777,11 @@ $(document).ready(function(){
           }else{
             showNotification("success", 'Production Order <b>' + data.message + '</b> has been created.', "now-ui-icons ui-1_check");
             $('#manual-production-modal').modal('hide');
+            $('#manual-production-modal textarea[name="description"]').text('');
+            $('#manual-production-modal input[name="stock_uom"]').val('');
+            $('#manual-production-modal input[name="item_classification"]').val('');
+            $('#manual-production-modal input[name="is_stock_item"]').val('');
+            $('#target-wh').empty().trigger('change');
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
