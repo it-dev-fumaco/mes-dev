@@ -555,46 +555,44 @@
       $(document).on('submit', '#reject-confirmation-form', function(e) {
         e.preventDefault();
         $('#qa-login-modal').modal('show');
+      });
 
-        var reject_form = $(this);
+      $(document).on('submit', '#qa-login-form', function (e){
+        e.preventDefault();
+        var id = $('#qa-login-id').val();
+        
+        $.ajax({
+          url: $(this).attr('action'),
+          type:"POST",
+          data: $(this).serialize(),
+          success:function(response){
+            if(response.success){
+              $('#qa-login-modal').modal('hide');
 
-        $(document).on('submit', '#qa-login-form', function (e){
-          e.preventDefault();
-          var id = $('#qa-login-id').val();
-          
-          $.ajax({
-            url: $(this).attr('action'),
-            type:"POST",
-            data: $(this).serialize(),
-            success:function(response){
-              if(response.success){
-                $('#qa-login-modal').modal('hide');
-
-                $.ajax({
-                  url: reject_form.attr('action'),
-                  type:"POST",
-                  data: reject_form.serialize(),
-                  success:function(data){
-                    if (data.success) {
-                      showNotification("success", data.message, "now-ui-icons ui-1_check");
-                      $('#reject-confirmation-modal').modal('hide');
-                      $('#fourth-tab').trigger('click');
-                    }else{
-                      showNotification("danger", data.message, "now-ui-icons travel_info");
-                    }
-                  },
-                  error: function(response) {
-                    showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+              $.ajax({
+                url: $('#reject-confirmation-form').attr('action'),
+                type:"POST",
+                data: $('#reject-confirmation-form').serialize(),
+                success:function(data){
+                  if (data.success) {
+                    showNotification("success", data.message, "now-ui-icons ui-1_check");
+                    $('#reject-confirmation-modal').modal('hide');
+                    $('#fourth-tab').trigger('click');
+                  }else{
+                    showNotification("danger", data.message, "now-ui-icons travel_info");
                   }
-                });
-              }else{
-                showNotification("danger", response.message, "now-ui-icons travel_info");
-              }
-            },
-            error: function(response) {
-              showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+                },
+                error: function(response) {
+                  showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+                }
+              });
+            }else{
+              showNotification("danger", response.message, "now-ui-icons travel_info");
             }
-          });
+          },
+          error: function(response) {
+            showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+          }
         });
       });
       
