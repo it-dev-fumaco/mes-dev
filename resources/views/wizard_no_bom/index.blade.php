@@ -185,6 +185,34 @@
       </div>
   </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="create-batch-modal" tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" style="font-weight: bolder;">Create Batch</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <div class="row">
+               <div class="col-md-6 offset-md-3">
+                  <div class="form-group">
+                     <label>Batch Qty</label>
+                     <input type="number" class="form-control form-control-lg d-none" id="planned-qty">
+                     <input type="number" class="form-control form-control-lg" id="batch-qty">
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary submit-batch-qty">Submit</button>
+         </div>
+      </div>
+   </div>
+</div>
  <style>
    #autocomplete-box {
       position:absolute;
@@ -217,6 +245,47 @@
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
          }
       });
+
+      var create_batch_row = [];
+      $(document).on('click', '.create-batch-btn', function(e){
+         e.preventDefault();
+         create_batch_row = $(this).closest('tr');
+         $('#planned-qty').val(create_batch_row.find('.qty-to-manufacture').val());
+         $('#batch-qty').val(create_batch_row.find('.qty-to-manufacture').val());
+         $('#create-batch-modal').modal('show');
+      });
+
+      $('.submit-batch-qty').click(function(e){
+         e.preventDefault();
+         
+         var batch_qty = $('#batch-qty').val();
+         var planned_qty = $('#planned-qty').val();
+
+         if (batch_qty <= 0) {
+            showNotification("danger", 'Qty cannot be less than or equal to 0', "now-ui-icons travel_info");
+            return false;
+         }
+
+         if (parseInt(batch_qty) >= parseInt(planned_qty)) {
+            showNotification("danger", 'Qty should be less than ' + planned_qty, "now-ui-icons travel_info");
+            return false;
+         }
+         
+         var tr = create_batch_row.closest('tr');
+         var clone = tr.clone();
+         create_batch_row.after(clone);
+
+         create_batch_row.find('.qty-to-manufacture').eq(0).val(planned_qty - batch_qty);
+         clone.find('.qty-to-manufacture').eq(0).val(batch_qty);
+         autonumbertablerow();
+         $('#create-batch-modal').modal('hide');
+      });
+
+      function autonumbertablerow(){
+         $('#item-list tbody tr').each(function (idx) {
+            $(this).children("td:eq(0)").html(idx + 1);
+         });
+      }
 
       $('.close-wizard-btn').click(function(e){
          e.preventDefault();
@@ -602,6 +671,7 @@
          }
 
          $btn.attr('disabled', true);
+         $btn.next().attr('disabled', true);
          $row.find('.delete-row').eq(0).attr('disabled', true);
 
          $.ajax({
@@ -622,6 +692,9 @@
                $row.find('.qty').prop('disabled', true);
 
                $btn.removeClass('btn-primary create-production-btn').addClass('btn-success production-order-no');
+               // hide dropdown and x
+               $btn.next().addClass('d-none');
+               $row.find('.delete-row').eq(0).addClass('d-none');
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + data.message);
             },
             error: function(jqXHR, textStatus, errorThrown) {

@@ -5695,7 +5695,9 @@ class ManufacturingController extends Controller
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
 
-            $qty_to_manufacture = DB::connection('mysql')->table($reference_table.' Item')->where('parent', $request->reference_no)->where('item_code', $request->item_code)->where('docstatus', '<', 2)->pluck('qty')->first();
+            $somr_qry = DB::connection('mysql')->table($reference_table.' Item')->where('parent', $request->reference_no)->where('item_code', $request->item_code)->where('docstatus', '<', 2)->select('qty', 'stock_uom')->first();
+            $qty_to_manufacture = $somr_qry ? $somr_qry->qty : 0;
+            $somr_uom = $somr_qry ? $somr_qry->stock_uom : null;
 
             $ref_col = $request->reference_type == 'Sales Order' ? 'sales_order' : 'material_request';
             $mes_total = DB::connection('mysql_mes')->table('production_order')
@@ -5705,7 +5707,7 @@ class ManufacturingController extends Controller
 
             $requested_qty_to_manufacture = $request->qty_to_manufacture + ($mes_total ? $mes_total->qty_to_manufacture : 0);
             if($requested_qty_to_manufacture > $qty_to_manufacture){
-                return response()->json(['success' => 0, 'message' => 'Qty cannot exceed qty to manufacture.']);
+                return response()->json(['success' => 0, 'message' => 'Qty to manufacture cannot exceed '.(float)$qty_to_manufacture.' '.$somr_uom.'.']);
             }
 
             $classification = ($request->reference_type == 'Sales Order') ? (($reference_details->sales_type == 'Sample') ? 'Sample' : 'Customer Order') : $reference_details->purpose;
