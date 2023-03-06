@@ -1013,7 +1013,9 @@
                '<td class="text-center"><span class="delivery-date" style="display: none;">'+$(this).find('.delivery-date').text()+'</span><span class="item-reference-id" style="display: none;">'+$(this).find('.item-reference-id').text()+'</span><span class="sub-parent-item" style="display: none;">'+$(this).find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">'+$(this).find('.parent-code').text()+'</span><span class="reference-no" style="display: none;">'+$(this).find('.reference-no').eq(0).text()+'</span><span class="item-code">' + $(this).find('td').eq(1).text() + '</span><br><span class="bom">' + $(this).find('.review-bom-row').eq(0).text() + '</span></td>' +
                '<td class="text-justify item-description">' + $(this).find('td').eq(2).text() + '</td>' +
                '<td class="text-center" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
-               '<td class="text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
+               '<td class="text-center">' +
+                  '<span class="actual-qty-span font-weight-bold" style="font-size: 11pt; '+ stylecss+'">' + actual_qty + '</span>' +
+               '</td>' +
                '<td class="text-center">' +
                   '<div class="form-group" style="margin: 0;"><input type="text" value="' + qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;" ' + disable_sel + '></div>' +
                '</td>' +
@@ -1056,25 +1058,37 @@
             return false;
          }
 
-         if (batch_qty >= planned_qty) {
-            showNotification("danger", batch_qty + 'Qty should be less than ' + planned_qty, "now-ui-icons travel_info");
+         if (parseInt(batch_qty) >= parseInt(planned_qty)) {
+            showNotification("danger", 'Qty should be less than ' + planned_qty, "now-ui-icons travel_info");
             return false;
          }
 
-         var row = '<tr>' +
-            '<td class="text-center"><span class="sub-parent-item" style="display: none;">'+create_batch_row.find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">' + create_batch_row.find('.parent-code').text() +'</span><span class="sales-order" style="display: none;">' + create_batch_row.find('.sales-order').eq(0).text() + '</span></td>' +
-            '<td class="text-center"><span class="item-code">' + create_batch_row.find('.item-code').eq(0).text() + '</span><br><span class="bom">' + create_batch_row.find('.bom').eq(0).text() + '</span></td>' +
-            '<td class="text-justify item-description">' + create_batch_row.find('.item-description').eq(0).text() + '</td>' +
-            '<td class="text-center" style="font-size: 11pt;">' + planned_qty + '</td>' +
+         var row = '<tr>' + 
+            '<td class="text-center">1</td>' + 
             '<td class="text-center">' +
-            '<div class="form-group" style="margin: 0;"><input type="text" value="' + batch_qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"></div>' +
-            '</td>' +
-            '<td class="text-center">' +
-            '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;"><div class="input-group-append"><button class="btn btn-info" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
-            '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg wip">' + wipwh + '</select></div></td>' +
-            '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + targetwh + '</select></div></td>' +
-            '<td class="text-center"><div class="btn-group"><button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button><button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 15px; font-size: 9pt;"><span class="sr-only">Toggle Dropdown</span></button><div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div></td>' +
-            '</tr>';
+               '<span class="delivery-date" style="display: none;">' + create_batch_row.find('.delivery-date').text() + '</span>' +
+               '<span class="item-reference-id" style="display: none;">' + create_batch_row.find('.item-reference-id').text() + '</span>' +
+               '<span class="sub-parent-item" style="display: none;">' + create_batch_row.find('.sub-parent-item').text() + '</span>' +
+               '<span class="parent-code" style="display: none;">' + create_batch_row.find('.parent-code').text() + '</span>' +
+               '<span class="reference-no" style="display: none;">' + create_batch_row.find('.reference-no').text() + '</span>' +
+               '<span class="item-code">' + create_batch_row.find('.item-code').text() + '</span><br>' +
+               '<span class="bom">' + create_batch_row.find('.bom').text() + '</span></td>' +
+               '<td class="text-justify item-description">' + create_batch_row.find('.item-description').text() + '</td>' +
+               '<td class="text-center" style="font-size: 11pt;">' + planned_qty + '</td>' +
+               '<td class="text-center">' + create_batch_row.find('.actual-qty-span').parent().html() + '</td>' +
+               '<td class="text-center"><div class="form-group" style="margin: 0;">' +
+                  '<input type="text" value="' + batch_qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"></div>' +
+               '</td><td class="text-center"><div class="input-group" style="margin: 0;">' +
+               '<input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="">' +
+               '<div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div>' +
+               '</div></td><td class="text-center"><div class="form-group" style="margin: 0;">' +
+               '<select class="form-control form-control-lg target">' + create_batch_row.find('.target').html() + '</select></div>' +
+               '</td><td class="text-center"><div class="btn-group">' +
+               '<button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button>' +
+               '<button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 15px; font-size: 9pt;">' +
+               '<span class="sr-only">Toggle Dropdown</span></button>' +
+               '<div class="dropdown-menu create-batch-btn" x-placement="top-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(108px, -2px, 0px);">' +
+               '<a class="dropdown-item" href="#">Create Batch</a></div></div></td><td class="text-center"></td></tr>';
 
          create_batch_row.find('.qty').eq(0).val(planned_qty - batch_qty);
          create_batch_row.after(row);

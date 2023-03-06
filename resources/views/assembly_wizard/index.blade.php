@@ -1217,8 +1217,8 @@
             return false;
          }
 
-         if (batch_qty >= planned_qty) {
-            showNotification("danger", batch_qty + 'Qty should be less than ' + planned_qty, "now-ui-icons travel_info");
+         if (parseInt(batch_qty) >= parseInt(planned_qty)) {
+            showNotification("danger", 'Qty should be less than ' + planned_qty, "now-ui-icons travel_info");
             return false;
          }
 
