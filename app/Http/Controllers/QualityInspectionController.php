@@ -1393,10 +1393,7 @@ class QualityInspectionController extends Controller
                     $reject_qty = $request->old_reject_qty[$time_log_id] - $request_rejected_qty;
 
                     $good_qty_after_transaction = $job_ticket_details->good + $reject_qty;
-        
-                    if($good_qty_after_transaction < 0){
-                        $good_qty_after_transaction = 0;
-                    }
+                    $good_qty_after_transaction = $good_qty_after_transaction > 0 ? $good_qty_after_transaction : 0;
 
                     $rework_qty = $job_ticket_details->rework;
                     if($request->disposition[$time_log_id] == 'Rework'){
