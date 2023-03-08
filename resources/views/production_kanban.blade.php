@@ -12,7 +12,7 @@
   <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
     <div class="card" style="background-color: #a6acaf;">
       <div class="row m-0 p-0">
-        <div class="col-7 p-0">
+        <div class="col-4 p-0">
           <div class="d-flex flex-row p-0 m-0">
             <div>
               <ul class="nav nav-tabs mt-2" id="myTab" role="tablist" style="font-weight: bold;border:none;font-size:12px;">
@@ -24,52 +24,9 @@
                 </li>
               </ul>
             </div>
-            <div class="pt-2 m-0">
-              <table class="w-100 m-0 p-0" id="filter-form">
-                <col style="width: 40%;">
-                <col style="width: 25%;">
-                <col style="width: 25%;">
-                <col style="width: 10%;">
-                <tr>
-                  <td>
-                    <div class="form-group mb-0 mr-1">
-                      <select class="form-control select-custom" id="customer-filter">
-                        <option value="all">Select Customer</option>
-                        @foreach ($filters['customers'] as $i => $customer)
-                        <option value="{{ $customer }}">{{ $customer }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="form-group mb-0 mr-1">
-                      <select class="form-control select-custom" id="reference-filter">
-                        <option value="all">Select Reference No.</option>
-                        @foreach ($filters['reference_nos'] as $i => $reference)
-                        <option value="{{ $reference }}">{{ $reference }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="form-group mb-0 mr-1">
-                      <select class="form-control select-custom" id="parent-item-filter">
-                        <option value="all">Select Parent Item</option>
-                        @foreach ($filters['parent_items'] as $i => $parent_item)
-                        <option value="{{ $parent_item }}">{{ $parent_item }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </td>
-                  <td class="pl-2">
-                    <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
-                  </td>
-                </tr>
-              </table>
-            </div>
           </div>
         </div>
-        <div class="col-5 p-0">
+        <div class="col-7 offset-1 p-0">
           <input type="hidden" id="primary-operation-id" value="{{ $primary_id }}">
           <input type="hidden" id="reload_point_page">
           <button type="button" class="btn btn-success mr-1 mt-1 mb-0" id="ready-for-feedback-btn">
@@ -90,19 +47,62 @@
             <i class="now-ui-icons arrows-1_refresh-69 btn-refresh-page" style="font-size:25px;font-weight:bolder;color:black; vertical-align: middle;"></i>
           </a>
         </div>
+        <div class="col-12 bg-white">
+          <table class="w-50 m-0 p-0" id="filter-form">
+            <col style="width: 40%;">
+            <col style="width: 25%;">
+            <col style="width: 25%;">
+            <col style="width: 10%;">
+            <tr>
+              <td>
+                <div class="form-group mb-0 mr-1">
+                  <select class="form-control select-custom" id="customer-filter">
+                    <option value="all">Select Customer</option>
+                    @foreach ($filters['customers'] as $i => $customer)
+                    <option value="{{ $customer }}">{{ $customer }}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </td>
+              <td>
+                <div class="form-group mb-0 mr-1">
+                  <select class="form-control select-custom" id="reference-filter">
+                    <option value="all">Select Reference No.</option>
+                    @foreach ($filters['reference_nos'] as $i => $reference)
+                    <option value="{{ $reference }}">{{ $reference }}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </td>
+              <td>
+                <div class="form-group mb-0 mr-1">
+                  <select class="form-control select-custom" id="parent-item-filter">
+                    <option value="all">Select Parent Item</option>
+                    @foreach ($filters['parent_items'] as $i => $parent_item)
+                    <option value="{{ $parent_item }}">{{ $parent_item }}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </td>
+              <td class="pl-2">
+                <button class="btn btn-secondary btn-mini p-2 btn-block m-0" id="clear-kanban-filters">Clear</button>
+              </td>
+            </tr>
+          </table>
+        </div>
       </div>
       <div class="tab-content" style="min-height: 620px;">
-        <div class="tab-pane" id="step3" role="tabpanel" aria-labelledby="step3-tab">
+        <div class="tab-pane bg-white" id="step3" role="tabpanel" aria-labelledby="step3-tab">
           <div class="row" style="margin-top: 10px;">
             <div class="col-md-12">
               <div class="card">
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-md-4 offset-md-8">
+                    {{-- <div class="col-md-4 offset-md-8">
                       <div class="form-group">
                         <input type="text" class="form-control" id="search-ready-for-feedback" placeholder="Search">
                       </div>
-                    </div>
+                    </div> --}}
                     <div class="col-md-12">
                       <div id="ready-for-painting-table"></div>
                     </div>
@@ -112,7 +112,7 @@
             </div>
           </div>
         </div>
-        <div class="tab-pane active kanban-filtering" id="step1" role="tabpanel" aria-labelledby="step1-tab">
+        <div class="tab-pane active kanban-filtering bg-white" id="step1" role="tabpanel" aria-labelledby="step1-tab">
           <div class="row p-0 m-0">
             <div class="col-md-12 p-0">
               <div class="scrolling outer">

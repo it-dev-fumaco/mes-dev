@@ -9,7 +9,7 @@
 @include('modals.view_for_feedback_list_modal')
 <div class="panel-header"></div>
 <input type="hidden" name="date_today" id="date_today" value="{{ date('Y-m-d') }}">
-<div class="row p-0 ml-0 mr-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+<div class="row p-0 ml-0 mr-0" style="margin: -213px 0 0 0; min-height: 850px;">
   <div class="col-md-12 p-2">
     <div class="card m-0" style="min-height: 900px;">
       <div class="card-body p-1">

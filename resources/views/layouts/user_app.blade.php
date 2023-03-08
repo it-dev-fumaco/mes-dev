@@ -246,6 +246,21 @@
     .no-sidebar #content {
       width: 100%;
     }
+    .wizard-h4{
+      margin-top: -50px;
+    }
+    @media screen 
+      and (min-device-width: 1200px) 
+      and (max-device-width: 1600px) 
+      and (-webkit-min-device-pixel-ratio: 1){
+        .icon-text{
+          display: none;
+        }
+        .wizard-h4{
+          margin-top: 0 !important;
+        }
+    }
+
   </style>
   @endisset
   <!-- Page Content -->
@@ -266,7 +281,7 @@
               <span id="current-time" style="font-size: 18pt;">--:--:-- --</span>
             </li>
             <li class="nav-item active">
-              <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px;">{{ $pageHeader }}</span>
+              <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px; white-space: nowrap;">{{ $pageHeader }}</span>
               @if (Auth::check())
               <span class="d-block" style="font-size: 8pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
               @endif
@@ -341,37 +356,35 @@
             @if ($activePage == 'main_dashboard')
             <li class="nav-item active">
               <a class="nav-link" href="#" id="get-notifications-btn">
-                <i class="now-ui-icons ui-1_bell-53"></i> Notifications <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
-                <p>
-                  <span class="d-lg-none d-md-block"> Notifications</span>
+                <i class="now-ui-icons ui-1_bell-53"></i> <span class="icon-text">Notifications</span> <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
+                <p class="d-lg-none d-md-block">
+                  <span> Notifications</span>
                 </p>
               </a>
             </li>
-            @endif
-            @if ($activePage == 'main_dashboard')
             <li class="nav-item active">
               <a class="nav-link" href="#" id="view-item-tracking-btn">
-                <i class="now-ui-icons location_pin"></i> Item Tracking
-                <p>
-                  <span class="d-lg-none d-md-block"> Item Tracking</span>
+                <i class="now-ui-icons location_pin"></i> <span class="icon-text">Item Tracking</span>
+                <p class="d-lg-none d-md-block">
+                  <span> Item Tracking</span>
                 </p>
               </a>
             </li>
             @endif
             <li class="nav-item active" {{ $activePage == 'login' ? 'hidden' : '' }}>
               <a class="nav-link" href="#" id="jt-search-btn">
-                <i class="now-ui-icons ui-1_zoom-bold"></i> Production Order Search
-                <p>
-                  <span class="d-lg-none d-md-block">Production Order Search</span>
+                <i class="now-ui-icons ui-1_zoom-bold"></i> <span class="icon-text">Production Order Search</span>
+                <p class="d-lg-none d-md-block">
+                  <span>Production Order Search</span>
                 </p>
               </a>
             </li>
             @if(Auth::user())
             <li class="nav-item active">
               <a class="nav-link" href="/logout_user">
-                <i class="now-ui-icons media-1_button-power"></i> Logout
-                <p>
-                  <span class="d-lg-none d-md-block">Logout</span>
+                <i class="now-ui-icons media-1_button-power"></i> <span class="icon-text">Logout</span>
+                <p class="d-lg-none d-md-block">
+                  <span>Logout</span>
                 </p>
               </a>
             </li>
