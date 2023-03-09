@@ -875,19 +875,40 @@ class QualityInspectionController extends Controller
             ->union($q)->get();
 
         if ($production_order_details->operation_id == 3) {
-            $checklist = DB::connection('mysql_mes')->table('reject_list')
+            $checklist_query = DB::connection('mysql_mes')->table('reject_list')
                 ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
                 ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
                 ->where('operation.operation_name', 'like', '%Assembly%')->orderBy('reject_list.reject_reason', 'asc')->get();
+
+            $checklist = [];
+            foreach ($checklist_query as $c) {
+                $checklist[] = [
+                    'reject_list_id' => $c->reject_list_id,
+                    'reject_reason' => $c->reject_reason
+                ];
+            }
         } else {
             $workstations = collect($reject_confirmation_list)->pluck('workstation')->unique();
-            $checklist = DB::connection('mysql_mes')->table('qa_checklist')
-                ->join('reject_list', 'qa_checklist.reject_list_id', 'reject_list.reject_list_id')
-                ->join('workstation', 'workstation.workstation_id', 'qa_checklist.workstation_id')
-                ->whereIn('workstation_name', $workstations)
-                ->orderBy('reject_list.reject_reason', 'asc')->get();
+            $processes = collect($reject_confirmation_list)->pluck('process_id')->unique();
+           
+            $checklist_query = DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
+                ->join('reject_list as rl', 'opset.reject_list_id', 'rl.reject_list_id')
+                ->join('reject_category as rc', 'rc.reject_category_id', 'rl.reject_category_id')
+                ->join('workstation as w', 'w.workstation_id', 'opset.workstation_id')
+                ->whereIn('w.workstation_name', $workstations)
+                ->where(function($q) use ($processes) {
+                    $q->whereIn('opset.process_id', $processes)
+                        ->orWhere('opset.process_id', null);
+                })
+                ->orderBy('rl.reject_reason', 'asc')->get();
 
-            $checklist = collect($checklist)->groupby('workstation_name')->toArray();
+            $checklist = [];
+            foreach ($checklist_query as $c) {
+                $checklist[$c->workstation_name][$c->process_id][] = [
+                    'reject_list_id' => $c->reject_list_id,
+                    'reject_reason' => $c->reject_reason
+                ];
+            }
         }
 
         $timelogs = collect($reject_confirmation_list)->pluck('time_log_id')->unique();
@@ -1019,38 +1040,30 @@ class QualityInspectionController extends Controller
     }
 
     public function get_reject_types($workstation, $process_id){
-        $workstation_id = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation)->first();
-        if(empty($workstation_id)){
-            $tab= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
-            ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
-            ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-            ->where('opset.process_id', $workstation_id)
-            ->get();
-            $validation_tab="no_tab";
-        }else{
-            if($workstation_id->operation_id < 3){
-                // $tab=[];
-                $tab= DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
-                ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
-                ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
-                ->where('opset.workstation_id', $workstation_id->workstation_id)
-                ->where(function($q) use ($process_id) {
-					$q->where('opset.process_id', $process_id)
-						->orWhere('opset.process_id', null);
-				})
-                ->get();
+        $workstation = DB::connection('mysql_mes')->table('workstation')->where('workstation_name', $workstation)->first();
+        if ($workstation) {
+            if($workstation->operation_id < 3){
+                $tab = DB::connection('mysql_mes')->table('operator_reject_list_setup as opset')
+                    ->join('reject_list', 'opset.reject_list_id', 'reject_list.reject_list_id')
+                    ->join('reject_category', 'reject_category.reject_category_id', 'reject_list.reject_category_id')
+                    ->where('opset.workstation_id', $workstation->workstation_id)
+                    ->where(function($q) use ($process_id) {
+                        $q->where('opset.process_id', $process_id)
+                            ->orWhere('opset.process_id', null);
+                    })
+                    ->get();
                 
-                $validation_tab="no_tab";
+                $validation_tab = "no_tab";
             }else{
                 $data= DB::connection('mysql_mes')->table('reject_list')
-                ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
-                ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
-                ->where('operation.operation_name', 'like', '%Assembly%') 
-                ->where('owner', 'Operator')
-                ->get();
+                    ->join('reject_material_type', 'reject_material_type.reject_material_type_id', 'reject_list.reject_material_type_id')
+                    ->join('operation', 'operation.operation_id', 'reject_list.operation_id')
+                    ->where('operation.operation_name', 'like', '%Assembly%')->where('owner', 'Operator')
+                    ->get();
+                
                 $tab = $data->groupBy('material_type');
                 $tab->all();
-                $validation_tab="with_tab";
+                $validation_tab = "with_tab";
             }
         }
 
@@ -1328,18 +1341,27 @@ class QualityInspectionController extends Controller
             if (!Auth::check()) {
                 return response()->json(['success' => 0, 'message' => 'Session expired. Please reload the page.']);
             }
-
-            $qa_user = DB::connection('mysql_essex')->table('users')
-                ->where('user_id', Auth::user()->user_id)->first();
+            
+            $qa_user = DB::connection('mysql_mes')->table('user')
+                ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+                ->where('user_group.module', 'Quality Assurance')->where('user.user_access_id', Auth::user()->user_id)->first();
 
             if (!$qa_user) {
                 return response()->json(['success' => 0, 'message' => 'Authorized QA Employee ID not found.']);
             }
 
+            DB::connection('mysql_mes')->table('quality_inspection')
+                ->whereIn('reference_id', array_keys($request->workstation))
+                ->whereNotIn('qa_id', array_values($request->qa_id))->delete();
+           
             $qa_staff_name = $qa_user->employee_name;
             foreach($request->workstation as $time_log_id => $workstation) {
                 if ($time_log_id) {
                     $request_rejected_qty = $request->confirmed_reject[$time_log_id];
+                    if (!is_numeric($request_rejected_qty)) {
+                        return response()->json(['success' => 0, 'message' => 'Confirmed Reject Qty must be a number.']);
+                    }
+
                     $request_qa_id = $request->qa_id[$time_log_id];
 
                     if ($workstation == 'Spotwelding') {
@@ -1351,22 +1373,13 @@ class QualityInspectionController extends Controller
                             ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
                             ->where('time_logs.time_log_id', $time_log_id)->first();
                     }
+
                     $production_order = $job_ticket_details->production_order;
                     $workstation = $job_ticket_details->workstation;
                     $prod_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
     
                     $operation_id = $prod_details->operation_id;
                     $operation_id = $workstation == 'Painting' ? 2 : $operation_id;
-    
-                    if ($workstation == 'Spotwelding') {
-                        $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-                            ->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-                            ->where('spotwelding_qty.time_log_id', $time_log_id)->first();
-                    }else{
-                        $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-                            ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-                            ->where('time_logs.time_log_id', $time_log_id)->first();
-                    }
 
                     if ($request_rejected_qty > $prod_details->qty_to_manufacture) {
                         return response()->json(['success' => 0, 'message' => 'Rejected qty cannot be greater than ' . $prod_details->qty_to_manufacture]);
@@ -1418,7 +1431,7 @@ class QualityInspectionController extends Controller
                         DB::connection('mysql')->rollback();
                         DB::connection('mysql_mes')->rollback();
 
-                        return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+                        return response()->json(['success' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
                     }
 
                     if ($request->disposition[$time_log_id] == 'Scrap') {

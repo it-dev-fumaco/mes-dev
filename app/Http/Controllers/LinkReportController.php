@@ -1794,18 +1794,48 @@ class LinkReportController extends Controller
     }
 
     public function inaccurate_operator_feedback(Request $request){
+        
+        // $override = DB::connection('mysql_mes')->table('time_logs as tl')
+        //     ->join('job_ticket as jt', 'jt.job_ticket_id', 'tl.job_ticket_id')
+        //     ->where('jt.remarks', 'Override')->whereRaw('DAY(tl.from_time) != DAY(tl.to_time)')
+        //     ->select('tl.job_ticket_id', 'tl.from_time', 'tl.to_time', 'tl.good', 'tl.operator_id', 'tl.operator_name')
+        //     ->orderBy('tl.created_at', 'desc')->get();
+
+        //     $query_result = collect($override)->groupBy('operator_name');
+
+        //     $report = [];
+        //     foreach ($query_result as $operator => $rows) {
+        //         $report[] = [
+        //             'operator_name' => $operator,
+        //             'process_count' => collect($rows)->count(),
+        //             'completed_qty' => collect($rows)->sum('good'),
+        //         ];
+
+        //     }
+
+        //    $report = collect($report)->sortBy('process_count')->reverse()->toArray();
+
+        //    return view('reports.inaccurate_operator_feedback_tbl', compact('report'));
+        
+
         if($request->ajax()){
             $exploded_date = explode(' to ', $request->date_range);
             $start_date = isset($exploded_date[0]) ? Carbon::parse($exploded_date[0]) : null;
             $end_date = isset($exploded_date[1]) ? Carbon::parse($exploded_date[1]) : null;
+            // $start_date = Carbon::parse('2023-02-04');
+            // $end_date = Carbon::parse('2023-03-07');
+
+            $operation_id = $request->operation;
+            // $operation_id = 1;
 
             $spotwelding_query = [];
-            if($request->operation == 1){
+            if($operation_id == 1){
                 $spotwelding_query = DB::connection('mysql_mes')->table('job_ticket as jt')
                 ->join('production_order as po', 'po.production_order', 'jt.production_order')
                     ->join('process as p', 'p.process_id', 'jt.process_id')
                     ->join('workstation as w', 'jt.workstation', 'w.workstation_name')
                     ->join('spotwelding_qty as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+                    // ->whereBetween('tl.created_at', [$start_date, $end_date])
                     ->when($request->date_range, function ($q) use ($start_date, $end_date){
                         return $q->whereBetween('tl.created_at', [$start_date, $end_date]);
                     })
@@ -1813,28 +1843,44 @@ class LinkReportController extends Controller
                     ->selectRaw('jt.production_order, p.process_name, w.workstation_name, tl.good, tl.reject, tl.from_time, tl.to_time, TIMESTAMPDIFF(second, tl.from_time, tl.to_time) as duration_in_seconds, tl.operator_name, tl.created_at, po.item_code, po.description as item_description')->orderBy('tl.created_at', 'desc');
             }
 
-            $report = DB::connection('mysql_mes')->table('operation as op')
+            $query = DB::connection('mysql_mes')->table('operation as op')
                 ->join('workstation as w', 'w.operation_id', 'op.operation_id')
                 ->join('job_ticket as jt', 'jt.workstation', 'w.workstation_name')
                 ->join('production_order as po', 'po.production_order', 'jt.production_order')
                 ->join('process as p', 'p.process_id', 'jt.process_id')
                 ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
+                // ->whereBetween('tl.created_at', [$start_date, $end_date])
                 ->when($request->date_range, function ($q) use ($start_date, $end_date){
                     return $q->whereBetween('tl.created_at', [$start_date, $end_date]);
                 })
-                ->when($request->operation, function ($q) use ($request){
-                    return $q->where('op.operation_id', $request->operation);
+                ->when($operation_id, function ($q) use ($operation_id){
+                    return $q->where('op.operation_id', $operation_id);
                 })
-                ->where('w.workstation_name', $request->operation == 2 ? '=' : '!=', 'Painting')
+                ->where('w.workstation_name', $operation_id == 2 ? '=' : '!=', 'Painting')
                 ->whereRaw('TIMESTAMPDIFF(second, tl.from_time, tl.to_time) <= 60')->where('tl.good', '>=', 5)
                 ->selectRaw('jt.production_order, p.process_name, w.workstation_name, tl.good, tl.reject, tl.from_time, tl.to_time, TIMESTAMPDIFF(second, tl.from_time, tl.to_time) as duration_in_seconds, tl.operator_name, tl.created_at, po.item_code, po.description as item_description')->orderBy('tl.created_at', 'desc')
-                ->when($request->operation == 1, function ($q) use ($spotwelding_query){
+                ->when($operation_id == 1, function ($q) use ($spotwelding_query){
                     return $q->union($spotwelding_query);
                 })
-                ->paginate(20);
+                ->get();
+
+            $query_result = collect($query)->groupBy('operator_name');
+
+            $report = [];
+            foreach ($query_result as $operator => $rows) {
+                $report[] = [
+                    'operator_name' => $operator,
+                    'process_count' => collect($rows)->count(),
+                    'completed_qty' => collect($rows)->sum('good'),
+                ];
+
+            }
+
+            $report = collect($report)->sortBy('process_count')->reverse()->toArray();
 
             return view('reports.inaccurate_operator_feedback_tbl', compact('report'));
         }
+
 		$permissions = $this->get_user_permitted_operation();
 
         $operations = DB::connection('mysql_mes')->table('operation')->get();
