@@ -778,6 +778,9 @@ class QualityInspectionController extends Controller
             ->when($operation_id == 2, function ($query) {
                 return $query->where('j.workstation', 'Painting');
             })
+            ->when($operation_id != 2, function ($query) {
+                return $query->where('j.workstation', '!=', 'Painting');
+            })
             ->when($request->production_order, function ($q) use ($request){
                 return $q->where('p.production_order', $request->production_order);
             })
@@ -810,6 +813,9 @@ class QualityInspectionController extends Controller
             })
             ->when(!in_array($operation_id, [1, 3]), function ($query) {
                 return $query->where('j.workstation', 'Painting');
+            })
+            ->when($operation_id != 2, function ($query) {
+                return $query->where('j.workstation', '!=', 'Painting');
             })
             ->when($request->production_order, function ($q) use ($request){
                 return $q->where('p.production_order', $request->production_order);
@@ -854,6 +860,9 @@ class QualityInspectionController extends Controller
             ->when($operation_id == 2, function ($q){
                 return $q->where('j.workstation', 'Painting');
             })
+            ->when($operation_id != 2, function ($q){
+                return $q->where('j.workstation', '!=', 'Painting');
+            })
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
             ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id');
@@ -868,6 +877,9 @@ class QualityInspectionController extends Controller
             ->where('q.qa_inspection_type', 'Reject Confirmation')
             ->when($operation_id == 2, function ($q){
                 return $q->where('j.workstation', 'Painting');
+            })
+            ->when($operation_id != 2, function ($q){
+                return $q->where('j.workstation', '!=', 'Painting');
             })
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
@@ -904,10 +916,17 @@ class QualityInspectionController extends Controller
 
             $checklist = [];
             foreach ($checklist_query as $c) {
-                $checklist[$c->workstation_name][$c->process_id][] = [
-                    'reject_list_id' => $c->reject_list_id,
-                    'reject_reason' => $c->reject_reason
-                ];
+                if ($c->workstation_name == 'Painting') {
+                    $checklist[$c->workstation_name][] = [
+                        'reject_list_id' => $c->reject_list_id,
+                        'reject_reason' => $c->reject_reason
+                    ];
+                } else {
+                    $checklist[$c->workstation_name][$c->process_id][] = [
+                        'reject_list_id' => $c->reject_list_id,
+                        'reject_reason' => $c->reject_reason
+                    ];
+                }
             }
         }
 

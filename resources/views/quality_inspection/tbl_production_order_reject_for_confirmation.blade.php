@@ -54,6 +54,8 @@
                 
                 if ($production_order_details->operation_id == 3) {
                     $workstation_checklist = $checklist;
+                } elseif ($r->workstation == 'Painting') {
+                    $workstation_checklist = array_key_exists($r->workstation, $checklist) ? $checklist[$r->workstation] : [];
                 } else {
                     if (array_key_exists($r->workstation, $checklist)) {
                         $workstation_checklist = $checklist[$r->workstation];
