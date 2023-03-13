@@ -34,7 +34,7 @@
                 <span class="nav-link border m-1 rounded {{ $loop->first ? 'active' : '' }} p-3" id="rcfa-tab-{{ $i }}" data-toggle="tab" href="#rcfa{{ $existing_production_order->production_order }}-{{ $i }}" role="tab" aria-controls="tab1" aria-selected="true">{{ $r->reject_category_name }}</span>
             </li>
             @endforeach
-            <li class="nav-item font-weight-bold pull-right">
+            <li class="nav-item font-weight-bold pull-right d-none">
                 <span class="nav-link border mb-1 ml-1 mr-1 mt-3 rounded" id="fourth-tab" data-toggle="tab" href="#tab{{ $existing_production_order->production_order }}-4"  data-production-order="{{ $existing_production_order->production_order }}" data-operation="{{ $operation }}" role="tab" aria-controls="tab4" aria-selected="false">Pending for Confirmation <span class="badge" id="reject-confirmation-count" style="font-size: 10pt; background-color: #F96332; color: #fff">0<span></span>
             </li>
             @if (count($qa_inspection_logs) > 0)
@@ -169,10 +169,10 @@
                 },
                 success:function(response){
                     if (response.message <= 0) {
-                        $('#reject-confirmation-count').parent().addClass('d-none');
+                        $('#reject-confirmation-count').parent().removeClass('d-none');
                     } else {
                         $('#reject-confirmation-count').html(response.message);
-                        $('#reject-confirmation-count').parent().removeClass('d-none');
+                        $('#reject-confirmation-count').parent().addClass('d-none');
                     }
                 }
             });

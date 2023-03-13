@@ -31,163 +31,156 @@
 @include('modals.search_productionorder')
 @include('painting_operator.modal_view_schedule')
 <div class="content" style="margin-top: -100px; min-height: 10px;">
-
-<div class="row" style="margin-top: -265px;">
-  <div class="col-md-6" style="margin-top: 20px;">
-    <div style="margin-top:-25px; padding-bottom:25px;">
-      <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
-      <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process }} Area</h2>
-      <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
-        <span style="font-size: 17pt;"><b>Machine Status</b></span>
-      </h5>
-      <center>
-      <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};" data-status="{{ $machine_status }}">
-        <i class="now-ui-icons media-1_button-power"></i>
-        <span style="padding: 3px;">{{ ($machine_status == 'Start Up') ? 'Unavailable' : 'Available' }}</span>
-      </button>
-    </center>
+  <div class="row" style="margin-top: -265px;">
+    <div class="col-md-6" style="margin-top: 20px;">
+      <div style="margin-top:-25px; padding-bottom:25px;">
+        <h3 class="text-center font-weight-bold text-white" style="text-transform: uppercase; margin: 100px 0 0 0; font-size: 20pt; letter-spacing: 8px;">Painting</h3>
+        <h2 class="text-center font-weight-bold text-white" style="font-style: italic; text-transform: uppercase; margin: 20px 8px 8px 8px; font-size: 30pt;">{{ $process }} Area</h2>
+        <h5 class="card-title text-center" style="font-size: 15pt; margin: 100px 10px 10px 10px;">
+          <span style="font-size: 17pt;"><b>Machine Status</b></span>
+        </h5>
+        <center>
+          <button type="button" class="btn btn-block btn-danger" id="machine-power-btn" style="height: 70px; width: 330px; font-size: 20pt; background-color: {{ $machine_status == 'Start Up' ? '#717D7E' : '#28B463' }};" data-status="{{ $machine_status }}">
+            <i class="now-ui-icons media-1_button-power"></i>
+            <span style="padding: 3px;">{{ ($machine_status == 'Start Up') ? 'Unavailable' : 'Available' }}</span>
+          </button>
+        </center>
+      </div>
     </div>
-    
-    
-  </div>
-  <div class="col-md-6">
-    <div class="card" style="min-height: 500px;">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-12">
-            <h5 class="text-black mt-1 text-center text-uppercase font-weight-bold">
-              Enter Biometric ID
-            </h5>
-            <div id="bio-scan-img" style="display: none;">
-              <center>
-                <img src="{{ asset('img/tap.gif') }}" width="330" height="250" id="toggle-bio-numpad" style="margin: -15px 10px 50px 10px;">
-              </center>
+    <div class="col-md-6">
+      <div class="card" style="min-height: 500px;">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-12">
+              <h5 class="text-black mt-1 text-center text-uppercase font-weight-bold">Enter Biometric ID</h5>
+              <div id="bio-scan-img" style="display: none;">
+                <center>
+                  <img src="{{ asset('img/tap.gif') }}" width="330" height="250" id="toggle-bio-numpad" style="margin: -15px 10px 50px 10px;">
+                </center>
+              </div>
+            </div>
+            <div class="col-md-10 offset-md-1" id="bio-numpad">
+              <form action="" method="post" id="login-form">
+                <div class="form-group">
+                  <div class="input-group">
+                    <input type="text" name="user_id" class="form-control" id="bio-id" style="font-size: 15pt;" required>
+                  </div>
+                </div>
+                <div id="bio-numpad">
+                  <div class="text-center">
+                    <div class="row1">
+                      <span class="numpad num">1</span>
+                      <span class="numpad num">2</span>
+                      <span class="numpad num">3</span>
+                    </div>
+                    <div class="row1">
+                      <span class="numpad num">4</span>
+                      <span class="numpad num">5</span>
+                      <span class="numpad num">6</span>
+                    </div>
+                    <div class="row1">
+                      <span class="numpad num">7</span>
+                      <span class="numpad num">8</span>
+                      <span class="numpad num">9</span>
+                    </div>
+                    <div class="row1">
+                      <span class="numpad" onclick="document.getElementById('bio-id').value=document.getElementById('bio-id').value.slice(0, -1);"><</span>
+                      <span class="numpad num">0</span>
+                      <span class="numpad" onclick="document.getElementById('bio-id').value='';">Clear</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-10 offset-md-1">
+                      <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-bio-btn">SUBMIT</button>
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
-          <div class="col-md-10 offset-md-1" id="bio-numpad">
-            <form action="" method="post" id="login-form">
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="text" name="user_id" class="form-control" id="bio-id" style="font-size: 15pt;" required>
-                    </div>
-                    </div>
-                    <div id="bio-numpad">
-                    <div class="text-center">
-                        <div class="row1">
-                            <span class="numpad num">1</span>
-                            <span class="numpad num">2</span>
-                            <span class="numpad num">3</span>
-                        </div>
-                        <div class="row1">
-                            <span class="numpad num">4</span>
-                            <span class="numpad num">5</span>
-                            <span class="numpad num">6</span>
-                        </div>
-                        <div class="row1">
-                            <span class="numpad num">7</span>
-                            <span class="numpad num">8</span>
-                            <span class="numpad num">9</span>
-                        </div>
-                        <div class="row1">
-                            <span class="numpad" onclick="document.getElementById('bio-id').value=document.getElementById('bio-id').value.slice(0, -1);"><</span>
-                            <span class="numpad num">0</span>
-                            <span class="numpad" onclick="document.getElementById('bio-id').value='';">Clear</span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-10 offset-md-1">
-                        <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-bio-btn">SUBMIT</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
         </div>
       </div>
     </div>
-  </div>
-
-  @if(isset($painting_process))
+    @if(isset($painting_process))
     <div class="col-md-12" style="margin-top: 20px;">
       <center>
-      <table style="width: 100%; display: block; overflow-x: auto; white-space: nowrap; margin:0 auto;" class="">
-        <tr style="width: 100%;" class="text-center d-md-flex justify-content-center"> 
-          @foreach ($painting_process as $processes)
-          <td class="">
-            <a href="/operator/Painting/{{ $processes }}" class="custom-a ">
-              <div class="card " style="width: 300px; height: 80px; margin: 5px; font-size: 14pt;">
-                <div style="white-space: normal; margin: 20px auto;" class=""><b>{{ $processes }}</b></div>
-              </div>
-            </a>
-          </td>
-          @endforeach
-        </tr>
-      </table>
+        <table style="width: 100%; display: block; overflow-x: auto; white-space: nowrap; margin:0 auto;" class="">
+          <tr style="width: 100%;" class="text-center d-md-flex justify-content-center"> 
+            @foreach ($painting_process as $processes)
+            <td class="">
+              <a href="/operator/Painting/{{ $processes }}" class="custom-a ">
+                <div class="card " style="width: 300px; height: 80px; margin: 5px; font-size: 14pt;">
+                  <div style="white-space: normal; margin: 20px auto;" class=""><b>{{ $processes }}</b></div>
+                </div>
+              </a>
+            </td>
+            @endforeach
+          </tr>
+        </table>
       </center>
     </div>
     @endif
-<!-- Modal -->
-<div class="modal fade" id="machine-power-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-md" role="document">
-     <form action="/insert_machine_logs" method="POST" id="machine-power-frm">
-        @csrf
-        <div class="modal-content">
-           <div class="modal-header">
+    <!-- Modal -->
+    <div class="modal fade" id="machine-power-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-md" role="document">
+        <form action="/insert_machine_logs" method="POST" id="machine-power-frm">
+          @csrf
+          <div class="modal-content">
+            <div class="modal-header">
               <h5 class="modal-title">- Machine</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                 <span aria-hidden="true">&times;</span>
+                <span aria-hidden="true">&times;</span>
               </button>
-           </div>
-           <div class="modal-body">
+            </div>
+            <div class="modal-body">
               <div class="row">
-                 <div class="col-md-12">
-                       <div class="row" style="margin-top: -1%;">
-                          <div class="col-sm-12 text-center">
-                             {{-- <input type="hidden" name="operator_id" value=""> --}}
-                             <input type="hidden" name="category" id="category-machine">
-                            <span id="confirm-text" style="font-size: 12pt;">Confirm machine -.</span>
-                            <form action="" method="post" id="login-form">
-                              <div class="form-group">
-                                  <div class="input-group">
-                                      <input type="text" name="operator_id" class="form-control" id="machine-bio-id" style="font-size: 15pt;" required>
-                                  </div>
-                                  </div>
-                                  <div id="machine-bio-numpad">
-                                  <div class="text-center">
-                                      <div class="row1">
-                                          <span class="numpad num">1</span>
-                                          <span class="numpad num">2</span>
-                                          <span class="numpad num">3</span>
-                                      </div>
-                                      <div class="row1">
-                                          <span class="numpad num">4</span>
-                                          <span class="numpad num">5</span>
-                                          <span class="numpad num">6</span>
-                                      </div>
-                                      <div class="row1">
-                                          <span class="numpad num">7</span>
-                                          <span class="numpad num">8</span>
-                                          <span class="numpad num">9</span>
-                                      </div>
-                                      <div class="row1">
-                                          <span class="numpad" onclick="document.getElementById('machine-bio-id').value=document.getElementById('machine-bio-id').value.slice(0, -1);"><</span>
-                                          <span class="numpad num">0</span>
-                                          <span class="numpad" onclick="document.getElementById('machine-bio-id').value='';">Clear</span>
-                                      </div>
-                                  </div>
-                              </div>
-                            </form>
-                          </div>               
-                       </div>
-                 </div>
+                <div class="col-md-12">
+                  <div class="row" style="margin-top: -1%;">
+                    <div class="col-sm-12 text-center">
+                      <input type="hidden" name="category" id="category-machine">
+                      <span id="confirm-text" style="font-size: 12pt;">Confirm machine -.</span>
+                      <form action="" method="post" id="login-form">
+                        <div class="form-group">
+                          <div class="input-group">
+                            <input type="text" name="operator_id" class="form-control" id="machine-bio-id" style="font-size: 15pt;" required>
+                          </div>
+                        </div>
+                            <div id="machine-bio-numpad">
+                            <div class="text-center">
+                                <div class="row1">
+                                    <span class="numpad num">1</span>
+                                    <span class="numpad num">2</span>
+                                    <span class="numpad num">3</span>
+                                </div>
+                                <div class="row1">
+                                    <span class="numpad num">4</span>
+                                    <span class="numpad num">5</span>
+                                    <span class="numpad num">6</span>
+                                </div>
+                                <div class="row1">
+                                    <span class="numpad num">7</span>
+                                    <span class="numpad num">8</span>
+                                    <span class="numpad num">9</span>
+                                </div>
+                                <div class="row1">
+                                    <span class="numpad" onclick="document.getElementById('machine-bio-id').value=document.getElementById('machine-bio-id').value.slice(0, -1);"><</span>
+                                    <span class="numpad num">0</span>
+                                    <span class="numpad" onclick="document.getElementById('machine-bio-id').value='';">Clear</span>
+                                </div>
+                            </div>
+                        </div>
+                      </form>
+                    </div>               
+                  </div>
+                </div>
               </div>
-           </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding-top: -100px;">Cancel</button>
-              &nbsp;
-              <button type="submit" class="btn btn-primary">Confirm</button>
-           </div>
-        </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding-top: -100px;">Cancel</button>
+                &nbsp;
+                <button type="submit" class="btn btn-primary">Confirm</button>
+            </div>
+          </div>
      </form>
   </div>
 </div>
@@ -358,55 +351,50 @@
 </div>
 @include('quality_inspection.modal_inspection')
 <style type="text/css">
-    @-webkit-keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    @-moz-keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    @-o-keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    @keyframes blinker_break {
-      from { background-color: #fa764b; }
-      to { background-color: inherit; }
-    }
-    
-    .blink_break{
-      text-decoration: blink;
-      -webkit-animation-name: blinker;
-      -webkit-animation-duration: 3s;
-      -webkit-animation-iteration-count:infinite;
-      -webkit-animation-timing-function:ease-in-out;
-      -webkit-animation-direction: alternate;
-    }
+  @-webkit-keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  @-moz-keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  @-o-keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  @keyframes blinker_break {
+    from { background-color: #fa764b; }
+    to { background-color: inherit; }
+  }
+  .blink_break{
+    text-decoration: blink;
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 3s;
+    -webkit-animation-iteration-count:infinite;
+    -webkit-animation-timing-function:ease-in-out;
+    -webkit-animation-direction: alternate;
+  }
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
     background-size: 28%;
     background-repeat: no-repeat;
     background-position: center; 
   }
-
   .qc_failed{
     background-image: url("{{ asset('img/x.png') }}");
     background-size: 20%;
     background-repeat: no-repeat;
     background-position: center; 
   }
-  
   .tap_here {
     animation: bounce 1s linear infinite;
   }
-
   .active-process {
     background-color: #FFC107;
     color: #000000;
     animation: blinkingBackground 2.5s linear infinite;
   }
-
   @keyframes blinkingBackground{
     0%    { background-color: #ffffff;}
     25%   { background-color: #FFC107;}
@@ -414,7 +402,6 @@
     75%   { background-color: #FFC107;}
     100%  { background-color: #ffffff;}
   }
-
   .dot {
     height: 20px;
     width: 20px;
@@ -422,15 +409,12 @@
     border-radius: 50%;
     display: inline-block;
   }
-
   .text-blink {color: orange;
     animation: blinker 1s linear infinite;
   }
-
   @keyframes blinker {  
     50% { opacity: 0; }
   }
-
   .numpad-div .row1{
     -webkit-user-select: none; /* Chrome/Safari */        
     -moz-user-select: none; /* Firefox */
@@ -439,7 +423,6 @@
     -o-user-select: none;
     user-select: none;   
   }
-
   .numpad{
     display: inline-block;
     border: 1px solid #333;
@@ -454,13 +437,11 @@
     background: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease-in-out;
   }
-
   .numpad:active,
   .numpad:hover {
     cursor: pointer ;
     box-shadow: inset 0 0 2px #000000;
   }
-
   .breadcrumb-c {
     font-size: 8pt;
     font-weight: bold;
@@ -473,17 +454,14 @@
     width: 100%;
     border-radius: 4px;
   }
-
   .breadcrumb-c>li {
     display: table-cell;
     vertical-align: top;
     width: 0.8%;
   }
-
   .breadcrumb-c>li+li:before {
     padding: 0;
   }
-
   .breadcrumb-c li a {
     color: white;
     text-decoration: none;
@@ -495,32 +473,25 @@
     text-align: center;
     text-transform: capitalize;
   }
-
   .breadcrumb-c li.completed a {
     background: brown;
     background: hsla(153, 57%, 51%, 1);
   }
-
   .breadcrumb-c li.completed a:after {
     border-left: 30px solid hsla(153, 57%, 51%, 1);
   }
-
   .breadcrumb-c li.active a {
     background: #ffc107;
   }
-
   .breadcrumb-c li.active a:after {
     border-left: 30px solid #ffc107;
   }
-
   .breadcrumb-c li:first-child a {
     padding-left: 1px;
   }
-
   .breadcrumb-c li:last-of-type a {
     width: calc( 100% - 38px );
   }
-
   .breadcrumb-c li a:before {
     content: " ";
     display: block;
@@ -536,7 +507,6 @@
     left: 100%;
     z-index: 1;
   }
-
   .breadcrumb-c li a:after {
     content: " ";
     display: block;
@@ -551,12 +521,10 @@
     left: 100%;
     z-index: 2;
   }
-
   .truncate {
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-
   .scrolltbody tbody {
     display:block;
     height:300px;
@@ -571,10 +539,10 @@
     width: calc(100%)
   }
   #powder-record-modal .form-control {
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 15px;
   }
 </style>
 @endsection
@@ -588,53 +556,51 @@
     }
 
     function showTime() {
-        manilaTime = new Date();
-        var clock = document.getElementById('qwe');
-        if(clock){
-            clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
-        }
+      manilaTime = new Date();
+      var clock = document.getElementById('qwe');
+      if(clock){
+        clock.innerHTML = manilaTime.toLocaleTimeString();//adjust to suit
+      }
 
-        var timeformat = manilaTime.toTimeString();
-        $('.breaktime_input').each(function() {
-            var div_id= "#" + $(this).data('divid');
-            if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
-                $(div_id).show();
-                $(div_id).addClass("blink_break");
-            }else{
-                $(div_id).hide();
-                $("#div_id").removeClass("blink_break");
-            }
-        });
+      var timeformat = manilaTime.toTimeString();
+      $('.breaktime_input').each(function() {
+        var div_id= "#" + $(this).data('divid');
+        if($(this).data('timein') <= timeformat && $(this).data('timeout') >= timeformat ){
+          $(div_id).show();
+          $(div_id).addClass("blink_break");
+        }else{
+          $(div_id).hide();
+          $("#div_id").removeClass("blink_break");
+        }
+      });
     }
 
     $('#login-form').submit(function(e){
-        e.preventDefault();
-        var operator_id = $('#bio-id').val();
-
-        var data = {  
-            operator_id: operator_id,
-            process_name: '{{ $process }}',
-            _token: '{{ csrf_token() }}'
+      e.preventDefault();
+      var operator_id = $('#bio-id').val();
+      var data = {  
+        operator_id: operator_id,
+        process_name: '{{ $process }}',
+        _token: '{{ csrf_token() }}'
+      }
+      $.ajax({
+        url:"/painting/login",
+        type:"post",
+        data: data,
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            showNotification("success", 'Logging in. Please wait..', "now-ui-icons ui-1_check");
+            window.location.href = data.url;
+          }
+        }, 
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
         }
-
-        $.ajax({
-            url:"/painting/login",
-            type:"post",
-            data: data,
-            success:function(data){
-                if (data.success < 1) {
-                    showNotification("danger", data.message, "now-ui-icons travel_info");
-                }else{
-                    showNotification("success", 'Logging in. Please wait..', "now-ui-icons ui-1_check");
-                    window.location.href = data.url;
-                }
-            }, 
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log(errorThrown);
-            }
-        });
+      });
     });
 
     $('#jt-search-btn').click(function(e){
@@ -664,24 +630,25 @@
       $('#process-bc').empty();
       $('#jt-details-tbl tbody').empty();
       $.ajax({
-      url:"/get_jt_details/" + jtno,
-      type:"GET",
-      success:function(data){
-        if (data.success < 1) {
-          showNotification("danger", data.message, "now-ui-icons travel_info");
-        }else{
-          $('#production-search-content').html(data);
-          $('#jt-workstations-modal').modal('show');
+        url:"/get_jt_details/" + jtno,
+        type:"GET",
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            $('#production-search-content').html(data);
+            $('#jt-workstations-modal').modal('show');
+          }
         }
-      }
       });
     }
+
     function getJtDetails2(jtno){
       $('#process-bc').empty();
       $('#jt-details-tbl tbody').empty();
       $.ajax({
-      url:"/get_jt_details/" + jtno,
-      type:"GET",
+        url:"/get_jt_details/" + jtno,
+        type:"GET",
         success:function(data){
           if (data.success < 1) {
             showNotification("danger", data.message, "now-ui-icons travel_info");
@@ -689,14 +656,12 @@
             $('#production-search-content-modal2').html(data);
             $('#jt-workstations-modal2').modal('show');
           }
-          
         }
       });
     }
     $(document).on('click', '.production_order_link', function(e){
       e.preventDefault();
       var production_order = $(this).attr('data-jtno');
-      console.log(production_order);
       $('#jt-workstations-modal2 .modal-title').text(production_order);
       getJtDetails2(production_order);
     });
@@ -734,7 +699,6 @@
       $(this).find('[autofocus]').focus();
     });
 
-
     $(document).on('click', '#machine-power-btn', function(e){
       e.preventDefault();
       var status = $(this).data('status');
@@ -746,9 +710,7 @@
 
     $('#machine-power-frm').submit(function(e){
       e.preventDefault();
-
       var category = $('#category-machine').val();
-
       $.ajax({
         url:"/insert_machine_logs",
         type:"post",
@@ -761,9 +723,7 @@
           }
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
         }
       });
     });
@@ -771,7 +731,6 @@
     // Quality Inspection
     var active_input = null;
     var end_scrap_task_active_input = null;
-      
     $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
       if($(this).data('edit') > 0){
         active_input = $(this).attr('id');
@@ -801,213 +760,65 @@
       input.val(x + y);
     });
   
-      $(document).on('click', '#quality-inspection-frm .clear', function() {
-        $("#" + active_input).focus();
-        var input = $('#quality-inspection-frm #' + active_input);
+    $(document).on('click', '#quality-inspection-frm .clear', function() {
+      $("#" + active_input).focus();
+      var input = $('#quality-inspection-frm #' + active_input);
+      input.val(0);
+    });
+  
+    $(document).on('click', '#quality-inspection-frm .del', function() {
+      $("#" + active_input).focus();
+      var input = $('#quality-inspection-frm #' + active_input);
+      var x = input.val();
+  
+      input.val(x.substring(0, x.length - 1));
+  
+      if (input.val().length == 0) {
         input.val(0);
-      });
+      }
+    });
   
-      $(document).on('click', '#quality-inspection-frm .del', function() {
-        $("#" + active_input).focus();
-        var input = $('#quality-inspection-frm #' + active_input);
-        var x = input.val();
-   
-        input.val(x.substring(0, x.length - 1));
-    
-        if (input.val().length == 0) {
-          input.val(0);
-        }
-      });
-  
-      $('#confirm-sample-size-btn').click(function(e){
-        e.preventDefault();
-        var tab_id = $('#sample-size-tab-id').val();
-        $('#' + tab_id + '-validated-sample-size').val(1);
-        $('#' + tab_id + '-next-btn').trigger('click');
-        $('#confirm-sample-size-modal').modal('hide');
-      });
-  
-      $(document).on('click', '#quality-inspection-frm .next-tab', function(e){
-        e.preventDefault();
-              
-        var tab_id = $(this).data('tab-id');
-        var tab_qty_reject = parseInt($('#' + tab_id + '-qty-reject').val());
-        var tab_qty_checked = parseInt($('#' + tab_id + '-qty-checked').val());
-        var tab_qty = parseInt($('#' + tab_id + '-qty').val());
-        var tab_reject_level = parseInt($('#' + tab_id + ' .reject-level').text());
-  
-        if(tab_qty_checked <= 0){
-          showNotification("danger", 'Please enter quantity checked.', "now-ui-icons travel_info");
-          return false;
-        }
-  
-        var checklist_unchecked = $('#' + tab_id + ' .chk-list input:checkbox:not(:checked)').length;
-        if(checklist_unchecked > 0){
-          if(tab_qty_reject <= 0){
-            showNotification("danger", 'Please enter quantity reject.', "now-ui-icons travel_info");
-            return false;
-          }
-  
-          if(tab_qty_reject > tab_qty_checked){
-            showNotification("danger", 'Reject quantity cannot be greater than quantity checked.', "now-ui-icons travel_info");
-            return false;
-          }
-        }else{
-          $('#' + tab_id + '-qty-reject').val(0);
-        }
-  
-        if(tab_qty_checked > tab_qty){
-          showNotification("danger", 'Quantity checked cannot be greater than '+ tab_qty +'.', "now-ui-icons travel_info");
-          return false;
-        }
-  
-        var sample_size = $('#' + tab_id + ' .sample-size').text();
-        if(sample_size != $('#' + tab_id + '-qty-checked').val()){
-          if($('#' + tab_id + '-validated-sample-size').val() == 0){
-            $('#confirm-sample-size-modal .sample-size').text(sample_size);
-            $('#sample-size-tab-id').val(tab_id);
-            $('#confirm-sample-size-modal').modal('show');
-            return false;
-          }
-        }
-  
-        var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-        if(next_tab_id != 'tablast'){
-          if(tab_qty_reject > tab_reject_level){
-            $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
+    $('#confirm-sample-size-btn').click(function(e){
+      e.preventDefault();
+      var tab_id = $('#sample-size-tab-id').val();
+      $('#' + tab_id + '-validated-sample-size').val(1);
+      $('#' + tab_id + '-next-btn').trigger('click');
+      $('#confirm-sample-size-modal').modal('hide');
+    });
+
+    $(document).on('change', '.select-all-checklist-per-tab', function(e){
+      e.preventDefault();
+      var selector = '.' + $(this).attr('id');
+      $(selector).not(this).prop('checked', this.checked);
+    });
+
+    $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
+      $('#quality-inspection-modal img').slideToggle();
+      $('#quality-inspection-modal .manual').slideToggle();
+    });
+
+    $(document).on('submit', '#quality-inspection-frm', function(e){
+      e.preventDefault();
+      $('#quality-inspection-frm button[type="submit"]').attr('disabled', true);
+      $.ajax({
+        url: $(this).attr('action'),
+        type:"POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.success) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+            $('#quality-inspection-modal').modal('hide');
+            get_tasks_for_inspection(data.details.workstation, data.details.production_order)
           }else{
-            $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+            $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
           }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
         }
-        
-        var no_rej = '';
-        var table = '<table style="width: 100%; font-size: 10pt;" border="1">' + 
-          '<col style="width:30%;"><col style="width:20%;"><col style="width:50%;">' +
-          '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Inspection</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject(s)</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th></tr>';
-        
-        var reject_id = '';
-        var reject_values = '';
-        var qty_checked = 0;
-        var qty_reject = 0;
-        $('#quality-inspection-modal .custom-tabs-1').each(function(){
-          var tab_pane_id = $('#' + $(this).attr('id') + '-inspection');
-          var q = tab_pane_id.find('input[name="qty_checked"]').eq(0).val();
-          var r = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-          if(q){
-            qty_checked = qty_checked + parseInt(q);
-            qty_reject = qty_reject + parseInt(r);
-          }
-  
-          $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            if($.isNumeric($(this).val())){
-              reject_id += $(this).val() + ',';
-              reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
-            }
-          });
-
-          var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
-          var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-          var reason = '';
-          $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            if($.isNumeric($(this).val())){
-              reason += $(this).data('reject-reason') + ', ';
-            }
-          });
-
-          if(checklist_category){
-            if(parseInt(tab_pane_id.find('input[name="qty_checked"]').eq(0).val()) > 0){
-              if(reject_qty <= 0){
-                reason = 'No Reject';
-                no_rej += '<br>' + tab_pane_id.find('.chklist-cat').text();
-              }else{
-                table += '<tr>' + 
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">' + checklist_category + '</div></td>' +
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + reject_qty + '</td>' +
-                  '<td style="border: 1px solid #ABB2B9; padding: 2px;">' + 
-                  '<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px;">' + reason + '</div></td>' +
-                  '</tr>';
-              }
-            }
-          }
-  
-          $('#qa-result-div-1').html(no_rej);
-        });
-  
-        table += '</table>';
-  
-        $('#rejection-types-input').val(reject_id);
-        $('#rejection-values-input').val(reject_values);
-        $('#final-qty-checked').text(qty_checked);
-  
-        $('#total-rejects-input').val(qty_reject);
-        $('#total-checked-input').val(qty_checked);
-  
-        if(qty_reject > 0){
-          $('#quality-inspection-frm .reject-details-tr').removeAttr('hidden');
-          $('#qc-status').addClass('text-danger').removeClass('text-success').text('QC Failed');
-          $('#qa-result-div').html(table);
-        }else{
-          $('#quality-inspection-frm .reject-details-tr').attr('hidden', true);
-          $('#qc-status').addClass('text-success').removeClass('text-danger').text('QC Passed');
-          $('#qa-result-div').empty();
-        }
-  
-        active_input = null;
-        
-        $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().next().find('.custom-tabs-1').tab('show');
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeAttr('active');
       });
-
-      $(document).on('change', '.select-all-checklist-per-tab', function(e){
-        e.preventDefault();
-        var selector = '.' + $(this).attr('id');
-        $(selector).not(this).prop('checked', this.checked);
-      });
-  
-      $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
-        $('#quality-inspection-modal img').slideToggle();
-        $('#quality-inspection-modal .manual').slideToggle();
-      });
-  
-      $(document).on('click', '#quality-inspection-frm .prev-tab', function() {
-        active_input = null;
-  
-        var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-        if(next_tab_id != 'tablast'){
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-        }else{
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-        }
-  
-        $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().prev().find('.custom-tabs-1').tab('show');
-      });
-  
-      $(document).on('submit', '#quality-inspection-frm', function(e){
-        e.preventDefault();
-  
-        $('#quality-inspection-frm button[type="submit"]').attr('disabled', true);
-       
-        $.ajax({
-          url: $(this).attr('action'),
-          type:"POST",
-          data: $(this).serialize(),
-          success:function(data){
-            if (data.success) {
-              showNotification("success", data.message, "now-ui-icons ui-1_check");
-              $('#quality-inspection-modal').modal('hide');
-              get_tasks_for_inspection(data.details.workstation, data.details.production_order)
-            }else{
-              showNotification("danger", data.message, "now-ui-icons travel_info");
-              $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-            }
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log(errorThrown);
-              }
-        });
-      });
+    });
 
     $('#quality-check-modal-btn').click(function(e){
       e.preventDefault();
@@ -1056,13 +867,11 @@
     $(document).on('click', '.quality-inspection-btn', function(e){
       e.preventDefault();
       $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-
       var production_order = $(this).data('production-order');
       var process_id = $(this).data('processid');
       var workstation = $(this).data('workstation');
       var inspection_type = $(this).data('inspection-type');
       var reject_category = $(this).data('reject-cat');
-
       var data = {
         time_log_id: $(this).data('timelog-id'),
         inspection_type,
@@ -1078,9 +887,7 @@
           $('#quality-inspection-modal .qc-type').text(inspection_type);
           $('#quality-inspection-modal').modal('show');
         }, error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
         },
       });
     });
@@ -1117,29 +924,29 @@
     });
 
     $('#toggle-bio-numpad').click(function(e){
-        e.preventDefault();
-        $('#bio-numpad').slideToggle();
-        $('#bio-scan-img').slideToggle();
+      e.preventDefault();
+      $('#bio-numpad').slideToggle();
+      $('#bio-scan-img').slideToggle();
     });
 
     $(document).on('click', '#bio-numpad .num', function(e){
-        e.preventDefault();
-        var num = $(this).text();
-        var current = $('#bio-id').val();
-        var new_input = current + num;
-        new_input = format(new_input.replace(/-/g, ""), [5], "-");
-            
-        $('#bio-id').val(new_input);
+      e.preventDefault();
+      var num = $(this).text();
+      var current = $('#bio-id').val();
+      var new_input = current + num;
+      new_input = format(new_input.replace(/-/g, ""), [5], "-");
+          
+      $('#bio-id').val(new_input);
     });
 
     $(document).on('click', '#machine-bio-numpad .num', function(e){
-        e.preventDefault();
-        var num = $(this).text();
-        var current = $('#machine-bio-id').val();
-        var new_input = current + num;
-        new_input = format(new_input.replace(/-/g, ""), [5], "-");
-            
-        $('#machine-bio-id').val(new_input);
+      e.preventDefault();
+      var num = $(this).text();
+      var current = $('#machine-bio-id').val();
+      var new_input = current + num;
+      new_input = format(new_input.replace(/-/g, ""), [5], "-");
+          
+      $('#machine-bio-id').val(new_input);
     });
 
     $(document).on('click', '#view-chemical-records-btn', function(event){
@@ -1148,45 +955,39 @@
         type:"GET",
         success:function(response){
           $('#chemical-records-div').html(response);
-          
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
         },
       }); 
-       $('#chemical-records-modal').modal('show');
-       
+      $('#chemical-records-modal').modal('show');
     });
 
     function format(input, format, sep) {
-        var output = "";
-        var idx = 0;
-        for (var i = 0; i < format.length && idx < input.length; i++) {
-            output += input.substr(idx, format[i]);
-            if (idx + format[i] < input.length) output += sep;
-            idx += format[i];
-        }
-    
-        output += input.substr(idx);
-    
-        return output;
+      var output = "";
+      var idx = 0;
+      for (var i = 0; i < format.length && idx < input.length; i++) {
+          output += input.substr(idx, format[i]);
+          if (idx + format[i] < input.length) output += sep;
+          idx += format[i];
+      }
+      output += input.substr(idx);
+      return output;
     }
 
     startInterval();
     function showNotification(color, message, icon){
-        $.notify({
-            icon: icon,
-            message: message
-        },{
-            type: color,
-            timer: 3000,
-            placement: {
-                from: 'top',
-                align: 'center'
-            }
-        });
+      $.notify({
+        icon: icon,
+        message: message
+      },{
+        type: color,
+        timer: 3000,
+        placement: {
+          from: 'top',
+          align: 'center'
+        }
+      });
     }
 </script>
 <script type="text/javascript">
@@ -1196,7 +997,7 @@
         type:"GET",
         success:function(response){
           $('#chemical-records-div').html(response);
-          
+          $('#chemical-records-modal').modal('show');
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.log(jqXHR);
@@ -1204,8 +1005,6 @@
           console.log(errorThrown);
         },
       }); 
-       $('#chemical-records-modal').modal('show');
-       
     });
 
 </script>
@@ -1216,20 +1015,14 @@
         url:"/get_water_discharged_modal_details",
         type:"GET",
         success:function(response){
-          // $('#operating_hrs').val(data.operating_hrs);
-          // $('#w_previous').val(data.previous_date);
           $('#water_discharged_div').html(response);
           
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
         },
       }); 
        $('#water-discharged-modal').modal('show');
-       // $('#sidebar-wrapper').modal('hide');
-       // $(this).find('[autofocus]').focus();
     });
 
 
@@ -2100,11 +1893,6 @@
             $('#entry_type_div_painting').hide();
             tbl_painting_stock_list();
             powder_coat_Chart();
-            // inventory_history_list();
-
-                // $('#edit-worktation-frm').trigger("reset");
-                // workstation_list();
-
           } 
         },
         error: function(jqXHR, textStatus, errorThrown) {

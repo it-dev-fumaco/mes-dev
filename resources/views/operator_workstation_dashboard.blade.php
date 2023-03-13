@@ -8,9 +8,9 @@
   <div class="header">
     <div class="row">
       <div class="col-md-12 text-white">  
-          <table style="width: 97%; margin-left: 15px;">  
-            <tr>  
-              <td style="width: 20%; border-right: 5px solid;">
+        <table style="width: 97%; margin-left: 15px;">  
+          <tr>  
+            <td style="width: 20%; border-right: 5px solid;">
               <h2 class="title text-center">
                 <div class="pull-left" style="margin-left: 30px;">
                   <span style="display: block; font-size: 16pt;">{{ date('M-d-Y') }}</span>
@@ -24,13 +24,10 @@
             <td style="width: 55%;">
               <h2 class="title" style="margin: 2px auto; padding-left: 10px;">{{ $workstation_name }}</h2>
             </td>
-            
           </tr>
           <tr style="margin-top:50px;" class="text-center">
-            <td style="width: 20%; text-center">
-            </td>
-            <td style="width: 25%; text-center">
-            </td>
+            <td style="width: 20%; text-center"></td>
+            <td style="width: 25%; text-center"></td>
           </tr>
         </table>
       </div>
@@ -44,7 +41,7 @@
     <div class="container">
       <div class="alert-icon" style="color:black;">
         <i class="now-ui-icons ui-2_time-alarm" style="padding-right:5px;font-size:30px;"></i><span style="font-size:18pt;"> <b>{{$row['break_type']}} :</b></span> 
-              <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
+        <span class="ml-1 font-weight-bold" style="font-size:25px;">{{$row['time_in_show']}} -  {{$row['time_out_show']}} </span>
       </div>
     </div>
   </div>
@@ -102,10 +99,9 @@
         </div>
       </div>
     </div>
-    {{-- <div class="col-md-6 offset-md-3 text-center" id="available_machine_tbl" style="text-align: center;padding-top: -10px;"></div> --}}
     <div class="col-md-12">
-        <h5 class="text-black mt-5">Scan Job Ticket</h5>
-        <img src="{{ asset('img/tap.gif') }}" style="margin-top: -50px;"  width="300" height="200"/>
+      <h5 class="text-black mt-5">Scan Job Ticket</h5>
+      <img src="{{ asset('img/tap.gif') }}" style="margin-top: -50px;"  width="300" height="200"/>
     </div>
     <div class="col-md-12">
       @if(isset($workstation_list))
@@ -130,126 +126,122 @@
   <input type="hidden" class="breaktime_input" value="{{$row['break_type']}}" data-timein="{{$row['time_in']}}" data-timeout="{{$row['time_out']}}" data-type="{{$row['break_type']}}" data-divid="{{$r}}{{$row['div_id']}}">
 @endforeach
 @include('modals.search_productionorder')
-
 <!-- Modal -->
 <div class="modal fade" id="jt-workstations-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-        <div class="text-white rounded-top" style="background-color: #0277BD;">
-          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
-            <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
-            <div class="float-right">
-              <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
-              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
+  <div class="modal-dialog" role="document" style="min-width: 90%;">
+    <div class="modal-content">
+      <div class="text-white rounded-top" style="background-color: #0277BD;">
+        <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+          <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+          <div class="float-right">
+            <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+            <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
         </div>
-        <div class="modal-body" style="min-height: 600px;">
-          <div id="production-search-content"></div>
-        </div>
+      </div>
+      <div class="modal-body" style="min-height: 600px;">
+        <div id="production-search-content"></div>
       </div>
     </div>
   </div>
-  <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-        <div class="text-white rounded-top" style="background-color: #0277BD;">
-          <div class="d-flex flex-row justify-content-between p-3 align-items-center">
-            <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
-            <div class="float-right">
-              <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
-              <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
+</div>
+<div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="min-width: 90%;">
+    <div class="modal-content">
+      <div class="text-white rounded-top" style="background-color: #0277BD;">
+        <div class="d-flex flex-row justify-content-between p-3 align-items-center">
+          <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
+          <div class="float-right">
+            <h5 class="modal-title font-weight-bold p-0 mr-5 font-italic d-inline-block">Modal Title</h5>
+            <button type="button" class="close d-inline-block ml-3" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
         </div>
-        <div class="modal-body" style="min-height: 600px;">
-          <div id="production-search-content-modal2"></div>
-        </div>
+      </div>
+      <div class="modal-body" style="min-height: 600px;">
+        <div id="production-search-content-modal2"></div>
       </div>
     </div>
   </div>
-
+</div>
 <div class="modal fade" id="scan-jt-for-qc-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-md" role="document">
-     <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #f57f17;">
-           <h5 class="modal-title">Quality Inspection [<b>@if(isset($workstation_name)){{ $workstation_name }}@else{{$workstation}}@endif</b>]</h5>
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-           </button>
-           <input type="hidden" id="workstation" value="@if(isset($workstation_name)){{ $workstation_name }}@else{{$workstation}}@endif">
-        </div>
-        <div class="modal-body" style="min-height: 480px;">
-           <div class="row">
-              <div class="col-md-12">
-                 <div class="row" id="enter-production-order">
-                    <div class="col-md-10 offset-md-1">
-                       <h6 class="text-center">Scan your Job Ticket</h6>
-                       <div class="row">
-                          <div class="col-md-10">
-                             <div class="form-group">
-                                <div class="input-group">
-                                   <div class="input-group-prepend">
-                                      <div class="input-group-text">PROM-</div>
-                                   </div>
-                                   <input type="text" class="form-control" id="production-order-qc" style="font-size: 15pt;" required>
-                                </div>
-                             </div>
-                          </div>
-                          <div class="col-md-2" style="padding: 0; margin-top: -15px;">
-                             <center>
-                                <img src="{{ asset('img/tap.gif') }}" width="260" height="60" id="toggle-jt-numpad-qc">
-                             </center>
-                          </div>
-                       </div>
-                      
-                       <div id="jt-numpad-qc" style="display: none;">
-                       <div class="text-center">
-                          <div class="row1">
-                             <span class="numpad num">1</span>
-                             <span class="numpad num">2</span>
-                             <span class="numpad num">3</span>
-                          </div>
-                          <div class="row1">
-                             <span class="numpad num">4</span>
-                             <span class="numpad num">5</span>
-                             <span class="numpad num">6</span>
-                          </div>
-                          <div class="row1">
-                             <span class="numpad num">7</span>
-                             <span class="numpad num">8</span>
-                             <span class="numpad num">9</span>
-                          </div>
-                          <div class="row1">
-                             <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
-                             <span class="numpad num">0</span>
-                             <span class="numpad" onclick="document.getElementById('production-order-qc').value='';">Clear</span>
-                          </div>
-                       </div>
-                       <div class="row">
-                          <div class="col-md-10 offset-md-1">
-                             <button type="button" class="btn btn-block btn-primary btn-lg" id="submit-enter-production-order-qc">SUBMIT</button>
-                          </div>
-                       </div>
-                       </div>
-                       <div id="jt-scan-img-qc">
-                          <center>
-                             <img src="{{ asset('img/scan-barcode.png') }}" width="220" height="240" style="margin: 40px 10px 10px 10px;">
-                          </center>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </div>
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #f57f17;">
+        <h5 class="modal-title">Quality Inspection [<b>@if(isset($workstation_name)){{ $workstation_name }}@else{{$workstation}}@endif</b>]</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <input type="hidden" id="workstation" value="@if(isset($workstation_name)){{ $workstation_name }}@else{{$workstation}}@endif">
+      </div>
+      <div class="modal-body" style="min-height: 480px;">
+          <div class="row">
+            <div class="col-md-12">
+                <div class="row" id="enter-production-order">
+                  <div class="col-md-10 offset-md-1">
+                      <h6 class="text-center">Scan your Job Ticket</h6>
+                      <div class="row">
+                        <div class="col-md-10">
+                            <div class="form-group">
+                              <div class="input-group">
+                                  <div class="input-group-prepend">
+                                    <div class="input-group-text">PROM-</div>
+                                  </div>
+                                  <input type="text" class="form-control" id="production-order-qc" style="font-size: 15pt;" required>
+                              </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2" style="padding: 0; margin-top: -15px;">
+                            <center>
+                              <img src="{{ asset('img/tap.gif') }}" width="260" height="60" id="toggle-jt-numpad-qc">
+                            </center>
+                        </div>
+                      </div>
+                      <div id="jt-numpad-qc" style="display: none;">
+                      <div class="text-center">
+                        <div class="row1">
+                            <span class="numpad num">1</span>
+                            <span class="numpad num">2</span>
+                            <span class="numpad num">3</span>
+                        </div>
+                        <div class="row1">
+                            <span class="numpad num">4</span>
+                            <span class="numpad num">5</span>
+                            <span class="numpad num">6</span>
+                        </div>
+                        <div class="row1">
+                            <span class="numpad num">7</span>
+                            <span class="numpad num">8</span>
+                            <span class="numpad num">9</span>
+                        </div>
+                        <div class="row1">
+                            <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
+                            <span class="numpad num">0</span>
+                            <span class="numpad" onclick="document.getElementById('production-order-qc').value='';">Clear</span>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-10 offset-md-1">
+                            <button type="button" class="btn btn-block btn-primary btn-lg" id="submit-enter-production-order-qc">SUBMIT</button>
+                        </div>
+                      </div>
+                      </div>
+                      <div id="jt-scan-img-qc">
+                        <center>
+                            <img src="{{ asset('img/scan-barcode.png') }}" width="220" height="240" style="margin: 40px 10px 10px 10px;">
+                        </center>
+                      </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+      </div>
      </div>
   </div>
 </div>
-
 <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog" role="document" style="min-width: 95%;">
     <div class="modal-content">
@@ -271,30 +263,26 @@
   </div>
 </div>
 <div class="modal fade" id="spotwelding-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="min-width: 90%;">
-      <div class="modal-content">
-          <div class="modal-header text-white" style="background-color: #0277BD;">
-          <h5 class="modal-title font-weight-bold prod-title">Modal Title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="min-height: 500px;">
-          <div class="row">
-            <div class="col-md-12">
-              <div id="spotwelding-div"></div>
-            </div>
+  <div class="modal-dialog" role="document" style="min-width: 90%;">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title font-weight-bold prod-title">Modal Title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="min-height: 500px;">
+        <div class="row">
+          <div class="col-md-12">
+            <div id="spotwelding-div"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-
-
+</div>
 @include('modals.scan_production_order_modal')
 @include('quality_inspection.modal_inspection')
-
 <div class="modal fade" id="confirm-sample-size-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-md" role="document">
     <div class="modal-content">
@@ -318,7 +306,6 @@
     </div>
   </div>
 </div>
-
 <div class="modal fade" id="pending-rejects-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-operation="{{ $operation }}">
   <div class="modal-dialog modal-xl" role="document" style="max-width: 90% !important;">
     <div class="modal-content">
@@ -334,7 +321,6 @@
     </div>
   </div>
 </div>
-
 <div class="modal fade" id="reject-confirmation-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 90%;">
      <div class="modal-content">
@@ -355,7 +341,6 @@
      </div>
   </div>
 </div>
-
 <div class="modal fade" id="view-conveyor-schedule-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document" style="min-width: 95%;">
     <div class="modal-content">
@@ -379,7 +364,6 @@
     </div>
   </div>
 </div>
-
 <!-- Maintenance Modal -->
 <div class="modal fade" id="pending-for-maintenance-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl" role="document">
@@ -414,7 +398,6 @@
     from { background-color: #fa764b; }
     to { background-color: inherit; }
   }
-  
   .blink_break{
     text-decoration: blink;
     -webkit-animation-name: blinker;
@@ -423,31 +406,26 @@
     -webkit-animation-timing-function:ease-in-out;
     -webkit-animation-direction: alternate;
   }
-
   .qc_passed{
     background-image: url("{{ asset('img/chk.png') }}");
     background-size: 28%;
     background-repeat: no-repeat;
     background-position: center; 
   }
-
   .qc_failed{
     background-image: url("{{ asset('img/x.png') }}");
     background-size: 20%;
     background-repeat: no-repeat;
     background-position: center; 
   }
-
   .tap_here {
     animation: bounce 1s linear infinite;
   }
-
   .active-process {
     background-color: #FFC107;
     color: #000000;
     animation: blinkingBackground 2.5s linear infinite;
   }
-
   @keyframes blinkingBackground{
     0%    { background-color: #ffffff;}
     25%   { background-color: #FFC107;}
@@ -455,7 +433,6 @@
     75%   { background-color: #FFC107;}
     100%  { background-color: #ffffff;}
   }
-
   .dot {
     height: 12px;
     width: 12px;
@@ -463,15 +440,12 @@
     border-radius: 50%;
     display: inline-block;
   }
-
   .text-blink {color: orange;
     animation: blinker 1s linear infinite;
   }
-
   @keyframes blinker {  
     50% { opacity: 0; }
   }
-
   .numpad-div .row1{
     -webkit-user-select: none; /* Chrome/Safari */        
     -moz-user-select: none; /* Firefox */
@@ -480,7 +454,6 @@
     -o-user-select: none;
     user-select: none;   
   }
-
   .numpad{
     display: inline-block;
     border: 1px solid #333;
@@ -495,7 +468,6 @@
     background: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease-in-out;
   }
-
   .numpad:active,
   .numpad:hover {
     cursor: pointer ;
@@ -513,17 +485,14 @@
     width: 100%;
     border-radius: 4px;
   }
-
   .breadcrumb-c>li {
     display: table-cell;
     vertical-align: top;
     width: 0.8%;
   }
-
   .breadcrumb-c>li+li:before {
     padding: 0;
   }
-
   .breadcrumb-c li a {
     color: white;
     text-decoration: none;
@@ -535,32 +504,25 @@
     text-align: center;
     text-transform: capitalize;
   }
-
   .breadcrumb-c li.completed a {
     background: brown;
     background: hsla(153, 57%, 51%, 1);
   }
-
   .breadcrumb-c li.completed a:after {
     border-left: 30px solid hsla(153, 57%, 51%, 1);
   }
-
   .breadcrumb-c li.active a {
     background: #ffc107;
   }
-
   .breadcrumb-c li.active a:after {
     border-left: 30px solid #ffc107;
   }
-
   .breadcrumb-c li:first-child a {
     padding-left: 1px;
   }
-
   .breadcrumb-c li:last-of-type a {
     width: calc( 100% - 38px );
   }
-
   .breadcrumb-c li a:before {
     content: " ";
     display: block;
@@ -576,7 +538,6 @@
     left: 100%;
     z-index: 1;
   }
-
   .breadcrumb-c li a:after {
     content: " ";
     display: block;
@@ -591,13 +552,11 @@
     left: 100%;
     z-index: 2;
   }
-
   .truncate {
     white-space: nowrap;
     /*overflow: hidden;*/
     text-overflow: ellipsis;
   }
-
   .scrolltbody tbody {
     display:block;
     height:300px;
@@ -616,7 +575,6 @@
   }
 </style>
 @endsection
-
 @section('script')
 <script src="{{ asset('/js/jquery.rfid.js') }}"></script>
 <link rel="stylesheet" href="{{ asset('/css/datepicker/landscape.css') }}" type="text/css" media="print" />
@@ -631,23 +589,6 @@
         }
       });
     }
-
-    $(document).on('click', '#quality-inspection-modal .select-item-for-inspection-btn', function(e) {
-      e.preventDefault();
-      var img = $(this).data('img');
-      var item_code = $(this).data('item-code');
-      var item_description = $(this).data('item-desc');
-      var required_qty = $(this).data('required-qty');
-
-      $('#quality-inspection-modal .selected-item-image').attr('src', img).attr('alt', item_code);
-      $('#quality-inspection-modal .selected-item-code').text(item_code);
-      $('#quality-inspection-modal .selected-item-description').text(item_description);
-      $('#quality-inspection-modal .selected-item-required-qty').val(required_qty);
-      $('#quality-inspection-modal .selected-item-tbl-cell').removeClass('d-none');
-      $('#quality-inspection-modal .selected-item-code-val').val(item_code);
-
-      $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
-    });
 
     function close_modal(modal){
       $(modal).modal('hide');
@@ -698,9 +639,8 @@
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
+          showNotification("danger", 'An error occured while updating maintenance task. Please contact your system administrator.', "now-ui-icons travel_info");
         }
       });
     });
@@ -715,10 +655,9 @@
       var selector = '.' + $(this).attr('id');
       $(selector).not(this).prop('checked', this.checked);
     });
+
     var workstation = "{{ $workstation_name }}";
-
     var active_input = null;
-
     $('#view-schedule-btn').click(function(e){
       e.preventDefault();
       $.ajax({
@@ -733,7 +672,6 @@
 	
     $('#select-scrap-to-process-btn').click(function(e){
       e.preventDefault();
-
       $.ajax({
         url:"/get_scrap_to_process/" + workstation,
         type:"GET",
@@ -746,9 +684,7 @@
 
     $(document).on('click', '.selected-scrap-btn', function(e){
       e.preventDefault();
-
       var scrap_id = $(this).data('id');
-
       $.ajax({
         url:"/get_process/" + workstation,
         type:"GET",
@@ -762,9 +698,7 @@
 
     $(document).on('click', '.selected-process-btn', function(e){
       e.preventDefault();
-
       var scrap_id = $('#select-process-for-scrap-modal input[name="scrap_id"]').val();
-
       var workstation_id = $('#workstation_id').val();
       var process_id = $(this).data('process-id');
       $('#select-machine-for-scrap-table').empty();
@@ -800,7 +734,7 @@
           $('#select-machine-for-scrap-modal').modal('show');
         },
         error: function(response) {
-          console.log(response);
+          showNotification("danger", 'An error occured while getting machine list. Please contact your system administrator.', "now-ui-icons travel_info");
         }
       });
     });
@@ -819,7 +753,6 @@
     });
 
     function insert_scrap_job_ticket(){
-
       $.ajax({
         url:"/insert_scrap_job_ticket",
         type:"POST",
@@ -840,12 +773,8 @@
           }
         }
       });
-
-      
-      console.log($('#scan-production-order-step3-modal form').serialize());
     }
 	
-    
     $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
       if($(this).data('edit') > 0){
         active_input = $(this).attr('id');
@@ -859,7 +788,6 @@
       var input = $('#quality-inspection-frm #' + active_input);
       var x = input.val();
       var y = $(this).text();
-  
       if (x == '0' && y != '.') {
         x = '';
       }
@@ -887,7 +815,6 @@
       var x = input.val();
  
       input.val(x.substring(0, x.length - 1));
-  
       if (input.val().length == 0) {
         input.val(0);
       }
@@ -901,153 +828,9 @@
       $('#confirm-sample-size-modal').modal('hide');
     });
 
-    $(document).on('click', '#quality-inspection-frm .next-tab', function(e){
-      e.preventDefault();
-            
-      var tab_id = $(this).data('tab-id');
-      var tab_qty_reject = parseInt($('#' + tab_id + '-qty-reject').val());
-      var tab_qty_checked = parseInt($('#' + tab_id + '-qty-checked').val());
-      var tab_qty = parseInt($('#' + tab_id + '-qty').val());
-      var tab_reject_level = parseInt($('#' + tab_id + ' .reject-level').text());
-
-      if(tab_qty_checked <= 0){
-        showNotification("danger", 'Please enter quantity checked.', "now-ui-icons travel_info");
-        return false;
-      }
-
-      var checklist_unchecked = $('#' + tab_id + ' .chk-list input:checkbox:not(:checked)').length;
-      if(checklist_unchecked > 0){
-        if(tab_qty_reject <= 0){
-          showNotification("danger", 'Please enter quantity reject.', "now-ui-icons travel_info");
-          return false;
-        }
-
-        if(tab_qty_reject > tab_qty_checked){
-          showNotification("danger", 'Reject quantity cannot be greater than quantity checked.', "now-ui-icons travel_info");
-          return false;
-        }
-      }else{
-        $('#' + tab_id + '-qty-reject').val(0);
-      }
-
-      if(tab_qty_checked > tab_qty){
-        showNotification("danger", 'Quantity checked cannot be greater than '+ tab_qty +'.', "now-ui-icons travel_info");
-        return false;
-      }
-
-      var sample_size = $('#' + tab_id + ' .sample-size').text();
-      if(sample_size != $('#' + tab_id + '-qty-checked').val()){
-        if($('#' + tab_id + '-validated-sample-size').val() == 0){
-          $('#confirm-sample-size-modal .sample-size').text(sample_size);
-          $('#sample-size-tab-id').val(tab_id);
-          $('#confirm-sample-size-modal').modal('show');
-          return false;
-        }
-      }
-
-      var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-      if(next_tab_id != 'tablast'){
-        if(tab_qty_reject > tab_reject_level){
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-        }else{
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-        }
-      }
-      
-      var no_rej = '';
-      var table = '<table style="width: 100%; font-size: 10pt;" border="1">' + 
-        '<col style="width:30%;"><col style="width:20%;"><col style="width:50%;">' +
-        '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Inspection</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject(s)</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th></tr>';
-      
-      var reject_id = '';
-      var reject_values = '';
-      var qty_checked = 0;
-      var qty_reject = 0;
-      $('#quality-inspection-modal .custom-tabs-1').each(function(){
-        var tab_pane_id = $('#' + $(this).attr('id') + '-inspection');
-        var q = tab_pane_id.find('input[name="qty_checked"]').eq(0).val();
-        var r = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-        if(q){
-          qty_checked = qty_checked + parseInt(q);
-          qty_reject = qty_reject + parseInt(r);
-        }
-
-        $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-          if($.isNumeric($(this).val())){
-            reject_id += $(this).val() + ',';
-            reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
-          }
-        });
-
-        var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
-        var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-        var reason = '';
-        $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-          if($.isNumeric($(this).val())){
-            reason += $(this).data('reject-reason') + ', ';
-          }
-        });
-
-        if(checklist_category){
-          if(parseInt(tab_pane_id.find('input[name="qty_checked"]').eq(0).val()) > 0){
-            if(reject_qty <= 0){
-              reason = 'No Reject';
-              no_rej += '<br>' + tab_pane_id.find('.chklist-cat').text();
-            }else{
-              table += '<tr>' + 
-                '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">' + checklist_category + '</div></td>' +
-                '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + reject_qty + '</td>' +
-                '<td style="border: 1px solid #ABB2B9; padding: 2px;">' + 
-                '<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px;">' + reason + '</div></td>' +
-                '</tr>';
-            }
-          }
-        }
-
-        $('#qa-result-div-1').html(no_rej);
-      });
-
-      table += '</table>';
-
-      $('#rejection-types-input').val(reject_id);
-      $('#rejection-values-input').val(reject_values);
-      $('#final-qty-checked').text(qty_checked);
-
-      $('#total-rejects-input').val(qty_reject);
-      $('#total-checked-input').val(qty_checked);
-
-      if(qty_reject > 0){
-        $('#quality-inspection-frm .reject-details-tr').removeAttr('hidden');
-        $('#qc-status').addClass('text-danger').removeClass('text-success').text('QC Failed');
-        $('#qa-result-div').html(table);
-      }else{
-        $('#quality-inspection-frm .reject-details-tr').attr('hidden', true);
-        $('#qc-status').addClass('text-success').removeClass('text-danger').text('QC Passed');
-        $('#qa-result-div').empty();
-      }
-
-      active_input = null;
-      
-      $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().next().find('.custom-tabs-1').tab('show');
-      $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeAttr('active');
-    });
-
     $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
       $('#quality-inspection-modal img').slideToggle();
       $('#quality-inspection-modal .manual').slideToggle();
-    });
-
-    $(document).on('click', '#quality-inspection-frm .prev-tab', function() {
-      active_input = null;
-
-      var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-      if(next_tab_id != 'tablast'){
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-      }else{
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-      }
-
-      $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().prev().find('.custom-tabs-1').tab('show');
     });
 
     $('#quality-check-modal-btn').click(function(e){
@@ -1061,7 +844,6 @@
       var current = $('#scan-jt-for-qc-modal input[type="text"]').val();
       var new_input = current + num;
       new_input = format(new_input.replace(/-/g, ""), [5], "-");
-         
       $('#scan-jt-for-qc-modal input[type="text"]').val(new_input);
     });
 
@@ -1096,21 +878,17 @@
 
     $(document).on('click', '.quality-inspection-btn', function(e){
       e.preventDefault();
-
       $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
-
       var production_order = $(this).data('production-order');
       var process_id = $(this).data('processid');
       var workstation = $(this).data('workstation');
       var inspection_type = $(this).data('inspection-type');
       var reject_category = $(this).data('reject-cat');
-
       var data = {
         time_log_id: $(this).data('timelog-id'),
         inspection_type,
         reject_category,
       }
-
       $.ajax({
         url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
         type:"GET",
@@ -1122,18 +900,14 @@
           $('#quality-inspection-modal .qc-workstation').text('[' + workstation + ']');
           $('#quality-inspection-modal').modal('show');
         }, error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          showNotification("danger", 'An error occured while getting QA checklist. Please contact your system administrator.', "now-ui-icons travel_info");
         },
       });
     });
 
     $(document).on('submit', '#quality-inspection-frm', function(e){
       e.preventDefault();
-
       $('#quality-inspection-frm button[type="submit"]').attr('disabled', true);
-
       $.ajax({
         url: $(this).attr('action'),
         type:"POST",
@@ -1212,13 +986,11 @@
 
     $(document).on('click', '.reject-confirmation-btn', function(e){
       e.preventDefault();
-      
       var inspection_type = $(this).data('inspection-type');
       var workstation = $(this).data('workstation');
       var production_order = $(this).data('production-order');
       var process_id = $(this).data('process-id');
       var qa_id = $(this).data('qaid');
-
       $.ajax({
         url:"/get_reject_confirmation_checklist/" + production_order + "/" + workstation + "/" + process_id + "/" + qa_id + "?page=operator",
         type:"GET",
@@ -1617,7 +1389,6 @@
       });
     }
 
-
     $(document).on('show.bs.modal', '.modal', function (event) {
       var zIndex = 1040 + (10 * $('.modal:visible').length);
       $(this).css('z-index', zIndex);
@@ -1639,7 +1410,6 @@
 
     // Called on a good scan (company card recognized)
     var goodScan = function (cardData) {
-  
       if ($('#scan-production-order-step3-modal').is(':visible') == true) {
         $('#scan-production-order-step3-modal #operator-id').val(cardData);
         $('#scan-production-order-step3-modal form').submit();
@@ -1741,7 +1511,6 @@
 </script>
 <script>
   var now = new Date(<?php echo time() * 1000 ?>);
-  
   function startInterval(){  
     setInterval('showTime();', 1000);
   }
@@ -1780,6 +1549,5 @@
       }
     });  
   }
-
 </script>
 @endsection

@@ -113,103 +113,96 @@ class QualityInspectionController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         DB::connection('mysql')->beginTransaction();
         try {
-            $now = Carbon::now(); 	
-            if (!$request->inspected_by) {
+            $now = Carbon::now();
+            $request_inspected_by = $request->inspected_by;
+            $request_qc_remarks = $request->qc_remarks;
+            $request_total_rejects = $request->total_rejects;
+            $request_workstation = $request->workstation;
+            $request_time_log_id = $request->time_log_id;
+            $request_item_code = $request->item_code;
+            $request_inspection_type = $request->inspection_type;
+            $request_reject_level = $request->reject_level;
+            $request_sample_size = $request->sample_size;
+            $request_total_checked = $request->total_checked;
+            $request_reject_category_id = $request->reject_category_id;
+            $request_qty_reject = $request->qty_reject;
+            $request_rejection_values = $request->rejection_values;
+            $request_rejection_types = $request->rejection_types;
+            $request_rejected_qty = $request->rejected_qty;
+            $request_qa_id = $request->qa_id;
+            $request_reject_list_id = $request->reject_list_id;
+            $request_qa_disposition = $request->qa_disposition;
+            $request_occ = $request->occ;
+
+            if (!$request_inspected_by) {
                 return response()->json(['success' => 0, 'message' => 'Please tap Authorized QC Employee ID.']);
             }
 
             $qa_user = DB::table('essex.users as essex')
                 ->join('mes.user as mes', 'essex.user_id', 'mes.user_access_id')
                 ->join('mes.user_group as group', 'group.user_group_id', 'mes.user_group_id')
-                ->where('essex.status', 'Active')->where('essex.user_id', $request->inspected_by)->where('group.module', 'Quality Assurance')
+                ->where('essex.status', 'Active')->where('essex.user_id', $request_inspected_by)->where('group.module', 'Quality Assurance')
                 ->select('essex.*')->first();
 
             if (!$qa_user) {
                 return response()->json(['success' => 0, 'message' => 'Authorized QA Employee ID not found.']);
             }
             
-            $total_rejects = $request->total_rejects;
-            if($total_rejects > 0){
-                if (!$request->qc_remarks) {
+            
+            if($request_total_rejects > 0){
+                if (!$request_qc_remarks) {
                     return response()->json(['success' => 0, 'message' => 'Please select QC Remarks.']);
                 }
             }
 
             $qa_staff_name = $qa_user->employee_name;
-            if ($request->time_log_id) {
-                if ($request->workstation == 'Spotwelding') {
-                    $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-                        ->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-                        ->where('spotwelding_qty.time_log_id', $request->time_log_id)->first();
-                }else{
-                    $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-                        ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-                        ->where('time_logs.time_log_id', $request->time_log_id)->first();
-                }
+            if ($request_time_log_id) {
+                $time_log_table = ($request_workstation == 'Spotwelding') ? 'spotwelding_qty' : 'time_logs';
+                $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket as jt')
+                    ->join($time_log_table . ' as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+                    ->join('production_order as po', 'po.production_order', 'jt.production_order')
+                    ->where('tl.time_log_id', $request_time_log_id)->first();
+ 
                 $production_order = $job_ticket_details->production_order;
                 $workstation = $job_ticket_details->workstation;
-                $prod_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
 
-                $operation_id = $prod_details->operation_id;
-                $operation_id = $workstation == 'Painting' ? 2 : $operation_id;
+                $operation_id = $workstation == 'Painting' ? 2 : $job_ticket_details->operation_id;
 
-                if ($request->inspection_type == 'Random Inspection') {
-                    if ($request->item_code && $total_rejects > 0) {
+                $logs_table = $request_workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
+                if ($request_inspection_type == 'Random Inspection') {
+                    if ($request_item_code && $request_total_rejects > 0) {
                         $item_required_qty = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $production_order)
-                            ->where('item_code', $request->item_code)->sum('required_qty');
+                            ->where('item_code', $request_item_code)->sum('required_qty');
 
-                        $required_qty_per_piece = $item_required_qty / $prod_details->qty_to_manufacture;
-                        $total_rejects = $total_rejects / $required_qty_per_piece;
-                        $total_rejects = $total_rejects < 1 ? 1 : round($total_rejects);
+                        $required_qty_per_piece = $item_required_qty / $job_ticket_details->qty_to_manufacture;
+                        $request_total_rejects = $request_total_rejects / $required_qty_per_piece;
+                        $request_total_rejects = $request_total_rejects < 1 ? 1 : round($request_total_rejects);
                     }
 
-                    if ($request->workstation == 'Spotwelding') {
-                        $insert = [
-                            'reference_type' => 'Spotwelding',
-                            'reference_id' => $request->time_log_id,
-                            'qa_inspection_type' => $request->inspection_type,
-                            'qa_inspection_date' => $now->toDateTimeString(),
-                            'qa_staff_id' => $request->inspected_by,
-                            'reject_level' => $request->reject_level,
-                            'sample_size' => $request->sample_size,
-                            'actual_qty_checked' => $request->total_checked,
-                            'rejected_qty' => $total_rejects,
-                            'for_rework_qty' => 0,
-                            'status' => ($total_rejects > 0) ? 'QC Failed' : 'QC Passed',
-                            'qc_remarks' => $request->qc_remarks,
-                            'created_by' => $qa_staff_name,
-                            'created_at' => $now->toDateTimeString(),
-                            'reject_category_id' => $request->reject_category_id
-                        ];
-                    }else{
-                        $insert = [
-                            'reference_type' => 'Time Logs',
-                            'reference_id' => $request->time_log_id,
-                            'qa_inspection_type' => $request->inspection_type,
-                            'qa_inspection_date' => $now->toDateTimeString(),
-                            'qa_staff_id' => $request->inspected_by,
-                            'reject_level' => $request->reject_level,
-                            'sample_size' => $request->sample_size,
-                            'actual_qty_checked' => $request->total_checked,
-                            'rejected_qty' => $total_rejects,
-                            'for_rework_qty' => 0,
-                            'status' => ($total_rejects > 0) ? 'QC Failed' : 'QC Passed',
-                            'qc_remarks' => $request->qc_remarks,
-                            'created_by' => $qa_staff_name,
-                            'created_at' => $now->toDateTimeString(),
-                            'reject_category_id' => $request->reject_category_id
-                        ];
-                    }
+                    $insert = [
+                        'reference_type' => ($request_workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs',
+                        'reference_id' => $request_time_log_id,
+                        'qa_inspection_type' => $request_inspection_type,
+                        'qa_inspection_date' => $now->toDateTimeString(),
+                        'qa_staff_id' => $request_inspected_by,
+                        'reject_level' => $request_reject_level,
+                        'sample_size' => $request_sample_size,
+                        'actual_qty_checked' => $request_total_checked,
+                        'rejected_qty' => $request_total_rejects,
+                        'for_rework_qty' => 0,
+                        'status' => ($request_total_rejects > 0) ? 'QC Failed' : 'QC Passed',
+                        'qc_remarks' => $request_qc_remarks,
+                        'created_by' => $qa_staff_name,
+                        'created_at' => $now->toDateTimeString(),
+                        'reject_category_id' => $request_reject_category_id
+                    ];                   
                 
-                    $good_qty_after_transaction = $job_ticket_details->good - $total_rejects;
-        
-                    if($good_qty_after_transaction < 0){
-                        $good_qty_after_transaction = 0;
-                    }
+                    $good_qty_after_transaction = $job_ticket_details->good - $request_total_rejects;
+                    $good_qty_after_transaction = ($good_qty_after_transaction < 0) ? 0 : $good_qty_after_transaction;
 
                     $rework_qty = $job_ticket_details->rework;
-                    if($request->qc_remarks == 'For Rework'){
-                        $rework_qty = $job_ticket_details->rework + $request->qty_reject;
+                    if($request_qc_remarks == 'For Rework'){
+                        $rework_qty = $job_ticket_details->rework + $request_qty_reject;
                     }
 
                     DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->update(['rework' => $rework_qty]);
@@ -218,20 +211,19 @@ class QualityInspectionController extends Controller
                         'last_modified_at' => $now->toDateTimeString(),
                         'last_modified_by' => $qa_staff_name,
                         'good' => $good_qty_after_transaction,
-                        'reject' => $total_rejects + $job_ticket_details->reject,
+                        'reject' => $request_total_rejects + $job_ticket_details->reject,
                     ];
                     
-                    $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
-                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request->time_log_id)->update($update);
+                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request_time_log_id)->update($update);
                     
                     $qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
 
-                    if ($request->item_code) {
+                    if ($request_item_code) {
                         $inspected_component = [
                             'qa_id' => $qa_id,
-                            'item_code' => $request->item_code,
-                            'inspected_qty' => $request->total_checked,
-                            'rejected_qty' => $request->total_rejects,
+                            'item_code' => $request_item_code,
+                            'inspected_qty' => $request_total_checked,
+                            'rejected_qty' => $request_total_rejects,
                             'production_order' => $production_order,
                             'created_by' => $qa_staff_name,
                             'created_at' => $now->toDateTimeString(),
@@ -240,20 +232,21 @@ class QualityInspectionController extends Controller
                         DB::connection('mysql_mes')->table('inspected_component')->insert($inspected_component);
                     }
 
-                    if($request->rejection_values){
-                        $rejection_values = rtrim($request->rejection_values, ',');
+                    if($request_rejection_values){
+                        $rejection_values = rtrim($request_rejection_values, ',');
                         $rejection_values = explode(",", $rejection_values);
 
-                        $rejection_types = rtrim($request->rejection_types, ',');
+                        $rejection_types = rtrim($request_rejection_types, ',');
                         $rejection_types = explode(",", $rejection_types);
 
                         $reject_values = [];
-                        foreach ($rejection_values as $i => $value) {
+                        foreach ($rejection_types as $i => $value) {
                             $reject_values[] = [
                                 'job_ticket_id' => $job_ticket_details->job_ticket_id,
                                 'qa_id' => $qa_id,
                                 'reject_list_id' => $rejection_types[$i],
-                                'reject_value' => $value
+                                'reject_value' => isset($rejection_values[$i]) ? ($rejection_values[$i] != 'undefined' ? $rejection_values[$i] : '-') : '-',
+                                'reject_qty' => ($request_total_rejects > 0) ? $request_occ[$value] : null
                             ];
                         }
 
@@ -271,14 +264,14 @@ class QualityInspectionController extends Controller
 
                     $process_name = DB::connection('mysql_mes')->table('process')->where('process_id', $job_ticket_details->process_id)->pluck('process_name')->first();
 
-                    if($total_rejects > 0){
-                        $message = 'Reject quantity of ' . $total_rejects . ' for '.$request->workstation.' - ' . $process_name . ' has been submitted by ' . $qa_user->employee_name;
+                    if($request_total_rejects > 0){
+                        $message = 'Reject quantity of ' . $request_total_rejects . ' for '.$request_workstation.' - ' . $process_name . ' has been submitted by ' . $qa_user->employee_name;
                     }else{
-                        $message = 'QC Pass for '.$request->workstation.' - ' . $process_name . ' has been submitted by ' . $qa_user->employee_name;
+                        $message = 'QC Pass for '.$request_workstation.' - ' . $process_name . ' has been submitted by ' . $qa_user->employee_name;
                     }
 
                     $activity_logs = [
-                        'action' => $total_rejects > 0 ? 'QC Failed' : 'QC Passed',
+                        'action' => $request_total_rejects > 0 ? 'QC Failed' : 'QC Passed',
                         'message' => $message,
                         'reference' => $production_order,
                         'created_at' => $now->toDateTimeString(),
@@ -287,59 +280,42 @@ class QualityInspectionController extends Controller
         
                     DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
                 }else{
-                    if ($request->workstation == 'Spotwelding') {
-                        $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-                            ->join('spotwelding_qty', 'job_ticket.job_ticket_id', 'spotwelding_qty.job_ticket_id')
-                            ->where('spotwelding_qty.job_ticket_id', $request->time_log_id)->first();
-                    }else{
-                        $job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-                            ->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-                            ->where('time_logs.time_log_id', $request->time_log_id)->first();
-                    }
-
-                    $production_order = $job_ticket_details->production_order;
-                    $workstation = $job_ticket_details->workstation;
-
-                    if ($request->rejected_qty > $prod_details->qty_to_manufacture) {
-                        return response()->json(['success' => 0, 'message' => 'Rejected qty cannot be greater than ' . $prod_details->qty_to_manufacture]);
+                    if ($request_rejected_qty > $job_ticket_details->qty_to_manufacture) {
+                        return response()->json(['success' => 0, 'message' => 'Rejected qty cannot be greater than ' . $job_ticket_details->qty_to_manufacture]);
                     }
 
                     $reject_reason_id = 0;
-                    $reject_reason = DB::connection('mysql_mes')->table('reject_reason')->where('qa_id', $request->qa_id)->first();
+                    $reject_reason = DB::connection('mysql_mes')->table('reject_reason')->where('qa_id', $request_qa_id)->first();
                     if($reject_reason){
                         $reject_reason_id = $reject_reason->reject_reason_id;
                     }
 
-                    DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reject_reason_id)->update(['reject_list_id' => $request->reject_list_id]);
+                    DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reject_reason_id)->update(['reject_list_id' => $request_reject_list_id]);
 
                     $update = [
                         'qa_inspection_date' => $now->toDateTimeString(),
-                        'qa_staff_id' => $request->inspected_by,
-                        'rejected_qty' => $request->rejected_qty,
-                        'qa_disposition' => $request->qa_disposition,
+                        'qa_staff_id' => $request_inspected_by,
+                        'rejected_qty' => $request_rejected_qty,
+                        'qa_disposition' => $request_qa_disposition,
                         'remarks' => $request->remarks,
-                        'status' => ($request->rejected_qty > 0) ? 'QC Failed' : 'QC Passed',
+                        'status' => ($request_rejected_qty > 0) ? 'QC Failed' : 'QC Passed',
                     ];
 
-                    DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request->qa_id)->update($update);
+                    DB::connection('mysql_mes')->table('quality_inspection')->where('qa_id', $request_qa_id)->update($update);
 
-                    $reject_qty = $request->old_reject_qty - $request->rejected_qty;
+                    $reject_qty = $request->old_reject_qty - $request_rejected_qty;
 
                     $good_qty_after_transaction = $job_ticket_details->good + $reject_qty;
-        
-                    if($good_qty_after_transaction < 0){
-                        $good_qty_after_transaction = 0;
-                    }
+                    $good_qty_after_transaction = ($good_qty_after_transaction < 0) ? 0 : $good_qty_after_transaction;
 
                     $update = [
                         'last_modified_at' => $now->toDateTimeString(),
                         'last_modified_by' => $qa_staff_name,
                         'good' => $good_qty_after_transaction,
-                        'reject' => $request->rejected_qty,
+                        'reject' => $request_rejected_qty,
                     ];
                     
-                    $logs_table = $request->workstation == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
-                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request->time_log_id)->update($update);
+                    DB::connection('mysql_mes')->table($logs_table)->where('time_log_id', $request_time_log_id)->update($update);
 
                     $update_job_ticket = $this->update_job_ticket($job_ticket_details->job_ticket_id);
 
@@ -350,15 +326,13 @@ class QualityInspectionController extends Controller
                         return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
                     }
 
-                    if ($request->qa_disposition == 'Scrap') {
-                        if ($prod_details->item_classification == 'SA - Sub Assembly') {
+                    if ($request_qa_disposition == 'Scrap') {
+                        if ($job_ticket_details->item_classification == 'SA - Sub Assembly') {
                             $uom_details = DB::connection('mysql_mes')->table('uom')->where('uom_name', 'like', '%kilogram%')->first();
                             if ($uom_details) {
-                            
                                 $cutting_size = DB::connection('mysql')->table('tabItem Variant Attribute')
-                                    ->where('parent', $prod_details->item_code)->where('attribute', 'like', '%cutting size%')->first();
+                                    ->where('parent', $job_ticket_details->item_code)->where('attribute', 'like', '%cutting size%')->first();
 
-    
                                 if ($cutting_size) {
                                     $cutting_size = strtoupper($cutting_size->attribute_value);
                                     $cutting_size = str_replace(' ', '', preg_replace('/\s+/', '', $cutting_size));
@@ -370,13 +344,13 @@ class QualityInspectionController extends Controller
                                 }
 
                                 $material = DB::connection('mysql')->table('tabItem Variant Attribute')
-                                    ->where('parent', $prod_details->item_code)->where('attribute', 'like', '%material%')->first();
+                                    ->where('parent', $job_ticket_details->item_code)->where('attribute', 'like', '%material%')->first();
 
                                 if ($material) {
                                     $material = strtoupper($material->attribute_value);
                                 }
 
-                                $qty_in_cubic_mm = ($length * $width * $thickness) * $request->rejected_qty;
+                                $qty_in_cubic_mm = ($length * $width * $thickness) * $request_rejected_qty;
 
                                 if($material == 'CRS'){
                                     $uom_arr_1 = DB::connection('mysql_mes')->table('uom_conversion')
@@ -433,7 +407,7 @@ class QualityInspectionController extends Controller
                 DB::connection('mysql')->commit();
                 DB::connection('mysql_mes')->commit();
 
-                return response()->json(['success' => 1, 'message' => 'QA Inspection created.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation, 'checklist_url' => $request->checklist_url, 'timelogid' => $request->time_log_id, 'operation_id' => $operation_id]]);
+                return response()->json(['success' => 1, 'message' => 'QA Inspection created.', 'details' => ['production_order' => $production_order, 'workstation' => $workstation, 'checklist_url' => $request->checklist_url, 'timelogid' => $request_time_log_id, 'operation_id' => $operation_id]]);
             }
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
