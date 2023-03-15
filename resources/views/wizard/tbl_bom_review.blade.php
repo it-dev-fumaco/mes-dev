@@ -51,6 +51,15 @@
 		</div>
 	</div>
 	@endif
+	@if ($duplicates)
+		<div class="col-md-12">
+			<div class="alert alert-warning text-center mt-1 mb-2 text-blink-alert" id="manual-prod-note" role="alert">
+				<div class="container" style="color: #000;">
+					<strong>Warning:</strong> Duplicate item codes found. Please update BOM in ERP.
+				</div>
+			</div>
+		</div>
+	@endif
 	<div class="col-md-6">
 		<table class="table table-striped table-bordered" style="font-size: 9pt;">
 			<thead class="text-primary">
@@ -60,7 +69,7 @@
 			</thead>
 			<tbody>
 				@foreach($bom_materials as $rm)
-				<tr>
+				<tr class="{{ in_array($rm['item_code'], $duplicates) ? 'bg-warning' : null }}">
 					<td class="text-center">{{ $rm['idx'] }}</td>
 					<td class="text-justify"><b>{{ $rm['item_code'] }}</b><br>{!! $rm['description'] !!}</td>
 					<td class="text-center">
@@ -163,7 +172,8 @@
 <div class="row mt-3">
 	<div class="col-md-4 offset-md-4">
 		@php
-			$disabled_btn = (count($items_with_different_uom) > 0) ? 'disabled' : '';
+			$disabled_btn = (count($items_with_different_uom) > 0) ? 'disabled' : null;
+			$disabled_btn = $duplicates ? 'disabled' : $disabled_btn;
 		@endphp
 		<button class="btn btn-block btn-primary btn-lg" id="submit-bom-review-btn" data-id="bom{{ $bom_details->name }}" {{ $disabled_btn }}>Update</button>
 	</div>

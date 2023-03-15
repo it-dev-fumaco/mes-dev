@@ -726,6 +726,17 @@ class ManufacturingController extends Controller
                     }
                 }
 
+                $duplicates = [];
+                $bom_item_codes_arr = collect($bom_materials)->pluck('item_code')->toArray();
+                if(count($bom_item_codes_arr) !== count(array_unique($bom_item_codes_arr))){
+                    $duplicates = collect(array_unique($bom_item_codes_arr))->map(function ($item_code) use ($bom_materials){
+                        $counter = collect($bom_materials)->where('item_code', $item_code)->count();
+                        if($counter > 1){
+                            return $item_code;
+                        }
+                    })->filter()->unique()->values()->all();
+                }
+
                 // !!
                 $tbl_display = "";
                 $tbl_display2 = "";
@@ -826,7 +837,7 @@ class ManufacturingController extends Controller
                 $collection = collect($operation_list);
                 $collection->contains('display', "show") ? $tbl_display = "show" : $tbl_display = "hide";
 
-                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list', 'tbl_display'));
+                return view('wizard.tbl_bom_review', compact('workstation_process', 'workstations', 'bom_details', 'bom_operations', 'bom_materials', 'items_with_different_uom', 'operation_list', 'tbl_display', 'duplicates'));
             }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
@@ -1441,6 +1452,11 @@ class ManufacturingController extends Controller
                 if ($bom->is_reviewed == 0) {
                     return response()->json(['success' => 0, 'message' => 'Please review and update BOM.']);
                 }
+            }
+
+            $bom_materials = DB::table('tabBOM Item')->where('parent', $request->bom)->pluck('item_code')->toArray();
+            if(count($bom_materials) !== count(array_unique($bom_materials))){
+                return response()->json(['success' => 0, 'message' => 'Duplicated BOM items found. Please update BOM in ERP.']);
             }
 
             $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
@@ -3630,7 +3646,6 @@ class ManufacturingController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             $now = Carbon::now();
-
             if(!Auth::user()) {
                 return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
             }
@@ -3714,6 +3729,11 @@ class ManufacturingController extends Controller
                         return response()->json(['success' => 0, 'message' => 'Please review and update BOM.']);
                     }
                 }
+            }
+
+            $bom_materials = DB::table('tabBOM Item')->where('parent', $request->bom)->pluck('item_code')->toArray();
+            if(count($bom_materials) !== count(array_unique($bom_materials))){
+                return response()->json(['success' => 0, 'message' => 'Duplicated BOM items found. Please update BOM in ERP.']);
             }
             
             $wip_wh = $this->get_operation_wip_warehouse($operation_id);
@@ -4016,7 +4036,7 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->rollback();
                 return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
             }
-                   
+
             DB::connection('mysql_mes')->commit();
               
             return response()->json(["success" => 1, 'message' => $new_id]);
