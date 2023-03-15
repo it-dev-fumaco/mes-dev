@@ -444,9 +444,9 @@ class MainController extends Controller
 			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process'), 'workstation', 'process_id', 'job_ticket_id', 'status', 'completed_qty', 'reject', 'remarks')
 			->get();
 
-		$operation_list = [];
+		$operation_list = $operation_reject_logs = [];
 		foreach ($process_arr as $row) {
-			$operations_arr = [];
+			$operations_arr = $rejections_arr = [];
 			$painting_cycle_time_in_seconds = 0;
 			if($row->workstation == "Spotwelding"){
 				$operations =  DB::connection('mysql_mes')->table('spotwelding_qty')
@@ -463,6 +463,28 @@ class MainController extends Controller
 				if($row->completed_qty > 0){
 					$total_rework = $rework_qty - $row->completed_qty;
 					$total_rework = $total_rework > 0 ? $total_rework : 0;
+				}
+
+				$operation_reject_logs_query = DB::connection('mysql_mes')->table('quality_inspection as q')
+					->join('time_logs as tl', 'tl.time_log_id', 'q.reference_id')
+					->join('job_ticket as jt', 'tl.job_ticket_id', 'jt.job_ticket_id')
+					->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
+					->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
+					->where('q.reference_type', 'Time Logs')
+					->whereIn('q.reference_id', collect($operations)->pluck('job_ticket_id'))
+					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id')
+					->get();
+
+				foreach($operation_reject_logs_query as $l) {
+					$operation_reject_logs[$l->workstation][$l->process_id][] = [
+						'reject_reason' => $l->reject_reason,
+						'reject_qty' => $l->reject_qty,
+						'qa_inspection_type' => $l->qa_inspection_type,
+						'qa_inspection_date' => $l->qa_inspection_date,
+						'qa_disposition' => $l->qa_disposition,
+						'qa_staff_id' => $l->qa_staff_id,
+						'qa_status' => $l->status
+					];
 				}
 
 				$operations_arr[] = [
@@ -486,12 +508,47 @@ class MainController extends Controller
 					->where('time_logs.job_ticket_id', $row->job_ticket_id)->where('workstation','!=', 'Spotwelding')
 					->select('jt.*', 'time_logs.*')->orderBy('idx', 'asc')->get();
 
+				$operation_reject_logs_query = DB::connection('mysql_mes')->table('quality_inspection as q')
+					->join('time_logs as tl', 'tl.time_log_id', 'q.reference_id')
+					->join('job_ticket as jt', 'tl.job_ticket_id', 'jt.job_ticket_id')
+					->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
+					->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
+					->where('q.reference_type', 'Time Logs')
+					->whereIn('q.reference_id', collect($operations)->pluck('time_log_id'))
+					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'jt.job_ticket_id')
+					->get();
+
+				$qa_staff_names = DB::connection('mysql_essex')->table('users')
+					->whereIn('user_id', collect($operation_reject_logs_query)->pluck('qa_staff_id')->unique())
+					->pluck('employee_name', 'user_id')->toArray();
+
+				foreach($operation_reject_logs_query as $l) {
+					$operation_reject_logs[$l->workstation][$l->process_id][] = [
+						'reject_reason' => $l->reject_reason,
+						'reject_qty' => $l->reject_qty,
+						'qa_inspection_type' => $l->qa_inspection_type,
+						'qa_inspection_date' => $l->qa_inspection_date,
+						'qa_disposition' => $l->qa_disposition,
+						'qa_staff_id' => $l->qa_staff_id,
+						'qa_status' => $l->status,
+						'job_ticket' => $l->job_ticket_id,
+					];
+
+					if (array_key_exists('rows', $operation_reject_logs[$l->workstation])) {
+						$operation_reject_logs[$l->workstation]['rows']++;
+					} else {
+						$operation_reject_logs[$l->workstation]['rows'] = 1;
+					}
+				}
+
 				foreach ($operations as $d) {
 					$reference_type = ($d->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
 					$reference_id = ($d->workstation == 'Spotwelding') ? $d->job_ticket_id : $d->time_log_id;
 					$qa_inspection_status = $this->get_qa_inspection_status($reference_type, $reference_id);
 
-					$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->where('reference_id', $d->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')->sum('rejected_qty');
+					$rework_qty = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')
+						->where('reference_id', $d->time_log_id)->where('status', 'QC Failed')->where('qc_remarks', 'For Rework')
+						->sum('rejected_qty');
 
 					if ($d->duration > 0) {
 						if ($d->good > 0) {
@@ -565,6 +622,7 @@ class MainController extends Controller
 				'production_order' => $jtno,
 				'workstation' => $row->workstation,
 				'process' => $row->process,
+				'process_id' => $row->process_id,
 				'job_ticket' => $row->job_ticket_id,
 				'count_good' => (count($operations_arr) <= 1) ? '' : "Total: ".collect($operations_arr)->sum('good'),
 				'count' => (count($operations_arr) > 0) ? count($operations_arr) : 1,
@@ -660,7 +718,7 @@ class MainController extends Controller
 			$qty_to_manufacture = ($bom_details ? ($bom_details->qty * 1) : 0) * $sales_order_qty;
 		}
 
-		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs', 'painting_duration', 'total_planned_qty', 'qty_to_manufacture'));
+		return view('tables.production_order_search_content', compact('details', 'process', 'totals', 'item_details', 'operation_list','success', 'tab_name','tab', 'notifications', 'production_order_no', 'activity_logs', 'painting_duration', 'total_planned_qty', 'qty_to_manufacture', 'operation_reject_logs', 'qa_staff_names'));
 	}
 
 	public function sub_track_tab($sales_order, $parent_item_code, $sub_parent_item_code, $item_code, $material_request){
@@ -3782,7 +3840,7 @@ class MainController extends Controller
         return redirect()->back()->with(['message' => 'Employee has been successfully updated!']);
     }
 
-    public function get_production_order_task($production_order, $workstation){
+    public function get_production_order_task($production_order, $workstation, Request $request){
     	$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
     	if (!$production_order_details) {
     		return response()->json(['success' => 0, 'message' => 'Production Order ' . $production_order . ' not found.']);
@@ -3792,15 +3850,20 @@ class MainController extends Controller
     		return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $production_order . '</b> was <b>'.strtoupper($production_order_details->status).'</b>.']);
     	}
 
-    	$check_prod_workstation_exist = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
-    		->where('workstation', $workstation)->first();
-    	if (!$check_prod_workstation_exist) {
-    		return response()->json(['success' => 0, 'message' => 'Production Order not available in this workstation.']);
-    	}
+		$workstation_machine = null;
+		if (!$request->assembly_operator) {
+			$check_prod_workstation_exist = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)
+				->where('workstation', $workstation)->first();
+			if (!$check_prod_workstation_exist) {
+				return response()->json(['success' => 0, 'message' => 'Production Order not available in this workstation.']);
+			}
 
-    	$process_list = $this->get_production_workstation_process($production_order, $workstation, $production_order_details->qty_to_manufacture);
+			$workstation_machine = $workstation;		
+		}
 
-    	$details = ['production_order' => $production_order_details, 'tasks' => $process_list];
+    	$process_list = $this->get_production_workstation_process($production_order, $workstation_machine, $production_order_details->qty_to_manufacture);
+
+    	$details = ['production_order' => $production_order_details, 'tasks' => $process_list, 'machine_code' => $workstation];
 
     	return response()->json(['success' => 1, 'message' => 'Task Found.', 'details' => $details]);
     }
@@ -4047,7 +4110,10 @@ class MainController extends Controller
 
 	public function get_production_workstation_process($production_order, $workstation, $required_qty){
 		$processes = DB::connection('mysql_mes')->table('job_ticket AS jt')
-			->where('production_order', $production_order)->where('workstation', $workstation)
+			->where('production_order', $production_order)
+			->when($workstation != null, function ($a) use ($workstation) {
+				$a->where('workstation', $workstation);
+			})
 			->select('process_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'completed_qty', 'status')
 			->orderBy('idx', 'asc')
 			->get();
@@ -4128,16 +4194,20 @@ class MainController extends Controller
 			return response()->json(['success' => 0, 'message' => "Operator has on-going task from previous date. " . $operator_existing_ongoing_backlog_task_spotwelding->production_order]);
 		}
 
-		$job_ticket = DB::connection('mysql_mes')->table('job_ticket')
-			->where('production_order', $request->production_order)
-			->where('process_id', $request->process_id)->first();
-	
-    	$details = [
-			'job_ticket_id' => $job_ticket->job_ticket_id,
+		$details = [
 			'machine_code' => $request->machine_code,
 			'operator_id' => $request->operator_id,
-    		'workstation' => $job_ticket->workstation,
+			'production_order' => $request->production_order,
 		];
+
+		if ($request->process_id) {
+			$job_ticket = DB::connection('mysql_mes')->table('job_ticket')
+				->where('production_order', $request->production_order)
+				->where('process_id', $request->process_id)->first();
+	
+			$details['job_ticket_id'] = $job_ticket->job_ticket_id;
+			$details['workstation'] = $job_ticket->workstation;
+		}
 
 		// attempt to do the login
 		$user = DB::connection('mysql_essex')->table('users')->where('user_id', $request->operator_id)->first();
