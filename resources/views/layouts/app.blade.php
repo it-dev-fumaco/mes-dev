@@ -827,7 +827,7 @@
               return false;
             }
 
-            if ($(this).val() > declared_reject_qty) {
+            if (parseInt($(this).val()) > parseInt(declared_reject_qty)) {
               invalid = true;
               showNotification("danger", 'Qty for ' + $(this).data('reason') + ' cannot be greater than rejected qty (' + declared_reject_qty + ').', "now-ui-icons travel_info");
               return false;
