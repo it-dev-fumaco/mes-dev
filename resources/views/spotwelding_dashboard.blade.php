@@ -799,15 +799,19 @@
           data: arr,
           success:function(data){
             var row = '';
-            $.each(data, function(i, d){
-              var n = i + 1;
-              row += '<tr><td class="text-center">' + n + '</td>'+
-                '<td class="text-center">' + d.helper_name + '</td>'+
-                '<td class="text-center"><button type="button" class="btn btn-danger delete-helper-btn" data-id="' + d.helper_id + '" data-jobticket-id="' + d.job_ticket_id + '">' +
-                  '<i class="now-ui-icons ui-1_simple-remove"></i> Remove' +
-                '</button></td></tr>';
-            });
-  
+            if(data.length > 0){
+              $.each(data, function(i, d){
+                var n = i + 1;
+                row += '<tr><td class="text-center">' + n + '</td>'+
+                  '<td class="text-center">' + d.helper_name + '</td>'+
+                  '<td class="text-center"><button type="button" class="btn btn-danger delete-helper-btn" data-id="' + d.helper_id + '" data-jobticket-id="' + d.job_ticket_id + '">' +
+                    '<i class="now-ui-icons ui-1_simple-remove"></i> Remove' +
+                  '</button></td></tr>';
+              });
+            }else{
+              row = '<tr><td class="text-center" colspan=3>No helper(s) found.</td></td></tr>';
+            }
+            
             $('#view-helpers-table tbody').append(row);
             $('#view-helpers-modal').modal('show');
           }
@@ -895,6 +899,10 @@
       headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
       }
+    });
+
+    $(document).on('click', '#production-queue-tab', function (e){
+      getAssignedTasks();
     });
 
     function getAssignedTasks(){

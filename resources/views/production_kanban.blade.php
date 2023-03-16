@@ -2721,24 +2721,23 @@ console.log(data.responseText);
 </script>
 <script>
 $(document).on('click', '.btn-prod-notif', function(e){
-e.preventDefault();
-var operation_id= $('#primary-operation-id').val();
-get_notif_filters();
-reload_notif_table_inprogress();
-reload_tbl_change_code();
-$.ajax({
-url:"/get_all_prod_notif/"+ operation_id,
-type:"GET",
-success:function(data){
-$('#tbl-notifications').html(data);
-$('#view-notifications-modal').modal('show');
-},
-error : function(data) {
-console.log(data.responseText);
-}
-});
-warning_notif_for_custom_shift();
-
+  e.preventDefault();
+  var operation_id= $('#primary-operation-id').val();
+  get_notif_filters();
+  reload_notif_table_inprogress();
+  reload_tbl_change_code();
+  $.ajax({
+    url:"/get_all_prod_notif/"+ operation_id,
+    type:"GET",
+    success:function(data){
+      $('#tbl-notifications').html(data);
+      $('#view-notifications-modal').modal('show');
+    },
+    error : function(data) {
+      console.log(data.responseText);
+    }
+  });
+  warning_notif_for_custom_shift();
 });
 $(document).on('click', '.reschedule-prod-btn', function(e){
 var prod = $(this).data('prod');
@@ -2896,26 +2895,30 @@ console.log(errorThrown);
 });
 });
 $(document).on('click', '.prod_order_link_to_tracking', function(event){
-event.preventDefault();
-var guideid = $(this).attr('data-guideid');
-var itemcode = $(this).attr('data-itemcode');
-$.ajax({
-url: "/get_bom_tracking",
-type:"GET",
-data: {
-  guideid: guideid,
-  itemcode: itemcode
-},
-success:function(data){
-$('#track-view-modal #tbl_flowchart').html(data);
-$('#track-view-modal').modal('show');
-},
-error: function(jqXHR, textStatus, errorThrown) {
-console.log(jqXHR);
-console.log(textStatus);
-console.log(errorThrown);
-}
-});
+  event.preventDefault();
+  var guideid = $(this).attr('data-guideid');
+  var itemcode = $(this).attr('data-itemcode');
+  $.ajax({
+    url: "/get_bom_tracking",
+    type:"GET",
+    data: {
+      guideid: guideid,
+      itemcode: itemcode
+    },
+    success:function(data){
+      if(typeof(data.success) != "undefined" && data.success == 0){
+        showNotification("danger", data.message, "now-ui-icons travel_info");
+      }else{
+        $('#track-view-modal #tbl_flowchart').html(data);
+        $('#track-view-modal').modal('show');
+      }
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      console.log(jqXHR);
+      console.log(textStatus);
+      console.log(errorThrown);
+    }
+  });
 });
 
 

@@ -336,12 +336,17 @@ class ManufacturingController extends Controller
 
             $not_allowed_item_classification = ['RA - REFLECTOR ASSEMBLY', 'FA - FRAM1E ASSEMBLY'];
             $parts = [];
+
             foreach ($request->bom as $idx => $bom) {
                 $item_reference_id = $request->item_reference_id[$idx];
                 $delivery_date = $request->delivery_date[$idx];
                 
                 // $bom_parts = [];
                 $bom_details = DB::connection('mysql')->table('tabBOM')->where('name', $bom)->first();
+
+                if(!$bom_details){
+                    return response()->json(['message' => 'BOM not found. Please remove item(s) without BOM.']);
+                }
 
                 // $bom_operation = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom)->first();
                 // $operation_name = ($bom_operation) ? $bom_operation->operation : null;

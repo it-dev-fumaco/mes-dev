@@ -157,11 +157,8 @@ class LinkReportController extends Controller
             ->join('production_order as p', 'p.production_order', 'j.production_order')
             ->whereBetween('t.from_time', [$start_date, $end_date])->where('j.workstation', '!=', 'Spotwelding')
             ->where('t.reject', '>', 0)
-            ->when($operation_id == 3, function($q){
-                $q->where('p.operation_id', 3);
-            })
-            ->when($operation_id == 1, function($q){
-                $q->where('p.operation_id', 1);
+            ->when($operation_id != 2, function($q) use ($operation_id){
+                $q->where('p.operation_id', $operation_id)->where('j.workstation', '!=', 'Painting');
             })
             ->when($operation_id == 2, function($q){
                 $q->where('j.workstation', 'Painting');

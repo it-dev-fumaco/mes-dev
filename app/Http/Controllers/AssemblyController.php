@@ -198,6 +198,10 @@ class AssemblyController extends Controller
                 $bom_parts = [];
                 $bom_details = DB::connection('mysql')->table('tabBOM')->where('name', $bom)->first();
 
+                if(!$bom_details){
+                    return response()->json(['message' => 'BOM not found. Please remove item(s) without BOM.']);
+                }
+
                 $bom_operation = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $bom)->first();
                 $operation_name = ($bom_operation) ? $bom_operation->operation : null;
 

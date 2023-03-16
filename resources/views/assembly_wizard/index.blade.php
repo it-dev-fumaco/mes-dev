@@ -823,6 +823,7 @@
                success:function(data){
                   if(data.message) {
                      showNotification("danger", data.message, "now-ui-icons travel_info");
+                     a1 = 0;
                      return false;
                   }
 
@@ -886,6 +887,7 @@
          var unreviewed_bom = $('#parts-list').find('.unchecked').length;
          if (unreviewed_bom > 0) {
             showNotification("info", 'Please review all BOM first.', "now-ui-icons travel_info");
+            a2 = 0;
             return false;
          }
 
@@ -1114,6 +1116,7 @@
                success:function(data){
                   if (data.message) {
                      showNotification("danger", data.message, "now-ui-icons travel_info");
+                     a3 = 0;
                      return false;
                   }
 
@@ -1175,6 +1178,7 @@
                success:function(data){
                   if (data.message) {
                      showNotification('danger', data.message, "now-ui-icons travel_info");
+                     a4 = 0;
                      return false;
                   }
 

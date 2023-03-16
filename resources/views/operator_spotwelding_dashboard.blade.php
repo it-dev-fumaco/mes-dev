@@ -32,6 +32,9 @@
   </div>
 </div>
 @include('modals.view_operators_load')
+@include('modals.select_scrap_modal')
+@include('modals.select_process_modal')
+@include('modals.select_process_machine_modal')
 <input type="hidden" name="workstation_name" value="{{ $workstation }}" id="workstation_name">
 <input type="hidden" name="workstation_id" value="{{ $workstation_id }}" id="workstation_id">
 <div class="content" style="margin-top: -50px; min-height: 100px;">
@@ -764,6 +767,111 @@
       e.preventDefault();
       $('#scan-production-order-modal').modal('show');
     });
+
+    $(document).on('click', '#select-scrap-to-process-btn', function(e){
+      e.preventDefault();
+      $.ajax({
+        url:"/get_scrap_to_process/" + workstation,
+        type:"GET",
+        success:function(data){
+          $('#select-scrap-to-process-table').html(data);
+          $('#select-scrap-to-process-modal').modal('show');
+        }
+      });
+    });
+
+    $(document).on('click', '.selected-scrap-btn', function(e){
+      e.preventDefault();
+      var scrap_id = $(this).data('id');
+      $.ajax({
+        url:"/get_process/" + workstation,
+        type:"GET",
+        success:function(data){
+          $('#select-process-for-scrap-modal input[name="scrap_id"]').val(scrap_id);
+          $('#select-process-for-scrap-table').html(data);
+          $('#select-process-for-scrap-modal').modal('show');
+        }
+      });
+    });
+
+    $(document).on('click', '.selected-process-btn', function(e){
+      e.preventDefault();
+      var scrap_id = $('#select-process-for-scrap-modal input[name="scrap_id"]').val();
+      var workstation_id = $('#workstation_id').val();
+      var process_id = $(this).data('process-id');
+      $('#select-machine-for-scrap-table').empty();
+      $.ajax({
+        url: "/get_workstation_process_machine/" + workstation_id + "/" + process_id ,
+        method: "GET",
+        success: function(response) {
+          var col = '';
+          $.each(response, function(i, v){
+            if (v.status == 'Available') {
+              color = '#28B463';
+            }else if (v.status == 'On-going Maintenance'){
+              color = '#D68910';
+            }else{
+              color = '#C0392B';
+            }
+            
+            col += '<div class="col-md-4 selected-machine" data-machine-code="'+v.machine_code+'" data-process-id="' + v.process_id+'"  data-scrap-id="' + scrap_id +'" >' +
+              '<div class="card" style="background-color: #1B4F72;">' +
+              '<div class="card-body" style="padding-top: 0; padding-bottom: 0;">' +
+              '<div class="row" style="border: 0px solid; ">' +
+              '<div class="col-md-4" style="padding: 0;">' +
+              '<img src="'+ v.image +'" style="width: 100px; height: 100px;">' +
+              '</div>'+
+              '<div class="col-md-8">' +
+              '<h5 class="card-category text-white" style="padding: 0; margin: 0">' + v.machine_name + ' ['+v.machine_code+']</h5>' +
+              '<p class="text-white"">' +
+              '<span class="dot" style="background-color: '+ color + ';"></span> ' + v.status + ' </p></div>' +
+              '</div></div></div></div>';
+          });
+
+          $('#select-machine-for-scrap-table').append(col);
+          $('#select-machine-for-scrap-modal').modal('show');
+        },
+        error: function(response) {
+          showNotification("danger", 'An error occured while getting machine list. Please contact your system administrator.', "now-ui-icons travel_info");
+        }
+      });
+    });
+
+    $(document).on('click', '#select-machine-for-scrap-table .selected-machine', function(e) {
+      e.preventDefault();
+      var machine_code = $(this).data('machine-code');
+      var process_id = $(this).data('process-id');
+      var scrap_id = $(this).data('scrap-id');
+      $('#scan-production-order-step3-modal input[name="workstation"]').val(workstation);
+      $('#scan-production-order-step3-modal input[name="scrap_id"]').val(scrap_id);
+      $('#scan-production-order-step3-modal input[name="machine_code"]').val(machine_code);
+      $('#scan-production-order-step3-modal .modal-title').html('<b>' + workstation + '</b>');
+      $('#scan-production-order-step3-modal input[name="process_id"]').val(process_id);
+      $('#scan-production-order-step3-modal').modal('show');
+    });
+
+    function insert_scrap_job_ticket(){
+      $.ajax({
+        url:"/insert_scrap_job_ticket",
+        type:"POST",
+        data:$('#scan-production-order-step3-modal form').serialize(),
+        success:function(data){
+          if (data.success < 1) {
+            showNotification("danger", data.message, "now-ui-icons travel_info");
+          }else{
+            var values = {
+              production_order: data.details.production_order,
+              process_id: data.details.process_id,
+              machine_code: data.details.machine_code,
+              operator_id: data.details.operator_id,
+              _token: '{{ csrf_token() }}'
+            }
+
+            login_operator(values);
+          }
+        }
+      });
+    }
 
     // numpad for production order
     $(document).on('click', '#scan-production-order-modal #enter-production-order .num', function(e){
