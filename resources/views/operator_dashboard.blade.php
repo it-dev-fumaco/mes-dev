@@ -518,6 +518,11 @@
     var end_scrap_task_active_input = null;
       
     $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
+      $('.custom-selected-active-input').removeClass('custom-bg-selected-active-input text-white font-weight-bold');
+      if ($(this).data('qa') !== undefined) {
+        $(this).closest('.d-flex').addClass('custom-selected-active-input custom-bg-selected-active-input text-white font-weight-bold');
+      }
+      
       if($(this).data('edit') > 0){
         active_input = $(this).attr('id');
       }else{

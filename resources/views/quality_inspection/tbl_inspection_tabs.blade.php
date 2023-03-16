@@ -291,7 +291,7 @@
                   <div class="tab-pane" id="tab-{{ $tab }}-occurence" role="tabpanel" aria-labelledby="tab-{{ $tab }}">
                      <div class="row p-0 mb-0 mt-3 ml-0 mr-0" style="min-height: 380px;">
                         <div class="col-8 p-0">
-                           <h6 class="text-center">Enter Qty per Reject Type</h6>
+                           <h6 class="text-center">Enter Qty per Reject Classification</h6>
                            <div class="row p-0 m-0" style="font-size: 12px;" id="occurence-div">
                              
                            </div>
@@ -357,13 +357,18 @@
                                  </td>
                               </tr>
                               <tr>
+                                 <td class="text-center font-weight-bold" style="font-size: 11pt; padding: 8px 3px 0 3px;" colspan="2">
+                                    Rejected Qty: <span id="final-qty-rejected">0</span> {{ $production_order_details->stock_uom }}
+                                 </td>
+                              </tr>
+                              <tr>
                                  <td colspan="2">
-                                    <div id="qa-result-div"></div>
+                                    <div id="qa-result-div" class="mt-2"></div>
                                  </td>
                               </tr>
                               <tr>
                                  <td colspan="2" class="text-center">
-                                    <div id="qa-result-div-1"></div>
+                                    <div id="qa-result-div-1" class="mt-2"></div>
                                  </td>
                               </tr>
                               <tr class="reject-details-tr">

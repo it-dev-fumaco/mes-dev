@@ -140,6 +140,9 @@
     font-weight: bolder;
     font-size: 18pt;
   }
+  .custom-bg-selected-active-input{
+    background-color: #5562eb;
+  }
 </style>
 
   <!--   Core JS Files   -->
@@ -237,8 +240,8 @@
         
         var no_rej = '';
         var table = '<table style="width: 100%; font-size: 10pt;" border="1">' + 
-          '<col style="width:30%;"><col style="width:20%;"><col style="width:50%;">' +
-          '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Inspection</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject(s)</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th></tr>';
+          '<col style="width:60%;"><col style="width:40%;">' +
+          '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Qty</th></tr>';
         
         var reject_id = '';
         var reject_values = '';
@@ -253,6 +256,8 @@
             qty_reject = qty_reject + parseInt(r);
           }
 
+          $('#final-qty-rejected').text(qty_reject);
+
           var reject_type_occurence = '';
           $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(i){
             if($.isNumeric($(this).val())){
@@ -260,7 +265,7 @@
               reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
               
               reject_type_occurence += '<div class="col-6 p-1"><div class="d-flex flex-row align-items-center border rounded"><div class="col-9 pt-1 pb-1 pl-2 pr-2">'+$(this).data('reject-reason')+'</div>' +
-              '<div class="col-3 p-1"><input type="text" class="form-control rounded qty-input" data-edit="1" id="rto'+i+'" value="0" name="occ['+$(this).val()+']" data-reason="'+$(this).data('reject-reason')+'" readonly required></div></div></div>';
+              '<div class="col-3 p-1"><input type="text" class="form-control rounded qty-input p-1" style="font-size: 16px;" data-edit="1" data-qa="1" id="rto'+i+'" value="0" name="occ['+$(this).val()+']" data-reason="'+$(this).data('reject-reason')+'" readonly required></div></div></div>';
             }
           });
 
@@ -283,12 +288,12 @@
                 reason = 'No Reject';
                 no_rej += '<br>' + tab_pane_id.find('.chklist-cat').text();
               }else{
-                table += '<tr>' + 
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">' + checklist_category + '</div></td>' +
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + reject_qty + '</td>' +
-                  '<td style="border: 1px solid #ABB2B9; padding: 2px;">' + 
-                  '<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px;">' + reason + '</div></td>' +
-                  '</tr>';
+                $('#occurence-div .d-flex').each(function(){
+                  table += '<tr>' + 
+                    '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + $(this).find('div').eq(0).text() + '</td>' +
+                    '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + $(this).find('input').eq(0).val() + '</td>' +
+                    '</tr>';
+                });
               }
             }
           }
