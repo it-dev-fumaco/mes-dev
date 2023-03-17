@@ -765,10 +765,12 @@
       var process_id = $(this).data('processid');
       var workstation = $(this).data('workstation');
       var inspection_type = $(this).data('inspection-type');
+      var reject_category = $(this).data('reject-cat');
 
       var data = {
         time_log_id: $(this).data('timelog-id'),
-        inspection_type: inspection_type
+        inspection_type,
+        reject_category
       }
       $.ajax({
         url: '/get_checklist/' + workstation + '/' + production_order + '/' + process_id,
