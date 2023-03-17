@@ -300,7 +300,9 @@
 														@endif
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
+														@if ($process['workstation'] != 'Painting')
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+														@endif
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														@if ($item_details['feedback_qty'] <= 0)
 														<td class="text-center" style="border: 1px solid #ABB2B9;">
