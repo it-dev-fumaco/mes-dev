@@ -4204,6 +4204,10 @@ class MainController extends Controller
 			$job_ticket = DB::connection('mysql_mes')->table('job_ticket')
 				->where('production_order', $request->production_order)
 				->where('process_id', $request->process_id)->first();
+
+			if(!$job_ticket){
+				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+			}
 	
 			$details['job_ticket_id'] = $job_ticket->job_ticket_id;
 			$details['workstation'] = $job_ticket->workstation;
@@ -5176,41 +5180,51 @@ class MainController extends Controller
 	}
 
 	public function add_helper(Request $request){
-		if(!Auth::user()) {
-            return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
-        }
-
-		$now = Carbon::now();
-		if (Auth::user()->user_id == $request->helper_id) {
-			return response()->json(['success' => 0, 'message' => "Please enter helper ID."]);
-		}
-
-		$helper_details = DB::connection('mysql_essex')->table('users')
-			->where('user_id', $request->helper_id)->first();
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			if(!Auth::user()) {
+				return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+			}
+	
+			$now = Carbon::now();
+			if (Auth::user()->user_id == $request->helper_id) {
+				return response()->json(['success' => 0, 'message' => "Please enter helper ID."]);
+			}
+	
+			if(!$request->time_log_id){
+				return response()->json(['success' => 0, 'message' => 'No timelogs found. Please start operation before adding helper(s).']);
+			}
+	
+			$helper_details = DB::connection('mysql_essex')->table('users')->where('user_id', $request->helper_id)->first();
+				
+			if(!$helper_details){
+				return response()->json(['success' => 0, 'message' => "User not found."]);
+			}
+	
+			$existing_helper = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $request->time_log_id)
+				->where('operator_id', $request->helper_id)->exists();
 			
-		if(!$helper_details){
-			return response()->json(['success' => 0, 'message' => "User not found."]);
+			if ($existing_helper) {
+				return response()->json(['success' => 0, 'message' => 'Helper already exists.']);
+			}else{
+				$details = [
+					'created_by' => Auth::user()->employee_name,
+					'created_at' => $now->toDateTimeString(),
+					'time_log_id' => $request->time_log_id,
+					'operator_id' => $request->helper_id,
+					'operator_name' => $helper_details->employee_name,
+					'operator_nickname' => $helper_details->nick_name,
+				];
+	
+				DB::connection('mysql_mes')->table('helper')->insert($details);
+			}
+	
+			DB::commit();
+			return response()->json(['success' => 1, 'message' => 'Helper(s) updated.']);
+		} catch (\Throwable $th) {
+			DB::rollback();
+			return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 		}
-
-		$existing_helper = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $request->time_log_id)
-			->where('operator_id', $request->helper_id)->exists();
-		
-		if ($existing_helper) {
-			return response()->json(['success' => 0, 'message' => 'Helper already exists.']);
-		}else{
-			$details = [
-				'created_by' => Auth::user()->employee_name,
-				'created_at' => $now->toDateTimeString(),
-				'time_log_id' => $request->time_log_id,
-				'operator_id' => $request->helper_id,
-				'operator_name' => $helper_details->employee_name,
-				'operator_nickname' => $helper_details->nick_name,
-			];
-
-			DB::connection('mysql_mes')->table('helper')->insert($details);
-		}
-
-		return response()->json(['success' => 1, 'message' => 'Helper(s) updated.']);	
 	}
 
 	public function get_helpers(Request $request){
