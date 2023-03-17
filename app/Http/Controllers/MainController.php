@@ -4555,28 +4555,34 @@ class MainController extends Controller
 			$reference_type = ($request->workstation == 'Spotwelding') ? 'Spotwelding' : 'Time Logs';
 			$reference_id = ($request->workstation == 'Spotwelding') ? $time_log->job_ticket_id : $request->id;
 
-			$insert = [
-				'reference_type' => $reference_type,
-				'reference_id' => $reference_id,
-				'qa_inspection_type' => 'Reject Confirmation',
-				'rejected_qty' => $request->rejected_qty,
-				'total_qty' => $time_log->good,
-				'status' => 'For Confirmation',
-				'created_by' => Auth::user()->employee_name,
-				'created_at' => $now->toDateTimeString(),
-			];
+			$reject_category_ids = DB::connection('mysql_mes')->table('reject_list')->whereIn('reject_list_id', $request->reject_list)->select('reject_list_id', 'reject_category_id')->get();
+			$reject_category_id = collect($reject_category_ids)->groupBy('reject_list_id');
 
-			$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+			$reason = [];
+			foreach($request->reject_list as $reject_list_id){
+				$category_id = isset($reject_category_id[$reject_list_id][0]->reject_category_id) ? $reject_category_id[$reject_list_id][0]->reject_category_id : 0;
 
-			foreach($reject_reason as $i => $row){
+				$insert = [
+					'reference_type' => $reference_type,
+					'reference_id' => $reference_id,
+					'reject_category_id' => $category_id,
+					'qa_inspection_type' => 'Reject Confirmation',
+					'rejected_qty' => $request->rejected_qty,
+					'total_qty' => $time_log->good,
+					'status' => 'For Confirmation',
+					'created_by' => Auth::user()->employee_name,
+					'created_at' => $now->toDateTimeString(),
+				];
+
+				$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+
 				$reason[] = [
 					'job_ticket_id' => $time_log->job_ticket_id,
 					'qa_id' => $qa_id,
-					'reject_list_id' => $row,
+					'reject_list_id' => $reject_list_id,
 					'reject_value' => '-'
 				];
 			}
-			
 
 			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			if($request->workstation != 'Spotwelding'){
