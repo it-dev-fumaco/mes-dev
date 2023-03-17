@@ -1334,7 +1334,7 @@ class QualityInspectionController extends Controller
             if (!Auth::check()) {
                 return response()->json(['success' => 0, 'message' => 'Session expired. Please reload the page.']);
             }
-            
+
             $qa_user = DB::connection('mysql_mes')->table('user')
                 ->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
                 ->where('user_group.module', 'Quality Assurance')->where('user.user_access_id', Auth::user()->user_id)->first();
@@ -1380,6 +1380,10 @@ class QualityInspectionController extends Controller
 
                     $reject_reasons = isset($request->reject_type[$time_log_id]) ? $request->reject_type[$time_log_id] : [];
                     foreach($reject_reasons as $reason_id => $list_id){
+                        if(!$list_id){
+                            return response()->json(['success' => 0, 'message' => 'No reject type found for <b>'.$job_ticket_details->workstation.'</b>. Please remove or configure it on settings.']);
+                        }
+
                         DB::connection('mysql_mes')->table('reject_reason')->where('reject_reason_id', $reason_id)->update([
                             'reject_list_id' => $list_id,
                             'reject_qty' => $request->reject_type_qty[$time_log_id]
@@ -1506,12 +1510,11 @@ class QualityInspectionController extends Controller
                         }
                     }
                 }
-
-                DB::connection('mysql')->commit();
-                DB::connection('mysql_mes')->commit();
-
-                return response()->json(['success' => 1, 'message' => 'QA Reject Confirmation has been updated.', 'operation' => $request->operation_id]);
             }
+            DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
+
+            return response()->json(['success' => 1, 'message' => 'QA Reject Confirmation has been updated.', 'operation' => $request->operation_id]);
         } catch (Exception $e) {
             DB::connection('mysql_mes')->rollback();
             DB::connection('mysql')->rollback();

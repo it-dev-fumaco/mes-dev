@@ -496,13 +496,21 @@
       });
 
       var reject_qty = reject_type = '';
+      var reject_type_selection = {};
       $(document).on('click', '#reject-confirmation-form input', function (e){
         e.preventDefault();
         reject_qty = $(this);
         reject_type = '';
-        if($(this).parent().prev().find('select').find(":selected").val()){
-          $(this).parent().prev().find('select').removeClass('border').removeClass('border-danger');
-          reject_type = $(this).parent().prev().find('select').find(":selected").text();
+        reject_type_selection = {};
+        if(typeof($(this).data('type')) != "undefined" && $(this).data('type') == 'Reject Type'){
+          reject_type_selection = $(this).parent().prev().find('select');
+        }else{
+          reject_type_selection = $(this).parent().prev().prev().find('select');
+        }
+        
+        if(reject_type_selection.find(":selected").val()){
+          reject_type_selection.removeClass('border').removeClass('border-danger');
+          reject_type = reject_type_selection.find(":selected").text();
 
           if($(this).data('type') == 'Reject Type'){
             $('#reject-type-text').removeClass('d-none');
@@ -521,7 +529,7 @@
             $('#general-keypad').modal('hide');
           });
         }else{
-          $(this).parent().prev().find('select').addClass('border').addClass('border-danger');
+          reject_type_selection.addClass('border').addClass('border-danger');
           showNotification("danger", 'Please select reject type.', "now-ui-icons travel_info");
         }
       });

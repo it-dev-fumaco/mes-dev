@@ -169,10 +169,10 @@
                 },
                 success:function(response){
                     if (response.message <= 0) {
-                        $('#reject-confirmation-count').parent().removeClass('d-none');
+                        $('#reject-confirmation-count').parent().parent().addClass('d-none');
                     } else {
                         $('#reject-confirmation-count').html(response.message);
-                        $('#reject-confirmation-count').parent().addClass('d-none');
+                        $('#reject-confirmation-count').parent().parent().removeClass('d-none');
                     }
                 }
             });
