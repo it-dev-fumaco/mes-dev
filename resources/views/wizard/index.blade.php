@@ -33,7 +33,7 @@
                   <div class="tab-pane active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
                      <h4 class="title text-center" style="margin-left: 20px; margin: auto 20px;">1. Select Sales Order / Material Request</h4>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-6 offset-md-3">
+                        <div class="col-md-7 mx-auto">
                            <form id="get-somr-frm">
                               <table style="width: 100%;">
                                  <col style="width: 20%;">
@@ -43,7 +43,7 @@
                                  <col style="width: 11%;">
                                  <tr>
                                     <td class="text-right align-middle">
-                                       <span style="margin-right: 10px;"><b>Get Items From:</b></span>
+                                       <span style="margin-right: 10px; white-space: nowrap"><b>Get Items From:</b></span>
                                     </td>
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
@@ -54,7 +54,7 @@
                                        </div>
                                     </td>
                                     <td class="text-right align-middle">
-                                       <span style="margin-right: 10px; font-weight: bold;" id="reference-name">Sales Order</span>:
+                                       <span style="margin-right: 10px; font-weight: bold; white-space: nowrap" id="reference-name">Sales Order</span>:
                                     </td>
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">

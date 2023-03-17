@@ -58,20 +58,19 @@
                         </button>
                       </div>
                     @endif
-                </div>
+                  </div>
                 </div>
               </div>
-              
               <div class="tab-content" style="min-height: 480px;">
                 <div class="tab-pane active" id="current-tab" role="tabpanel">
                   <div id="row-tbl"></div>
                 </div>
                 @if ($process_name == 'Loading')
-                  <div class="tab-pane" id="production-queue" role="tabpanel">
-                    <div class="table-responsive">  
-                      <div id="assigned-tasks-table"></div>
-                    </div>
+                <div class="tab-pane" id="production-queue" role="tabpanel">
+                  <div class="table-responsive">  
+                    <div id="assigned-tasks-table"></div>
                   </div>
+                </div>
                 @endif
               </div>
             </div>
@@ -84,139 +83,137 @@
 
 <!-- Scan JT Modal -->
 <div class="modal fade" id="search-jt-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header text-white" style="background-color:#011F3D;">
-                <h5 class="modal-title" id="exampleModalLabel">Scan / Enter Job Ticket</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color:#011F3D;">
+        <h5 class="modal-title" id="exampleModalLabel">Scan / Enter Job Ticket</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-md-10 offset-md-1" id="jt-numpad">
+          <div class="form-group">
+            <div class="input-group jt-grp">
+              <div class="input-group-prepend">
+                <div class="input-group-text">PROM-</div>
+              </div>
+              <input type="text" class="form-control" id="job-ticket-id" style="font-size: 15pt;" required>
             </div>
-            <div class="modal-body">
-                <div class="col-md-10 offset-md-1" id="jt-numpad">
-                    <div class="form-group">
-                      <div class="input-group jt-grp">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">PROM-</div>
-                        </div>
-                        <input type="text" class="form-control" id="job-ticket-id" style="font-size: 15pt;" required>
-                      </div>
-                      <small class="font-italic font-weight-bold empty-job-ticket-warning d-none" style="color: red">Please enter job ticket ID</small>
-                    </div>
-                    <div id="job-ticket-numpad">
-                        <div class="text-center">
-                            <div class="row1">
-                                <span class="numpad num">1</span>
-                                <span class="numpad num">2</span>
-                                <span class="numpad num">3</span>
-                            </div>
-                            <div class="row1">
-                                <span class="numpad num">4</span>
-                                <span class="numpad num">5</span>
-                                <span class="numpad num">6</span>
-                            </div>
-                            <div class="row1">
-                                <span class="numpad num">7</span>
-                                <span class="numpad num">8</span>
-                                <span class="numpad num">9</span>
-                            </div>
-                            <div class="row1">
-                                <span class="numpad" onclick="document.getElementById('job-ticket-id').value=document.getElementById('job-ticket-id').value.slice(0, -1);"><</span>
-                                <span class="numpad num">0</span>
-                                <span class="numpad" onclick="document.getElementById('job-ticket-id').value='';">Clear</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-10 offset-md-1">
-                                <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-job-ticket-btn">SUBMIT</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <small class="font-italic font-weight-bold empty-job-ticket-warning d-none" style="color: red">Please enter job ticket ID</small>
+          </div>
+          <div id="job-ticket-numpad">
+            <div class="text-center">
+              <div class="row1">
+                <span class="numpad num">1</span>
+                <span class="numpad num">2</span>
+                <span class="numpad num">3</span>
+              </div>
+              <div class="row1">
+                <span class="numpad num">4</span>
+                <span class="numpad num">5</span>
+                <span class="numpad num">6</span>
+              </div>
+              <div class="row1">
+                <span class="numpad num">7</span>
+                <span class="numpad num">8</span>
+                <span class="numpad num">9</span>
+              </div>
+              <div class="row1">
+                <span class="numpad" onclick="document.getElementById('job-ticket-id').value=document.getElementById('job-ticket-id').value.slice(0, -1);"><</span>
+                <span class="numpad num">0</span>
+                <span class="numpad" onclick="document.getElementById('job-ticket-id').value='';">Clear</span>
+              </div>
             </div>
+            <div class="row">
+              <div class="col-md-10 offset-md-1">
+                <button type="submit" class="btn btn-block btn-primary btn-lg" id="submit-job-ticket-btn">SUBMIT</button>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 <!-- Scan JT Modal -->
 
 <!-- Start Task Modal -->
 <div class="modal fade" id="selected-jt-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #011F3D;">
-                <h5 class="modal-title text-placeholder font-weight-bold" id="production-order"></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #011F3D;">
+        <h5 class="modal-title text-placeholder font-weight-bold" id="production-order"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid" id="production-order-container">
+          <div class="row d-flex flex-row justify-content-start align-items-center">
+            <div class="col-11 mx-auto text-left">
+              <span class="font-weight-bold d-block text-center" style="font-size: 11pt; display: block;"><span class="text-placeholder" id="reference"></span> - <span class="text-placeholder" id="classification"></span></span>
+              <span style="font-size: 10pt; color: #707B7C; display: block;">Customer</span>
+              <span style="font-size: 11pt; display: block;"><span class="text-placeholder font-weight-bold" id="customer-name"></span></span>
+              <span style="font-size: 10pt; color: #707B7C; display: block; margin-top: 8px;">Item Description</span>
+              <span class="text-justify" style="font-size: 10pt; display: block;">
+                <b><span class="text-placeholder" id="item-code"></span></b> - <span class="text-placeholder" id="item-description"></span>
+              </span>
+              <span class="notes d-none" style="font-size: 10pt; color: #707B7C; display: block;">Notes</span>
+              <span class="notes d-none" style="font-size: 11pt; display: block;"><span class="text-placeholder" id="notes"></span></span>
+              <div class="d-none" id="hidden-values">
+                <span class="text-placeholder" id="jt-id"></span>
+                <span class="text-placeholder" id="process-id"></span>
+                <span id="machine-code">{{ $machine_details->machine_code }}</span>
+              </div>
             </div>
-            <div class="modal-body">
-                <div class="container-fluid" id="production-order-container">
-                    <div class="row d-flex flex-row justify-content-start align-items-center">
-                       
-                        <div class="col-11 mx-auto text-left">
-                            <span class="font-weight-bold d-block text-center" style="font-size: 11pt; display: block;"><span class="text-placeholder" id="reference"></span> - <span class="text-placeholder" id="classification"></span></span>
-                            <span style="font-size: 10pt; color: #707B7C; display: block;">Customer</span>
-                            <span style="font-size: 11pt; display: block;"><span class="text-placeholder font-weight-bold" id="customer-name"></span></span>
-                            <span style="font-size: 10pt; color: #707B7C; display: block; margin-top: 8px;">Item Description</span>
-                            <span class="text-justify" style="font-size: 10pt; display: block;">
-                                <b><span class="text-placeholder" id="item-code"></span></b> - <span class="text-placeholder" id="item-description"></span>
-                            </span>
-                            <span class="notes d-none" style="font-size: 10pt; color: #707B7C; display: block;">Notes</span>
-                            <span class="notes d-none" style="font-size: 11pt; display: block;"><span class="text-placeholder" id="notes"></span></span>
-                            <div class="d-none" id="hidden-values">
-                                <span class="text-placeholder" id="jt-id"></span>
-                                <span class="text-placeholder" id="process-id"></span>
-                                <span id="machine-code">{{ $machine_details->machine_code }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="col-8 mx-auto">
-                          <div class="form-group" style="margin-top: 20px;">
-                            <div class="input-group">
-                                <input type="text" class="form-control input-placeholder qty-grp rounded" id="qty" style="font-size: 16pt; border: 1px solid #6C757D; text-align: center; font-weight: bold;" value="" placeholder='Enter Qty' required>
-                            </div>
-                            <span class="font-weight-bold d-none">Max: <span id="max"></span></span>
-                            <small class="font-italic font-weight-bold empty-qty-warning d-none" style="color: red">Please enter qty</small>
-                          </div>
-                        </div>
-                        <div class="col-12 mt-2 mx-auto">
-                            <div id="qty-numpad">
-                                <div class="text-center">
-                                    <div class="row1">
-                                        <span class="numpad qty num">1</span>
-                                        <span class="numpad qty num">2</span>
-                                        <span class="numpad qty num">3</span>
-                                    </div>
-                                    <div class="row1">
-                                        <span class="numpad qty num">4</span>
-                                        <span class="numpad qty num">5</span>
-                                        <span class="numpad qty num">6</span>
-                                    </div>
-                                    <div class="row1">
-                                        <span class="numpad qty num">7</span>
-                                        <span class="numpad qty num">8</span>
-                                        <span class="numpad qty num">9</span>
-                                    </div>
-                                    <div class="row1">
-                                        <span class="numpad qty" onclick="document.getElementById('qty').value=document.getElementById('qty').value.slice(0, -1);"><</span>
-                                        <span class="numpad qty num">0</span>
-                                        <span class="numpad qty" onclick="document.getElementById('qty').value='';">Clear</span>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-10 offset-md-1">
-                                        <button type="submit" class="btn btn-block btn-danger btn-lg text-uppercase" id="start-task-btn">
-                                            <i class="now-ui-icons media-1_button-play"></i>&nbsp;Start Now
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="col-8 mx-auto">
+              <div class="form-group" style="margin-top: 20px;">
+                <div class="input-group">
+                  <input type="text" class="form-control input-placeholder qty-grp rounded" id="qty" style="font-size: 16pt; border: 1px solid #6C757D; text-align: center; font-weight: bold;" value="" placeholder='Enter Qty' required>
                 </div>
+                <span class="font-weight-bold d-none">Max: <span id="max"></span></span>
+                <small class="font-italic font-weight-bold empty-qty-warning d-none" style="color: red">Please enter qty</small>
+              </div>
             </div>
+            <div class="col-12 mt-2 mx-auto">
+              <div id="qty-numpad">
+                <div class="text-center">
+                  <div class="row1">
+                    <span class="numpad qty num">1</span>
+                    <span class="numpad qty num">2</span>
+                    <span class="numpad qty num">3</span>
+                  </div>
+                  <div class="row1">
+                    <span class="numpad qty num">4</span>
+                    <span class="numpad qty num">5</span>
+                    <span class="numpad qty num">6</span>
+                  </div>
+                  <div class="row1">
+                    <span class="numpad qty num">7</span>
+                    <span class="numpad qty num">8</span>
+                    <span class="numpad qty num">9</span>
+                  </div>
+                  <div class="row1">
+                    <span class="numpad qty" onclick="document.getElementById('qty').value=document.getElementById('qty').value.slice(0, -1);"><</span>
+                    <span class="numpad qty num">0</span>
+                    <span class="numpad qty" onclick="document.getElementById('qty').value='';">Clear</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-10 offset-md-1">
+                    <button type="submit" class="btn btn-block btn-danger btn-lg text-uppercase" id="start-task-btn">
+                      <i class="now-ui-icons media-1_button-play"></i>&nbsp;Start Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 <!-- Start Task Modal -->
 
@@ -332,41 +329,37 @@
 </div>
 <div class="modal fade" id="chemical-records-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
-     <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-           <h5 class="modal-title">&nbsp;
-             Painting Chemical Records
-           </h5>
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-           </button>
-        </div>
-        <div class="modal-body">
-           <div id="chemical-records-div"></div>
-        </div>
-     </div>
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title">Painting Chemical Records</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="chemical-records-div"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="modal fade" id="water-discharged-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
-     <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #0277BD;">
-           <h5 class="modal-title">&nbsp;
-             Water Discharge Monitoring
-           </h5>
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-           </button>
-        </div>
-        <div class="modal-body">
-           <div id="water_discharged_div"></div>
-        </div>
-     </div>
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title">Water Discharge Monitoring</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="water_discharged_div"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="modal fade" id="jt-workstations-modal2" tabindex="-1" role="dialog">
-   <div class="modal-dialog" role="document" style="min-width: 90%;">
-     <div class="modal-content">
+  <div class="modal-dialog" role="document" style="min-width: 90%;">
+    <div class="modal-content">
       <div class="text-white rounded-top" style="background-color: #0277BD;">
         <div class="d-flex flex-row justify-content-between p-3 align-items-center">
           <h5 class="font-weight-bold m-0 p-0">Job Ticket</h5>
@@ -378,44 +371,42 @@
           </div>
         </div>
       </div>
-       <div class="modal-body" style="min-height: 600px;">
-         <div id="production-search-content-modal2"></div>
-       </div>
-     </div>
-   </div>
- </div>
- <div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+      <div class="modal-body" style="min-height: 600px;">
+        <div id="production-search-content-modal2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="select-process-for-inspection-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog" role="document" style="min-width: 95%;">
-     <div class="modal-content">
-        <div class="modal-header text-white" style="background-color: #f57f17;">
-           <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
-           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-           </button>
-           <input type="hidden" id="workstation" value="Painting">
-        </div>
-        <div class="modal-body" style="min-height: 480px;">
-           <div class="row" id="tasks-for-inspection-tbl" style="margin-top: 10px;"></div>
-        </div>
-     </div>
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #f57f17;">
+        <h5 class="modal-title"><b>Painting</b> - <span class="production-order"></span></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <input type="hidden" id="workstation" value="Painting">
+      </div>
+      <div class="modal-body" style="min-height: 480px;">
+        <div class="row" id="tasks-for-inspection-tbl" style="margin-top: 10px;"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="modal fade" id="powder-record-modal" tabindex="-1" role="dialog">
-   <div class="modal-dialog" style="min-width: 98%;" role="document">
-      <div class="modal-content">
-         <div class="modal-header text-white" style="background-color: #0277BD;">
-            <h5 class="modal-title">&nbsp;
-              POWDER COAT - INVENTORY UPDATE
-            </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-            </button>
-         </div>
-         <div class="modal-body">
-            <div id="powder_record_div"></div>
-         </div>
+  <div class="modal-dialog" style="min-width: 98%;" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title">POWDER COAT - INVENTORY UPDATE</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-   </div>
+      <div class="modal-body">
+        <div id="powder_record_div"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Maintenance Modal -->
@@ -973,6 +964,11 @@
     var end_scrap_task_active_input = null;
       
     $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
+      $('.custom-selected-active-input').removeClass('custom-bg-selected-active-input text-white font-weight-bold');
+      if ($(this).data('qa') !== undefined) {
+        $(this).closest('.d-flex').addClass('custom-selected-active-input custom-bg-selected-active-input text-white font-weight-bold');
+      }
+      
       if($(this).data('edit') > 0){
         active_input = $(this).attr('id');
       }else{
@@ -1027,137 +1023,6 @@
         $('#confirm-sample-size-modal').modal('hide');
       });
   
-      $(document).on('click', '#quality-inspection-frm .next-tab', function(e){
-        e.preventDefault();
-              
-        var tab_id = $(this).data('tab-id');
-        var tab_qty_reject = parseInt($('#' + tab_id + '-qty-reject').val());
-        var tab_qty_checked = parseInt($('#' + tab_id + '-qty-checked').val());
-        var tab_qty = parseInt($('#' + tab_id + '-qty').val());
-        var tab_reject_level = parseInt($('#' + tab_id + ' .reject-level').text());
-  
-        if(tab_qty_checked <= 0){
-          showNotification("danger", 'Please enter quantity checked.', "now-ui-icons travel_info");
-          return false;
-        }
-  
-        var checklist_unchecked = $('#' + tab_id + ' .chk-list input:checkbox:not(:checked)').length;
-        if(checklist_unchecked > 0){
-          if(tab_qty_reject <= 0){
-            showNotification("danger", 'Please enter quantity reject.', "now-ui-icons travel_info");
-            return false;
-          }
-  
-          if(tab_qty_reject > tab_qty_checked){
-            showNotification("danger", 'Reject quantity cannot be greater than quantity checked.', "now-ui-icons travel_info");
-            return false;
-          }
-        }else{
-          $('#' + tab_id + '-qty-reject').val(0);
-        }
-  
-        if(tab_qty_checked > tab_qty){
-          showNotification("danger", 'Quantity checked cannot be greater than '+ tab_qty +'.', "now-ui-icons travel_info");
-          return false;
-        }
-  
-        var sample_size = $('#' + tab_id + ' .sample-size').text();
-        if(sample_size != $('#' + tab_id + '-qty-checked').val()){
-          if($('#' + tab_id + '-validated-sample-size').val() == 0){
-            $('#confirm-sample-size-modal .sample-size').text(sample_size);
-            $('#sample-size-tab-id').val(tab_id);
-            $('#confirm-sample-size-modal').modal('show');
-            return false;
-          }
-        }
-  
-        var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-        if(next_tab_id != 'tablast'){
-          if(tab_qty_reject > tab_reject_level){
-            $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-          }else{
-            $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-          }
-        }
-        
-        var no_rej = '';
-        var table = '<table style="width: 100%; font-size: 10pt;" border="1">' + 
-          '<col style="width:30%;"><col style="width:20%;"><col style="width:50%;">' +
-          '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Inspection</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject(s)</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th></tr>';
-        
-        var reject_id = '';
-        var reject_values = '';
-        var qty_checked = 0;
-        var qty_reject = 0;
-        $('#quality-inspection-modal .custom-tabs-1').each(function(){
-          var tab_pane_id = $('#' + $(this).attr('id') + '-inspection');
-          var q = tab_pane_id.find('input[name="qty_checked"]').eq(0).val();
-          var r = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-          if(q){
-            qty_checked = qty_checked + parseInt(q);
-            qty_reject = qty_reject + parseInt(r);
-          }
-  
-          $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            if($.isNumeric($(this).val())){
-              reject_id += $(this).val() + ',';
-              reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
-            }
-          });
-
-          var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
-          var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-          var reason = '';
-          $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            if($.isNumeric($(this).val())){
-              reason += $(this).data('reject-reason') + ', ';
-            }
-          });
-
-          if(checklist_category){
-            if(parseInt(tab_pane_id.find('input[name="qty_checked"]').eq(0).val()) > 0){
-              if(reject_qty <= 0){
-                reason = 'No Reject';
-                no_rej += '<br>' + tab_pane_id.find('.chklist-cat').text();
-              }else{
-                table += '<tr>' + 
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">' + checklist_category + '</div></td>' +
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + reject_qty + '</td>' +
-                  '<td style="border: 1px solid #ABB2B9; padding: 2px;">' + 
-                  '<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px;">' + reason + '</div></td>' +
-                  '</tr>';
-              }
-            }
-          }
-  
-          $('#qa-result-div-1').html(no_rej);
-        });
-  
-        table += '</table>';
-  
-        $('#rejection-types-input').val(reject_id);
-        $('#rejection-values-input').val(reject_values);
-        $('#final-qty-checked').text(qty_checked);
-  
-        $('#total-rejects-input').val(qty_reject);
-        $('#total-checked-input').val(qty_checked);
-  
-        if(qty_reject > 0){
-          $('#quality-inspection-frm .reject-details-tr').removeAttr('hidden');
-          $('#qc-status').addClass('text-danger').removeClass('text-success').text('QC Failed');
-          $('#qa-result-div').html(table);
-        }else{
-          $('#quality-inspection-frm .reject-details-tr').attr('hidden', true);
-          $('#qc-status').addClass('text-success').removeClass('text-danger').text('QC Passed');
-          $('#qa-result-div').empty();
-        }
-  
-        active_input = null;
-        
-        $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().next().find('.custom-tabs-1').tab('show');
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeAttr('active');
-      });
-
       $(document).on('change', '.select-all-checklist-per-tab', function(e){
         e.preventDefault();
         var selector = '.' + $(this).attr('id');
@@ -1167,19 +1032,6 @@
       $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
         $('#quality-inspection-modal img').slideToggle();
         $('#quality-inspection-modal .manual').slideToggle();
-      });
-  
-      $(document).on('click', '#quality-inspection-frm .prev-tab', function() {
-        active_input = null;
-  
-        var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-        if(next_tab_id != 'tablast'){
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-        }else{
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-        }
-  
-        $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().prev().find('.custom-tabs-1').tab('show');
       });
   
       $('#quality-check-modal-btn').click(function(e){

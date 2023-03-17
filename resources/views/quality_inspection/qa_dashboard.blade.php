@@ -310,6 +310,19 @@
       $(this).closest("tr").remove();
     });
 
+    $(document).on('click', '.qarc-remove-reject-type-row', function(e) {
+      e.preventDefault();
+
+      var prev = $(this).closest('.d-flex').prev().length;
+      var next = $(this).closest('.d-flex').next().length;
+      
+      if(prev <= 0 && next <=0) {
+        $(this).closest("tr").remove();
+      }
+
+      $(this).closest(".d-flex").remove();
+    });
+
     function showNotification(color, message, icon){
       $.notify({
         icon: icon,

@@ -36,11 +36,11 @@
             <th class="p-1 text-center" style="width: 12%;">Workstation</th>
             <th class="p-1 text-center" style="width: 13%;">Date Reported</th>
             <th class="p-1 text-center" style="width: 15%;">Operator Name</th>
-            <th class="p-1 text-center" style="width: 10%;">Declared Reject</th>
-            <th class="p-1 text-center" style="width: 23%;">Reject Type & Qty</th>
+            <th class="p-1 text-center" style="width: 23%;">Occurrence per Reject Type</th>
+            <th class="p-1 text-center" style="width: 10%;">Declared Reject Qty</th>
             <th class="p-1 text-center" style="width: 12%;">Confirmed Reject Qty</th>
             <th class="p-1 text-center" style="width: 10%;">Disposition</th>
-            <th class="p-1 text-center" style="width: 5%;">-</th>
+            <th class="p-1 text-center" style="width: 5%;">Action</th>
         </thead>
         <tbody style="font-size: 9pt;">
             @forelse ($timelogs as $timelog)
@@ -54,8 +54,15 @@
                 
                 if ($production_order_details->operation_id == 3) {
                     $workstation_checklist = $checklist;
-                } else {
+                } elseif ($r->workstation == 'Painting') {
                     $workstation_checklist = array_key_exists($r->workstation, $checklist) ? $checklist[$r->workstation] : [];
+                } else {
+                    if (array_key_exists($r->workstation, $checklist)) {
+                        $workstation_checklist = $checklist[$r->workstation];
+                        $workstation_checklist = array_key_exists($r->process_id, $workstation_checklist) ? $workstation_checklist[$r->process_id] : [];
+                    } else {
+                        $workstation_checklist = [];
+                    }
                 }
             @endphp
             <tr>
@@ -67,26 +74,29 @@
                 </td>
                 <td class="text-center p-1">{{ \Carbon\Carbon::parse($r->created_at)->format('M. d, Y h:i A') }}</td>
                 <td class="text-center p-1">{{ $r->operator_name }}</td>
-                <td class="text-center p-1">{{ $r->rejected_qty }}</td>
                 <td class="text-center p-1">
                     @foreach ($select_arr as $item)
-                        <div class="p-0 row m-0">
-                            <div class="col-8 p-1">
-                                <select class="form-control rounded" name="reject_type[{{ $timelog }}][{{ $item->reject_reason_id }}]" required>
-                                    <option value="" {{ !in_array($item->reject_list_id, collect($workstation_checklist)->pluck('reject_list_id')->toArray()) ? 'selected' : null }} disabled>Select Reject Type</option>
-                                    @forelse($workstation_checklist as $i)
-                                        <option value="{{ $i->reject_list_id }}" {{ $item->reject_list_id == $i->reject_list_id ? 'selected' : '' }}>{{ $i->reject_reason }}</option>
-                                    @empty
-                                        <option value="">No Reject Type(s)</option>
-                                    @endforelse
-                                </select>
-                            </div>
-                            <div class="col-4 p-1">
-                                <input type="text" class="form-control rounded" name="reject_type_qty[{{ $timelog }}]" data-type="Reject Type" placeholder="Reject Qty" required>
-                            </div>
+                    <div class="d-flex flex-row align-items-center">
+                        <div class="col-8 p-1">
+                            <select class="form-control rounded" name="reject_type[{{ $timelog }}][{{ $item->reject_reason_id }}]" required>
+                                <option value="" {{ !in_array($item->reject_list_id, collect($workstation_checklist)->pluck('reject_list_id')->toArray()) ? 'selected' : null }} disabled>Select Reject Type</option>
+                                @forelse($workstation_checklist as $i)
+                                    <option value="{{ $i['reject_list_id'] }}" {{ $item->reject_list_id == $i['reject_list_id'] ? 'selected' : '' }}>{{ $i['reject_reason'] }}</option>
+                                @empty
+                                    <option value="">No Reject Type(s)</option>
+                                @endforelse
+                            </select>
                         </div>
+                        <div class="col-3 p-1">
+                            <input type="text" class="form-control rounded" name="reject_type_qty[{{ $timelog }}]" data-type="Reject Type" placeholder="Qty" required>
+                        </div>
+                        <div class="col-1 p-1">
+                            <a href="#" class="text-decoration-none font-weight-bold text-danger qarc-remove-reject-type-row" style="font-size: 18px;">&times;</a>
+                        </div>
+                    </div>
                     @endforeach
                 </td>
+                <td class="text-center p-1" style="font-size: 14px;">{{ $r->rejected_qty }}</td>
                 <td class="text-center p-1">
                     <input type="text" class="form-control rounded" name="confirmed_reject[{{ $r->time_log_id }}]" placeholder="Confirmed Reject Qty" required>
                 </td>

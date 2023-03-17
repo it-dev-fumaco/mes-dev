@@ -518,6 +518,11 @@
     var end_scrap_task_active_input = null;
       
     $(document).on('focus', '#quality-inspection-frm input[type=text]', function() {
+      $('.custom-selected-active-input').removeClass('custom-bg-selected-active-input text-white font-weight-bold');
+      if ($(this).data('qa') !== undefined) {
+        $(this).closest('.d-flex').addClass('custom-selected-active-input custom-bg-selected-active-input text-white font-weight-bold');
+      }
+      
       if($(this).data('edit') > 0){
         active_input = $(this).attr('id');
       }else{
@@ -558,7 +563,6 @@
         var x = input.val();
    
         input.val(x.substring(0, x.length - 1));
-    
         if (input.val().length == 0) {
           input.val(0);
         }
@@ -572,153 +576,9 @@
         $('#confirm-sample-size-modal').modal('hide');
       });
   
-      $(document).on('click', '#quality-inspection-frm .next-tab', function(e){
-        e.preventDefault();
-              
-        var tab_id = $(this).data('tab-id');
-        var tab_qty_reject = parseInt($('#' + tab_id + '-qty-reject').val());
-        var tab_qty_checked = parseInt($('#' + tab_id + '-qty-checked').val());
-        var tab_qty = parseInt($('#' + tab_id + '-qty').val());
-        var tab_reject_level = parseInt($('#' + tab_id + ' .reject-level').text());
-  
-        if(tab_qty_checked <= 0){
-          showNotification("danger", 'Please enter quantity checked.', "now-ui-icons travel_info");
-          return false;
-        }
-  
-        var checklist_unchecked = $('#' + tab_id + ' .chk-list input:checkbox:not(:checked)').length;
-        if(checklist_unchecked > 0){
-          if(tab_qty_reject <= 0){
-            showNotification("danger", 'Please enter quantity reject.', "now-ui-icons travel_info");
-            return false;
-          }
-  
-          if(tab_qty_reject > tab_qty_checked){
-            showNotification("danger", 'Reject quantity cannot be greater than quantity checked.', "now-ui-icons travel_info");
-            return false;
-          }
-        }else{
-          $('#' + tab_id + '-qty-reject').val(0);
-        }
-  
-        if(tab_qty_checked > tab_qty){
-          showNotification("danger", 'Quantity checked cannot be greater than '+ tab_qty +'.', "now-ui-icons travel_info");
-          return false;
-        }
-  
-        var sample_size = $('#' + tab_id + ' .sample-size').text();
-        if(sample_size != $('#' + tab_id + '-qty-checked').val()){
-          if($('#' + tab_id + '-validated-sample-size').val() == 0){
-            $('#confirm-sample-size-modal .sample-size').text(sample_size);
-            $('#sample-size-tab-id').val(tab_id);
-            $('#confirm-sample-size-modal').modal('show');
-            return false;
-          }
-        }
-  
-        var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-        if(next_tab_id != 'tablast'){
-          if(tab_qty_reject > tab_reject_level){
-            $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-          }else{
-            $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-          }
-        }
-        
-        var no_rej = '';
-        var table = '<table style="width: 100%; font-size: 10pt;" border="1">' + 
-          '<col style="width:30%;"><col style="width:20%;"><col style="width:50%;">' +
-          '<tr><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Inspection</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject(s)</th><th class="text-center" style="border: 1px solid #ABB2B9; padding: 2px 0;">Reject Reason</th></tr>';
-        
-        var reject_id = '';
-        var reject_values = '';
-        var qty_checked = 0;
-        var qty_reject = 0;
-        $('#quality-inspection-modal .custom-tabs-1').each(function(){
-          var tab_pane_id = $('#' + $(this).attr('id') + '-inspection');
-          var q = tab_pane_id.find('input[name="qty_checked"]').eq(0).val();
-          var r = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-          if(q){
-            qty_checked = qty_checked + parseInt(q);
-            qty_reject = qty_reject + parseInt(r);
-          }
-  
-          $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            if($.isNumeric($(this).val())){
-              reject_id += $(this).val() + ',';
-              reject_values += $('#' + $(this).attr('id') + '-input').val() + ',';
-            }
-          });
-  
-          var checklist_category = tab_pane_id.find('.checklist-category').eq(0).text();
-          var reject_qty = tab_pane_id.find('input[name="qty_reject"]').eq(0).val();
-          var reason = '';
-          $('#' + $(this).attr('id') + '-inspection input:checkbox:not(:checked)').each(function(){
-            if($.isNumeric($(this).val())){
-              reason += $(this).data('reject-reason') + ', ';
-            }
-          });
-  
-          if(checklist_category){
-            if(parseInt(tab_pane_id.find('input[name="qty_checked"]').eq(0).val()) > 0){
-              if(reject_qty <= 0){
-                reason = 'No Reject';
-                no_rej += '<br>' + tab_pane_id.find('.chklist-cat').text();
-              }else{
-                table += '<tr>' + 
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">' + checklist_category + '</div></td>' +
-                  '<td class="text-center" style="border: 1px solid #ABB2B9; padding: 2px;">' + reject_qty + '</td>' +
-                  '<td style="border: 1px solid #ABB2B9; padding: 2px;">' + 
-                  '<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px;">' + reason + '</div></td>' +
-                  '</tr>';
-              }
-            }
-          }
-  
-          $('#qa-result-div-1').html(no_rej);
-        });
-  
-        table += '</table>';
-  
-        $('#rejection-types-input').val(reject_id);
-        $('#rejection-values-input').val(reject_values);
-        $('#final-qty-checked').text(qty_checked);
-  
-        $('#total-rejects-input').val(qty_reject);
-        $('#total-checked-input').val(qty_checked);
-  
-        if(qty_reject > 0){
-          $('#quality-inspection-frm .reject-details-tr').removeAttr('hidden');
-          $('#qc-status').addClass('text-danger').removeClass('text-success').text('QC Failed');
-          $('#qa-result-div').html(table);
-        }else{
-          $('#quality-inspection-frm .reject-details-tr').attr('hidden', true);
-          $('#qc-status').addClass('text-success').removeClass('text-danger').text('QC Passed');
-          $('#qa-result-div').empty();
-        }
-  
-        active_input = null;
-        
-        $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().next().find('.custom-tabs-1').tab('show');
-        $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeAttr('active');
-      });
-  
       $(document).on('click', '#quality-inspection-modal .toggle-manual-input', function(e){
         $('#quality-inspection-modal img').slideToggle();
         $('#quality-inspection-modal .manual').slideToggle();
-      });
-  
-      $(document).on('click', '#quality-inspection-frm .prev-tab', function() {
-        active_input = null;
-  
-        var next_tab_id = $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').attr('id');
-        if(next_tab_id != 'tablast'){
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').removeClass('custom-tabs-1').addClass('active');
-        }else{
-          $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').addClass('custom-tabs-1').removeClass('active');
-        }
-  
-        $('#quality-inspection-modal .nav-tabs .nav-item > .active').parent().prev().find('.custom-tabs-1').tab('show');
       });
   
       $('#quality-check-modal-btn').click(function(e){
@@ -761,6 +621,8 @@
             $('#select-process-for-inspection-modal').modal('show');
             $('#select-process-for-inspection-modal .production-order').text(production_order);
             $('#tasks-for-inspection-tbl').html(data);
+          }, error: function(jqXHR, textStatus, errorThrown) {
+            showNotification("danger", 'An occured while getting tasks for QA inspection. Please contact your system administrator.', "now-ui-icons travel_info");
           }
         });
       }
@@ -802,9 +664,7 @@
             $('#quality-inspection-modal .qc-workstation').text('[' + workstation + ']');
             $('#quality-inspection-modal').modal('show');
           }, error: function(jqXHR, textStatus, errorThrown) {
-            console.log(jqXHR);
-            console.log(textStatus);
-            console.log(errorThrown);
+            showNotification("danger", 'An occured while getting QA checklist. Please contact your system administrator.', "now-ui-icons travel_info");
           },
         });
       });
@@ -830,10 +690,8 @@
                     active_input = null;
                     $('#quality-inspection-div').html(response);
                   }, error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR);
-                    console.log(textStatus);
-                    console.log(errorThrown);
-                  },
+                    showNotification("danger", 'An occured while getting QA checklist. Please contact your system administrator.', "now-ui-icons travel_info");
+                  }
                 });
               } else {
                 $('#quality-inspection-modal').modal('hide');
@@ -842,12 +700,9 @@
               showNotification("danger", data.message, "now-ui-icons travel_info");
               $('#quality-inspection-frm button[type="submit"]').removeAttr('disabled');
             }
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log(errorThrown);
-              }
+          }, error: function(jqXHR, textStatus, errorThrown) {
+            showNotification("danger", 'An occured while submitting QA inspection. Please contact your system administrator.', "now-ui-icons travel_info");
+          }
         });
       });
 
@@ -902,7 +757,6 @@
             type:"POST",
             data: $(this).serialize(),
             success:function(data){
-              console.log(data);
               if (data.success) {
                 showNotification("success", data.message, "now-ui-icons ui-1_check");
                 get_current_job_ticket_tasks();
@@ -910,11 +764,8 @@
               }else{
                 showNotification("danger", data.message, "now-ui-icons travel_info");
               }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
+            }, error: function(jqXHR, textStatus, errorThrown) {
+              showNotification("danger", 'An occured while adding helper. Please contact your system administrator.', "now-ui-icons travel_info");
             }
           });
         });
@@ -951,6 +802,8 @@
   
             $('#view-helpers-table tbody').append(row);
             $('#view-helpers-modal').modal('show');
+          }, error: function(jqXHR, textStatus, errorThrown) {
+            showNotification("danger", 'An occured while loading helpers. Please contact your system administrator.', "now-ui-icons travel_info");
           }
         });
       }
@@ -981,11 +834,8 @@
               }else{
                 showNotification("warning", data.message, "now-ui-icons travel_info");
               }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
+            }, error: function(jqXHR, textStatus, errorThrown) {
+              showNotification("danger", 'An occured while deleting helper. Please contact your system administrator.', "now-ui-icons travel_info");
             }
           });
         });
@@ -1300,7 +1150,6 @@
         type:"POST",
         data: $(this).serialize(),
         success:function(response){
-          console.log(response);
           if (response.success < 1) {
             showNotification("danger", response.message, "now-ui-icons travel_info");
           }else{
@@ -1310,23 +1159,6 @@
           }
         }
       });
-    });
-
-    $(document).on('click', '#quality-inspection-modal .select-item-for-inspection-btn', function(e) {
-      e.preventDefault();
-      var img = $(this).data('img');
-      var item_code = $(this).data('item-code');
-      var item_description = $(this).data('item-desc');
-      var required_qty = $(this).data('required-qty');
-
-      $('#quality-inspection-modal .selected-item-image').attr('src', img).attr('alt', item_code);
-      $('#quality-inspection-modal .selected-item-code').text(item_code);
-      $('#quality-inspection-modal .selected-item-description').text(item_description);
-      $('#quality-inspection-modal .selected-item-required-qty').val(required_qty);
-      $('#quality-inspection-modal .selected-item-tbl-cell').removeClass('d-none');
-      $('#quality-inspection-modal .selected-item-code-val').val(item_code);
-
-      $('#quality-inspection-modal .nav-tabs li > .active').parent().next().find('a[data-toggle="tab"]').tab('show');
     });
 
     $(document).on('click', '.start-task-btn', function(e){

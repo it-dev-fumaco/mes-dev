@@ -32,10 +32,12 @@
                   <span style="font-size: 7pt; display: block;">{{ $helper->operator_nickname }}</span>
                 </td>
                 @endforeach
-                <td class="align-top" style=" width: 50px;">
-                  <img src="{{ asset('img/add-user.png') }}" width="80" height="55" style="margin: 8px auto;" class="add-helper-btn" data-timelog-id="{{ $row['time_log_id'] }}" >
-                  <span style="font-size: 7pt; display: block;">&nbsp;</span>
-                </td>
+                @if ($row['time_log_id'])
+                  <td class="align-top" style=" width: 50px;">
+                    <img src="{{ asset('img/add-user.png') }}" width="80" height="55" style="margin: 8px auto;" class="add-helper-btn" data-timelog-id="{{ $row['time_log_id'] }}" >
+                    <span style="font-size: 7pt; display: block;">&nbsp;</span>
+                  </td>
+                @endif
               </tr>
             </table>
           </div>

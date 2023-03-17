@@ -35,9 +35,9 @@
                         <a href="/planning_wizard/no_bom" class="btn btn-secondary">Wizard - Item without BOM</a>
                         <a href="/assembly/wizard" class="btn btn-primary">Wizard - Item with BOM</a>
                      </div>
-                     <h4 class="title text-center" style="margin-left: 20px; margin: auto 20px; margin-top: -50px;">1. Select Sales Order / Material Request</h4>
+                     <h4 class="title text-center wizard-h4">1. Select Sales Order / Material Request</h4>
                      <div class="row" style="margin-top: 10px;">
-                        <div class="col-md-6 offset-md-3">
+                        <div class="col-md-7 mx-auto">
                            <form id="get-somr-frm">
                               @if (request('item'))
                               @foreach (request('item') as $r)
@@ -57,7 +57,7 @@
                                  <col style="width: 11%;">
                                  <tr>
                                     <td class="text-right align-middle">
-                                       <span style="margin-right: 10px;"><b>Get Items From:</b></span>
+                                       <span style="margin-right: 10px; white-space: nowrap;"><b>Get Items From:</b></span>
                                     </td>
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
@@ -68,7 +68,7 @@
                                        </div>
                                     </td>
                                     <td class="text-right align-middle">
-                                       <span style="margin-right: 10px; font-weight: bold;" id="reference-name">Sales Order</span>:
+                                       <span style="margin-right: 10px; font-weight: bold; white-space: nowrap;" id="reference-name">Sales Order</span>:
                                     </td>
                                     <td class="align-middle">
                                        <div class="form-group" style="margin: 0;">
@@ -823,6 +823,7 @@
                success:function(data){
                   if(data.message) {
                      showNotification("danger", data.message, "now-ui-icons travel_info");
+                     a1 = 0;
                      return false;
                   }
 
@@ -886,6 +887,7 @@
          var unreviewed_bom = $('#parts-list').find('.unchecked').length;
          if (unreviewed_bom > 0) {
             showNotification("info", 'Please review all BOM first.', "now-ui-icons travel_info");
+            a2 = 0;
             return false;
          }
 
@@ -1114,6 +1116,7 @@
                success:function(data){
                   if (data.message) {
                      showNotification("danger", data.message, "now-ui-icons travel_info");
+                     a3 = 0;
                      return false;
                   }
 
@@ -1175,6 +1178,7 @@
                success:function(data){
                   if (data.message) {
                      showNotification('danger', data.message, "now-ui-icons travel_info");
+                     a4 = 0;
                      return false;
                   }
 

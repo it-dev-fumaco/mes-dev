@@ -13,7 +13,7 @@
             <div class="row">
                 <div class="col-12 pt-3 mx-auto">
                     <div class="row">
-                        <div class="col-3 offset-6">
+                        <div class="col-3">
                             <div class="row">
                                 <div class="col-3 p-0" style="display: flex; justify-content: center; align-items: center;">
                                     <b>Date Filter</b>
@@ -23,29 +23,33 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="row">
-                                <div class="col-3 p-0" style="display: flex; justify-content: center; align-items: center;">
-                                    <b>Operation</b>
-                                </div>
-                                <div class="col-9 p-0">
-                                    <select class="form-control tbl-filter rounded" id="operation">
-                                        @foreach ($operations as $operation)
-                                            <option value="{{ $operation->operation_id }}">{{ $operation->operation_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-12 mx-auto pt-3" id="tbl-container"></div>
+            <div class="row mt-3">
+                <div class="col-6 pt-3 pl-5 pr-5">
+                    <div class="d-flex flex-row mb-2">
+                        <h5 class="col-8 p-0 m-0">Fabrication</h5>
+                        <div class="col-4 p-0 m-0 text-right">
+                            <button class="btn btn-primary export-btn m-0 btn-sm" data-operation="1" data-operation-name="Fabrication">Export</button>
+                        </div>
+                    </div>
+                    <div class="tbl-container" data-operation="1"></div>
+                </div>
+                <div class="col-6 pt-3 pl-5 pr-5">
+                    <div class="d-flex flex-row mb-2">
+                        <h5 class="col-8 p-0 m-0">Wiring & Assembly</h5>
+                        <div class="col-4 p-0 m-0 text-right">
+                            <button class="btn btn-primary export-btn m-0 btn-sm" data-operation="3" data-operation-name="Wiring & Assembly">Export</button>
+                        </div>
+                    </div>
+                    <div class="tbl-container" data-operation="3"></div>
+                </div>
             </div>
         </div>
     </div>
 <div id="active-tab"></div>
+<div id="for-export" class="d-none"></div> 
 @endsection
 @section('script')
 <script type="text/javascript" src="{{ asset('js/daterange/moment.min.js') }}"></script>
@@ -55,6 +59,7 @@
 <script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
+<script src="{{ asset('js/excel-export/src/jquery.table2excel.js') }}"></script>
 <script>
 $(document).ready(function(){
     setInterval(updateClock, 1000);
@@ -77,30 +82,51 @@ $(document).ready(function(){
 
     $(document).on('change', '.tbl-filter', function(e){
         e.preventDefault();
-        load_tbl();
+        $('.tbl-container').each(function( index ) {
+            load_tbl($(this).data('operation'), $(this));
+        });
     });
 
-    $(document).on('click', '#inaccurate-operator-feedback-report-pagination a', function(event){
-        event.preventDefault();
-        var page = $(this).attr('href').split('page=')[1];
-        load_tbl(page);
+    $('.tbl-container').each(function( index ) {
+        load_tbl($(this).data('operation'), $(this));
     });
 
-    load_tbl();
-    function load_tbl(page){
+    function load_tbl(operation, el){
         $.ajax({
             type: 'GET',
             url: '/inaccurate_operator_feedback',
             data: {
                 date_range: $('#date-range').val(),
-                operation: $('#operation').val(),
-                page: page
+                operation: operation,
             },
             success: function(response){
-                $('#tbl-container').html(response);
+                el.html(response);
             }
         });
     }
+
+    $(document).on('click', '.export-btn', function (e) {
+        e.preventDefault();
+
+        var op = $(this).data('operation');
+        var op_name = $(this).data('operation-name');
+
+        $.ajax({
+            type: 'GET',
+            url: '/inaccurate_operator_feedback',
+            data: {
+                date_range: $('#date-range').val(),
+                operation: op,
+            },
+            success: function(response){
+                $('#for-export').html(response);
+                $('#for-export').find('table').table2excel({
+                    name: "Worksheet Name",
+                    filename: op_name + '.xls'
+                }); 
+            }
+        });
+    });
 
     function updateClock(){
         var currentTime = new Date();

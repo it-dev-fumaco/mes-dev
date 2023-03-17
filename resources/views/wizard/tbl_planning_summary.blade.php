@@ -16,7 +16,7 @@
 		<th class="text-center" style="font-size: 9pt;"><b>Production Order</b></th>
 		<th class="text-center" style="font-size: 9pt;"><b>Item Code</b></th>
 		<th class="text-center" style="font-size: 9pt;"><b>Planned Qty</b></th>
-		@if ($has_unplanned > 0) style="font-size: 9pt;"
+		@if ($has_unplanned > 0)
 		<th class="text-center" style="font-size: 9pt;"><b>Unplanned Qty</b></th>
 		@endif
 		<th class="text-center" style="font-size: 9pt;"><b>Planned Prod. Orders</b></th>

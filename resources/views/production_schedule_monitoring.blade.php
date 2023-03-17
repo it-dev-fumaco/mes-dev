@@ -440,6 +440,13 @@
     -webkit-transition: all 0.3s 1s ease-out;  
     transition: all 0.3s 1s ease-out;
   }
+
+  #s-tab-1 .nav-item .active{
+		background-color: #fff !important;
+		font-weight: bold !important;
+    border-bottom: solid 5px #f96332;
+		color: #f96332 !important;
+	}
 </style>
 
 <div class="modal fade" id="reset-task-modal" tabindex="-1" role="dialog">
@@ -891,7 +898,7 @@
     }
 
     $(document).on('click', '#btn-print-schedule', function () {
-      window.location.href = "/get_scheduled_production_order/" + operation_id + "/" + scheduled_date;
+      window.open("/get_scheduled_production_order/" + operation_id + "/" + scheduled_date, '_blank');
     });
   
     count_current_production();
