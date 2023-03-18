@@ -3871,7 +3871,6 @@ class ManufacturingController extends Controller
                     return response()->json(['success' => 0, 'message' => 'Qty to produce for <b>' . $data_mes['item_code'] . '</b> cannot be greater than <b>' . (float)$ordered_item->qty . '</b> ' . $ordered_item->stock_uom . $existing_prods]);
                 }
             }
-            
             if($request->custom_bom){
                 $mes_custom_operations = [];
                 foreach($request->workstation_id as $p => $w_id){
