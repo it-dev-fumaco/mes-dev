@@ -415,7 +415,7 @@ class SpotweldingController extends Controller
 					}
 				}
 			}else{
-				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->first();
+				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->where('operator_id', Auth::user()->user_id)->first();
 				if ($time_log) {
 					$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
 					if ($job_ticket) {
@@ -434,11 +434,11 @@ class SpotweldingController extends Controller
 						$update_jt = [
 							'last_modified_at' => $now->toDateTimeString(),
 							'last_modified_by' => Auth::user()->employee_name,
-							'completed_qty' => $total_good,
+							'good' => $total_good,
 							'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0'),
 						];
 						
-						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id',$request->id)->update($update_jt);
+						DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id',$time_log->time_log_id)->update($update_jt);
 
 						$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
 						
@@ -454,7 +454,6 @@ class SpotweldingController extends Controller
 							}
 							DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
 						}
-		
 					}
 
 					$update_job_ticket = $this->update_job_ticket($time_log->job_ticket_id);

@@ -629,6 +629,7 @@ class MainController extends Controller
 				'operations' => $operations_arr,
 				'remarks' => $row->remarks,
 				'completed_qty' => $row->completed_qty,
+				'jt_status' => $row->status,
 				'cycle_time' => $this->compute_item_cycle_time_per_process($details->item_code, $details->qty_to_manufacture, $row->workstation, $row->process_id)
 			];
 		}
