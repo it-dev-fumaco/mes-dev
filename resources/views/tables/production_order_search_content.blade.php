@@ -214,6 +214,9 @@
 														<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ ($rowspan) }}">
 															<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $jt }}" data-prodno="{{ $production_order_no }}">{{ $workstation }} {!! $icon !!}</span>
 														</td>
+														@php
+															$wip_painting = collect($processes)->where('workstation', 'Painting')->where('jt_status', 'In Progress')->count();
+														@endphp
 														@foreach ($processes as $process)
 														<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $process['count'] }}">
 															<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $process['job_ticket'] }}" data-prodno="{{ $process['production_order'] }}">
@@ -301,6 +304,10 @@
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
+														@endif
+														@if ($process['workstation'] == 'Painting' && $wip_painting <= 0)
+														<td class="text-center" style="border: 1px solid #ABB2B9;">1</td>
+														@endif
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														@if ($item_details['feedback_qty'] <= 0)
 														<td class="text-center" style="border: 1px solid #ABB2B9;">
