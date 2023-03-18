@@ -303,10 +303,11 @@
 														@endif
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														<td class="text-center" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>-</td>
+														@if ($process['workstation'] != 'Painting')
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														@endif
 														@if ($process['workstation'] == 'Painting' && $wip_painting <= 0)
-														<td class="text-center" style="border: 1px solid #ABB2B9;">1</td>
+														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														@endif
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														@if ($item_details['feedback_qty'] <= 0)
