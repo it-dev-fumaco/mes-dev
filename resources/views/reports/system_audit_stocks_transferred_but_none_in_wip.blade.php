@@ -43,7 +43,7 @@
                                 <th class="text-center">Item Code</th>
                                 <th class="text-center">Warehouse</th>
                                 <th class="text-center">Bin Actual Qty</th>
-                                <th class="text-center">Transferred Qty</th>
+                                <th class="text-center">Total Transferred Qty</th>
                                 <th class="text-center">Production Orders</th>
                                 <th class="text-center">Owner</th>
                             </tr>
@@ -73,18 +73,16 @@
                                                     <table class="table table-bordered table-striped">
                                                         <tr>
                                                             <th>Production Order</th>
-                                                            {{-- <th>Warehouse</th> --}}
-                                                            <th>Status</th>
-                                                            <th>Transferred Qty</th>
                                                             <th>Required Qty</th>
+                                                            <th>Transferred Qty</th>
+                                                            <th>Consumed Qty</th>
                                                         </tr>
                                                         @foreach ($po['production_orders'] as $item)
                                                             <tr>
                                                                 <td>{{ $item->name }}</td>
-                                                                {{-- <td>{{ $item->wip_warehouse }}</td> --}}
-                                                                <td>{{ $item->status }}</td>
-                                                                <td>{{ $item->transferred_qty * 1 }}</td>
                                                                 <td>{{ $item->required_qty * 1 }}</td>
+                                                                <td>{{ $item->transferred_qty * 1 }}</td>
+                                                                <td>{{ $item->consumed_qty * 1 }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </table>
