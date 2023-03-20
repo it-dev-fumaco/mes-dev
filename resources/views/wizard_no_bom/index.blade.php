@@ -200,8 +200,11 @@
                <div class="col-md-6 offset-md-3">
                   <div class="form-group">
                      <label>Batch Qty</label>
-                     <input type="number" class="form-control form-control-lg d-none" id="planned-qty">
                      <input type="number" class="form-control form-control-lg" id="batch-qty">
+                     <div class="d-none">
+                        <input type="number" class="form-control form-control-lg" id="planned-qty">
+                        <input type="text" class="form-control form-control-lg" id="orig-row">
+                     </div>
                   </div>
                </div>
             </div>
@@ -252,6 +255,7 @@
          create_batch_row = $(this).closest('tr');
          $('#planned-qty').val(create_batch_row.find('.qty-to-manufacture').val());
          $('#batch-qty').val(create_batch_row.find('.qty-to-manufacture').val());
+         $('#orig-row').val($(this).data('orig-row'));
          $('#create-batch-modal').modal('show');
       });
 
@@ -260,6 +264,7 @@
          
          var batch_qty = $('#batch-qty').val();
          var planned_qty = $('#planned-qty').val();
+         var row_id = (typeof($('#orig-row').val()) != "undefined") ? $('#orig-row').val() : '';
 
          if (batch_qty <= 0) {
             showNotification("danger", 'Qty cannot be less than or equal to 0', "now-ui-icons travel_info");
@@ -272,8 +277,21 @@
          }
          
          var tr = create_batch_row.closest('tr');
-         var clone = tr.clone();
+
+         var clone = tr.clone().attr('id', '').addClass(row_id);
          create_batch_row.after(clone);
+
+         if(typeof(tr.attr('id')) != "undefined" && tr.attr('id') != ''){
+            $('.' + row_id).find('.item-details').remove();
+            $('.' + row_id).find('.planned-qty').remove();
+            $('.' + row_id).find('.planned-prod-orders').remove();
+         }
+
+         if(row_id && typeof($('#' + row_id)) != "undefined"){
+            $('#' + row_id).find('.item-details').attr('rowspan', $('.' + row_id).length + 1);
+            $('#' + row_id).find('.planned-qty').attr('rowspan', $('.' + row_id).length + 1);
+            $('#' + row_id).find('.planned-prod-orders').attr('rowspan', $('.' + row_id).length + 1);
+         }
 
          create_batch_row.find('.qty-to-manufacture').eq(0).val(planned_qty - batch_qty);
          clone.find('.qty-to-manufacture').eq(0).val(batch_qty);
@@ -762,6 +780,44 @@
 
                $btn.removeClass('btn-primary create-ste-btn').addClass('btn-success');
                $btn.html('<i class="now-ui-icons ui-1_check"></i> ' + response.id);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
+      });
+
+      $(document).on('change', '.source-wh-select', function(){
+         var item = $(this).closest('tr').find('.item-code').text();
+         var warehouse = $(this).val();
+         var $row = $(this).closest('tr');
+
+         var req = $row.find('.req-qty').text();
+         $.ajax({
+            url: "/get_actual_qty/" + item +'/' + warehouse,
+            type:"GET",
+            success:function(data){
+               var on_stock = data * 1;
+               var balance = on_stock - req;
+               var on_stock_color = (on_stock < req) ? 'red' : 'green';
+               var balance_color = (balance > 0) ? 'green' : 'red';
+
+               $row.find('.stock-qty').text(on_stock).css('color', on_stock_color);
+               $row.find('.balance-qty').text(balance).css('color', balance_color);
+               $row.find('.uom-stock').css('color', on_stock_color);
+               $row.find('.uom-bal').css('color', balance_color);
+
+               if (balance > 0) {
+                  $row.find('.mr-btn').attr('disabled', true);
+               }else{
+                  $row.find('.mr-btn').removeAttr('disabled');
+               }
             },
             error: function(jqXHR, textStatus, errorThrown) {
                if(jqXHR.status == 401) {
