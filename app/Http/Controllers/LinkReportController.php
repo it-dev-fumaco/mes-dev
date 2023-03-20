@@ -1743,13 +1743,12 @@ class LinkReportController extends Controller
             ->when($request->search, function ($q) use ($request){
                 return $q->where('woi.item_code', 'LIKE', '%'.$request->search.'%');
             })
-            ->where('wo.status', 'In Process')->whereIn('wo.wip_warehouse', $warehouses)
-            ->select('wo.name', 'wo.status', 'wo.wip_warehouse', 'woi.item_code', 'woi.transferred_qty', 'woi.required_qty', 'woi.stock_uom', 'wo.creation', 'wo.owner')
+            ->where('wo.docstatus', 1)->where('wo.status', 'In Process')
+            ->whereIn('wo.wip_warehouse', $warehouses)->where('woi.transferred_qty', '>', 0)
+			->select('wo.name', 'wo.status', 'wo.wip_warehouse', 'woi.item_code', 'woi.transferred_qty', 'woi.required_qty', 'woi.consumed_qty', 'woi.stock_uom', 'wo.creation', 'wo.owner')
             ->orderBy('creation', 'desc')->get();
 
-        $item_codes = collect($erp_po)->map(function ($q){
-            return $q->item_code;
-        })->unique();
+        $item_codes = collect($erp_po)->pluck('item_code')->unique();
 
         // return $po_collection = collect($erp_po)->groupBy('item_code');
         $po_collection = collect($erp_po)->groupBy('wip_warehouse')->transform(function($item, $k) {
@@ -1758,20 +1757,28 @@ class LinkReportController extends Controller
 
         $bin = DB::connection('mysql')->table('tabBin')->whereIn('warehouse', $warehouses)->whereIn('item_code', $item_codes)->select('warehouse', 'item_code', 'actual_qty', 'stock_uom', 'creation', 'owner')->orderBy('creation', 'desc')->get();
 
-        $bin_arr = [];
+		$bin_arr = [];
         foreach($bin as $b){
-            if(isset($po_collection[$b->warehouse][$b->item_code]) and $b->actual_qty < $po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty')){
-                $bin_arr[] = [
-                    'item_code' => $b->item_code,
-                    'warehouse' => $b->warehouse,
-                    'actual_qty' => $b->actual_qty,
-                    'transferred_qty' => $po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty'),
-                    'uom' => $b->stock_uom,
-                    'production_orders' => $po_collection[$b->warehouse][$b->item_code],
-                    'creation' => Carbon::parse($b->creation)->format('M d, Y'),
-                    'owner' => $b->owner
-                ];
-            }
+			if(isset($po_collection[$b->warehouse][$b->item_code])){
+				$required_qty = (float)$po_collection[$b->warehouse][$b->item_code]->sum('required_qty');
+				$transferred_qty = (float)$po_collection[$b->warehouse][$b->item_code]->sum('transferred_qty');
+				$consumed_qty = (float)$po_collection[$b->warehouse][$b->item_code]->sum('consumed_qty');
+				$remaining = (float)($transferred_qty - $consumed_qty);
+				
+				if((float)$b->actual_qty < $remaining){
+					$bin_arr[] = [
+						'item_code' => $b->item_code,
+						'warehouse' => $b->warehouse,
+						'actual_qty' => (float)$b->actual_qty,
+						'transferred_qty' => $transferred_qty,
+						'remaining' => $remaining,
+						'uom' => $b->stock_uom,
+						'production_orders' => $po_collection[$b->warehouse][$b->item_code],
+						'creation' => Carbon::parse($b->creation)->format('M d, Y'),
+						'owner' => $b->owner
+					];
+				}
+			}
         }
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
