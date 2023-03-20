@@ -111,7 +111,7 @@
          <td class="td-actions text-center">
             <span class="item-reference-id d-none">{{ $item['id'] }}</span>
             <div class="row m-0">
-               <div class="col-9 text-right p-0">
+               <div class="col-9 {{ $disabled ? 'mx-auto' : null }} text-right p-0">
                   <div class="btn-group" role="group">
                      @if ($disabled)
                         <button type="button" class="btn btn-success production-order-no" disabled><i class="now-ui-icons ui-1_check"></i> OK</button>
@@ -129,11 +129,13 @@
                      @endif
                   </div>
                </div>
-               <div class="col-2" style="padding: 0 0 0 5px">
-                  <button type="button" rel="tooltip" class="btn btn-danger delete-row">
-                     <i class="now-ui-icons ui-1_simple-remove"></i>
-                  </button>
-               </div>
+               @if (!$disabled)
+                  <div class="col-2" style="padding: 0 0 0 5px">
+                     <button type="button" rel="tooltip" class="btn btn-danger delete-row">
+                        <i class="now-ui-icons ui-1_simple-remove"></i>
+                     </button>
+                  </div>
+               @endif
             </div>
          </td>
       </tr>

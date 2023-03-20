@@ -775,6 +775,44 @@
          });
       });
 
+      $(document).on('change', '.source-wh-select', function(){
+         var item = $(this).closest('tr').find('.item-code').text();
+         var warehouse = $(this).val();
+         var $row = $(this).closest('tr');
+
+         var req = $row.find('.req-qty').text();
+         $.ajax({
+            url: "/get_actual_qty/" + item +'/' + warehouse,
+            type:"GET",
+            success:function(data){
+               var on_stock = data * 1;
+               var balance = on_stock - req;
+               var on_stock_color = (on_stock < req) ? 'red' : 'green';
+               var balance_color = (balance > 0) ? 'green' : 'red';
+
+               $row.find('.stock-qty').text(on_stock).css('color', on_stock_color);
+               $row.find('.balance-qty').text(balance).css('color', balance_color);
+               $row.find('.uom-stock').css('color', on_stock_color);
+               $row.find('.uom-bal').css('color', balance_color);
+
+               if (balance > 0) {
+                  $row.find('.mr-btn').attr('disabled', true);
+               }else{
+                  $row.find('.mr-btn').removeAttr('disabled');
+               }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
+      });
+
       function showNotification(color, message, icon){
          $.notify({
             icon: icon,
