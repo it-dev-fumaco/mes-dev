@@ -264,7 +264,7 @@
          
          var batch_qty = $('#batch-qty').val();
          var planned_qty = $('#planned-qty').val();
-         var row_id = $('#orig-row').val();
+         var row_id = (typeof($('#orig-row').val()) != "undefined") ? $('#orig-row').val() : '';
 
          if (batch_qty <= 0) {
             showNotification("danger", 'Qty cannot be less than or equal to 0', "now-ui-icons travel_info");
@@ -287,9 +287,11 @@
             $('.' + row_id).find('.planned-prod-orders').remove();
          }
 
-         $('#' + row_id).find('.item-details').attr('rowspan', $('.' + row_id).length + 1);
-         $('#' + row_id).find('.planned-qty').attr('rowspan', $('.' + row_id).length + 1);
-         $('#' + row_id).find('.planned-prod-orders').attr('rowspan', $('.' + row_id).length + 1);
+         if(row_id && typeof($('#' + row_id)) != "undefined"){
+            $('#' + row_id).find('.item-details').attr('rowspan', $('.' + row_id).length + 1);
+            $('#' + row_id).find('.planned-qty').attr('rowspan', $('.' + row_id).length + 1);
+            $('#' + row_id).find('.planned-prod-orders').attr('rowspan', $('.' + row_id).length + 1);
+         }
 
          create_batch_row.find('.qty-to-manufacture').eq(0).val(planned_qty - batch_qty);
          clone.find('.qty-to-manufacture').eq(0).val(batch_qty);
