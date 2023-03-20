@@ -62,9 +62,11 @@
             $disabled = null;
          }
       @endphp
-      <tr class="{{$div_color}}">
-         <td class="text-center"><b>{{ $item['idx'] }}</b></td>
-         <td class="text-justify">
+      <tr id="row-{{ $item['item_code'] }}" class="{{$div_color}}">
+         <td class="text-center">
+            <b>{{ $item['idx'] }}</b>
+         </td>
+         <td class="text-justify item-details">
             <span style="display: none;">{{ $item['idx'] }}</span>
             <span style="display: none;">{{ $item['reference'] }}</span>
             <span style="display:{{$div_hide}};" style="text-align:center;">
@@ -76,16 +78,20 @@
                <span class="ml-1 font-weight-bold">{{$div_orig}}</span> to <span class="ml-1 font-weight-bold">{{$div_parent}}</span>
                <br><br>
             </span>
-            <span class="d-block item-code font-weight-bold">{{ $item['item_code'] }}</span>
-            <span class="d-block item-description">{!! $item['description'] !!}</span>
+            <span class="d-block font-weight-bold">{{ $item['item_code'] }}</span>
+            <span class="d-block">{!! $item['description'] !!}</span>
             <br><br><b>{{ $item['item_classification'] }}</b>
          </td>
-         <td class="text-center" style="font-size: 11pt;">
-            <span class="qty" style="display: none;">{{ $item['qty'] }}</span>
+         <td class="text-center planned-qty" style="font-size: 11pt;">
             <b><span>{{ number_format($item['qty']) }}</span><br>{{ $item['uom'] }}</b>
          </td>
          <td class="text-center" style="font-size: 11pt;">
             <input type="text" class="form-control rounded qty-to-manufacture text-center" placeholder="Qty" value="{{ $unplanned_qty }}">
+            <div class="d-none">
+               <span class="qty">{{ $item['qty'] }}</span>
+               <span class="item-code">{{ $item['item_code'] }}</span>
+               <span class="item-description">{{ $item['description'] }}</span>
+            </div>
          </td>
          <td class="text-center">
             <div class="form-group" style="margin: 0;">
@@ -103,10 +109,12 @@
                </select>
             </div>
          </td>
-         <td class="text-center">
-            @foreach ($item['production_order'] as $production_order => $qty)
+         <td class="text-center planned-prod-orders">
+            @forelse ($item['production_order'] as $production_order => $qty)
                <span class="block">{{ $production_order.'('.(float)$qty.')' }}</span>
-            @endforeach
+            @empty
+               <span class="block">-</span>
+            @endforelse
          </td>
          <td class="td-actions text-center">
             <span class="item-reference-id d-none">{{ $item['id'] }}</span>
@@ -124,7 +132,7 @@
                            <span class="sr-only">Toggle Dropdown</span>
                         </button>
                         <div class="dropdown-menu">
-                           <a class="dropdown-item create-batch-btn" href="#">Create Batch</a>
+                           <a class="dropdown-item create-batch-btn" data-orig-row="row-{{ $item['item_code'] }}" href="#">Create Batch</a>
                         </div>
                      @endif
                   </div>

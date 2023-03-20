@@ -200,8 +200,11 @@
                <div class="col-md-6 offset-md-3">
                   <div class="form-group">
                      <label>Batch Qty</label>
-                     <input type="number" class="form-control form-control-lg d-none" id="planned-qty">
                      <input type="number" class="form-control form-control-lg" id="batch-qty">
+                     <div class="d-none">
+                        <input type="number" class="form-control form-control-lg" id="planned-qty">
+                        <input type="text" class="form-control form-control-lg" id="orig-row">
+                     </div>
                   </div>
                </div>
             </div>
@@ -252,6 +255,7 @@
          create_batch_row = $(this).closest('tr');
          $('#planned-qty').val(create_batch_row.find('.qty-to-manufacture').val());
          $('#batch-qty').val(create_batch_row.find('.qty-to-manufacture').val());
+         $('#orig-row').val($(this).data('orig-row'));
          $('#create-batch-modal').modal('show');
       });
 
@@ -260,6 +264,7 @@
          
          var batch_qty = $('#batch-qty').val();
          var planned_qty = $('#planned-qty').val();
+         var row_id = $('#orig-row').val();
 
          if (batch_qty <= 0) {
             showNotification("danger", 'Qty cannot be less than or equal to 0', "now-ui-icons travel_info");
@@ -272,8 +277,19 @@
          }
          
          var tr = create_batch_row.closest('tr');
-         var clone = tr.clone();
+
+         var clone = tr.clone().attr('id', '').addClass(row_id);
          create_batch_row.after(clone);
+
+         if(typeof(tr.attr('id')) != "undefined" && tr.attr('id') != ''){
+            $('.' + row_id).find('.item-details').remove();
+            $('.' + row_id).find('.planned-qty').remove();
+            $('.' + row_id).find('.planned-prod-orders').remove();
+         }
+
+         $('#' + row_id).find('.item-details').attr('rowspan', $('.' + row_id).length + 1);
+         $('#' + row_id).find('.planned-qty').attr('rowspan', $('.' + row_id).length + 1);
+         $('#' + row_id).find('.planned-prod-orders').attr('rowspan', $('.' + row_id).length + 1);
 
          create_batch_row.find('.qty-to-manufacture').eq(0).val(planned_qty - batch_qty);
          clone.find('.qty-to-manufacture').eq(0).val(batch_qty);
