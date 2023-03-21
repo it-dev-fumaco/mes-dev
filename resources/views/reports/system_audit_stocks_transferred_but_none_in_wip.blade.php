@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
-  'namePage' => 'Stocks Transferred but None in Assembly/Work in Progress',
+  'namePage' => 'Production Order with Issued Stocks Discrepancy Report',
   'activePage' => 'stocks_transferred_but_none_in_wip',
-  'pageHeader' => 'Stocks Transferred but No Available in Assembly/Work in Progress',
+  'pageHeader' => 'Production Order with Issued Stocks Discrepancy Report',
   'pageSpan' => Auth::user()->employee_name
 ])
 
@@ -9,7 +9,7 @@
 <div class="panel-header">
 </div>
 
-<div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+<div class="row p-0" style="margin-top: -205px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
         <div class="col-12 mx-auto bg-white">
             <div class="row">
                 <div class="col-12 mx-auto">
@@ -17,10 +17,10 @@
                         <form action="/audit_report/stocks_transferred_but_none_in_wip" method="get">
                             <div class="row">
                                 <div class="col-2 p-2">
-                                    <input type="text" name="search" class="form-control" placeholder="Search" value="{{ request('search') ? request('search') : null }}"/>
+                                    <input type="text" name="search" class="form-control rounded" placeholder="Search" value="{{ request('search') ? request('search') : null }}"/>
                                 </div>
                                 <div class="col-2 p-2">
-                                    <select name="warehouse" class="form-control">
+                                    <select name="warehouse" class="form-control rounded">
                                         <option value="" {{ !request('warehouse') ? 'selected' : null }}>Select a Warehouse</option>
                                         @foreach ($filter_warehouses as $warehouse)
                                             <option value="{{ $warehouse }}" {{ request('warehouse') == $warehouse ? 'selected' : null }}>{{ $warehouse }}</option>
@@ -36,111 +36,66 @@
                             </div>
                         </form>
                     </div>
-                    <table class="table table-striped table-bordered">
-                        <thead>
+                    <table class="table table-bordered">
+                        <thead style="font-size: 9px;">
                             <tr>
-                                <th class="text-center">Date Created</th>
-                                <th class="text-center">Item Code</th>
-                                <th class="text-center">Warehouse</th>
-                                <th class="text-center">Bin Actual Qty</th>
-                                <th class="text-center">Total Transferred Qty</th>
-                                <th class="text-center">Production Orders</th>
-                                <th class="text-center">Owner</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Item Code</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 200px;">Warehouse</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Actual Qty</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Transferred Qty</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 600px;">Production Orders</th>
                             </tr>
                         </thead>
-                        @forelse ($bin_arr as $po)
+                        <tbody>
+                            @forelse ($bin_arr as $po)
                             <tr>
-                                <td class="text-center">{{ $po['creation'] }}</td>
-                                <td class="text-center">{{ $po['item_code'] }}</td>
-                                <td class="text-center">{{ $po['warehouse'] }}</td>
-                                <td class="text-center">{{ ($po['actual_qty'] * 1).' '.$po['uom'] }}</td>
-                                <td class="text-center">{{ ($po['transferred_qty'] * 1).' '.$po['uom'] }}</td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#item-code-{{ $po['item_code'] }}-Modal">
-                                        View Production Orders
-                                    </button>
-                                    
-                                    <div class="modal fade" id="item-code-{{ $po['item_code'] }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalLabel">{{ $po['item_code'].' - '.$po['warehouse'] }}</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <table class="table table-bordered table-striped">
-                                                        <tr>
-                                                            <th>Production Order</th>
-                                                            <th>Required Qty</th>
-                                                            <th>Transferred Qty</th>
-                                                            <th>Consumed Qty</th>
-                                                        </tr>
-                                                        @foreach ($po['production_orders'] as $item)
-                                                            <tr>
-                                                                <td>{{ $item->name }}</td>
-                                                                <td>{{ $item->required_qty * 1 }}</td>
-                                                                <td>{{ $item->transferred_qty * 1 }}</td>
-                                                                <td>{{ $item->consumed_qty * 1 }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <td class="text-center font-weight-bolder" style="font-size: 13px;">{{ $po['item_code'] }}</td>
+                                <td class="text-center" style="font-size: 13px;">{{ $po['warehouse'] }}</td>
+                                <td class="text-center" style="font-size: 13px;">
+                                    <span class="d-block font-weight-bold">{{ ($po['actual_qty'] * 1) }}</span>
+                                    <small class="d-block">{{ $po['uom'] }}</small>
                                 </td>
-                                <td class="text-center">{{ $po['owner'] }}</td>
+                                <td class="text-center" style="font-size: 13px;">
+                                    <span class="d-block font-weight-bold">{{ ($po['transferred_qty'] * 1) }}</span>
+                                    <small class="d-block">{{ $po['uom'] }}</small>
+                                </td>
+                                <td class="text-center p-1">
+                                    <table class="table table-bordered m-0">
+                                        <thead class="text-uppercase" style="font-size: 8px;">
+                                            <th class="font-weight-bold p-1" style="width: 100px;">Prod. Order</th>
+                                            <th class="font-weight-bold p-1" style="width: 100px;">Required Qty</th>
+                                            <th class="font-weight-bold p-1" style="width: 100px;">Transferred</th>
+                                            <th class="font-weight-bold p-1" style="width: 100px;">Consumed</th>
+                                            <th class="font-weight-bold p-1" style="width: 100px;">Date Created</th>
+                                            <th class="font-weight-bold p-1" style="width: 100px;">Created By</th>
+                                        </thead>
+                                        <tbody style="font-size: 12px;">
+                                        @foreach ($po['production_orders'] as $item)
+                                            <tr>
+                                                <td class="p-1">{{ $item->name }}</td>
+                                                <td class="p-1">{{ $item->required_qty * 1 }}</td>
+                                                <td class="p-1">{{ $item->transferred_qty * 1 }}</td>
+                                                <td class="p-1">{{ $item->consumed_qty * 1 }}</td>
+                                                <td class="p-1">{{ \Carbon\Carbon::parse($item->creation)->format('M. d, Y') }}</td>
+                                                <td class="p-1">{{ explode('@', $item->owner)[0] }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                </td>
                             </tr>
-                        @empty
+                            @empty
                             <tr>
                                 <td colspan=6 class="text-center">No item(s)</td>
                             </tr>
-                        @endforelse
+                            @endforelse
+                        </tbody>
                     </table>
-                    <div class="float-right mt-4">
-                        {!! $bin_arr->appends(request()->query())->links('pagination::bootstrap-4') !!}
-                    </div>
+                    <div class="float-right mt-4">{!! $bin_arr->appends(request()->query())->links('pagination::bootstrap-4') !!}</div>
                 </div>
             </div>
-            
     </div>
 </div>
-<div id="active-tab"></div>
-
 @endsection
 @section('script')
-<script type="text/javascript" src="{{ asset('js/daterange/moment.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('js/daterange/daterangepicker.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/daterange/daterangepicker.css') }}" />
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('js/standalone/select2.full.js') }}"></script>
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.min.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ asset('js/standalone/select2.css') }}" />
-<script>
-$(document).ready(function(){
-    setInterval(updateClock, 1000);
-    function updateClock(){
-        var currentTime = new Date();
-        var currentHours = currentTime.getHours();
-        var currentMinutes = currentTime.getMinutes();
-        var currentSeconds = currentTime.getSeconds();
-        // Pad the minutes and seconds with leading zeros, if required
-        currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-        currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-        // Choose either "AM" or "PM" as appropriate
-        var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-        // Convert the hours component to 12-hour format if needed
-        currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-        // Convert an hours component of "0" to "12"
-        currentHours = (currentHours === 0) ? 12 : currentHours;
-        currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-        // Compose the string for display
-        var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
-
-        $("#current-time").html(currentTimeString);
-    }
-});
-</script>
 @endsection
