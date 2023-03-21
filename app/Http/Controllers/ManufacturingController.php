@@ -334,6 +334,10 @@ class ManufacturingController extends Controller
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
+            if(!$request->bom){
+                return response()->json(['message' => "No BOM found."]);
+            }
+
             $not_allowed_item_classification = ['RA - REFLECTOR ASSEMBLY', 'FA - FRAM1E ASSEMBLY'];
             $parts = [];
 
