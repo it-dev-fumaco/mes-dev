@@ -171,7 +171,7 @@
                                         <td><a href="/jobTicketCompletedQtyVsTimelogsCompletedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Job Ticket Completed Qty vs Timelogs Completed Qty for In Progress / Not Started Job Tickets</span></a></td>
                                     </tr>
                                     <tr>
-                                        <td><a href="/audit_report/stocks_transferred_but_none_in_wip" class="hover-class"><span style="padding-left:30px;line-height:25px;">Stocks Transferred but No Available in Assembly/Work in Progress</span></a></td>
+                                        <td><a href="/audit_report/stocks_transferred_but_none_in_wip" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Order with Issued Stocks Discrepancy Report</span></a></td>
                                     </tr>
                                     <tr>
                                         <td><a href="/inaccurate_operator_feedback" class="hover-class"><span style="padding-left:30px;line-height:25px;">Inaccurate Operator Feedback</span></a></td>

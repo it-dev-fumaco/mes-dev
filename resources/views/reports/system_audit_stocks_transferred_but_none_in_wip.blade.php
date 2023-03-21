@@ -37,7 +37,7 @@
                         </form>
                     </div>
                     <table class="table table-bordered">
-                        <thead style="font-size: 9px;">
+                        <thead style="font-size: 9px;" class="bg-secondary text-white">
                             <tr>
                                 <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Item Code</th>
                                 <th class="text-center text-uppercase font-weight-bold p-2" style="width: 200px;">Warehouse</th>
