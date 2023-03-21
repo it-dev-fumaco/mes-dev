@@ -1743,19 +1743,19 @@ class LinkReportController extends Controller
             ->when($request->search, function ($q) use ($request){
                 return $q->where('woi.item_code', 'LIKE', '%'.$request->search.'%');
             })
-            ->where('wo.docstatus', 1)->where('wo.status', 'In Process')
+            ->where('wo.docstatus', 1)->whereNotIn('wo.status', ['Cancelled', 'Stopped', 'Completed'])
             ->whereIn('wo.wip_warehouse', $warehouses)->where('woi.transferred_qty', '>', 0)
 			->select('wo.name', 'wo.status', 'wo.wip_warehouse', 'woi.item_code', 'woi.transferred_qty', 'woi.required_qty', 'woi.consumed_qty', 'woi.stock_uom', 'wo.creation', 'wo.owner')
             ->orderBy('creation', 'desc')->get();
 
         $item_codes = collect($erp_po)->pluck('item_code')->unique();
 
-        // return $po_collection = collect($erp_po)->groupBy('item_code');
         $po_collection = collect($erp_po)->groupBy('wip_warehouse')->transform(function($item, $k) {
             return $item->groupBy('item_code');
         });
 
-        $bin = DB::connection('mysql')->table('tabBin')->whereIn('warehouse', $warehouses)->whereIn('item_code', $item_codes)->select('warehouse', 'item_code', 'actual_qty', 'stock_uom', 'creation', 'owner')->orderBy('creation', 'desc')->get();
+        $bin = DB::connection('mysql')->table('tabBin')->whereIn('warehouse', $warehouses)->whereIn('item_code', $item_codes)
+            ->select('warehouse', 'item_code', 'actual_qty', 'stock_uom', 'creation', 'owner')->orderBy('item_code', 'asc')->get();
 
         $bin_arr = [];
         foreach($bin as $b){
@@ -1774,8 +1774,6 @@ class LinkReportController extends Controller
 						'remaining' => $remaining,
 						'uom' => $b->stock_uom,
 						'production_orders' => $po_collection[$b->warehouse][$b->item_code],
-						'creation' => Carbon::parse($b->creation)->format('M d, Y'),
-						'owner' => $b->owner
 					];
 				}
 			}
@@ -1785,7 +1783,7 @@ class LinkReportController extends Controller
         // Create a new Laravel collection from the array data3
         $itemCollection = collect($bin_arr);
         // Define how many items we want to be visible in each page
-        $perPage = 20;
+        $perPage = 25;
         // Slice the collection to get the items to display in current page
         $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
         // Create our paginator and pass it to the view

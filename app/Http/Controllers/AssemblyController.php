@@ -184,6 +184,10 @@ class AssemblyController extends Controller
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
+            if(!$request->bom){
+                return response()->json(['message' => "No BOM found. Please use 'Wizard - Item without BOM'"]);
+            }
+
             $existing_po_from_so = DB::connection('mysql_mes')->table('production_order')->whereIn('sales_order', $request->so)->whereIn('bom_no', $request->bom)->where('status', '!=', 'Cancelled')->selectRaw('sales_order as id, bom_no, sum(qty_to_manufacture) as qty')->groupBy('id', 'bom_no')->get();
 
             $existing_po_from_mreq = DB::connection('mysql_mes')->table('production_order')->whereIn('material_request', $request->so)->whereIn('bom_no', $request->bom)->where('status', '!=', 'Cancelled')->selectRaw('material_request as id, bom_no, sum(qty_to_manufacture) as qty')->groupBy('id', 'bom_no')->get();
