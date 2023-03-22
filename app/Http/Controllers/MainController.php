@@ -10062,4 +10062,31 @@ class MainController extends Controller
 			return response()->json(['status' => 0, 'message' => 'Something went wrong. Please try again.']);
 		}
 	}
+
+	public function viewDeliveryList() {
+		$erp_db = env('DB_DATABASE_ERP');
+		$mes_db = env('DB_DATABASE_MES');
+		$q = DB::table($erp_db . '.tabSales Order as so')
+			->join($erp_db . '.tabSales Order Item as soi', 'so.name', 'soi.parent')
+			->join($mes_db . '.delivery_date as d', 'd.reference_no', 'so.name')
+			->whereNotIn('so.status', ['Stopped', 'Cancelled'])
+			->where('so.per_delivered', '<', 100)->where('so.docstatus', 1)
+			->whereRaw('soi.delivered_qty < soi.qty')
+			->whereRaw('d.parent_item_code = soi.item_code')
+			->select('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'soi.delivered_qty', 'so.owner')
+			->groupBy('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'soi.delivered_qty', 'so.owner')
+			->orderBy('soi.delivery_date', 'asc')->paginate(20);
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('sales_order', collect($q->items())->pluck('name'))
+			->whereNotIn('status', ['Stopped', 'Cancelled'])->where('feedback_qty', '>', 0)
+			->whereIn('item_code', collect($q->items())->pluck('item_code'))->select('sales_order', 'item_code', 'feedback_qty')
+			->get();
+
+		$production_qty = [];
+		foreach($production_orders as $r) {
+			$production_qty[$r->sales_order][$r->item_code] = $r->feedback_qty;
+		}
+
+		return view('reports.delivery_schedule_list', compact('q', 'production_qty'));
+	}
 }
