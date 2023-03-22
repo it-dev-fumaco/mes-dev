@@ -329,18 +329,20 @@
 												<col style="width: 11%;"><!-- WORKSTATION -->
 												<col style="width: 14%;"><!-- PROCESS -->
 												<col style="width: 7%;"><!-- REJECT -->
-												<col style="width: 10%;"><!-- MACHINE -->
-												<col style="width: 10%;"><!-- START -->
-												<col style="width: 10%;"><!-- END -->
-												<col style="width: 10%;"><!-- DURATION -->
-												<thead style="font-size: 10pt;">
+												<col style="width: 10%;"><!-- Reject reason -->
+												<col style="width: 10%;"><!-- inspection type -->
+												<col style="width: 10%;"><!-- status -->
+												<col style="width: 10%;"><!-- reported by -->
+												<col style="width: 10%;"><!-- reported at -->
+												<thead style="font-size: 10pt; text-transform: uppercase;">
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>WORKSTATION</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROCESS</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REJECT</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REJECT REASON</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>QC INSPECTION TYPE</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>QC STATUS</b></td>
-													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>INSPECTED BY</b></td>
+													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REPORTED BY</b></td>
+													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>Date reported</b></td>
 												</thead>
 												<tbody style="font-size: 9pt;">
 													@foreach ($operation_list as $workstation => $processes)
@@ -372,19 +374,32 @@
 															<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $process['job_ticket'] }}" data-prodno="{{ $process['production_order'] }}">{{ $process['process'] }}</span>
 														</td>
 														@foreach($reject_logs_arr as $a)
-														<td class="text-center" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['reject_qty']) }}</b></td>
+														@php
+															switch ($a['qa_status']) {
+																case 'QC Passed':
+																	$qc_status = 'qc_passed';
+																	$status_badge = 'success';
+																	break;
+																case 'QC Failed':
+																	$qc_status = 'qc_failed';
+																	$status_badge = 'danger';
+																	break;
+																default:
+																	$qc_status = null;
+																	$status_badge = 'warning';
+																	break;
+															}
+														@endphp
+														<td class="text-center {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['reject_qty']) }}</b></td>
 														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $a['reject_reason'] }}</b></td>
-														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $a['qa_inspection_type'] }}</b></td>
 														<td class="text-center" style="border: 1px solid #ABB2B9;">
-															@if ($a['qa_status'] == 'For Confirmation')
-															<span class="badge badge-warning font-weight-bold" style="font-size: 11px;">{{ $a['qa_status'] }}</span>
-															@elseif ($a['qa_status'] == 'QC Passed')
-															<span class="badge badge-success font-weight-bold" style="font-size: 11px;">{{ $a['qa_status'] }}</span>
-															@else
-															<span class="badge badge-danger font-weight-bold" style="font-size: 11px;">{{ $a['qa_status'] }}</span>
-															@endif
+															<b>{{ $a['qa_inspection_type'] == 'Reject Confirmation' ? 'Operator Reject Entry' : $a['qa_inspection_type'] }}</b>
 														</td>
-														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ array_key_exists($a['qa_staff_id'], $qa_staff_names) ? $qa_staff_names[$a['qa_staff_id']] : '-' }}</b></td>
+														<td class="text-center" style="border: 1px solid #ABB2B9;">
+															<span class="badge badge-{{ $status_badge }} font-weight-bold" style="font-size: 11px;">{{ $a['qa_status'] }}</span>
+														</td>
+														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ $a['reported_by'] }}</b></td>
+														<td class="text-center" style="border: 1px solid #ABB2B9;"><b>{{ Carbon\Carbon::parse($a['reported_at'])->format('M. d, Y h:i A') }}</b></td>
 													</tr>
 													@endforeach
 													@endif

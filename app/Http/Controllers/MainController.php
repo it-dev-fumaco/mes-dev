@@ -466,25 +466,33 @@ class MainController extends Controller
 				}
 
 				$operation_reject_logs_query = DB::connection('mysql_mes')->table('quality_inspection as q')
-					->join('time_logs as tl', 'tl.time_log_id', 'q.reference_id')
-					->join('job_ticket as jt', 'tl.job_ticket_id', 'jt.job_ticket_id')
+					// ->join('spotwelding_qty as tl', 'tl.job_ticket_id', 'q.reference_id')
+					->join('job_ticket as jt', 'q.reference_id', 'jt.job_ticket_id')
 					->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
 					->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
-					->where('q.reference_type', 'Time Logs')
+					->where('q.reference_type', 'Spotwelding')
 					->whereIn('q.reference_id', collect($operations)->pluck('job_ticket_id'))
-					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id')
+					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.rejected_qty', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'q.created_by', 'q.created_at')
 					->get();
 
 				foreach($operation_reject_logs_query as $l) {
 					$operation_reject_logs[$l->workstation][$l->process_id][] = [
 						'reject_reason' => $l->reject_reason,
-						'reject_qty' => $l->reject_qty,
+						'reject_qty' => $l->rejected_qty,//$l->reject_qty,
 						'qa_inspection_type' => $l->qa_inspection_type,
 						'qa_inspection_date' => $l->qa_inspection_date,
 						'qa_disposition' => $l->qa_disposition,
 						'qa_staff_id' => $l->qa_staff_id,
-						'qa_status' => $l->status
+						'qa_status' => $l->status,
+						'reported_by' => $l->created_by,
+						'reported_at' => $l->created_at
 					];
+
+					if (array_key_exists('rows', $operation_reject_logs[$l->workstation])) {
+						$operation_reject_logs[$l->workstation]['rows']++;
+					} else {
+						$operation_reject_logs[$l->workstation]['rows'] = 1;
+					}
 				}
 
 				$operations_arr[] = [
@@ -515,7 +523,7 @@ class MainController extends Controller
 					->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
 					->where('q.reference_type', 'Time Logs')
 					->whereIn('q.reference_id', collect($operations)->pluck('time_log_id'))
-					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'jt.job_ticket_id')
+					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'jt.job_ticket_id', 'q.created_by', 'q.created_at', 'q.rejected_qty')
 					->get();
 
 				$qa_staff_names = DB::connection('mysql_essex')->table('users')
@@ -525,13 +533,15 @@ class MainController extends Controller
 				foreach($operation_reject_logs_query as $l) {
 					$operation_reject_logs[$l->workstation][$l->process_id][] = [
 						'reject_reason' => $l->reject_reason,
-						'reject_qty' => $l->reject_qty,
+						'reject_qty' => $l->rejected_qty,//$l->reject_qty,
 						'qa_inspection_type' => $l->qa_inspection_type,
 						'qa_inspection_date' => $l->qa_inspection_date,
 						'qa_disposition' => $l->qa_disposition,
 						'qa_staff_id' => $l->qa_staff_id,
 						'qa_status' => $l->status,
 						'job_ticket' => $l->job_ticket_id,
+						'reported_by' => $l->created_by,
+						'reported_at' => $l->created_at
 					];
 
 					if (array_key_exists('rows', $operation_reject_logs[$l->workstation])) {
