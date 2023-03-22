@@ -97,10 +97,11 @@ class QualityInspectionController extends Controller
             array_push($reject_levels, $reject_level);
         }
 
-        if ($workstation_name == 'Spotwelding') {
-            $timelog_details = DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id', $request->time_log_id)->first();
-        }else{
-            $timelog_details = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->time_log_id)->first();
+        $tl_tbl = $workstation_name == 'Spotwelding' ? 'spotwelding_qty' : 'time_logs';
+        $timelog_details = DB::connection('mysql_mes')->table($tl_tbl)->where('time_log_id', $request->time_log_id)->first();
+
+        if(!$timelog_details){
+            return response()->json(['success' => 0, 'message' => 'Timelog not found.']);
         }
 
         $inspection_type = $request->inspection_type;
