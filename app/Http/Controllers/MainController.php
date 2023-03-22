@@ -9949,7 +9949,7 @@ class MainController extends Controller
 								->where('status', 'Completed')->get();
 								
 							$total_good_spotwelding = collect($total_good_spotwelding)->map(function ($q){
-								return $q->total_good > $q->total_reject ? $q->total_good - $q->total_reject : 0;
+								return $q->total_good;
 							})->min();
 						} else {
 							$total_good_spotwelding = 0;
