@@ -106,9 +106,9 @@
       </td>
       <td class="text-center">
         @if($item['balance_in_sheets'] != 'N/A')
-        <span class="d-block" style="font-size: 11pt;">{{ $item['projected_scrap_in_kg'] }}</span>
-        <span class="projected-scrap-in-cubic-mm" style="display: none;">{{ $item['projected_scrap'] }}</span>
-        <span class="badge badge-info" style="font-size: 8pt;">{{ $item['projected_scrap'] }} Cubic Meter</span>
+        <span class="d-block" style="font-size: 11pt;">{{ ($item['projected_scrap_in_kg'] && $item['projected_scrap_in_kg'] > 0) ? $item['projected_scrap_in_kg'] : 0 }}</span>
+        <span class="projected-scrap-in-cubic-mm" style="display: none;">{{ ($item['projected_scrap'] && $item['projected_scrap'] > 0) ? $item['projected_scrap'] : 0 }}</span>
+        <span class="badge badge-info" style="font-size: 8pt;">{{ ($item['projected_scrap'] && $item['projected_scrap'] > 0) ? $item['projected_scrap'] : 0 }} Cubic Meter</span>
         @endif
       </td>
       <td class="td-actions text-center">
