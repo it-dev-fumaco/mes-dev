@@ -3395,115 +3395,108 @@ class SecondaryController extends Controller
         $check_if_exit = DB::connection('mysql_mes')->table('shift')->where('shift_type', '=' ,'Regular Shift')->where('operation_id', $request->operation )->first();
         $data= $request->all();  
         $now = Carbon::now();
+
+        $checker = DB::connection('mysql_mes')->table('shift')->where('time_in', $request->time_in)->where('time_out', $request->time_out)->where('shift_type', $request->shift_type)->where('operation_id', $request->operation)->exists();
+
+        if($checker){
+            return response()->json(['success' => 0, 'message' => 'Shift already exists']);
+        }
   
         if(empty($request->shiftcategory)){
             return response()->json(['success' => 0, 'message' => 'Please Insert Breaktime']);            
-        }else{
-            if (empty($check_if_exit)){
-                // dd("hi");
-                $arr = $request->shiftcategory;
-
-                $ar=array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
-                if(!empty($ar)){
-                    foreach($ar as $i => $r){
-                        $row= $i +1;
-                        return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
-
-                    }
-                    
-                }else{
-                   $values1 = [
-                       'time_in' => $request->time_in,
-                       'time_out' => $request->time_out,
-                       'breaktime_in_mins' => $request->breaktime_in_min,
-                       'remarks' => $request->remarks,
-                       'shift_type' => $request->shift_type,
-                       'operation_id' =>$request->operation,
-                       'last_modified_by' => Auth::user()->employee_name,
-                       'created_by' => Auth::user()->employee_name,
-                       'created_at' => $now->toDateTimeString(),
-                       'last_modified_at' => $now->toDateTimeString()
-                   ];
-                   DB::connection('mysql_mes')->table('shift')->insert($values1);
-                   $id_shift = DB::connection('mysql_mes')->table('shift')->orderBy('shift_id', 'desc')->first();
-                    // dd($id_shift);
-                    foreach($request->shiftcategory as $i => $row){
-                        $start = Carbon::parse($request->timein[$i]);
-                        $end = Carbon::parse($request->timeout[$i]);
-                        $totalDuration = $end->diffInMinutes($start);
-
-                        $breaktimelist[] = [
-                            'shift_id' => $id_shift->shift_id,
-                            'category' => $row,
-                            'time_from' => date("H:i:s", strtotime($request->timein[$i])),
-                            'time_to' => date("H:i:s", strtotime($request->timeout[$i])),
-                            'breaktime_in_mins' => $totalDuration,
-                            'last_modified_by' => Auth::user()->email,
-                            'created_by' => Auth::user()->email,
-                            'created_at' => $now->toDateTimeString()
-                            ];
-                   }
-                   
-                   
-                   DB::connection('mysql_mes')->table('breaktime')->insert($breaktimelist);
-                   return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
-                }
-
-           }elseif ($check_if_exit->shift_type == $request->shift_type) {
-               return response()->json(['success' => 0, 'message' => 'Shift already exists']);            
-           }else{
-                $arr = $request->shiftcategory;
-
-                $ar=array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
-                if(!empty($ar)){
-                    foreach($ar as $i => $r){
-                        $row= $i +1;
-                        return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
-
-                    }
-                    
-                }else{
-                    $values1 = [
-                        'time_in' => $request->time_in,
-                        'time_out' => $request->time_out,
-                        'breaktime_in_mins' => $request->breaktime_in_min,
-                        'remarks' => $request->remarks,
-                        'shift_type' => $request->shift_type,
-                        'operation_id' =>$request->operation,
-                        'last_modified_by' => Auth::user()->employee_name,
-                        'created_by' => Auth::user()->employee_name,
-                        'created_at' => $now->toDateTimeString(),
-                        'last_modified_at' => $now->toDateTimeString()
-                    ];
-                    DB::connection('mysql_mes')->table('shift')->insert($values1);
-                    $id_shift = DB::connection('mysql_mes')->table('shift')->orderBy('shift_id', 'desc')->first();
-                    // dd($id_shift);
-                    foreach($request->shiftcategory as $i => $row){
-                           
-                        $start = Carbon::parse($request->timein[$i]);
-                        $end = Carbon::parse($request->timeout[$i]);
-                        $totalDuration = $end->diffInMinutes($start);
-
-                        $breaktimelist[] = [
-                            'shift_id' => $id_shift->shift_id,
-                            'category' => $row,
-                            'time_from' => date("H:i:s", strtotime($request->timein[$i])),
-                            'time_to' => date("H:i:s", strtotime($request->timeout[$i])),
-                            'breaktime_in_mins' => $totalDuration,
-                            'last_modified_by' => Auth::user()->email,
-                            'created_by' => Auth::user()->email,
-                            'created_at' => $now->toDateTimeString()
-                            ];
-                  }
-                  
-                  
-                  DB::connection('mysql_mes')->table('breaktime')->insert($breaktimelist);
-                    return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
-                }
-               
-           }
         }
-        
+
+        if (empty($check_if_exit)){
+            $arr = $request->shiftcategory;
+
+            $ar=array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
+            if(!empty($ar)){
+                foreach($ar as $i => $r){
+                    $row= $i +1;
+                    return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+                }
+            }else{
+                $values1 = [
+                    'time_in' => $request->time_in,
+                    'time_out' => $request->time_out,
+                    'breaktime_in_mins' => $request->breaktime_in_min,
+                    'remarks' => $request->remarks,
+                    'shift_type' => $request->shift_type,
+                    'operation_id' =>$request->operation,
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'created_by' => Auth::user()->employee_name,
+                    'created_at' => $now->toDateTimeString(),
+                    'last_modified_at' => $now->toDateTimeString()
+                ];
+                DB::connection('mysql_mes')->table('shift')->insert($values1);
+                $id_shift = DB::connection('mysql_mes')->table('shift')->orderBy('shift_id', 'desc')->first();
+                foreach($request->shiftcategory as $i => $row){
+                    $start = Carbon::parse($request->timein[$i]);
+                    $end = Carbon::parse($request->timeout[$i]);
+                    $totalDuration = $end->diffInMinutes($start);
+
+                    $breaktimelist[] = [
+                        'shift_id' => $id_shift->shift_id,
+                        'category' => $row,
+                        'time_from' => date("H:i:s", strtotime($request->timein[$i])),
+                        'time_to' => date("H:i:s", strtotime($request->timeout[$i])),
+                        'breaktime_in_mins' => $totalDuration,
+                        'last_modified_by' => Auth::user()->email,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                }
+                
+                DB::connection('mysql_mes')->table('breaktime')->insert($breaktimelist);
+                return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
+            }
+        }else{
+            $arr = $request->shiftcategory;
+
+            $ar=array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
+            if(!empty($ar)){
+                foreach($ar as $i => $r){
+                    $row= $i +1;
+                    return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);
+                }
+            }else{
+                $values1 = [
+                    'time_in' => $request->time_in,
+                    'time_out' => $request->time_out,
+                    'breaktime_in_mins' => $request->breaktime_in_min,
+                    'remarks' => $request->remarks,
+                    'shift_type' => $request->shift_type,
+                    'operation_id' =>$request->operation,
+                    'last_modified_by' => Auth::user()->employee_name,
+                    'created_by' => Auth::user()->employee_name,
+                    'created_at' => $now->toDateTimeString(),
+                    'last_modified_at' => $now->toDateTimeString()
+                ];
+                DB::connection('mysql_mes')->table('shift')->insert($values1);
+                $id_shift = DB::connection('mysql_mes')->table('shift')->orderBy('shift_id', 'desc')->first();
+
+                foreach($request->shiftcategory as $i => $row){
+                        
+                    $start = Carbon::parse($request->timein[$i]);
+                    $end = Carbon::parse($request->timeout[$i]);
+                    $totalDuration = $end->diffInMinutes($start);
+
+                    $breaktimelist[] = [
+                        'shift_id' => $id_shift->shift_id,
+                        'category' => $row,
+                        'time_from' => date("H:i:s", strtotime($request->timein[$i])),
+                        'time_to' => date("H:i:s", strtotime($request->timeout[$i])),
+                        'breaktime_in_mins' => $totalDuration,
+                        'last_modified_by' => Auth::user()->email,
+                        'created_by' => Auth::user()->email,
+                        'created_at' => $now->toDateTimeString()
+                    ];
+                }
+                
+                DB::connection('mysql_mes')->table('breaktime')->insert($breaktimelist);
+                return response()->json(['success' => 1, 'message' => 'Shift successfully added']);
+            }
+        }
     }
     public function edit_shift(Request $request){
         $now = Carbon::now();
