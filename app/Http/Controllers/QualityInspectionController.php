@@ -858,8 +858,10 @@ class QualityInspectionController extends Controller
             })
             ->whereNotIn('q.status', ['QC Passed', 'QC Failed'])
             ->where('j.production_order', $production_order)
-            ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'time_log_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id')
-            ->union($q)->get();
+            ->select('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', DB::raw('substring_index(group_concat(cast(time_log_id as CHAR)), ",", 1) as time_log_id'), 'q.qa_id', 'p.process_name', 'rr.reject_reason_id')
+            ->groupBy('j.process_id', 'j.workstation', 'rl.reject_reason', 'q.rejected_qty', 'q.created_at', 't.operator_name', 'rl.reject_list_id', 'q.qa_id', 'p.process_name', 'rr.reject_reason_id')
+            ->union($q)
+            ->get();
 
         if ($production_order_details->operation_id == 3) {
             $checklist_query = DB::connection('mysql_mes')->table('reject_list')
