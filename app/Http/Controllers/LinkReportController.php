@@ -1744,12 +1744,18 @@ class LinkReportController extends Controller
             $warehouses = [$request->warehouse];
         }
 
-        $erp_po = DB::connection('mysql')->table('tabWork Order as wo')
-            ->join('tabWork Order Item as woi', 'woi.parent', 'wo.name')
+        $erp_db = env('DB_DATABASE_ERP');
+        $mes_db = env('DB_DATABASE_MES');
+
+        $erp_po = DB::table($erp_db.'.tabWork Order as wo')
+            ->join($erp_db.'.tabWork Order Item as woi', 'woi.parent', 'wo.name')
+            ->join($mes_db.'.production_order as po', 'po.production_order', 'wo.name')
             ->when($request->search, function ($q) use ($request){
                 return $q->where('woi.item_code', 'LIKE', '%'.$request->search.'%');
             })
             ->where('wo.docstatus', 1)->whereNotIn('wo.status', ['Cancelled', 'Stopped', 'Completed'])
+            ->whereNotIn('po.status', ['Cancelled', 'Stopped', 'Feedbacked'])
+            ->whereRaw('po.qty_to_manufacture > po.feedback_qty')
             ->whereIn('wo.wip_warehouse', $warehouses)->where('woi.transferred_qty', '>', 0)
 			->select('wo.name', 'wo.status', 'wo.wip_warehouse', 'woi.item_code', 'woi.transferred_qty', 'woi.required_qty', 'woi.consumed_qty', 'woi.stock_uom', 'wo.creation', 'wo.owner')
             ->orderBy('creation', 'desc')->get();
@@ -1760,8 +1766,8 @@ class LinkReportController extends Controller
             return $item->groupBy('item_code');
         });
 
-        $bin = DB::connection('mysql')->table('tabBin')->whereIn('warehouse', $warehouses)->whereIn('item_code', $item_codes)
-            ->select('warehouse', 'item_code', 'actual_qty', 'stock_uom', 'creation', 'owner')->orderBy('item_code', 'asc')->get();
+        $bin = DB::connection('mysql')->table('tabBin as b')->join('tabItem as i', 'b.item_code', 'i.name')->whereIn('warehouse', $warehouses)->whereIn('b.item_code', $item_codes)
+            ->select('warehouse', 'b.item_code', 'actual_qty', 'b.stock_uom', 'i.description')->orderBy('b.item_code', 'asc')->get();
 
         $bin_arr = [];
         foreach($bin as $b){
@@ -1774,6 +1780,7 @@ class LinkReportController extends Controller
 				if((float)$b->actual_qty < $remaining){
 					$bin_arr[] = [
 						'item_code' => $b->item_code,
+                        'description' => $b->description,
 						'warehouse' => $b->warehouse,
 						'actual_qty' => (float)$b->actual_qty,
 						'transferred_qty' => $transferred_qty,
