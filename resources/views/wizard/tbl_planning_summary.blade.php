@@ -40,9 +40,33 @@
 				<span class="d-block">{{ $prod['stock_uom'] }}</span>
 			</td>
 			@endif
-			<td class="text-left">
+			<td class="text-center">
 				@forelse ($prod['planned_production_orders'] as $production_order)
-					<span class="d-block">{{ $production_order->production_order.' ('.$production_order->qty_to_manufacture.')' }}</span>
+				@php
+					switch ($production_order->status) {
+						case "Material For Issue":
+						case "Not Started":
+							$badge_color ="danger";
+							break;
+						case "Material Issued":
+							$badge_color ="primary";
+							break;
+						case "Ready For Feedback":
+							$badge_color ="info";
+							break;
+						case "Partially Feedbacked":
+						case "Feedbacked":
+							$badge_color ="success";
+							break;
+						default:
+							$badge_color ="warning";
+							break;
+					}
+               	@endphp
+				<p class="m-1 badge badge-{{ $badge_color }}" style="font-size: 8pt;">
+					<span class="prod-view-btn">{{ $production_order->production_order }}</span>
+					<span>({{ $production_order->qty_to_manufacture }})</span>
+				</p>
 				@empty
 					<center>
 						<span class="d-block">-</span>
