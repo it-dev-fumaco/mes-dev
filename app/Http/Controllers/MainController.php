@@ -466,25 +466,33 @@ class MainController extends Controller
 				}
 
 				$operation_reject_logs_query = DB::connection('mysql_mes')->table('quality_inspection as q')
-					->join('time_logs as tl', 'tl.time_log_id', 'q.reference_id')
-					->join('job_ticket as jt', 'tl.job_ticket_id', 'jt.job_ticket_id')
+					// ->join('spotwelding_qty as tl', 'tl.job_ticket_id', 'q.reference_id')
+					->join('job_ticket as jt', 'q.reference_id', 'jt.job_ticket_id')
 					->join('reject_reason as rr', 'rr.qa_id', 'q.qa_id')
 					->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
-					->where('q.reference_type', 'Time Logs')
+					->where('q.reference_type', 'Spotwelding')
 					->whereIn('q.reference_id', collect($operations)->pluck('job_ticket_id'))
-					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id')
+					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.rejected_qty', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'q.created_by', 'q.created_at')
 					->get();
 
 				foreach($operation_reject_logs_query as $l) {
 					$operation_reject_logs[$l->workstation][$l->process_id][] = [
 						'reject_reason' => $l->reject_reason,
-						'reject_qty' => $l->reject_qty,
+						'reject_qty' => $l->rejected_qty,//$l->reject_qty,
 						'qa_inspection_type' => $l->qa_inspection_type,
 						'qa_inspection_date' => $l->qa_inspection_date,
 						'qa_disposition' => $l->qa_disposition,
 						'qa_staff_id' => $l->qa_staff_id,
-						'qa_status' => $l->status
+						'qa_status' => $l->status,
+						'reported_by' => $l->created_by,
+						'reported_at' => $l->created_at
 					];
+
+					if (array_key_exists('rows', $operation_reject_logs[$l->workstation])) {
+						$operation_reject_logs[$l->workstation]['rows']++;
+					} else {
+						$operation_reject_logs[$l->workstation]['rows'] = 1;
+					}
 				}
 
 				$operations_arr[] = [
@@ -515,7 +523,7 @@ class MainController extends Controller
 					->join('reject_list as rl', 'rl.reject_list_id', 'rr.reject_list_id')
 					->where('q.reference_type', 'Time Logs')
 					->whereIn('q.reference_id', collect($operations)->pluck('time_log_id'))
-					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'jt.job_ticket_id')
+					->select('rl.reject_reason', 'rr.reject_qty', 'q.qa_inspection_type', 'q.qa_inspection_date', 'q.qa_disposition', 'q.qa_staff_id', 'q.status', 'jt.workstation', 'jt.process_id', 'jt.job_ticket_id', 'q.created_by', 'q.created_at', 'q.rejected_qty')
 					->get();
 
 				$qa_staff_names = DB::connection('mysql_essex')->table('users')
@@ -525,13 +533,15 @@ class MainController extends Controller
 				foreach($operation_reject_logs_query as $l) {
 					$operation_reject_logs[$l->workstation][$l->process_id][] = [
 						'reject_reason' => $l->reject_reason,
-						'reject_qty' => $l->reject_qty,
+						'reject_qty' => $l->rejected_qty,//$l->reject_qty,
 						'qa_inspection_type' => $l->qa_inspection_type,
 						'qa_inspection_date' => $l->qa_inspection_date,
 						'qa_disposition' => $l->qa_disposition,
 						'qa_staff_id' => $l->qa_staff_id,
 						'qa_status' => $l->status,
 						'job_ticket' => $l->job_ticket_id,
+						'reported_by' => $l->created_by,
+						'reported_at' => $l->created_at
 					];
 
 					if (array_key_exists('rows', $operation_reject_logs[$l->workstation])) {
@@ -4267,6 +4277,9 @@ class MainController extends Controller
 				->orderBy('time_logs.last_modified_at', 'desc')->get();
 		}
 
+		$timelog_ids = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->pluck('time_log_id');
+		$total_reject = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->whereIn('reference_id', $timelog_ids)->whereIn('status', ['QC Failed', 'For Confirmation'])->sum('rejected_qty');
+
 		$task_list = [];
 		foreach ($task_list_qry as $row) {
 			if ($time_logs) {
@@ -4322,8 +4335,8 @@ class MainController extends Controller
 				'customer' => $row->customer,
 				'qty_to_manufacture' => $row->qty_to_manufacture,
 				'total_good' => ($time_logs) ? $row->total_good : $row->completed_qty,
-				'total_reject' => ($time_logs) ? $row->total_reject : 0,
-				'total_rework' => $row->rework,//$rework_qty,
+				'total_reject' => $total_reject,
+				'total_rework' => $row->rework,
 				'stock_uom' => $row->stock_uom,
 				'project' => $row->project,
 				'operator_name' => ($time_logs) ? $row->operator_name : null,
@@ -9946,7 +9959,7 @@ class MainController extends Controller
 								->where('status', 'Completed')->get();
 								
 							$total_good_spotwelding = collect($total_good_spotwelding)->map(function ($q){
-								return $q->total_good > $q->total_reject ? $q->total_good - $q->total_reject : 0;
+								return $q->total_good;
 							})->min();
 						} else {
 							$total_good_spotwelding = 0;
@@ -10058,5 +10071,32 @@ class MainController extends Controller
 
 			return response()->json(['status' => 0, 'message' => 'Something went wrong. Please try again.']);
 		}
+	}
+
+	public function viewDeliveryList() {
+		$erp_db = env('DB_DATABASE_ERP');
+		$mes_db = env('DB_DATABASE_MES');
+		$q = DB::table($erp_db . '.tabSales Order as so')
+			->join($erp_db . '.tabSales Order Item as soi', 'so.name', 'soi.parent')
+			->join($mes_db . '.delivery_date as d', 'd.reference_no', 'so.name')
+			->whereNotIn('so.status', ['Stopped', 'Cancelled'])
+			->where('so.per_delivered', '<', 100)->where('so.docstatus', 1)
+			->whereRaw('soi.delivered_qty < soi.qty')
+			->whereRaw('d.parent_item_code = soi.item_code')
+			->select('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'soi.delivered_qty', 'so.owner')
+			->groupBy('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'soi.delivered_qty', 'so.owner')
+			->orderBy('soi.delivery_date', 'asc')->paginate(20);
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('sales_order', collect($q->items())->pluck('name'))
+			->whereNotIn('status', ['Stopped', 'Cancelled'])->where('feedback_qty', '>', 0)
+			->whereIn('item_code', collect($q->items())->pluck('item_code'))->select('sales_order', 'item_code', 'feedback_qty')
+			->get();
+
+		$production_qty = [];
+		foreach($production_orders as $r) {
+			$production_qty[$r->sales_order][$r->item_code] = $r->feedback_qty;
+		}
+
+		return view('reports.delivery_schedule_list', compact('q', 'production_qty'));
 	}
 }

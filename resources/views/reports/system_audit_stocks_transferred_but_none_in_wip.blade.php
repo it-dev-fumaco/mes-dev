@@ -39,8 +39,8 @@
                     <table class="table table-bordered">
                         <thead style="font-size: 9px;" class="bg-secondary text-white">
                             <tr>
-                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Item Code</th>
-                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 200px;">Warehouse</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 300px;">Item Code</th>
+                                <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Warehouse</th>
                                 <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Actual Qty</th>
                                 <th class="text-center text-uppercase font-weight-bold p-2" style="width: 100px;">Transferred Qty</th>
                                 <th class="text-center text-uppercase font-weight-bold p-2" style="width: 600px;">Production Orders</th>
@@ -48,8 +48,17 @@
                         </thead>
                         <tbody>
                             @forelse ($bin_arr as $po)
+                            @php
+                                $description = strip_tags($po['description']);
+                                $description = explode(",", $description);
+                                $description_display = isset($description[0]) ? $description[0] : '';
+                                $description_display .= isset($description[1]) ? $description[1] : '';
+                                $description_display .= isset($description[2]) ? $description[2] : '';
+                            @endphp
                             <tr>
-                                <td class="text-center font-weight-bolder" style="font-size: 13px;">{{ $po['item_code'] }}</td>
+                                <td class="text-justify" style="font-size: 12px;">
+                                    <b>{{ $po['item_code'] }}</b> - {{ $description_display }}
+                                </td>
                                 <td class="text-center" style="font-size: 13px;">{{ $po['warehouse'] }}</td>
                                 <td class="text-center" style="font-size: 13px;">
                                     <span class="d-block font-weight-bold">{{ ($po['actual_qty'] * 1) }}</span>
@@ -86,7 +95,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan=6 class="text-center">No item(s)</td>
+                                <td colspan="6" class="text-center text-uppercase text-muted p-3">No record(s) found</td>
                             </tr>
                             @endforelse
                         </tbody>

@@ -225,7 +225,7 @@
                               <div class="col-md-4">
                                  <div class="form-group text-center text-uppercase">
                                     <label for="" style="font-size: 10px;">Qty</label>
-                                    <input type="text" class="form-control rounded p-2 qty-input selected-item-required-qty" data-edit="0" id="tab{{ $tab }}-inspection-qty" value="{{ $production_order_details->qty_to_manufacture }}" readonly required>
+                                    <input type="text" class="form-control rounded p-2 qty-input selected-item-required-qty" data-edit="0" id="tab{{ $tab }}-inspection-qty" value="{{ $timelog_details->good }}" readonly required>
                                  </div>
                               </div>
                               <div class="col-md-4">

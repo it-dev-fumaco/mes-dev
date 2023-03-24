@@ -249,6 +249,34 @@
          }
       });
 
+      $(document).on('click', '.prod-view-btn', function(e){
+         e.preventDefault();
+         var jtno = $(this).text();
+         $('#jt-workstations-modal .modal-title').text(jtno);
+         if(jtno){
+            getJtDetails(jtno);
+         }else{
+            showNotification("danger", 'No Job Ticket found.', "now-ui-icons travel_info");
+         }
+      });
+
+      function getJtDetails(jtno){
+         $('#process-bc').empty();
+         $('#jt-details-tbl tbody').empty();
+         $.ajax({
+            url:"/get_jt_details/" + jtno,
+            type:"GET",
+            success:function(data){
+               if (data.success < 1) {
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+               }else{
+                  $('#production-search-content').html(data);
+                  $('#jt-workstations-modal').modal('show');
+               }
+            }
+         });
+      }
+
       var create_batch_row = [];
       $(document).on('click', '.create-batch-btn', function(e){
          e.preventDefault();

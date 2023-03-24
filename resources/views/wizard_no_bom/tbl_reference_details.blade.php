@@ -110,8 +110,32 @@
             </div>
          </td>
          <td class="text-center planned-prod-orders">
-            @forelse ($item['production_order'] as $production_order => $qty)
-               <span class="block">{{ $production_order.'('.(float)$qty.')' }}</span>
+            @forelse ($item['production_order'] as $production_order => $d)
+               @php
+                  switch ($d['status']) {
+                     case "Material For Issue":
+                     case "Not Started":
+                        $badge_color ="danger";
+                        break;
+                     case "Material Issued":
+                        $badge_color ="primary";
+                        break;
+                     case "Ready For Feedback":
+                        $badge_color ="info";
+                        break;
+                     case "Partially Feedbacked":
+                     case "Feedbacked":
+                        $badge_color ="success";
+                        break;
+                     default:
+                        $badge_color ="warning";
+                        break;
+                  }
+               @endphp
+               <p class="m-1 badge badge-{{ $badge_color }}" style="font-size: 8pt; cursor: pointer">
+                  <span class="prod-view-btn">{{ $production_order }}</span>
+                  <span>({{ (float)$d['qty'] }})</span>
+               </p>
             @empty
                <span class="block">-</span>
             @endforelse

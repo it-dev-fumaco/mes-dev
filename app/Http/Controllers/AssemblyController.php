@@ -97,7 +97,10 @@ class AssemblyController extends Controller
                     if(isset($existing_production_orders[$item->item_code])){
                         foreach ($existing_production_orders[$item->item_code] as $d) {
                             if(!in_array($d->status, ['Cancelled', 'Closed'])){
-                                $production_orders[$d->name] = $d->qty;
+                                $production_orders[$d->name] = [
+                                    'qty' => $d->qty,
+                                    'status' => $d->status
+                                ];
                             }
                         }
                     }
