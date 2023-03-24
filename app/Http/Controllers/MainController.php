@@ -5239,10 +5239,10 @@ class MainController extends Controller
 				DB::connection('mysql_mes')->table('helper')->insert($details);
 			}
 	
-			DB::commit();
+			DB::connection('mysql_mes')->commit();
 			return response()->json(['success' => 1, 'message' => 'Helper(s) updated.']);
 		} catch (\Throwable $th) {
-			DB::rollback();
+			DB::connection('mysql_mes')->rollback();
 			return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 		}
 	}
