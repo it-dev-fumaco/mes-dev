@@ -10073,30 +10073,120 @@ class MainController extends Controller
 		}
 	}
 
-	public function viewDeliveryList() {
+	public function viewDeliveryList(Request $request, $date) {
+		$permissions = $this->get_user_permitted_operation();
+
+		$start_date = Carbon::parse($date)->startOfWeek();
+		$end_date = Carbon::parse($date)->endOfWeek();
+
 		$erp_db = env('DB_DATABASE_ERP');
 		$mes_db = env('DB_DATABASE_MES');
-		$q = DB::table($erp_db . '.tabSales Order as so')
-			->join($erp_db . '.tabSales Order Item as soi', 'so.name', 'soi.parent')
-			->join($mes_db . '.delivery_date as d', 'd.reference_no', 'so.name')
-			->whereNotIn('so.status', ['Stopped', 'Cancelled'])
-			->where('so.per_delivered', '<', 100)->where('so.docstatus', 1)
-			->whereRaw('soi.delivered_qty < soi.qty')
-			->whereRaw('d.parent_item_code = soi.item_code')
-			->select('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'soi.delivered_qty', 'so.owner')
-			->groupBy('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'soi.delivered_qty', 'so.owner')
-			->orderBy('soi.delivery_date', 'asc')->paginate(20);
 
-		$production_orders = DB::connection('mysql_mes')->table('production_order')->whereIn('sales_order', collect($q->items())->pluck('name'))
-			->whereNotIn('status', ['Stopped', 'Cancelled'])->where('feedback_qty', '>', 0)
-			->whereIn('item_code', collect($q->items())->pluck('item_code'))->select('sales_order', 'item_code', 'feedback_qty')
-			->get();
+		$material_requests = DB::table($erp_db.'.tabMaterial Request as mr')
+			->join($erp_db.'.tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
+			->join($mes_db.'.production_order as po', 'po.material_request', 'mr.name')
+			->whereRaw('po.item_code = mri.item_code')
+			->whereNotIn('po.status', ['Stopped', 'Cancelled', 'Closed'])
+			->where('mr.docstatus', 1)->whereIn('mr.custom_purpose', ['Manufacture', 'Sample Order', 'Consignment Order'])->where('mr.status', '!=', 'Stopped')->where('mr.per_ordered', '<', 100)
+			->when($request->search_string, function ($query) use ($request){
+				$search_str = explode(' ', $request->search_string);
+				return $query->where(function($q) use ($search_str, $request) {
+                    foreach ($search_str as $str) {
+                        $q->where('mri.description', 'LIKE', "%".$str."%");
+                    }
+                })->orWhere('mri.item_code', 'LIKE', '%'.$request->search_string.'%');
+			})
+			->when($request->project, function ($q) use ($request){
+				return $q->where('mr.project', $request->project);
+			})
+			->when($request->reference, function ($q) use ($request){
+				return $q->where('mr.name', $request->reference);
+			})
+			->when($request->customer, function ($q) use ($request){
+				return $q->where('mr.customer', $request->customer);
+			})
+			->whereRaw('IF(mri.reschedule_delivery, mri.rescheduled_delivery_date, mr.delivery_date) BETWEEN "'.$start_date.'" AND "'.$end_date.'"')
+			->select('mr.name', 'mr.customer', 'mr.project', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.uom', 'mr.delivery_date', 'mri.rescheduled_delivery_date', 'mri.reschedule_delivery', 'mr.owner', 'po.production_order', 'po.feedback_qty', 'po.status')
+			->groupBy('mr.name', 'mr.customer', 'mr.project', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.uom', 'mr.delivery_date', 'mri.rescheduled_delivery_date', 'mri.reschedule_delivery', 'mr.owner', 'po.production_order', 'po.feedback_qty', 'po.status');
 
-		$production_qty = [];
-		foreach($production_orders as $r) {
-			$production_qty[$r->sales_order][$r->item_code] = $r->feedback_qty;
+		$query = DB::table($erp_db.'.tabSales Order as so')
+			->join($erp_db.'.tabSales Order Item as soi', 'so.name', 'soi.parent')
+			->join($mes_db.'.production_order as po', 'po.sales_order', 'so.name')
+			->whereRaw('po.item_code = soi.item_code')
+			->whereNotIn('po.status', ['Stopped', 'Cancelled', 'Closed'])->whereNotIn('so.status', ['Stopped', 'Cancelled', 'Closed', 'Completed'])->where('so.per_delivered', '<', 100)->where('so.docstatus', 1)->whereRaw('soi.delivered_qty < soi.qty')
+			->when($request->search_string, function ($query) use ($request){
+				$search_str = explode(' ', $request->search_string);
+				return $query->where(function($q) use ($search_str, $request) {
+                    foreach ($search_str as $str) {
+                        $q->where('soi.description', 'LIKE', "%".$str."%");
+                    }
+                })->orWhere('soi.item_code', 'LIKE', '%'.$request->search_string.'%');
+			})
+			->when($request->project, function ($q) use ($request){
+				return $q->where('so.project', $request->project);
+			})
+			->when($request->reference, function ($q) use ($request){
+				return $q->where('so.name', $request->reference);
+			})
+			->when($request->customer, function ($q) use ($request){
+				return $q->where('so.customer', $request->customer);
+			})
+			->whereRaw('IF(soi.reschedule_delivery, soi.rescheduled_delivery_date, soi.delivery_date) BETWEEN "'.$start_date.'" AND "'.$end_date.'"')
+			->select('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'so.owner', 'po.production_order', 'po.feedback_qty', 'po.status')
+			->groupBy('so.name', 'so.customer', 'so.project', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.uom', 'soi.delivery_date', 'soi.rescheduled_delivery_date', 'soi.reschedule_delivery', 'so.owner', 'po.production_order', 'po.feedback_qty', 'po.status')
+			->union($material_requests)->orderByRaw('IF(reschedule_delivery, rescheduled_delivery_date, delivery_date) desc')->get();
+
+		$customers = collect($query)->pluck('customer')->unique()->filter()->sort()->values()->all();
+		$projects = collect($query)->pluck('project')->unique()->filter()->sort()->values()->all();
+		$reference_arr = collect($query)->pluck('name')->unique()->filter()->sort()->values()->all();
+
+		if($request->ajax()){
+			$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', collect($query)->pluck('item_code'))->get();
+			$item_image = collect($item_images)->groupBy('parent');
+
+			$resched_logs = DB::connection('mysql_mes')->table('delivery_date as d')
+				->join('delivery_date_reschedule_logs as rd', 'd.delivery_date_id', 'rd.delivery_date_id')
+				->whereIn('d.reference_no', collect($query)->pluck('name'))->whereIn('d.parent_item_code', collect($query)->pluck('item_code'))->get();
+
+			$sched_log = [];
+			foreach ($resched_logs as $sched) {
+				$sched_log[$sched->reference_no][$sched->parent_item_code][] = collect($sched);
+			}
+
+			$resched_logs = collect($resched_logs)->groupBy('delivery_date_id');
+
+			$arr = [];
+			foreach($query as $q){
+				$delivery_date = $q->delivery_date;
+
+				$previous_delivery_dates = [];
+				if($q->reschedule_delivery){
+					$delivery_date = $q->rescheduled_delivery_date;
+					$previous_delivery_dates = isset($sched_log[$q->name][$q->item_code]) ? collect($sched_log[$q->name][$q->item_code])->sortBy('previous_delivery_date') : [];
+				}
+
+				$image_path = isset($item_image[$q->item_code]) ? 'img/'.$item_image[$q->item_code][0]->image_path : 'icon/no_img.png';
+
+				$arr[$delivery_date][] = [
+					'reference' => $q->name,
+					'production_order' => $q->production_order,
+					'item_code' => $q->item_code,
+					'image' => 'http://athenaerp.fumaco.local/storage/'.$image_path,
+					'description' => $q->description,
+					'feedback_qty' => $q->feedback_qty,
+					'status' => $q->status,
+					'qty_to_manufacture' => $q->qty,
+					'uom' => $q->uom,
+					'customer' => $q->customer,
+					'project' => $q->project,
+					'rescheduled' => $q->reschedule_delivery,
+					'previous_delivery_dates' => $previous_delivery_dates
+				];
+			}
+
+			return view('reports.delivery_schedule_tbl', compact('arr', 'query', 'date'));
 		}
 
-		return view('reports.delivery_schedule_list', compact('q', 'production_qty'));
+		return view('reports.delivery_schedule_list', compact('permissions', 'projects', 'reference_arr', 'customers', 'date'));
 	}
 }
