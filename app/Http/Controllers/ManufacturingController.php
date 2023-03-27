@@ -664,13 +664,13 @@ class ManufacturingController extends Controller
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
+
+            $workstations = DB::connection('mysql_mes')->table('workstation')
+                ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
             
             $jtno = $request->production;
             $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
             if($bom == "No BOM"){
-                $workstations = DB::connection('mysql_mes')->table('workstation')
-                    ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
-                
                 $existing_workstation= DB::connection('mysql_mes')->table('job_ticket')
                     ->where('production_order', $request->production)->get();
 
@@ -701,10 +701,6 @@ class ManufacturingController extends Controller
 
                     $operation_ids = [$operation_details->operation_id];
                 }
-                
-                $workstations = DB::connection('mysql_mes')
-                    ->table('workstation as w')->join('operation as op', 'op.operation_id','w.operation_id')
-                    ->whereIn('op.operation_id', $operation_ids)->get();
 
                 $workstation_process = DB::connection('mysql_mes')->table('process')
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')

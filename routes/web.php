@@ -332,12 +332,13 @@ Route::group(['middleware' => 'auth'], function(){
 
 	Route::post('/syncJobTicket/{id}', 'MainController@syncJobTicket');	
 
+	Route::get('/count_current_production_order/{date}', 'SecondaryController@count_current_production_order');
 });
 Route::post('/add_shift_schedule_prod', 'SecondaryController@add_shift_schedule');
 Route::get('/maintenance_schedules_per_operation/{operation_id}', 'MainController@maintenance_schedules_per_operation');
 ///revise MainDashboard Patrick 
 Route::get('/get_production_order_list/{date}', 'SecondaryController@get_production_order_list');
-Route::get('/count_current_production_order/{date}', 'SecondaryController@count_current_production_order');
+
 Route::post('/add_shift', 'SecondaryController@add_shift');
 Route::post('/edit_shift', 'SecondaryController@edit_shift');
 Route::post('/delete_shift', 'SecondaryController@delete_shift');

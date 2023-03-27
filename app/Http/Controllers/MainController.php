@@ -251,8 +251,6 @@ class MainController extends Controller
 
 		// if the validator fails, redirect back to the form
 		if ($validator->fails()) {
-			// return redirect()->back()->withErrors($validator)
-		 //        ->withInput(Input::except('operator_id'));
 		    return response()->json(['success' => 0, 'message' => 'Please tap your Operator ID or enter your Biometric ID.']);
 		}else{
 			// create our user data for the authentication
@@ -4711,7 +4709,7 @@ class MainController extends Controller
 				})
 				->where('j.production_order', $production_order)->where('j.workstation', $workstation)
 				->where('q.reference_type', 'Time Logs')->where('q.status', '!=', 'For Confirmation')
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id', 'q.reject_category_id', 'q.rejected_qty')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id', 'q.reject_category_id', 'q.rejected_qty', 'q.qa_id')
 				->orderBy('q.qa_inspection_date', 'desc')->get();
 
 			$qa_staff_names = collect($qa_logs)->pluck('qa_staff_id')->unique();
@@ -4766,7 +4764,7 @@ class MainController extends Controller
 				})
 				->where('j.production_order', $production_order)->where('j.workstation', $workstation)
 				->where('q.reference_type', 'Spotwelding')->where('q.status', '!=', 'For Confirmation')
-				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id', 'q.reject_category_id', 'q.rejected_qty')
+				->select(DB::raw('(SELECT process_name FROM process WHERE process_id = j.process_id) AS process'), 'q.qa_inspection_type', 'q.actual_qty_checked', 'q.status', 'q.qa_staff_id', 'q.qa_inspection_date', 'q.reference_id', 'q.reject_category_id', 'q.rejected_qty', 'q.qa_id')
 				->orderBy('q.qa_inspection_date', 'desc')->get();
 
 			$qa_staff_names = collect($qa_logs)->pluck('qa_staff_id')->unique();
@@ -4835,13 +4833,29 @@ class MainController extends Controller
 					'time_log_id' => $r->time_log_id,
 					'workstation' => $r->workstation,
 					'process_id' => $r->process_id,
+					'time_log_id' => $r->time_log_id,
 				];
 			}
 		}
 
+		$inspected_items_per_timelogid = $item_descriptions = [];
+		if ($workstation == 'Spotwelding') {
+			$inspected_items = DB::connection('mysql_mes')->table('inspected_component as ic')
+				->join('quality_inspection as qi', 'ic.qa_id', 'qi.qa_id')
+				->whereIn('qi.qa_id', collect($qa_logs)->pluck('qa_id'))->get();
+
+			$item_descriptions = DB::connection('mysql')->table('tabItem')
+				->whereIn('name', collect($inspected_items)->pluck('item_code'))
+				->pluck('description', 'name')->toArray();
+
+			$inspected_items_per_timelogid = collect($inspected_items)->groupBy('reject_category_id')->map(function ($row) {
+				return collect($row)->groupBy('reference_id');
+			})->toArray();
+		}
+
 		$task_random_inspection_arr = collect($task_random_inspection_arr)->sortBy('inspected_qty')->toArray();
 
-		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation', 'workstation', 'operation'));
+		return view('tables.tbl_production_process_inspection', compact('task_random_inspection_arr', 'existing_production_order', 'qa_inspection_logs', 'reject_category_per_workstation', 'workstation', 'operation', 'inspected_items_per_timelogid', 'item_descriptions'));
 	}
 
 	public function maintenance_request(Request $request){
