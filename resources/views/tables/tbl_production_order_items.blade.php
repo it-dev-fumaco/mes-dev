@@ -88,6 +88,9 @@
 			</div>
 		</td>
 		<td class="text-center" colspan="2">
+			@if ($checker == 0)
+			<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
+			@else
 			@if($issued_qty > 0)
 			<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Submit Withdrawal Slip</button>
 			@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 1)
@@ -96,6 +99,7 @@
 			<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
 			@else
 			<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Create Withdrawal Slip</button>
+			@endif
 			@endif
 		</td>
 	</tr>

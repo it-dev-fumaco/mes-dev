@@ -2543,15 +2543,11 @@ class ManufacturingController extends Controller
         $all_items_has_transferred_qty = count(array_merge($diff1, $diff2)) <= 0 ? 1 : 0;
 
         $checker = 1;
-        $qty_checker = collect($required_items)->map(function ($q){
-            return $q['transferred_qty'] == $q['required_qty'] ? 1 : 0;
-        })->min();
-
-        if($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1){
-            $ste_transferred = (float)number_format($ste_transferred_qty, 10);
+        if($ste_transferred_qty > 0){
+            $ste_transferred  = (float)number_format($ste_transferred_qty, 10);
             $mes_transferred = (float)number_format(collect($required_items)->sum('transferred_qty'), 10);
 
-            if($ste_transferred != $mes_transferred || $qty_checker == 0){
+            if($ste_transferred  != $mes_transferred){
                 $checker = 0;
             }
         }
