@@ -477,6 +477,12 @@
         $(modal).modal('hide');
       }
 
+      if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { // mobile/tablet
+        $('#wrapper').addClass('no-sidebar');
+      }else{ // desktop
+        $('#wrapper').removeClass('no-sidebar');
+      }
+
       $(document).on('click', '.num-key', function (e){
         var input = $(this).data('input');
         var val = $(input).val();

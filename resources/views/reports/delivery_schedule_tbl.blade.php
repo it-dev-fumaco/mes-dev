@@ -5,21 +5,23 @@
             <b>Delivery Date</b>
         </div>
         <div class="col-10 mt-0 p-0">
-            <table class="table m-0" style="font-size: 9pt; border: none;">
-                <col style="width: 9% !important;">
-                <col style="width: 10% !important;">
-                <col style="width: 16% !important;">
-                <col style="width: 5% !important;">
-                <col style="width: 40% !important;"><!-- Item -->
-                <col style="width: 15% !important;">
-                <col style="width: 5% !important;">
+            <table class="table m-0" style="font-size: 9pt; border: none; table-layout: fixed;">
+                <colgroup>
+                    <col style="width: 9% !important;">     <!-- Reference -->
+                    <col style="width: 12% !important;">    <!-- Production Order -->
+                    <col style="width: 16% !important;">    <!-- Customer -->
+                    <col style="width: 10% !important;">     <!-- Qty -->
+                    <col style="width: 28% !important;">    <!-- Item -->
+                    <col style="width: 15% !important;">    <!-- Previous Schedule -->
+                    <col style="width: 10% !important;">     <!-- Action -->
+                </colgroup>
                 <tr>
                     <th class="p-1 text-center">Reference</th>
                     <th class="p-1 text-center">Production Order</th>
                     <th class="p-1 text-center">Customer</th>
                     <th class="p-1 text-center">Qty</th>
                     <th class="p-1 text-center">Item</th>
-                    <th class="p-1 text-center">Previous Schedule</th>
+                    <th class="p-1 text-center">Prev. Schedule</th>
                     <th class="p-1 text-center">Action</th>
                 </tr>
             </table>
@@ -38,14 +40,16 @@
             @endif
         </div>
         <div class="col-10 mt-0 p-0">
-            <table class="table table-striped" style="font-size: 8.5pt; ">
-                <col style="width: 9% !important;">
-                <col style="width: 10% !important;">
-                <col style="width: 16% !important;">
-                <col style="width: 5% !important;">
-                <col style="width: 40% !important;"><!-- Item -->
-                <col style="width: 15% !important;">
-                <col style="width: 5% !important;">
+            <table class="table table-striped" style="font-size: 8.5pt; table-layout: fixed;">
+                <colgroup>
+                    <col style="width: 9% !important;">     <!-- Reference -->
+                    <col style="width: 12% !important;">    <!-- Production Order -->
+                    <col style="width: 16% !important;">    <!-- Customer -->
+                    <col style="width: 10% !important;">     <!-- Qty -->
+                    <col style="width: 28% !important;">    <!-- Item -->
+                    <col style="width: 15% !important;">    <!-- Previous Schedule -->
+                    <col style="width: 10% !important;">     <!-- Action -->
+                </colgroup>
                 <tbody>
                     @foreach ($items_arr as $item)
                         <tr>
@@ -85,11 +89,13 @@
                                     @foreach ($item['previous_delivery_dates'] as $previous_dates)
                                         {{ Carbon\Carbon::parse($previous_dates['previous_delivery_date'])->format('M. d, Y') }}
                                     @endforeach
+                                @else
+                                    -
                                 @endif
                             </td>
                             <td class="pt-0 pb-0 text-center">
                                 <div class="btn-group m-0">
-                                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 8pt;">Action </button>
+                                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle p-2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 8pt;">Action </button>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $item['production_order'] }}" data-item-code="{{ $item['item_code'] }}">View Materials</a>
                                         <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $item['production_order'] }}">Reschedule Delivery Date</a>

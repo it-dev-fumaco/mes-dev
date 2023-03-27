@@ -1,4 +1,4 @@
-<div id="all-production-orders-table" style="font-size: 9pt;">
+<div id="all-production-orders-table">
     <table class="table table-striped">
       <col style="width: 10%;">
       <col style="width: 35%;">
@@ -25,17 +25,23 @@
         @forelse($production_order_list as $i => $r)
         <tr>
           <td class="text-center" style="padding: 3px;">
-            @if ($r['production_order_status'] == 'Completed')
+            <div style="display: flex; justify-content: center; align-items: center;">
+              @if ($r['production_order_status'] == 'Completed')
                 <div class="form-check" style="font-size:8pt;margin-left:10px;display:{{($r['count_ste_entries'] == 0)? 'none':'' }}; vertical-align: baseline;" id="form-check">
                     <label class="customcontainer" style="margin-top:0px;">
                         <input class="print_slip" type="checkbox" id="print-{{ $r['production_order'] }}" value="{{ $r['production_order'] }}" data-dateslct="print-{{ $r['production_order'] }}" data-checkme="{{ $r['production_order'] }}">
                         <span class="checkmark2"></span>
                     </label>
                 </div>
-            @endif
-            <a href="#" style="margin-left:20px;margin-top:50px;" data-jtno="{{ $r['production_order'] }}" class="prod-details-btn"><i class="now-ui-icons ui-1_zoom-bold"></i> {{ $r['production_order'] }}</a>
+              @endif
+              <a href="#" style="white-space: nowrap;" data-jtno="{{ $r['production_order'] }}" class="prod-details-btn"><i class="now-ui-icons ui-1_zoom-bold"></i> {{ $r['production_order'] }}</a>
+            </div>
           </td>
-          <td class="text-left" style="padding: 3px;"><b>{{ $r['item_code'] }}</b><br>{!! $r['description'] !!}<span class="d-block mt-2 font-italic" style="font-size: 8pt;"><b>Created by:</b> {{ $r['owner'] }} - {{ $r['created_at'] }}</span></td>
+          <td class="text-left" style="padding: 3px;">
+            <b>{{ $r['item_code'] }}</b><br>
+            {!! $r['description'] !!}
+            <span class="d-block mt-2 font-italic" style="font-size: 8pt;"><b>Created by:</b> {{ $r['owner'] }} - {{ $r['created_at'] }}</span>
+          </td>
           <td class="text-center" style="padding: 3px;">
             <span style="font-size: 12pt; display: block; font-weight: bold;">{{ number_format($r['qty']) }}</span>
             <span>{{ $r['stock_uom'] }}</span>
@@ -89,8 +95,8 @@
             <br><br>
             @foreach($r['ste_entries'] as $entry)
             {{ $entry }}
-            @endforeach</td>
-     
+            @endforeach
+          </td>
           <td class="text-center p-1">
             <div class="btn-group dropleft">
               <button type="button" class="btn p-2 btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -294,6 +300,6 @@
 </style>
 <script>
   $(document).ready(function(){
-    $('#production-orders-total').html({{ $total_production_orders }});
+    $('#production-orders-total').html('{{ number_format($total_production_orders) }}');
   });
 </script>
