@@ -362,7 +362,7 @@
             @if ($activePage == 'main_dashboard')
             <li class="nav-item active">
               <a class="nav-link" href="#" id="get-notifications-btn">
-                <i class="now-ui-icons ui-1_bell-53"></i> <span class="icon-text">Notifications</span> <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
+                <i class="now-ui-icons ui-1_bell-53"></i> <span class="icon-text d-none d-xl-inline">Notifications</span> <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
                 <p class="d-lg-none d-md-block">
                   <span> Notifications</span>
                 </p>
@@ -370,7 +370,7 @@
             </li>
             <li class="nav-item active">
               <a class="nav-link" href="#" id="view-item-tracking-btn">
-                <i class="now-ui-icons location_pin"></i> <span class="icon-text">Item Tracking</span>
+                <i class="now-ui-icons location_pin"></i> <span class="icon-text d-none d-xl-inline">Item Tracking</span>
                 <p class="d-lg-none d-md-block">
                   <span> Item Tracking</span>
                 </p>
@@ -379,7 +379,7 @@
             @endif
             <li class="nav-item active" {{ $activePage == 'login' ? 'hidden' : '' }}>
               <a class="nav-link" href="#" id="jt-search-btn">
-                <i class="now-ui-icons ui-1_zoom-bold"></i> <span class="icon-text">Production Order Search</span>
+                <i class="now-ui-icons ui-1_zoom-bold"></i> <span class="icon-text d-none d-xl-inline">Production Order Search</span>
                 <p class="d-lg-none d-md-block">
                   <span>Production Order Search</span>
                 </p>
@@ -388,7 +388,7 @@
             @if(Auth::user())
             <li class="nav-item active">
               <a class="nav-link" href="/logout_user">
-                <i class="now-ui-icons media-1_button-power"></i> <span class="icon-text">Logout</span>
+                <i class="now-ui-icons media-1_button-power"></i> <span class="icon-text d-none d-xl-inline">Logout</span>
                 <p class="d-lg-none d-md-block">
                   <span>Logout</span>
                 </p>
