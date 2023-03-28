@@ -4276,7 +4276,7 @@ class MainController extends Controller
 		}
 
 		$timelog_ids = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_details->job_ticket_id)->pluck('time_log_id');
-		$total_reject = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->whereIn('reference_id', $timelog_ids)->whereIn('status', ['QC Failed', 'For Confirmation'])->sum('rejected_qty');
+		// $total_reject = DB::connection('mysql_mes')->table('quality_inspection')->where('reference_type', 'Time Logs')->whereIn('reference_id', $timelog_ids)->whereIn('status', ['QC Failed', 'For Confirmation'])->sum('rejected_qty');
 
 		$task_list = [];
 		foreach ($task_list_qry as $row) {
@@ -4333,7 +4333,7 @@ class MainController extends Controller
 				'customer' => $row->customer,
 				'qty_to_manufacture' => $row->qty_to_manufacture,
 				'total_good' => ($time_logs) ? $row->total_good : $row->completed_qty,
-				'total_reject' => $total_reject,
+				'total_reject' => $row->total_reject, //$total_reject,
 				'total_rework' => $row->rework,
 				'stock_uom' => $row->stock_uom,
 				'project' => $row->project,
