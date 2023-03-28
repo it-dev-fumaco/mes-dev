@@ -55,7 +55,7 @@ trait GeneralTrait
                 $total_good_spotwelding = 0;
             }
 
-            $total_reject = collect($logs)->sum('reject');
+            $total_reject = $job_ticket_detail->reject;
             $total_good = $total_good_spotwelding;
         } else {
             $total_good = collect($logs)->sum('good');

@@ -149,17 +149,19 @@
 					<div class="col-md-12 p-0 mt-2" style="font-size: 8pt;">
 						<table class="table table-bordered">
 							<col style="width: 30%;">
-							<col style="width: 15%;">
-							<col style="width: 15%;">
-							<col style="width: 30%;">
 							<col style="width: 10%;">
+							<col style="width: 7%;">
+							<col style="width: 7%;">
+							<col style="width: 20%;">
+							<col style="width: 25%;">
 							<tbody>
 								<tr>
-									<th class="text-center">PROCESS</th>
-									<th class="text-center">MACHINE</th>
-									<th class="text-center">GOOD</th>
-									<th class="text-center">OPERATOR</th>
-									<th class="text-center">ACTIONS</th>
+									<th class="text-center" style="text-transform: uppercase;">PROCESS</th>
+									<th class="text-center" style="text-transform: uppercase;">MACHINE</th>
+									<th class="text-center" style="text-transform: uppercase;">GOOD</th>
+									<th class="text-center" style="text-transform: uppercase;">reject</th>
+									<th class="text-center" style="text-transform: uppercase;">OPERATOR</th>
+									<th class="text-center" style="text-transform: uppercase;">ACTIONS</th>
 								</tr>
 								@forelse($logs as $log)
 								<tr style="font-size: 10pt;" class="{{ ($log['status'] == 'In Progress') ? 'blink-bg' : '' }}">
@@ -176,12 +178,42 @@
 										<span class="d-block font-italic" style="font-size: 8pt;">{{ ($log['status'] == 'Completed') ? $log['duration'] : '-' }}</span>
 									</td>
 									<td class="text-center">{{ $log['completed_qty'] }}</td>
+									<td class="text-center">{{ $log['reject'] }}</td>
 									<td class="text-center">{{ $log['operator_name'] }}</td>
 									<td class="text-center p-1">
-										<button type="button" class="btn btn-block continue-log-btn rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ ($row['status'] == 'In Progress' || $log['status'] == 'In Progress') ? 'disabled' : '' }} {{ $continue_btn }}>
-											<i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i>
-											<span class="d-block" style="font-size: 8pt;">Continue</span>
-										</button>
+										<div class="row m-0 w-100">
+											<div class="col-4 m-0" style="padding: 0 2px 0 2px;">
+												<button type="button" class="btn btn-block enter-reject-btn p-0 rounded-0" style="height: 60px; background-color: #C62828;" {{ in_array('In Progress', [$row['status'], $log['status']]) ? 'disabled' : '' }}
+												data-id="{{ $log['time_log_id'] }}"
+												data-processid={{ $row['process_id'] }}
+												data-process-name="{{ $row['process_name'] }}"
+												data-good-qty="{{ $log['completed_qty'] }}"
+												data-row="1">
+													<i class="now-ui-icons ui-1_simple-remove" style="font-size: 13pt;"></i>
+													<span class="d-block" style="font-size: 8pt;">Reject</span>
+												</button>
+											</div>
+											<div class="col-4 m-0" style="padding: 0 2px 0 2px;">
+												@php
+													$continue_rework = $log['reject'] <= 0 ? 'disabled' : null;
+													if(in_array('In Progress', [$row['status'], $log['status']])){
+														$continue_rework = 'disabled';
+													}
+												@endphp
+												<button type="button" class="btn btn-block continue-log-btn p-0 rounded-0" style="height: 60px; background-color: #F57F17; color: #000" {{ $continue_rework }} {{ $continue_btn }} {{ $log['disable_rework'] }}
+												data-timelog-id="{{ $log['time_log_id'] }}"
+												data-is-rework="1">
+													<i class="now-ui-icons ui-2_settings-90" style="font-size: 13pt;"></i>
+													<span class="d-block" style="font-size: 8pt;">Rework</span>
+												</button>
+											</div>
+											<div class="col-4 m-0" style="padding: 0 2px 0 2px;">
+												<button type="button" class="btn btn-block continue-log-btn p-0 rounded-0" data-timelog-id="{{ $log['time_log_id'] }}" style="height: 60px; background-color: #117A65;" {{ in_array('In Progress', [$row['status'], $log['status']]) ? 'disabled' : '' }} {{ $continue_btn }}>
+													<i class="now-ui-icons media-1_button-play" style="font-size: 13pt;"></i>
+													<span class="d-block" style="font-size: 8pt;">Continue</span>
+												</button>
+											</div>
+										</div>
 									</td>
 								</tr>
 								@empty
@@ -224,8 +256,9 @@
 								<td class="text-center" style="width: 20%;">
 									@php
 										$disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
+										$disabled_enter_reject = ($row['completed_qty'] <= 0) ? 'disabled' : $disabled_enter_reject;
 									@endphp
-									<button type="button" class="btn btn-block enter-reject-btn rounded-0" data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828;">
+									<button type="button" class="btn btn-block enter-reject-btn rounded-0" {{ $disabled_enter_reject }} data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828;">
 										<i class="now-ui-icons ui-1_simple-remove" style="font-size: 15pt;"></i>
 										<span class="d-block" style="font-size: 10pt;">Enter Reject</span>
 									</button>

@@ -4262,7 +4262,7 @@ class MainController extends Controller
 			$task_list_qry = DB::connection('mysql_mes')->table('production_order AS po')
 				->join('job_ticket AS jt', 'po.production_order', 'jt.production_order')
 				->where('po.production_order', $request->production_order)->where('jt.workstation', $request->workstation)
-				->where('jt.job_ticket_id', $request->job_ticket_id)->select('po.item_code', 'jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'po.customer', 'po.qty_to_manufacture', 'po.stock_uom', 'po.project', 'jt.process_id', 'jt.completed_qty', 'jt.status', 'jt.rework')
+				->where('jt.job_ticket_id', $request->job_ticket_id)->select('po.item_code', 'jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'po.production_order', 'po.description', 'po.sales_order', 'po.material_request', 'po.customer', 'po.qty_to_manufacture', 'po.stock_uom', 'po.project', 'jt.process_id', 'jt.completed_qty', 'jt.status', 'jt.rework', 'jt.reject as total_reject')
 				->orderBy('jt.last_modified_at', 'desc')->get();
 		}else{
 			$task_list_qry = DB::connection('mysql_mes')->table('production_order AS po')
@@ -4333,7 +4333,7 @@ class MainController extends Controller
 				'customer' => $row->customer,
 				'qty_to_manufacture' => $row->qty_to_manufacture,
 				'total_good' => ($time_logs) ? $row->total_good : $row->completed_qty,
-				'total_reject' => $row->total_reject, //$total_reject,
+				'total_reject' => $row->total_reject ? $row->total_reject : 0, //$total_reject,
 				'total_rework' => $row->rework,
 				'stock_uom' => $row->stock_uom,
 				'project' => $row->project,
@@ -9979,7 +9979,7 @@ class MainController extends Controller
 							$total_good_spotwelding = 0;
 						}
 							
-						$total_reject = collect($logs)->where('status', 'Completed')->sum('reject');
+						$total_reject = $value->reject;
 						$total_good = $total_good_spotwelding;
 					}
 				} else {

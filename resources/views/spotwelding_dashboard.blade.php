@@ -1086,6 +1086,10 @@
         _token: '{{ csrf_token() }}', 
       }
 
+      if(typeof($(this).data('is-rework')) != "undefined" && $(this).data('is-rework') !== null) {
+        data.is_rework = 1;
+      }
+
       $.ajax({
         url: "/continue_log_task/" + $(this).data('timelog-id'),
         type:"POST",

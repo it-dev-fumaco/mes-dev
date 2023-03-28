@@ -10,11 +10,14 @@
                   <span aria-hidden="true">&times;</span>
                </button>
             </div>
-            <input type="hidden" name="per_row_reject" class="per-row-reject">
-            <input type="hidden" name="good" class="good-qty-input">
-            <input type="hidden" name="id" class="timelog-id">
-            <input type="hidden" name="production_order" class="production-order-input">
-            <input type="hidden" name="workstation" class="workstation-input">
+            <div class="d-none">
+               <input type="text" name="per_row_reject" class="per-row-reject">
+               <input type="text" name="good" class="good-qty-input">
+               <input type="text" name="id" class="timelog-id">
+               <input type="text" name="production_order" class="production-order-input">
+               <input type="text" name="workstation" class="workstation-input">
+            </div>
+            
             <div class="modal-body">
                <div class="row">
                   <div class="col-md-8">
