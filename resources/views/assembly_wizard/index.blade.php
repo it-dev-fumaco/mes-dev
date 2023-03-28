@@ -1229,7 +1229,7 @@
             '<td class="text-center"><span class="sub-parent-item" style="display: none;">'+create_batch_row.find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">' + create_batch_row.find('.parent-code').text() +'</span><span class="sales-order" style="display: none;">' + create_batch_row.find('.sales-order').eq(0).text() + '</span></td>' +
             '<td class="text-center"><span class="item-code">' + create_batch_row.find('.item-code').eq(0).text() + '</span><br><span class="bom">' + create_batch_row.find('.bom').eq(0).text() + '</span></td>' +
             '<td class="text-justify item-description">' + create_batch_row.find('.item-description').eq(0).text() + '</td>' +
-            '<td class="text-center" style="font-size: 11pt;">' + planned_qty + '</td>' +
+            '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + planned_qty + '</td>' +
             '<td class="text-center">' +
             '<div class="form-group" style="margin: 0;"><input type="text" value="' + batch_qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"></div>' +
             '</td>' +

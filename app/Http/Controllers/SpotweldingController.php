@@ -366,7 +366,6 @@ class SpotweldingController extends Controller
 		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
 		try {
-
 			if(empty($request->reject_list)){
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 			}
@@ -415,55 +414,52 @@ class SpotweldingController extends Controller
 					}
 				}
 			}else{
-				$time_log = DB::connection('mysql_mes')->table('spotwelding_qty')->where('job_ticket_id', $request->id)->where('operator_id', Auth::user()->user_id)->first();
-				if ($time_log) {
-					$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
-					if ($job_ticket) {
-						$total_good = $request->good - $request->rejected_qty;
-						$insert = [
-							'reference_id' => $request->id,
-							'reference_type' => 'Spotwelding',
-							'qa_inspection_type' => 'Reject Confirmation',
-							'rejected_qty' => $request->rejected_qty,
-							'total_qty' => $total_good,
-							'status' => 'For Confirmation',
-							'created_by' => Auth::user()->employee_name,
-							'created_at' => $now->toDateTimeString(),
-						];
-		
-						$update_jt = [
-							'last_modified_at' => $now->toDateTimeString(),
-							'last_modified_by' => Auth::user()->employee_name,
-							'good' => $total_good,
-							'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0'),
-						];
-						
-						DB::connection('mysql_mes')->table('spotwelding_qty')->where('time_log_id',$time_log->time_log_id)->update($update_jt);
+				$job_ticket = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)->first();
+				if ($job_ticket) {
+					$total_good = $request->good - $request->rejected_qty;
+					$insert = [
+						'reference_id' => $request->id, // jobticket id
+						'reference_type' => 'Spotwelding',
+						'qa_inspection_type' => 'Reject Confirmation',
+						'rejected_qty' => $request->rejected_qty,
+						'total_qty' => $total_good,
+						'status' => 'For Confirmation',
+						'created_by' => Auth::user()->employee_name,
+						'created_at' => $now->toDateTimeString(),
+					];
+	
+					$update_jt = [
+						'last_modified_at' => $now->toDateTimeString(),
+						'last_modified_by' => Auth::user()->employee_name,
+						'good' => $total_good,
+						'reject' => $request->rejected_qty + (($job_ticket->reject != 0)? $job_ticket->reject : '0'),
+					];
+					
+					DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket->job_ticket_id)->update($update_jt);
 
-						$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
-						
-						if($request->reject_list){
-							$reject_values = [];
-							foreach ($request->reject_list as $i => $value) {
-								$reject_values[] = [
-									'job_ticket_id' => $request->id,
-									'qa_id' => $qa_id,
-									'reject_list_id' => $request->reject_list [$i],
-									'reject_value' => '-'
-								];
-							}
-							DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
+					$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
+					
+					if($request->reject_list){
+						$reject_values = [];
+						foreach ($request->reject_list as $i => $value) {
+							$reject_values[] = [
+								'job_ticket_id' => $request->id,
+								'qa_id' => $qa_id,
+								'reject_list_id' => $request->reject_list [$i],
+								'reject_value' => '-'
+							];
 						}
+						DB::connection('mysql_mes')->table('reject_reason')->insert($reject_values);
 					}
+				}
 
-					$update_job_ticket = $this->update_job_ticket($time_log->job_ticket_id);
+				$update_job_ticket = $this->update_job_ticket($job_ticket->job_ticket_id);
 
-					if(!$update_job_ticket){
-						DB::connection('mysql')->rollback();
-						DB::connection('mysql_mes')->rollback();
+				if(!$update_job_ticket){
+					DB::connection('mysql')->rollback();
+					DB::connection('mysql_mes')->rollback();
 
-						return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
-					}
+					return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 				}
 			}
 

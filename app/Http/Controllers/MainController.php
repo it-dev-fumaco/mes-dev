@@ -9979,7 +9979,7 @@ class MainController extends Controller
 							$total_good_spotwelding = 0;
 						}
 							
-						$total_reject = collect($logs)->where('status', 'Completed')->sum('reject');
+						$total_reject = $value->reject;
 						$total_good = $total_good_spotwelding;
 					}
 				} else {

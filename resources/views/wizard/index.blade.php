@@ -1074,7 +1074,7 @@
                '<span class="item-code">' + create_batch_row.find('.item-code').text() + '</span><br>' +
                '<span class="bom">' + create_batch_row.find('.bom').text() + '</span></td>' +
                '<td class="text-justify item-description">' + create_batch_row.find('.item-description').text() + '</td>' +
-               '<td class="text-center" style="font-size: 11pt;">' + planned_qty + '</td>' +
+               '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + planned_qty + '</td>' +
                '<td class="text-center">' + create_batch_row.find('.actual-qty-span').parent().html() + '</td>' +
                '<td class="text-center"><div class="form-group" style="margin: 0;">' +
                   '<input type="text" value="' + batch_qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"></div>' +
