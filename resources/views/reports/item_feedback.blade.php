@@ -18,13 +18,13 @@
               <div class="d-flex flex-row m-0">
                 <div class="col-6 p-0 m-0">
                   <ul class="nav nav-tabs nav-justified">
-                    <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
+                    <li class="tab production-orders-tab custom-nav-link col-4 col-xl-2" heading="Justified" style="background-color: #808495 !important">
                       <a data-toggle="tab" href="#tab-production-orders">
                         <span class="tab-number" id="production-orders-total">0</span> 
                         <span class="tab-title">Production Order(s)</span> 
                       </a>
                     </li>
-                    <li class="tab search-tab custom-nav-link" heading="Justified">
+                    <li class="tab search-tab custom-nav-link col-4 col-xl-2" heading="Justified">
                       <a data-toggle="tab" href="#tab-search">
                         <span class="tab-number" id="item-tracking-total">0</span> 
                         <span class="tab-title">Order Tracking</span> 
@@ -37,7 +37,7 @@
                     <i class="now-ui-icons loader_refresh"></i> Refresh List
                   </button>
                   <button type="button" class="btn btn-primary" id="manual-production-create-btn">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
+                    <i class="now-ui-icons ui-1_simple-add"></i> Production Order
                   </button>
                 </div>
               </div>
@@ -175,7 +175,7 @@
 
   .custom-nav-link{
     padding: 5px;
-    width: 20%;
+    /* width: 20%; */
   }
 
   .custom-nav-link a{

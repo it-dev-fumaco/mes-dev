@@ -5,14 +5,16 @@
             <b>Delivery Date</b>
         </div>
         <div class="col-10 mt-0 p-0">
-            <table class="table m-0" style="font-size: 9pt; border: none;">
-                <col style="width: 9% !important;">
-                <col style="width: 10% !important;">
-                <col style="width: 16% !important;">
-                <col style="width: 5% !important;">
-                <col style="width: 40% !important;"><!-- Item -->
-                <col style="width: 15% !important;">
-                <col style="width: 5% !important;">
+            <table class="table m-0" style="font-size: 9pt; border: none; table-layout: fixed;">
+                <colgroup>
+                    <col style="width: 9% !important;">     <!-- Reference -->
+                    <col style="width: 12% !important;">    <!-- Production Order -->
+                    <col style="width: 16% !important;">    <!-- Customer -->
+                    <col style="width: 10% !important;">     <!-- Qty -->
+                    <col style="width: 28% !important;">    <!-- Item -->
+                    <col style="width: 15% !important;">    <!-- Previous Schedule -->
+                    <col style="width: 10% !important;">     <!-- Action -->
+                </colgroup>
                 <tr>
                     <th class="p-1 text-center">Reference</th>
                     <th class="p-1 text-center">Production Order</th>
@@ -38,14 +40,16 @@
             @endif
         </div>
         <div class="col-10 mt-0 p-0">
-            <table class="table table-striped" style="font-size: 8.5pt; ">
-                <col style="width: 9% !important;">
-                <col style="width: 10% !important;">
-                <col style="width: 16% !important;">
-                <col style="width: 5% !important;">
-                <col style="width: 40% !important;"><!-- Item -->
-                <col style="width: 15% !important;">
-                <col style="width: 5% !important;">
+            <table class="table table-striped" style="font-size: 8.5pt; table-layout: fixed;">
+                <colgroup>
+                    <col style="width: 9% !important;">     <!-- Reference -->
+                    <col style="width: 12% !important;">    <!-- Production Order -->
+                    <col style="width: 16% !important;">    <!-- Customer -->
+                    <col style="width: 10% !important;">     <!-- Qty -->
+                    <col style="width: 28% !important;">    <!-- Item -->
+                    <col style="width: 15% !important;">    <!-- Previous Schedule -->
+                    <col style="width: 10% !important;">     <!-- Action -->
+                </colgroup>
                 <tbody>
                     @foreach ($items_arr as $item)
                         <tr>

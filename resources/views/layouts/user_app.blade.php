@@ -1180,7 +1180,11 @@
   $(document).ready(function(){
     $(document).on('click', '.close-modal', function(){
       $($(this).data('target')).modal('hide');
-    }); 
+    });
+
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { // mobile/tablet
+      $("#wrapper").addClass("no-sidebar");
+    }
 
     $(document).on('click', '.mark-done-btn', function(){
       if ($('#machine_kanban_details #card-status').val() == 'Unassigned') {

@@ -294,6 +294,6 @@
 </style>
 <script>
   $(document).ready(function(){
-    $('#production-orders-total').html({{ $total_production_orders }});
+    $('#production-orders-total').html('{{ number_format($total_production_orders) }}');
   });
 </script>
