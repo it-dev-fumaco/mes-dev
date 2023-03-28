@@ -4333,7 +4333,7 @@ class MainController extends Controller
 				'customer' => $row->customer,
 				'qty_to_manufacture' => $row->qty_to_manufacture,
 				'total_good' => ($time_logs) ? $row->total_good : $row->completed_qty,
-				'total_reject' => $row->total_reject, //$total_reject,
+				'total_reject' => $row->total_reject ? $row->total_reject : 0, //$total_reject,
 				'total_rework' => $row->rework,
 				'stock_uom' => $row->stock_uom,
 				'project' => $row->project,
