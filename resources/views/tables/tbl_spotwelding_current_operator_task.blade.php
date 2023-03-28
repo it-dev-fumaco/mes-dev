@@ -224,8 +224,9 @@
 								<td class="text-center" style="width: 20%;">
 									@php
 										$disabled_enter_reject = ($row['qa_inspection_status'] != 'Pending' || $row['status'] == 'In Progress') ? 'disabled' : '';
+										$disabled_enter_reject = ($row['completed_qty'] <= 0) ? 'disabled' : $disabled_enter_reject;
 									@endphp
-									<button type="button" class="btn btn-block enter-reject-btn rounded-0" data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828;">
+									<button type="button" class="btn btn-block enter-reject-btn rounded-0" {{ $disabled_enter_reject }} data-id="{{ $row['job_ticket_id'] }}"  data-processid={{$row['process_id']}} data-process-name="{{ $row['process_name'] }}" data-good-qty="{{ $row['completed_qty'] }}" data-row="0" style="height: 70px; background-color: #C62828;">
 										<i class="now-ui-icons ui-1_simple-remove" style="font-size: 15pt;"></i>
 										<span class="d-block" style="font-size: 10pt;">Enter Reject</span>
 									</button>
