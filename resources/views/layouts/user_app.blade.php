@@ -79,6 +79,12 @@
             <span class="d-inline-block"> Production Order(s)</span>
           </a>
         </li>
+        <li class="m-0 align-middle">
+          <a href="/view_delivery_list/{{ Carbon\Carbon::now()->format('Y-m-d') }}" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block"> Delivery Schedules</span>
+          </a>
+        </li>
       </ul>
       <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
       <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
@@ -1174,7 +1180,11 @@
   $(document).ready(function(){
     $(document).on('click', '.close-modal', function(){
       $($(this).data('target')).modal('hide');
-    }); 
+    });
+
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { // mobile/tablet
+      $("#wrapper").addClass("no-sidebar");
+    }
 
     $(document).on('click', '.mark-done-btn', function(){
       if ($('#machine_kanban_details #card-status').val() == 'Unassigned') {

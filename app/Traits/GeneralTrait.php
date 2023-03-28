@@ -32,14 +32,25 @@ trait GeneralTrait
             $spotwelding_part_codes = collect($spotwelding_parts)->groupBy('part_code')->toArray();
             $spotwelding_parts = collect($spotwelding_parts)->groupBy('spotwelding_part_id')->toArray();
 
+            $completed_spotwelding = [];
+            foreach ($spotwelding_parts as $part_id => $array) {
+                if(isset($spotwelding_parts[$part_id])){
+                    if(count($spotwelding_parts[$part_id]) == count($bom_parts)){
+                        $completed_spotwelding[] = $part_id;
+                    }
+                }
+            }
+
             if (count(array_diff(array_column($bom_parts, 'item_code'), array_keys($spotwelding_part_codes))) <= 0) {
-                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', array_keys($spotwelding_parts))
+                $total_good_spotwelding = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('spotwelding_part_id', $completed_spotwelding)
                     ->where('job_ticket_id', $job_ticket_id)->selectRaw('spotwelding_part_id, SUM(good) as total_good, SUM(reject) as total_reject')->groupBy('spotwelding_part_id')
                     ->where('status', 'Completed')->get();
                     
                 $total_good_spotwelding = collect($total_good_spotwelding)->map(function ($q){
                     return $q->total_good;
                 })->min();
+
+                $total_good_spotwelding = $total_good_spotwelding ? $total_good_spotwelding : 0;
             } else {
                 $total_good_spotwelding = 0;
             }
@@ -56,7 +67,7 @@ trait GeneralTrait
             $job_ticket_actual_start_date = collect($logs)->min('from_time');
             $job_ticket_actual_end_date = collect($logs)->max('to_time');
         }
-        
+
         $total_good = $total_good == null ? 0 : $total_good;
         $total_good = $total_good < 0 ? 0 : $total_good;
 

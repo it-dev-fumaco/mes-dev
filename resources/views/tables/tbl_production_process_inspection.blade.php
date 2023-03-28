@@ -54,16 +54,13 @@
             <div class="tab-pane {{ $loop->first ? 'active' : '' }}" id="rcfa{{ $existing_production_order->production_order }}-{{ $i }}" role="tabpanel" aria-labelledby="first-tab">
                 <div class="row mt-2" style="min-height: 200px;">
                     <div class="col-md-12">
+                        <style>
+                            #timelogs-tbl-qa tbody:nth-child(odd) {
+                                background-color: #f2f2f2;
+                            }
+                        </style>
                         <div class="table-responsive" style="max-height: 400px;">
-                            <table class="table table-striped">
-                                <col style="width: 15%;"><!-- BATCH DATE -->
-                                <col style="width: 20%;"><!-- MACHINE -->
-                                <col style="width: 16%;"><!-- PROCESS -->
-                                <col style="width: 15%;"><!-- OPERATOR -->
-                                <col style="width: 8%;"><!-- GOOD QTY -->
-                                <col style="width: 8%;"><!-- INSPECTED QTY -->
-                                <col style="width: 8%;"><!-- REJECTED QTY -->
-                                <col style="width: 10%;"><!-- ACTION -->
+                            <table class="table table-bordered" id="timelogs-tbl-qa">
                                 <thead class="text-primary text-uppercase" style="font-size: 5pt;">
                                     <tr>
                                         <th class="text-center p-1 font-weight-bold">BATCH DATE</th>
@@ -71,34 +68,65 @@
                                         <th class="text-center p-1 font-weight-bold">PROCESS</th>
                                         <th class="text-center p-1 font-weight-bold">OPERATOR</th>
                                         <th class="text-center p-1 font-weight-bold">GOOD QTY</th>
+                                        @if ($workstation == 'Spotwelding') 
+                                        <th class="text-center p-1 font-weight-bold">ITEM CODE</th>
+                                        @endif
                                         <th class="text-center p-1 font-weight-bold">INSPECTED QTY</th>
                                         <th class="text-center p-1 font-weight-bold">REJECTED QTY</th>
                                         <th class="text-center p-1 font-weight-bold">ACTION</th>
                                     </tr>
                                 </thead>
+                                @php
+                                    $task_random_inspection_list = array_key_exists($r->reject_category_id, $task_random_inspection_arr) ? $task_random_inspection_arr[$r->reject_category_id] : [];
+                                    $inspected_items_per_timelogs = array_key_exists($r->reject_category_id, $inspected_items_per_timelogid) ? $inspected_items_per_timelogid[$r->reject_category_id] : [];
+                                @endphp
+                                @forelse($task_random_inspection_list as $row)
                                 <tbody style="font-size: 9pt;">
                                     @php
-                                        $task_random_inspection_list = array_key_exists($r->reject_category_id, $task_random_inspection_arr) ? $task_random_inspection_arr[$r->reject_category_id] : [];
+                                        $inspected_items_per_log = array_key_exists($row['time_log_id'], $inspected_items_per_timelogs) ? $inspected_items_per_timelogs[$row['time_log_id']] : [];
+                                        $rspan = count($inspected_items_per_log) > 0 ? 'rowspan="' .count($inspected_items_per_log) .'"' : '';
                                     @endphp
-                                    @forelse($task_random_inspection_list as $row)
                                     <tr>
-                                        <td class="text-center p-1 font-weight-bold">{{ $row['batch_date'] }}</td>
-                                        <td class="text-center p-1 font-weight-bold">{{ $row['machine'] }}</td>
-                                        <td class="text-center p-1 font-weight-bold">{{ $row['process'] }}</td>
-                                        <td class="text-center p-1 font-weight-bold">{{ $row['operator_name'] }}</td>
-                                        <td class="text-center p-1 font-weight-bold" style="font-size: 13pt !important;">{{ $row['good'] }}</td>
-                                        <td class="text-center p-1 font-weight-bold" style="font-size: 13pt !important;">{{ $row['inspected_qty'] }}</td>
-                                        <td class="text-center p-1 font-weight-bold" style="font-size: 13pt !important;">{{ $row['rejected_qty'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!}>{{ $row['batch_date'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!}>{{ $row['machine'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!}>{{ $row['process'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!}>{{ $row['operator_name'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!} style="font-size: 13pt !important;">{{ $row['good'] }}</td>
+                                        @if (count($inspected_items_per_log) > 0) 
+                                        @foreach ($inspected_items_per_log as $ii)
+                                    @php
+                                        $inspected_item_description = array_key_exists($ii->item_code, $item_descriptions) ? $item_descriptions[$ii->item_code] : null;
+                                        $inspected_item_description = explode(",", strip_tags($inspected_item_description))[0];
+                                    @endphp
+                                            <td class="text-center p-1 align-middle">
+                                                <b>{{ $ii->item_code }}</b> - {{ $inspected_item_description }}
+                                            </td>
+                                            <td class="text-center p-1 font-weight-bold align-middle">{{ $ii->inspected_qty }}</td>
+                                            <td class="text-center p-1 font-weight-bold align-middle">{{ $ii->rejected_qty }}</td>
+                                            @if ($loop->first)
+                                            <td class="text-center p-1" {!! $rspan !!}>
+                                                <button type='button' class='btn pb-2 pr-3 pt-2 pl-3 btn-primary btn-lg quality-inspection-btn' data-timelog-id="{{ $row['time_log_id'] }}" data-inspection-type="Random Inspection" data-workstation="{{ $row['workstation'] }}" data-processid="{{ $row['process_id'] }}" data-production-order="{{ $existing_production_order->production_order }}" data-reject-cat="{{ $r->reject_category_id }}">Inspect</button>
+                                            </td>
+                                            @endif
+                                            </tr>
+                                        @endforeach
+                                        @else
+                                        @if ($workstation == 'Spotwelding')
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!} style="font-size: 13pt !important;">-</td>
+                                        @endif
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!} style="font-size: 13pt !important;">{{ $row['inspected_qty'] }}</td>
+                                        <td class="text-center p-1 font-weight-bold" {!! $rspan !!} style="font-size: 13pt !important;">{{ $row['rejected_qty'] }}</td>
                                         <td class="text-center p-1">
                                             <button type='button' class='btn pb-2 pr-3 pt-2 pl-3 btn-primary btn-lg quality-inspection-btn' data-timelog-id="{{ $row['time_log_id'] }}" data-inspection-type="Random Inspection" data-workstation="{{ $row['workstation'] }}" data-processid="{{ $row['process_id'] }}" data-production-order="{{ $existing_production_order->production_order }}" data-reject-cat="{{ $r->reject_category_id }}">Inspect</button>
                                         </td>
+                                        @endif
                                     </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="8" class="text-center text-uppercase text-muted">No Task for Random Inspection</td>
-                                    </tr>
-                                    @endforelse
                                 </tbody>
+                                @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-uppercase text-muted">No Task for Random Inspection</td>
+                                </tr>
+                                @endforelse
                             </table>
                         </div>
                     </div>

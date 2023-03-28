@@ -936,14 +936,13 @@
                '<td class="text-center">' + n + '</td>' +
                '<td class="text-center"><span class="delivery-date" style="display: none;">'+$(this).find('.delivery-date').text()+'</span><span class="item-reference-id" style="display: none;">'+$(this).find('.item-reference-id').text()+'</span><span class="sub-parent-item" style="display: none;">'+$(this).find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">'+$(this).find('.parent-code').text()+'</span><span class="reference-no" style="display: none;">'+$(this).find('.reference-no').eq(0).text()+'</span><span class="item-code">' + $(this).find('td').eq(1).text() + '</span><br><span class="bom">' + $(this).find('.review-bom-row').eq(0).text() + '</span></td>' +
                '<td class="text-justify item-description">' + $(this).find('td').eq(2).text() + '</td>' +
-               '<td class="text-center" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
+               '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
                '<td class="text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
                '<td class="text-center">' +
                   '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"' + (parseFloat($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : '') + '></div>' +
                '</td>' +
                '<td class="text-center">' +
                   '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
-               // '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg source" '+disable_sel+'>' + s_wh + '</select></div></td>' +
                '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + t_wh + '</select></div></td>' +
                '<td class="text-center">' +
                   '<div class="btn-group">' + create_btn + '</div>' +
@@ -1341,6 +1340,7 @@
             operation: 'Wiring and Assembly',
             item_reference_id: $row.find('.item-reference-id').text(),
             delivery_date: $row.find('.delivery-date').text(),
+            ordered_qty: $row.find('.item-ordered-qty').text()
          }
 
          $btn.attr('disabled', true);

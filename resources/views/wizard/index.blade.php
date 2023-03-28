@@ -1012,7 +1012,7 @@
                '<td class="text-center">' + n + '</td>' +
                '<td class="text-center"><span class="delivery-date" style="display: none;">'+$(this).find('.delivery-date').text()+'</span><span class="item-reference-id" style="display: none;">'+$(this).find('.item-reference-id').text()+'</span><span class="sub-parent-item" style="display: none;">'+$(this).find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">'+$(this).find('.parent-code').text()+'</span><span class="reference-no" style="display: none;">'+$(this).find('.reference-no').eq(0).text()+'</span><span class="item-code">' + $(this).find('td').eq(1).text() + '</span><br><span class="bom">' + $(this).find('.review-bom-row').eq(0).text() + '</span></td>' +
                '<td class="text-justify item-description">' + $(this).find('td').eq(2).text() + '</td>' +
-               '<td class="text-center" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
+               '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
                '<td class="text-center">' +
                   '<span class="actual-qty-span font-weight-bold" style="font-size: 11pt; '+ stylecss+'">' + actual_qty + '</span>' +
                '</td>' +
@@ -1190,6 +1190,7 @@
             operation: 'Fabrication',
             item_reference_id: $row.find('.item-reference-id').text(),
 	         delivery_date: $row.find('.delivery-date').text(),
+            ordered_qty: $row.find('.item-ordered-qty').text()
          }
 
          $btn.attr('disabled', true);

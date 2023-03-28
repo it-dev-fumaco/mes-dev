@@ -664,13 +664,13 @@ class ManufacturingController extends Controller
             if(!Auth::user()) {
                 return response()->json(['message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
+
+            $workstations = DB::connection('mysql_mes')->table('workstation')
+                ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
             
             $jtno = $request->production;
             $details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production)->first();
             if($bom == "No BOM"){
-                $workstations = DB::connection('mysql_mes')->table('workstation')
-                    ->join('operation', 'operation.operation_id', 'workstation.operation_id')->get();
-                
                 $existing_workstation= DB::connection('mysql_mes')->table('job_ticket')
                     ->where('production_order', $request->production)->get();
 
@@ -701,10 +701,6 @@ class ManufacturingController extends Controller
 
                     $operation_ids = [$operation_details->operation_id];
                 }
-                
-                $workstations = DB::connection('mysql_mes')
-                    ->table('workstation as w')->join('operation as op', 'op.operation_id','w.operation_id')
-                    ->whereIn('op.operation_id', $operation_ids)->get();
 
                 $workstation_process = DB::connection('mysql_mes')->table('process')
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
@@ -1522,16 +1518,12 @@ class ManufacturingController extends Controller
             $bom = DB::connection('mysql')->table('tabBOM Item as bom')
                 ->join('tabItem as item', 'item.name', 'bom.item_code')
                 ->whereNotIn('item.item_group', ['Raw Material', 'Factory Supplies'])
-                ->where('bom.docstatus', '<', 2)
-                ->where('bom.item_code', $request->item_code)
-                ->select('bom.*', 'item.parts_category')
-                ->orderBy('bom.modified', 'desc')->first();
+                ->where('bom.docstatus', '<', 2)->where('bom.item_code', $request->item_code)
+                ->select('bom.*', 'item.parts_category')->orderBy('bom.modified', 'desc')->first();
             if(!empty($bom)){
                 $default_bom = DB::connection('mysql')->table('tabBOM')
-                ->where('docstatus', '<', 2)
-                ->orderBy('modified', 'desc')
-                ->where('name', $bom->parent)
-                ->first();
+                    ->where('docstatus', '<', 2)->orderBy('modified', 'desc')
+                    ->where('name', $bom->parent)->first();
             }
 
             $parent_item_code = ($request->parent_code) ? $request->parent_code : $request->item_code;
@@ -1635,18 +1627,33 @@ class ManufacturingController extends Controller
                 'operation_id' => $operation_details->operation_id
             ];
 
-            $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
-                ->where('parent_item_code', $data_mes['parent_item_code'])
-                ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
-                ->where('item_code', $data_mes['item_code'])
-                ->where('qty_to_manufacture', $data_mes['qty_to_manufacture'])
-                ->where('sales_order', $data_mes['sales_order'])
-                ->where('material_request', $data_mes['material_request'])
-                ->where('status', '!=', 'Cancelled')
-                ->first();
-            
-            if ($check_existing_production_order) {
-                return response()->json(['success' => 0, 'message' => 'Production Order for this item already exists. (' . $check_existing_production_order->production_order . ')']);
+            if ($request->ordered_qty) {
+                $check_existing_production_order = DB::connection('mysql_mes')->table('production_order')
+                    ->where('parent_item_code', $data_mes['parent_item_code'])
+                    ->where('sub_parent_item_code', $data_mes['sub_parent_item_code'])
+                    ->where('item_code', $data_mes['item_code'])
+                    ->where('sales_order', $data_mes['sales_order'])
+                    ->where('material_request', $data_mes['material_request'])
+                    ->where('status', '!=', 'Cancelled')->get();
+
+                $existing_prod_qty = collect($check_existing_production_order)->sum('qty_to_manufacture');
+                $existing_prod_qty = $existing_prod_qty + $request->qty;
+                $existing_prods = '';
+                $existing_pros = [];
+                foreach($check_existing_production_order as $i => $cepo) {
+                    $existing_pros[$cepo->production_order] = $cepo->qty_to_manufacture;
+                    if ($cepo->production_order != $data_mes['production_order']) {
+                        if ($i == 0) {
+                            $existing_prods = '<br><br>';
+                        }
+                        $existing_prods .= $cepo->production_order . ' - ' . $cepo->qty_to_manufacture . ' ' . $cepo->stock_uom . '<br>';
+                    }
+                }
+
+                unset($existing_pros[$data_mes['production_order']]);
+                if ((float)$existing_prod_qty > (float)$request->ordered_qty) {
+                    return response()->json(['success' => 0, 'message' => 'Qty to produce for <b>' . $data_mes['item_code'] . '</b> cannot be greater than <b>' . (float)$request->ordered_qty . '</b> ' . $existing_prods]);
+                }
             }
 
             DB::connection('mysql_mes')->table('production_order')->insert($data_mes);
@@ -2547,15 +2554,11 @@ class ManufacturingController extends Controller
         $all_items_has_transferred_qty = count(array_merge($diff1, $diff2)) <= 0 ? 1 : 0;
 
         $checker = 1;
-        $qty_checker = collect($required_items)->map(function ($q){
-            return $q['transferred_qty'] == $q['required_qty'] ? 1 : 0;
-        })->min();
-
-        if($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1){
-            $ste_transferred = (float)number_format($ste_transferred_qty, 10);
+        if($ste_transferred_qty > 0){
+            $ste_transferred  = (float)number_format($ste_transferred_qty, 10);
             $mes_transferred = (float)number_format(collect($required_items)->sum('transferred_qty'), 10);
 
-            if($ste_transferred != $mes_transferred || $qty_checker == 0){
+            if($ste_transferred  != $mes_transferred){
                 $checker = 0;
             }
         }

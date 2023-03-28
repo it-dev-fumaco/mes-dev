@@ -1347,7 +1347,7 @@ class QualityInspectionController extends Controller
             }
 
             DB::connection('mysql_mes')->table('quality_inspection')
-                ->whereIn('reference_id', array_keys($request->workstation))
+                ->whereIn('reference_id', array_keys($request->workstation))->where('status', 'For Confirmation')
                 ->whereNotIn('qa_id', array_values($request->qa_id))->delete();
            
             $qa_staff_name = $qa_user->employee_name;
