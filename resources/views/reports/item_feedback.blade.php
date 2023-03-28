@@ -18,13 +18,13 @@
               <div class="d-flex flex-row m-0">
                 <div class="col-6 p-0 m-0">
                   <ul class="nav nav-tabs nav-justified">
-                    <li class="tab production-orders-tab custom-nav-link col-4 col-xl-2" heading="Justified" style="background-color: #808495 !important">
+                    <li class="tab production-orders-tab custom-nav-link" heading="Justified" style="background-color: #808495 !important">
                       <a data-toggle="tab" href="#tab-production-orders">
                         <span class="tab-number" id="production-orders-total">0</span> 
                         <span class="tab-title">Production Order(s)</span> 
                       </a>
                     </li>
-                    <li class="tab search-tab custom-nav-link col-4 col-xl-2" heading="Justified">
+                    <li class="tab search-tab custom-nav-link" heading="Justified">
                       <a data-toggle="tab" href="#tab-search">
                         <span class="tab-number" id="item-tracking-total">0</span> 
                         <span class="tab-title">Order Tracking</span> 
@@ -37,7 +37,7 @@
                     <i class="now-ui-icons loader_refresh"></i> Refresh List
                   </button>
                   <button type="button" class="btn btn-primary" id="manual-production-create-btn">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Production Order
+                    <i class="now-ui-icons ui-1_simple-add"></i> Create Production Order
                   </button>
                 </div>
               </div>
@@ -54,7 +54,7 @@
                           @endphp
                           <div class="row p-0 m-0">
                             @foreach ($status_arr as $status)
-                              <label class="PillList-item mr-1 mb-0">
+                              <label class="PillList-item mr-2 mb-0">
                                 <input type="checkbox" class="production-orders-checkbox" value="{{ $status }}">
                                 <span class="PillList-label">{{ $status }}
                                 </span>
@@ -175,7 +175,7 @@
 
   .custom-nav-link{
     padding: 5px;
-    /* width: 20%; */
+    width: 20%;
   }
 
   .custom-nav-link a{
@@ -460,16 +460,6 @@
     font-style: normal;
     vertical-align: baseline;
     position: relative;
-  }
-  /* @media only screen and (min-width: 575.98px) { */
-    @media all and (max-width: 767px){
-	/* @media (min-width: 575.98px) { */
-    .PillList-item {
-      font-size: 8pt;
-    }
-    .PillList-label {
-      padding: 3px 14px;
-    }
   }
 
 </style>
@@ -1051,6 +1041,7 @@
   #filter-btn:hover, #filter-btn:focus, #filter-btn:active{
     outline: none;
   }
+
 </style>
 
 <iframe src="#" id="iframe-print" style="display: none;"></iframe>

@@ -22,6 +22,7 @@
             </div>
             <div class="card">
                 <div class="card-header p-2">
+                    
                     <div class="row p-2" style="background-color: #0276BC;">
                         <div class="col-1 text-white" style="display: flex; justify-content: center; align-items: center; font-weight: 700">Filters</div>
                         <div class="col-2 offset-2 p-1">

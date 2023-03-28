@@ -27,250 +27,7 @@
   {{-- Daterangepicker --}}
   <link href="{{ asset('/css/daterangepicker.css') }}" rel="stylesheet" />
 </head>
-<style type="text/css">
-  .qc_passed{
-    background-image: url("{{ asset('img/chk.png') }}");
-    background-size: 28%;
-    background-repeat: no-repeat;
-    background-position: center; 
-  }
-
-  .qc_failed{
-    background-image: url("{{ asset('img/x.png') }}");
-    background-size: 20%;
-    background-repeat: no-repeat;
-    background-position: center; 
-  }
-
-  .active-process {
-    background-color: #FFC107;
-    color: #000000;
-    animation: blinkingBackground 2.5s linear infinite;
-  }
-
-  @keyframes blinkingBackground{
-    0%    { background-color: #ffffff;}
-    25%   { background-color: #FFC107;}
-    50%   { background-color: #ffffff;}
-    75%   { background-color: #FFC107;}
-    100%  { background-color: #ffffff;}
-  }
-  
-  .breadcrumb-c {
-    font-size: 8pt;
-    font-weight: bold;
-    padding: 0;
-    background: transparent;
-    list-style: none;
-    overflow: hidden;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    width: 100%;
-    border-radius: 4px;
-  }
-
-  .breadcrumb-c>li {
-    display: table-cell;
-    vertical-align: top;
-    width: 0.8%;
-  }
-
-  .breadcrumb-c>li+li:before {
-    padding: 0;
-  }
-
-  .breadcrumb-c li a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 0 10px 5px;
-    position: relative;
-    display: inline-block;
-    width: calc( 100% - 10px );
-    background-color: hsla(0, 0%, 83%, 1);
-    text-align: center;
-    text-transform: capitalize;
-  }
-
-  .breadcrumb-c li.completed a {
-    background: brown;
-    background: hsla(153, 57%, 51%, 1);
-  }
-
-  .breadcrumb-c li.completed a:after {
-    border-left: 30px solid hsla(153, 57%, 51%, 1);
-  }
-
-  .breadcrumb-c li.active a {
-    background: #ffc107;
-  }
-
-  .breadcrumb-c li.active a:after {
-    border-left: 30px solid #ffc107;
-  }
-
-  .breadcrumb-c li:first-child a {
-    padding-left: 1px;
-  }
-
-  .breadcrumb-c li:last-of-type a {
-    width: calc( 100% - 38px );
-  }
-
-  .breadcrumb-c li a:before {
-    content: " ";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 50px solid transparent;
-    border-bottom: 50px solid transparent;
-    border-left: 30px solid white;
-    position: absolute;
-    top: 50%;
-    margin-top: -50px;
-    margin-left: 1px;
-    left: 100%;
-    z-index: 1;
-  }
-
-  .breadcrumb-c li a:after {
-    content: " ";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 50px solid transparent;
-    border-bottom: 50px solid transparent;
-    border-left: 30px solid hsla(0, 0%, 83%, 1);
-    position: absolute;
-    top: 50%;
-    margin-top: -50px;
-    left: 100%;
-    z-index: 2;
-  }
-
-  .truncate {
-    white-space: nowrap;
-    /*overflow: hidden;*/
-    text-overflow: ellipsis;
-  }
-
-  .scrolltbody tbody {
-    display:block;
-    height:300px;
-    overflow:auto;
-  }
-  .scrolltbody thead, .scrolltbody tbody tr {
-      display:table;
-      width:100%;
-      table-layout:fixed;
-  }
-  .scrolltbody thead {
-      width: calc(100%)
-  }
-    .numpad-div .row1{
-    -webkit-user-select: none; /* Chrome/Safari */        
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE10+ */
-    /* Not implemented yet */
-    -o-user-select: none;
-    user-select: none;   
-  }
-
-  .numpad{
-    display: inline-block;
-    border: 1px solid #333;
-    border-radius: 5px;
-    text-align: center;
-    width: 27%;
-    height: 27%;
-    line-height: 60px;
-    margin: 3px;
-    font-size: 15pt;
-    color: inherit;
-    background: rgba(255, 255, 255, 0.7);
-    transition: all 0.3s ease-in-out;
-  }
-  .numpad:active,
-  .numpad:hover {
-    cursor: pointer ;
-    box-shadow: inset 0 0 2px #000000;
-  }
-
-  .modal-ste .form-control {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-shadow: none;
-    margin-bottom: 15px;
-  }
-  .modal-ste .form-control:hover, .modal-ste .form-control:focus, .modal-ste .form-control:active {
-    box-shadow: none;
-  }
-  .modal-ste .form-control:focus {
-    border: 1px solid #34495e;
-  }
-
-  .modal { overflow: auto !important; }
-  #reschedule-delivery-modal .form-control {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-shadow: none;
-    margin-bottom: 15px;
-  }
-
-  [data-notify] { z-index: 9999 !important; }
-
-  .effect-01 ul li  {
-    border-radius: 5px;
-    border: 1px solid rgba(0,0,0,0);
-    margin: 5px 10px;
-  }	
-  .effect-01 ul li:hover {
-    background: rgba(66, 66, 66, 0.108);
-    border-bottom: 1px solid rgba(0,0,0,.2);
-    border-top: 1px solid rgba(255,255,255,.5);
-    box-shadow: 0 2px 2px rgba(0,0,0,.1);
-    position: relative;
-    text-shadow: 1px 1px 1px rgba(255,255,255,.5);
-  }
-  .effect-01 ul li:active {
-    background: rgba(100,100,100,.05);
-    border-bottom-color: rgba(0,0,0,0);
-    box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
-    text-shadow: none;
-    top: 1px;
-  }
-  #wrapper {
-    display: flex;
-    width: 100%;
-  }
-  #sidebar {
-    min-height: 100vh;
-    position: fixed;
-    transition: all 0.25s;
-    width: 265px;
-  }
-  #content {
-    min-height: 100vh;
-    padding: 0;
-    position: absolute;
-    right: 0;
-    transition: all 0.25s;
-    width: calc(100% - 265px);
-  }
-  .no-sidebar #sidebar {
-    margin-left: -265px;
-  }
-  .no-sidebar #content {
-    width: 100%;
-  }
-  .wizard-h4{
-    margin-top: -50px;
-  }
-  #current-time{
-    font-size: 18pt;
-  }
-  #all-production-orders-table{
-    font-size: 9pt;
-  }
+<style>
   @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
 	*:not(i):not(.fa){
 		font-family: 'Poppins' !important;
@@ -278,21 +35,8 @@
 	}
 </style>
 @yield('style')
-<style>
-  @media screen 
-    and (min-device-width: 1200px) 
-    and (max-device-width: 1600px) 
-    and (-webkit-min-device-pixel-ratio: 1){
-      .icon-text{
-        display: none;
-      }
-      .wizard-h4{
-        margin-top: 0 !important;
-      }
-  }
-</style>
 <body class="">
-  <div id="wrapper" class="wrapper mobile-check">
+  <div id="wrapper" class="wrapper">
     <div class="sidebar">
       <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
     </div>
@@ -463,24 +207,84 @@
       </ul>
     </div>
   </nav>
+  <style>
+    .effect-01 ul li  {
+      border-radius: 5px;
+      border: 1px solid rgba(0,0,0,0);
+      margin: 5px 10px;
+    }	
+    .effect-01 ul li:hover {
+      background: rgba(66, 66, 66, 0.108);
+      border-bottom: 1px solid rgba(0,0,0,.2);
+      border-top: 1px solid rgba(255,255,255,.5);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1);
+      position: relative;
+      text-shadow: 1px 1px 1px rgba(255,255,255,.5);
+    }
+    .effect-01 ul li:active {
+      background: rgba(100,100,100,.05);
+      border-bottom-color: rgba(0,0,0,0);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1) inset;
+      text-shadow: none;
+      top: 1px;
+    }
+    #wrapper {
+      display: flex;
+      width: 100%;
+    }
+    #sidebar {
+      min-height: 100vh;
+      position: fixed;
+      transition: all 0.25s;
+      width: 265px;
+    }
+    #content {
+      min-height: 100vh;
+      padding: 0;
+      position: absolute;
+      right: 0;
+      transition: all 0.25s;
+      width: calc(100% - 265px);
+    }
+    .no-sidebar #sidebar {
+      margin-left: -265px;
+    }
+    .no-sidebar #content {
+      width: 100%;
+    }
+    .wizard-h4{
+      margin-top: -50px;
+    }
+    @media screen 
+      and (min-device-width: 1200px) 
+      and (max-device-width: 1600px) 
+      and (-webkit-min-device-pixel-ratio: 1){
+        .icon-text{
+          display: none;
+        }
+        .wizard-h4{
+          margin-top: 0 !important;
+        }
+    }
 
+  </style>
   @endisset
   <!-- Page Content -->
-  <div id="content" class="">
+  <div id="content">
     @if (Auth::check())
     <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width p-1">
       <div class="container-fluid m-0 p-0" id="next">
         <div class="collapse navbar-collapse" id="navigation">
           <ul class="navbar-nav col-7 m-0 p-0">
-            <li id="menu-burger" class="nav-item">
+            <li class="nav-item active">
               <div id="sidebar-toggle" class="p-2" style="font-size: 15pt;"><i class="now-ui-icons text_align-left"></i></div>
             </li>
             <li class="nav-item active text-center" style="width: 220px;">
               <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ date('M-d-Y') }}</span>
               <span class="d-block" style="font-size: 8pt;">{{ date('l') }}</span>
             </li>
-            <li class="nav-item active text-center font-responsive" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
-              <span id="current-time">--:--:-- --</span>
+            <li class="nav-item active text-center" style="width: 240px; border-left: 5px solid; border-right: 5px solid;">
+              <span id="current-time" style="font-size: 18pt;">--:--:-- --</span>
             </li>
             <li class="nav-item active">
               <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px; white-space: nowrap;">{{ $pageHeader }}</span>
@@ -492,7 +296,7 @@
           <ul class="navbar-nav m-0 col-5 justify-content-end p-0">
             @if (in_array($activePage,['production_schedule', 'production_schedule_painting', 'production_schedule_assembly']))
             @if(isset($mes_user_operations) && count($mes_user_operations) > 1)
-            <li class="nav-item dropdown">
+            <li class="nav-item active dropdown">
               <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="now-ui-icons files_paper"></i> Scheduling
                 <p>
@@ -558,7 +362,7 @@
             @if ($activePage == 'main_dashboard')
             <li class="nav-item active">
               <a class="nav-link" href="#" id="get-notifications-btn">
-                <i class="now-ui-icons ui-1_bell-53"></i> <span class="d-none d-xl-inline">Notifications</span> <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
+                <i class="now-ui-icons ui-1_bell-53"></i> <span class="icon-text">Notifications</span> <span class="badge badge-danger" id="warnings-badge-1" style="font-size: 8pt;">0</span>
                 <p class="d-lg-none d-md-block">
                   <span> Notifications</span>
                 </p>
@@ -566,7 +370,7 @@
             </li>
             <li class="nav-item active">
               <a class="nav-link" href="#" id="view-item-tracking-btn">
-                <i class="now-ui-icons location_pin"></i> <span class="d-none d-xl-inline">Item Tracking</span>
+                <i class="now-ui-icons location_pin"></i> <span class="icon-text">Item Tracking</span>
                 <p class="d-lg-none d-md-block">
                   <span> Item Tracking</span>
                 </p>
@@ -575,7 +379,7 @@
             @endif
             <li class="nav-item active" {{ $activePage == 'login' ? 'hidden' : '' }}>
               <a class="nav-link" href="#" id="jt-search-btn">
-                <i class="now-ui-icons ui-1_zoom-bold"></i> <span class="d-none d-xl-inline">Production Order Search</span>
+                <i class="now-ui-icons ui-1_zoom-bold"></i> <span class="icon-text">Production Order Search</span>
                 <p class="d-lg-none d-md-block">
                   <span>Production Order Search</span>
                 </p>
@@ -584,7 +388,7 @@
             @if(Auth::user())
             <li class="nav-item active">
               <a class="nav-link" href="/logout_user">
-                <i class="now-ui-icons media-1_button-power"></i> <span class="d-none d-xl-inline">Logout</span>
+                <i class="now-ui-icons media-1_button-power"></i> <span class="icon-text">Logout</span>
                 <p class="d-lg-none d-md-block">
                   <span>Logout</span>
                 </p>
@@ -971,6 +775,198 @@
   </div>
 </div>
 
+  <style type="text/css">
+    .qc_passed{
+      background-image: url("{{ asset('img/chk.png') }}");
+      background-size: 28%;
+      background-repeat: no-repeat;
+      background-position: center; 
+    }
+  
+    .qc_failed{
+      background-image: url("{{ asset('img/x.png') }}");
+      background-size: 20%;
+      background-repeat: no-repeat;
+      background-position: center; 
+    }
+
+    .active-process {
+      background-color: #FFC107;
+      color: #000000;
+      animation: blinkingBackground 2.5s linear infinite;
+    }
+
+    @keyframes blinkingBackground{
+      0%    { background-color: #ffffff;}
+      25%   { background-color: #FFC107;}
+      50%   { background-color: #ffffff;}
+      75%   { background-color: #FFC107;}
+      100%  { background-color: #ffffff;}
+    }
+    
+    .breadcrumb-c {
+      font-size: 8pt;
+      font-weight: bold;
+      padding: 0;
+      background: transparent;
+      list-style: none;
+      overflow: hidden;
+      margin-top: 3px;
+      margin-bottom: 3px;
+      width: 100%;
+      border-radius: 4px;
+    }
+
+    .breadcrumb-c>li {
+      display: table-cell;
+      vertical-align: top;
+      width: 0.8%;
+    }
+
+    .breadcrumb-c>li+li:before {
+      padding: 0;
+    }
+
+    .breadcrumb-c li a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 0 10px 5px;
+      position: relative;
+      display: inline-block;
+      width: calc( 100% - 10px );
+      background-color: hsla(0, 0%, 83%, 1);
+      text-align: center;
+      text-transform: capitalize;
+    }
+
+    .breadcrumb-c li.completed a {
+      background: brown;
+      background: hsla(153, 57%, 51%, 1);
+    }
+
+    .breadcrumb-c li.completed a:after {
+      border-left: 30px solid hsla(153, 57%, 51%, 1);
+    }
+
+    .breadcrumb-c li.active a {
+      background: #ffc107;
+    }
+
+    .breadcrumb-c li.active a:after {
+      border-left: 30px solid #ffc107;
+    }
+
+    .breadcrumb-c li:first-child a {
+      padding-left: 1px;
+    }
+
+    .breadcrumb-c li:last-of-type a {
+      width: calc( 100% - 38px );
+    }
+
+    .breadcrumb-c li a:before {
+      content: " ";
+      display: block;
+      width: 0;
+      height: 0;
+      border-top: 50px solid transparent;
+      border-bottom: 50px solid transparent;
+      border-left: 30px solid white;
+      position: absolute;
+      top: 50%;
+      margin-top: -50px;
+      margin-left: 1px;
+      left: 100%;
+      z-index: 1;
+    }
+
+    .breadcrumb-c li a:after {
+      content: " ";
+      display: block;
+      width: 0;
+      height: 0;
+      border-top: 50px solid transparent;
+      border-bottom: 50px solid transparent;
+      border-left: 30px solid hsla(0, 0%, 83%, 1);
+      position: absolute;
+      top: 50%;
+      margin-top: -50px;
+      left: 100%;
+      z-index: 2;
+    }
+
+    .truncate {
+      white-space: nowrap;
+      /*overflow: hidden;*/
+      text-overflow: ellipsis;
+    }
+
+    .scrolltbody tbody {
+      display:block;
+      height:300px;
+      overflow:auto;
+    }
+    .scrolltbody thead, .scrolltbody tbody tr {
+        display:table;
+        width:100%;
+        table-layout:fixed;
+    }
+    .scrolltbody thead {
+        width: calc(100%)
+    }
+      .numpad-div .row1{
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Not implemented yet */
+      -o-user-select: none;
+      user-select: none;   
+    }
+
+    .numpad{
+      display: inline-block;
+      border: 1px solid #333;
+      border-radius: 5px;
+      text-align: center;
+      width: 27%;
+      height: 27%;
+      line-height: 60px;
+      margin: 3px;
+      font-size: 15pt;
+      color: inherit;
+      background: rgba(255, 255, 255, 0.7);
+      transition: all 0.3s ease-in-out;
+    }
+    .numpad:active,
+    .numpad:hover {
+      cursor: pointer ;
+      box-shadow: inset 0 0 2px #000000;
+    }
+
+    .modal-ste .form-control {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-shadow: none;
+      margin-bottom: 15px;
+    }
+    .modal-ste .form-control:hover, .modal-ste .form-control:focus, .modal-ste .form-control:active {
+      box-shadow: none;
+    }
+    .modal-ste .form-control:focus {
+      border: 1px solid #34495e;
+    }
+
+    .modal { overflow: auto !important; }
+    #reschedule-delivery-modal .form-control {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-shadow: none;
+      margin-bottom: 15px;
+    }
+
+    [data-notify] { z-index: 9999 !important; }
+  </style>
+
   <div class="modal fade" id="view-bundle-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
@@ -1184,11 +1180,7 @@
   $(document).ready(function(){
     $(document).on('click', '.close-modal', function(){
       $($(this).data('target')).modal('hide');
-    });
-
-    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { // mobile/tablet
-        $("#wrapper").toggleClass("no-sidebar");
-    }
+    }); 
 
     $(document).on('click', '.mark-done-btn', function(){
       if ($('#machine_kanban_details #card-status').val() == 'Unassigned') {
