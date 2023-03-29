@@ -6,12 +6,12 @@
 @section('content')
 <div class="panel-header">
         <div class="header text-center">
-          <h2 class="title">Manufacturing Execution System v10 - 2022</h2>
+          <h2 class="title">Manufacturing Execution System v11 - 2023</h2>
         </div>
       </div>
       <div class="content" style="margin-top: -80px; min-height: 700px;">
          <div class="row m-0 p-0">
-            <div class="col-md-4 offset-md-4">
+            <div class="col-6 col-xl-4 mx-auto">
                <form id="login-frm" action="/login_user" method="post">
                   @csrf
                   <div class="card">
