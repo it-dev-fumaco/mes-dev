@@ -1121,6 +1121,8 @@
         return false;
       }
 
+      var btn = $(this);
+
       var process_description = '';
       var parts = [];
       $('#select-part-div .selected-part').each(function(){
@@ -1159,10 +1161,12 @@
           }else{
             showNotification("danger", response.message, "now-ui-icons travel_info");
           }
+          btn.prop('disabled', false);
+          btn.removeProp('disabled');
         }, 
         error: function(jqXHR, textStatus, errorThrown) {
-          $(this).prop('disabled', false);
-          $(this).removeProp('disabled');
+          btn.prop('disabled', false);
+          btn.removeProp('disabled');
           console.log(jqXHR);
           console.log(textStatus);
           console.log(errorThrown);
