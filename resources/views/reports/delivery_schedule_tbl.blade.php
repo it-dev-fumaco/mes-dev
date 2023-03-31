@@ -95,7 +95,9 @@
                                             break;
                                     }
                                 @endphp
-                                <b>{{ $item['production_order'] }}</b><br>
+
+                                <a href="#" data-jtno="{{ $item['production_order'] }}" class="prod-details-btn font-weight-bold">{{ $item['production_order'] }}</a>
+                                <br>
                                 <span class="badge" style="background-color: {{ $status_badge }}; color: {{ $item['status'] == 'In Progress' ? '#000' : '#fff' }}">{{ $item['status'] }}</span>
                             </td>
                             <td class="text-center pt-0 pb-0">
