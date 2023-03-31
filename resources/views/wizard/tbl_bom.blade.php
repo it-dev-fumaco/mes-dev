@@ -35,7 +35,7 @@
 														<th class="p-1">Attribute</th>
 														<th class="p-1 text-left">Value</th>
 													</tr>
-													@foreach ($child['attributes'] as $attribute => $value)
+													@foreach ($item['attributes'] as $attribute => $value)
 														@if(!in_array($value, ['N/A', 'n/a', 'N/a', 'n/A']))
 															<tr>
 																<td class="p-1">{{ $attribute }}</td>

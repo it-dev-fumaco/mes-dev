@@ -61,7 +61,44 @@
                                 @endif
                             </td>
                             <td class="text-center pt-0 pb-0">
-                                <b>{{ $item['production_order'] }}</b><br>
+                                @php
+                                    switch ($item['status']) {
+                                        case 'For Feedback':
+                                        case 'Partially Feedbacked':
+                                        case 'For Partial Feedback':
+                                            $status_badge = '#22D3CC';
+                                            break;
+                                        case 'On Queue':
+                                            $status_badge = '#17A2B8';
+                                            break;
+                                        case 'Feedbacked':
+                                        case 'Completed':
+                                            $status_badge = '#28A745';
+                                            break;
+                                        case 'Cancelled':
+                                        case 'Closed':
+                                        case 'Unknown Status':
+                                            $status_badge = '#808495';
+                                            break;
+                                        case 'Material Issued':
+                                            $status_badge = '#28A745';
+                                            break;
+                                        case 'Material For Issue':
+                                        case 'Not Started':
+                                            $status_badge = '#DC3545';
+                                            break;
+                                        case 'In Progress':
+                                            $status_badge = '#FFC107';
+                                            break;
+                                        default:
+                                            $status_badge = '#000';
+                                            break;
+                                    }
+                                @endphp
+
+                                <a href="#" data-jtno="{{ $item['production_order'] }}" class="prod-details-btn font-weight-bold">{{ $item['production_order'] }}</a>
+                                <br>
+                                <span class="badge" style="background-color: {{ $status_badge }}; color: {{ $item['status'] == 'In Progress' ? '#000' : '#fff' }}">{{ $item['status'] }}</span>
                             </td>
                             <td class="text-center pt-0 pb-0">
                                 <b>{{ $item['project'] ? $item['project'] : '-' }}</b><br>

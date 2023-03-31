@@ -1651,8 +1651,9 @@ class ManufacturingController extends Controller
                 }
 
                 unset($existing_pros[$data_mes['production_order']]);
-                if ((float)$existing_prod_qty > (float)$request->ordered_qty) {
-                    return response()->json(['success' => 0, 'message' => 'Qty to produce for <b>' . $data_mes['item_code'] . '</b> cannot be greater than <b>' . (float)$request->ordered_qty . '</b> ' . $existing_prods]);
+                $request_ordered_qty = preg_replace("/[^0-9.]/", "", ($request->ordered_qty));
+                if ((float)$existing_prod_qty > (float)$request_ordered_qty) {
+                    return response()->json(['success' => 0, 'message' => 'Qty to produce for <b>' . $data_mes['item_code'] . '</b> cannot be greater than <b>' . (float)$request_ordered_qty . '</b> ' . $existing_prods]);
                 }
             }
 
