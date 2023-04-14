@@ -9426,7 +9426,9 @@ class MainController extends Controller
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
 
-		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr'));
+		$files = DB::connection('mysql')->table('tabFile')->where('attached_to_doctype', $ref_type == 'SO' ? 'Sales Order' : 'Material Request')->where('attached_to_name', $id)->get();
+
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files'));
 	}
 	
 	// /get_order_list

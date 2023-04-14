@@ -79,6 +79,11 @@
                                     <a class="custom-nav-link show text-decoration-none" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
                                 </li>
                                 @endif
+                                @if (count($files) > 0)
+                                    <li class="nav-item">
+                                        <a class="custom-nav-link show text-decoration-none" href="#attachments" data-toggle="tab">Attachment(s)</a>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
                     </div>
@@ -313,6 +318,41 @@
                                 </div>
                             </div>
                         </div>
+                        @if (count($files) > 0)
+                            <div class="tab-pane show text-left" id="attachments">
+                                <table class="table table-bordered">
+                                    <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
+                                        <tr>
+                                            <th class="p-2">Status</th>
+                                            <th class="p-2">Filename</th>
+                                            <th class="p-2">Uploaded By</th>
+                                            <th class="p-2">Uploaded On</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="font-size: 8pt;">
+                                        @foreach ($files as $file)
+                                            @php
+                                                $file_link = !$file->is_private ? 'http://10.0.0.191:8000'.$file->file_url : '#';
+                                            @endphp
+                                            <tr>
+                                                <td class="p-2 text-center">
+                                                    <span class="badge badge-{{ $file->is_private ? 'primary' : 'success' }}">{{ $file->is_private ? 'Private' : 'Public' }}</span>
+                                                </td>
+                                                <td class="p-2">
+                                                    <a href="{{ $file_link }}" target="{{ !$file->is_private ? '_blank' : null }}" class="{{ $file->is_private ? 'text-muted' : null }}">{{ $file->file_name }}</a>
+                                                </td>
+                                                <td class="p-2">
+                                                    {{ $file->owner }}
+                                                </td>
+                                                <td class="p-2">
+                                                    {{ Carbon\Carbon::parse($file->creation)->format('F d, Y h:i A') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
                     </div>
                     <span class="d-block mt-1 ml-2 font-italic" style="font-size: 8pt;">Created by: <b>{{ $details->owner }}</b></span>
                 </div>
