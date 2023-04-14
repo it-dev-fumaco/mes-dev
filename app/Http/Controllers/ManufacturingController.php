@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Carbon\CarbonPeriod;
-use Auth;
-use DB;
-
-use Illuminate\Support\Facades\Mail;
 use App\Mail\SendMail_feedbacking;
 use App\Traits\GeneralTrait;
+use Auth;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use DB;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Session;
+use Exception;
 
 class ManufacturingController extends Controller
 {
@@ -678,7 +678,7 @@ class ManufacturingController extends Controller
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
                     ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
                     ->select('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                    ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
+                    ->groupBy('workstation.workstation_name', 'process.process_name', 'process.process_id')
                     ->orderBy('process.process_name', 'asc')
                     ->get();
 
@@ -706,7 +706,7 @@ class ManufacturingController extends Controller
                     ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
                     ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
                     ->select('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                    ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
+                    ->groupBy('workstation.workstation_name', 'process.process_name', 'process.process_id')
                     ->orderBy('process.process_name', 'asc')->get();
                 
                 $bom_details = DB::table('tabBOM')->where('name', $bom)->first();
@@ -909,7 +909,7 @@ class ManufacturingController extends Controller
                 ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
                 ->where('workstation.workstation_id', $workstation)
                 ->select('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
+                ->groupBy('workstation.workstation_name', 'process.process_name', 'process.process_id')
                 ->orderBy('process.process_name', 'asc')
                 ->get();
     }
@@ -1302,7 +1302,7 @@ class ManufacturingController extends Controller
                                 if($jt->process_id != $request->wprocess[$x]) {
                                     $logs[] = [
                                         'update' => [
-                                            'workstation' => $workstation,
+                                            'workstation' => $request->workstation[$x],//$workstation,
                                             'old_process' => $jt->process_id,
                                             'new_process' => $request->wprocess[$x],
                                         ]
@@ -1548,7 +1548,7 @@ class ManufacturingController extends Controller
 
             $wip_wh = $this->get_operation_wip_warehouse($operation_details->operation_id);
             if ($wip_wh['success'] < 1) {
-                return response()->json(['success' => 0, 'message' => $wip['message']]);
+                return response()->json(['success' => 0, 'message' => $wip_wh['message']]);
             }
 
             $wip = $wip_wh['message'];
@@ -2889,7 +2889,7 @@ class ManufacturingController extends Controller
 
     public function get_mes_warehouse(){
         return DB::connection('mysql_mes')->table('item_classification_warehouse')
-            ->distinct('warehouse')->orderBy('warehouse', 'asc')->pluck('warehouse');
+            ->distinct()->orderBy('warehouse', 'asc')->pluck('warehouse');
     }
 
     // update_ste_detail
@@ -3028,8 +3028,8 @@ class ManufacturingController extends Controller
 
             return response()->json(['status' => 1, 'message' => 'Stock entry item has been changed.']);
         } catch (Exception $e) {
-            return response()->json(['status' => 0, 'message' => 'There was a problem updating stock entry.']);
             DB::connection('mysql')->rollback();
+            return response()->json(['status' => 0, 'message' => 'There was a problem updating stock entry.']);
         }
     }
 
@@ -3280,10 +3280,10 @@ class ManufacturingController extends Controller
                     's_warehouse_personnel' => null,
                     'target_warehouse_location' => null,
                     'source_warehouse_location' => null,
-                    'status' => 'For Checking',
-                    'date_modified' => null,
-                    'session_user' => null,
-                    'remarks' => null,
+                    // 'status' => 'For Checking',
+                    // 'date_modified' => null,
+                    // 'session_user' => null,
+                    // 'remarks' => null,
                     'status' => $item_status,
                     'date_modified' => ($item_status == 'Issued') ? $now->toDateTimeString() : null,
                     'session_user' => ($item_status == 'Issued') ? Auth::user()->employee_name : null,
@@ -4122,6 +4122,8 @@ class ManufacturingController extends Controller
                         $new_id = (($latest_ste) ? $latest_ste_exploded[1] : 0) + 1;
                         $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
                         $new_id = 'STEP-'.$new_id;
+
+                        // return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
                         
                         $reference = $new_id;
 
@@ -4985,7 +4987,7 @@ class ManufacturingController extends Controller
                 ->join('process_assignment', 'process.process_id', 'process_assignment.process_id')
                 ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
                 ->select('workstation.workstation_name', 'process.process_name', 'process.process_id')
-                ->distinct('workstation.workstation_name', 'process.process_name', 'process.process_id')
+                ->groupBy('workstation.workstation_name', 'process.process_name', 'process.process_id')
                 ->orderBy('process.process_name', 'asc')->get();
 
             $bom_details = DB::connection('mysql')->table('tabBOM')->where('name', $bom)->first();
@@ -5599,7 +5601,7 @@ class ManufacturingController extends Controller
             DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $stock_entry_detail->work_order)->where('remarks', 'Override')
                 ->update([
                     'completed_qty' => $remaining_feedbacked_qty,
-                    'remarks' => null,
+                    // 'remarks' => null,
                     'status' => $jtstatus,
                     'remarks' => $remaining_feedbacked_qty > 0 ? "Override" : null
                 ]);

@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Carbon\CarbonPeriod;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Carbon\Carbon;
-use App\Exports\ExportDataQaInspectionLog; 
-use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportDataQaInspectionLog;
 use App\Traits\GeneralTrait;
-
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use DB;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class QualityInspectionController extends Controller
 {
@@ -699,8 +699,8 @@ class QualityInspectionController extends Controller
             ->whereBetween('time_logs.to_time', [$start, $end])
             ->where('time_logs.status', 'Completed')
             ->whereIn('production_order.status', ['Completed', 'In Progress'])
-            ->distinct('production_order.production_order')
-            ->count();
+            ->distinct()
+            ->count('production_order.production_order');
         
         return $data = [
             'produced_qty' => number_format($produced_qty),
@@ -1309,25 +1309,27 @@ class QualityInspectionController extends Controller
         }
         return $data;
     }
-    public function get_tbl_qa_inspection_log_export($start, $end, $workstation,$customer, $prod, $item_code, $status,$processs, $qa_inspector, $operator){
-        if($customer ==  'none'){
-            $customer= "";
-        }elseif($prod == 'none'){
-            $prod= "";
-        }elseif($item_code == 'none'){
-            $item_code= "";
-        }elseif($status == 'none'){
-            $status= "";
-        }elseif($processs == 'none'){
-            $processs= "";
-        }elseif($qa_inspector == 'none'){
-            $qa_inspector= "";
-        }elseif($operator == 'none'){
-            $operator= "";
-        }
+
+    // ? - For Clarification - UNUSED FUNCTION
+    // public function get_tbl_qa_inspection_log_export($start, $end, $workstation,$customer, $prod, $item_code, $status,$processs, $qa_inspector, $operator){
+    //     if($customer ==  'none'){
+    //         $customer= "";
+    //     }elseif($prod == 'none'){
+    //         $prod= "";
+    //     }elseif($item_code == 'none'){
+    //         $item_code= "";
+    //     }elseif($status == 'none'){
+    //         $status= "";
+    //     }elseif($processs == 'none'){
+    //         $processs= "";
+    //     }elseif($qa_inspector == 'none'){
+    //         $qa_inspector= "";
+    //     }elseif($operator == 'none'){
+    //         $operator= "";
+    //     }
         
-        return Excel::download(new ExportDataQaInspectionLog($colspan_variable,$colspan_visual, $header_variable,$count_header_variable, $header_visual, $count_header_visual, $quality_check, $data, $width, $header), "QaInspectionLogs.xlsx");
-    }
+    //     return Excel::download(new ExportDataQaInspectionLog($colspan_variable,$colspan_visual, $header_variable,$count_header_variable, $header_visual, $count_header_visual, $quality_check, $data, $width, $header), "QaInspectionLogs.xlsx");
+    // }
 
     public function submitRejectConfirmation($production_order, Request $request){
         DB::connection('mysql_mes')->beginTransaction();

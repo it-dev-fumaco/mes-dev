@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Carbon\CarbonPeriod;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use DB;
+use Illuminate\Http\Request;
 
 class ProductionFloorController extends Controller
 {
@@ -38,7 +38,7 @@ class ProductionFloorController extends Controller
 				->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
 				->join('quality_inspection', 'quality_inspection.reference_id', 'time_logs.time_log_id')
 				->where('quality_inspection.reference_type', 'Time Logs')
-				->whereIn('job_ticket.job_ticket_id', $job_tickets)->distinct('job_ticket.production_order')->count();
+				->whereIn('job_ticket.job_ticket_id', $job_tickets)->distinct()->count('job_ticket.production_order');
 
 			if($total_production_for_qc > 0){
 				$qa_efficiency = ($inspected_prod / $total_production_for_qc) * 100;
@@ -65,7 +65,7 @@ class ProductionFloorController extends Controller
 			$in_progress_workstation_machine_count = DB::connection('mysql_mes')->table('job_ticket')
 				->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 				->where('job_ticket.workstation', $row->workstation_name)->where('time_logs.status', 'In Progress')
-				->distinct('machine_code')->count();
+				->distinct()->count('machine_code');
 
 			if($workstation_machine_count > 0){
 				$machine_utilization = ($in_progress_workstation_machine_count / $workstation_machine_count) * 100;
@@ -122,7 +122,7 @@ class ProductionFloorController extends Controller
 			->join('time_logs', 'time_logs.job_ticket_id', 'job_ticket.job_ticket_id')
 			->join('quality_inspection', 'quality_inspection.reference_id', 'time_logs.time_log_id')
 			->where('quality_inspection.reference_type', 'Time Logs')
-			->whereIn('job_ticket.job_ticket_id', $job_tickets)->distinct('job_ticket.production_order')->count();
+			->whereIn('job_ticket.job_ticket_id', $job_tickets)->distinct()->count('job_ticket.production_order');
 
 		if($total_production_for_qc > 0){
 			$qa_efficiency = ($inspected_prod / $total_production_for_qc) * 100;
@@ -152,7 +152,7 @@ class ProductionFloorController extends Controller
 			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
 			->whereIn('job_ticket.workstation', $workstation_arr)
 			->where('time_logs.status', 'In Progress')
-			->distinct('machine_code')->count();
+			->distinct()->count('machine_code');
 
 		if($workstation_machine_count > 0){
 			$machine_utilization = ($in_progress_workstation_machine_count / $workstation_machine_count) * 100;

@@ -1,6 +1,8 @@
 @extends('layouts.user_app', [
     'namePage' => 'Fabrication',
+    'pageHeader' => 'Material Request',
     'activePage' => 'material_request',
+    'pageSpan' => Auth::user()->employee_name
 ])
 
 @section('content')
@@ -70,8 +72,8 @@
                                                       <label style="color: black;">Customer</label>
                                                       <select class="form-control text-center sel5 " name="customer" id="purchase_customer">
                                                           <option value="" selected> Select Customer</option>
-                                                          @foreach($customer as $row)
-                                                          <option value="{{$row->customer_name}}">{{$row->customer_name}}</option>
+                                                          @foreach($customers as $customer)
+                                                            <option value="{{ $customer }}">{{ $customer }}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>
@@ -79,8 +81,8 @@
                                                       <label style="color: black;">Project</label>
                                                       <select class="form-control text-center sel5 " name="customer" id="purchase_project">
                                                           <option value="" selected> Select Project</option>
-                                                          @foreach($project as $row)
-                                                          <option value="{{$row->project}}">{{$row->project}}</option>
+                                                          @foreach($projects as $project)
+                                                          <option value="{{ $project }}">{{ $project }}</option>
                                                           @endforeach
                                                         </select>
                                                    </div>

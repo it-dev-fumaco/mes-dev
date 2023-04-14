@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Auth;
 use DB;
+use Exception;
 
 use App\Traits\GeneralTrait;
 
@@ -537,7 +538,7 @@ class AssemblyController extends Controller
                     'material_request' => $prod->material_request,
                     'source_warehouse' => $warehouse,
                     'required_qty' => $item->required_qty,
-                    'no_of_sheets' => ($item_details->item_classification == 'CS - Crs Steel Coil') ? $sheets .' Sheet(s)' : 'N/A',
+                    'no_of_sheets' => ($item_details->item_classification == 'CS - Crs Steel Coil') ? $item->parts_per_sheet .' Sheet(s)' : 'N/A',
                     'qty_source_warehouse' => $qty_source_warehouse,
                     'wip_warehouse' => $prod->wip_warehouse,
                     'balance_qty' => ($qty_source_warehouse - $item->required_qty),
@@ -570,8 +571,6 @@ class AssemblyController extends Controller
                 ->where('has_variants', 0)->where('disabled', 0)
                 ->where('name', 'like', '%' . $request->q . '%')
                 ->limit(5)->get();
-
-            return view('item_autocomplete_content', compact('q'));
         }
 
         return DB::connection('mysql')->table('tabItem')->where('item_group', 'Raw Material')
@@ -646,7 +645,7 @@ class AssemblyController extends Controller
 				->table('shift')
                 ->where('shift_id', $r->shift_id)
                 ->where('operation_id', $operation_id)
-                ->operat
+                // ->operat
 				->first();
 				$scheduled1[] = [
 					'time_in'=> $shift_sched->time_in,
@@ -733,7 +732,7 @@ class AssemblyController extends Controller
     
     public function get_production_schedule_monitoring_list_assembly(Request $request,$schedule_date){
         $orders = DB::connection('mysql_mes')->table('production_order as prod')
-            ->whereNotIn('prod.status', ['Cancelled'])
+            ->whereNotIn('prod.status', ['Cancelled', 'Closed'])
             ->whereDate('prod.planned_start_date', $schedule_date)
             ->where('prod.operation_id', "3")
             ->where(function($q) use ($request) {
@@ -741,14 +740,12 @@ class AssemblyController extends Controller
                 ->orWhere('prod.item_code', 'LIKE', '%'.$request->search_string.'%')
                 ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
             })
-            ->distinct('prod.production_order')
+            // ->distinct('prod.production_order')
             ->select('prod.*')
             ->get();
         
         $data = [];
         foreach($orders as $row){
-           
-
             $data[]=[
                 'customer' => $row->customer,
                 'item_code' => $row->item_code,
@@ -843,7 +840,7 @@ class AssemblyController extends Controller
             ->where('prod.operation_id', '3')
             ->join('workstation as work','work.workstation_name','tsd.workstation')
             ->where('tsd.planned_start_date','<', $schedule_date)
-            ->distinct('prod.production_order')
+            // ->distinct('prod.production_order')
             ->select('prod.*','tsd.planned_start_date')
             // ->orderBy('tsd.sequence','asc')
             ->get();
@@ -925,7 +922,7 @@ class AssemblyController extends Controller
                 ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
             })
             ->where('prod.feedback_qty', '>', 0)
-            ->distinct('prod.production_order', 'tsd.sequence')
+            // ->distinct('prod.production_order', 'tsd.sequence')
             ->select('prod.*','tsd.sequence')
             ->orderBy('tsd.sequence','asc')
             ->get();
@@ -968,7 +965,7 @@ class AssemblyController extends Controller
             ->where('prod.operation_id','3')
             ->where('tsd.status', 'In Progress')
             ->groupBy('prod.production_order','prod.qty_to_manufacture')
-            ->distinct('prod.production_order', 'prod.qty_to_manufacture')
+            // ->distinct('prod.production_order', 'prod.qty_to_manufacture')
             ->select('prod.production_order', 'prod.qty_to_manufacture')
             ->get();
         
@@ -1060,7 +1057,7 @@ class AssemblyController extends Controller
             $scheduled = DB::connection('mysql_mes')->table('production_order as prod')
                 ->join('job_ticket as tsd', 'tsd.production_order', 'prod.production_order')
                 ->whereNotIn('prod.status', ['Cancelled'])->whereBetween('tsd.planned_start_date', [$start, $end])
-                ->where('tsd.workstation', 'Painting')->distinct('prod.production_order', 'tsd.sequence')
+                ->where('tsd.workstation', 'Painting')//->distinct('prod.production_order', 'tsd.sequence')
                 ->select('prod.*')->orderBy('tsd.sequence','asc')->get();
         }else{
             $scheduled = DB::connection('mysql_mes')->table('production_order')

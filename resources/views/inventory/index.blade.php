@@ -3353,12 +3353,12 @@ function rawmaterial_alum_Chart(){
 		        customer: $('#transfer_customer').val(),
 		        status: $('#transfer_status').val(),
 		        project: $('#transfer_project').val(),
-		        ste: $('#transfer_stem').val()
-
+		        ste: $('#transfer_stem').val(),
+            filter: true
 		      }
 		 
 		    $.ajax({
-		          url:"/tbl_filter_material_transfer/"+ startDate +"/" +endDate,
+          url:"/get_tbl_material_transfer",
 		          type:"GET",
 		          data: data,
 		          success:function(data){
@@ -3442,11 +3442,12 @@ function filter_from_transfer_date_range(){
 		        customer: $('#transfer_customer').val(),
 		        status: $('#transfer_status').val(),
 		        project: $('#transfer_project').val(),
-		         ste: $('#transfer_stem').val()
+            ste: $('#transfer_stem').val()
+            filter: true
 		      }
 		 
     	$.ajax({
-		  url:"/tbl_filter_material_transfer/"+ startDate +"/" +endDate,
+        url:"/get_tbl_material_transfer/",
           type:"GET",
           data: data,
           success:function(data){
@@ -3468,6 +3469,7 @@ function filter_from_transfer_date_range(){
 		        status: $('#transfer_status').val(),
 		        project: $('#transfer_project').val(),
 		         ste: $('#transfer_stem').val()
+             filter: false
 		      }
     $.ajax({
         url:"/get_tbl_material_transfer/?page="+page,
@@ -3880,29 +3882,31 @@ $(document).on('change', '.raw-filters', function(event){
   });
 </script> 
 <script>
-$(document).on('change', '.sel5', function(event){
-  var date = $('#purchase_daterange').val();
-  var startDate = $('#purchase_daterange').data('daterangepicker').startDate.format('YYYY-MM-DD');
-  var endDate = $('#purchase_daterange').data('daterangepicker').endDate.format('YYYY-MM-DD');
-  var activeme = $("#operation-tab a.active").attr('data-operation');
-  var data = {
-        item_code: $('#purchase_item_code').val(),  
-        so:$('#purchase_so').val(),
-        customer: $('#purchase_customer').val(),
-        status: $('#purchase_status').val(),
-        project: $('#purchase_project').val()
-      }
+  $(document).on('change', '.sel5', function(event){
+    var date = $('#purchase_daterange').val();
+    var startDate = $('#purchase_daterange').data('daterangepicker').startDate.format('YYYY-MM-DD');
+    var endDate = $('#purchase_daterange').data('daterangepicker').endDate.format('YYYY-MM-DD');
+    var activeme = $("#operation-tab a.active").attr('data-operation');
+    var data = {
+      from: startDate,
+      end: endDate,
+      item_code: $('#purchase_item_code').val(),  
+      so:$('#purchase_so').val(),
+      customer: $('#purchase_customer').val(),
+      status: $('#purchase_status').val(),
+      project: $('#purchase_project').val()
+      filter: true
+    }
     alert(activeme);
     $.ajax({
-          url:"/tbl_filter_material_purchase_request/"+ startDate +"/" +endDate,
-          type:"GET",
-          data: data,
-          success:function(data){
-            
-            $('#tbl_material_request').html(data);
-          }
-        });
-  
+      url:"/get_tbl_material_request",
+      type:"GET",
+      data: data,
+      success:function(data){
+        
+        $('#tbl_material_request').html(data);
+      }
+    });
   });
 </script> 
 <script>
@@ -3916,10 +3920,11 @@ function filter_from_purchase_date_range(){
         customer: $('#purchase_customer').val(),
         status: $('#purchase_status').val(),
         project: $('#purchase_project').val()
+        filter: true
       }
 
     $.ajax({
-          url:"/tbl_filter_material_purchase_request/"+ startDate +"/" +endDate,
+          url:"/get_tbl_material_request",
           type:"GET",
           data: data,
           success:function(data){
@@ -3995,7 +4000,8 @@ function consumed_powder_coating_filter(){
             so:$('#purchase_so').val(),
             customer: $('#purchase_customer').val(),
             status: $('#purchase_status').val(),
-            project: $('#purchase_project').val()
+            project: $('#purchase_project').val(),
+            filter: false
 		      }
 
         $.ajax({
