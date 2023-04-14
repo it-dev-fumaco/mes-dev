@@ -26,7 +26,7 @@
               <div class="modal-content">
                 <div class="modal-header" style="background-color: #0277BD; color: #fff">
                   <h5 class="modal-title" id="exampleModalLabel">{{ $name }}</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <button type="button" class="close modal-control" data-modal="#{{ str_slug($name) }}-modal" data-action="hide">
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
@@ -62,9 +62,29 @@
                             <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon edit-user-btn' data-module="{{ $row->module }}" data-operation="{{ $row->operation_id }}" data-userid="{{ $row->user_access_id }}" data-usergroup="{{ $row->user_group_id }}" data-user="{{ $row->employee_name }}" data-id="{{ $row->user_id }}">
                               <i class='now-ui-icons design-2_ruler-pencil'></i>
                             </button>
-                            <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon delete-user-btn'>
+                            <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default hover-icon' data-toggle="modal" data-target="#delete-user-access-{{ str_slug($name) }}">
                               <i class='now-ui-icons ui-1_simple-remove'></i>
                             </button>
+
+                            <div class="modal fade" id="delete-user-access-{{ str_slug($name) }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                              <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Remove Access</h5>
+                                    <button type="button" class="close modal-control" data-modal="#delete-user-access-{{ str_slug($name) }}" data-action='hide'>
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+                                    Remove <b>{{ $row->module.' - '.$row->user_role }}</b> access of <b>{{ $name }}?</b>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-2 modal-control" data-modal="#delete-user-access-{{ str_slug($name) }}" data-action="hide">Close</button>
+                                    <button type="button" class="btn btn-primary remove-user-access-btn" data-user="{{ $row->user_id }}" data-name="#delete-user-access-{{ str_slug($name) }}">Confirm</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </td>
                         </tr>
                       @endforeach
@@ -83,3 +103,9 @@
     @endforelse 
   </tbody>
 </table>
+
+<style>
+  .modal{
+    background-color: rgba(0,0,0,.4);
+  }
+</style>

@@ -252,6 +252,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/save_user', 'MainController@save_user');
 	Route::post('/update_user', 'MainController@update_user');
 	Route::post('/delete_user', 'MainController@delete_user');
+	Route::get('/remove_user_access/{id}', 'MainController@remove_user_access');
 	Route::post('/start_spotwelding', 'SpotweldingController@start_task');
 	Route::post('/end_spotwelding', 'SpotweldingController@end_task');
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');

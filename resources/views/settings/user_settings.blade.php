@@ -923,6 +923,29 @@ $('.sel12').select2({
       }
     });
 
+    $(document).on('click', '.modal-control', function (e){
+      e.preventDefault();
+      modal_control($(this).data('modal'), $(this).data('action'));
+    });
+
+    function modal_control(modal, action){
+      $(modal).modal(action);
+    }
+
+    $(document).on('click', '.remove-user-access-btn', function (e){
+      var id = $(this).data('user');
+      var modal = $(this).data('name');
+      $.ajax({
+        url: '/remove_user_access/' + id,
+        type: "get",
+        success:function(data){
+          $('.modal').modal('hide');
+          get_users();
+          showNotification("success", data.message, "now-ui-icons ui-1_check");
+        }
+      });
+    });
+
     $(document).on('click', '.delete-user-btn', function(e){
       e.preventDefault();
       $('#delete-user-frm input[name="user_id"]').val($(this).data('user'));

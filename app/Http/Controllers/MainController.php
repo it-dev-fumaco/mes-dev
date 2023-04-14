@@ -5765,6 +5765,18 @@ class MainController extends Controller
 		}
     }
 
+	public function remove_user_access($id){
+		DB::connection('mysql_mes')->beginTransaction();
+		try{
+			DB::connection('mysql_mes')->table('user')->where('user_id', $id)->delete();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['message' => 'User has been deleted.']);
+		}catch(Exception $e){
+			DB::connection('mysql_mes')->rollback();
+			return response()->json(['message' => 'An error occured. Please try again.']);
+		}
+	}
+
 	// /create_stock_entry/{production_order}
     public function create_stock_entry(Request $request, $production_order){
 		DB::connection('mysql')->beginTransaction();
