@@ -9,7 +9,7 @@
 @include('modals.add_email_trans')
 <div class="panel-header"></div>
 <div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
-	<div class="col-2 p-2">
+	{{-- <div class="col-2 p-2">
 		<div class="card" id="workstation_navbar">
       <div class="card-header p-2" style="background-color: #0277BD;">
 				<h5 class="text-white text-center text-uppercase m-0 font-weight-bold" style="font-size: 13pt;">Settings</h5>
@@ -29,8 +29,8 @@
 				</div>
 			</div>
 		</div>
-	</div>
-  <div class="col-10 p-2" style="min-height: 1000px;">
+	</div> --}}
+  <div class="col-12 p-2" style="min-height: 1000px;">
     <div class="tab-content text-center">      
       <div class="tab-pane active" id="users_setup">
         <div class="card">
@@ -57,6 +57,9 @@
                       </li>
                       <li class="nav-item">
                         <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
                       </li>
                     </ul>
                   </div>
@@ -106,6 +109,30 @@
                       </div>
                     </div>
                   </div>
+
+                  <div class="tab-pane" id="email_alert_setup">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Email Alert Recipient</b></th>
+                              <td class="text-right">
+                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="email_trans_btn" style="margin: 5px;">
+                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                                </button>
+                              </td>
+                            </tr>
+                          </table>
+                          <div class="card-body p-0">
+                            <div class="tbl_email_trans" id="tbl_email_trans"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>      
@@ -113,7 +140,7 @@
         </div>
       </div>
      
-      <div class="tab-pane" id="email_alert_setup">
+      {{-- <div class="tab-pane" id="email_alert_setup">
         <div class="card">
           <div class="card-header p-0 m-0" style="background-color: #0277BD;">
 						<div class="row p-2 m-0">
@@ -138,7 +165,7 @@
             </div>      
           </div>
         </div>
-      </div>
+      </div> --}}
     </div>
   </div>
 </div>
@@ -898,22 +925,20 @@ $('.sel12').select2({
 
     $(document).on('click', '.delete-user-btn', function(e){
       e.preventDefault();
-      var row = $(this).closest('tr');
-      $('#delete-user-frm input[name="user_id"]').val(row.find('span').eq(0).text());
-      $('#delete-user-frm span').text(row.find('td').eq(1).text());
+      $('#delete-user-frm input[name="user_id"]').val($(this).data('user'));
+      $('#delete-user-frm span').text($(this).data('name'));
       $('#delete-user-modal').modal('show');
     });
-
 
      $('#delete-user-frm').submit(function(e){
       e.preventDefault();
       $.ajax({
         url: $(this).attr('action'),
-        type:"POST",
+        type:"post",
         data: $(this).serialize(),
         success:function(data){
           get_users();
-          $('#delete-user-modal').modal('hide');
+          $('.modal').modal('hide');
           showNotification("success", data.message, "now-ui-icons ui-1_check");
         }
       });  

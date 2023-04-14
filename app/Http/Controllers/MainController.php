@@ -5705,16 +5705,18 @@ class MainController extends Controller
 		$users = DB::connection('mysql_mes')->table('user')
 			->join('operation as op','op.operation_id','user.operation_id')
 			->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
-			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
 			->where(function($q) use ($request) {
-					$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
-		    })
-            ->orderBy('user.user_id', 'desc')->paginate(15);
-        
+				$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
+			})
+			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
+            ->orderBy('user.employee_name', 'asc')->get();
+
+		$users = collect($users)->groupBy('employee_name');
+
     	return view('tables.tbl_users', compact('users'));
     }
 
@@ -5752,9 +5754,15 @@ class MainController extends Controller
     }
 
     public function delete_user(Request $request){
-    	DB::connection('mysql_mes')->table('user')->where('user_id', $request->user_id)->delete();
-
-    	return response()->json(['message' => 'User has been deleted.']);
+		DB::connection('mysql_mes')->beginTransaction();
+		try{
+			DB::connection('mysql_mes')->table('user')->where('user_access_id', $request->user_id)->delete();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['message' => 'User has been deleted.']);
+		}catch(Exception $e){
+			DB::connection('mysql_mes')->rollback();
+			return response()->json(['message' => 'An error occured. Please try again.']);
+		}
     }
 
 	// /create_stock_entry/{production_order}
