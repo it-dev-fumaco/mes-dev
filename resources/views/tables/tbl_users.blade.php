@@ -17,7 +17,7 @@
         <td class="text-center">{{ $last_seen ? Carbon\Carbon::parse($last_seen)->format('M. d, Y h:i A') : '-' }}</td>
         <td class="text-center">
           <div class="btn-group" role="group" aria-label="Basic example">
-            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#{{ str_slug($name) }}-modal" style="font-size: 8pt;">View</button>
+            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#{{ str_slug($name) }}-modal" style="font-size: 8pt;"><i class="now-ui-icons design-2_ruler-pencil"></i></button>
             <button type="button" class="btn btn-sm delete-user-btn" data-name="{{ $name }}" data-user="{{ $access_arr[0]->user_access_id }}" style="font-size: 8pt;"><i class="now-ui-icons ui-1_simple-remove"></i></button>
           </div>
           
