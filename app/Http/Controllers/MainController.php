@@ -9635,6 +9635,13 @@ class MainController extends Controller
 					'modified' => Carbon::now()->toDateTimeString(),
 					'modified_by' => Auth::user()->email
 				]);
+
+				DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)->update([
+					'reschedule_delivery' => 1,
+					'rescheduled_delivery_date' => $request->rescheduled_date,
+					'modified' => Carbon::now()->toDateTimeString(),
+					'modified_by' => Auth::user()->email
+				]);
 			}
 
 			DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
