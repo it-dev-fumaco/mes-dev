@@ -105,9 +105,9 @@
                                     <table class="table table-bordered">
                                         <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                             <th class="p-2" style="width: 3%;">-</th>
-                                            <th class="p-2" style="width: 30%;">Item Description</th>
+                                            <th class="p-2" style="width: 35%;">Item Description</th>
                                             <th class="p-2" style="width: 5%;">Ordered</th>
-                                            <th class="p-2" style="width: 5%;">Inventory Qty</th>
+                                            {{-- <th class="p-2" style="width: 5%;">Inventory Qty</th> --}}
                                             <th class="p-2" style="width: 7%;">Ship by</th>
                                             @if($has_bom)
                                                 <th class="p-2" style="width: 10%;">BOM No.</th>
@@ -142,7 +142,7 @@
                                                         <img src="{{ $img }}" alt="{{ $v->item_code }}" class="m-1" style="width: 50px; height: 50px;">
                                                         <div class="m-1">
                                                             <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
-                                                            <span class="d-block pt-2">Warehouse: <b>{{ $v->warehouse }}</b></span>
+                                                            {{-- <span class="d-block pt-2">Warehouse: <b>{{ $v->warehouse }}</b></span> --}}
                                                             @if ($ref_type == 'SO')
                                                             <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
                                                             @endif
@@ -153,10 +153,10 @@
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
-                                                <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
+                                                {{-- <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $inventory_qty }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
-                                                </td>
+                                                </td> --}}
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
                                                     {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
                                                 </td>
