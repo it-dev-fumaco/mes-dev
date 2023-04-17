@@ -20,7 +20,7 @@
         <th class="p-2">-</th>
     </thead>
     <tbody class="text-center" style="font-size: 8pt;">
-        @forelse ($list as $r)
+        @forelse ($order_list as $r)
         @php
             $delivery_date = $r->reschedule_delivery == 1 ? $r->reschedule_delivery_date : $r->delivery_date;
             $start = \Carbon\Carbon::now()->subMinutes(5);
@@ -105,7 +105,7 @@
 </table>
 <div class="m-2 order-list-pagination">{{ $list->appends(Request::except('page'))->links() }}</div>
 
-@foreach ($list as $i => $s)
+@foreach ($order_list as $i => $s)
     @php
         $delivery_date = $s->reschedule_delivery == 1 ? $s->reschedule_delivery_date : $s->delivery_date;
     @endphp
