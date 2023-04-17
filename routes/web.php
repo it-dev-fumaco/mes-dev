@@ -252,6 +252,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/save_user', 'MainController@save_user');
 	Route::post('/update_user', 'MainController@update_user');
 	Route::post('/delete_user', 'MainController@delete_user');
+	Route::get('/remove_user_access/{id}', 'MainController@remove_user_access');
 	Route::post('/start_spotwelding', 'SpotweldingController@start_task');
 	Route::post('/end_spotwelding', 'SpotweldingController@end_task');
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');
@@ -504,14 +505,12 @@ Route::get('/get_tbl_material_request', 'InventoryController@list_material_purch
 Route::get('/get_selection_box_in_item_code_warehouse/{id}', 'InventoryController@get_selection_box_in_item_code_warehouse');
 Route::post('/cancel_material_purchase_request', 'InventoryController@cancel_material_purchase_request');
 Route::get('/get_material_request_for_purchase/{id}', 'InventoryController@get_material_request_for_purchase');
-Route::get('/tbl_filter_material_purchase_request/{from}/{to}', 'InventoryController@tbl_filter_material_purchase_request');
 Route::get('/get_uom_item_selected_in_purchase/{id}', 'InventoryController@get_uom_item_selected_in_purchase');
 //material transfer
 Route::post('/save_material_transfer', 'InventoryController@save_material_transfer');
 Route::get('/get_tbl_material_transfer', 'InventoryController@list_material_transfer');
 Route::get('/get_material_transfer_details/{id}', 'InventoryController@get_material_tranfer');
 Route::post('/cancel_material_transfer', 'InventoryController@cancel_material_transfer');
-Route::get('/tbl_filter_material_transfer/{from}/{to}', 'InventoryController@tbl_filter_material_transfer');
 Route::post('/confirmed_material_transfer', 'InventoryController@confirmed_material_transfer');
 Route::post('/delete_material_transfer', 'InventoryController@delete_material_transfer');
 //production_order with stock_entry
@@ -610,13 +609,14 @@ Route::get('/get_warning_notif_for_custom_shift/{id}', 'SecondaryController@get_
 Route::get('/shift_sched_details', 'SecondaryController@shift_sched_details');
 Route::get('/get_tbl_default_shift_sched', 'MainController@get_tbl_default_shift_sched');
 //Daily Report
-Route::get('/daily_output_report', 'ReportsController@daily_output_report');
-Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
-Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
-Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
-Route::get('/assembly_report', 'ReportsController@assembly_report_page');
-Route::get('/painting_report', 'ReportsController@painting_report_page');
-Route::get('/qa_report', 'ReportsController@qa_report');
+// ? - UNUSED ROUTES - ReportsController does not exist
+// Route::get('/daily_output_report', 'ReportsController@daily_output_report');
+// Route::get('/fabrication_report', 'ReportsController@fabrication_daily_report_page');
+// Route::get('/daily_output_chart', 'ReportsController@daily_output_chart');
+// Route::get('/assembly_daily_report', 'ReportsController@daily_output_report');
+// Route::get('/assembly_report', 'ReportsController@assembly_report_page');
+// Route::get('/painting_report', 'ReportsController@painting_report_page');
+// Route::get('/qa_report', 'ReportsController@qa_report');
 
 Route::group(['middleware' => 'auth'], function(){
 	Route::get('/display_available_scrap/{production_order}', 'ManufacturingController@display_available_scrap');
@@ -678,7 +678,7 @@ Route::get('/get_operators', 'MainController@get_operators');
 Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 //Daily Report
-Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page');
+// Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page'); // <-- Unused Route
 Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
 Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
 // Route::get('/link_qa_report', 'LinkReportController@qa_report');
@@ -687,7 +687,7 @@ Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart'
 Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
 Route::get('/report_index', 'LinkReportController@index');
 Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
-Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
+Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page'); // <-- Same Function
 Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
 Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');

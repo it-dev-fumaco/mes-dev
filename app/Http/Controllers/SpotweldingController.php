@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Input;
+use App\Traits\GeneralTrait;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Validator;
 use DB;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Image;
-
-use App\Traits\GeneralTrait;
+use Validator;
 
 class SpotweldingController extends Controller
 {
@@ -622,7 +622,7 @@ class SpotweldingController extends Controller
 					->where('operator_id', $row->operator_id)
 					->pluck('time_log_id');
 				
-				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->count();
+				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct()->count('operator_id');
 			}else{
 				$qa_inspection_status = 'Pending';
 				$helpers = [];

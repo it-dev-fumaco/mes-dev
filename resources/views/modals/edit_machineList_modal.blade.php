@@ -57,7 +57,7 @@
                               </div>
                               <div class="fileUpload btn btn-warning upload-btn">
                               <span>Choose File..</span>
-                              <input type="file" name="machineImage" class="upload" id="machine_image_forupload" />
+                              <input type="file" name="machineImage" class="upload" id="machine_image_forupload" enctype="multipart/form-data"/>
                            </div>                  
                        </div>
                     </div>

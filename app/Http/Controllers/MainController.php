@@ -19,6 +19,7 @@ use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
 use Session;
 use App\LdapClasses\adLDAP;
+use Exception;
 
 use Illuminate\Support\Facades\Route;
 
@@ -167,7 +168,7 @@ class MainController extends Controller
 
 	public function loginUserId(Request $request){
 		try {
-			$email = str_contains($request->user_id, '@fumaco.local') ? $request->user_id : $request->user_id.'@fumaco.local';
+			$email = strpos($request->user_id, '@fumaco.local') ? $request->user_id : $request->user_id.'@fumaco.local';
 			$essex_user = DB::connection('mysql_essex')->table('users')->where('email', $email)->first();
 			if(!$essex_user){
 				return response()->json(['success' => 0, 'message' => '<b>Invalid login credentials!</b>']);
@@ -236,7 +237,7 @@ class MainController extends Controller
 
 				return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 			}
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			return response()->json(['success' => 0, 'message' => '<b>No connection to authentication server.</b>']);
 		}
 	}
@@ -678,7 +679,7 @@ class MainController extends Controller
 					'actual_end_date' => ($rowss->status == "Not Started") ? '-' : Carbon::parse($rowss->actual_end_date)->format('M-d-Y h:i A'),
 					'created_at' => $rowss->created_at,
 					'created_by' => $rowss->created_by,
-					'stock_uom' => $rowss->stock_uom,
+					// 'stock_uom' => $rowss->stock_uom,
 					'material_status' => $this->material_status_stockentry($rowss->production_order, $rowss->status, $rowss->qty_to_manufacture,$rowss->feedback_qty, $rowss->produced_qty)
 				];
 			}
@@ -765,7 +766,7 @@ class MainController extends Controller
 				'end_date' => ($rows->status == "Not Started") ? '-' : Carbon::parse(collect(array_column($process_list, 'max'))->max())->format('M-d-Y h:i A'),
 				'created_at' => $rows->created_at,
 				'created_by' => $rows->created_by,
-				'stock_uom' => $rows->stock_uom,
+				// 'stock_uom' => $rows->stock_uom,
 				// 'stock_uom' => $this->get_child($prod_details->bom_no,$prod_details->sales_order, $prod_details->item_code, $prod_details->parent_item_code),
 			];
 
@@ -1730,7 +1731,7 @@ class MainController extends Controller
 	}
 
 	private function get_production_order_filters(){
-		$owners = DB::connection('mysql_mes')->table('production_order')->select('created_by')->distinct('created_by')->orderBy('created_by', 'asc')->get();
+		$owners = DB::connection('mysql_mes')->table('production_order')->distinct()->select('created_by')->orderBy('created_by', 'asc')->get();
 		$owners = collect($owners)->map(function ($q){
 			$owner = explode('@', $q->created_by);
 			$owner = ucwords(str_replace('.', ' ', $owner[0]));
@@ -1740,7 +1741,7 @@ class MainController extends Controller
 			}
 		})->unique()->filter();
 
-		$target_warehouses = DB::connection('mysql_mes')->table('production_order')->select('fg_warehouse')->distinct('fg_warehouse')->orderBy('fg_warehouse', 'asc')->get();
+		$target_warehouses = DB::connection('mysql_mes')->table('production_order')->distinct()->select('fg_warehouse')->orderBy('fg_warehouse', 'asc')->get();
 
 		$filters = [
 			'owners' => $owners,
@@ -2060,8 +2061,6 @@ class MainController extends Controller
 				$prod_status = 'Unknown Status';
 			}else if(isset($work_order_details[$row->production_order]) && $work_order_details[$row->production_order][0]->docstatus == 1 && $row->status == 'Cancelled'){
 				$prod_status = 'Unknown Status';
-			}else{
-				$prod_status = $prod_status;
 			}
 		
 			// get owner of production order
@@ -2179,13 +2178,13 @@ class MainController extends Controller
 					$status = 'Material For Issue';
 				}
 
-				// $time_logs_qry = DB::connection('mysql_mes')->table('job_ticket')
-				// 	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-				// 	->where('job_ticket.production_order', $row->production_order)->where('job_ticket.status', 'Completed')
-				// 	->get();
+				$time_logs_qry = DB::connection('mysql_mes')->table('job_ticket')
+					->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+					->where('job_ticket.production_order', $row->production_order)->where('job_ticket.status', 'Completed')
+					->get();
 
 				// $from_time = collect($time_logs_qry)->min('from_time');
-				// $to_time = collect($time_logs_qry)->max('to_time');
+				$to_time = collect($time_logs_qry)->max('to_time');
 
 				// $actual_start_date = Carbon::parse($from_time);
 				// $actual_end_date = Carbon::parse($to_time);
@@ -2665,7 +2664,7 @@ class MainController extends Controller
 			->whereNotIn('pro.status', ['Completed', 'Stopped', 'Cancelled', 'Closed'])
 			->where('jt.workstation', 'Painting')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
-			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty','pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
+			->groupBy('delivery_date.rescheduled_delivery_date','pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty','pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence', 'pro.feedback_qty')
 			->orderBy('pro.created_at', 'desc')->get();
 
 		$prod_items = collect($jobtickets_production)->unique('item_code')->pluck('item_code');
@@ -2783,8 +2782,8 @@ class MainController extends Controller
 			->whereNotIn('pro.status', ['Completed', 'Cancelled', 'Closed'])
 			->where('jt.workstation', 'Painting')
 			->whereDate('jt.planned_start_date', $schedule_date)
-			->distinct('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
 			->select('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
+			->groupBy('delivery_date.rescheduled_delivery_date','pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status', 'pro.job_ticket_print','pro.withdrawal_slip_print', 'pro.parent_item_code', 'pro.status','jt.sequence','pro.feedback_qty')
 			->orderBy('jt.sequence', 'asc')->get();
 
 		$prod_items = collect($orders)->unique('item_code')->pluck('item_code');
@@ -2927,12 +2926,12 @@ class MainController extends Controller
 	public function get_customer_reference_no($customer){
 		return DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Completed', 'Cancelled'])
 			->where('customer', $customer)->selectRaw('IFNULL(sales_order, material_request) as reference')
-			->distinct('reference')->orderBy('reference', 'asc')->pluck('reference');
+			->distinct()->orderBy('reference', 'asc')->pluck('reference');
 	}
 
 	public function get_customers(){
 		return DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Completed', 'Cancelled'])
-			->whereNotNull('customer')->distinct('customer')->orderBy('customer', 'asc')->pluck('customer');
+			->whereNotNull('customer')->distinct()->orderBy('customer', 'asc')->pluck('customer');
 	}
 
 	public function get_reference_production_items(Request $request, $reference){
@@ -2942,7 +2941,7 @@ class MainController extends Controller
 				$q->where('sales_order', $reference)
 					->orWhere('material_request', $reference);
 			})
-			->distinct('parent_item_code')->orderBy('parent_item_code', 'asc')->pluck('parent_item_code');
+			->distinct()->orderBy('parent_item_code', 'asc')->pluck('parent_item_code');
 		}
 
 		if($request->item_type == 'sub-parent'){
@@ -2953,7 +2952,7 @@ class MainController extends Controller
 			})
 			->where('parent_item_code', $request->parent_item)
 			->whereNotNull('sub_parent_item_code')
-			->distinct('sub_parent_item_code')->orderBy('sub_parent_item_code', 'asc')->pluck('sub_parent_item_code');
+			->distinct()->orderBy('sub_parent_item_code', 'asc')->pluck('sub_parent_item_code');
 		}
 
 		return DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Completed', 'Cancelled'])
@@ -2965,7 +2964,7 @@ class MainController extends Controller
 			->when($request->sub_parent_item, function($q) use ($request){
 				return $q->where('sub_parent_item_code', $request->sub_parent_item);
 			})
-			->distinct('item_code')->orderBy('item_code', 'asc')->pluck('item_code');
+			->distinct()->orderBy('item_code', 'asc')->pluck('item_code');
 	}
 
 	public function getScheduledProdOrders($schedule_date, $operation_id){
@@ -4293,7 +4292,8 @@ class MainController extends Controller
 					->where('operator_id', $row->operator_id)
 					->pluck('time_log_id');
 				
-				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->count();
+				// $count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->count();
+				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct()->count('operator_id');
 
 				$jt_status = $row->status; // time log status
 				if ($row->operator_id != Auth::user()->user_id && $row->jtstatus != 'Completed') {
@@ -4435,7 +4435,7 @@ class MainController extends Controller
 					->where('operator_id', $row->operator_id)
 					->pluck('time_log_id');
 				
-				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->count();
+				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct()->count('operator_id');
 			}else{
 				$qa_inspection_status = 'Pending';
 				$helpers = [];
@@ -4684,7 +4684,7 @@ class MainController extends Controller
 			->join('reject_category as rc','rl.reject_category_id', 'rc.reject_category_id')
 			->join('operation as op', 'op.operation_id', 'w.operation_id')
 			->where('w.workstation_name', $workstation)
-			->select('rc.reject_category_id','rc.reject_category_name')->distinct('rc.reject_category_id')
+			->select('rc.reject_category_id','rc.reject_category_name')->groupBy('rc.reject_category_id','rc.reject_category_name')//->distinct('rc.reject_category_id')
 			->orderBy('rc.reject_category_id', 'asc')->get();
 
 		$operation = DB::connection('mysql_mes')->table('operation')->where('operation_id', $existing_production_order->operation_id)->pluck('operation_name')->first();
@@ -4833,7 +4833,7 @@ class MainController extends Controller
 					'time_log_id' => $r->time_log_id,
 					'workstation' => $r->workstation,
 					'process_id' => $r->process_id,
-					'time_log_id' => $r->time_log_id,
+					// 'time_log_id' => $r->time_log_id,
 				];
 			}
 		}
@@ -5269,7 +5269,10 @@ class MainController extends Controller
 				->where('operator_id', $request->operator_id)
 				->pluck('time_log_id');
 			
-			$helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->get();
+			$helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)
+				->select('helper_id', 'time_log_id', 'operator_id', 'operator_name')
+				->groupBy('helper_id', 'time_log_id', 'operator_id', 'operator_name')
+				->get();
 		}else{
 			$helpers = DB::connection('mysql_mes')->table('helper')->where('time_log_id', $request->time_log_id)->get();
 		}
@@ -5562,7 +5565,7 @@ class MainController extends Controller
 					->where('operator_id', $row->operator_id)
 					->pluck('time_log_id');
 				
-				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct('operator_id')->count();
+				$count_helpers = DB::connection('mysql_mes')->table('helper')->whereIn('time_log_id', $qry)->distinct()->count('operator_id');
 			}else{
 				$qa_inspection_status = 'Pending';
 				$helpers = [];
@@ -5702,16 +5705,18 @@ class MainController extends Controller
 		$users = DB::connection('mysql_mes')->table('user')
 			->join('operation as op','op.operation_id','user.operation_id')
 			->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
-			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
 			->where(function($q) use ($request) {
-					$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
-					->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
-		    })
-            ->orderBy('user.user_id', 'desc')->paginate(15);
-        
+				$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
+				->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
+			})
+			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
+            ->orderBy('user.employee_name', 'asc')->get();
+
+		$users = collect($users)->groupBy('employee_name');
+
     	return view('tables.tbl_users', compact('users'));
     }
 
@@ -5749,10 +5754,28 @@ class MainController extends Controller
     }
 
     public function delete_user(Request $request){
-    	DB::connection('mysql_mes')->table('user')->where('user_id', $request->user_id)->delete();
-
-    	return response()->json(['message' => 'User has been deleted.']);
+		DB::connection('mysql_mes')->beginTransaction();
+		try{
+			DB::connection('mysql_mes')->table('user')->where('user_access_id', $request->user_id)->delete();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['message' => 'User has been deleted.']);
+		}catch(Exception $e){
+			DB::connection('mysql_mes')->rollback();
+			return response()->json(['message' => 'An error occured. Please try again.']);
+		}
     }
+
+	public function remove_user_access($id){
+		DB::connection('mysql_mes')->beginTransaction();
+		try{
+			DB::connection('mysql_mes')->table('user')->where('user_id', $id)->delete();
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['message' => 'User has been deleted.']);
+		}catch(Exception $e){
+			DB::connection('mysql_mes')->rollback();
+			return response()->json(['message' => 'An error occured. Please try again.']);
+		}
+	}
 
 	// /create_stock_entry/{production_order}
     public function create_stock_entry(Request $request, $production_order){
@@ -5802,7 +5825,7 @@ class MainController extends Controller
 
 			$operation_details = DB::connection('mysql_mes')->table('operation')->where('operation_id', $mes_production_order_details->operation_id)->first();
 			if ($operation_details) {
-				if (str_contains(strtolower($operation_details->operation_name), 'assembly')) {
+				if (strpos(strtolower($operation_details->operation_name), 'assembly')) {
 					$total_feedback_qty = $mes_production_order_details->feedback_qty + $request->fg_completed_qty;
 					if ($total_feedback_qty > $mes_production_order_details->qty_to_manufacture) {
 						return response()->json(['success' => 0, 'message' => '<center>Feedback Qty should not be greater than <b>' . $mes_production_order_details->qty_to_manufacture . '</b>.']);
@@ -6650,8 +6673,9 @@ class MainController extends Controller
                 ->orWhere('prod.item_code', 'LIKE', '%'.$request->q.'%')
                 ->orWhere('prod.customer', 'LIKE', '%'.$request->q.'%');
             })
-            ->distinct('prod.production_order')->select('prod.*')
-            ->orderBy('last_modified_at', 'desc')->get();
+			->select('prod.production_order', 'prod.qty_to_manufacture', 'prod.sales_order', 'prod.material_request', 'prod.customer', 'prod.item_code', 'prod.description', 'prod.stock_uom', 'prod.qty_to_manufacture', 'prod.produced_qty')
+			->groupBy('prod.production_order', 'prod.qty_to_manufacture', 'prod.sales_order', 'prod.material_request', 'prod.customer', 'prod.item_code', 'prod.description', 'prod.stock_uom', 'prod.qty_to_manufacture', 'prod.produced_qty')
+            ->orderBy('prod.last_modified_at', 'desc')->get();
         
         $data = [];
         foreach($orders as $row){
@@ -6777,7 +6801,7 @@ class MainController extends Controller
 			->join('process', 'process_assignment.process_id', 'process.process_id')
 			->where('workstation_id', $workstation_id)
 			->select('process.process_id', 'process.process_name')
-			->distinct('process.process_id', 'process.process_name')
+			->groupBy('process.process_id', 'process.process_name')
 			->orderBy('process_name', 'asc')->get();
 	}
 
@@ -7727,8 +7751,8 @@ class MainController extends Controller
 				->when($request->search_parent, function ($q) use ($request){
 					return $q->where('parent_item_code', 'like', '%'.$request->search_parent.'%');
 				})
-				->distinct('prod.production_order', 'tsd.sequence')
-				->select('prod.*','tsd.sequence', 'tsd.planned_start_date as planned_start')
+				->select('prod.sales_order', 'prod.material_request', 'prod.customer', 'prod.parent_item_code', 'tsd.sequence', 'tsd.planned_start_date as planned_start')
+				->groupBy('prod.sales_order', 'prod.material_request', 'prod.customer', 'prod.parent_item_code', 'tsd.sequence', 'tsd.planned_start_date as planned_start')
 				->orderBy('tsd.sequence','asc')
 				->get();
 		}else{
@@ -7980,7 +8004,7 @@ class MainController extends Controller
 		// get workstation processes
 		$workstation_process = DB::connection('mysql_mes')->table('process_assignment AS pa')
 			->join('process AS p', 'p.process_id','pa.process_id')->where('pa.workstation_id', $workstation_id)
-			->distinct('p.process_id')->orderBy('p.process_id', 'asc')->pluck('p.process_name', 'p.process_id');
+			->orderBy('p.process_id', 'asc')->groupBy('p.process_id', 'p.process_name')->pluck('p.process_name', 'p.process_id');
 
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
@@ -9161,9 +9185,7 @@ class MainController extends Controller
 
 					$last_transaction = $last_transaction ? Carbon::parse($last_transaction) : null;
 					if ($last_transaction) {
-						if (Carbon::now()->format('Y-m-d') === Carbon::parse($last_transaction)->format('Y-m-d')) {
-							$last_transaction = $last_transaction;
-						} else {
+						if (Carbon::now()->format('Y-m-d') !== Carbon::parse($last_transaction)->format('Y-m-d')){
 							if (strpos(strtolower($row->department), 'fabrication') > -1) {
 								$last_transaction = $fabrication_in ? Carbon::parse($fabrication_in) : null;
 							}
@@ -9339,7 +9361,7 @@ class MainController extends Controller
 				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified', 'mr.per_ordered as delivery_percentage')->first();
 
 			$item_list = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
-				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note')
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note', 'warehouse')
 				->orderBy('idx', 'asc')->get();
 
 			$item_codes = collect($item_list)->pluck('item_code')->unique();
@@ -9362,7 +9384,7 @@ class MainController extends Controller
 				->first();
 			
 			$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
-				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note', 'warehouse')
 				->orderBy('idx', 'asc')->get();
 
 			$item_codes = collect($item_list)->pluck('item_code')->unique();
@@ -9382,6 +9404,12 @@ class MainController extends Controller
 				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->modified)->format('M. d, Y');
 				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['user'] = $ps_row->session_user;
 			}
+		}
+
+		$current_inventory = DB::connection('mysql')->table('tabBin')->whereIn('item_code', collect($item_list)->pluck('item_code'))->whereIn('warehouse', collect($item_list)->pluck('warehouse'))->get();
+		$current_inventory_arr = [];
+		foreach($current_inventory as $ci){
+			$current_inventory_arr[$ci->item_code][$ci->warehouse] = $ci->actual_qty;
 		}
 
 		$actual_delivery_date_per_item = collect($actual_delivery_date_per_item)->groupBy('item_code')->toArray();
@@ -9426,7 +9454,9 @@ class MainController extends Controller
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
 
-		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr'));
+		$files = DB::connection('mysql')->table('tabFile')->where('attached_to_doctype', $ref_type == 'SO' ? 'Sales Order' : 'Material Request')->where('attached_to_name', $id)->get();
+
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files', 'current_inventory_arr'));
 	}
 	
 	// /get_order_list
@@ -9590,11 +9620,11 @@ class MainController extends Controller
 			$so_details = DB::connection('mysql')->table($table)->where('name', $id)->first();
 			$delivery_date_details = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->first();
 
-			if(!$so_details || !$delivery_date_details){
+			if(!$so_details){
 				return redirect()->back()->with('error', 'Sales Order not found.');
 			}
 
-			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('item_code', 'description', 'qty', 'stock_uom')->get();
+			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('name', 'item_code', 'description', 'qty', 'stock_uom', 'delivery_date')->get();
 
 			$reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->reason)->pluck('reschedule_reason')->first();
 
@@ -9605,13 +9635,38 @@ class MainController extends Controller
 					'modified' => Carbon::now()->toDateTimeString(),
 					'modified_by' => Auth::user()->email
 				]);
+
+				DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)->update([
+					'reschedule_delivery' => 1,
+					'rescheduled_delivery_date' => $request->rescheduled_date,
+					'modified' => Carbon::now()->toDateTimeString(),
+					'modified_by' => Auth::user()->email
+				]);
 			}
 
-			DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
-				'rescheduled_delivery_date' => $request->rescheduled_date,
-				'last_modified_at' => Carbon::now()->toDateTimeString(),
-				'last_modified_by' => Auth::user()->email
-			]);
+			if(!$delivery_date_details){
+				foreach ($so_items as $so_item) {
+					DB::connection('mysql_mes')->table('delivery_date')->insert([
+						'erp_reference_id' => $so_item->name,
+						'reference_no' => $id,
+						'parent_item_code' => $so_item->item_code,
+						'delivery_date' => $so_item->delivery_date,
+						'rescheduled_delivery_date' => $request->rescheduled_date,
+						'created_by' => Auth::user()->email,
+						'created_at' => Carbon::now()->toDateTimeString(),
+						'last_modified_at' => Carbon::now()->toDateTimeString(),
+						'last_modified_by' => Auth::user()->email
+					]);
+				}
+
+				$delivery_date_details = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->first();
+			}else{
+				DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
+					'rescheduled_delivery_date' => $request->rescheduled_date,
+					'last_modified_at' => Carbon::now()->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email
+				]);
+			}
 
 			DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert([
 				'delivery_date_id' => $delivery_date_details->delivery_date_id,

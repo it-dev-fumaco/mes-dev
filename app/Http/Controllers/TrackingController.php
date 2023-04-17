@@ -1,24 +1,23 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Storage;
+use App\Machine;
 use App\Mail\SendMail_machinebreakdown;
+use App\Traits\GeneralTrait;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use DateTime;
+use DB;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Image;
 use Validator;
-use DB;
-use App\Machine;
-use Illuminate\Pagination\LengthAwarePaginator;
-
-
-use App\Traits\GeneralTrait;
 
 class TrackingController extends Controller
 {
@@ -255,7 +254,7 @@ class TrackingController extends Controller
                     $q->Where('po.sales_order', $guide_id)
                         ->orWhere('po.material_request', $guide_id);
             })
-            ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date')
+            ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project','po.parent_item_code', 'delivery_date.rescheduled_delivery_date', 'po.qty_to_manufacture', 'po.produced_qty', 'po.stock_uom')
             ->first();
 
          $parent_productions = DB::connection('mysql_mes')->table('production_order AS po')
@@ -300,7 +299,8 @@ class TrackingController extends Controller
                                     ->where('jt.production_order', $parent_productions->production_order)
                                     ->where('jt.status', 'In Progress')
                                     ->select('p.process_name', 'jt.workstation')
-                                    ->distinct('jt.workstation')
+                                    ->groupBy('p.process_name', 'jt.workstation')
+                                    // ->distinct('jt.workstation')
                                     ->get();
                          
                             $stat= $parent_productions->status;
@@ -346,8 +346,6 @@ class TrackingController extends Controller
                     $status = 'Unknown Status';
                 }else if($prod_details->docstatus == 1 && $status == 'Cancelled'){
                     $status = 'Unknown Status';
-                }else{
-                    $status = $status;
                 }
 
                 $materials = [
@@ -366,7 +364,7 @@ class TrackingController extends Controller
                         'status' => ($status == null) ? '': $status,
                         'qty_to_manufacture' => ($status == null) ? '': $qty_to_manufacture,
                         'produced_qty' => $done,
-                        'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
+                        // 'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
                         'current_load' => $jobtickets_details,
                         'available_stock' => $available_stock,
                         'operation_id' => $parent_productions->operation_id,
@@ -390,7 +388,7 @@ class TrackingController extends Controller
                         'status' => ($status == null) ? '': $status,
                         'qty_to_manufacture' => ($status == null) ? '': $qty_to_manufacture,
                         'produced_qty' => $done,
-                        'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
+                        // 'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
                         'current_load' => $jobtickets_details,
                         'available_stock' => $available_stock,
                         'operation_id' => 1,
@@ -532,9 +530,9 @@ class TrackingController extends Controller
                 'fab_duration' => $fab_duration,
                 'pain_duration' => $pain_duration,
                 'assem_duration' => $assem_duration,
-                'fab_required' => empty($total_qty_fab) ? '0' : $total_qty_fab->qty_to_manufacture,
-                'fab_produced' => empty($total_qty_fab) ? '0' : $total_qty_fab->produced_qty,
-                'uom' => empty($total_qty_fab) ? '0' : $total_qty_fab->stock_uom,
+                'fab_required' => $production ? $production->qty_to_manufacture : '0',
+                'fab_produced' => $production ? $production->produced_qty : '0',
+                'uom' => $production ? $production->stock_uom : '0',
                 'fab_badge' => $fab_badge,
                 'assem_badge' => $assem_badge,
                 'pain_badge' => $pain_badge
@@ -628,7 +626,7 @@ class TrackingController extends Controller
 
                         $jobtickets_details = DB::connection('mysql_mes')->table('job_ticket as jt')
                             ->join('process as p','p.process_id', 'jt.process_id')->where('jt.production_order', $production->production_order)
-                            ->where('jt.status', 'In Progress')->select('p.process_name', 'jt.workstation')->distinct('jt.workstation')->get();
+                            ->where('jt.status', 'In Progress')->select('p.process_name', 'jt.workstation')->groupBy('p.process_name', 'jt.workstation')->get();
                         
                         $status = $production->status;
                         $done = $production->produced_qty;
@@ -645,8 +643,6 @@ class TrackingController extends Controller
                         $status = 'Unknown Status';
                     }else if($docstatus == 1 && $status == 'Cancelled'){
                         $status = 'Unknown Status';
-                    }else{
-                        $status = $status;
                     }
                 }
 
@@ -656,7 +652,7 @@ class TrackingController extends Controller
                     'item_code' => $item->item_code,
                     'description' => $item_description,
                     'qty' => $item->qty,
-                    'bom_no' => $item->bom_no,
+                    // 'bom_no' => $item->bom_no,
                     'uom' => $item->uom,
                     'parts_category' => $parts_category,
                     'production_order' => ($production_order_no == null) ? '': $production_order_no,
@@ -944,12 +940,12 @@ class TrackingController extends Controller
 	public function get_customer_reference_no($customer){
 		return DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Completed', 'Cancelled'])
 			->where('customer', $customer)->selectRaw('IFNULL(sales_order, material_request) as reference')
-			->distinct('reference')->orderBy('reference', 'asc')->pluck('reference');
+			->distinct()->orderBy('reference', 'asc')->pluck('reference');
 	}
 
 	public function get_customers(){
 		return DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Completed', 'Cancelled'])
-			->whereNotNull('customer')->distinct('customer')->orderBy('customer', 'asc')->pluck('customer');
+			->whereNotNull('customer')->distinct()->orderBy('customer', 'asc')->pluck('customer');
 	}
 
 	public function get_reference_production_items(Request $request, $reference){
@@ -959,7 +955,7 @@ class TrackingController extends Controller
 				$q->where('sales_order', $reference)
 					->orWhere('material_request', $reference);
 			})
-			->distinct('parent_item_code')->orderBy('parent_item_code', 'asc')->pluck('parent_item_code');
+			->distinct()->orderBy('parent_item_code', 'asc')->pluck('parent_item_code');
 		}
 
 		if($request->item_type == 'sub-parent'){
@@ -970,7 +966,7 @@ class TrackingController extends Controller
 			})
 			->where('parent_item_code', $request->parent_item)
 			->whereNotNull('sub_parent_item_code')
-			->distinct('sub_parent_item_code')->orderBy('sub_parent_item_code', 'asc')->pluck('sub_parent_item_code');
+			->distinct()->orderBy('sub_parent_item_code', 'asc')->pluck('sub_parent_item_code');
 		}
 
 		return DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Completed', 'Cancelled'])
@@ -982,7 +978,7 @@ class TrackingController extends Controller
 			->when($request->sub_parent_item, function($q) use ($request){
 				return $q->where('sub_parent_item_code', $request->sub_parent_item);
 			})
-			->distinct('item_code')->orderBy('item_code', 'asc')->pluck('item_code');
+			->distinct()->orderBy('item_code', 'asc')->pluck('item_code');
 	}
 
     public function getScheduledProdOrders($schedule_date){

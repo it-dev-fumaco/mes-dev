@@ -79,6 +79,11 @@
                                     <a class="custom-nav-link show text-decoration-none" href="#icw_painting" data-toggle="tab">Delivered Item(s)</a>
                                 </li>
                                 @endif
+                                @if (count($files) > 0)
+                                    <li class="nav-item">
+                                        <a class="custom-nav-link show text-decoration-none" href="#attachments" data-toggle="tab">Attachment(s)</a>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
                     </div>
@@ -102,6 +107,7 @@
                                             <th class="p-2" style="width: 3%;">-</th>
                                             <th class="p-2" style="width: 35%;">Item Description</th>
                                             <th class="p-2" style="width: 5%;">Ordered</th>
+                                            {{-- <th class="p-2" style="width: 5%;">Inventory Qty</th> --}}
                                             <th class="p-2" style="width: 7%;">Ship by</th>
                                             @if($has_bom)
                                                 <th class="p-2" style="width: 10%;">BOM No.</th>
@@ -124,6 +130,8 @@
                                                 $img .= array_key_exists($v->item_code, $item_images) ? "/img/" . $item_images[$v->item_code] : "/icon/no_img.png";
                 
                                                 $production_order_item = array_key_exists($v->item_code, $production_orders) ? $production_orders[$v->item_code] : [];
+
+                                                $inventory_qty = isset($current_inventory_arr[$v->item_code][$v->warehouse]) ? number_format($current_inventory_arr[$v->item_code][$v->warehouse]) : 0;
                                             @endphp
                                             <tr>
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
@@ -134,6 +142,7 @@
                                                         <img src="{{ $img }}" alt="{{ $v->item_code }}" class="m-1" style="width: 50px; height: 50px;">
                                                         <div class="m-1">
                                                             <span class="font-weight-bold">{{ $v->item_code }}</span> {!! strip_tags($v->description) !!}
+                                                            {{-- <span class="d-block pt-2">Warehouse: <b>{{ $v->warehouse }}</b></span> --}}
                                                             @if ($ref_type == 'SO')
                                                             <span class="d-block mt-1"><b>Note:</b> {!! $v->item_note !!}</span>
                                                             @endif
@@ -144,6 +153,10 @@
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
+                                                {{-- <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
+                                                    <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ $inventory_qty }}</span>
+                                                    <small class="d-block">{{ $v->stock_uom }}</small>
+                                                </td> --}}
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
                                                     {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
                                                 </td>
@@ -313,6 +326,43 @@
                                 </div>
                             </div>
                         </div>
+                        @if (count($files) > 0)
+                            <div class="tab-pane show text-left" id="attachments">
+                                <table class="table table-bordered">
+                                    <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
+                                        <tr>
+                                            <th class="p-2">-</th>
+                                            <th class="p-2">Filename</th>
+                                            <th class="p-2">Status</th>
+                                            <th class="p-2">Uploaded By</th>
+                                            <th class="p-2">Uploaded On</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="font-size: 8pt;">
+                                        @foreach ($files as $i => $file)
+                                            @php
+                                                $file_link = !$file->is_private ? 'http://10.0.0.191:8000'.$file->file_url : '#';
+                                            @endphp
+                                            <tr>
+                                                <td class="p-2 text-center">{{ $i + 1 }}</td>
+                                                <td class="p-2 text-center">
+                                                    <a href="{{ $file_link }}" target="{{ !$file->is_private ? '_blank' : null }}" class="{{ $file->is_private ? 'text-muted' : null }}">{{ $file->file_name }}</a>
+                                                </td>
+                                                <td class="p-2 text-center">
+                                                    <span class="badge badge-{{ $file->is_private ? 'primary' : 'success' }}">{{ $file->is_private ? 'Private' : 'Public' }}</span>
+                                                </td>
+                                                <td class="p-2 text-center">
+                                                    {{ $file->owner }}
+                                                </td>
+                                                <td class="p-2 text-center">
+                                                    {{ Carbon\Carbon::parse($file->creation)->format('F d, Y h:i A') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
                     </div>
                     <span class="d-block mt-1 ml-2 font-italic" style="font-size: 8pt;">Created by: <b>{{ $details->owner }}</b></span>
                 </div>

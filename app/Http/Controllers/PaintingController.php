@@ -16,6 +16,7 @@ use Image;
 use App\Exports\ExportDataChemicalMonitoringExcel;
 use App\Exports\ExportDataWaterDischargeExcel;
 use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class PaintingController extends Controller
 {
@@ -379,8 +380,8 @@ class PaintingController extends Controller
         ->where('pro.status','!=', 'Cancelled')
         ->where('jt.workstation', 'Painting')
         ->where('jt.planned_start_date','!=', null)
-        ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
         ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+        ->groupBy( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
         ->get();
 
         $data = array();
@@ -470,8 +471,8 @@ class PaintingController extends Controller
                     ->orWhere('prod.customer', 'LIKE', '%'.$request->search_string.'%');
                 })
                 ->where('prod.feedback_qty', '>', 0)
-                ->distinct('prod.production_order', 'tsd.sequence')
-                ->select('prod.*','tsd.sequence')
+                ->select('prod.customer', 'prod.item_code', 'prod.description', 'prod.stock_uom', 'prod.qty_to_manufacture', 'prod.production_order', 'tsd.sequence')
+                ->groupBy('prod.customer', 'prod.item_code', 'prod.description', 'prod.stock_uom', 'prod.qty_to_manufacture', 'prod.production_order', 'tsd.sequence')
                 ->orderBy('tsd.sequence','asc')
                 ->get();
             

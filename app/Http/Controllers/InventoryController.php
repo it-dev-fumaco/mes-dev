@@ -10,6 +10,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Mail\SendMail_material_request;
 use Carbon\Carbon;
 use DB;
+use Exception;
 
 use App\Traits\GeneralTrait;
 
@@ -20,32 +21,29 @@ class InventoryController extends Controller
     
 	public function material_request(){
         $item_list = DB::connection('mysql')->table('tabItem as item')
-        ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-        ->where('w.disabled', 0)
-        ->where('w.is_group', 0)
-        ->where('w.company', 'FUMACO Inc.')
-        ->where('w.department', 'Fabrication')
-        ->whereIn('item.item_group', ['Raw Material'])
-        ->select('item.name', 'item.description')
-        ->orderBy('item.modified', 'desc')->get();
+            ->join('tabItem Default as default', 'default.parent', 'item.item_code')
+            ->join('tabWarehouse as w', 'default.default_warehouse', 'w.name')
+            ->where('w.disabled', 0)
+            ->where('w.is_group', 0)
+            ->where('w.company', 'FUMACO Inc.')
+            ->where('w.department', 'Fabrication')
+            ->whereIn('item.item_group', ['Raw Material'])
+            ->select('item.name', 'item.description')
+            ->orderBy('item.modified', 'desc')->get();
 
-        $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)
-            ->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
-            
-        $customer=  DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->select('customer_name')->groupBy('customer_name')->get();
+        $so_list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
 
-        $so_list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
-        $project=  DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->select('project')->groupBy('project')->get();
+        $customers = collect($so_list)->pluck('customer_name')->unique()->sort()->values()->all();
+        $projects = collect($so_list)->pluck('project')->unique()->sort()->values()->all();
+
+        $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
+
         $mreq_stat=DB::connection('mysql')->table('tabMaterial Request')
-        ->where('material_request_type', 'Purchase')
-        ->where('docstatus','!=',0 )
-        ->select('status')->groupBy('status')->get();
+            ->where('material_request_type', 'Purchase')
+            ->where('docstatus','!=', 0)
+            ->select('status')->groupBy('status')->get();
 
-
-        return view('inventory.material_request.material_request', compact('item_list','warehouse_list','so_list','customer', 'mreq_stat','project'));
+        return view('inventory.material_request.material_request', compact('item_list','warehouse_list','so_list','customers', 'mreq_stat','projects'));
     }
     public function save_material_purchase(Request $request){
         $now = Carbon::now();
@@ -145,38 +143,22 @@ class InventoryController extends Controller
             ->where('warehouse', $warehouse)->sum('actual_qty');
     }
     public function list_material_purchase(Request $request){
-        $purchase_lists= DB::connection('mysql')->table('tabMaterial Request as mt')
-        ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
-        ->whereBetween(DB::raw('DATE_FORMAT(mt.creation, "%Y-%m-%d")'),[$request->from,$request->end])
-        ->where('mt.customer_name', 'LIKE', '%'.$request->customer.'%')
-        ->where('mt.project',   'LIKE', '%'.$request->project.'%')
-        ->where('mt.sales_order', 'LIKE', '%'.$request->so.'%')
-        ->Where('mt.status', 'LIKE', '%'.$request->status.'%')
-        ->Where('imt.item_code', 'LIKE', '%'.$request->item_code.'%')
-        ->where('mt.docstatus','!=',0 )->orderBy('mt.modified', 'desc')
-        ->distinct('mt.name')
-        ->select('mt.*')
-        ->get();
-          // Get current page form url e.x. &page=1
-          $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-          // Create a new Laravel collection from the array data
-          $itemCollection = collect($purchase_lists);
-       
-          // Define how many items we want to be visible in each page
-          $perPage = 10;
-       
-          // Slice the collection to get the items to display in current page
-          $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-       
-          // Create our paginator and pass it to the view
-          $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-       
-          // set url path for generted links
-          $paginatedItems->setPath($request->url());
-          $purchase_list = $paginatedItems;
+        $date_col = $request->filter ? 'mt.schedule_date' : 'mt.creation';
+        $purchase_list= DB::connection('mysql')->table('tabMaterial Request as mt')
+            ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
+            ->whereBetween(DB::raw('DATE_FORMAT('.$date_col.', "%Y-%m-%d")'),[$request->from,$request->end])
+            ->where('mt.customer_name', 'LIKE', '%'.$request->customer.'%')
+            ->where('mt.project',   'LIKE', '%'.$request->project.'%')
+            ->where('mt.sales_order', 'LIKE', '%'.$request->so.'%')
+            ->Where('mt.status', 'LIKE', '%'.$request->status.'%')
+            ->Where('imt.item_code', 'LIKE', '%'.$request->item_code.'%')
+            ->where('mt.docstatus','!=',0 )
+            ->select('mt.status', 'mt.per_ordered', 'mt.docstatus', 'mt.name', 'mt.purchase_request', 'mt.sales_order', 'mt.customer_name', 'mt.project')
+            ->groupBy('mt.status', 'mt.per_ordered', 'mt.docstatus', 'mt.name', 'mt.purchase_request', 'mt.sales_order', 'mt.customer_name', 'mt.project')
+            ->orderBy('mt.modified', 'desc')->paginate(10);
+
+        $count = $purchase_list->total();
   
-          $count=  collect($purchase_lists)->count();
         return view('inventory.material_request.tbl_material_request_purchase', compact('purchase_list', 'count'));
     }
     public function get_selection_box_in_item_code_warehouse(Request $request){
@@ -221,42 +203,6 @@ class InventoryController extends Controller
 
         
         return view('inventory.material_request.tbl_material_request_purchase_view', compact('purchase_list', 'purchase_list_item'));
-
-    }
-    public function tbl_filter_material_purchase_request(Request $request, $from, $end){
-        $purchase_lists=  DB::connection('mysql')->table('tabMaterial Request as mt')
-        ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
-        ->whereBetween(DB::raw('DATE_FORMAT(mt.schedule_date, "%Y-%m-%d")'),[$from,$end])
-        ->where('mt.customer_name', 'LIKE', '%'.$request->customer.'%')
-        ->where('mt.project',   'LIKE', '%'.$request->project.'%')
-        ->where('mt.sales_order', 'LIKE', '%'.$request->so.'%')
-        ->Where('mt.status', 'LIKE', '%'.$request->status.'%')
-        ->Where('imt.item_code', 'LIKE', '%'.$request->item_code.'%')
-        ->where('mt.docstatus','!=',0 )->orderBy('mt.modified', 'desc')
-        ->distinct('mt.name')
-        ->select('mt.*')
-        ->get();
-
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($purchase_lists);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-        $purchase_list = $paginatedItems;
-
-        $count=  collect($purchase_lists)->count();
-        return view('inventory.material_request.tbl_material_request_purchase', compact('purchase_list', 'count'));
 
     }
     public function get_uom_item_selected_in_purchase($item_code){
@@ -659,9 +605,7 @@ class InventoryController extends Controller
             }
     
             // get uom conversion id
-            $uom_conversion = DB::connection('mysql_mes')->table('uom_conversion')
-                ->whereIn('uom_id', [$uom_details_kg->uom_id, $uom_details_cubic->uom_id])
-                ->distinct('uom_conversion_id')->first();
+            $uom_conversion = DB::connection('mysql_mes')->table('uom_conversion')->whereIn('uom_id', [$uom_details_kg->uom_id, $uom_details_cubic->uom_id])->first();
             
             if(!$uom_conversion){
                 return response()->json(['success' => 1, 'message' => 'UoM conversion not found.']);
@@ -1103,7 +1047,7 @@ class InventoryController extends Controller
                         'ordered_qty' => 0,
                         'reserved_qty_for_sub_contract' => 0,
                         'indented_qty' => 0,
-                        'warehouse' => $s_warehouse,
+                        'warehouse' => $row->s_warehouse,//$s_warehouse,
                         'stock_value' => $row->valuation_rate * $row->transfer_qty,
                         '_user_tags' => null,
                         'valuation_rate' => $row->valuation_rate,
@@ -1308,45 +1252,26 @@ class InventoryController extends Controller
     public function list_material_transfer(Request $request){
         $query2=$request->from;
         $query3= $request->end;
-        $trans_lists=  DB::connection('mysql')->table('tabStock Entry as ste')
-        ->join('tabStock Entry Detail as iste', 'iste.parent', 'ste.name')
-        ->when($query2 != "", function ($query1) use($query2, $query3){
-            return $query1->whereBetween(DB::raw('DATE_FORMAT(ste.creation, "%Y-%m-%d")'),[$query2,$query3]);
+
+        $date_col = $request->filter ? 'ste.posting_date' : 'ste.creation';
+
+        $trans_list = DB::connection('mysql')->table('tabStock Entry as ste')
+            ->join('tabStock Entry Detail as iste', 'iste.parent', 'ste.name')
+            ->when($query2 != "", function ($query1) use($query2, $query3, $date_col){
+                return $query1->whereBetween(DB::raw('DATE_FORMAT('.$date_col.', "%Y-%m-%d")'),[$query2,$query3]);
             })
-        ->where('ste.title', 'Material Transfer')
-        ->where('ste.so_customer_name', 'LIKE', '%'.$request->customer.'%')
-        ->where('ste.project',   'LIKE', '%'.$request->project.'%')
-        ->where('ste.sales_order_no', 'LIKE', '%'.$request->so.'%')
-        ->Where('ste.item_status', 'LIKE', '%'.$request->status.'%')
-        ->Where('ste.name', 'LIKE', '%'.$request->ste.'%')
-        ->Where('iste.item_code', 'LIKE', '%'.$request->item_code.'%')
-        ->orderBy('ste.modified', 'desc')
-        ->distinct('ste.name')
-        ->select('ste.*')
-        ->get();
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($trans_lists);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-        $trans_list = $paginatedItems;
+            ->where('ste.title', 'Material Transfer')
+            ->where('ste.so_customer_name', 'LIKE', '%'.$request->customer.'%')
+            ->where('ste.project',   'LIKE', '%'.$request->project.'%')
+            ->where('ste.sales_order_no', 'LIKE', '%'.$request->so.'%')
+            ->Where('ste.item_status', 'LIKE', '%'.$request->status.'%')
+            ->Where('ste.name', 'LIKE', '%'.$request->ste.'%')
+            ->Where('iste.item_code', 'LIKE', '%'.$request->item_code.'%')
+            ->select('ste.item_status', 'ste.docstatus', 'ste.creation', 'ste.name', 'ste.order_type', 'ste.sales_order_no', 'ste.so_customer_name', 'ste.project')
+            ->groupBy('ste.item_status', 'ste.docstatus', 'ste.creation', 'ste.name', 'ste.order_type', 'ste.sales_order_no', 'ste.so_customer_name', 'ste.project')
+            ->orderBy('ste.modified', 'desc')->paginate(10);
 
-        $count=  collect($trans_lists)->count();
-        // dd($trans_list);
-
-        // dd($count);
+        $count = $trans_list->total();
 
         return view('inventory.tbl_material_transfer', compact('trans_list', 'count'));
     }
@@ -1439,49 +1364,6 @@ class InventoryController extends Controller
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
-    }
-
-    public function tbl_filter_material_transfer(Request $request, $from, $end){
-        $trans_lists=  DB::connection('mysql')->table('tabStock Entry as ste')
-        ->join('tabStock Entry Detail as iste', 'iste.parent', 'ste.name')
-        ->whereBetween(DB::raw('DATE_FORMAT(ste.posting_date, "%Y-%m-%d")'),[$from,$end])
-        ->where('ste.title', 'Material Transfer')
-        ->when($request->customer, function($q) use ($request){
-            $q->where('ste.so_customer_name', $request->customer);
-        })
-        ->when($request->project, function($q) use ($request){
-            $q->where('ste.project', $request->project);
-        })
-        ->where('ste.sales_order_no', 'LIKE', '%'.$request->so.'%')
-        ->Where('ste.item_status', 'LIKE', '%'.$request->status.'%')
-        ->Where('ste.name', 'LIKE', '%'.$request->ste.'%')
-        ->Where('iste.item_code', 'LIKE', '%'.$request->item_code.'%')
-        ->orderBy('ste.modified', 'desc')
-        ->distinct('ste.name')
-        ->select('ste.*')
-        ->get();
-        // Get current page form url e.x. &page=1
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
-        // Create a new Laravel collection from the array data
-        $itemCollection = collect($trans_lists);
-     
-        // Define how many items we want to be visible in each page
-        $perPage = 10;
-     
-        // Slice the collection to get the items to display in current page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
-        // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
-        // set url path for generted links
-        $paginatedItems->setPath($request->url());
-        $trans_list = $paginatedItems;
-
-        $count=  collect($trans_lists)->count();
-        return view('inventory.tbl_material_transfer', compact('trans_list', 'count'));
-
     }
 
     public function get_pending_inventory_transactions(){
@@ -2208,7 +2090,7 @@ class InventoryController extends Controller
                 return $query;
             })
             ->where('mt.docstatus','!=',0 )->orderBy('mt.modified', 'desc')
-            ->distinct('mt.name')
+            // ->distinct('mt.name')
             ->select('mt.*')
             ->get();
 
@@ -2259,7 +2141,7 @@ class InventoryController extends Controller
                 return $query;
             })
             ->where('mt.docstatus','!=',0 )->orderBy('mt.modified', 'desc')
-            ->distinct('mt.name')
+            // ->distinct('mt.name')
             ->select('mt.*')
             ->get();
         }
@@ -2456,7 +2338,7 @@ class InventoryController extends Controller
 
     public function saveAllowedUserFastIssuance(Request $request) {
         $existing = DB::connection('mysql_mes')->table('fast_issuance_user')->where([
-            'user_access_id' => $request->user_access_id])->exists();
+            'user_access_id' => $request->user_access_id])->first();
 
         if($existing) {
             return response()->json(['status' => 0, 'message' => $existing->employee_name . ' already exists in allowed users for fast issuance.']);

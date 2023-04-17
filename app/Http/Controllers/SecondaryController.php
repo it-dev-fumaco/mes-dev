@@ -20,7 +20,7 @@ use App\Exports\ExportDataexcel;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportDataQaInspectionLog; 
 use App\Traits\GeneralTrait;
-
+use Exception;
 
 class SecondaryController extends Controller
 {
@@ -172,15 +172,16 @@ class SecondaryController extends Controller
         return view('machine_overview.index', compact('workstation'));
     }
 
-    public function machine_tasklist_table($workstation, $machine_code){
-        $data=[];
-        $data[]=[
-            'wip' =>$wip,
-            'ctd' =>$ctd,
-            '$total' => $total
-        ];
-        return $data;
-    }
+    // UNUSED FUNCTION
+    // public function machine_tasklist_table($workstation, $machine_code){
+    //     $data=[];
+    //     $data[]=[
+    //         'wip' =>$wip,
+    //         'ctd' =>$ctd,
+    //         '$total' => $total
+    //     ];
+    //     return $data;
+    // }
 
     public function Queingtime($a, $b){
         $tasks =  DB::connection('mysql_mes')->table('job_ticket AS tsd')
@@ -480,9 +481,10 @@ class SecondaryController extends Controller
 
             $image_path = '/storage/machine/'.$filenametostore;
         }
-            $update = DB::connection('mysql_mes')->table('machine')
-                ->where('machine_code', $request->test5)
-                ->update(['image' => $image_path ]);
+        
+        $update = DB::connection('mysql_mes')->table('machine')
+            ->where('machine_code', $request->test5)
+            ->update(['image' => $image_path ]);
 
         return redirect()->back()->with(['message' => 'Employee has been successfully updated!']);
     }
@@ -839,39 +841,26 @@ class SecondaryController extends Controller
             return $scheduled1;
     }
 
-    public function getScheduledProdOrders($workstation, $schedule_date, $process){
+    public function getScheduledProdOrders($workstation, $schedule_date){
         $now = Carbon::now();
         $current_date = $now->toDateString();
-        if ($schedule_date <= $current_date) {
-           $orders = DB::connection('mysql_mes')->table('production_order as prod')
+        $orders = DB::connection('mysql_mes')->table('production_order as prod')
             ->join('job_ticket as tsd','tsd.production_order','=','prod.production_order')
-            ->where('tsd.process', $process)
+            // ->where('tsd.process', $process)
             ->where('tsd.workstation', $workstation)
             ->where('prod.status', 'Not Started')
             ->where('prod.is_scheduled' , 1)
             ->whereNull('tsd.machine')
-            ->whereDate('prod.planned_start_date',"<=", $schedule_date)
-            ->select('tsd.status', 'prod.customer','prod.production_order','prod.item_code','prod.description','prod.qty_to_manufacture','prod.stock_uom','prod.produced_qty', 'prod.classification', 'tsd.workstation as workstation_plot','tsd.machine','tsd.id as jtname','prod.sales_order','tsd.good as good_qty','prod.order_no', 'tsd.process','prod.delivery_date','prod.planned_start_date','tsd.operator_name', 'tsd.from_time', 'tsd.to_time', 'tsd.hours', 'tsd.qa_inspection_status', 'tsd.qa_inspection_date', 'tsd.qa_staff_name', 'tsd.item_feedback', 'tsd.completed_qty', 'tsd.machine_name', 'tsd.qc_type', 'prod.material_request')
-            ->orderBy('prod.order_no','asc')
-            ->get(); 
-        }else{
-            $orders = DB::connection('mysql_mes')->table('production_order as prod')
-            ->join('job_ticket as tsd','tsd.production_order','=','prod.production_order')
-            ->where('tsd.process', $process)
-            ->where('tsd.workstation', $workstation)
-            ->where('prod.status', 'Not Started')
-            ->where('prod.is_scheduled' , 1)
-            ->whereNull('tsd.machine')
-            ->whereDate('prod.planned_start_date', $schedule_date)
+            ->whereDate('prod.planned_start_date', ($schedule_date <= $current_date ? "<=" : "="), $schedule_date)
             ->select('tsd.status', 'prod.customer','prod.production_order','prod.item_code','prod.description','prod.qty_to_manufacture','prod.stock_uom','prod.produced_qty', 'prod.classification', 'tsd.workstation as workstation_plot','tsd.machine','tsd.id as jtname','prod.sales_order','tsd.good as good_qty','prod.order_no', 'tsd.process','prod.delivery_date','prod.planned_start_date','tsd.operator_name', 'tsd.from_time', 'tsd.to_time', 'tsd.hours', 'tsd.qa_inspection_status', 'tsd.qa_inspection_date', 'tsd.qa_staff_name', 'tsd.item_feedback', 'tsd.completed_qty', 'tsd.machine_name', 'tsd.qc_type', 'prod.material_request')
             ->orderBy('prod.order_no','asc')
             ->get();
-        }
 
         $scheduled = [];
         foreach($orders as $row){
             $status = $this->prodJtStatus($row->production_order);
-            $process_name = DB::connection('mysql_mes')->table('process')->where('id', $row->process)->first()->process;
+            $process_name = DB::connection('mysql_mes')->table('process')->where('id', $row->process)->first();
+            $process_name = $process_name ? $process_name->process : null;
             $scheduled[] = [
                 'name' => $row->production_order,
                 'status' => $row->status,
@@ -901,8 +890,6 @@ class SecondaryController extends Controller
                 'item_feedback' =>$row->item_feedback,
                 'machine_name' => $row->machine_name,
                 'qc_type' => $row->qc_type
-
-
             ];
         }
 
@@ -1032,12 +1019,12 @@ class SecondaryController extends Controller
             ->where('prod.docstatus', 1)
             ->whereNotIn('prod.status', ['Completed', 'Stopped'])
             ->where('prod.scheduled' , 0)
-            ->whereDate('prod.creation', '>', '2019-10-11')
+            ->whereDate('prod.creation', '>', '2019-10-11')// ? - For Clarification
             ->select('prod.*', 'tsd.workstation as workstation_plot')
             ->orderBy('prod.name', 'asc')
             ->get();
 
-        
+        // ? - For Clarification
         $orders = $this->getScheduledProdOrders($workstation, $schedule);
         // dd($orders);
         $production_line= DB::connection('mysql')->table('tabWorkstation')->where('workstation_name', $workstation)->get();
@@ -1088,17 +1075,18 @@ class SecondaryController extends Controller
         }   
     }
 
-    public function continue_process($prod_name, $date){
-            $prod_qty=DB::connection('mysql')->table('tabWork Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
-            $workstations = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->get();
+    // UNUSED FUNCTION
+    // public function continue_process($prod_name, $date){
+    //         $prod_qty=DB::connection('mysql')->table('tabWork Order')->where('name', $prod_name)->select('qty','planned_start_date')->first();
+    //         $workstations = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->get();
 
-            $qtys = collect($workstations)->where('workstation',$row->workstation)->max("completed_qty");
-            $reject = collect($workstations)->where('workstation',$row->workstation)->sum("reject");
-            $good = collect($workstations)->where('workstation',$row->workstation)->sum("good");
-            $rework = collect($workstations)->where('workstation',$row->workstation)->sum("rework");
-            $operator = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->where('td.workstation',$row->workstation)->orderBy('td.idx','DESC')->first();
+    //         $qtys = collect($workstations)->where('workstation',$row->workstation)->max("completed_qty");
+    //         $reject = collect($workstations)->where('workstation',$row->workstation)->sum("reject");
+    //         $good = collect($workstations)->where('workstation',$row->workstation)->sum("good");
+    //         $rework = collect($workstations)->where('workstation',$row->workstation)->sum("rework");
+    //         $operator = DB::connection('mysql')->table('tabTimesheet as t')->join('tabTimesheet Detail as td', 't.name', 'td.parent')->where('t.production_order', $prod_name)->where('td.workstation',$row->workstation)->orderBy('td.idx','DESC')->first();
 
-    }
+    // }
 
     public function goto_machine_list(){
         $machine_list= DB::connection('mysql_mes')
@@ -1171,16 +1159,17 @@ class SecondaryController extends Controller
 
     }
     public function update_machine(Request $request){
-        // $requestko = $request->all();
-        // dd($requestko);
-        if (DB::connection('mysql_mes')
-        ->table('machine')
-        ->where('machine_code', $request->machine_code)
-        ->exists()){
-            if($request->origmachine_code == $request->machine_code){
+        DB::beginTransaction();
+        try {
+            $checker = DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_code)->exists();
+            if ($checker){
+                if($request->origmachine_code != $request->machine_code){
+                    return response()->json(['success' => 0, 'message' => 'Machine already exist!']);
+                }
+
+                $image_path = $request->origimage;
                 if($request->hasFile('machineImage')){
                     $file = $request->file('machineImage');
-                    // dd($file);
                     //get filename with extension
                     $filenamewithextension = $file->getClientOriginalName();
                     //get filename without extension
@@ -1189,99 +1178,77 @@ class SecondaryController extends Controller
                     $extension = $file->getClientOriginalExtension();
                     //filename to store
                     $filenametostore = $request->machine_code.'.'.$extension;
-                    // Storage::put('public/employees/'. $filenametostore, fopen($file, 'r+'));
-                    Storage::put('public/machine/'. $filenametostore, fopen($file, 'r+'));
                     //Resize image here
-                    $thumbnailpath = public_path('storage/machine/'.$filenametostore);
+                    $image_path = '/storage/machine/'.$filenametostore;
+                    $thumbnailpath = public_path($image_path);
+
+                    $img = Image::make($request->file('machineImage'))->resize(500, 350, function($constraint) {
+                        $constraint->aspectRatio();
+                    });
+
+                    $img->save($thumbnailpath);
+                }
+
+                $machine = Machine::find($request->machineID);
+                $machine->reference_key = $request->machine_id;
+                $machine->machine_code = $request->machine_code;
+                $machine->machine_name  = $request->machine_name;
+                $machine->status = $request->status;
+                $machine->type = $request->type;
+                $machine->model = $request->model;
+                $machine->image = $image_path;
+                $machine->created_by = Auth::user()->employee_name;
+                $machine->last_modified_by = Auth::user()->employee_name;
+                $machine->process = $request->process;
+                $machine->save();
+
+                DB::commit();
+                return response()->json(['success' => 1, 'message' => 'Machine Successfully Updated-hasfile']);
+            }else{
+                $has_file = '-default';
+                $image_path = $request->origimage;
+
+                if($request->hasFile('machineImage')){
+                    $file = $request->file('machineImage');
+                    //get filename with extension
+                    $filenamewithextension = $file->getClientOriginalName();
+                    //get filename without extension
+                    $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
+                    //get file extension
+                    $extension = $file->getClientOriginalExtension();
+                    //filename to store
+                    $filenametostore = $request->machine_code.'.'.$extension;
+                    //Resize image here
+                    $image_path = '/storage/machine/'.$filenametostore;
+                    $thumbnailpath = public_path($image_path);
                     $img = Image::make($thumbnailpath)->resize(500, 350, function($constraint) {
                         $constraint->aspectRatio();
                     });
                     $img->save($thumbnailpath);
-        
-                    $image_path = '/storage/machine/'.$filenametostore;
-                    
+
+                    $has_file = '-hasfile';
                 }
-                else{
-                    $image_path = $request->origimage;
-                    
-                }
+
                 $machine = Machine::find($request->machineID);
-                    $machine->reference_key = $request->machine_id;
-                    $machine->machine_code = $request->machine_code;
-                    $machine->machine_name  = $request->machine_name;
-                    $machine->status = $request->status;
-                    $machine->type = $request->type;
-                    $machine->model = $request->model;
-                    $machine->image = $image_path;
-                    $machine->created_by = Auth::user()->employee_name;
-                    $machine->last_modified_by = Auth::user()->employee_name;
-                    $machine->process = $request->process;
-                    $machine->save();
-                    return response()->json(['success' => 1, 'message' => 'Machine Successfully Updated-hasfile']);
-        
-            }else{
-                return response()->json(['success' => 0, 'message' => 'Machine already exist!']);
+                $machine->reference_key = $request->machine_id;
+                $machine->machine_code = $request->machine_code;
+                $machine->machine_name  = $request->machine_name;
+                $machine->status = $request->status;
+                $machine->type = $request->type;
+                $machine->model = $request->model;
+                $machine->image = $image_path;
+                $machine->created_by = Auth::user()->employee_name;
+                $machine->last_modified_by = Auth::user()->employee_name;
+                $machine->process = $request->process;
+                $machine->save();
 
+                DB::commit();
+                return response()->json(['success' => 1, 'message' => 'Machine Successfully Updated'.$has_file]);
             }
-
-        }else{
-        if($request->hasFile('machineImage')){
-            $file = $request->file('machineImage');
-            // dd($file);
-            //get filename with extension
-            $filenamewithextension = $file->getClientOriginalName();
-            //get filename without extension
-            $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
-            //get file extension
-            $extension = $file->getClientOriginalExtension();
-            //filename to store
-            $filenametostore = $request->machine_code.'.'.$extension;
-            // Storage::put('public/employees/'. $filenametostore, fopen($file, 'r+'));
-            Storage::put('public/machine/'. $filenametostore, fopen($file, 'r+'));
-            //Resize image here
-            $thumbnailpath = public_path('storage/machine/'.$filenametostore);
-            $img = Image::make($thumbnailpath)->resize(500, 350, function($constraint) {
-                $constraint->aspectRatio();
-            });
-            $img->save($thumbnailpath);
-
-            $image_path = '/storage/machine/'.$filenametostore;
-            $machine = Machine::find($request->machineID);
-            $machine->reference_key = $request->machine_id;
-            $machine->machine_code = $request->machine_code;
-            $machine->machine_name  = $request->machine_name;
-            $machine->status = $request->status;
-            $machine->type = $request->type;
-            $machine->model = $request->model;
-            $machine->image = $image_path;
-            $machine->created_by = Auth::user()->employee_name;
-            $machine->last_modified_by = Auth::user()->employee_name;
-            $machine->process = $request->process;
-            $machine->save();
-            return response()->json(['success' => 1, 'message' => 'Machine Successfully Updated-hasfile']);
-
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
         }
-        else{
-            $image_path = $request->origimage;
-            $machine = Machine::find($request->machineID);
-        $machine->reference_key = $request->machine_id;
-        $machine->machine_code = $request->machine_code;
-        $machine->machine_name  = $request->machine_name;
-        $machine->status = $request->status;
-        $machine->type = $request->type;
-        $machine->model = $request->model;
-        $machine->image = $image_path;
-        $machine->created_by = Auth::user()->employee_name;
-        $machine->last_modified_by = Auth::user()->employee_name;
-        $machine->process = $request->process;
-        $machine->save();
-        return response()->json(['success' => 1, 'message' => 'Machine Successfully Updated-default']);
-
-        }
-
-        
-    }
-
     }
     public function get_machine_list_data(Request $request){
         $machine_list= DB::connection('mysql_mes')->table('machine')
@@ -1461,7 +1428,7 @@ class SecondaryController extends Controller
         $machine= DB::connection('mysql_mes')
                 ->table('machine')
                 ->get();
-        return response()->json($details);
+        return response()->json($machine);
 
     }
     public function save_workstation(Request $request){
@@ -2667,11 +2634,12 @@ class SecondaryController extends Controller
             ->select('workstation')->orderBy('idx', 'ASC')->get();
         $data = [];
         foreach($workstation_jbticket as $row){
-            $workstation_jbtickets=DB::connection('mysql_mes')->table('job_ticket as jt')
-            // ->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-            ->where('production_order', $prod_name)
-            ->distinct('process_id')
-            ->get();
+            // UNUSED QUERY
+            // $workstation_jbtickets=DB::connection('mysql_mes')->table('job_ticket as jt')
+            // // ->join('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
+            // ->where('production_order', $prod_name)
+            // ->distinct('process_id')
+            // ->get();
             $data[]=[
                 "workstation" => $row->workstation,
                 'count' => collect($this->subquery_printTimesheets($prod_name, $row->workstation))->count(),
@@ -4175,7 +4143,7 @@ class SecondaryController extends Controller
                                 ->where('jt.production_order', $production->production_order)
                                 ->where('jt.status', 'In Progress')
                                 ->select('p.process_name', 'jt.workstation')
-                                ->distinct('jt.workstation')
+                                ->groupBy('p.process_name', 'jt.workstation')
                                 ->get();
                         
                         $jt = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -4251,7 +4219,7 @@ class SecondaryController extends Controller
                     'status' => ($status == null) ? '': $status,
                     'qty_to_manufacture' => ($status == null) ? '': $qty_to_manufacture,
                     'produced_qty' => $done,
-                    'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
+                    // 'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
                     'current_load' => $jobtickets_details,
                     'child_nodes' => $this->get_bom($child_bom, $guide_id, $item->item_code, $parent_item_code),
                     'available_stock' => $available_stock
@@ -4331,12 +4299,11 @@ class SecondaryController extends Controller
                     $join->on( DB::raw('IFNULL(pro.sales_order, pro.material_request)'), '=', 'delivery_date.reference_no');
                     $join->on('pro.parent_item_code','=','delivery_date.parent_item_code');
                 })
-                // ->where('pro.status','!=', 'Cancelled')
                 ->whereNotIn('pro.status', ['Cancelled', 'Closed'])
                 ->where('jt.workstation', 'Painting')
                 ->where('jt.planned_start_date','!=', null)
-                ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
                 ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+                ->groupBy( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
                 ->get();
 
                 $data = array();
@@ -4387,9 +4354,10 @@ class SecondaryController extends Controller
                 })
                 ->where('production_order.status','!=', 'Cancelled')
                 ->where('production_order.planned_start_date','!=', null)
-                ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
+                // ->distinct('production_order.customer','production_order.sales_order','production_order.material_request', 'production_order.production_order')
                 ->where('production_order.operation_id', $operation_id)
                 ->select('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
+                ->groupBy('production_order.customer', 'production_order.sales_order', 'production_order.planned_start_date', 'production_order.material_request','production_order.delivery_date', 'production_order.production_order','production_order.status','production_order.item_code','production_order.qty_to_manufacture','production_order.description','production_order.stock_uom','production_order.parent_item_code', 'delivery_date.rescheduled_delivery_date')
                 ->get();
             // dd($prod);
 
@@ -4446,7 +4414,8 @@ class SecondaryController extends Controller
                     ->where('pro.status', '!=', 'Cancelled')
                     ->where('jt.workstation', 'Painting')
                     ->select('pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty')
-                    ->distinct('pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty')
+                    ->groupBy('pro.production_order', 'jt.workstation', 'pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.produced_qty')
+                    // ->distinct('pro.production_order','pro.customer', 'pro.delivery_date','pro.description', 'pro.qty_to_manufacture','pro.item_code','pro.stock_uom','pro.project','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request',  'pro.produced_qty')
                     ->whereNotIn('pro.status', ['Completed', 'Stopped', 'Cancelled'])
                     ->orderBy('pro.created_at', 'desc')
                     ->get();
@@ -4569,8 +4538,9 @@ class SecondaryController extends Controller
             ->whereNotIn('pro.status', ['Completed', 'Cancelled'])
             ->where('jt.workstation', 'Painting')
             ->whereDate('jt.planned_start_date', $schedule_date)
-            ->distinct('pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status')
+            // ->distinct('pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request','pro.status')
             ->select('pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status')
+            ->groupBy('pro.production_order', 'pro.customer', 'pro.delivery_date', 'pro.item_code', 'pro.description', 'pro.qty_to_manufacture', 'pro.stock_uom', 'pro.produced_qty','pro.classification','pro.parts_category', 'pro.sales_order', 'pro.material_request', 'pro.status')
             ->orderBy('jt.sequence', 'asc')
             ->get();
 
@@ -4708,7 +4678,7 @@ class SecondaryController extends Controller
      $jobtickets = [];
      foreach ($prod_orders as $pro) {
         //  $sales_order = DB::connection('mysql')->table('tabSales Order')->where('name', $pro->sales_order)->first();
-         $table = $this->subquery_printTimesheet($pro->production_order, $pro->item_code);
+         $table = $this->subquery_printTimesheet($pro->production_order);
         //  $sales_type = ($sales_order && $sales_order->sales_type) ? $sales_order->sales_type : '';
         if($pro->operation_id == "3"){
             $operation_name="WIRING AND ASSEMBLY";
@@ -4786,7 +4756,7 @@ class SecondaryController extends Controller
         ->where('jt.process_id','like','%'.$process.'%')
         ->where('po.item_code','like','%'.$item_code.'%')
         ->select('tl.operator_name', 'tl.operator_id', 'jt.workstation', 'jt.process_id', 'po.parts_category', 'process.process_name','po.item_code')
-        ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category', 'po.item_code')
+        // ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category', 'po.item_code')
         ->groupBy('tl.operator_name', 'tl.operator_id', 'jt.workstation', 'jt.process_id', 'po.parts_category', 'process.process_name','po.item_code')
         ->get();
        
@@ -4853,9 +4823,10 @@ class SecondaryController extends Controller
             ->where('po.parts_category', $parts)
             ->where('tl.duration', '<=', '15')
             ->where('tl.operator_id', $operator_id)
-            ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category')
+            // ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category')
             ->orderBy('from_time', 'asc')
-            ->select('tl.*')
+            ->select('tl.from_time', 'tl.to_time', 'tl.duration')
+            ->groupBy('tl.from_time', 'tl.to_time', 'tl.duration')
             ->get();
             $min_from= new Carbon(collect($get_all_operator)->min('from_time'));
             $max_to= new Carbon(collect($get_all_operator)->max('to_time'));
@@ -4934,7 +4905,7 @@ class SecondaryController extends Controller
         ->whereDate('tl.from_time', '>=', $date_from)
         ->whereDate('tl.to_time', '<=', $date_to)
         ->select('tl.operator_name', 'tl.operator_id', 'jt.workstation', 'jt.process_id', 'po.parts_category', 'process.process_name','po.item_code')
-        ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category', 'po.item_code')
+        // ->distinct('tl.operator_name', 'process.process_id', 'po.parts_category', 'po.item_code')
         ->groupBy('tl.operator_name', 'tl.operator_id', 'jt.workstation', 'jt.process_id', 'po.parts_category', 'process.process_name','po.item_code')
         ->get();
         // dd($get_all_operator);
@@ -5570,7 +5541,6 @@ class SecondaryController extends Controller
             ->when($request->parent && $request->parent != 'Select All', function ($q) use ($request){
                 return $q->where('prod.parent_item_code', 'like', '%'.$request->parent.'%');
             })
-            ->distinct('prod.production_order', 'tsd.sequence')
             ->select('prod.*','tsd.sequence', 'tsd.planned_start_date as planned_start')
             ->orderBy('tsd.sequence','asc')
             ->get();
@@ -5604,7 +5574,7 @@ class SecondaryController extends Controller
                 'stock_uom' => $row->stock_uom,
                 'balance_qty' => ($row->qty_to_manufacture - $row->produced_qty),
                 'completed_qty'=> $row->produced_qty,
-                'feedback_qty'=> $row->feedback_qty,
+                // 'feedback_qty'=> $row->feedback_qty,
                 'qty'=> $row->qty_to_manufacture, 
                 'production_order' => $row->production_order,
                 'remarks' => $row->notes,
@@ -5676,7 +5646,6 @@ class SecondaryController extends Controller
             ->join('workstation as work','work.workstation_name','tsd.workstation')
             ->where('tsd.planned_start_date','<', $schedule_date)
             ->where('tsd.workstation', 'Painting')
-            ->distinct('prod.production_order', 'tsd.sequence')
             ->select('prod.*','tsd.sequence','tsd.planned_start_date')
             ->orderBy('tsd.sequence','asc')
             ->get();
@@ -5722,7 +5691,7 @@ class SecondaryController extends Controller
             ->where('tsd.workstation', 'Painting')
             ->where('tsd.status', 'In Progress')
             ->groupBy('prod.production_order','prod.qty_to_manufacture')
-            ->distinct('prod.production_order', 'prod.qty_to_manufacture')
+            // ->distinct('prod.production_order', 'prod.qty_to_manufacture')
             ->select('prod.production_order', 'prod.qty_to_manufacture')
             ->get();
 
@@ -7301,8 +7270,7 @@ class SecondaryController extends Controller
           ->where('jt.status', 'Pending')
           ->whereDate('jt.planned_start_date', '<', $current_date)
           ->where('prod.operation_id', $operation_id)
-          ->select('prod.production_order')
-          ->distinct('prod.production_order')
+          ->distinct()->select('prod.production_order')
           ->get();
           $prod_inprogress= DB::connection('mysql_mes')->table('production_order as prod')
           ->join('job_ticket as jt','jt.production_order', 'prod.production_order')
@@ -7311,8 +7279,7 @@ class SecondaryController extends Controller
           ->where('jt.status', 'In Progress')
           ->whereDate('jt.planned_start_date', '<', $last_date)
           ->where('prod.operation_id', $operation_id)
-          ->select('prod.production_order')
-          ->distinct('prod.production_order')
+          ->distinct()->select('prod.production_order')
           ->get();
   
         }else{
@@ -7356,7 +7323,7 @@ class SecondaryController extends Controller
               })
               ->orderBy('prod.planned_start_date','DESC')
               ->select('prod.production_order','prod.sales_order','prod.material_request','jt.planned_start_date','prod.customer','prod.stock_uom', 'prod.qty_to_manufacture','jt.status','prod.parent_item_code','prod.description','prod.item_code') 
-              ->distinct('prod.production_order')
+            //   ->distinct('prod.production_order')
               ->get();
           }else{
               $datas= DB::connection('mysql_mes')->table('production_order as prod')
@@ -7443,7 +7410,7 @@ class SecondaryController extends Controller
               ->where('jt.status', "Pending")
               ->select('prod.sales_order', 'customer', 'prod.production_order')
               ->orderBy('prod.planned_start_date','DESC')
-              ->distinct('prod.production_order')
+            //   ->distinct('prod.production_order')
               ->get();
               $prod_inprogress= DB::connection('mysql_mes')->table('production_order as prod')
               ->join('job_ticket as jt', 'jt.production_order','prod.production_order')
@@ -7454,7 +7421,7 @@ class SecondaryController extends Controller
               ->where('prod.operation_id', $operation_id)
               ->select('prod.sales_order', 'customer','prod.production_order')
               ->orderBy('prod.planned_start_date','DESC')
-              ->distinct('prod.production_order')
+            //   ->distinct('prod.production_order')
               ->get();
           }else{
               $prod= DB::connection('mysql_mes')->table('production_order as prod')
@@ -7599,7 +7566,7 @@ class SecondaryController extends Controller
                   return $query;
               })
               ->select('prod.production_order','prod.sales_order','prod.material_request','jt.planned_start_date','prod.customer','prod.stock_uom', 'prod.qty_to_manufacture','jt.status','prod.parent_item_code','prod.description','prod.item_code') 
-              ->distinct('prod.production_order')
+            //   ->distinct('prod.production_order')
               ->orderBy('jt.planned_start_date','DESC')
               ->get();
           }else{
@@ -8526,7 +8493,7 @@ class SecondaryController extends Controller
                 ->whereNotIn('pro.status', ['Cancelled', 'Completed', 'Closed'])
                 ->where('jt.workstation', 'Painting')
                 ->where('jt.planned_start_date','!=', null)
-                ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
+                // ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
                 ->select( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom', 'pro.produced_qty')
                 ->get();
         }else{

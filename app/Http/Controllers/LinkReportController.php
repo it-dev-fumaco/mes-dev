@@ -138,7 +138,7 @@ class LinkReportController extends Controller
             return view('reports.export_job_ticket_file', compact('export_arr', 'min_export_date', 'max_export_date'));
         }
 
-        $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->select('status')->distinct('status')->get();
+        $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->distinct()->select('status')->get();
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
 
         return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter', 'permissions'));
@@ -365,7 +365,7 @@ class LinkReportController extends Controller
             return view('reports.export_rejection_logs_file', compact('export_arr', 'min_export_date', 'max_export_date'));
         }
 
-        $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->select('status')->distinct('status')->get();
+        $statuses = DB::connection('mysql_mes')->table('production_order')->where('status', '!=', 'Cancelled')->distinct()->select('status')->get();
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
 
         return view('reports.export_rejection_logs', compact('export_arr', 'rejection_logs', 'statuses', 'operations_filter', 'permissions'));
@@ -404,7 +404,7 @@ class LinkReportController extends Controller
         }
         
         $operations_filter = DB::connection('mysql_mes')->table('operation')->get();
-        $statuses = DB::connection('mysql_mes')->table('machine')->select('status')->distinct('status')->get();
+        $statuses = DB::connection('mysql_mes')->table('machine')->distinct()->select('status')->get();
 
         return view('reports.export_machine_list', compact('machine_list', 'operations_filter', 'statuses', 'permissions'));
     }
@@ -515,14 +515,14 @@ class LinkReportController extends Controller
                 ->join('spotwelding_qty as spot', 'spot.job_ticket_id', 'jt.job_ticket_id')
                 ->join('helper', 'spot.time_log_id', 'helper.time_log_id')
                 ->whereDate('spot.from_time', $date)->select('helper.operator_name as op')
-                ->distinct('op')->groupBy('op');
+                ->distinct()->groupBy('op');
 
             $job_ticket = DB::connection('mysql_mes')->table('job_ticket as jt')->whereIn('production_order', $pluck_pro)
                 ->join('time_logs as tl', 'tl.job_ticket_id', 'jt.job_ticket_id')
                 ->join('helper', 'tl.time_log_id', 'helper.time_log_id')
                 ->whereDate('tl.from_time', $date)->where('jt.workstation','!=', 'Painting')
                 ->select('helper.operator_name as op')->unionAll($job_ticket1)
-                ->unionAll($spot2)->unionAll($spot1)->distinct('op')
+                ->unionAll($spot2)->unionAll($spot1)->distinct()
                 ->groupBy('op')->get();
 
             $per_reg_shift = $reg_hours;
@@ -617,63 +617,63 @@ class LinkReportController extends Controller
             'data' =>$planned_qty,
             'row_name' =>"PLANNED QUANTITY",
             'total' => collect($planned_qty)->sum('value'),
-            'avg' => round( collect($planned_qty)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round( collect($planned_qty)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data3 = [
             'data' =>$produced,
             'row_name' =>"TOTAL OUTPUT",
             'total' => collect($produced)->sum('value'),
-            'avg' => round(collect($produced)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($produced)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data4 = [
             'data' =>$shift_overtimeshif,
             'row_name' =>"TOTAL HRS. OVERTIME",
             'total' => collect($shift_overtimeshif)->sum('value'),
-            'avg' => round(collect($shift_overtimeshif)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($shift_overtimeshif)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data5 = [
             'data' =>$shift_regshif,
             'row_name' =>"TOTAL HRS. REGULAR TIME",
             'total' => collect($shift_regshif)->sum('value'),
-            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data5 = [
             'data' =>$shift_regshif,
             'row_name' =>"TOTAL HRS. REGULAR TIME",
             'total' => collect($shift_regshif)->sum('value'),
-            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data6 = [
             'data' =>$total_man_power,
             'row_name' =>"TOTAL MAN HR",
             'total' => collect($total_man_power)->sum('value'),
-            'avg' => round(collect($total_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($total_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data7 = [
             'data' =>$total_realization_rate,
             'row_name' =>"REALIZATION RATE",
             'total' => collect($total_realization_rate)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($total_realization_rate)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($total_realization_rate)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data8=[
             'data' =>$avg_man_power,
             'row_name' =>"AVERAGE MAN-HR UTILIZATION",
             'total' => collect($avg_man_power)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($avg_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 2)
+            'avg' => round(collect($avg_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 2)
         ];
 
         $data9=[
             'data' =>$man_hr_with_overtime,
             'row_name' =>"TOTAL MANPOWER W/ OVERTIME",
             'total' => collect($man_hr_with_overtime)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($man_hr_with_overtime)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($man_hr_with_overtime)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
 
         $data=[
@@ -941,7 +941,7 @@ class LinkReportController extends Controller
             ->where('jt.workstation', 'Painting')
             ->select('helper.operator_name as op')
             ->unionAll($job_ticket1)
-            ->distinct('op')
+            ->distinct()
             ->groupBy('op')
             ->get();
             
@@ -1061,62 +1061,62 @@ class LinkReportController extends Controller
             'data' =>$planned_qty,
             'row_name' =>"PLANNED QUANTITY",
             'total' => collect($planned_qty)->sum('value'),
-            'avg' => round( collect($planned_qty)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round( collect($planned_qty)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
         ];
         $data3=[
             'data' =>$produced,
             'row_name' =>"TOTAL OUTPUT",
             'total' => collect($produced)->sum('value'),
-            'avg' => round(collect($produced)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($produced)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data4=[
             'data' =>$shift_overtimeshif,
             'row_name' =>"TOTAL HRS. OVERTIME",
             'total' => collect($shift_overtimeshif)->sum('value'),
-            'avg' => round(collect($shift_overtimeshif)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($shift_overtimeshif)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data5=[
             'data' =>$shift_regshif,
             'row_name' =>"TOTAL HRS. REGULAR TIME",
             'total' => collect($shift_regshif)->sum('value'),
-            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data5=[
             'data' =>$shift_regshif,
             'row_name' =>"TOTAL HRS. REGULAR TIME",
             'total' => collect($shift_regshif)->sum('value'),
-            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($shift_regshif)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data6=[
             'data' =>$total_man_power,
             'row_name' =>"TOTAL MAN HR",
             'total' => collect($total_man_power)->sum('value'),
-            'avg' => round(collect($total_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($total_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data7=[
             'data' =>$total_realization_rate,
             'row_name' =>"REALIZATION RATE",
             'total' => collect($total_realization_rate)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($total_realization_rate)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($total_realization_rate)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data8=[
             'data' =>$avg_man_power,
             'row_name' =>"AVERAGE MAN-HR UTILIZATION",
             'total' => collect($avg_man_power)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($avg_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 2)
+            'avg' => round(collect($avg_man_power)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 2)
 
         ];
         $data9=[
             'data' =>$man_hr_with_overtime,
             'row_name' =>"TOTAL MANPOWER W/ OVERTIME",
             'total' => collect($man_hr_with_overtime)->whereNotIn('stat',['Sunday', 'Holiday'])->sum('value'),
-            'avg' => round(collect($man_hr_with_overtime)->sum('value') / collect($planned_qty)->where('count', "count")->count('count'), 0)
+            'avg' => round(collect($man_hr_with_overtime)->sum('value') / collect($planned_qty)->where('count', "count")->count(), 0)
 
         ];
         $data=[
@@ -1131,6 +1131,7 @@ class LinkReportController extends Controller
         ];
         $date_column= $day;
         $colspan_date = count($day);
+        // ? - For Clarification
         if($operation == 1){
             return view('tables.tbl_fab_daily_report', compact('data', "date_column", 'colspan_date'));
         }else{
@@ -1476,7 +1477,7 @@ class LinkReportController extends Controller
 
         $item_code_inv = DB::connection('mysql_mes')->table('fabrication_inventory')
             ->whereIn('item_code', $item_codes)->select('item_code', 'color_code', 'description')
-            ->distinct('item_code')->orderBy('item_code', 'desc')->get();
+            ->groupBy('item_code', 'color_code', 'description')->orderBy('item_code', 'desc')->get();
 
         $arr_list = [];
         foreach($period as $i => $date){
@@ -1655,7 +1656,7 @@ class LinkReportController extends Controller
 
     public function mismatched_po_status(Request $request){
         $permissions = $this->get_user_permitted_operation();
-        $mes_statuses = DB::connection('mysql_mes')->table('production_order')->select('status')->distinct('status')->pluck('status');
+        $mes_statuses = DB::connection('mysql_mes')->table('production_order')->distinct()->pluck('status');
 
         $erp_po = DB::connection('mysql')->table('tabWork Order')->whereIn('status', $mes_statuses)->select('name', 'status', 'produced_qty')->get();
         $erp_production_orders = collect($erp_po)->map(function ($q){

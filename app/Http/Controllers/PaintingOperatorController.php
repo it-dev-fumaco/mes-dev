@@ -14,6 +14,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Image;
 use App\Traits\GeneralTrait;
+use Exception;
+
 class PaintingOperatorController extends Controller
 {	
 	use GeneralTrait;
