@@ -9624,7 +9624,8 @@ class MainController extends Controller
 				return redirect()->back()->with('error', 'Sales Order not found.');
 			}
 
-			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('name', 'item_code', 'description', 'qty', 'stock_uom', 'delivery_date')->get();
+			$delivery_date_column = $table == 'tabSales Order' ? 'delivery_date' : 'schedule_date';
+			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('name', 'item_code', 'description', 'qty', 'stock_uom', $delivery_date_column)->get();
 
 			$reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->reason)->pluck('reschedule_reason')->first();
 
@@ -9650,7 +9651,7 @@ class MainController extends Controller
 						'erp_reference_id' => $so_item->name,
 						'reference_no' => $id,
 						'parent_item_code' => $so_item->item_code,
-						'delivery_date' => $so_item->delivery_date,
+						'delivery_date' => $so_item->$delivery_date_column,
 						'rescheduled_delivery_date' => $request->rescheduled_date,
 						'created_by' => Auth::user()->email,
 						'created_at' => Carbon::now()->toDateTimeString(),
