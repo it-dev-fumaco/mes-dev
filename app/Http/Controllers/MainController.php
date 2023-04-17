@@ -9620,11 +9620,11 @@ class MainController extends Controller
 			$so_details = DB::connection('mysql')->table($table)->where('name', $id)->first();
 			$delivery_date_details = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->first();
 
-			if(!$so_details || !$delivery_date_details){
+			if(!$so_details){
 				return redirect()->back()->with('error', 'Sales Order not found.');
 			}
 
-			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('item_code', 'description', 'qty', 'stock_uom')->get();
+			$so_items = DB::connection('mysql')->table($table.' Item')->where('parent', $id)->select('name', 'item_code', 'description', 'qty', 'stock_uom', 'delivery_date')->get();
 
 			$reason = DB::connection('mysql_mes')->table('delivery_reschedule_reason')->where('reschedule_reason_id', $request->reason)->pluck('reschedule_reason')->first();
 
@@ -9644,11 +9644,29 @@ class MainController extends Controller
 				]);
 			}
 
-			DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
-				'rescheduled_delivery_date' => $request->rescheduled_date,
-				'last_modified_at' => Carbon::now()->toDateTimeString(),
-				'last_modified_by' => Auth::user()->email
-			]);
+			if(!$delivery_date_details){
+				foreach ($so_items as $so_item) {
+					DB::connection('mysql_mes')->table('delivery_date')->insert([
+						'erp_reference_id' => $so_item->name,
+						'reference_no' => $id,
+						'parent_item_code' => $so_item->item_code,
+						'delivery_date' => $so_item->delivery_date,
+						'rescheduled_delivery_date' => $request->rescheduled_date,
+						'created_by' => Auth::user()->email,
+						'created_at' => Carbon::now()->toDateTimeString(),
+						'last_modified_at' => Carbon::now()->toDateTimeString(),
+						'last_modified_by' => Auth::user()->email
+					]);
+				}
+
+				$delivery_date_details = DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->first();
+			}else{
+				DB::connection('mysql_mes')->table('delivery_date')->where('reference_no', $id)->update([
+					'rescheduled_delivery_date' => $request->rescheduled_date,
+					'last_modified_at' => Carbon::now()->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email
+				]);
+			}
 
 			DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert([
 				'delivery_date_id' => $delivery_date_details->delivery_date_id,
