@@ -3,6 +3,7 @@
 use Auth;
 use DB;
 use Carbon\Carbon;
+use Exception;
 
 trait GeneralTrait
 {
