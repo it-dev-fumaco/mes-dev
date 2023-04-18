@@ -5850,6 +5850,11 @@ class MainController extends Controller
 			$new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
 			$new_id = 'STEP-'.$new_id;
 
+			$id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+            if($id_checker){
+                return response()->json(['status' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
+            }
+
 			$production_order_items = $this->feedback_production_order_items($production_order, $mes_production_order_details->qty_to_manufacture, $request->fg_completed_qty);
 
 			$receiving_warehouse = ['P2 - Housing Temporary - FI1'];

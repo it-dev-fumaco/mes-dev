@@ -2649,6 +2649,11 @@ class ManufacturingController extends Controller
             $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
             $new_id = 'STEP-'.$new_id;
 
+            $id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+            if($id_checker){
+                return response()->json(['status' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
+            }
+
             $base_rate = $stock_entry_details->basic_rate;
 
             $actual_qty = DB::connection('mysql')->table('tabBin')
@@ -3219,6 +3224,11 @@ class ManufacturingController extends Controller
                 $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
                 $new_id = 'STEP-'.$new_id;
 
+                $id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+                if($id_checker){
+                    return response()->json(['status' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
+                }
+
                 $qty = $request->quantity[$id];
 
                 $actual_qty = $valuation_rate = 0;
@@ -3562,6 +3572,11 @@ class ManufacturingController extends Controller
             $new_id = $latest_mr_exploded[1] + 1;
             $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
             $new_id = 'PREQ-'.$new_id;
+
+            $id_checker = DB::connection('mysql')->table('tabMaterial Request')->where('name', $new_id)->exists();
+            if($id_checker){
+                return response()->json(['success' => 0, 'message' => 'Material Request <b>'.$new_id.'</b> already exists. Please try again.']);
+            }
 
             $mr = [
                 'name' => $new_id,
@@ -4123,7 +4138,10 @@ class ManufacturingController extends Controller
                         $new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
                         $new_id = 'STEP-'.$new_id;
 
-                        // return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
+                        $id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+                        if($id_checker){
+                            return response()->json(['success' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
+                        }
                         
                         $reference = $new_id;
 
@@ -5139,6 +5157,11 @@ class ManufacturingController extends Controller
             $new_id = (($latest_pro) ? $latest_pro_exploded[1] : 0) + 1;
 			$new_id = str_pad($new_id, 6, '0', STR_PAD_LEFT);
 			$new_id = 'STEP-'.$new_id;
+
+			$id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+            if($id_checker){
+                return response()->json(['success' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
+            }
 
 			$production_order_items = DB::connection('mysql')->table('tabWork Order Item')
 				->where('parent', $production_order)->orderBy('idx', 'asc')->get();
