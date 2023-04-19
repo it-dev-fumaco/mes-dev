@@ -172,16 +172,28 @@
 	<div class="tab-content bg-light mt-1" style="border: 1px solid #f2f3f4;">
 		<div class="tab-pane {{ $tab1 }}" id="wtpoi1" role="tabpanel" aria-labelledby="w1-tab">
 			@if(count($components) > 0)
+			@php
+				$transferred_qty_discrepancy_arr = collect($components)->map(function ($q){
+					if(number_format($q['transferred_qty']) > number_format($q['required_qty'])){
+						return $q['item_code'];
+					}
+				})->unique()->filter()->implode(', ');
+			@endphp
+			@if ($transferred_qty_discrepancy_arr)
+				<div class="alert alert-warning text-center p-2 mt-2 w-100" style="color: #000">
+					Transferred qty exceeds required qty of item(s) <b>{{ $transferred_qty_discrepancy_arr }}</b>
+				</div>
+			@endif
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
-				<col style="width: 3%;"><!-- No. -->
-				<col style="width: 7%;"><!-- Item Code -->
-				<col style="width: 30%;"><!-- Item Code -->
-				<col style="width: 8%;"><!-- Required Qty -->
-				<col style="width: 8%;"><!-- Requested Qty -->
-				<col style="width: 12%;"><!-- Source Warehouse -->
-				<col style="width: 10%;"><!-- Transferred Qty -->
-				<col style="width: 8%;"><!-- Status -->
-				<col style="width: 14%;"><!-- Action -->
+				<col style="width: 3%;">	<!-- No. -->
+				<col style="width: 7%;">	<!-- Item Code -->
+				<col style="width: 30%;">	<!-- Item Code -->
+				<col style="width: 8%;">	<!-- Required Qty -->
+				<col style="width: 8%;">	<!-- Requested Qty -->
+				<col style="width: 12%;">	<!-- Source Warehouse -->
+				<col style="width: 10%;">	<!-- Transferred Qty -->
+				<col style="width: 8%;">	<!-- Status -->
+				<col style="width: 14%;">	<!-- Action -->
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
@@ -199,7 +211,7 @@
 					$balance = $component['required_qty'] - $component['transferred_qty'];
 					$wwhb = ($component['available_qty_at_wip'] < $component['transferred_qty'] || $component['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
 				@endphp
-				<tr>
+				<tr class="{{ (float)$component['transferred_qty'] > (float)$component['required_qty'] ? 'row-blink' : null }}">
 					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<a href="http://athenaerp.fumaco.local/storage{{ $img }}" data-toggle="lightbox">
@@ -243,7 +255,7 @@
 
 					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
 				@endphp
-				<tr>
+				<tr class="{{ (float)$component['transferred_qty'] > (float)$component['required_qty'] ? 'row-blink' : null }}">
 					<td class="border-top-0 text-center">
 						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
@@ -374,6 +386,18 @@
 		</div>
 		<div class="tab-pane {{ $tab2 }}" id="wtpoi2" role="tabpanel" aria-labelledby="w2-tab">
 			@if(count($parts) > 0)
+			@php
+				$transferred_qty_discrepancy_arr = collect($parts)->map(function ($q){
+					if(number_format($q['transferred_qty']) > number_format($q['required_qty'])){
+						return $q['item_code'];
+					}
+				})->unique()->filter()->implode(', ');
+			@endphp
+			@if ($transferred_qty_discrepancy_arr)
+				<div class="alert alert-warning text-center p-2 mt-2 w-100" style="color: #000">
+					Transferred qty exceeds required qty of item(s) <b>{{ $transferred_qty_discrepancy_arr }}</b>
+				</div>
+			@endif
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1">
 				<col style="width: 3%;"><!-- No. -->
 				<col style="width: 9%;"><!-- Prod. Order -->
@@ -411,7 +435,7 @@
 						$stat_badge = 'badge badge-secondary';
 					}
 				@endphp
-				<tr>
+				<tr class="{{ (float)$part['transferred_qty'] > (float)$part['required_qty'] ? 'row-blink' : null }}">
 					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
 					<td class="text-center" {!! $rowspan !!}>
 						@if ($part['production_order'])
@@ -461,7 +485,7 @@
 
 					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $part['required_qty'];
 				@endphp
-				<tr>
+				<tr class="{{ (float)$part['transferred_qty'] > (float)$part['required_qty'] ? 'row-blink' : null }}">
 					<td class="border-top-0 text-center">
 						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
@@ -839,5 +863,19 @@
 
 	span.hvrlink{
 		cursor: pointer;
+	}
+
+	.row-blink {
+		background-color: #FFC107;
+		/* color: #000000; */
+		animation: blinkingBackground 2.5s linear infinite;
+	}
+
+	@keyframes blinkingBackground{
+		0%    { background-color: #ffffff;}
+		25%   { background-color: #FFC107;}
+		50%   { background-color: #ffffff;}
+		75%   { background-color: #FFC107;}
+		100%  { background-color: #ffffff;}
 	}
 </style>
