@@ -913,6 +913,11 @@
 
             var disable_sel = (prod_order) ? 'disabled' : null;
 
+            var production_balance_qty = $(this).find('.production-balance-qty').eq(0).text();
+            if(production_balance_qty < 1){
+               disable_sel = 'disabled';
+            }
+
             // var disabled = parseInt($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : null;
 
             var actual_qty = $(this).find('.actual-qty').eq(0).text();
@@ -939,7 +944,7 @@
                '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
                '<td class="text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
                '<td class="text-center">' +
-                  '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"' + (parseFloat($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : '') + '></div>' +
+                  '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"' + disable_sel + '></div>' +
                '</td>' +
                '<td class="text-center">' +
                   '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
