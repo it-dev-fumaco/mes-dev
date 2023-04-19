@@ -2338,50 +2338,23 @@ class MainController extends Controller
 			}
 	
 			if ($production_order_details->status != 'Completed') {
-				$current_schedule =  Carbon::parse($production_order_details->planned_start_date);
-				$new_schedule = Carbon::parse($request->planned_start_date);
-				$diff_in_days = $current_schedule->diffInDays($new_schedule);
-				
+				$new_schedule = strtolower($request->planned_start_date) == 'unscheduled' ? $request->planned_start_date : Carbon::parse($request->planned_start_date);
+
 				$values=[];
 				$tasks = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
 				foreach ($tasks as $row) {
-					if ($row->workstation != 'Painting') {
-						$current_planned_start_date = ($row->planned_start_date) ? $row->planned_start_date : $production_order_details->planned_start_date;
-	
-						if($new_schedule->toDateTimeString() > $current_schedule->toDateTimeString()){
-							$new_planned_start_date = Carbon::parse($current_planned_start_date)->addDays($diff_in_days);
-						}
-						
-						if($new_schedule->toDateTimeString() < $current_schedule->toDateTimeString()){
-							$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
-						}
-						if($new_schedule->toDateTimeString() == $current_schedule->toDateTimeString()){
-							$new_planned_start_date = Carbon::parse($current_planned_start_date)->subDays($diff_in_days);
-						}
-	
-						$values = [
-							'last_modified_by' => Auth::user()->employee_name,
-							'last_modified_at' => $now->toDateTimeString(),
-							'planned_start_date' => $new_schedule,
-						];
-	
-						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
-					} else {
-						$values = [
-							'last_modified_by' => Auth::user()->employee_name,
-							'last_modified_at' => $now->toDateTimeString(),
-							'planned_start_date' => $new_schedule,
-						];
-	
-						DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
-					}
+					$values = [
+						'last_modified_by' => Auth::user()->employee_name,
+						'last_modified_at' => $now->toDateTimeString(),
+						'planned_start_date' => $new_schedule,
+					];
+
+					DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $row->job_ticket_id)->update($values);
 				}
 
-				if ($request->current && $request->current != 'unscheduled') {
-					$msg = 'Scheduled start date has been changed from '.Carbon::parse($request->current)->format('M. d, Y') .' to '. $new_schedule->format('M. d, Y') .' by '.Auth::user()->employee_name;
-				} else {
-					$msg = 'Scheduled start date has been changed from "Unscheduled" to '. $new_schedule->format('M. d, Y') .' by '.Auth::user()->employee_name;
-				}
+				$current_scheduled_date = $request->current && $request->current != 'unscheduled' ? Carbon::parse($request->current)->format('M. d, Y') : '"Unscheduled"';
+				$msg = 'Scheduled start date has been changed from '.$current_scheduled_date.' to '. $new_schedule->format('M. d, Y') .' by '.Auth::user()->employee_name;
+
 				$activity_logs = [
 					'action' => 'Change Schedule',
 					'message' => $msg,
