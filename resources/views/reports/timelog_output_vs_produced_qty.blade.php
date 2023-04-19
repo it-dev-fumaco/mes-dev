@@ -36,14 +36,12 @@
                <td class="text-center p-1">{{ $row['status'] }}</td>
                <td class="text-center p-1">
                   <table class="table table-bordered table-sm m-0">
-                     @foreach ($row_1['time_logs'] as $row_2)
-                     <tr>
-                        <td class="p-0">{{ $row_2['good'] }}</td>
-                              </tr>
-                              @endforeach
-                           </table>
-                        </td>
-                     </tr>
+                     @foreach ($row['job_ticket'] as $row_1)
+                        @foreach ($row_1['time_logs'] as $row_2)
+                        <tr>
+                           <td class="p-0">{{ $row_2['good'] }}</td>
+                        </tr>
+                        @endforeach
                      @endforeach
                   </table>
                </td>
