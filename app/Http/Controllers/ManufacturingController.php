@@ -2350,7 +2350,7 @@ class ManufacturingController extends Controller
                     'status' => $istatus,
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
-                    'requested_qty' => $irequested_qty - $item->returned_qty,
+                    'requested_qty' => $irequested_qty > $item->returned_qty ? $irequested_qty - $item->returned_qty : 0,
                     'remarks' => $i->remarks
                 ];
             }
