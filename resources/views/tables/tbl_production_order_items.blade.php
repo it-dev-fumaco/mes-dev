@@ -232,7 +232,7 @@
 					</td>
 					<td class="text-center p-0 border-bottom-0" colspan="4"></td>
 				</tr>
-				@forelse ($component['withdrawals'] as $a)	
+				@forelse ($component['withdrawals'] as $a)
 				@php
 					$twhb = ($a['status'] == 'Issued') ? "badge badge-success" : "badge badge-danger";
 

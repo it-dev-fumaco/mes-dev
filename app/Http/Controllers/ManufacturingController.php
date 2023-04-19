@@ -2261,6 +2261,12 @@ class ManufacturingController extends Controller
             ->get();
 
         $at_total_issued = collect($at_total_issued)->groupBy('item')->toArray();
+
+        $returned_ste_arr = DB::table('tabStock Entry as ste')
+            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+            ->where('ste.purpose', 'Material Transfer')->where('ste.item_status', 'Returned')->where('ste.transfer_as', 'For Return')->where('sted.status', 'Issued')->where('ste.work_order', $production_order)
+            ->select('item_code', 'return_reference')->get();
+        $returned_ste_arr = collect($returned_ste_arr)->groupBy('item_code');
             
         $components = $parts = [];
         foreach ($production_order_items as $item) {
@@ -2276,6 +2282,9 @@ class ManufacturingController extends Controller
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                 ->where('ste.work_order', $production_order)->where('ste.purpose', 'Material Transfer for Manufacture')
                 ->where('ste.docstatus', 1)->where('sted.item_code', $item->item_code)
+                ->when($returned_ste_arr && isset($returned_ste_arr[$item->item_code]), function ($q) use ($returned_ste_arr, $item){
+                    return $q->whereNotIn('ste.name', collect($returned_ste_arr[$item->item_code])->pluck('return_reference'));
+                })
                 ->select('ste.name', 'sted.date_modified', 'sted.session_user', 'sted.qty')->get();
 
             $item_withdrawals = DB::connection('mysql')->table('tabStock Entry Detail')
@@ -2341,7 +2350,7 @@ class ManufacturingController extends Controller
                     'status' => $istatus,
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
-                    'requested_qty' => $irequested_qty,
+                    'requested_qty' => $irequested_qty - $item->returned_qty,
                     'remarks' => $i->remarks
                 ];
             }
