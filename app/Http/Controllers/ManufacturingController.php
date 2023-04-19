@@ -2264,7 +2264,7 @@ class ManufacturingController extends Controller
 
         $returned_ste_arr = DB::table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.purpose', 'Material Transfer')->where('ste.item_status', 'Returned')->where('ste.transfer_as', 'For Return')->where('sted.status', 'Issued')->where('ste.work_order', $production_order)
+            ->where('ste.purpose', 'Material Transfer')->where('ste.item_status', 'Returned')->where('ste.transfer_as', 'For Return')->where('sted.status', 'Issued')->where('ste.work_order', $production_order)->where('ste.docstatus', 1)
             ->select('item_code', 'return_reference')->get();
         $returned_ste_arr = collect($returned_ste_arr)->groupBy('item_code');
             
