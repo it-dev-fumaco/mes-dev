@@ -926,7 +926,7 @@
                '<i class="now-ui-icons ui-1_simple-add"></i> Production Order' +
             '</button>';
 
-            if(parseFloat($(this).find('.available-qty').eq(0).text()) <= 0){
+            if(prod_order){
                create_btn = '<button type="button" class="btn btn-success" disabled>' +
                   '<i class="now-ui-icons ui-1_check"></i> ' + prod_order +
                '</button>';
