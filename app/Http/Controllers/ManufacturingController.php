@@ -2300,7 +2300,7 @@ class ManufacturingController extends Controller
                 ->selectRaw('qty, s_warehouse, status, issued_qty, name, docstatus, parent, remarks')
                 ->get();
 
-            $transferred_qty = ($item->transferred_qty - $item->returned_qty);
+            $transferred_qty = ($item->transferred_qty);
 
             $returned_qty = $item->returned_qty;
 
@@ -4924,7 +4924,7 @@ class ManufacturingController extends Controller
                 $conversion_qry = DB::connection('mysql')->table('tabBOM as bom')
                     ->join('tabBOM Item as item', 'bom.name', 'item.parent')
                     ->where('bom.item', $prod->parent_item_code)->where('item.item_code', $prod->item_code)->where('item.bom_no', $prod->bom_no)->pluck('item.qty');
-                $conversion_qty = $conversion_qry ? $conversion_qry->qty * 1 : 1;
+                $conversion_qty = $conversion_qry ? $conversion_qry * 1 : 1;
             }
 
             $so_order_qty = isset($sales_order_item[$prod->parent_item_code]) ? $sales_order_item[$prod->parent_item_code][0]->qty * 1 : 0;
@@ -6410,8 +6410,17 @@ class ManufacturingController extends Controller
                     ->where('ste.work_order', $row->parent)->where('ste.purpose', 'Material Transfer for Manufacture')
                     ->where('ste.docstatus', 1)->where('sted.item_code', $row->item_code)->sum('sted.qty');
 
+                $returned_qty = DB::table('tabStock Entry as ste')
+                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                    ->where('ste.docstatus', 1)->where('ste.purpose', 'Material Transfer')
+                    ->where('ste.item_status', 'Returned')->where('ste.transfer_as', 'For Return')
+                    ->where('sted.status', 'Issued')->where('ste.work_order', $row->parent)
+                    ->where('sted.item_code', $row->item_code)->sum('sted.qty');
+
+                $transferred_qty = $transferred_qty - $returned_qty;
+
                 DB::connection('mysql')->table('tabWork Order Item')
-                    ->where('name', $row->name)->update(['transferred_qty' => $transferred_qty]);
+                    ->where('name', $row->name)->update(['transferred_qty' => $transferred_qty, 'returned_qty' => $returned_qty]);
             }
 
             DB::connection('mysql')->commit();
