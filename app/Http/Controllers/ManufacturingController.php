@@ -2300,7 +2300,7 @@ class ManufacturingController extends Controller
                 ->selectRaw('qty, s_warehouse, status, issued_qty, name, docstatus, parent, remarks')
                 ->get();
 
-            $transferred_qty = ($item->transferred_qty);
+            $transferred_qty = $item->transferred_qty > $item->returned_qty ? $item->transferred_qty - $item->returned_qty : 0;
 
             $returned_qty = $item->returned_qty;
 
