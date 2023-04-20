@@ -2262,12 +2262,20 @@ class ManufacturingController extends Controller
 
         $at_total_issued = collect($at_total_issued)->groupBy('item')->toArray();
 
-        $returned_ste_arr = DB::table('tabStock Entry as ste')
+        $ste_qry = DB::table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.purpose', 'Material Transfer')->where('ste.item_status', 'Returned')->where('ste.transfer_as', 'For Return')->where('sted.status', 'Issued')->where('ste.work_order', $production_order)->where('ste.docstatus', 1)
-            ->select('item_code', 'return_reference')->get();
+            // ->where('ste.purpose', 'Material Transfer')->where('ste.item_status', 'Returned')->where('ste.transfer_as', 'For Return')
+            ->whereIn('ste.purpose', ['Material Transfer', 'Material Transfer for Manufacture'])->whereIn('ste.item_status', ['Returned', 'Issued'])->whereIn('ste.transfer_as', ['For Return', 'Internal Transfer'])
+            ->where('sted.status', 'Issued')->where('ste.work_order', $production_order)->where('ste.docstatus', 1)
+            ->select('ste.name', 'sted.item_code', 'ste.purpose', 'sted.return_reference', 'sted.issued_qty')->get();
+        $ste_qry = collect($ste_qry)->groupBy('purpose');
+
+        $withdrawals_ste_arr = isset($ste_qry['Material Transfer for Manufacture']) ? $ste_qry['Material Transfer for Manufacture'] : [];
+        $withdrawals_ste_arr = collect($withdrawals_ste_arr)->groupBy('item_code');
+
+        $returned_ste_arr = isset($ste_qry['Material Transfer']) ? $ste_qry['Material Transfer'] : [];
         $returned_ste_arr = collect($returned_ste_arr)->groupBy('item_code');
-            
+
         $components = $parts = [];
         foreach ($production_order_items as $item) {
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
@@ -2287,9 +2295,27 @@ class ManufacturingController extends Controller
                 })
                 ->select('ste.name', 'sted.date_modified', 'sted.session_user', 'sted.qty')->get();
 
+            $returned_stes = isset($returned_ste_arr[$item->item_code]) ? collect($returned_ste_arr[$item->item_code])->groupBy('return_reference') : [];
+
+            $not_included = [];
+            if(isset($withdrawals_ste_arr[$item->item_code])){
+                foreach($withdrawals_ste_arr[$item->item_code] as $withdrawal_ste){
+                    if(!isset($returned_stes[$withdrawal_ste->name])){
+                        continue;
+                    }
+
+                    $return_qty = $returned_stes[$withdrawal_ste->name][0]->issued_qty;
+                    if(($withdrawal_ste->issued_qty - $return_qty) == 0){
+                        $not_included[] = $withdrawal_ste->name;
+                    }
+                }
+            }
+
             $item_withdrawals = DB::connection('mysql')->table('tabStock Entry Detail')
-                ->whereIn('parent', $stock_entry_arr)->where('item_code', $item->item_code)
-                ->where('docstatus', 1)
+                ->whereIn('parent', $stock_entry_arr)->where('item_code', $item->item_code)->where('docstatus', 1)
+                ->when($not_included, function ($q) use ($not_included){
+                    return $q->whereNotIn('parent', $not_included);
+                })
                 ->selectRaw('SUM(qty) as qty, s_warehouse, status, SUM(issued_qty) as issued_qty, GROUP_CONCAT(DISTINCT parent) as ste_names, docstatus, GROUP_CONCAT(DISTINCT remarks) as remarks')
                 ->groupBy('s_warehouse', 'status', 'docstatus')
                 ->get();
@@ -2300,6 +2326,7 @@ class ManufacturingController extends Controller
                 ->selectRaw('qty, s_warehouse, status, issued_qty, name, docstatus, parent, remarks')
                 ->get();
 
+            // $transferred_qty = $item->transferred_qty;
             $transferred_qty = $item->transferred_qty > $item->returned_qty ? $item->transferred_qty - $item->returned_qty : 0;
 
             $returned_qty = $item->returned_qty;
@@ -2308,6 +2335,7 @@ class ManufacturingController extends Controller
 
             $withdrawals = [];
             foreach ($item_withdrawals as $i) {
+                $stes = explode(',', $i->ste_names);
                 $reserved_qty = 0;
                 if (array_key_exists($item->item_code . '-' . $i->s_warehouse, $stock_reservation)) {
                     $reserved_qty = $stock_reservation[$item->item_code . '-' . $i->s_warehouse][0]->total_reserved_qty;
@@ -2341,16 +2369,21 @@ class ManufacturingController extends Controller
                     $irequested_qty = ($i->docstatus == 1) ? $i->qty : $transferred_qty;
                 }
 
+                $total_returned = isset($returned_ste_arr[$item->item_code]) ? collect($returned_ste_arr[$item->item_code])->whereIn('return_reference', $stes)->sum('issued_qty') : 0;
+
                 $withdrawals[] = [
                     'id' => null,
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $actual_qty,
-                    'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
-                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? ($i->issued_qty - $item->returned_qty) : 0,
+                    // 'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
+                    'qty' => ($i->docstatus == 1) ? $i->qty - $total_returned : 0,
+                    // 'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? ($i->issued_qty - $item->returned_qty) : 0,
+                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? $i->issued_qty - $total_returned : 0,
                     'status' => $istatus,
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
-                    'requested_qty' => $irequested_qty > $item->returned_qty ? $irequested_qty - $item->returned_qty : 0,
+                    // 'requested_qty' => $irequested_qty > $item->returned_qty ? $irequested_qty - $item->returned_qty : 0,
+                    'requested_qty' => $irequested_qty - $total_returned,
                     'remarks' => $i->remarks
                 ];
             }
@@ -2646,7 +2679,7 @@ class ManufacturingController extends Controller
 				        ->where('ste.docstatus', 1)->where('ste.work_order', $request->production_order)
                 ->where('ste.purpose', 'Material Transfer for Manufacture')->whereIn('ste.name', explode(',', $request->ste_names))
                 ->where('sted.item_code', $request->item_code)
-                ->select('ste.*', 'sted.*', 'ste.name as ste_name')->first();
+                ->select('ste.*', 'sted.*', 'ste.name as ste_name')->orderBy('ste.creation', 'desc')->first();
 
             if (!$stock_entry_details) {
                 return response()->json(['status' => 0, 'message' => 'Stock entry item ' . $request->item_code . ' not found.']);
@@ -3153,13 +3186,29 @@ class ManufacturingController extends Controller
                         $alternative_for = DB::connection('mysql')->table('tabWork Order Item')
                             ->where('parent', $request->production_order)->where('item_code', $request->item_as[$id])
                             ->first();
-                        
+
+                        $ste_total_issued = DB::connection('mysql')->table('tabStock Entry as ste')
+                            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                            ->where('ste.work_order', $request->production_order)
+                            ->where('ste.docstatus', 1)->where('sted.status', 'Issued')->where('sted.item_code', $request->item_as[$id])->where('sted.s_warehouse', $alternative_for->source_warehouse)
+                            ->selectRaw('SUM(sted.qty) as total_issued, sted.item_code')
+                            ->groupBy('item_code')
+                            ->first();
+
+                        $alt_for_issued = $ste_total_issued->total_issued - $alternative_for->returned_qty;
+
                         // validate qty vs remaining required qty
                         $remaining_required_qty = $alternative_for->required_qty - ($alternative_for->transferred_qty - $alternative_for->returned_qty);
-                        if($remaining_required_qty <= $qty){
-                            return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
+                        if($alt_for_issued > 0){
+                            if((string)$qty > (string)$remaining_required_qty){
+                                return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
+                            }
+                        }else{
+                            if($qty >= $alternative_for->required_qty){
+                                return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
+                            }
                         }
-
+                        
                         if (($remaining_required_qty) <= 0) {
                             return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code .'</b>.']);
                         }
