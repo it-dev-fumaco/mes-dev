@@ -211,7 +211,7 @@
 					$balance = $component['required_qty'] - $component['transferred_qty'];
 					$wwhb = ($component['available_qty_at_wip'] < $component['transferred_qty'] || $component['available_qty_at_wip'] <= 0) ? "badge badge-danger" : "badge badge-success";
 				@endphp
-				<tr class="{{ (string)$component['transferred_qty'] > (string)$component['required_qty'] ? 'row-blink' : null }}">
+				<tr class="{{ (float)$component['transferred_qty'] > (float)$component['required_qty'] ? 'row-blink' : null }}">
 					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
 					<td class="text-center" {!! $rowspan !!}>
 						<a href="http://athenaerp.fumaco.local/storage{{ $img }}" data-toggle="lightbox">
@@ -255,7 +255,7 @@
 
 					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $component['required_qty'];
 				@endphp
-				<tr class="{{ (string)$component['transferred_qty'] > (string)$component['required_qty'] ? 'row-blink' : null }}">
+				<tr class="{{ (float)$component['transferred_qty'] > (float)$component['required_qty'] ? 'row-blink' : null }}">
 					<td class="border-top-0 text-center">
 						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $component['stock_uom'] }}</span>
@@ -435,7 +435,7 @@
 						$stat_badge = 'badge badge-secondary';
 					}
 				@endphp
-				<tr class="{{ (string)$part['transferred_qty'] > (string)$part['required_qty'] ? 'row-blink' : null }}">
+				<tr class="{{ (float)$part['transferred_qty'] > (float)$part['required_qty'] ? 'row-blink' : null }}">
 					<td class="text-center" {!! $rowspan !!}>{{ $i + 1 }}</td>
 					<td class="text-center" {!! $rowspan !!}>
 						@if ($part['production_order'])
@@ -485,7 +485,7 @@
 
 					$ste_qty = ($a['status'] == 'For Checking') ? $balance : $part['required_qty'];
 				@endphp
-				<tr class="{{ (string)$part['transferred_qty'] > (string)$part['required_qty'] ? 'row-blink' : null }}">
+				<tr class="{{ (float)$part['transferred_qty'] > (float)$part['required_qty'] ? 'row-blink' : null }}">
 					<td class="border-top-0 text-center">
 						<span class="d-block font-weight-bold requested-qty" style="font-size: 10pt;">{{ $a['requested_qty'] * 1 }}</span>
 						<span class="d-block" style="font-size: 8pt;">{{ $part['stock_uom'] }}</span>
