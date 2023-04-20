@@ -69,6 +69,11 @@ class InventoryController extends Controller
                 $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
                 $new_id = 'PREQ-'.$new_id;
 
+                $id_checker = DB::connection('mysql')->table('tabMaterial Request')->where('name', $new_id)->exists();
+                if($id_checker){
+                    return response()->json(['success' => 0, 'message' => 'Material Request <b>'.$new_id.'</b> already exists. Please try again.']);
+                }
+
                 $mr = [
                     'name' => $new_id,
                     'creation' => $now->toDateTimeString(),
@@ -723,6 +728,11 @@ class InventoryController extends Controller
     $new_id = $latest_ste_exploded[1] + 1;
     $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
     $new_id = 'STEM-'.$new_id;
+
+    $id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+    if($id_checker){
+        return response()->json(['success' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
+    }
 
     try{
     $stock_entry_detail = [];
@@ -2187,6 +2197,11 @@ class InventoryController extends Controller
             $new_id = $latest_mr_exploded[1] + 1;
             $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
             $new_id = 'PREQ-'.$new_id;
+
+            $id_checker = DB::connection('mysql')->table('tabMaterial Request')->where('name', $new_id)->exists();
+            if($id_checker){
+                return response()->json(['success' => 0, 'message' => 'Material Request <b>'.$new_id.'</b> already exists. Please try again.']);
+            }
 
             $mr = [
                 'name' => $new_id,

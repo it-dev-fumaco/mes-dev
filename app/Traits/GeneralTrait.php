@@ -3,6 +3,7 @@
 use Auth;
 use DB;
 use Carbon\Carbon;
+use Exception;
 
 trait GeneralTrait
 {
@@ -297,17 +298,24 @@ trait GeneralTrait
     }
 
     public function get_user_permitted_operation(){
-		$q = DB::connection('mysql_mes')->table('user')
+        $permitted_modules = $permitted_operations = $permitted_module_operation = [];
+        if(Auth::check()){
+            $q = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
 			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
             ->where('user_access_id', Auth::user()->user_id)
             ->select('module', 'operation_name')
             ->get();
-        
+
+            $permitted_modules = collect($q)->unique('module')->pluck('module')->toArray();
+            $permitted_operations = collect($q)->unique('operation_name')->pluck('operation_name')->toArray();
+            $permitted_module_operation = collect($q)->toArray();
+        }
+		
         return [
-            'permitted_modules' => collect($q)->unique('module')->pluck('module')->toArray(),
-            'permitted_operations' => collect($q)->unique('operation_name')->pluck('operation_name')->toArray(),
-            'permitted_module_operation' => collect($q)->toArray()
+            'permitted_modules' => $permitted_modules,
+            'permitted_operations' => $permitted_operations,
+            'permitted_module_operation' => $permitted_module_operation
         ];
     }
 
