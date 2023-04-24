@@ -2,7 +2,7 @@
   'namePage' => 'Fabrication',
   'activePage' => 'calendar',
   'pageHeader' => 'Calendar - ' . $operation_name,
-  'pageSpan' => Auth::user()->employee_name
+  'pageSpan' => Auth::check() ? Auth::user()->employee_name : null
 ])
 @section('content')
 <div class="panel-header"></div>

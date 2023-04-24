@@ -334,6 +334,9 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/syncJobTicket/{id}', 'MainController@syncJobTicket');	
 
 	Route::get('/count_current_production_order/{date}', 'SecondaryController@count_current_production_order');
+
+	Route::get('/production_schedule_calendar/{id}', 'SecondaryController@production_schedule_calendar');
+	Route::get('/get_production_schedule_calendar/{id}', 'SecondaryController@get_production_schedule_calendar');
 });
 Route::post('/add_shift_schedule_prod', 'SecondaryController@add_shift_schedule');
 Route::get('/maintenance_schedules_per_operation/{operation_id}', 'MainController@maintenance_schedules_per_operation');
@@ -358,8 +361,6 @@ Route::get('/get_item_status_tracking', 'TrackingController@get_item_status_trac
 Route::get('/get_search_information_details', 'TrackingController@get_search_information_details');
 Route::get('/get_bom_tracking', 'TrackingController@get_bom_tracking');
 Route::get('/checkNewOrders', 'MainController@checkNewOrders');
-Route::get('/production_schedule_calendar/{id}', 'SecondaryController@production_schedule_calendar');
-Route::get('/get_production_schedule_calendar/{id}', 'SecondaryController@get_production_schedule_calendar');
 Route::get('/get_production_details_for_edit/{prod}', 'SecondaryController@get_production_details_for_edit');
 //Reject Checklist
 Route::get('/get_operation_checklist_jquery', 'SecondaryController@get_operation_checklist_jquery');
@@ -678,29 +679,30 @@ Route::get('/get_operators', 'MainController@get_operators');
 Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 //Daily Report
-// Route::get('/link_fabrication_report', 'LinkReportController@fabrication_daily_report_page'); // <-- Unused Route
-Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
-Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
-// Route::get('/link_qa_report', 'LinkReportController@qa_report');
-Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
-Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
-Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
-Route::get('/report_index', 'LinkReportController@index');
-Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
-Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page'); // <-- Same Function
-Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
-Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
-Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
-Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
-Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
-Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+Route::group(['middleware' => 'auth'], function(){
+	Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
+	Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
+	// Route::get('/link_qa_report', 'LinkReportController@qa_report');
+	Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
+	Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
+	Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
+	Route::get('/report_index', 'LinkReportController@index');
+	Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
+	Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
+	Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
+	Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+	Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
+	Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
+	Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
+	Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
 
-Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
-Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
-Route::get('/rejection_report', 'LinkReportController@rejection_report');
-Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
-Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
-Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
-Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
-Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
-Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+	Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
+	Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+	Route::get('/rejection_report', 'LinkReportController@rejection_report');
+	Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
+	Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
+	Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
+	Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
+	Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
+	Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+});
