@@ -254,7 +254,7 @@
                <div class="col-md-6 offset-md-3">
                   <div class="form-group">
                      <label>Batch Qty</label>
-                     <input type="number" class="form-control form-control-lg" id="planned-qty" style="display: none;">
+                     <input type="number" class="form-control form-control-lg d-none" id="planned-qty">
                      <input type="number" class="form-control form-control-lg" id="batch-qty">
                   </div>
                </div>
@@ -881,6 +881,7 @@
       });
 
       var a2 = 0;
+      var s_wh = t_wh = '';
       $('.get-parts-prodorder').click(function(e){
          e.preventDefault();
          a2++;
@@ -896,8 +897,8 @@
          var n = 1;
 
           $("#parts-list > tbody > tr").each(function () {
-            var s_wh = get_warehouse($(this).find('.item-classification').eq(0).text(), 'source');
-            var t_wh = get_warehouse($(this).find('.item-classification').eq(0).text(), 'target');
+            s_wh = get_warehouse($(this).find('.item-classification').eq(0).text(), 'source');
+            t_wh = get_warehouse($(this).find('.item-classification').eq(0).text(), 'target');
             // var wip_wh = s_wh;
             // var fg_wh = targetwh;
             var prod_order = $(this).find('.production-order').eq(0).text();
@@ -927,9 +928,14 @@
                var stylecss = 'color: red;';
             }
 
-            var create_btn = '<button type="button" class="btn btn-primary create-production-btn">' +
-               '<i class="now-ui-icons ui-1_simple-add"></i> Production Order' +
-            '</button>';
+            var create_btn = '<div class="btn-group">' + 
+               '<button type="button" class="btn btn-primary create-production-btn">' +
+                  '<i class="now-ui-icons ui-1_simple-add"></i> Production Order' +
+               '</button>' +
+               '<button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 15px; font-size: 9pt;">' +
+                  '<span class="sr-only">Toggle Dropdown</span>' +
+               '</button>' +
+               '<div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div>';
 
             if(prod_order){
                create_btn = '<button type="button" class="btn btn-success" disabled>' +
@@ -939,10 +945,19 @@
 
             row += '<tr>' +
                '<td class="text-center">' + n + '</td>' +
-               '<td class="text-center"><span class="delivery-date" style="display: none;">'+$(this).find('.delivery-date').text()+'</span><span class="item-reference-id" style="display: none;">'+$(this).find('.item-reference-id').text()+'</span><span class="sub-parent-item" style="display: none;">'+$(this).find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">'+$(this).find('.parent-code').text()+'</span><span class="reference-no" style="display: none;">'+$(this).find('.reference-no').eq(0).text()+'</span><span class="item-code">' + $(this).find('td').eq(1).text() + '</span><br><span class="bom">' + $(this).find('.review-bom-row').eq(0).text() + '</span></td>' +
+               '<td class="text-center">' +
+                  '<div class="d-none">' +
+                  '<span class="delivery-date">'+$(this).find('.delivery-date').text()+'</span>' +
+                  '<span class="item-reference-id">'+$(this).find('.item-reference-id').text()+'</span>' +
+                  '<span class="sub-parent-item">'+$(this).find('.sub-parent-item').text()+'</span>' +
+                  '<span class="parent-code">'+$(this).find('.parent-code').text()+'</span>' +
+                  '<span class="reference-no">'+$(this).find('.reference-no').eq(0).text()+'</span>' +
+                  '</div>' +
+                  '<span class="item-code">' + $(this).find('td').eq(1).text() + '</span><br><span class="bom">' + $(this).find('.review-bom-row').eq(0).text() + '</span>' +
+               '</td>' +
                '<td class="text-justify item-description">' + $(this).find('td').eq(2).text() + '</td>' +
                '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + $(this).find('td').eq(3).text() + '</td>' +
-               '<td class="text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
+               '<td class="actual-qty-span text-center" style="font-size: 11pt; '+ stylecss+'"><b>' + actual_qty + '</b></td>' +
                '<td class="text-center">' +
                   '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"' + disable_sel + '></div>' +
                '</td>' +
@@ -1232,19 +1247,28 @@
 
          var row = '<tr>' +
             '<td class="text-center"><span class="sub-parent-item" style="display: none;">'+create_batch_row.find('.sub-parent-item').text()+'</span><span class="parent-code" style="display: none;">' + create_batch_row.find('.parent-code').text() +'</span><span class="sales-order" style="display: none;">' + create_batch_row.find('.sales-order').eq(0).text() + '</span></td>' +
-            '<td class="text-center"><span class="item-code">' + create_batch_row.find('.item-code').eq(0).text() + '</span><br><span class="bom">' + create_batch_row.find('.bom').eq(0).text() + '</span></td>' +
+            '<td class="text-center">' +
+               '<div class="d-none">' +
+                  '<span class="delivery-date">' + create_batch_row.find('.delivery-date').text() + '</span>' +
+                  '<span class="item-reference-id">' + create_batch_row.find('.item-reference-id').text() + '</span>' +
+                  '<span class="sub-parent-item">' + create_batch_row.find('.sub-parent-item').text() + '</span>' +
+                  '<span class="parent-code">' + create_batch_row.find('.parent-code').text() + '</span>' +
+                  '<span class="reference-no">' + create_batch_row.find('.reference-no').eq(0).text() + '</span>' +
+               '</div>' +
+               '<span class="item-code">' + create_batch_row.find('.item-code').eq(0).text() + '</span><br><span class="bom">' + create_batch_row.find('.bom').eq(0).text() + '</span>' +
+            '</td>' +
             '<td class="text-justify item-description">' + create_batch_row.find('.item-description').eq(0).text() + '</td>' +
-            '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + planned_qty + '</td>' +
+            // '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + planned_qty + '</td>' +
+            '<td class="text-center item-ordered-qty" style="font-size: 11pt;">' + create_batch_row.find('.item-ordered-qty').eq(0).text() + '</td>' +
+            '<td class="text-center actual-qty-span" style="color:' + (parseFloat(create_batch_row.find('.actual-qty-span').text()) > 0 ? 'inherit' : '#FF0000') + '; font-weight: ' + (parseFloat(create_batch_row.find('.actual-qty-span').text()) > 0 ? 'normal' : 'bold') + '">' + create_batch_row.find('.actual-qty-span').text() + '</td>' +
             '<td class="text-center">' +
             '<div class="form-group" style="margin: 0;"><input type="text" value="' + batch_qty + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"></div>' +
             '</td>' +
             '<td class="text-center">' +
             '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;"><div class="input-group-append"><button class="btn btn-info" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
-            '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg wip">' + wipwh + '</select></div></td>' +
-            '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + targetwh + '</select></div></td>' +
+            '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + t_wh + '</select></div></td>' +
             '<td class="text-center"><div class="btn-group"><button type="button" class="btn btn-primary create-production-btn"><i class="now-ui-icons ui-1_simple-add"></i> Production Order</button><button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 15px; font-size: 9pt;"><span class="sr-only">Toggle Dropdown</span></button><div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div></td>' +
             '</tr>';
-
          create_batch_row.find('.qty').eq(0).val(planned_qty - batch_qty);
          create_batch_row.after(row);
          autonumbertablerow();
