@@ -10,6 +10,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::group(['middleware' => 'page_visit'], function(){
 
 Route::get('/production_floor', 'ProductionFloorController@index');
 Route::get('/get_total_output', 'ProductionFloorController@get_total_output');
@@ -705,4 +706,5 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
 	Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
 	Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+	});
 });
