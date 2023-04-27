@@ -490,6 +490,13 @@
     function close_modal(modal){
       $(modal).modal('hide');
     }
+
+    $(document).on('ajaxComplete', function(event, xhr, settings) {
+      if(typeof xhr.status !== 'undefined' && xhr.status == 401){
+        $('#loader-wrapper').attr('hidden', true);
+        showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons ui-1_check");
+      }
+    });
      
     $('#jt-search-btn').click(function(e){
       e.preventDefault();
