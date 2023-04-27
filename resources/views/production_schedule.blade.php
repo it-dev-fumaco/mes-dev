@@ -2,7 +2,7 @@
   'namePage' => 'Fabrication',
   'activePage' => 'production_schedule',
   'pageHeader' => 'Daily Production Schedule Report',
-    'pageSpan' => Auth::user()->employee_name
+    'pageSpan' => Auth::check() ? Auth::user()->employee_name : null
 ])
 
 @section('content')

@@ -477,6 +477,13 @@
         $(modal).modal('hide');
       }
 
+      $(document).on('ajaxComplete', function(event, xhr, settings) {
+        if(typeof xhr.status !== 'undefined' && xhr.status == 401){
+          $('#loader-wrapper').attr('hidden', true);
+          showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons ui-1_check");
+        }
+      });
+
       $(document).on('click', '.num-key', function (e){
         var input = $(this).data('input');
         var val = $(input).val();
