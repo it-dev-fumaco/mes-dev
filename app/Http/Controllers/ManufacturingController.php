@@ -3053,43 +3053,55 @@ class ManufacturingController extends Controller
             return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
         }
 
-        $production_order_item = DB::connection('mysql')->table('tabWork Order Item as poi')
-            ->join('tabWork Order as po', 'poi.parent', 'po.name')->where('poi.name', $request->production_order_item_id)
-            ->select('poi.item_code', 'po.status', 'po.name as production_order', 'po.produced_qty', 'po.qty', 'poi.stock_uom')->first();
+        DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $production_order_item = DB::connection('mysql')->table('tabWork Order Item as poi')
+                ->join('tabWork Order as po', 'poi.parent', 'po.name')->where('poi.name', $request->production_order_item_id)
+                ->select('poi.item_code', 'po.status', 'po.name as production_order', 'po.produced_qty', 'po.qty', 'poi.stock_uom')->first();
 
-        if (!$production_order_item) {
-            return response()->json(['status' => 0, 'message' => 'Record not found.']);
+            if (!$production_order_item) {
+                return response()->json(['status' => 0, 'message' => 'Record not found.']);
+            }
+
+            if ($production_order_item->produced_qty == $production_order_item->qty) {
+                return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $production_order_item->production_order .'</b> is already Completed.']);
+            }
+            // get transferred qty
+            $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.docstatus', 1)->where('ste.work_order', $production_order_item->production_order)
+                ->where('sted.item_code', $production_order_item->item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
+                ->sum('qty');
+
+            if((float)$request->qty < (float)$transferred_qty){
+                return response()->json(['status' => 0, 'message' => 'Quantity cannot be less than transferred qty (' . (float) $transferred_qty . ')']);
+            }
+
+            DB::connection('mysql')->table('tabWork Order Item')->where('name', $request->production_order_item_id)->update(['required_qty' => $request->qty]);
+
+            if($request->required_qty != $request->qty){
+                $activity_logs = [
+                    'action' => 'Changed Required Qty',
+                    'message' => 'Changed required qty of '.$production_order_item->item_code.' from '.$request->required_qty.' '.$production_order_item->stock_uom.' to '.$request->qty.' '.$production_order_item->stock_uom.' for '.$production_order_item->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                    'reference' => $production_order_item->production_order,
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'created_by' => Auth::user()->email
+                ];
+
+                DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
+            }
+
+            DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
+
+            return response()->json(['status' => 1, 'message' => 'Required qty has been updated.', 'production_order' => $production_order_item->production_order]);
+        } catch (Exception $th) {
+            DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
+
+            return response()->json(['status' => 0, 'message' => 'Something went wrong. Please contact your system administrator.']);
         }
-
-        if ($production_order_item->produced_qty == $production_order_item->qty) {
-            return response()->json(['status' => 0, 'message' => 'Production Order <b>' . $production_order_item->production_order .'</b> is already Completed.']);
-        }
-        // get transferred qty
-        $transferred_qty = DB::connection('mysql')->table('tabStock Entry as ste')
-            ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('ste.docstatus', 1)->where('ste.work_order', $production_order_item->production_order)
-            ->where('sted.item_code', $production_order_item->item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
-            ->sum('qty');
-
-        if((float)$request->qty < (float)$transferred_qty){
-            return response()->json(['status' => 0, 'message' => 'Quantity cannot be less than transferred qty (' . $transferred_qty . ')']);
-        }
-
-        DB::connection('mysql')->table('tabWork Order Item')->where('name', $request->production_order_item_id)->update(['required_qty' => $request->qty]);
-
-        $activity_logs = [
-            'action' => 'Changed Required Qty',
-            'message' => 'Changed required qty of '.$production_order_item->item_code.' from '.$request->required_qty.' '.$production_order_item->stock_uom.' to '.$request->qty.' '.$production_order_item->stock_uom.' for '.$production_order_item->production_order.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
-            'reference' => $production_order_item->production_order,
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'created_by' => Auth::user()->email
-        ];
-
-        if($request->required_qty != $request->qty){
-            DB::connection('mysql_mes')->table('activity_logs')->insert($activity_logs);
-        }
-
-        return response()->json(['status' => 1, 'message' => 'Required qty has been updated.', 'production_order' => $production_order_item->production_order]);
     }
 
     public function add_ste_items(Request $request){

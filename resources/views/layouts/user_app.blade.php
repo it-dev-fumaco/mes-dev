@@ -1921,6 +1921,7 @@
     $(document).on('click', '.change-required-item-btn', function(e){
       e.preventDefault();
 
+      var ws_status = $(this).data('ws-status');
       var $row = $(this).closest('tr');
       var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
@@ -1955,6 +1956,17 @@
       $('#change-required-item-modal input[name="item_classification"]').val($(this).data('item-classification'));
       $('#change-required-item-modal input[name="old_item_code"]').val(item_code);
       $('#change-required-item-modal input[name="item_code"]').val(item_code);
+
+      if(ws_status == 'Issued') {
+        $('#change-required-item-modal input[name="item_code"]').attr('disabled', true);
+        $('#change-required-item-modal input[name="requested_quantity"]').attr('disabled', true);
+        $('#change-required-item-modal select[name="source_warehouse"]').attr('disabled', true);
+      } else {
+        $('#change-required-item-modal input[name="item_code"]').removeAttr('disabled');
+        $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('disabled');
+        $('#change-required-item-modal select[name="source_warehouse"]').removeAttr('disabled');
+      }
+
       $('#change-required-item-modal input[name="item_name"]').val(item_name);
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
@@ -2009,9 +2021,7 @@
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
         }
       });
     });
