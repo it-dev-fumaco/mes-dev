@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -1809,6 +1810,86 @@ class LinkReportController extends Controller
         $bin_arr = $paginatedItems;
 
         return view('reports.system_audit_stocks_transferred_but_none_in_wip', compact('bin_arr', 'filter_warehouses', 'permissions'));
+    }
+
+    public function duplicate_withdrawal_slips(Request $request){
+        $permissions = $this->get_user_permitted_operation();
+
+        $stock_entry_query = DB::connection('mysql')->table('tabStock Entry as ste')
+            ->join('tabStock Entry Detail as sted', 'sted.parent', 'ste.name')
+            ->whereIn('ste.purpose', ['Material Transfer for Manufacture', 'Material Transfer'])->whereIn('ste.transfer_as', ['Internal Transfer', 'For Return'])->where('sted.docstatus', 1)->where('sted.status', 'Issued')
+            ->select('ste.purpose', 'ste.work_order', 'ste.name', 'ste.transfer_as', 'sted.item_code', 'sted.transfer_qty as transfered_qty')
+            ->orderBy('ste.creation', 'desc')->get()->groupBy(['purpose', 'transfer_as', 'work_order']);
+
+        $transferred_arr = isset($stock_entry_query['Material Transfer for Manufacture']['Internal Transfer']) ? $stock_entry_query['Material Transfer for Manufacture']['Internal Transfer'] : [];
+        $returned_arr = isset($stock_entry_queryp['Material Transfer']['For Return']) ? $stock_entry_query['Material Transfer']['For Return'] : [];
+
+        $returns = [];
+        foreach ($returned_arr as $production_order => $return_items) {
+            $item_arr = collect($return_items)->groupBy('item_code')->mapWithKeys(function ($group, $key) {
+                return [
+                    'item_code' => $key,
+                    'stock_entries' => collect($group)->pluck('name'),
+                    'transfered_qty' => collect($group)->sum('transfered_qty')
+                ];
+            });
+
+            $item_code = isset($item_arr['item_code']) ? $item_arr['item_code'] : null;
+            $returns[$production_order][$item_code] = [
+                'transfered_qty' => isset($item_arr['transfered_qty']) ? $item_arr['transfered_qty'] : 0,
+                'stock_entries' => isset($item_arr['stock_entries']) ? $item_arr['stock_entries'] : []
+            ];
+        }
+
+        $transfers_arr = [];
+        foreach ($transferred_arr as $production_order => $transfer_items) {
+            $item_arr = collect($transfer_items)->groupBy('item_code')->mapWithKeys(function ($group, $key) {
+                return [
+                    'item_code' => $key,
+                    'transfered_qty' => collect($group)->sum('transfered_qty'),
+                    'stock_entries' => collect($group)->pluck('transfered_qty', 'name')
+                ];
+            });
+
+            $item_code = isset($item_arr['item_code']) ? $item_arr['item_code'] : null;
+
+            $transfered_qty = isset($item_arr['transfered_qty']) ? $item_arr['transfered_qty'] : 0;
+            $returned_qty = isset($returns[$production_order][$item_code]) ? $returns[$production_order][$item_code]['transfered_qty'] : 0;
+
+            $stock_entries = isset($item_arr['stock_entries']) ? $item_arr['stock_entries'] : [];
+
+            $total_transfered = $transfered_qty - $returned_qty;
+
+            $transfers_arr[$production_order][$item_code] = [
+                'transfered_qty' => $transfered_qty,
+                'returned_qty' => $returned_qty,
+                'total_transfered' => $total_transfered,
+                'stock_entries' => $stock_entries
+            ];
+        }
+
+        $work_order_arr = collect(array_keys($transfers_arr))->implode('","');
+
+        $production_order = DB::connection('mysql')->table('tabWork Order as wo')
+            ->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
+            ->whereRaw('wo.name IN ("'.$work_order_arr.'")')->where('wo.name', 'LIKE', '%PROM%')->whereNotIn('wo.status', ['Completed', 'Cancelled', 'Stopped'])
+            ->select('wo.name', 'wo.creation', 'woi.item_code', 'woi.required_qty', 'woi.transferred_qty', 'woi.returned_qty')
+            ->orderBy('wo.creation', 'desc')->get();
+
+        $stock_entry_arr = collect($production_order)->map(function ($q) use ($transfers_arr){
+            if(isset($transfers_arr[$q->name][$q->item_code])){
+                $q->returned_qty_on_stock_entry = $transfers_arr[$q->name][$q->item_code]['returned_qty'];
+                $q->transfered_qty_on_stock_entry = $transfers_arr[$q->name][$q->item_code]['transfered_qty'];
+                $q->total_transfered_on_stock_entry = $transfers_arr[$q->name][$q->item_code]['total_transfered'];
+                $q->stock_entries = $transfers_arr[$q->name][$q->item_code]['stock_entries'];
+                
+                if($q->total_transfered_on_stock_entry > $q->required_qty){
+                    return $q;
+                }
+            }
+        })->filter()->values()->all();
+
+        return view('reports.duplicate_stes', compact('stock_entry_arr'));
     }
 
     public function inaccurate_operator_feedback(Request $request){

@@ -694,6 +694,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
 	Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 	Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
+	Route::get('/duplicate_withdrawal_slips', 'LinkReportController@duplicate_withdrawal_slips');
 	Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 	Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 	Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
