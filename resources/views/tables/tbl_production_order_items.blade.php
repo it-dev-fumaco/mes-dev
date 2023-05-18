@@ -350,6 +350,9 @@
 					<td class="border-top-0 text-center">
 						@php
 							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
+							if (!$details->bom_no && $component['item_code'] == $details->item_code) {
+								$change_cancel_btn = 'disabled';
+							}
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
 						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} data-ws-status="{{ $a['status'] }}" style="min-width: 45px;"> 
@@ -369,7 +372,7 @@
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
 							<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
+						<button type="button" class="btn btn-danger btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
 							<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
 						</button>
 						{{-- <div class="ws dropdown">
