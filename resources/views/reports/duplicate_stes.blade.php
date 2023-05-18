@@ -9,8 +9,8 @@
 <div class="panel-header"></div>
 
 <div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 85vh;">
-    <div class="container-fluid bg-white">
-        <div class="col-10 mx-auto">
+    <div class="col-12" style="background-color: #fff !important">
+        <div class="col-10 mx-auto" style="background-color: #fff !important">
             <table class="table table-bordered table-striped">
                 <tr>
                     <th class="text-center p-1" rowspan=2>Production Order</th>
