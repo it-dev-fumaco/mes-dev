@@ -16,7 +16,8 @@
 		}
 	}
 
-	$disabled = in_array($details->status, ['Cancelled', 'Closed', 'Completed']) ? 'disabled' : null;
+	$disabled = in_array($details->status, ['Cancelled', 'Closed']) ? 'disabled' : null;
+	$disabled = $details->feedback_qty >= $details->qty_to_manufacture ? 'disabled' : null;
 
 	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
@@ -187,13 +188,13 @@
 			<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="custom-table-1-1" border="1">
 				<col style="width: 3%;">	<!-- No. -->
 				<col style="width: 7%;">	<!-- Image -->
-				<col style="width: 30%;">	<!-- Item Code -->
+				<col style="width: 25%;">	<!-- Item Code -->
 				<col style="width: 8%;">	<!-- Required Qty -->
 				<col style="width: 8%;">	<!-- Requested Qty -->
 				<col style="width: 16%;">	<!-- Source Warehouse -->
 				<col style="width: 10%;">	<!-- Transferred Qty -->
 				<col style="width: 8%;">	<!-- Status -->
-				<col style="width: 10%;">	<!-- Action -->
+				<col style="width: 15%;">	<!-- Action -->
 				<tr class="text-center">
 					<th>No.</th>
 					<th colspan="2">Item Code</th>
@@ -306,8 +307,8 @@
 							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						{{-- <button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} data-ws-status="{{ $a['status'] }}" style="min-width: 45px;"> 
-							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} data-ws-status="{{ $a['status'] }}" style="min-width: 45px;"> 
+							<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-sm p-1 split-source-warehouse"
 							data-production-order="{{ $details->production_order }}"
@@ -318,15 +319,15 @@
 							data-source-warehouse="{{ $a['source_warehouse'] }}"
 							data-transferred-qty="{{ $a['requested_qty'] * 1 }}"
 							style="min-width: 45px; background-color: #22D3CC" {{ $change_cancel_btn }} {{ $disabled }}> 
-							<i class="now-ui-icons business_chart-pie-36 d-block"></i><span style="font-size: 7pt;">Split</span>
+							<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+							<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 						</button>
 						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
-						</button> --}}
-						<div class="ws dropdown">
+							<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
+						</button>
+						{{-- <div class="ws dropdown">
 							<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  	Actions
 							</button>
@@ -352,7 +353,7 @@
 									<i class="now-ui-icons ui-1_simple-remove"></i> Cancel
 								</button>
 							</div>
-						</div>
+						</div> --}}
 					</td>
 				</tr>
 				@empty
@@ -406,18 +407,37 @@
 							<span class="stock-uom">{{ $component['stock_uom'] }}</span>
 							<span class="source-warehouse">{{ $component['source_warehouse'] }}</span>
 						</div>
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} style="min-width: 45px;"> 
-							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} style="min-width: 45px;"> 
+							<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-sm p-1"style="min-width: 45px; background-color: #22D3CC" disabled> 
-							<i class="now-ui-icons business_chart-pie-36 d-block"></i><span style="font-size: 7pt;">Split</span>
+							<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1" disabled {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+							<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 						</button>
 						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
+							<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
 						</button>
+						{{-- <div class="ws dropdown">
+							<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							  	Actions
+							</button>
+							<div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+								<button class="dropdown-item btn-sm change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }}>
+									<i class="now-ui-icons ui-2_settings-90"></i> Change
+								</button>
+								<button class="dropdown-item btn-sm split-source-warehouse" disabled>
+									<i class="now-ui-icons business_chart-pie-36"></i> Split Source Warehouse
+								</button>
+								<button class="dropdown-item btn-sm return-required-item-btn" disabled>
+									<i class="now-ui-icons loader_refresh"></i> Return
+								</button>
+								<button class="dropdown-item btn-sm delete-required-item-btn" disabled>
+									<i class="now-ui-icons ui-1_simple-remove"></i> Cancel
+								</button>
+							</div>
+						</div> --}}
 					</td>
 				</tr>
 				@endforelse
@@ -579,8 +599,8 @@
 							$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
 							$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
 						@endphp
-						{{-- <button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" data-ws-status="{{ $a['status'] }}" {{ $disabled }} style="min-width: 45px;"> 
-								<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" data-ws-status="{{ $a['status'] }}" {{ $disabled }} style="min-width: 45px;"> 
+								<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 						</button>
 						<button type="button" class="btn btn-sm p-1 split-source-warehouse"
 							data-production-order="{{ $details->production_order }}"
@@ -591,15 +611,15 @@
 							data-source-warehouse="{{ $a['source_warehouse'] }}"
 							data-transferred-qty="{{ $a['requested_qty'] * 1 }}"
 							style="min-width: 45px; background-color: #22D3CC" {{ $change_cancel_btn }} {{ $disabled }}> 
-							<i class="now-ui-icons business_chart-pie-36 d-block"></i><span style="font-size: 7pt;">Split</span>
+							<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $part['name'] }}" {{ $return_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+							<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 						</button>
 						<button type="button" class="btn btn-danger btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
-						</button> --}}
-						<div class="ws dropdown">
+							<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
+						</button>
+						{{-- <div class="ws dropdown">
 							<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  	Actions
 							</button>
@@ -625,7 +645,7 @@
 									<i class="now-ui-icons ui-1_simple-remove"></i> Cancel
 								</button>
 							</div>
-						</div>
+						</div> --}}
 					</td>
 				</tr>
 				@empty
@@ -677,17 +697,17 @@
 						<span class="d-none requested-qty">{{ $part['required_qty'] * 1 }}</span>
 						<span class="d-none stock-uom">{{ $part['stock_uom'] }}</span>
 						<span class="d-none source-warehouse">{{ $part['source_warehouse'] }}</span>
-						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $disabled }}> 
-							<i class="now-ui-icons ui-2_settings-90 d-block"></i><span style="font-size: 7pt;">Change</span>
+						<button type="button" class="btn btn-info  btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $part['item_classification'] }}" data-production-order-item-id="{{ $part['name'] }}" {{ $disabled }} style="width: 45px;"> 
+							<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 						</button>
-						<button type="button" class="btn btn-sm p-1" style="min-width: 45px; background-color: #22D3CC" disabled> 
-							<i class="now-ui-icons business_chart-pie-36 d-block"></i><span style="font-size: 7pt;">Split</span>
+						<button type="button" class="btn btn-sm p-1" style="min-width: 45px; background-color: #22D3CC" disabled style="width: 45px;"> 
+							<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
 						</button>
-						<button type="button" class="btn btn-secondary btn-sm p-1" disabled {{ $disabled }}>
-							<i class="now-ui-icons loader_refresh d-block"></i><span style="font-size: 7pt;">Return</span>
+						<button type="button" class="btn btn-secondary btn-sm p-1" disabled {{ $disabled }} style="width: 45px;">
+							<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }} {{ $disabled }}>
-							<i class="now-ui-icons ui-1_simple-remove d-block"></i><span style="font-size: 7pt;">Cancel</span>
+						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }} {{ $disabled }} style="width: 45px;">
+							<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
 						</button>
 					</td>
 				</tr>
