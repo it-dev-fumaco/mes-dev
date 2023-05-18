@@ -532,6 +532,7 @@ Route::post('/unschedule_production_from_notif', 'SecondaryController@unschedule
 Route::get('/get_production_order_items/{production_order}', 'ManufacturingController@get_production_order_items');
 Route::post('/generate_stock_entry/{production_order}', 'ManufacturingController@generate_stock_entry');
 Route::get('/selected_print_fg_transfer_slip/{production_order}', 'MainController@selected_print_fg_transfer_slip');
+	Route::get('/sync_parent_item/{production_order}', 'ManufacturingController@sync_parent_item');
 //email_trans_setup
 Route::get('/get_employee_email', 'SecondaryController@get_employee_email');
 Route::post('/save_add_email_trans', 'SecondaryController@save_add_email_trans');

@@ -1274,6 +1274,36 @@
         $("#wrapper").toggleClass("no-sidebar");
     });
 
+    $(document).on('click', '#sync-parent-item-btn', function (e){
+      e.preventDefault();
+      var production_order = $(this).data('production-order');
+      $.ajax({
+        url: "/sync_parent_item/" + production_order,
+        type: 'GET',
+        success: function(response){
+          if(!response.success){
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+            return false;
+          }
+
+          showNotification("success", response.message, "now-ui-icons travel_info");
+          get_production_order_items(production_order);
+          close_modal('#sync-parent-item-modal');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+          showNotification("danger", errorThrown, "now-ui-icons travel_info");
+        }
+      });
+    });
+
+    $(document).on('click', '.close-modal', function (e){
+      e.preventDefault();
+      close_modal($(this).data('target'));
+    });
+
     function close_modal(modal){
       $(modal).modal('hide');
     }

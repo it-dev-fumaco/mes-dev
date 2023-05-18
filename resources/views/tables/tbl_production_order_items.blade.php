@@ -22,6 +22,51 @@
 	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
+@if ($so_item && $details->parent_item_code != $so_item->item_code && !in_array($details->status, ['Cancelled', 'Closed']) && $details->feedback_qty == 0 && !$details->is_delivered && !$details->bom_no)
+	<div class="alert alert-warning" style="color: #000;">
+		<div class="row p-0">
+			<div class="col-10 p-0 pl-2">
+				<span class="text-uppercase" style="font-size: 12pt;">
+					<b>Warning: Item code has been changed</b>
+				</span>
+				<div class="row pt-2" style="font-size: 9pt;">
+					<div class="col-1 text-right" style="white-space: nowrap;">
+						<b>New Item Code:&nbsp;</b>
+					</div>
+					<div class="col-10 ml-2">
+						<b>{{ $so_item->item_code }}</b> - {{ strip_tags($so_item->description) }}.
+					</div>
+				</div>
+			</div>
+			<div class="col-2 p-0" style="display: flex; justify-content: center; align-items: center;">
+				<button type="button" class="btn btn-primary m-0" data-toggle="modal" data-target="#sync-parent-item-modal">
+					<i class="now-ui-icons loader_refresh" style="font-size: 9pt;"></i> Update Parent Item
+				</button>
+
+				<div class="modal fade" id="sync-parent-item-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header text-white" style="background-color: #0277BD;">
+								<h5 class="modal-title" id="exampleModalLabel">Update Item Code</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								Update item code from <b>{{ $details->parent_item_code }}</b> to <b>{{ $so_item->item_code }}</b>?
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary close-modal" data-target="#sync-parent-item-modal">Close</button>
+								<button class="btn btn-primary" id="sync-parent-item-btn" data-production-order="{{ $details->production_order }}">Confirm</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+@endif
+
 <table style="width: 100%; border-collapse: collapse;" class="custom-table-1-1 exclude-table">
 	<col style="width: 10%;"><!-- Reference No. -->
 	<col style="width: 15%;"><!-- Customer -->
@@ -90,17 +135,17 @@
 		</td>
 		<td class="text-center" colspan="2">
 			@if ($checker == 0)
-			<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
+				<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
 			@else
-			@if($issued_qty > 0)
-			<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Submit Withdrawal Slip</button>
-			@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 1)
-			<button class="btn btn-success m-1 p-3">Withdrawal Slip Submitted</button>
-			@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 0)
-			<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
-			@else
-			<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Create Withdrawal Slip</button>
-			@endif
+				@if($issued_qty > 0)
+					<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Submit Withdrawal Slip</button>
+				@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 1)
+					<button class="btn btn-success m-1 p-3">Withdrawal Slip Submitted</button>
+				@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 0)
+					<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
+				@else
+					<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Create Withdrawal Slip</button>
+				@endif
 			@endif
 		</td>
 	</tr>
@@ -973,8 +1018,12 @@
 		animation: blinkingBackground 2.5s linear infinite;
 	}
 
-	.ws .dropdown-item:hover{
+	/* .ws .dropdown-item:hover{
 		background-color: rgba(0,0,0,0.2) !important;
+	} */
+
+	.modal{
+		background-color: rgba(0,0,0,.4);
 	}
 
 	@keyframes blinkingBackground{

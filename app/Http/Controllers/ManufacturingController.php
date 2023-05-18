@@ -2206,6 +2206,60 @@ class ManufacturingController extends Controller
         }
     }
 
+    public function sync_parent_item($production_order){
+        DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
+        try{
+            $details = DB::connection('mysql_mes')->table('production_order')
+                ->leftJoin('delivery_date', function($join){
+                    $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
+                    $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
+                })
+                ->where('production_order.production_order', $production_order)
+                ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.erp_reference_id', 'delivery_date.delivery_date_id')
+                ->first();
+
+            if (!$details) {
+                return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
+            }
+
+            $so_item = DB::connection('mysql')->table('tabSales Order Item')
+                ->where('name', $details->erp_reference_id)->pluck('item_code')->first();
+
+            if($details->parent_item_code == $so_item){
+                return response()->json(['success' => 0, 'message' => 'Item code is already updated. Please reload the page.']);
+            }
+
+            $now = Carbon::now();
+
+            $update_values = [
+                'parent_item_code' => $so_item,
+                'last_modified_at' => $now->toDateTimeString(),
+                'last_modified_by' => Auth::user()->email
+            ];
+            
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update($update_values);
+            DB::connection('mysql_mes')->table('delivery_date')->where('delivery_date_id', $details->delivery_date_id)->update($update_values);
+
+            DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Parent Item Updated',
+                'message' => 'Parent item code of '.$production_order.' has been updated from '.$details->parent_item_code.' to '.$so_item.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                'reference' => $production_order,
+                'created_by' => Auth::user()->employee_name,
+                'created_at' => Carbon::now()->toDateTimeString()
+            ]);
+
+            DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Item code updated.']);
+        }catch(\Throwable $th){
+            DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
+            throw $th;
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+        }
+    }
+
     // /get_production_order_items/{production_order}
     public function get_production_order_items($production_order){
         $details = DB::connection('mysql_mes')->table('production_order')
@@ -2215,12 +2269,16 @@ class ManufacturingController extends Controller
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
             ->where('production_order.production_order', $production_order)
-            ->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
+            ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.erp_reference_id', 'delivery_date.delivery_date_id', 'delivery_date.is_delivered')
             ->first();
 
         if (!$details) {
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
         }
+
+        $so_item = DB::connection('mysql')->table('tabSales Order Item as soi')
+            ->join('tabItem as item', 'item.item_code', 'soi.item_code')
+            ->where('soi.name', $details->erp_reference_id)->select('item.item_code', 'item.description')->first();
 
         // get production order stock entries
         $stock_entry_arr = DB::connection('mysql')->table('tabStock Entry')
@@ -2600,7 +2658,7 @@ class ManufacturingController extends Controller
             $reject_reason = collect($reject_reason_qry)->groupBy('job_ticket_id');
         }
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason'));
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason', 'so_item'));
     }
 
     public function create_material_transfer_for_return(Request $request){
