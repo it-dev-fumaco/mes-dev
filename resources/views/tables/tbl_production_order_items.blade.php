@@ -366,7 +366,7 @@
 							data-item-name="{{ $component['item_name'] }}"
 							data-source-warehouse="{{ $a['source_warehouse'] }}"
 							data-transferred-qty="{{ $a['requested_qty'] * 1 }}"
-							style="min-width: 45px; background-color: #22D3CC" {{ $change_cancel_btn }} {{ $disabled }}> 
+							style="min-width: 45px; background-color: #22D3CC" {{ ($a['status'] == 'Issued') ? 'disabled' : null }} {{ $disabled }}> 
 							<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
 						</button>
 						<button type="button" class="btn btn-secondary btn-sm p-1 return-required-item-btn" data-production-order="{{ $details->production_order }}" data-production-order-item-id="{{ $component['name'] }}" {{ $return_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
