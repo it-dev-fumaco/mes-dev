@@ -797,10 +797,11 @@ trait GeneralTrait
                 ->whereNotNull('item_alternative_for')
                 ->sum('required_qty');
 
+            $transferred_qty = round((float)$row->transferred_qty - (float)$row->returned_qty, 8);
             // get raw material qty per piece
             $qty_per_item = $item_required_qty / $qty_to_manufacture;
             // get raw material remaining qty
-            $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 8);
+            $balance_qty = round((float)$transferred_qty - (float)$row->consumed_qty, 8);
             // get total raw material qty for feedback qty
             $per_item = $qty_per_item * $fg_completed_qty;
             // get raw material remaining qty
@@ -839,7 +840,7 @@ trait GeneralTrait
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
                     'required_qty' => $required_qty,
-                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 8),
+                    'transferred_qty' => $transferred_qty,
                     'consumed_qty' => round((float)$row->consumed_qty, 8),
                     'balance_qty' => $balance_qty,
                 ];
@@ -859,8 +860,9 @@ trait GeneralTrait
         $arr = [];
         foreach ($q as $i => $row) {
             if($remaining > 0){
+                $transferred_qty = round((float)$row->transferred_qty - (float)$row->returned_qty, 8);
                 // get raw material remaining qty
-                $balance_qty = round((float)$row->required_qty - (float)$row->consumed_qty, 8);
+                $balance_qty = round((float)$transferred_qty - (float)$row->consumed_qty, 8);
                 // get total raw material qty for feedback qty
                 $per_item = $qty_per_item * $remaining_feedback_qty;
                 // get raw material remaining qty
@@ -874,7 +876,7 @@ trait GeneralTrait
                     'item_name' => $row->item_name,
                     'description' => $row->description,
                     'stock_uom' => $row->stock_uom,
-                    'transferred_qty' => round((float)$row->transferred_qty - (float)$row->returned_qty, 8),
+                    'transferred_qty' => $transferred_qty,
                     'consumed_qty' => round((float)$row->consumed_qty, 8),
                     'balance_qty' => $balance_qty,
                 ];

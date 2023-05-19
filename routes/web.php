@@ -259,6 +259,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');
 	Route::post('/continue_log_task/{timelog_id}', 'SpotweldingController@continue_log_task');
 	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
+	Route::post('/split_source_warehouse', 'MainController@split_source_warehouse');
 	Route::get('/create_bundle_feedback/{production_order}/{fg_completed_qty}', 'ManufacturingController@create_production_feedback_for_item_bundle');
 	Route::get('/create_gl_entry/{stock_entry}', 'MainController@create_gl_entry');
 	Route::get('/get_tbl_notif_dashboard', 'MainController@get_tbl_notif_dashboard');
@@ -531,6 +532,7 @@ Route::post('/unschedule_production_from_notif', 'SecondaryController@unschedule
 Route::get('/get_production_order_items/{production_order}', 'ManufacturingController@get_production_order_items');
 Route::post('/generate_stock_entry/{production_order}', 'ManufacturingController@generate_stock_entry');
 Route::get('/selected_print_fg_transfer_slip/{production_order}', 'MainController@selected_print_fg_transfer_slip');
+	Route::get('/sync_parent_item/{production_order}', 'ManufacturingController@sync_parent_item');
 //email_trans_setup
 Route::get('/get_employee_email', 'SecondaryController@get_employee_email');
 Route::post('/save_add_email_trans', 'SecondaryController@save_add_email_trans');
@@ -693,6 +695,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
 	Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
 	Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
+	Route::get('/duplicate_withdrawal_slips', 'LinkReportController@duplicate_withdrawal_slips');
 	Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 	Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 	Route::get('/export/machine_list', 'LinkReportController@export_machine_list');

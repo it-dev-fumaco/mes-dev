@@ -1039,6 +1039,46 @@
   </div>
 </div>
 
+<!-- Split Source Warehouse Modal -->
+<div class="modal fade" id="split-source-warehouse-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header p-3 text-white" style="background-color: #0277BD;">
+        <h5 class="modal-title" id="exampleModalLabel">Get stocks from another warehouse</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/split_source_warehouse" id="split-source-warehouse-form" method="post">
+        @csrf
+        <div class="modal-body">
+          <b class="item-code"></b> - <span class="item-name"></span>
+          <div class="form-group mt-2">
+            <b>Requested Qty</b>
+            <input type="text" class="form-control requested-qty" name="requested_qty" required>
+          </div>
+          <div class="form-group">
+            <b>Source Warehouse</b>
+            <select name="source_warehouse" class="form-control source-warehouse-select"></select>
+          </div>
+          <div class="inv-list"></div>
+          <div class="d-none">
+            <input type="text" class="item-id" name="item_id">
+            <input type="text" class="production-order" name="production_order"> 
+            <input type="text" class="item-code-val" name="item_code"> 
+            <input type="text" class="source" name="current_source_warehouse"> 
+            <span class="transferred"></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary submit">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Modal -->
 <div class="modal fade" id="reset-log-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -1232,6 +1272,36 @@
 
     $("#sidebar-toggle").on("click", function () {
         $("#wrapper").toggleClass("no-sidebar");
+    });
+
+    $(document).on('click', '#sync-parent-item-btn', function (e){
+      e.preventDefault();
+      var production_order = $(this).data('production-order');
+      $.ajax({
+        url: "/sync_parent_item/" + production_order,
+        type: 'GET',
+        success: function(response){
+          if(!response.success){
+            showNotification("danger", response.message, "now-ui-icons travel_info");
+            return false;
+          }
+
+          showNotification("success", response.message, "now-ui-icons travel_info");
+          get_production_order_items(production_order);
+          close_modal('#sync-parent-item-modal');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+          showNotification("danger", errorThrown, "now-ui-icons travel_info");
+        }
+      });
+    });
+
+    $(document).on('click', '.close-modal', function (e){
+      e.preventDefault();
+      close_modal($(this).data('target'));
     });
 
     function close_modal(modal){
@@ -1918,9 +1988,137 @@
       $('#add-required-item-modal').modal('show');
     });
 
+    $(document).on('click', '.split-source-warehouse', function (e){
+      e.preventDefault();
+      var item_id = $(this).data('item-id');
+      var item_code = $(this).data('item-code');
+      var item_name = $(this).data('item-name');
+      var source = $(this).data('source-warehouse');
+      var transferred = $(this).data('transferred-qty');
+      var production_order = $(this).data('production-order');
+
+      $('#split-source-warehouse-form .source').val(source);
+      $('#split-source-warehouse-form .item-id').val(item_id);
+      $('#split-source-warehouse-form .item-name').text(item_name);
+      $('#split-source-warehouse-form .item-code').text(item_code);
+      $('#split-source-warehouse-form .item-code-val').val(item_code);
+      $('#split-source-warehouse-form .transferred').text(transferred);
+      $('#split-source-warehouse-form .production-order').val(production_order);
+
+      $.ajax({
+        url: "/get_mes_warehouse",
+        type:"GET",
+        success: function(data){
+          var options = '';
+          $.each(data, function (i, item) {
+            options += '<option value="' + item + '">' + item + '</option>';
+          });
+          $('#split-source-warehouse-form .source-warehouse-select').append(options);
+        }
+      });
+
+      $.ajax({
+        url: "/get_available_warehouse_qty/" + item_code,
+        type:"GET",
+        success: function(data){
+          $('#split-source-warehouse-modal .inv-list').html(data);
+        }
+      });
+
+      $('#split-source-warehouse-modal').modal('show');
+    });
+
+    $(document).on('submit', '#split-source-warehouse-form', function (e){
+      e.preventDefault();
+      var form = $(this);
+      var reportValidity = form[0].reportValidity();
+
+      if(reportValidity){
+        $('#split-source-warehouse-form .submit').prop('disabled', true);
+        var new_request_qty = parseInt($('#split-source-warehouse-form input[name="requested_qty"]').val());
+        var existing_request_qty = parseInt($('#split-source-warehouse-form .transferred').text());
+
+        var new_source_warehouse = $('#split-source-warehouse-form .source-warehouse-select').find(":selected").val();
+        var existing_source_warehouse = $('#split-source-warehouse-form .source').text();
+
+        if(new_request_qty <= 0){
+          showNotification("danger", 'New requested qty cannot be equal to or less than 0', "now-ui-icons ui-1_check");
+          $('#split-source-warehouse-form .submit').prop('disabled', false);
+          return false;
+        }
+
+        if(new_request_qty >= existing_request_qty){
+          showNotification("danger", 'New requested qty cannot be equal to or more than the existing requested qty', "now-ui-icons ui-1_check");
+          $('#split-source-warehouse-form .submit').prop('disabled', false);
+          return false;
+        }
+
+        if(new_source_warehouse == existing_source_warehouse){
+          showNotification("danger", 'New source warehouse cannot be the same as the existing source warehouse', "now-ui-icons ui-1_check");
+          $('#split-source-warehouse-form .submit').prop('disabled', false);
+          return false;
+        }
+
+        $.ajax({
+          url: $(this).attr('action'),
+          type: 'POST',
+          data: $(this).serialize(),
+          success: function (response){
+            $('#split-source-warehouse-form .submit').prop('disabled', false);
+            if(!response.success){
+              showNotification("danger", response.message, "now-ui-icons ui-1_check");
+              return false;
+            }
+
+            showNotification("success", response.message, "now-ui-icons ui-1_check");
+            $.ajax({
+              url:"/sync_production_order_items/" + $('#split-source-warehouse-form .production-order').val(),
+              type:"POST",
+              success:function(data){
+                if(data.status == 2){
+                  showNotification("info", data.message, "now-ui-icons travel_info");
+                }else if(data.status == 1){
+                  get_production_order_items(production_order);
+                  showNotification("success", data.message, "now-ui-icons ui-1_check");
+                }else{
+                  showNotification("danger", data.message, "now-ui-icons travel_info");
+                }
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+              }
+            });
+            
+            get_production_order_items($('#split-source-warehouse-form .production-order').val());
+            
+            $('#split-source-warehouse-form .source').val('');
+            $('#split-source-warehouse-form .item-id').val('');
+            $('#split-source-warehouse-form .item-name').text('');
+            $('#split-source-warehouse-form .item-code').text('');
+            $('#split-source-warehouse-form .transferred').text('');
+            $('#split-source-warehouse-form .item-code-val').val('');
+            $('#split-source-warehouse-form .requested-qty').val('');
+            $('#split-source-warehouse-form .production-order').val('');
+            $('#split-source-warehouse-form .source-warehouse-select').html('');
+            $('#split-source-warehouse-modal').modal('hide');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+            showNotification("danger", 'An error occured. Please try again.', "now-ui-icons ui-1_check");
+            $('#split-source-warehouse-form .submit').prop('disabled', false);
+          }
+        });
+      }
+    });
+
     $(document).on('click', '.change-required-item-btn', function(e){
       e.preventDefault();
 
+      var ws_status = $(this).data('ws-status');
       var $row = $(this).closest('tr');
       var ste_names = $row.find('.ste-names').eq(0).text();
       var item_code = $row.find('.item-code').eq(0).text();
@@ -1955,6 +2153,17 @@
       $('#change-required-item-modal input[name="item_classification"]').val($(this).data('item-classification'));
       $('#change-required-item-modal input[name="old_item_code"]').val(item_code);
       $('#change-required-item-modal input[name="item_code"]').val(item_code);
+
+      if(ws_status == 'Issued') {
+        $('#change-required-item-modal input[name="item_code"]').attr('disabled', true);
+        $('#change-required-item-modal input[name="requested_quantity"]').attr('disabled', true);
+        $('#change-required-item-modal select[name="source_warehouse"]').attr('disabled', true);
+      } else {
+        $('#change-required-item-modal input[name="item_code"]').removeAttr('disabled');
+        $('#change-required-item-modal input[name="requested_quantity"]').removeAttr('disabled');
+        $('#change-required-item-modal select[name="source_warehouse"]').removeAttr('disabled');
+      }
+
       $('#change-required-item-modal input[name="item_name"]').val(item_name);
       $('#change-required-item-modal input[name="stock_uom"]').val(stock_uom);
       $('#change-required-item-modal textarea[name="description"]').text(description);
@@ -1967,7 +2176,7 @@
       if(!$('#has-no-bom').text()) {
         $('#change-required-item-modal #change-item-code-warning').removeClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
-        $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
+        // $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
         $('#change-required-qty-btn').addClass('d-none');
       } else {
@@ -2009,9 +2218,7 @@
           }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+          console.log(jqXHR, textStatus, errorThrown);
         }
       });
     });
