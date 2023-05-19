@@ -2176,7 +2176,7 @@
       if(!$('#has-no-bom').text()) {
         $('#change-required-item-modal #change-item-code-warning').removeClass('d-none');
         $('#change-required-item-modal input[name="item_code"]').attr('readonly', true);
-        $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
+        // $('#change-required-item-modal input[name="requested_quantity"]').attr('readonly', true);
         $('#change-required-qty-btn').attr('readonly', true);
         $('#change-required-qty-btn').addClass('d-none');
       } else {

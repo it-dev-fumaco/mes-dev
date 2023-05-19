@@ -2981,6 +2981,17 @@ class ManufacturingController extends Controller
 			$now = Carbon::now();
             $production_order_details = DB::connection('mysql')->table('tabWork Order')->where('name', $request->production_order)->first();
 
+            if(!$production_order_details){
+                return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
+            }
+
+            if(!$production_order_details->bom_no){
+                $mes_production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+                if($mes_production_order_details && $mes_production_order_details->parent_item_code == $mes_production_order_details->item_code && $request->required_qty < $request->requested_quantity){
+                    return response()->json(['success' => 0, 'message' => 'Requested quantity cannot be more than '.$request->required_qty.'.']);
+                }
+            }
+
             $is_valid = false;
             $production_order_item_detail = DB::connection('mysql')->table('tabWork Order Item')->where('parent', $request->production_order)
                 ->where('name', $request->production_order_item_id)->first();
