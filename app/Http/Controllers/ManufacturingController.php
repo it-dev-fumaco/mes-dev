@@ -2233,12 +2233,16 @@ class ManufacturingController extends Controller
             $now = Carbon::now();
 
             $update_values = [
+                'item_code' => $so_item,
                 'parent_item_code' => $so_item,
-                'last_modified_at' => $now->toDateTimeString(),
-                'last_modified_by' => Auth::user()->email
+                'sub_parent_item_code' => $so_item,
+                'last_modified_by' => Auth::user()->email,
+                'last_modified_at' => $now->toDateTimeString()
             ];
             
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update($update_values);
+            unset($update_values['item_code']);
+            unset($update_values['sub_parent_item_code']);
             DB::connection('mysql_mes')->table('delivery_date')->where('delivery_date_id', $details->delivery_date_id)->update($update_values);
 
             DB::connection('mysql_mes')->table('activity_logs')->insert([
