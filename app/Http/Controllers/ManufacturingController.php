@@ -2223,31 +2223,41 @@ class ManufacturingController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
             }
 
-            $so_item = DB::connection('mysql')->table('tabSales Order Item')
-                ->where('name', $details->erp_reference_id)->pluck('item_code')->first();
+            $table = $details->sales_order ? 'tabSales Order Item' : 'tabMaterial Request Item';
+            $item_details = DB::connection('mysql')->table($table.' as soi')
+                ->join('tabItem as item', 'item.item_code', 'soi.item_code')
+                ->where('soi.name', $details->erp_reference_id)->select('item.item_code', 'item.description', 'item.stock_uom', 'item.item_classification')->first();
 
-            if($details->parent_item_code == $so_item){
+            if(!$item_details){
+                return response()->json(['success' => 0, 'message' => 'Item not found.']);
+            }
+
+            if($details->parent_item_code == $item_details->item_code){
                 return response()->json(['success' => 0, 'message' => 'Item code is already updated. Please reload the page.']);
             }
 
             $now = Carbon::now();
 
-            $update_values = [
-                'item_code' => $so_item,
-                'parent_item_code' => $so_item,
-                'sub_parent_item_code' => $so_item,
+            DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update([
+                'item_code' => $item_details->item_code,
+                'parent_item_code' => $item_details->item_code,
+                'sub_parent_item_code' => $item_details->item_code,
+                'stock_uom' => $item_details->stock_uom,
+                'description' => $item_details->description,
+                'item_classification' => $item_details->item_classification,
                 'last_modified_by' => Auth::user()->email,
                 'last_modified_at' => $now->toDateTimeString()
-            ];
-            
-            DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update($update_values);
-            unset($update_values['item_code']);
-            unset($update_values['sub_parent_item_code']);
-            DB::connection('mysql_mes')->table('delivery_date')->where('delivery_date_id', $details->delivery_date_id)->update($update_values);
+            ]);
+
+            DB::connection('mysql_mes')->table('delivery_date')->where('delivery_date_id', $details->delivery_date_id)->update([
+                'parent_item_code' => $item_details->item_code,
+                'last_modified_by' => Auth::user()->email,
+                'last_modified_at' => $now->toDateTimeString()
+            ]);
 
             DB::connection('mysql_mes')->table('activity_logs')->insert([
                 'action' => 'Parent Item Updated',
-                'message' => 'Parent item code of '.$production_order.' has been updated from '.$details->parent_item_code.' to '.$so_item.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
+                'message' => 'Parent item code of '.$production_order.' has been updated from '.$details->parent_item_code.' to '.$item_details->item_code.' by '.Auth::user()->employee_name.' at '.Carbon::now()->toDateTimeString(),
                 'reference' => $production_order,
                 'created_by' => Auth::user()->employee_name,
                 'created_at' => Carbon::now()->toDateTimeString()
@@ -2259,7 +2269,6 @@ class ManufacturingController extends Controller
         }catch(\Throwable $th){
             DB::connection('mysql')->rollback();
             DB::connection('mysql_mes')->rollback();
-            throw $th;
             return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
         }
     }
@@ -2280,7 +2289,8 @@ class ManufacturingController extends Controller
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
         }
 
-        $so_item = DB::connection('mysql')->table('tabSales Order Item as soi')
+        $table = $details->sales_order ? 'tabSales Order Item' : 'tabMaterial Request Item';
+        $so_item = DB::connection('mysql')->table($table.' as soi')
             ->join('tabItem as item', 'item.item_code', 'soi.item_code')
             ->where('soi.name', $details->erp_reference_id)->select('item.item_code', 'item.description')->first();
 
