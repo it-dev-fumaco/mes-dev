@@ -2399,12 +2399,17 @@ class ManufacturingController extends Controller
                     $irequested_qty = ($i->docstatus == 1) ? $i->qty : $transferred_qty;
                 }
 
+                $withdrawal_issued_qty = ($i->docstatus == 1 && $transferred_qty > 0) ? ($i->issued_qty - $item->returned_qty) : 0;
+                if($istatus == 'Issued' && $withdrawal_issued_qty <= 0){
+                    continue;
+                }
+
                 $withdrawals[] = [
                     'id' => null,
                     'source_warehouse' => $i->s_warehouse,
                     'actual_qty' => $actual_qty,
                     'qty' => ($i->docstatus == 1) ? ($i->qty - $item->returned_qty) : 0,
-                    'issued_qty' => ($i->docstatus == 1 && $transferred_qty > 0) ? ($i->issued_qty - $item->returned_qty) : 0,
+                    'issued_qty' => $withdrawal_issued_qty,
                     'status' => $istatus,
                     'ste_names' => $i->ste_names,
                     'ste_docstatus' => $i->docstatus,
