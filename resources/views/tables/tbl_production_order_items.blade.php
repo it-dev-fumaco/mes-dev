@@ -22,7 +22,7 @@
 	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
-@if ($so_item && $details->parent_item_code != $so_item->item_code && !in_array($details->status, ['Cancelled', 'Closed']) && $details->feedback_qty == 0 && !$details->is_delivered && !$details->bom_no)
+@if ($ordered_item && $details->parent_item_code != $ordered_item->item_code && !in_array($details->status, ['Cancelled', 'Closed']) && $details->feedback_qty == 0 && $ordered_item->is_delivered < 100 && !$details->bom_no)
 	<div class="alert alert-warning" style="color: #000;">
 		<div class="row p-0">
 			<div class="col-10 p-0 pl-2">
@@ -34,7 +34,7 @@
 						<b>New Item Code:&nbsp;</b>
 					</div>
 					<div class="col-10 ml-2">
-						<b>{{ $so_item->item_code }}</b> - {{ strip_tags($so_item->description) }}.
+						<b>{{ $ordered_item->item_code }}</b> - {{ strip_tags($ordered_item->description) }}.
 					</div>
 				</div>
 			</div>
