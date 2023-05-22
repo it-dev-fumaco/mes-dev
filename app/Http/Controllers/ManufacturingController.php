@@ -2282,17 +2282,19 @@ class ManufacturingController extends Controller
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
             ->where('production_order.production_order', $production_order)
-            ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.erp_reference_id', 'delivery_date.delivery_date_id', 'delivery_date.is_delivered')
+            ->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'delivery_date.erp_reference_id', 'delivery_date.delivery_date_id')
             ->first();
 
         if (!$details) {
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
         }
 
-        $table = $details->sales_order ? 'tabSales Order Item' : 'tabMaterial Request Item';
-        $so_item = DB::connection('mysql')->table($table.' as soi')
-            ->join('tabItem as item', 'item.item_code', 'soi.item_code')
-            ->where('soi.name', $details->erp_reference_id)->select('item.item_code', 'item.description')->first();
+        $table = $details->sales_order ? 'tabSales Order' : 'tabMaterial Request';
+        $delivered_column = $details->sales_order ? 'parent.per_delivered' : 'parent.per_ordered';
+        $ordered_item = DB::connection('mysql')->table($table.' as parent')
+            ->join($table.' Item as child', 'parent.name', 'child.parent')
+            ->join('tabItem as item', 'item.item_code', 'child.item_code')
+            ->where('child.name', $details->erp_reference_id)->select('item.item_code', 'item.description', $delivered_column.' as is_delivered')->first();
 
         // get production order stock entries
         $stock_entry_arr = DB::connection('mysql')->table('tabStock Entry')
@@ -2677,7 +2679,7 @@ class ManufacturingController extends Controller
             $reject_reason = collect($reject_reason_qry)->groupBy('job_ticket_id');
         }
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason', 'so_item'));
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason', 'ordered_item'));
     }
 
     public function create_material_transfer_for_return(Request $request){
