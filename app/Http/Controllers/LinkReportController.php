@@ -1889,7 +1889,7 @@ class LinkReportController extends Controller
             }
         })->filter()->values()->all();
 
-        return view('reports.duplicate_stes', compact('stock_entry_arr'));
+        return view('reports.duplicate_stes', compact('stock_entry_arr', 'permissions'));
     }
 
     public function inaccurate_operator_feedback(Request $request){
