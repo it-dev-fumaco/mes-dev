@@ -10,53 +10,57 @@
 
 <div class="row p-0" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 85vh;">
     <div class="col-12" style="background-color: #fff !important">
-        <div class="col-10 mx-auto" style="background-color: #fff !important">
-            <table class="table table-bordered table-striped">
-                <tr>
-                    <th class="text-center p-1" rowspan=2>Production Order</th>
-                    <th class="text-center p-1" rowspan=2>Item</th>
-                    <th class="text-center p-1" rowspan=2>Required Qty</th>
-                    <th class="text-center p-1" colspan=3 style="background-color: rgba(47, 157, 88, .3)">Work Order</th>
-                    <th class="text-center p-1" colspan=3 style="background-color: rgba(15, 111, 183, .3)">Stock Entry</th>
-                    <th class="text-center p-1" rowspan=2>Stock Entries(Withdrawals)</th>
-                </tr>
-                <tr>
-                    <th class="text-center p-1">Returned</th>
-                    <th class="text-center p-1">Withdrawn</th>
-                    <th class="text-center p-1">Transfered</th>
-                    
-                    <th class="text-center p-1">Returned</th>
-                    <th class="text-center p-1">Withdrawn</th>
-                    <th class="text-center p-1">Transfered</th>
-                </tr>
-                @foreach ($stock_entry_arr as $ste)
-                <tr>
-                    <td class="text-center p-1">
-                        {{ $ste->name }}<br/>
-                        <small class="text-muted">{{ Carbon\Carbon::parse($ste->creation)->format('M. d, Y h:i A') }}</small>
-                    </td>
-                    <td class="text-center p-1">{{ $ste->item_code }}</td>
-                    <td class="text-center p-1">{{ $ste->required_qty }}</td>
-                    
-                    <td class="text-center p-1">{{ $ste->returned_qty }}</td>
-                        <td class="text-center p-1">{{ $ste->transferred_qty }}</td>
-                        <td class="text-center p-1">{{ $ste->transferred_qty - $ste->returned_qty }}</td>
-
-                        <td class="text-center p-1">{{ $ste->returned_qty_on_stock_entry }}</td>
-                        <td class="text-center p-1">{{ $ste->transfered_qty_on_stock_entry }}</td>
-                        <td class="text-center p-1">
-                            <b>{{ $ste->total_transfered_on_stock_entry }}</b>
-                        </td>
-                        
-                        <td class="text-center p-1">
-                            @foreach ($ste->stock_entries as $ref => $qty)
-                            <p>{{ $ref }} ({{ $qty }})</p>
-                            @endforeach
-                        </td>
-                    </tr>
-                @endforeach
-            </table>
+        <div class="container-fluid text-center">
+            <h3 class="m-0 p-0"><b>Production Orders with Duplicated Withdrawal Slips</b></h3>
         </div>
+        <div class="container-fluid text-right">
+            <span><b>Total Records: <span class="badge badge-primary">{{ count($stock_entry_arr) }}</span></b></span>
+        </div>
+        <table class="table table-bordered table-striped">
+            <tr>
+                <th class="text-center p-1" rowspan=2>Production Order</th>
+                <th class="text-center p-1" rowspan=2>Item</th>
+                <th class="text-center p-1" rowspan=2>Required Qty</th>
+                <th class="text-center p-1" colspan=3 style="background-color: rgba(47, 157, 88, .3)">Work Order</th>
+                <th class="text-center p-1" colspan=3 style="background-color: rgba(15, 111, 183, .3)">Stock Entry</th>
+                <th class="text-center p-1" rowspan=2>Stock Entries(Withdrawals)</th>
+            </tr>
+            <tr>
+                <th class="text-center p-1">Returned</th>
+                <th class="text-center p-1">Withdrawn</th>
+                <th class="text-center p-1">Transfered</th>
+                
+                <th class="text-center p-1">Returned</th>
+                <th class="text-center p-1">Withdrawn</th>
+                <th class="text-center p-1">Transfered</th>
+            </tr>
+            @foreach ($stock_entry_arr as $ste)
+            <tr>
+                <td class="text-center p-1">
+                    {{ $ste->name }}<br/>
+                    <small class="text-muted">{{ Carbon\Carbon::parse($ste->creation)->format('M. d, Y h:i A') }}</small>
+                </td>
+                <td class="text-center p-1">{{ $ste->item_code }}</td>
+                <td class="text-center p-1">{{ $ste->required_qty }}</td>
+                
+                <td class="text-center p-1">{{ $ste->returned_qty }}</td>
+                    <td class="text-center p-1">{{ $ste->transferred_qty }}</td>
+                    <td class="text-center p-1">{{ $ste->transferred_qty - $ste->returned_qty }}</td>
+
+                    <td class="text-center p-1">{{ $ste->returned_qty_on_stock_entry }}</td>
+                    <td class="text-center p-1">{{ $ste->transfered_qty_on_stock_entry }}</td>
+                    <td class="text-center p-1">
+                        <b>{{ $ste->total_transfered_on_stock_entry }}</b>
+                    </td>
+                    
+                    <td class="text-center p-1">
+                        @foreach ($ste->stock_entries as $ref => $qty)
+                        <p>{{ $ref }} ({{ $qty }})</p>
+                        @endforeach
+                    </td>
+                </tr>
+            @endforeach
+        </table>
     </div>
 </div>
 @endsection
