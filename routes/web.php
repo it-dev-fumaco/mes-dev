@@ -709,5 +709,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
 	Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
 	Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+	Route::get('/items_in_their_own_bom', 'LinkReportController@items_in_their_own_bom');
 	});
 });
