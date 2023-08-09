@@ -179,6 +179,9 @@
                                     <tr>
                                         <td><a href="/duplicate_withdrawal_slips" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Orders with Duplicated Withdrawal Slips</span></a></td>
                                     </tr>
+                                    <tr>
+                                        <td><a href="/items_in_their_own_bom" class="hover-class"><span style="padding-left:30px;line-height:25px;">Items that are included in their own BOM</span></a></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

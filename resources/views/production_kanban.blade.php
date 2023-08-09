@@ -315,14 +315,16 @@
                                 }
                             }
                             @endphp
-                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px; background-color: {{$divcolor}};">                                  
-                                  <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
-                                  <span class="production-order-class d-none">{{ $order['production_order'] }}</span>
-                                  <span class="reference-class d-none">{{ $order['sales_order'] }}</span>
-                                  <span class="item-code-class d-none">{{ $order['production_item'] }}</span>
-                                  <span class="description-class d-none">{{ $order['description'] }}</span>
-                                  <span class="delivery-date-class d-none">{{ $order['delivery_date'] }}</span>
-                                  <span class="qty-to-manufacture-class d-none">{{ $order['qty'] }} {{ $order['stock_uom'] }}</span>
+                            <div data-parent-item="{{ $order['parent_item_code'] }}" data-customer="{{ $order['customer'] }}" data-reference-no="{{ $order['sales_order'] }}" class="kanban-card card {{ $order['status'] }}" data-index="{{ $order['id'] }}" data-position="{{ $order['order_no'] }}" data-card="{{ $r['schedule'] }}" data-name="{{ $order['production_order'] }}" data-delivery="{{ $order['delivery_date'] }}" data-parentitemcode="{{ $order['parent_item_code'] }}" data-itemcode="{{ $order['item_code'] }}" data-duration="" style="margin-top: -10px; background-color: {{$divcolor}};"> 
+                              <div class="d-none">
+                                <span class="production-order-class">{{ $order['production_order'] }}</span>
+                                <span class="production-order-class">{{ $order['production_order'] }}</span>
+                                <span class="reference-class">{{ $order['sales_order'] }}</span>
+                                <span class="item-code-class">{{ $order['production_item'] }}</span>
+                                <span class="description-class">{{ $order['description'] }}</span>
+                                <span class="delivery-date-class">{{ $order['delivery_date'] }}</span>
+                                <span class="qty-to-manufacture-class">{{ $order['qty'] }} {{ $order['stock_uom'] }}</span>
+                              </div>                                 
                               <div class="card-body p-2" style="font-size: 8pt; margin-top: -5px;">
                                 <table style="width: 100%;">
                                   <tr>
