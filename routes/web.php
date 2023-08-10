@@ -686,23 +686,37 @@ Route::get('/get_operators', 'MainController@get_operators');
 Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 //Daily Report
-Route::group(['middleware' => 'auth'], function(){
-	Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
-	Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
-	// Route::get('/link_qa_report', 'LinkReportController@qa_report');
-	Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
-	Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
-	Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
-	Route::get('/report_index', 'LinkReportController@index');
-	Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
-	Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
-	Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
-	Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
-	Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
-	Route::get('/duplicate_withdrawal_slips', 'LinkReportController@duplicate_withdrawal_slips');
-	Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
-	Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
-	Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+	Route::group(['middleware' => 'auth'], function(){
+		Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
+		Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
+		// Route::get('/link_qa_report', 'LinkReportController@qa_report');
+		Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
+		Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
+		Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
+		Route::get('/report_index', 'LinkReportController@index');
+		Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
+		Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
+		Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
+		Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+		Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
+		Route::get('/duplicate_withdrawal_slips', 'LinkReportController@duplicate_withdrawal_slips');
+		Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
+		Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
+		Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+
+		Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
+		Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+		Route::get('/rejection_report', 'LinkReportController@rejection_report');
+		Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
+		Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
+		Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
+		Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
+		Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
+		Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+		Route::get('/items_in_their_own_bom', 'LinkReportController@items_in_their_own_bom');
+
+		Route::get('/view_role_permissions_form/{user_group}', 'MainController@viewRolePermissionsForm');
+		Route::post('/save_role_permissions/{user_group}', 'MainController@saveRolePermissions');
 
 	Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 	Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');

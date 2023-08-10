@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
@@ -10520,5 +10521,106 @@ class MainController extends Controller
 		}
 
 		return view('reports.delivery_schedule_list', compact('permissions', 'projects', 'reference_arr', 'customers', 'date'));
+	}
+
+	public function viewRolePermissionsForm($user_group) {
+		$settings_actions = [
+			'manage-machines' => 'Add, Edit and Delete Machines',
+			'manage-rescheduled-delivery-reason' => 'Add or Remove Rescheduled Delivery Reason',
+			'manage-production-order-cancellation' => 'Add or Remove Reason for Production Order Cancellation',
+			'manage-shifts' => 'Add, Edit and Delete Shifts / Production Working Hours Schedule',
+			'manage-item-classification-source' => 'Add and configure Source Warehouse based on Item Classification',
+			'manage-fast-issuance-permission' => 'Add new user that has fast issuance permission',
+			'manage-wip-warehouse' => 'Assign physical warehouse as Work-in-Progress per operation',
+			'manage-users' => 'Add, Edit and Delete Users & User Groups',
+			'reports' => 'Production Reports',
+		];
+		$production_planning_actions = [
+			'view-incoming-orders' => 'View Incoming Orders',
+			'create-production-order' => 'Create Production Order',
+			'cancel-production-order' => 'Cancel Production Order',
+			'close-production-order' => 'Close Production Order',
+			'override-production-order' => 'Override Production Order',
+			'reopen-production-order' => 'Re-open Production Order',
+			'create-production-order-feedback' => 'Create Production Order Feedback',
+			'cancel-production-order-feedback' => 'Cancel Production Order Feedback',
+			'reschedule-delivery-date-order' => 'Reschedule Delivery Date per Order',
+		];
+		$material_planning_actions = [
+			'create-withdrawal-slip' => 'Create Withdrawal Slip Request',
+			'print-withdrawal-slip' => 'Print Withdrawal Slips',
+			'change-production-order-items' => 'Change Production Order Items (Components/Raw Materials)',
+			'fast-issue-items' => 'Initiate Fast Issue Items',
+			'return-items-to-warehouse' => 'Return Items to Warehouse',
+			'add-production-order-items' => 'Add new item / alternative item in Production Order Required Materials',
+			'create-material-request' => 'Create Material Requests (Raw Materials Request)',
+		];
+		$scheduling_actions = [
+			'assign-shift-schedule' => 'Assign Shift working / OT Schedule per Operation (optional)',
+			'reschedule-delivery-date-production-order' => 'Reschedule Delivery Date per Production Order',
+			'assign-production-order-schedule' => 'Assign Production Order Schedule / Planned Start Date',
+			'assign-production-order-to-machines' => 'Assign Production Order to Conveyor / Machines',
+		];
+		$execution_actions = [
+			'assign-bom-process' => 'Assign BOM Process / Workstations ',
+			'print-job-ticket' => 'Print Job Ticket',
+			'edit-operator-timelog' => 'Edit Operator Timelog',
+			'reset-operator-timelog' => 'Reset Operator Timelog',
+			'override-operator-timelog' => 'Override Operator Timelogs',
+			'update-wip-production-order-process' => 'Update Production Order Process (during the production order process)',
+		];
+		$actions = [
+			'Production Planning' => $production_planning_actions,
+			'Materials Planning' => $material_planning_actions,
+			'Scheduling' => $scheduling_actions,
+			'Production Control' => $execution_actions,
+			'Settings' => $settings_actions,
+		];
+		$existing_permissions = DB::connection('mysql_mes')->table('role_permissions')->where('user_group_id', $user_group)->pluck('permission')->toArray();
+		return view('role_permissions', compact('actions', 'user_group', 'existing_permissions'));
+	}
+	public function saveRolePermissions($user_group, Request $request) {
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			$current_timestamp = Carbon::now()->toDateTimeString();
+			$user = Auth::user()->email;
+			$requested_permissions = $request->permission;
+			if ($requested_permissions) {
+				$requested_permissions = Arr::where($requested_permissions, function ($value, $key) {
+					return $value == 1;
+				});
+	
+				// delete permission not included in the $requested_permissions
+				DB::connection('mysql_mes')->table('role_permissions')
+					->where('user_group_id', $user_group)
+					->whereNotIn('permission', array_keys($requested_permissions))
+					->delete();
+	
+				// existing permissions
+				$existing_permissions = DB::connection('mysql_mes')->table('role_permissions')
+					->where('user_group_id', $user_group)->pluck('permission')->toArray();
+		
+				$permissions = [];
+				foreach($requested_permissions as $permission => $value) {
+					if (!in_array($permission, $existing_permissions)) {
+						$permissions[] = [
+							'user_group_id' => $user_group,
+							'permission' => $permission,
+							'modified_by' => $user,
+							'last_modified_at' => $current_timestamp
+						];
+					}
+				}
+				// save permissions
+				DB::connection('mysql_mes')->table('role_permissions')->insert($permissions);			
+	
+				DB::connection('mysql_mes')->commit();
+			}
+			return response()->json(['status' => 1, 'message' => 'Role Permission has been saved.']);
+		} catch (\Throwable $th) {
+			DB::connection('mysql_mes')->rollback();
+			
+			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
+		}
 	}
 }

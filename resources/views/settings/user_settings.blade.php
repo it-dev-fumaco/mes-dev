@@ -61,6 +61,9 @@
                       <li class="nav-item">
                         <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
                       </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="#role-permissions" data-toggle="tab">Role Permissions</a>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -487,256 +490,219 @@
   
 <style type="text/css">
   .scrolling table {
-    table-layout: fixed;
-    width: 100%;
-}
-.scrolling .td, .th {
-  padding: 10px;
-  width: auto;
-}
-.parent-td{
-  padding: 10px;
-  width: 4px;
-  float: left;
-}
-.scrolling .th {
-  position: relative;
-  left: 0;
-  width: auto;
-}
-.outer {
-  position: relative
-}
-.inner {
-  overflow-x: auto;
-
-}
-.nav-item .active{
-  background-color: #f96332;
-  font-weight: bold;
-  color:#ffffff;
-}
-
-
-
-  .user-image {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.imgPreview {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.upload-btn{
-   padding: 6px 12px;
-}
-
-.fileUpload {
-   position: relative;
-   overflow: hidden;
-   font-size: 9pt;
-}
-
-.fileUpload input.upload {
-   position: absolute;
-   top: 0;
-   right: 0;
-   margin: 0;
-   padding: 0;
-   cursor: pointer;
-   opacity: 0;
-   filter: alpha(opacity=0);
-}
-.imgPreview1 {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.upload-btn1{
-   padding: 6px 12px;
-}
-
-.fileUpload1 {
-   position: relative;
-   overflow: hidden;
-   font-size: 9pt;
-}
-
-.fileUpload1 input.upload1 {
-   position: absolute;
-   top: 0;
-   right: 0;
-   margin: 0;
-   padding: 0;
-   cursor: pointer;
-   opacity: 0;
-   filter: alpha(opacity=0);
-}
-
-.boldwrap {
-  font-weight: bold;
-}
-  
-#add-user-modal .form-control, #edit-user-modal .form-control {
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px;
-}
-#edit-user-modal .form-control:hover, #edit-user-modal .form-control:focus, #edit-user-modal .form-control:active {
-  box-shadow: none;
-}
-#edit-user-modal .form-control:focus {
-  border: 1px solid #34495e;
-}
-
-#add-user-modal .form-control:hover, #add-user-modal .form-control:focus, #add-user-modal .form-control:active {
-  box-shadow: none;
-}
-#add-user-modal .form-control:focus {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container {
-  width: 100% !important;
-}
-
-.select2.select2-container .select2-selection {
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  height: 34px;
-  margin-bottom: 15px;
-  outline: none;
-  transition: all 0.15s ease-in-out;
-}
-
-.select2.select2-container .select2-selection .select2-selection__rendered {
-  color: #333;
-  line-height: 32px;
-  padding-right: 33px;
-}
-
-.select2.select2-container .select2-selection .select2-selection__arrow {
-  background: #f8f8f8;
-  border-left: 1px solid #ccc;
-  -webkit-border-radius: 0 3px 3px 0;
-  -moz-border-radius: 0 3px 3px 0;
-  border-radius: 0 3px 3px 0;
-  height: 32px;
-  width: 33px;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
-  background: #f8f8f8;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
-  -webkit-border-radius: 0 3px 0 0;
-  -moz-border-radius: 0 3px 0 0;
-  border-radius: 0 3px 0 0;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container.select2-container--focus .select2-selection {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container .select2-selection--multiple {
-  height: auto;
-  min-height: 34px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
-  margin-top: 0;
-  height: 32px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
-  display: block;
-  padding: 0 4px;
-  line-height: 29px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice {
-  background-color: #f8f8f8;
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  margin: 4px 4px 0 0;
-  padding: 0 6px 0 22px;
-  height: 24px;
-  line-height: 24px;
-  font-size: 12px;
-  position: relative;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 22px;
-  width: 22px;
-  margin: 0;
-  text-align: center;
-  color: #e74c3c;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.select2-container .select2-dropdown {
-  background: transparent;
-  border: none;
-  margin-top: -5px;
-}
-
-.select2-container .select2-dropdown .select2-search {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-search input {
-  outline: none;
-  border: 1px solid #34495e;
-  border-bottom: none;
-  padding: 4px 6px;
-}
-
-.select2-container .select2-dropdown .select2-results {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-results ul {
-  background: #fff;
-  border: 1px solid #34495e;
-}
-
-.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
-  background-color: #3498db;
-}
-
-.select-input{
-    height: 33px;
-    font-size: 12px;
-}
-
-
-  #add-email-trans-modal .form-control{
-    border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px; 
-}
-
+		table-layout: fixed;
+		width: 100%;
+	}
+	.scrolling .td, .th {
+		padding: 10px;
+		width: auto;
+	}
+	.parent-td{
+		padding: 10px;
+		width: 4px;
+		float: left;
+	}
+	.scrolling .th {
+		position: relative;
+		left: 0;
+		width: auto;
+	}
+	.outer {
+		position: relative
+	}
+	.inner {
+		overflow-x: auto;
+	}
+	.nav-item .active{
+		background-color: #f96332;
+		font-weight: bold;
+		color:#ffffff;
+	}
+	.user-image {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.imgPreview {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.upload-btn{
+		padding: 6px 12px;
+	}
+	.fileUpload {
+		position: relative;
+		overflow: hidden;
+		font-size: 9pt;
+	}
+	.fileUpload input.upload {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+		filter: alpha(opacity=0);
+	}
+	.imgPreview1 {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.upload-btn1{
+		padding: 6px 12px;
+	}
+	.fileUpload1 {
+		position: relative;
+		overflow: hidden;
+		font-size: 9pt;
+	}
+	.fileUpload1 input.upload1 {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+		filter: alpha(opacity=0);
+	}
+	.boldwrap {
+		font-weight: bold;
+	}
+	#add-user-modal .form-control, #edit-user-modal .form-control {
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		box-shadow: none;
+		margin-bottom: 15px;
+	}
+	#edit-user-modal .form-control:hover, #edit-user-modal .form-control:focus, #edit-user-modal .form-control:active {
+		box-shadow: none;
+	}
+	#edit-user-modal .form-control:focus {
+		border: 1px solid #34495e;
+	}
+	#add-user-modal .form-control:hover, #add-user-modal .form-control:focus, #add-user-modal .form-control:active {
+		box-shadow: none;
+	}
+	#add-user-modal .form-control:focus {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container {
+		width: 100% !important;
+	}
+	.select2.select2-container .select2-selection {
+		border: 1px solid #ccc;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		height: 34px;
+		margin-bottom: 15px;
+		outline: none;
+		transition: all 0.15s ease-in-out;
+	}
+	.select2.select2-container .select2-selection .select2-selection__rendered {
+		color: #333;
+		line-height: 32px;
+		padding-right: 33px;
+	}
+	.select2.select2-container .select2-selection .select2-selection__arrow {
+		background: #f8f8f8;
+		border-left: 1px solid #ccc;
+		-webkit-border-radius: 0 3px 3px 0;
+		-moz-border-radius: 0 3px 3px 0;
+		border-radius: 0 3px 3px 0;
+		height: 32px;
+		width: 33px;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
+		background: #f8f8f8;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
+		-webkit-border-radius: 0 3px 0 0;
+		-moz-border-radius: 0 3px 0 0;
+		border-radius: 0 3px 0 0;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container.select2-container--focus .select2-selection {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container .select2-selection--multiple {
+		height: auto;
+		min-height: 34px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
+		margin-top: 0;
+		height: 32px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
+		display: block;
+		padding: 0 4px;
+		line-height: 29px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__choice {
+		background-color: #f8f8f8;
+		border: 1px solid #ccc;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		margin: 4px 4px 0 0;
+		padding: 0 6px 0 22px;
+		height: 24px;
+		line-height: 24px;
+		font-size: 12px;
+		position: relative;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 22px;
+		width: 22px;
+		margin: 0;
+		text-align: center;
+		color: #e74c3c;
+		font-weight: bold;
+		font-size: 16px;
+	}
+	.select2-container .select2-dropdown {
+		background: transparent;
+		border: none;
+		margin-top: -5px;
+	}
+	.select2-container .select2-dropdown .select2-search {
+		padding: 0;
+	}
+	.select2-container .select2-dropdown .select2-search input {
+		outline: none;
+		border: 1px solid #34495e;
+		border-bottom: none;
+		padding: 4px 6px;
+	}
+	.select2-container .select2-dropdown .select2-results {
+		padding: 0;
+	}
+	.select2-container .select2-dropdown .select2-results ul {
+		background: #fff;
+		border: 1px solid #34495e;
+	}
+	.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
+		background-color: #3498db;
+	}
+	.select-input{
+		height: 33px;
+		font-size: 12px;
+	}
+	#add-email-trans-modal .form-control{
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		box-shadow: none;
+		margin-bottom: 15px; 
+	}
 </style>
 
 @endsection
@@ -749,6 +715,68 @@
 
 <script>
   $(document).ready(function(){
+    $('#update-permissions-btn').attr('disabled', true);
+    $(document).on('change', '#role-permission-module', function (e) {
+      e.preventDefault();
+      $.ajax({
+        url:"/get_user_role_by_module/" + $(this).val(),
+        type:"GET",
+        success:function(data){
+          $("#user-role-select").html(data);
+          $('#role-permissions-div').empty();
+          $('#update-permissions-btn').attr('disabled', true);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
+        }
+      });
+    });
+    $(document).on('change', '#user-role-select', function (e) {
+      e.preventDefault();
+      $('#update-permissions-btn').removeAttr('disabled');
+      view_role_permissions_form($(this).val());
+    });
+    function view_role_permissions_form(query){
+      $.ajax({
+        url:"/view_role_permissions_form/" + query,
+        type:"GET",
+        success:function(data){
+          $('#role-permissions-div').html(data);
+        }
+      });  
+    }
+    $('#update-permissions-btn').click(function (e) {
+      e.preventDefault();
+      $('#role-permission-form').submit();
+    });
+    $(document).on('submit', '#role-permission-form', function(e) {
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr('action'),
+        type: "POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+          } else {
+            showNotification("warning", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
+          showNotification("danger", 'Server Error. Please contact your system administrator.', "now-ui-icons travel_info");
+        }
+      }); 
+    });
+    $(document).on('click', '.check-all-permission', function (e){
+      e.preventDefault();
+      $("." + $(this).data('type')).prop('checked', true);
+    });
+    $(document).on('click', '.uncheck-all-permission', function (e){
+      e.preventDefault();
+      $("." + $(this).data('type')).prop('checked', false);
+    });
+    
     function showNotification(color, message, icon){
       $.notify({
         icon: icon,
