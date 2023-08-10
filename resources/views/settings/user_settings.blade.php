@@ -136,6 +136,44 @@
                       </div>
                     </div>
                   </div>
+                  <div class="tab-pane" id="role-permissions">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding: 10px 0 10px 20px; font-size: 12pt;"><b>Role Permissions</b></th>
+                            </tr>
+                          </table>
+                          <div class="card-body p-0">
+                            <div class="row m-0 p-0">
+                              <div class="col-12 mb-2 mt-2">
+                                <div class="d-flex flex-row align-items-center">
+                                  <div class="font-weight-bold mr-3">Select Module</div>
+                                  <select id="role-permission-module" class="form-control col-2 rounded-0">
+                                    <option value="">Select Module</option>
+                                    <option value="Production">Production</option>
+                                    <option value="Quality Assurance">Quality Assurance</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                  </select>
+                                  <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
+                                  <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
+                                    <option value="">Select Module first</option>
+                                  </select>
+                                  <div class="ml-auto">
+                                    <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div id="role-permissions-div"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>      
