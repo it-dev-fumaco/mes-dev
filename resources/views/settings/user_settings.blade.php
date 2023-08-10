@@ -61,6 +61,9 @@
                       <li class="nav-item">
                         <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
                       </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="#role-permissions" data-toggle="tab">Role Permissions</a>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -128,6 +131,44 @@
                           </table>
                           <div class="card-body p-0">
                             <div class="tbl_email_trans" id="tbl_email_trans"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane" id="role-permissions">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card" style="min-height: 720px;">
+                          <table class="text-white" style="width: 100%;background-color:#34495e;">
+                            <col style="width: 70%;">
+                            <col style="width: 30%;">
+                            <tr>
+                              <th class="text-left" style="padding: 10px 0 10px 20px; font-size: 12pt;"><b>Role Permissions</b></th>
+                            </tr>
+                          </table>
+                          <div class="card-body p-0">
+                            <div class="row m-0 p-0">
+                              <div class="col-12 mb-2 mt-2">
+                                <div class="d-flex flex-row align-items-center">
+                                  <div class="font-weight-bold mr-3">Select Module</div>
+                                  <select id="role-permission-module" class="form-control col-2 rounded-0">
+                                    <option value="">Select Module</option>
+                                    <option value="Production">Production</option>
+                                    <option value="Quality Assurance">Quality Assurance</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                  </select>
+                                  <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
+                                  <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
+                                    <option value="">Select Module first</option>
+                                  </select>
+                                  <div class="ml-auto">
+                                    <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div id="role-permissions-div"></div>
                           </div>
                         </div>
                       </div>
@@ -482,261 +523,221 @@
   </div>
 </div>
 
-
-  
-  
 <style type="text/css">
-  .scrolling table {
-    table-layout: fixed;
-    width: 100%;
-}
-.scrolling .td, .th {
-  padding: 10px;
-  width: auto;
-}
-.parent-td{
-  padding: 10px;
-  width: 4px;
-  float: left;
-}
-.scrolling .th {
-  position: relative;
-  left: 0;
-  width: auto;
-}
-.outer {
-  position: relative
-}
-.inner {
-  overflow-x: auto;
-
-}
-.nav-item .active{
-  background-color: #f96332;
-  font-weight: bold;
-  color:#ffffff;
-}
-
-
-
-  .user-image {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.imgPreview {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.upload-btn{
-   padding: 6px 12px;
-}
-
-.fileUpload {
-   position: relative;
-   overflow: hidden;
-   font-size: 9pt;
-}
-
-.fileUpload input.upload {
-   position: absolute;
-   top: 0;
-   right: 0;
-   margin: 0;
-   padding: 0;
-   cursor: pointer;
-   opacity: 0;
-   filter: alpha(opacity=0);
-}
-.imgPreview1 {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.upload-btn1{
-   padding: 6px 12px;
-}
-
-.fileUpload1 {
-   position: relative;
-   overflow: hidden;
-   font-size: 9pt;
-}
-
-.fileUpload1 input.upload1 {
-   position: absolute;
-   top: 0;
-   right: 0;
-   margin: 0;
-   padding: 0;
-   cursor: pointer;
-   opacity: 0;
-   filter: alpha(opacity=0);
-}
-
-.boldwrap {
-  font-weight: bold;
-}
-  
-#add-user-modal .form-control, #edit-user-modal .form-control {
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px;
-}
-#edit-user-modal .form-control:hover, #edit-user-modal .form-control:focus, #edit-user-modal .form-control:active {
-  box-shadow: none;
-}
-#edit-user-modal .form-control:focus {
-  border: 1px solid #34495e;
-}
-
-#add-user-modal .form-control:hover, #add-user-modal .form-control:focus, #add-user-modal .form-control:active {
-  box-shadow: none;
-}
-#add-user-modal .form-control:focus {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container {
-  width: 100% !important;
-}
-
-.select2.select2-container .select2-selection {
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  height: 34px;
-  margin-bottom: 15px;
-  outline: none;
-  transition: all 0.15s ease-in-out;
-}
-
-.select2.select2-container .select2-selection .select2-selection__rendered {
-  color: #333;
-  line-height: 32px;
-  padding-right: 33px;
-}
-
-.select2.select2-container .select2-selection .select2-selection__arrow {
-  background: #f8f8f8;
-  border-left: 1px solid #ccc;
-  -webkit-border-radius: 0 3px 3px 0;
-  -moz-border-radius: 0 3px 3px 0;
-  border-radius: 0 3px 3px 0;
-  height: 32px;
-  width: 33px;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
-  background: #f8f8f8;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
-  -webkit-border-radius: 0 3px 0 0;
-  -moz-border-radius: 0 3px 0 0;
-  border-radius: 0 3px 0 0;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container.select2-container--focus .select2-selection {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container .select2-selection--multiple {
-  height: auto;
-  min-height: 34px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
-  margin-top: 0;
-  height: 32px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
-  display: block;
-  padding: 0 4px;
-  line-height: 29px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice {
-  background-color: #f8f8f8;
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  margin: 4px 4px 0 0;
-  padding: 0 6px 0 22px;
-  height: 24px;
-  line-height: 24px;
-  font-size: 12px;
-  position: relative;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 22px;
-  width: 22px;
-  margin: 0;
-  text-align: center;
-  color: #e74c3c;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.select2-container .select2-dropdown {
-  background: transparent;
-  border: none;
-  margin-top: -5px;
-}
-
-.select2-container .select2-dropdown .select2-search {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-search input {
-  outline: none;
-  border: 1px solid #34495e;
-  border-bottom: none;
-  padding: 4px 6px;
-}
-
-.select2-container .select2-dropdown .select2-results {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-results ul {
-  background: #fff;
-  border: 1px solid #34495e;
-}
-
-.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
-  background-color: #3498db;
-}
-
-.select-input{
-    height: 33px;
-    font-size: 12px;
-}
-
-
-  #add-email-trans-modal .form-control{
-    border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px; 
-}
-
+	.scrolling table {
+		table-layout: fixed;
+		width: 100%;
+	}
+	.scrolling .td, .th {
+		padding: 10px;
+		width: auto;
+	}
+	.parent-td{
+		padding: 10px;
+		width: 4px;
+		float: left;
+	}
+	.scrolling .th {
+		position: relative;
+		left: 0;
+		width: auto;
+	}
+	.outer {
+		position: relative
+	}
+	.inner {
+		overflow-x: auto;
+	}
+	.nav-item .active{
+		background-color: #f96332;
+		font-weight: bold;
+		color:#ffffff;
+	}
+	.user-image {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.imgPreview {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.upload-btn{
+		padding: 6px 12px;
+	}
+	.fileUpload {
+		position: relative;
+		overflow: hidden;
+		font-size: 9pt;
+	}
+	.fileUpload input.upload {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+		filter: alpha(opacity=0);
+	}
+	.imgPreview1 {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.upload-btn1{
+		padding: 6px 12px;
+	}
+	.fileUpload1 {
+		position: relative;
+		overflow: hidden;
+		font-size: 9pt;
+	}
+	.fileUpload1 input.upload1 {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+		filter: alpha(opacity=0);
+	}
+	.boldwrap {
+		font-weight: bold;
+	}
+	#add-user-modal .form-control, #edit-user-modal .form-control {
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		box-shadow: none;
+		margin-bottom: 15px;
+	}
+	#edit-user-modal .form-control:hover, #edit-user-modal .form-control:focus, #edit-user-modal .form-control:active {
+		box-shadow: none;
+	}
+	#edit-user-modal .form-control:focus {
+		border: 1px solid #34495e;
+	}
+	#add-user-modal .form-control:hover, #add-user-modal .form-control:focus, #add-user-modal .form-control:active {
+		box-shadow: none;
+	}
+	#add-user-modal .form-control:focus {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container {
+		width: 100% !important;
+	}
+	.select2.select2-container .select2-selection {
+		border: 1px solid #ccc;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		height: 34px;
+		margin-bottom: 15px;
+		outline: none;
+		transition: all 0.15s ease-in-out;
+	}
+	.select2.select2-container .select2-selection .select2-selection__rendered {
+		color: #333;
+		line-height: 32px;
+		padding-right: 33px;
+	}
+	.select2.select2-container .select2-selection .select2-selection__arrow {
+		background: #f8f8f8;
+		border-left: 1px solid #ccc;
+		-webkit-border-radius: 0 3px 3px 0;
+		-moz-border-radius: 0 3px 3px 0;
+		border-radius: 0 3px 3px 0;
+		height: 32px;
+		width: 33px;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
+		background: #f8f8f8;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
+		-webkit-border-radius: 0 3px 0 0;
+		-moz-border-radius: 0 3px 0 0;
+		border-radius: 0 3px 0 0;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container.select2-container--focus .select2-selection {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container .select2-selection--multiple {
+		height: auto;
+		min-height: 34px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
+		margin-top: 0;
+		height: 32px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
+		display: block;
+		padding: 0 4px;
+		line-height: 29px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__choice {
+		background-color: #f8f8f8;
+		border: 1px solid #ccc;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		margin: 4px 4px 0 0;
+		padding: 0 6px 0 22px;
+		height: 24px;
+		line-height: 24px;
+		font-size: 12px;
+		position: relative;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 22px;
+		width: 22px;
+		margin: 0;
+		text-align: center;
+		color: #e74c3c;
+		font-weight: bold;
+		font-size: 16px;
+	}
+	.select2-container .select2-dropdown {
+		background: transparent;
+		border: none;
+		margin-top: -5px;
+	}
+	.select2-container .select2-dropdown .select2-search {
+		padding: 0;
+	}
+	.select2-container .select2-dropdown .select2-search input {
+		outline: none;
+		border: 1px solid #34495e;
+		border-bottom: none;
+		padding: 4px 6px;
+	}
+	.select2-container .select2-dropdown .select2-results {
+		padding: 0;
+	}
+	.select2-container .select2-dropdown .select2-results ul {
+		background: #fff;
+		border: 1px solid #34495e;
+	}
+	.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
+		background-color: #3498db;
+	}
+	.select-input{
+		height: 33px;
+		font-size: 12px;
+	}
+	#add-email-trans-modal .form-control{
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		box-shadow: none;
+		margin-bottom: 15px; 
+	}
 </style>
 
 @endsection
@@ -749,6 +750,81 @@
 
 <script>
   $(document).ready(function(){
+
+    $('#update-permissions-btn').attr('disabled', true);
+    $(document).on('change', '#role-permission-module', function (e) {
+      e.preventDefault();
+
+      $.ajax({
+        url:"/get_user_role_by_module/" + $(this).val(),
+        type:"GET",
+        success:function(data){
+          $("#user-role-select").html(data);
+          $('#role-permissions-div').empty();
+          $('#update-permissions-btn').attr('disabled', true);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
+        }
+      });
+    });
+
+    $(document).on('change', '#user-role-select', function (e) {
+      e.preventDefault();
+
+      $('#update-permissions-btn').removeAttr('disabled');
+
+      view_role_permissions_form($(this).val());
+    });
+
+    function view_role_permissions_form(query){
+      $.ajax({
+        url:"/view_role_permissions_form/" + query,
+        type:"GET",
+        success:function(data){
+          $('#role-permissions-div').html(data);
+        }
+      });  
+    }
+
+    $('#update-permissions-btn').click(function (e) {
+      e.preventDefault();
+      $('#role-permission-form').submit();
+    });
+
+    $(document).on('submit', '#role-permission-form', function(e) {
+      e.preventDefault();
+
+      $.ajax({
+        url: $(this).attr('action'),
+        type: "POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+          } else {
+            showNotification("warning", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
+          showNotification("danger", 'Server Error. Please contact your system administrator.', "now-ui-icons travel_info");
+        }
+      }); 
+    });
+
+    $(document).on('click', '.check-all-permission', function (e){
+      e.preventDefault();
+
+      $("." + $(this).data('type')).prop('checked', true);
+    });
+
+    $(document).on('click', '.uncheck-all-permission', function (e){
+      e.preventDefault();
+
+      $("." + $(this).data('type')).prop('checked', false);
+    });
+
     function showNotification(color, message, icon){
       $.notify({
         icon: icon,
@@ -768,50 +844,44 @@
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
       }
     }); 
-
     
-  get_users();
+    get_users();
+    get_user_group();
+    tbl_email_trans();
 
-get_user_group();
-tbl_email_trans();
+    $('.sel2').select2({
+      dropdownParent: $("#add-user-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
+    $('.sel3').select2({
+      dropdownParent: $("#edit-user-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
+    $('.sel11').select2({
+      dropdownParent: $("#add-user-group-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
 
-
-   $('.sel2').select2({
-  dropdownParent: $("#add-user-modal"),
-  dropdownAutoWidth: false,
-  width: '100%',
-  cache: false
-});
-
-   $('.sel3').select2({
-  dropdownParent: $("#edit-user-modal"),
-  dropdownAutoWidth: false,
-  width: '100%',
-  cache: false
-});
-
-
-$('.sel11').select2({
-  dropdownParent: $("#add-user-group-modal"),
-  dropdownAutoWidth: false,
-  width: '100%',
-  cache: false
-});
-$('.sel12').select2({
-  dropdownParent: $("#edit-user-group-modal"),
-  dropdownAutoWidth: false,
-  width: '100%',
-  cache: false
-});
-
-
+    $('.sel12').select2({
+      dropdownParent: $("#edit-user-group-modal"),
+      dropdownAutoWidth: false,
+      width: '100%',
+      cache: false
+    });
      
     $('#add-user-btn').click(function(e){
       e.preventDefault();
       $('#add-user-modal').modal('show'); 
     });
+
     $('#add-user-group').click(function(e){
       e.preventDefault();
       $('#add-user-group-modal').modal('show'); 
@@ -849,28 +919,26 @@ $('.sel12').select2({
       var role = $(this).attr('data-role');
       var id = $(this).attr('data-id');
 
-              $('#edit_user_group_regis').val(user_m).prop('selected', true);
-              $('#edit_user_role_regis').val(role);
-              $('#edit_user_group_regis_id').val(id);
-              $('#edit_orig_module').val(user_m);
-              $('#edit_orig_role').val(role);
-              $('#edit_user_group_regis').trigger('change');
-              $('#edit_user_role_regis').trigger('change');
-              $('#edit-user-group-modal').modal('show');
-            
+      $('#edit_user_group_regis').val(user_m).prop('selected', true);
+      $('#edit_user_role_regis').val(role);
+      $('#edit_user_group_regis_id').val(id);
+      $('#edit_orig_module').val(user_m);
+      $('#edit_orig_role').val(role);
+      $('#edit_user_group_regis').trigger('change');
+      $('#edit_user_role_regis').trigger('change');
+      $('#edit-user-group-modal').modal('show');  
     });
+
     $(document).on('click', '.delete-user-group-btn', function(){
       var user_m = $(this).attr('data-module');
       var role = $(this).attr('data-role');
       var id = $(this).attr('data-id');
-       var label = user_m+"-"+role;
-
-              $('#delete_user_group_id').val(id);
-              $('#delete_label_user_group').text(label);
-              
-              $('#delete-user-group-modal').modal('show');
-            
+      var label = user_m+"-"+role;
+      $('#delete_user_group_id').val(id);
+      $('#delete_label_user_group').text(label);
+      $('#delete-user-group-modal').modal('show');     
     });
+
     $(document).on('click', '.edit-user-btn', function(){
       var user_m = $(this).attr('data-module');
       var user_name = $(this).attr('data-user');
@@ -881,27 +949,27 @@ $('.sel12').select2({
       $('#edit_user_group').val(user_m);
       $('#edit_user_group').trigger('change');
       $.ajax({
-            url:"/get_user_role_by_module/"+user_m,
-            type:"GET",
-            success:function(data){
-              $("#edit_user_role").html(data);
-              $('#edit_user_operation').val(operation).prop('selected', true);
-              $('#edit_employee_name').val(user_name);
-              $('#edit_user_id').val(user_id).prop('selected', true);
-              $('#edit_user_group').val(user_m);
-              $('#edit-user-id-input').val(id);
-              $('#edit_user_operation').trigger('change');
-              $('#edit_user_id').trigger('change');
-              $('#edit_user_role').trigger('change');
-              $('#edit-user-modal').modal('show');
-              $("#edit_user_role").val(user_group);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-        });
+        url:"/get_user_role_by_module/"+user_m,
+        type:"GET",
+        success:function(data){
+          $("#edit_user_role").html(data);
+          $('#edit_user_operation').val(operation).prop('selected', true);
+          $('#edit_employee_name').val(user_name);
+          $('#edit_user_id').val(user_id).prop('selected', true);
+          $('#edit_user_group').val(user_m);
+          $('#edit-user-id-input').val(id);
+          $('#edit_user_operation').trigger('change');
+          $('#edit_user_id').trigger('change');
+          $('#edit_user_role').trigger('change');
+          $('#edit-user-modal').modal('show');
+          $("#edit_user_role").val(user_group);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+        }
+      });
     });
 
     $('#edit-user-frm').submit(function(e){
@@ -967,25 +1035,23 @@ $('.sel12').select2({
       });  
     });
  
-  
-
     $(document).on('click', '#user-pagination a', function(event){
-         event.preventDefault();
-         var page = $(this).attr('href').split('page=')[1];
-         get_users(page);
-      });
+      event.preventDefault();
+      var page = $(this).attr('href').split('page=')[1];
+      get_users(page);
+    });
 
-     $('.modal').on('hidden.bs.modal', function(){
+    $('.modal').on('hidden.bs.modal', function(){
       var frm = $(this).find('form')[0];
       if (frm) frm.reset();
     });
 
     $(document).on('keyup', '#search_user_setup', function(){
-    var query = $(this).val();
-    get_users(1, query);
-  });
+      var query = $(this).val();
+      get_users(1, query);
+    });
 
-  function get_users(page, query){
+    function get_users(page, query){
       $.ajax({
         url:"/get_users/?page=" + page,
         type:"GET",
@@ -996,32 +1062,32 @@ $('.sel12').select2({
       });  
     }
 
-  $(document).on('change', '#user_group', function (){
-    change_userrole_add();
-  });
+    $(document).on('change', '#user_group', function (){
+      change_userrole_add();
+    });
 
-  function change_userrole_add(){
-    var modules = $("#user_group").val();
-    if (modules != "") {
-       $.ajax({
-            url:"/get_user_role_by_module/"+modules,
-            type:"GET",
-            success:function(data){
-              $("#user_role").html(data);
-              console.log("add_role");
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-            }
-          }); 
+    function change_userrole_add(){
+      var modules = $("#user_group").val();
+      if (modules != "") {
+        $.ajax({
+          url:"/get_user_role_by_module/"+modules,
+          type:"GET",
+          success:function(data){
+            $("#user_role").html(data);
+            console.log("add_role");
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+          }
+        }); 
+      }
     }
-  }
 
-  $(document).on('change', '#edit_user_group', function (){
-    change_userrole_edit();
-  });
+    $(document).on('change', '#edit_user_group', function (){
+      change_userrole_edit();
+    });
 
  function change_userrole_edit(){
     var modules = $("#edit_user_group").val();

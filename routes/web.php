@@ -700,15 +700,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 	Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
 
-	Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
-	Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
-	Route::get('/rejection_report', 'LinkReportController@rejection_report');
-	Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
-	Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
-	Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
-	Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
-	Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
-	Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
-	Route::get('/items_in_their_own_bom', 'LinkReportController@items_in_their_own_bom');
+		Route::get('/view_role_permissions_form/{user_group}', 'MainController@viewRolePermissionsForm');
+		Route::post('/save_role_permissions/{user_group}', 'MainController@saveRolePermissions');
 	});
 });
