@@ -7,230 +7,209 @@
 
 @section('content')
 @include('modals.add_workstation_modal')
-@include('modals.add_machine_modal')
-@include('modals.add_process_modal')
-@include('modals.process_profile')
-@include('modals.edit_process_list_modal')
-@include('modals.delete_process_setup_list_modal')
+{{-- @include('modals.add_machine_modal') --}}
+{{-- @include('modals.add_process_modal') --}}
+{{-- @include('modals.process_profile') --}}
+{{-- @include('modals.edit_process_list_modal') --}}
+{{-- @include('modals.delete_process_setup_list_modal') --}}
 @include('modals.add_shift_modal')
 @include('modals.edit_shift_list_modal')
 @include('modals.delete_shift_list_modal')
-@include('modals.add_operation_modal')
-@include('modals.edit_operation_modal')
+{{-- @include('modals.add_operation_modal') --}}
+{{-- @include('modals.edit_operation_modal') --}}
 @include('modals.edit_workstation_modal')
 @include('modals.delete_workstation_modal')
-@include('modals.edit_machineList_modal')
-@include('modals.delete_machineList_modal')
-@include('modals.process_assignment_modal')
-@include('modals.delete_assigned_machine_to_process_modal')
+{{-- @include('modals.edit_machineList_modal') --}}
+{{-- @include('modals.delete_machineList_modal') --}}
+{{-- @include('modals.process_assignment_modal') --}}
+{{-- @include('modals.delete_assigned_machine_to_process_modal') --}}
 <div class="panel-header"></div>
 <div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-	<div class="col-2 p-2">
-		<div class="card" id="workstation_navbar">
-			<div class="card-header p-2" style="background-color: #0277BD;">
-				<h5 class="text-white text-center text-uppercase m-0 font-weight-bold" style="font-size: 13pt;">Settings</h5>
-			</div>
-			<div class="card-body" style="min-height: 850px;">
-				<div class="row" style="background-color: #ffffff;" class="text-center">
-					<div class="col-md-12 text-center">
-						<ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">
-							<li class="nav-item">
-								<a class="nav-link active" href="#process_setup" data-toggle="tab" onclick="tbl_process_setup_list()">Production Process Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#operation_setup" data-toggle="tab">Operation Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link " href="#workstation_setup" data-toggle="tab">Workstation Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#machine_setup" data-toggle="tab">Machine Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#late_delivery_setup" data-toggle="tab">Reschedule Delivery Reason Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#cancel_po_setup" data-toggle="tab">Reason for Cancellation Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#shift" data-toggle="tab">Shift Setup</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-10 p-2" style="min-height: 1000px;">
+	<div class="col-12 p-2" style="min-height: 1000px;">
 		<div class="tab-content text-center">
-			<div class="tab-pane active" id="process_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Production Process Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search-production-process">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-process-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Process</button>
-								<div class="tbl_process_setup_list_div" id="tbl_process_setup_list_div" style="font-size: 11px;"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="workstation_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Workstation Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_workstation_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-workstation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Workstation</button>
-								<div id="tbl_workstation_list"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="operation_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Operation Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_operation_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0" style="padding-bottom: 0;">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-operation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Operation</button>
-								<div class="tbl_operation" id="tbl_operation"></div>
-							</div>
-						</div>        
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="cancel_po_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Reason/s for Cancellation Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_reason_cancelled_po">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-cancelled-reason-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
-								<div class="tbl_reason_for_cancellation_po" id="tbl_reason_for_cancellation_po"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="late_delivery_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Reschedule Delivery Reason Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_late_delivery_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-late-deli-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reschedule Delivery Reason </button>
-								<div id="tbl_late_delivery_list"></div>    
-							</div>
-						</div>        
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="machine_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Machine Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_machine_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">  
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-machine-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
-								<div id="tbl_setting_machine_list"></div>    
-							</div>
-						</div>        
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="shift">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Shift Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search-shift-setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-shift-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Shift</button>
-								<div class="tbl_shift" id="tbl_shift"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+      @php
+          $production_settings = [
+            [
+              'name' => 'Workstation Setup',
+              'id' => '#workstation_setup'
+            ],
+            [
+              'name' => 'Reschedule Delivery Reason Setup',
+              'id' => '#late_delivery_setup'
+            ],
+            [
+              'name' => 'Reason for Cancellation Setup',
+              'id' => '#cancel_po_setup'
+            ],
+            [
+              'name' => 'Shift Setup',
+              'id' => '#shift'
+            ]
+          ];
+      @endphp
+      <div class="container-fluid text-left bg-white p-1">
+        <button class="ctrl-btn d-none"></button>
+        @foreach ($production_settings as $settings)
+          <button class="ctrl-btn {{ $loop->first ? 'active' : null }}" data-target="{{ $settings['id'] }}">
+            {{ $settings['name'] }}
+          </button>
+        @endforeach
+      </div>
+        <div class="tab-pane active" id="workstation_setup">
+          <div class="card">
+            <div class="card-body p-0">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="col-md-12">
+                  <div class="container-fluid p-2">
+                    <div class="row">
+                      <div class="col-8">
+                        <ul class="nav nav-tabs workstation-tabs pt-2" role="tablist">
+                          @foreach ($operation_list as $operation)
+                            <li class="nav-item">
+                              <a class="nav-link workstation-btn {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</a>
+                            </li>
+                          @endforeach
+                        </ul>
+                      </div>
+                      <div class="col-3 pt-2">
+                        <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_workstation_setup">
+                        <input type="hidden" id="current-workstation-operation" value="1">
+                      </div>
+                      <div class="col-1 p-0">
+                        <button type="button" class="btn btn-primary m-1" id="add-workstation-button"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
+                      </div>
+                    </div>
+                    
+                    <!-- Tab panes -->
+                    <div class="tab-content pt-2">
+                      <div id="tbl_workstation_list" class="container-fluid p-0"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{-- <div class="tab-pane" id="operation_setup">
+          <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="row p-2 m-0">
+                <div class="col-md-8 p-0 m-0">
+                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Operation Setup</h5>
+                </div>
+                <div class="col-md-4 p-0 m-0">
+                  <div class="form-group m-0">
+                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_operation_setup">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0" style="padding-bottom: 0;">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-operation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Operation</button>
+                  <div class="tbl_operation" id="tbl_operation"></div>
+                </div>
+              </div>        
+            </div>
+          </div>
+        </div> --}}
+        <div class="tab-pane" id="cancel_po_setup">
+          <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="row p-2 m-0">
+                <div class="col-md-8 p-0 m-0">
+                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Reason/s for Cancellation Setup</h5>
+                </div>
+                <div class="col-md-4 p-0 m-0">
+                  <div class="form-group m-0">
+                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_reason_cancelled_po">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-cancelled-reason-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
+                  <div class="tbl_reason_for_cancellation_po" id="tbl_reason_for_cancellation_po"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="late_delivery_setup">
+          <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="row p-2 m-0">
+                <div class="col-md-8 p-0 m-0">
+                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Reschedule Delivery Reason Setup</h5>
+                </div>
+                <div class="col-md-4 p-0 m-0">
+                  <div class="form-group m-0">
+                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_late_delivery_setup">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-late-deli-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reschedule Delivery Reason </button>
+                  <div id="tbl_late_delivery_list"></div>    
+                </div>
+              </div>        
+            </div>
+          </div>
+        </div>
+        {{-- <div class="tab-pane" id="machine_setup">
+          <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="row p-2 m-0">
+                <div class="col-md-8 p-0 m-0">
+                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Machine Setup</h5>
+                </div>
+                <div class="col-md-4 p-0 m-0">
+                  <div class="form-group m-0">
+                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_machine_setup">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">  
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-machine-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
+                  <div id="tbl_setting_machine_list"></div>    
+                </div>
+              </div>        
+            </div>
+          </div>
+        </div> --}}
+        <div class="tab-pane" id="shift">
+          <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="row p-2 m-0">
+                <div class="col-md-8 p-0 m-0">
+                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Shift Setup</h5>
+                </div>
+                <div class="col-md-4 p-0 m-0">
+                  <div class="form-group m-0">
+                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search-shift-setup">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-primary" id="add-shift-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Shift</button>
+                  <div class="tbl_shift" id="tbl_shift"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 		</div>
 	</div>
 </div>
@@ -746,6 +725,22 @@
 		box-shadow: none;
 		margin-bottom: 15px;
 	}
+
+  .ctrl-btn{
+    color: #f96332;
+    border: 1px solid #f96332;
+    padding: 10px;
+    background-color: #fff;
+    font-size: 10pt;
+    /* border-radius: 8px; */
+    margin: 10px 5px;
+    transition: .4s;
+  }
+
+  .ctrl-btn + .active, .ctrl-btn:hover{
+    background-color: #f96332 !important;
+    color: #fff !important;
+  }
 </style>
 @endsection
 
@@ -796,65 +791,65 @@
       });
     });
 
-    $('#edit-process-setup-list-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#edit-process-setup-list-modal').modal('hide');
-            tbl_process_setup_list();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
+    // $('#edit-process-setup-list-frm').submit(function(e){
+    //   e.preventDefault();
+    //   var url = $(this).attr("action");
+    //   $.ajax({
+    //     url: url,
+    //     type:"POST",
+    //     data: $(this).serialize(),
+    //     success:function(data){
+    //       if (data.success < 1) {
+    //         showNotification("danger", data.message, "now-ui-icons travel_info");
+    //       }else{
+    //         showNotification("success", data.message, "now-ui-icons ui-1_check");
+    //         $('#edit-process-setup-list-modal').modal('hide');
+    //         // tbl_process_setup_list();
+    //         // getAssignedTasks();
+    //       }
+    //     }
+    //   });
+    // });
 
-    $('#delete-process-setup-list-modal-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#delete-process-setup-list-modal').modal('hide');
-            tbl_process_setup_list();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
+    // $('#delete-process-setup-list-modal-frm').submit(function(e){
+    //   e.preventDefault();
+    //   var url = $(this).attr("action");
+    //   $.ajax({
+    //     url: url,
+    //     type:"POST",
+    //     data: $(this).serialize(),
+    //     success:function(data){
+    //       if (data.success < 1) {
+    //         showNotification("danger", data.message, "now-ui-icons travel_info");
+    //       }else{
+    //         showNotification("success", data.message, "now-ui-icons ui-1_check");
+    //         $('#delete-process-setup-list-modal').modal('hide');
+    //         // tbl_process_setup_list();
+    //         // getAssignedTasks();
+    //       }
+    //     }
+    //   });
+    // });
 
-    $('#add-process-frm').submit(function(e){
-      e.preventDefault();
-      var url = $(this).attr("action");
-      $.ajax({
-        url: url,
-        type:"POST",
-        data: $(this).serialize(),
-        success:function(data){
-          if (data.success < 1) {
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }else{
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-            $('#add-process-modal').modal('hide');
-            tbl_process_setup_list();
-            // getAssignedTasks();
-          }
-        }
-      });
-    });
+    // $('#add-process-frm').submit(function(e){
+    //   e.preventDefault();
+    //   var url = $(this).attr("action");
+    //   $.ajax({
+    //     url: url,
+    //     type:"POST",
+    //     data: $(this).serialize(),
+    //     success:function(data){
+    //       if (data.success < 1) {
+    //         showNotification("danger", data.message, "now-ui-icons travel_info");
+    //       }else{
+    //         showNotification("success", data.message, "now-ui-icons ui-1_check");
+    //         $('#add-process-modal').modal('hide');
+    //         tbl_process_setup_list();
+    //         // getAssignedTasks();
+    //       }
+    //     }
+    //   });
+    // });
     // Production Process Setup form submits
 
     // Operation Setup form submits
@@ -1339,23 +1334,23 @@
 </script>
 <script type="text/javascript">
 $(document).ready(function(){
-  tbl_process_setup_list();
+  // tbl_process_setup_list();
   tbl_shift_list();
-  tbl_operation_list();
-  workstation_list();
-  setting_machine_list();
-  get_machine_assign();
+  // tbl_operation_list();
+  workstation_list($('#current-workstation-operation').val());
+  // setting_machine_list();
+  // get_machine_assign();
   
-  function get_machine_assign(){
-    var workstation = $('#workstation_id_assign').val();
-        $.ajax({
-          url:"/get_machine_assignment_jquery/"+ workstation,
-          type:"GET",
-          success:function(data){
-            $('#machine_assignment').html(data);
-          }
-        }); 
-  }
+  // function get_machine_assign(){
+  //   var workstation = $('#workstation_id_assign').val();
+  //       $.ajax({
+  //         url:"/get_machine_assignment_jquery/"+ workstation,
+  //         type:"GET",
+  //         success:function(data){
+  //           $('#machine_assignment').html(data);
+  //         }
+  //       }); 
+  // }
 
   function showNotification(color, message, icon){
     $.notify({
@@ -1785,7 +1780,7 @@ $('.sel9').select2({
         }); 
   }
 </script>
-<script type="text/javascript">
+{{-- <script type="text/javascript">
   function tbl_process_setup_list(page, query){
         $.ajax({
           url:"/get_tbl_process_setup_list/?page="+page,
@@ -1796,7 +1791,7 @@ $('.sel9').select2({
           }
         }); 
   }
-</script>
+</script> --}}
 <script type="text/javascript">
     $(document).on('click', '#assigned_machine_process a', function(event){
     event.preventDefault();
@@ -2057,18 +2052,37 @@ $('.sel9').select2({
 
 <!-- Additional function -->
 <script>
-function workstation_list(page, query){
-    $.ajax({
-          url:"/get_tbl_workstation_list?page=" + page,
-          type:"GET",
-          data: {search_string: $('#search_workstation_setup').val()},
-          success:function(data){
-            
-            $('#tbl_workstation_list').html(data);
-          }
-        });
+  $(document).on('click', '.ctrl-btn', function (e){
+    e.preventDefault();
 
-}
+    var tab = $(this).data('target');
+    $('.ctrl-btn').removeClass('active');
+    $(this).addClass('active')
+    $('.tab-pane').removeClass('active');
+    $(tab).addClass('active');
+  });
+
+  $(document).on('click', '.workstation-btn', function (e){
+    e.preventDefault();
+    $('.workstation-tabs a').removeClass('active')
+    $(this).addClass('active')
+    $('#current-workstation-operation').val($(this).data('operation'))
+    workstation_list($('#current-workstation-operation').val(), 1)
+  });
+
+  function workstation_list(id, page){
+    $.ajax({
+      url:"/get_tbl_workstation_list/" + id,
+      type:"GET",
+      data: {
+        search_string: $('#search_workstation_setup').val(),
+        page: page
+      },
+      success:function(data){
+        $('#tbl_workstation_list').html(data);
+      }
+    });
+  }
 </script>
 <script>
     $(document).on('click', '.btn-edit-workstation-modal', function(){
@@ -2238,8 +2252,7 @@ $(document).on('click', '#setting_machine_list_pagination a', function(event){
     tbl_process_setup_list(1, query);
   });
   $(document).on('keyup', '#search_workstation_setup', function(){
-    var query = $(this).val();
-    workstation_list(1, query);
+    workstation_list($('#current-workstation-operation').val(), 1);
   });
   $(document).on('keyup', '#search_user_setup', function(){
     var query = $(this).val();

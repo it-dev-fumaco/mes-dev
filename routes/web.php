@@ -165,6 +165,10 @@ Route::group(['middleware' => 'auth'], function(){
 	route::post('/save_process_workstation','SecondaryController@save_process_workstation');
 	route::get('/get_tbl_workstation_process','SecondaryController@get_tbl_workstation_process');
 	route::get('/get_tbl_workstation_machine','SecondaryController@get_tbl_workstation_machine');
+	route::get('/machine_select_data','SecondaryController@machine_select_data');
+	route::get('/process_select_data','SecondaryController@process_select_data');
+	route::post('/process_assignment/{id}/add','SecondaryController@add_assigned_process');
+	route::get('/process_assignment/{id}/remove/{process_id}','SecondaryController@remove_assigned_process');
 	route::post('/delete_process_workstation','SecondaryController@delete_process_workstation');
 	route::post('/save_machine_process','SecondaryController@save_machine_process');
 	route::post('/delete_machine_process','SecondaryController@delete_machine_process');
@@ -177,7 +181,7 @@ Route::group(['middleware' => 'auth'], function(){
 	route::get('/get_AssignProcessinMachine_jquery/{id}/{workstation}','SecondaryController@get_AssignProcessinMachine_jquery');
 	route::post('/process_assignment','SecondaryController@process_assignment');
 	route::get('/get_tbl_assigned_machine_process/{id}','SecondaryController@tbl_assigned_machine_process');
-	route::get('/get_tbl_process_setup_list','SecondaryController@tbl_process_setup_list');
+	// route::get('/get_tbl_process_setup_list','SecondaryController@tbl_process_setup_list');
 	route::get('/get_tbl_machine_setup_list','SecondaryController@tbl_machine_setup_list');
 	route::post('/update_process_setup_list','SecondaryController@Update_process_setup_list');
 	route::post('/delete_process_setup_list','SecondaryController@Delete_process_setup_list');
@@ -271,7 +275,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/submit/stock_entries_adjustment', 'SecondaryController@submit_stock_entries_adjustment');
 	Route::get('/get_tbl_stock_adjustment_entry', 'SecondaryController@get_tbl_stock_adjustment_entry');
 	Route::get('/get_fabrication_inventory_history_list', 'SecondaryController@get_fabrication_inventory_history_list');
-	route::get('/get_tbl_workstation_list','SecondaryController@get_tbl_workstation_list');
+	route::get('/get_tbl_workstation_list/{id}','SecondaryController@get_tbl_workstation_list');
 	Route::get('/get_tbl_setting_machine_list', 'SecondaryController@get_tbl_setting_machine_list');
 	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
 	Route::get('/selected_print_job_tickets/{scheduled_date}', 'SecondaryController@selected_printJobTickets');

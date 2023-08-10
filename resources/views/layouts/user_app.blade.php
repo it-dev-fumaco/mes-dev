@@ -26,6 +26,7 @@
   <link href="{{ asset('/css/demo.css') }}" rel="stylesheet" />
   {{-- Daterangepicker --}}
   <link href="{{ asset('/css/daterangepicker.css') }}" rel="stylesheet" />
+	<link rel="stylesheet" href="{{ asset('/js/plugins/select2/css/select2.min.css') }}">
 </head>
 <style>
   @font-face { font-family: 'Poppins'; src: url({{ asset('fonts/Poppins/Poppins-Regular.ttf') }}); } 
@@ -1216,6 +1217,7 @@
   {{-- Daterangepicker --}}
   <script src="{{ asset('/js/moment.min.js') }}"></script>
   <script src="{{ asset('/js/daterangepicker.min.js') }}"></script>
+  <script src="{{ asset('/js/plugins/select2/js/select2.full.js') }}"></script>
 <script>
   $(document).ready(function(){
     $(document).on('click', '.close-modal', function(){

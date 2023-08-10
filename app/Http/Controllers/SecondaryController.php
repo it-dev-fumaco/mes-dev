@@ -1343,25 +1343,94 @@ class SecondaryController extends Controller
         return view('tables.tbl_machine_profile', compact('data'));
 
     }
-    public function workstation_profile($id){
-        $permissions = $this->get_user_permitted_operation();
-        $list= DB::connection('mysql_mes')
-                ->table('workstation as w')
-                ->join('operation as op','op.operation_id', 'w.operation_id')
-                ->where('w.workstation_id', $id)
-                ->select("w.*",'op.operation_name as operation')
-                ->first();
-        $machine= DB::connection('mysql_mes')
-                ->table('machine')
-                ->get();
-        $process_list = DB::connection('mysql_mes')
-                ->table('process')
-                ->orderBy('process_name', 'Asc')
-                ->get();
 
-                return view('workstation_profile', compact('list','machine','process_list', 'permissions'));
+    public function machine_select_data(Request $request){
+        $machines= DB::connection('mysql_mes')->table('machine')
+            ->when($request->search, function ($q) use ($request){
+                return $q->where('machine_name', 'like', '%'.$request->search.'%')
+                    ->orWhere('machine_code', 'like', '%'.$request->search.'%');
+            })->select('machine_id as id', DB::raw('CONCAT(machine_code, " - ", machine_name) as text'))->get();
 
+        return response()->json($machines);
     }
+
+    public function process_select_data(Request $request){
+        $process= DB::connection('mysql_mes')->table('process')
+            ->when($request->search, function ($q) use ($request){
+                return $q->where('process_name', 'like', '%'.$request->search.'%');
+            })->select('process_id as id', 'process_name as text')->get();
+
+        return response()->json($process);
+    }
+
+    public function workstation_profile(Request $request, $id){
+        $permissions = $this->get_user_permitted_operation();
+        $list= DB::connection('mysql_mes')->table('workstation as w')
+            ->join('operation as op', 'op.operation_id', 'w.operation_id')
+            ->where('w.workstation_id', $id)
+            ->select("w.*",'op.operation_name as operation')->first();
+        
+        if($request->ajax()){
+            $machines = DB::connection('mysql_mes')->table('machine')->select('machine_id', 'machine_code', 'machine_name')->get();
+
+            $assigned_processes = DB::connection('mysql_mes')->table('process as p')
+                ->join('process_assignment as pa', 'pa.process_id', 'p.process_id')
+                ->leftJoin('machine as m', function ($q){
+                    $q->on('pa.machine_id', 'm.machine_id');
+                })->where('pa.workstation_id', $id)
+                ->select('pa.process_assignment_id as assignment_id', 'p.process_id', 'p.process_name', 'p.color_legend', 'm.machine_id', 'm.machine_code', 'm.machine_name', 'm.image', 'm.status', 'm.type', 'm.model', 'p.last_modified_by', 'p.last_modified_at')->orderBy('p.process_id')
+                ->get()->groupBy('process_name');
+
+            return view('tables.tbl_process_workstation_list', compact('assigned_processes', 'machines', 'id'));
+        }
+
+        return view('workstation_profile', compact('permissions', 'list', 'id'));
+    }
+
+    public function add_assigned_process(Request $request, $id){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $now = Carbon::now();
+
+            $old_data = DB::connection('mysql_mes')->table('process_assignment')->where('workstation_id', $id)->where('process_id', $request->process)->exists();
+            if($old_data){
+                DB::connection('mysql_mes')->table('process_assignment')->where('workstation_id', $id)->where('process_id', $request->process)->delete();
+            }
+
+            $data = [];
+            foreach($request->process_machines as $machine_id){
+                $data[] = [
+                    'process_id' => $request->process,
+                    'workstation_id' => $id,
+                    'machine_id' => $machine_id,
+                    'last_modified_at' => $now->toDateTimeString(),
+                    'last_modified_by' => Auth::user()->email,
+                    'created_at' => $now->toDateTimeString(),
+                    'created_by' => Auth::user()->email
+                ];
+            }
+
+            DB::connection('mysql_mes')->table('process_assignment')->insert($data);
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Process added.']);
+        } catch (\Throwable $th) {
+            DB::connection('mysql_mes')->rollBack();
+            return response()->json(['success' => 0, 'message' => 'An error occured, please try again.']);
+        }
+    }
+
+    public function remove_assigned_process($id, $process_id){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            DB::connection('mysql_mes')->table('process_assignment')->where('process_id', $process_id)->where('workstation_id', $id)->delete();
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Process removed.']);
+        } catch (\Throwable $th) {
+            DB::connection('mysql_mes')->rollBack();
+            return response()->json(['success' => 0, 'message' => 'An error occured, please try again.']);
+        }
+    }
+
     public function getNextIdxMachineWorkstation($id)
         {
             $lastOrder = DB::connection('mysql_mes')->table('workstation_machine')
@@ -1907,13 +1976,13 @@ class SecondaryController extends Controller
         return view('process_profile', compact('machine','process','workstation'));
 
     }
-    public function get_tbl_workstation_list(Request $request){
+    public function get_tbl_workstation_list($id, Request $request){
         $list = DB::connection('mysql_mes')->table('workstation as w')
             ->join('operation as op', 'op.operation_id', 'w.operation_id')
             ->where(function($q) use ($request) {
-                    $q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
-                    ->orWhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%');
-            })
+                $q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
+                ->orWhere('w.workstation_name', 'LIKE', '%'.$request->search_string.'%');
+            })->where('op.operation_id', $id)
             ->select('w.*', "op.operation_name as operation")
             ->orderBy('w.workstation_id', 'desc')->paginate(15);
         
@@ -2046,15 +2115,7 @@ class SecondaryController extends Controller
         return view('tables.tbl_assigned_machine_process', compact('data'));
 
     }
-    public function tbl_process_setup_list(Request $request){
-        $process_list = DB::connection('mysql_mes')->table('process')
-            ->where(function($q) use ($request) {
-                    $q->orWhere('process_name', 'LIKE', '%'.$request->search_string.'%');
-            })
-            ->orderBy('last_modified_at', 'desc')->paginate(15);
 
-        return view('tables.tbl_process_setup', compact('process_list'));
-    }
     public function tbl_machine_setup_list(Request $request){
 
         $process_list= DB::connection('mysql_mes')
