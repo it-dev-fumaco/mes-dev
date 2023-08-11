@@ -9932,9 +9932,11 @@ class MainController extends Controller
 				]);
 			}
 
+			$previous_delivery_date = $request->previous_date ? $request->previous_date : $delivery_date_details->delivery_date;
+
 			DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert([
 				'delivery_date_id' => $delivery_date_details->delivery_date_id,
-				'previous_delivery_date' => $request->previous_date,
+				'previous_delivery_date' => $previous_delivery_date,
 				'reschedule_reason_id' => $request->reason,
 				'rescheduled_by' => Auth::user()->employee_name,
 				'remarks' => $request->remarks,
@@ -9947,7 +9949,7 @@ class MainController extends Controller
 			DB::connection('mysql_mes')->table('activity_logs')->insert([
 				'action' => 'Reschedule Delivery Date',
 				'reference' => $id,
-				'message' => 'Delivery date has been changed from '.Carbon::parse($request->previous_date)->format('M. d, Y').' to '.Carbon::parse($request->rescheduled_date)->format('M. d, Y'). ' by '.Auth::user()->employee_name,
+				'message' => 'Delivery date has been changed from '.Carbon::parse($previous_delivery_date)->format('M. d, Y').' to '.Carbon::parse($request->rescheduled_date)->format('M. d, Y'). ' by '.Auth::user()->employee_name,
 				'created_at' => Carbon::now()->toDateTimeString(),
 				'created_by' => Auth::user()->email,
 				'last_modified_at' => Carbon::now()->toDateTimeString(),
@@ -9955,7 +9957,7 @@ class MainController extends Controller
 			]);
 
 			$email_data = array( 
-				'orig_delivery_date'	=> Carbon::parse($request->previous_date)->format('Y-m-d'),
+				'orig_delivery_date'	=> Carbon::parse($previous_delivery_date)->format('Y-m-d'),
 				'resched_date'			=> Carbon::parse($request->rescheduled_date)->format('Y-m-d'),
 				'items_arr'				=> $so_items,
 				'reference'				=> $id,
