@@ -581,8 +581,19 @@ class SecondaryController extends Controller
     }
 
     public function machineBreakdownSave(Request $request){
+        DB::connection('mysql_mes')->beginTransaction();
         try {
             $now = Carbon::now();
+
+            $checker = DB::connection('mysql_mes')->table('machine_breakdown')->where('machine_id', $request->id)
+                ->where('category', $request->category)->where(function ($q) use ($request){
+                    return $q->where('breakdown_reason', $request->breakdown_reason)->orWhere('corrective_reason', $request->corrective_reason);
+                })->exists();
+
+            if($checker){
+                return response()->json(["success" => 0, 'message' => 'Maintenance request already submitted']);
+            }
+
             $values = [
                 'machine_id' => $request->id,
                 'machine_breakdown_id' => $this->getNextOrderNumber(),
@@ -600,15 +611,13 @@ class SecondaryController extends Controller
                 'created_by' => $request->reported_by,
                 'last_modified_by' => $request->reported_by,
             ];
-            DB::connection('mysql_mes')
-                ->table('machine_breakdown')->insert($values);
+            DB::connection('mysql_mes')->table('machine_breakdown')->insert($values);
 
             $gatepass_id= $request->id;
             if ($request->category == "Breakdown") {
                 $type="Breakdown";
                 $reason = $request->breakdown_reason;
                 DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->id)->update(['status' => 'Unavailable']);
-
             }else{
                 $type="Corrective";
                 $reason = $request->corrective_reason;
@@ -622,10 +631,11 @@ class SecondaryController extends Controller
             );
        
             Mail::to("maintenance@fumaco.local")->send(new SendMail_machinebreakdown($data));
-             
+            DB::connection('mysql_mes')->commit();
             return response()->json(['success' => 1, 'message' => 'Machine Breakdown successfully submitted.']);
         } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
+            DB::connection('mysql_mes')->rollBack();
+            return response()->json(["success" => 0, 'message' => $e->getMessage()]);
         }
     }
 
