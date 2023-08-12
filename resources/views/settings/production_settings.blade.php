@@ -57,29 +57,34 @@
       </div>
         <div class="tab-pane active" id="workstation_setup">
           <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="row p-2 m-0">
+                <div class="col-7 p-0 m-0">
+                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Workstation Setup</h5>
+                </div>
+                <div class="col-5 p-0 m-0">
+                  <div class="row">
+                    <div class="col-7 p-0">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search_workstation_setup">
+                      <input type="hidden" id="current-workstation-operation" value="1">
+                    </div>
+                    <div class="col-5 p-0">
+                      <button type="button" class="btn btn-primary m-0" id="add-workstation-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Workstation</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="card-body p-0">
               <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
                 <div class="col-md-12">
                   <div class="container-fluid p-2">
-                    <div class="row">
-                      <div class="col-8">
-                        <ul class="nav nav-tabs workstation-tabs pt-2" role="tablist">
-                          @foreach ($operation_list as $operation)
-                            <li class="nav-item">
-                              <a class="nav-link workstation-btn {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</a>
-                            </li>
-                          @endforeach
-                        </ul>
-                      </div>
-                      <div class="col-3 pt-2">
-                        <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_workstation_setup">
-                        <input type="hidden" id="current-workstation-operation" value="1">
-                      </div>
-                      <div class="col-1 p-0">
-                        <button type="button" class="btn btn-primary m-1" id="add-workstation-button"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
-                      </div>
+                    <div class="form-group workstation-tabs d-flex justify-content-start">
+                      <button class="workstation-btn active d-none"></button>
+                      @foreach ($operation_list as $operation)
+                        <button class="workstation-btn btn btns {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</button>
+                      @endforeach
                     </div>
-                    
                     <!-- Tab panes -->
                     <div class="tab-content pt-2">
                       <div id="tbl_workstation_list" class="container-fluid p-0"></div>
@@ -90,40 +95,21 @@
             </div>
           </div>
         </div>
-        {{-- <div class="tab-pane" id="operation_setup">
-          <div class="card">
-            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="row p-2 m-0">
-                <div class="col-md-8 p-0 m-0">
-                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Operation Setup</h5>
-                </div>
-                <div class="col-md-4 p-0 m-0">
-                  <div class="form-group m-0">
-                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_operation_setup">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card-body p-0" style="padding-bottom: 0;">
-              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                <div class="col-md-12">
-                  <button type="button" class="btn btn-primary" id="add-operation-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Operation</button>
-                  <div class="tbl_operation" id="tbl_operation"></div>
-                </div>
-              </div>        
-            </div>
-          </div>
-        </div> --}}
         <div class="tab-pane" id="cancel_po_setup">
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
               <div class="row p-2 m-0">
-                <div class="col-md-8 p-0 m-0">
+                <div class="col-7 p-0 m-0">
                   <h5 class="text-white font-weight-bold text-left p-1 m-0">Reason/s for Cancellation Setup</h5>
                 </div>
-                <div class="col-md-4 p-0 m-0">
-                  <div class="form-group m-0">
-                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_reason_cancelled_po">
+                <div class="col-5 p-0 m-0">
+                  <div class="row">
+                    <div class="col-7 p-0">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search_reason_cancelled_po">
+                    </div>
+                    <div class="col-5 p-0">
+                      <button type="button" class="btn btn-primary m-0" id="add-cancelled-reason-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -131,8 +117,7 @@
             <div class="card-body p-0">
               <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
                 <div class="col-md-12">
-                  <button type="button" class="btn btn-primary" id="add-cancelled-reason-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
-                  <div class="tbl_reason_for_cancellation_po" id="tbl_reason_for_cancellation_po"></div>
+                  <div class="tbl_reason_for_cancellation_po pt-3" id="tbl_reason_for_cancellation_po"></div>
                 </div>
               </div>
             </div>
@@ -142,12 +127,17 @@
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
               <div class="row p-2 m-0">
-                <div class="col-md-8 p-0 m-0">
+                <div class="col-7 p-0 m-0">
                   <h5 class="text-white font-weight-bold text-left p-1 m-0">Reschedule Delivery Reason Setup</h5>
                 </div>
-                <div class="col-md-4 p-0 m-0">
-                  <div class="form-group m-0">
-                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_late_delivery_setup">
+                <div class="col-5 p-0 m-0">
+                  <div class="row">
+                    <div class="col-7 p-0">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search_late_delivery_setup">
+                    </div>
+                    <div class="col-5 p-0">
+                      <button type="button" class="btn btn-primary m-0" id="add-late-deli-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -155,47 +145,27 @@
             <div class="card-body p-0">
               <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
                 <div class="col-md-12">
-                  <button type="button" class="btn btn-primary" id="add-late-deli-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reschedule Delivery Reason </button>
-                  <div id="tbl_late_delivery_list"></div>    
+                  <div id="tbl_late_delivery_list" class="pt-3"></div>    
                 </div>
               </div>        
             </div>
           </div>
         </div>
-        {{-- <div class="tab-pane" id="machine_setup">
-          <div class="card">
-            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="row p-2 m-0">
-                <div class="col-md-8 p-0 m-0">
-                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Machine Setup</h5>
-                </div>
-                <div class="col-md-4 p-0 m-0">
-                  <div class="form-group m-0">
-                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_machine_setup">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">  
-                <div class="col-md-12">
-                  <button type="button" class="btn btn-primary" id="add-machine-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Machine</button>
-                  <div id="tbl_setting_machine_list"></div>    
-                </div>
-              </div>        
-            </div>
-          </div>
-        </div> --}}
         <div class="tab-pane" id="shift">
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
               <div class="row p-2 m-0">
-                <div class="col-md-8 p-0 m-0">
+                <div class="col-7 p-0 m-0">
                   <h5 class="text-white font-weight-bold text-left p-1 m-0">Shift Setup</h5>
                 </div>
-                <div class="col-md-4 p-0 m-0">
-                  <div class="form-group m-0">
-                    <input type="text" class="form-control rounded bg-white" placeholder="Search" id="search-shift-setup">
+                <div class="col-5 p-0 m-0">
+                  <div class="row">
+                    <div class="col-7 p-0">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search-shift-setup">
+                    </div>
+                    <div class="col-5 p-0">
+                      <button type="button" class="btn btn-primary m-0" id="add-shift-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Shift</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -203,8 +173,7 @@
             <div class="card-body p-0">
               <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
                 <div class="col-md-12">
-                  <button type="button" class="btn btn-primary" id="add-shift-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Shift</button>
-                  <div class="tbl_shift" id="tbl_shift"></div>
+                  <div class="tbl_shift pt-3" id="tbl_shift"></div>
                 </div>
               </div>
             </div>
@@ -732,7 +701,7 @@
     padding: 10px;
     background-color: #fff;
     font-size: 10pt;
-    /* border-radius: 8px; */
+    cursor: pointer;
     margin: 10px 5px;
     transition: .4s;
   }
@@ -740,6 +709,18 @@
   .ctrl-btn + .active, .ctrl-btn:hover{
     background-color: #f96332 !important;
     color: #fff !important;
+  }
+
+  .workstation-btn{
+    border: 1px solid #d85e35 !important;
+    background-color: #fff;
+    color: #d85e35 !important;
+    transition: .4s !important;
+  }
+
+  .workstation-btn + .active, .workstation-btn:hover{
+    color: #fff !important;
+    background-color:#d85e35 !important;
   }
 </style>
 @endsection
@@ -2064,7 +2045,7 @@ $('.sel9').select2({
 
   $(document).on('click', '.workstation-btn', function (e){
     e.preventDefault();
-    $('.workstation-tabs a').removeClass('active')
+    $('.workstation-tabs .btns').removeClass('active')
     $(this).addClass('active')
     $('#current-workstation-operation').val($(this).data('operation'))
     workstation_list($('#current-workstation-operation').val(), 1)
