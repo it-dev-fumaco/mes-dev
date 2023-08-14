@@ -912,12 +912,9 @@
                t_wh = '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
             }
 
-            var disable_sel = (prod_order) ? 'disabled' : null;
+            var disable_sel = null;
 
             var production_balance_qty = $(this).find('.production-balance-qty').eq(0).text();
-            if(production_balance_qty < 1){
-               disable_sel = 'disabled';
-            }
 
             // var disabled = parseInt($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : null;
 
@@ -937,7 +934,8 @@
                '</button>' +
                '<div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div>';
 
-            if(prod_order){
+            if(prod_order && production_balance_qty < 1){
+               disable_sel = 'disabled';
                create_btn = '<button type="button" class="btn btn-success" disabled>' +
                   '<i class="now-ui-icons ui-1_check"></i> ' + prod_order +
                '</button>';
