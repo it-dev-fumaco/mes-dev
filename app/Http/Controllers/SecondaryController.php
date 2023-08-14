@@ -1422,7 +1422,7 @@ class SecondaryController extends Controller
 
             DB::connection('mysql_mes')->table('process_assignment')->insert($data);
             DB::connection('mysql_mes')->commit();
-            return response()->json(['success' => 1, 'message' => 'Process added.']);
+            return response()->json(['success' => 1, 'message' => 'Workstaion profile updated.']);
         } catch (\Throwable $th) {
             DB::connection('mysql_mes')->rollBack();
             return response()->json(['success' => 0, 'message' => 'An error occured, please try again.']);
