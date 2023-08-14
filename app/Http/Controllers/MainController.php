@@ -389,12 +389,15 @@ class MainController extends Controller
 	// /get_jt_details/{jtno}
 	public function getTimesheetDetails($jtno){
 		$tab=[];
-		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $jtno)
+		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order.production_order', $jtno)
 			->leftJoin('delivery_date', function($join){
 				$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
 				$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
 			}) // get delivery date from delivery_date table
-			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')->first();
+			->leftJoin('assembly_conveyor_assignment as acs', function ($q){
+				return $q->on('production_order.production_order', 'acs.production_order');
+			})
+			->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'acs.assembly_conveyor_assignment_id as assignment_id', 'acs.machine_code')->first();
 
 		if (!$details) {
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
@@ -4085,9 +4088,9 @@ class MainController extends Controller
 
 	public function get_workstation_process_machine($workstation, $process_id){
 		return DB::connection('mysql_mes')->table('process_assignment')
-				->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
-				->where('process_assignment.workstation_id', $workstation)
-				->where('process_assignment.process_id', $process_id)->select('machine.*', 'process_assignment.process_id')->get();
+			->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
+			->where('process_assignment.workstation_id', $workstation)
+			->where('process_assignment.process_id', $process_id)->select('machine.*', 'process_assignment.process_id')->get();
 	}
 
 	public function get_production_workstation_process($production_order, $workstation, $required_qty){

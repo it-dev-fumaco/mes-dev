@@ -236,6 +236,11 @@
 															$to_time = ($a['to_time']) ? Carbon\Carbon::parse($a['to_time'])->format('M-d-Y h:i A') : '-';
 															$inprogress_class = ($a['status'] == 'In Progress') ? 'active-process' : '';
 															$qc_status = null;
+
+															$machine_status = null;
+															if($a['status'] == 'In Progress' && $details->operation_id == 3 && $details->machine_code){
+																$machine_status = $details->machine_code == $machine ? $inprogress_class : 'incorrect-machine';
+															}
 															
 															if($process['process'] != "Housing and Frame Welding"){
 																$qc_status = ($a['qa_inspection_status'] == 'QC Passed') ? "qc_passed" : "qc_failed";
@@ -244,7 +249,7 @@
 														@endphp
 														<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['good']) }}</b></td>
 														<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ $loop->last ? number_format($a['rework']) : 0 }}</b></td>
-														<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
+														<td class="text-center {{ $machine_status }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
 														<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
 														<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
 		
@@ -603,5 +608,20 @@
 	}
 	.hover-box:hover {
 		display: block;
+	}
+
+	.incorrect-machine {
+      -webkit-animation: errorAnimation 2.5s linear infinite !important;
+      -moz-animation: errorAnimation 2.5s linear infinite !important;
+      -o-animation: errorAnimation 2.5s linear infinite !important;
+      animation: errorAnimation 2.5s linear infinite !important;
+    }
+
+	@-webkit-keyframes errorAnimation{
+		0%    { background-color: #ffffff; color: #000}
+		25%   { background-color: #e50000; color: #fff}
+		50%   { background-color: #ffffff; color: #000}
+		75%   { background-color: #e50000; color: #fff}
+		100%  { background-color: #ffffff; color: #000}
 	}
 </style>
