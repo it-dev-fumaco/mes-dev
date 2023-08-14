@@ -1067,9 +1067,9 @@ class SecondaryController extends Controller
     {
         if (Gate::denies('manage-machines')) {
             if ($request->ajax()) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             } else {
-                return redirect()->back()->with('error', 'User not allowed.');
+                return redirect()->back()->with('error', 'Unauthorized.');
             }
         }
         
@@ -1130,7 +1130,7 @@ class SecondaryController extends Controller
     public function update_machine(Request $request)
     {
         if (Gate::denies('manage-machines')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::beginTransaction();
@@ -1249,7 +1249,7 @@ class SecondaryController extends Controller
     public function delete_machine(Request $request)
     {
         if (Gate::denies('manage-machines')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
         
         $itemissued = Machine::find($request->machine_id);
@@ -1486,7 +1486,7 @@ class SecondaryController extends Controller
     public function save_workstation(Request $request)
     {
         if (Gate::denies('manage-workstations')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
         
         $now = Carbon::now();
@@ -1551,7 +1551,7 @@ class SecondaryController extends Controller
     public function edit_workstation(Request $request)
     {
         if (Gate::denies('manage-workstations')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         $operation_name = DB::connection('mysql_mes')->table('operation')->where('operation_id', $request->operation)->select('operation_name')->first();
@@ -1634,7 +1634,7 @@ class SecondaryController extends Controller
     public function delete_workstation(Request $request)
     {
         if (Gate::denies('manage-workstations')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::connection('mysql_mes')->table('workstation')->where("workstation_id", $request->workstation_id)->delete();
@@ -1778,7 +1778,7 @@ class SecondaryController extends Controller
     public function delete_process_workstation(Request $request)
     {
         if (Gate::denies('manage-workstations')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::connection('mysql_mes')->table('process_assignment')->where("process_assignment_id", $request->delete_id)->delete();

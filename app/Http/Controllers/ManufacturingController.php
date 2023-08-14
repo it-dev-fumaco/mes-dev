@@ -1018,7 +1018,7 @@ class ManufacturingController extends Controller
     {
         try {
             if (Gate::denies('assign-bom-process')) {
-                return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
             }
 
             $logs = [];
@@ -1433,7 +1433,7 @@ class ManufacturingController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             if (Gate::denies('create-production-order')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             if (!Auth::user()) {
@@ -1865,7 +1865,7 @@ class ManufacturingController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             if (Gate::denies('close-production-order')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             if (!Auth::user()) {
@@ -1935,7 +1935,7 @@ class ManufacturingController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             if (Gate::denies('reopen-production-order')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             if (!Auth::user()) {
@@ -2013,7 +2013,7 @@ class ManufacturingController extends Controller
         DB::connection('mysql_mes')->beginTransaction();
         try {
             if (Gate::denies('cancel-production-order')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             if (!Auth::user()) {
@@ -2712,7 +2712,7 @@ class ManufacturingController extends Controller
         DB::connection('mysql')->beginTransaction();
         try {
             if (Gate::denies('return-items-to-warehouse')) {
-                return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
             }
 
             if (!Auth::user()) {
@@ -3029,7 +3029,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('change-production-order-items')) {
-                return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
             }
 
             $now = Carbon::now();
@@ -3183,7 +3183,7 @@ class ManufacturingController extends Controller
         }
 
         if (Gate::denies('change-production-order-items')) {
-            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::connection('mysql')->beginTransaction();
@@ -3246,7 +3246,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('add-production-order-items')) {
-                return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
             }
 
             if (count($request->item_code) < 1) {
@@ -3716,7 +3716,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('create-material-request')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             $now = Carbon::now();
@@ -3851,7 +3851,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('create-production-order')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             if ($request->reference_type == 'SO' && !$request->sales_order) {
@@ -4259,7 +4259,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('create-withdrawal-slip')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             $new_id = null;
@@ -5136,7 +5136,7 @@ class ManufacturingController extends Controller
         }
 
         if (Gate::denies('print-withdrawal-slip')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         $myArray = explode(',', $request->production_orders);
@@ -5218,7 +5218,7 @@ class ManufacturingController extends Controller
     public function submit_stock_entries($production_order)
     {
         if (Gate::denies('create-withdrawal-slip')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::connection('mysql')->beginTransaction();
@@ -5326,7 +5326,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('create-production-order-feedback')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             $existing_ste_transfer = DB::connection('mysql')->table('tabStock Entry')
@@ -5721,7 +5721,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('cancel-production-order-feedback')) {
-                return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
             }
 
             $now = Carbon::now();
@@ -5910,7 +5910,7 @@ class ManufacturingController extends Controller
             }
 
             if (Gate::denies('create-production-order')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             if ($request->reference_type == 'Sales Order' && !$request->reference_no) {
@@ -6246,7 +6246,7 @@ class ManufacturingController extends Controller
     public function submit_withdrawal_slip(Request $request)
     {
         if (Gate::denies('create-withdrawal-slip')) {
-            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::beginTransaction();

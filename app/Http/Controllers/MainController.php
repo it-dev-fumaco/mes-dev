@@ -2331,7 +2331,7 @@ class MainController extends Controller
 
     public function update_production_task_schedules(Request $request){
 		if (Gate::denies('assign-production-order-schedule')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.', 'reload_tbl' => $request->reload_tbl]);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.', 'reload_tbl' => $request->reload_tbl]);
         }
 		
 		DB::connection('mysql_mes')->beginTransaction();
@@ -2385,7 +2385,7 @@ class MainController extends Controller
 
 	public function save_shift_schedule(Request $request){
 		if (Gate::denies('assign-production-order-schedule')) {
-			return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+			return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
 		DB::connection('mysql')->beginTransaction();
@@ -3787,7 +3787,7 @@ class MainController extends Controller
 
     public function update_process(Request $request){
 		if (Gate::denies('assign-bom-process')) {
-            return response()->json(["error" => 'User not allowed.']);
+            return response()->json(["error" => 'Unauthorized.']);
         }
 
     	try {
@@ -3811,7 +3811,7 @@ class MainController extends Controller
     // SecondaryController
     public function update_machine_path(Request $request){
 		if (Gate::denies('manage-machines')) {
-            return redirect()->back()->with(['message' => 'User not allowed.']);
+            return redirect()->back()->with(['message' => 'Unauthorized.']);
         }
 
         $image_path = $request->user_image;
@@ -5339,7 +5339,7 @@ class MainController extends Controller
 
 	public function update_task_schedule(Request $request, $job_ticket_id){
 		if (Gate::denies('assign-production-order-schedule')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
 		$now = Carbon::now();
@@ -5702,7 +5702,7 @@ class MainController extends Controller
 
     public function save_user(Request $request){
 		if (Gate::denies('manage-users')) {
-            return response()->json(['message' => 'User not allowed.']);
+            return response()->json(['message' => 'Unauthorized.']);
         }
 
         $now = Carbon::now();
@@ -5722,7 +5722,7 @@ class MainController extends Controller
 
     public function update_user(Request $request){
 		if (Gate::denies('manage-users')) {
-            return response()->json(['message' => 'User not allowed.']);
+            return response()->json(['message' => 'Unauthorized.']);
         }
 
     	$now = Carbon::now();
@@ -5743,7 +5743,7 @@ class MainController extends Controller
 
     public function delete_user(Request $request){
 		if (Gate::denies('manage-users')) {
-            return response()->json(['message' => 'User not allowed.']);
+            return response()->json(['message' => 'Unauthorized.']);
         }
 
 		DB::connection('mysql_mes')->beginTransaction();
@@ -5759,7 +5759,7 @@ class MainController extends Controller
 
 	public function remove_user_access($id){
 		if (Gate::denies('manage-users')) {
-            return response()->json(['message' => 'User not allowed.']);
+            return response()->json(['message' => 'Unauthorized.']);
         }
 		
 		DB::connection('mysql_mes')->beginTransaction();

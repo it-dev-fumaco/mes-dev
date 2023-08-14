@@ -48,7 +48,7 @@ class InventoryController extends Controller
     public function save_material_purchase(Request $request)
     {
         if (Gate::denies('create-material-request')) {
-            return response()->json(["error" => 'User not allowed.']);
+            return response()->json(["error" => 'Unauthorized.']);
         }
 
         $now = Carbon::now();
@@ -191,7 +191,7 @@ class InventoryController extends Controller
         try {
             $now = Carbon::now();
             if (Gate::denies('create-material-request')) {
-                return response()->json(["error" => 'User not allowed.']);
+                return response()->json(["error" => 'Unauthorized.']);
             }
 
             DB::connection('mysql')->table('tabMaterial Request')->where('name', $request->purchase_id)
@@ -232,7 +232,7 @@ class InventoryController extends Controller
     public function save_wip(Request $request)
     {
         if (Gate::denies('manage-wip-warehouse')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         $now = Carbon::now();
@@ -267,7 +267,7 @@ class InventoryController extends Controller
     public function edit_wip(Request $request)
     {
         if (Gate::denies('manage-wip-warehouse')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         $now = Carbon::now();
@@ -308,7 +308,7 @@ class InventoryController extends Controller
     public function delete_wip(Request $request)
     {
         if (Gate::denies('manage-wip-warehouse')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::connection('mysql_mes')->table('wip_setup')->where('wip_id', $request->delete_wip_id)->delete();
@@ -2125,7 +2125,7 @@ class InventoryController extends Controller
     public function generate_material_request(Request $request)
     {
         if (Gate::denies('create-material-request')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
         
         DB::connection('mysql')->beginTransaction();
@@ -2274,7 +2274,7 @@ class InventoryController extends Controller
     public function saveAllowedWarehouseFastIssuance(Request $request)
     {
         if (Gate::denies('manage-fast-issuance-permission')) {
-            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
 
         $existing = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where([
@@ -2296,7 +2296,7 @@ class InventoryController extends Controller
     public function deleteAllowedWarehouseFastIssuance(Request $request)
     {
         if (Gate::denies('manage-fast-issuance-permission')) {
-            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
 
         DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where('fast_issuance_warehouse_id', $request->id)->delete();
@@ -2321,7 +2321,7 @@ class InventoryController extends Controller
     public function saveAllowedUserFastIssuance(Request $request)
     {
         if (Gate::denies('manage-fast-issuance-permission')) {
-            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
 
         $existing = DB::connection('mysql_mes')->table('fast_issuance_user')->where([
@@ -2343,7 +2343,7 @@ class InventoryController extends Controller
     public function deleteAllowedUserFastIssuance(Request $request)
     {
         if (Gate::denies('manage-fast-issuance-permission')) {
-            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
         
         DB::connection('mysql_mes')->table('fast_issuance_user')->where('fast_issuance_user_id', $request->id)->delete();

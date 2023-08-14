@@ -598,7 +598,7 @@ class AssemblyController extends Controller
             }
 
             if (Gate::denies('change-production-order-items')) {
-                return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
             $now = Carbon::now();
@@ -1050,7 +1050,7 @@ class AssemblyController extends Controller
     public function move_today_task(Request $request)
     {
         if (Gate::denies('assign-production-order-schedule')) {
-            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
         $val = [];
