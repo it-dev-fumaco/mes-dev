@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Mail\SendMail_material_request;
@@ -16,62 +17,62 @@ use App\Traits\GeneralTrait;
 
 class InventoryController extends Controller
 {
-
     use GeneralTrait;
-    
-	public function material_request(){
+
+    public function material_request()
+    {
         $item_list = DB::connection('mysql')->table('tabItem as item')
             ->join('tabItem Default as default', 'default.parent', 'item.item_code')
             ->join('tabWarehouse as w', 'default.default_warehouse', 'w.name')
-            ->where('w.disabled', 0)
-            ->where('w.is_group', 0)
-            ->where('w.company', 'FUMACO Inc.')
-            ->where('w.department', 'Fabrication')
+            ->where('w.disabled', 0)->where('w.is_group', 0)
+            ->where('w.company', 'FUMACO Inc.')->where('w.department', 'Fabrication')
             ->whereIn('item.item_group', ['Raw Material'])
             ->select('item.name', 'item.description')
             ->orderBy('item.modified', 'desc')->get();
 
-        $so_list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+        $so_list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
+            ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
 
         $customers = collect($so_list)->pluck('customer_name')->unique()->sort()->values()->all();
         $projects = collect($so_list)->pluck('project')->unique()->sort()->values()->all();
 
-        $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
+        $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)
+            ->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
 
-        $mreq_stat=DB::connection('mysql')->table('tabMaterial Request')
-            ->where('material_request_type', 'Purchase')
-            ->where('docstatus','!=', 0)
+        $mreq_stat = DB::connection('mysql')->table('tabMaterial Request')
+            ->where('material_request_type', 'Purchase')->where('docstatus', '!=', 0)
             ->select('status')->groupBy('status')->get();
 
-        return view('inventory.material_request.material_request', compact('item_list','warehouse_list','so_list','customers', 'mreq_stat','projects'));
+        return view('inventory.material_request.material_request', compact('item_list', 'warehouse_list', 'so_list', 'customers', 'mreq_stat', 'projects'));
     }
-    public function save_material_purchase(Request $request){
+    public function save_material_purchase(Request $request)
+    {
+        if (Gate::denies('create-material-request')) {
+            return response()->json(["error" => 'User not allowed.']);
+        }
+
         $now = Carbon::now();
         $data = $request->all();
-        $operation = $data['operation'];
         $purchase_type = $data['purchase_type'];
         $sales_order = $data['sales_order'];
-        $customer = $data['customer'];
         $required_date_all = $data['required_date_all'];
-        $project = $data['project'];
         $new_item_code = $data['new_item_code'];
         $qty = $data['qty'];
         $new_warehouse = $data['new_warehouse'];
         $required_date = $data['required_date'];
 
         try {
-
-            if ($request->new_item_code) { 
+            if ($request->new_item_code) {
                 $order_details = DB::connection('mysql')->table("tabSales Order")->where('name', $sales_order)->first();
                 $latest_mr = DB::connection('mysql')->table('tabMaterial Request')->max('name');
                 $latest_mr_exploded = explode("-", $latest_mr);
                 $new_id = $latest_mr_exploded[1] + 1;
                 $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-                $new_id = 'PREQ-'.$new_id;
+                $new_id = 'PREQ-' . $new_id;
 
                 $id_checker = DB::connection('mysql')->table('tabMaterial Request')->where('name', $new_id)->exists();
-                if($id_checker){
-                    return response()->json(['success' => 0, 'message' => 'Material Request <b>'.$new_id.'</b> already exists. Please try again.']);
+                if ($id_checker) {
+                    return response()->json(['success' => 0, 'message' => 'Material Request <b>' . $new_id . '</b> already exists. Please try again.']);
                 }
 
                 $mr = [
@@ -88,173 +89,196 @@ class InventoryController extends Controller
                     'company' => 'FUMACO Inc.',
                     'schedule_date' => $required_date_all,
                     'material_request_type' => 'Purchase',
-                    'delivery_date' => empty($order_details)? null : $order_details->delivery_date,
-                    'customer_name' => empty($order_details)? null : $order_details->customer,
+                    'delivery_date' => empty($order_details) ? null : $order_details->delivery_date,
+                    'customer_name' => empty($order_details) ? null : $order_details->customer,
                     'sales_order' => $sales_order,
-                    'project' => empty($order_details)? null : $order_details->project,
+                    'project' => empty($order_details) ? null : $order_details->project,
                     'purchase_request' => $purchase_type,
-                    
                 ];
-               foreach($new_item_code as $i => $row){
-                    if ($now->format('Y-m-d') > $required_date_all){
-                                return response()->json(['success' => 0, 'message' => 'Date cannot be before Transaction Date']);
-                    }elseif($now->format('Y-m-d') > $required_date[$i]){
-                                return response()->json(['success' => 0, 'message' => 'Date cannot be before Transaction Date']);
-                    }elseif($row == 'none'){
-                                return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
-                    }else{
-                    $item_details = DB::connection('mysql')->table('tabItem')->where('name', $row)->first();
-                    $actual_qty = $this->get_actual_qty($row, $new_warehouse[$i]);
-                    $mr_item = [
-                        'name' => 'mes'.uniqid(),
-                        'creation' => $now->toDateTimeString(),
-                        'modified' => $now->toDateTimeString(),
-                        'modified_by' => Auth::user()->email,
-                        'owner' => Auth::user()->email,
-                        'docstatus' => 1,
-                        'parent' => $new_id,
-                        'parentfield' => 'items',
-                        'parenttype' => 'Material Request',
-                        'idx' => $i + 1,
-                        'stock_qty' => abs($qty[$i] * 1),
-                        'qty' => abs($qty[$i]),
-                        'actual_qty' => $actual_qty,
-                        'schedule_date' => $required_date[$i],
-                        'item_name' => $item_details->item_name,
-                        'stock_uom' => $item_details->stock_uom,
-                        'warehouse' => $new_warehouse[$i],
-                        'uom' => $item_details->stock_uom,
-                        'description' => $item_details->description,
-                        'conversion_factor' => 1,
-                        'item_code' => $row,
-                        'sales_order' => $sales_order,
-                        'item_group' => $item_details->item_group,
-                        'project' => empty($order_details)? null : $order_details->project,
-                        
-                    ];
+
+                foreach ($new_item_code as $i => $row) {
+                    if ($now->format('Y-m-d') > $required_date_all) {
+                        return response()->json(['success' => 0, 'message' => 'Date cannot be before Transaction Date']);
+                    } elseif ($now->format('Y-m-d') > $required_date[$i]) {
+                        return response()->json(['success' => 0, 'message' => 'Date cannot be before Transaction Date']);
+                    } elseif ($row == 'none') {
+                        return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
+                    } else {
+                        $item_details = DB::connection('mysql')->table('tabItem')->where('name', $row)->first();
+                        $actual_qty = $this->get_actual_qty($row, $new_warehouse[$i]);
+                        $mr_item = [
+                            'name' => 'mes' . uniqid(),
+                            'creation' => $now->toDateTimeString(),
+                            'modified' => $now->toDateTimeString(),
+                            'modified_by' => Auth::user()->email,
+                            'owner' => Auth::user()->email,
+                            'docstatus' => 1,
+                            'parent' => $new_id,
+                            'parentfield' => 'items',
+                            'parenttype' => 'Material Request',
+                            'idx' => $i + 1,
+                            'stock_qty' => abs($qty[$i] * 1),
+                            'qty' => abs($qty[$i]),
+                            'actual_qty' => $actual_qty,
+                            'schedule_date' => $required_date[$i],
+                            'item_name' => $item_details->item_name,
+                            'stock_uom' => $item_details->stock_uom,
+                            'warehouse' => $new_warehouse[$i],
+                            'uom' => $item_details->stock_uom,
+                            'description' => $item_details->description,
+                            'conversion_factor' => 1,
+                            'item_code' => $row,
+                            'sales_order' => $sales_order,
+                            'item_group' => $item_details->item_group,
+                            'project' => empty($order_details) ? null : $order_details->project,
+                        ];
+                    }
+
+                    DB::connection('mysql')->table('tabMaterial Request Item')->insert($mr_item);
                 }
-                    DB::connection('mysql')->table('tabMaterial Request Item')->insert($mr_item); 
-            }
+
                 DB::connection('mysql')->table('tabMaterial Request')->insert($mr);
-                
+
                 return response()->json(['success' => 1, 'message' => 'successfully inserted']);
-            }       
+            }
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function get_actual_qty($item_code, $warehouse){
+    public function get_actual_qty($item_code, $warehouse)
+    {
         return DB::connection('mysql')->table('tabBin')->where('item_code', $item_code)
             ->where('warehouse', $warehouse)->sum('actual_qty');
     }
-    public function list_material_purchase(Request $request){
+    public function list_material_purchase(Request $request)
+    {
         $date_col = $request->filter ? 'mt.schedule_date' : 'mt.creation';
-        $purchase_list= DB::connection('mysql')->table('tabMaterial Request as mt')
+        $purchase_list = DB::connection('mysql')->table('tabMaterial Request as mt')
             ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
-            ->whereBetween(DB::raw('DATE_FORMAT('.$date_col.', "%Y-%m-%d")'),[$request->from,$request->end])
-            ->where('mt.customer_name', 'LIKE', '%'.$request->customer.'%')
-            ->where('mt.project',   'LIKE', '%'.$request->project.'%')
-            ->where('mt.sales_order', 'LIKE', '%'.$request->so.'%')
-            ->Where('mt.status', 'LIKE', '%'.$request->status.'%')
-            ->Where('imt.item_code', 'LIKE', '%'.$request->item_code.'%')
-            ->where('mt.docstatus','!=',0 )
+            ->whereBetween(DB::raw('DATE_FORMAT(' . $date_col . ', "%Y-%m-%d")'), [$request->from, $request->end])
+            ->where('mt.customer_name', 'LIKE', '%' . $request->customer . '%')
+            ->where('mt.project', 'LIKE', '%' . $request->project . '%')
+            ->where('mt.sales_order', 'LIKE', '%' . $request->so . '%')
+            ->Where('mt.status', 'LIKE', '%' . $request->status . '%')
+            ->Where('imt.item_code', 'LIKE', '%' . $request->item_code . '%')
+            ->where('mt.docstatus', '!=', 0)
             ->select('mt.status', 'mt.per_ordered', 'mt.docstatus', 'mt.name', 'mt.purchase_request', 'mt.sales_order', 'mt.customer_name', 'mt.project')
             ->groupBy('mt.status', 'mt.per_ordered', 'mt.docstatus', 'mt.name', 'mt.purchase_request', 'mt.sales_order', 'mt.customer_name', 'mt.project')
             ->orderBy('mt.modified', 'desc')->paginate(10);
 
         $count = $purchase_list->total();
-  
+
         return view('inventory.material_request.tbl_material_request_purchase', compact('purchase_list', 'count'));
     }
-    public function get_selection_box_in_item_code_warehouse(Request $request){
+    public function get_selection_box_in_item_code_warehouse(Request $request)
+    {
         $item_list = DB::connection('mysql')->table('tabItem as item')
-        ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-        ->where('w.disabled', 0)
-        ->where('w.is_group', 0)
-        ->where('w.company', 'FUMACO Inc.')
-        ->where('w.department', 'Fabrication')
-        ->whereIn('item.item_group', ['Raw Material'])
-        ->select('item.name', 'item.description')
-        ->orderBy('item.modified', 'desc')->get();
+            ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
+            ->where('w.disabled', 0)->where('w.is_group', 0)
+            ->where('w.company', 'FUMACO Inc.')->where('w.department', 'Fabrication')
+            ->whereIn('item.item_group', ['Raw Material'])
+            ->select('item.name', 'item.description')
+            ->orderBy('item.modified', 'desc')->get();
 
         $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)
             ->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
-        return response()->json(['item_list' => $item_list,'warehouse' =>$warehouse_list ]);
 
+        return response()->json(['item_list' => $item_list, 'warehouse' => $warehouse_list]);
     }
-    public function cancel_material_purchase_request(Request $request){
+
+    public function cancel_material_purchase_request(Request $request)
+    {
         try {
             $now = Carbon::now();
+            if (Gate::denies('create-material-request')) {
+                return response()->json(["error" => 'User not allowed.']);
+            }
 
             DB::connection('mysql')->table('tabMaterial Request')->where('name', $request->purchase_id)
                 ->where('docstatus', 1)->where('status', '!=', 'Ordered')
                 ->update(['docstatus' => 2, 'status' => 'Cancelled', 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
-            
+
             DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $request->purchase_id)
                 ->where('docstatus', 1)
                 ->update(['docstatus' => 2, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
-
 
             return response()->json(['success' => 1, 'message' => 'Material Request for Purchase <b>' . $request->purchase_id . '</b> has been cancelled.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function get_material_request_for_purchase($id){
-        $purchase_list=  DB::connection('mysql')->table('tabMaterial Request')->where('name', $id)->first();
 
+    public function get_material_request_for_purchase($id)
+    {
+        if (Gate::denies('create-material-request')) {
+            return redirect('/');
+        }
 
-        $purchase_list_item=  DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)->orderBy('idx', 'asc')->get();
+        $purchase_list = DB::connection('mysql')->table('tabMaterial Request')->where('name', $id)->first();
 
-        
+        $purchase_list_item = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)->orderBy('idx', 'asc')->get();
+
         return view('inventory.material_request.tbl_material_request_purchase_view', compact('purchase_list', 'purchase_list_item'));
 
     }
-    public function get_uom_item_selected_in_purchase($item_code){
-         $item_list = DB::connection('mysql')->table('tabItem as item')
-            ->where('item.name', $item_code)
-            ->select('item.stock_uom')
+    public function get_uom_item_selected_in_purchase($item_code)
+    {
+        $item_list = DB::connection('mysql')->table('tabItem as item')
+            ->where('item.name', $item_code)->select('item.stock_uom')
             ->first();
+
         return $item_list->stock_uom;
     }
-    public function save_wip(Request $request){
-            $now = Carbon::now();
-            if (DB::connection('mysql_mes')->table('wip_setup')
+    public function save_wip(Request $request)
+    {
+        if (Gate::denies('manage-wip-warehouse')) {
+            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+        }
+
+        $now = Carbon::now();
+        if (
+            DB::connection('mysql_mes')->table('wip_setup')
                 ->where('operation_id', '=', $request->icw_wip_operation)
-                // ->where('wip_name', '=', $request->icw_workinprogress)
-                ->exists()){
-                return response()->json(['success' => 0, 'message' => 'Work in Progress already exists']);
-            }else{
-                $values1 = [
-                    'operation_id' => $request->icw_wip_operation,
-                    'warehouse' => $request->icw_workinprogress,
-                    'last_modified_by' => Auth::user()->email,
-                    'created_by' => Auth::user()->email,
-                    'created_at' => $now->toDateTimeString()
-                ];
+                ->exists()
+        ) {
+            return response()->json(['success' => 0, 'message' => 'Work in Progress already exists']);
+        } else {
+            $values1 = [
+                'operation_id' => $request->icw_wip_operation,
+                'warehouse' => $request->icw_workinprogress,
+                'last_modified_by' => Auth::user()->email,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString()
+            ];
 
             DB::connection('mysql_mes')->table('wip_setup')->insert($values1);
+
             return response()->json(['success' => 1, 'message' => 'Work in Progress successfully Added.']);
-            }
+        }
     }
-    public function tbl_wip_list(){
-        $wip_list=  DB::connection('mysql_mes')->table('wip_setup as wip')
+    public function tbl_wip_list()
+    {
+        $wip_list = DB::connection('mysql_mes')->table('wip_setup as wip')
             ->join('operation as op', 'op.operation_id', 'wip.operation_id')
-            ->select('wip.*','op.operation_name')->orderBy('wip_id', 'desc')->paginate(15);
+            ->select('wip.*', 'op.operation_name')->orderBy('wip_id', 'desc')->paginate(15);
 
         return view('inventory.tbl_wip_list', compact('wip_list'));
     }
-    public function edit_wip(Request $request){
+    public function edit_wip(Request $request)
+    {
+        if (Gate::denies('manage-wip-warehouse')) {
+            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+        }
+
         $now = Carbon::now();
-
-        if (DB::connection('mysql_mes')
-            ->table('wip_setup')
-            ->where('operation_id', '=', $request->edit_icw_wip_operation)
-            ->where('warehouse', '=', $request->edit_icw_workinprogress)
-            ->exists()){
-
-
-            if(strtoupper($request->orig_icw_wip_operation) == strtoupper($request->edit_icw_wip_operation) && strtoupper($request->orig_icw_workinprogress) == strtoupper($request->edit_icw_workinprogress)){
+        if (
+            DB::connection('mysql_mes')
+                ->table('wip_setup')
+                ->where('operation_id', '=', $request->edit_icw_wip_operation)
+                ->where('warehouse', '=', $request->edit_icw_workinprogress)
+                ->exists()
+        ) {
+            if (strtoupper($request->orig_icw_wip_operation) == strtoupper($request->edit_icw_wip_operation) && strtoupper($request->orig_icw_workinprogress) == strtoupper($request->edit_icw_workinprogress)) {
                 $data = [
                     'operation_id' => $request->edit_icw_wip_operation,
                     'warehouse' => $request->edit_icw_workinprogress,
@@ -262,87 +286,86 @@ class InventoryController extends Controller
                     'last_modified_at' => $now->toDateTimeString()
                 ];
 
-                    DB::connection('mysql_mes')->table('wip_setup')->where('wip_id', $request->wip_id)->update($data);
-                    return response()->json(['success' => 1,'message' => 'Work In Progress successfully updated.']);
+                DB::connection('mysql_mes')->table('wip_setup')->where('wip_id', $request->wip_id)->update($data);
 
-
-            }else{
-                return response()->json(['success' => 0,'message' => 'Work In Progress already exists.']);
+                return response()->json(['success' => 1, 'message' => 'Work In Progress successfully updated.']);
+            } else {
+                return response()->json(['success' => 0, 'message' => 'Work In Progress already exists.']);
             }
-
-        }else{
+        } else {
             $data = [
-                    'operation_id' => $request->edit_icw_wip_operation,
-                    'warehouse' => $request->edit_icw_workinprogress,
-                    'last_modified_by' => Auth::user()->employee_name,
-                    'last_modified_at' => $now->toDateTimeString()
-                ];
+                'operation_id' => $request->edit_icw_wip_operation,
+                'warehouse' => $request->edit_icw_workinprogress,
+                'last_modified_by' => Auth::user()->employee_name,
+                'last_modified_at' => $now->toDateTimeString()
+            ];
 
-                    DB::connection('mysql_mes')->table('wip_setup')->where('wip_id', $request->wip_id)->update($data);
-                    return response()->json(['success' => 1,'message' => 'Work In Progress successfully updated.']);
+            DB::connection('mysql_mes')->table('wip_setup')->where('wip_id', $request->wip_id)->update($data);
 
+            return response()->json(['success' => 1, 'message' => 'Work In Progress successfully updated.']);
         }
     }
-    public function delete_wip(Request $request){
+    public function delete_wip(Request $request)
+    {
+        if (Gate::denies('manage-wip-warehouse')) {
+            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+        }
+
         DB::connection('mysql_mes')->table('wip_setup')->where('wip_id', $request->delete_wip_id)->delete();
 
-        return response()->json(['success' => 1,'message' => 'Work In Progress successfully deleted.']);
+        return response()->json(['success' => 1, 'message' => 'Work In Progress successfully deleted.']);
     }
 
-    
-    
-
     // J
-    public function inventory_index(){
+    public function inventory_index()
+    {
         $permissions = $this->get_user_permitted_operation();
-
         $item_list = DB::connection('mysql')->table('tabItem as item')
-        // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-        // ->where('w.disabled', 0)
-        // ->where('w.is_group', 0)
-        // ->where('w.company', 'FUMACO Inc.')
-        // ->where('w.department', 'Fabrication')
-        ->whereIn('item.item_group', ['Raw Material'])
-        ->select('item.name', 'item.description')
-        ->orderBy('item.modified', 'desc')->get();
+            ->whereIn('item.item_group', ['Raw Material'])->select('item.name', 'item.description')
+            ->orderBy('item.modified', 'desc')->get();
 
         $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)
             ->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
-        $customer=  DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->select('customer_name')->groupBy('customer_name')->get();
+
+        $customer = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
+            ->where('company', 'FUMACO Inc.')->select('customer_name')->groupBy('customer_name')->get();
 
         $so_list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+            ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+
         $mreq_list = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)
-                ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+            ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+
         $mreq_list_transfer = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)->where('material_request_type', 'Manufacture')
-                ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
-        $project=  DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->select('project')->groupBy('project')->get();
-        $ste_list=  DB::connection('mysql')->table('tabStock Entry')->select('name')->whereDate('creation','>=','2020-07-01')->get();
+            ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
 
-        $mreq_stat=DB::connection('mysql')->table('tabMaterial Request')
-        ->where('material_request_type', 'Purchase')
-        ->where('docstatus','!=',0 )
-        ->select('status')->groupBy('status')->get();
+        $project = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
+            ->where('company', 'FUMACO Inc.')->select('project')->groupBy('project')->get();
 
-        return view('inventory.index', compact('item_list','customer','warehouse_list', 'project','so_list', 'mreq_list', 'ste_list', 'mreq_stat', 'permissions', 'mreq_list_transfer'));
+        $ste_list = DB::connection('mysql')->table('tabStock Entry')->select('name')->whereDate('creation', '>=', '2020-07-01')->get();
+
+        $mreq_stat = DB::connection('mysql')->table('tabMaterial Request')
+            ->where('material_request_type', 'Purchase')->where('docstatus', '!=', 0)
+            ->select('status')->groupBy('status')->get();
+
+        return view('inventory.index', compact('item_list', 'customer', 'warehouse_list', 'project', 'so_list', 'mreq_list', 'ste_list', 'mreq_stat', 'permissions', 'mreq_list_transfer'));
     }
 
-    public function get_inventory_list(Request $request, $operation){
+    public function get_inventory_list(Request $request, $operation)
+    {
         $inv_qry = DB::connection('mysql_mes')->table('fabrication_inventory as fab')
             ->join('operation as op', 'op.operation_id', 'fab.operation_id')
             ->where('op.operation_name', 'LIKE', '%Fabrication%')
             ->whereNotNull('fab.description')->where('fab.description', '!=', '')
             ->when($request->q, function ($query) use ($request) {
-                return $query->where(function($q) use ($request) {
-                    $q->where('fab.item_code', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('fab.description', 'LIKE', '%'.$request->q.'%');
+                return $query->where(function ($q) use ($request) {
+                    $q->where('fab.item_code', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('fab.description', 'LIKE', '%' . $request->q . '%');
                 });
             })
             ->when($request->filters, function ($query) use ($request) {
                 foreach ($request->filters as $f) {
-                    $query->where('fab.description', 'LIKE', "%".$f."%");
+                    $query->where('fab.description', 'LIKE', "%" . $f . "%");
                 }
 
                 return $query;
@@ -357,6 +380,7 @@ class InventoryController extends Controller
 
             $in_process_qty = DB::connection('mysql_mes')->table('production_order')->where('item_code', $row->item_code)
                 ->where('status', 'In Progress')->sum('qty_to_manufacture');
+
             $qty = 1;
             $inventory_list[] = [
                 'item_code' => $row->item_code,
@@ -370,55 +394,24 @@ class InventoryController extends Controller
 
         $data = $inventory_list;
 
-        // // Get current page form url e.x. &page=1
-        // $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        // // Create a new Laravel collection from the array data
-        // $itemCollection = collect($inventory_list);
-        // // Define how many items we want to be visible in each page
-        // $perPage = 10;
-        // // Slice the collection to get the items to display in current page
-        // $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-        // // Create our paginator and pass it to the view
-        // $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-        // // set url path for generted links
-        // $paginatedItems->setPath($request->url());
-        // $data = $paginatedItems;
-
         return view('inventory.tbl_inventory_list', compact('data', 'inv_qry'));
     }
 
-    public function get_transaction_history(Request $request, $operation){
-        // $operation_details = DB::connection('mysql_mes')->table('operation')->where('operation_name', $operation)->first();
-  
+    public function get_transaction_history(Request $request, $operation)
+    {
         $data = DB::connection('mysql_mes')->table('inventory_transaction as it')
             ->join('operation', 'operation.operation_id', 'it.operation_id')
-            // ->when($request->material, function($q) use ($request){
-            //     $q->where('item_specification.material', $request->material);
-            // })
-            // ->when($request->length, function($q) use ($request){
-            //     $q->where('item_specification.length', $request->length);
-            // })
-            // ->when($request->width, function($q) use ($request){
-            //     $q->where('item_specification.width', $request->width);
-            // })
-            // ->when($request->thickness, function($q) use ($request){
-            //     $q->where('item_specification.thickness', $request->thickness);
-            // })
-            ->when($request->entry_type, function($q) use ($request){
+            ->when($request->entry_type, function ($q) use ($request) {
                 $q->where('it.entry_type', $request->entry_type);
             })
-            ->when($request->q, function($q) use ($request){
-                $q->where(function($r) use ($request){
-                    // where('item_specification.material', 'LIKE', '%' . $request->q . '%')
-                    //     ->orWhere('item_specification.length', 'LIKE', '%' . $request->q . '%')
-                    //     ->orWhere('item_specification.width', 'LIKE', '%' . $request->q . '%')
-                    //     ->orWhere('item_specification.thickness', 'LIKE', '%' . $request->q . '%')
-                        $r->orWhere('it.item_code', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.last_modified_by', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.adjusted_qty', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.previous_qty', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.entry_type', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.transaction_no', 'LIKE', '%'.$request->q.'%');
+            ->when($request->q, function ($q) use ($request) {
+                $q->where(function ($r) use ($request) {
+                    $r->orWhere('it.item_code', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.last_modified_by', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.adjusted_qty', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.previous_qty', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.entry_type', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.transaction_no', 'LIKE', '%' . $request->q . '%');
                 });
             })
             ->orderBy('it.transaction_no', 'desc')->paginate(10);
@@ -426,23 +419,24 @@ class InventoryController extends Controller
         return view('tables.tbl_fabrication_inventory_history_list', compact('data'));
     }
 
-    public function get_scrap_inventory(Request $request, $operation){
+    public function get_scrap_inventory(Request $request, $operation)
+    {
         $q = DB::connection('mysql_mes')->table('scrap')
             ->join('usable_scrap', 'usable_scrap.scrap_id', 'scrap.scrap_id')
-            ->when($request->material, function($q) use ($request){
+            ->when($request->material, function ($q) use ($request) {
                 $q->where('scrap.material', $request->material);
             })
-            ->when($request->length, function($q) use ($request){
+            ->when($request->length, function ($q) use ($request) {
                 $q->where('usable_scrap.length', $request->length);
             })
-            ->when($request->width, function($q) use ($request){
+            ->when($request->width, function ($q) use ($request) {
                 $q->where('usable_scrap.width', $request->width);
             })
-            ->when($request->thickness, function($q) use ($request){
+            ->when($request->thickness, function ($q) use ($request) {
                 $q->where('scrap.thickness', $request->thickness);
             })
-            ->when($request->q, function($q) use ($request){
-                $q->where(function($r) use ($request){
+            ->when($request->q, function ($q) use ($request) {
+                $q->where(function ($r) use ($request) {
                     $r->where('scrap.material', 'LIKE', '%' . $request->q . '%')
                         ->orWhere('usable_scrap.length', 'LIKE', '%' . $request->q . '%')
                         ->orWhere('usable_scrap.width', 'LIKE', '%' . $request->q . '%')
@@ -454,17 +448,18 @@ class InventoryController extends Controller
         return view('inventory.tbl_scrap', compact('q'));
     }
 
-    public function get_withdrawal_slips(Request $request, $operation){
+    public function get_withdrawal_slips(Request $request, $operation)
+    {
         $production_orders = DB::connection('mysql_mes')->table('production_order')
             ->where('status', '!=', 'Cancelled')
-            ->when($request->production_order, function($q) use ($request){
-                $q->where('production_order', 'like', '%'.$request->production_order.'%');
+            ->when($request->production_order, function ($q) use ($request) {
+                $q->where('production_order', 'like', '%' . $request->production_order . '%');
             })
-            ->when($request->customer, function($q) use ($request){
-                $q->where('customer', 'like', '%'.$request->customer.'%');
+            ->when($request->customer, function ($q) use ($request) {
+                $q->where('customer', 'like', '%' . $request->customer . '%');
             })
-            ->when($request->q, function($q) use ($request){
-                $q->where(function($r) use ($request){
+            ->when($request->q, function ($q) use ($request) {
+                $q->where(function ($r) use ($request) {
                     $r->where('production_order', 'LIKE', '%' . $request->q . '%')
                         ->orWhere('sales_order', 'LIKE', '%' . $request->q . '%')
                         ->orWhere('material_request', 'LIKE', '%' . $request->q . '%')
@@ -475,33 +470,33 @@ class InventoryController extends Controller
             ->pluck('production_order');
 
         $query = DB::connection('mysql')->table('tabStock Entry as ste')
-            ->when($request->source_warehouse, function($q) use ($request){
+            ->when($request->source_warehouse, function ($q) use ($request) {
                 $q->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
                     ->where('s_warehouse', $request->source_warehouse);
             })
             ->where('ste.purpose', 'Material Transfer for Manufacture')
             ->whereIn('ste.work_order', $production_orders)
-            ->when($request->production_order, function($q) use ($request){
-                $q->where('ste.work_order', 'like', '%'.$request->production_order.'%');
+            ->when($request->production_order, function ($q) use ($request) {
+                $q->where('ste.work_order', 'like', '%' . $request->production_order . '%');
             })
-            ->when($request->ste_no, function($q) use ($request){
-                $q->where('ste.name', 'like', '%'.$request->ste_no.'%');
+            ->when($request->ste_no, function ($q) use ($request) {
+                $q->where('ste.name', 'like', '%' . $request->ste_no . '%');
             })
-            ->when($request->customer, function($q) use ($request){
-                $q->where('ste.so_customer_name', 'like', '%'.$request->customer.'%');
+            ->when($request->customer, function ($q) use ($request) {
+                $q->where('ste.so_customer_name', 'like', '%' . $request->customer . '%');
             })
-            ->when($request->status, function($q) use ($request){
+            ->when($request->status, function ($q) use ($request) {
                 $q->where('ste.docstatus', $request->status);
             })
-            ->when($request->q, function($q) use ($request){
-                $q->where(function($r) use ($request){
+            ->when($request->q, function ($q) use ($request) {
+                $q->where(function ($r) use ($request) {
                     $r->where('ste.name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.work_order', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.sales_order_no', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.material_request', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.so_customer_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.bom_no', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('ste.item_status', 'LIKE', '%' . $request->q . '%');
+                        ->orWhere('ste.work_order', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('ste.sales_order_no', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('ste.material_request', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('ste.so_customer_name', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('ste.bom_no', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('ste.item_status', 'LIKE', '%' . $request->q . '%');
                 });
             })
             ->select('ste.*')
@@ -522,7 +517,7 @@ class InventoryController extends Controller
             ];
         }
 
-         // Get current page form url e.x. &page=1
+        // Get current page form url e.x. &page=1
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         // Create a new Laravel collection from the array data
         $itemCollection = collect($list_arr);
@@ -531,7 +526,7 @@ class InventoryController extends Controller
         // Slice the collection to get the items to display in current page
         $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
         // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        $paginatedItems = new LengthAwarePaginator($currentPageItems, count($itemCollection), $perPage);
         // set url path for generted links
         $paginatedItems->setPath($request->url());
         $list = $paginatedItems;
@@ -539,7 +534,8 @@ class InventoryController extends Controller
         return view('inventory.tbl_withdrawal_slips', compact('list'));
     }
 
-    public function get_withdrawal_slip_filters($operation){
+    public function get_withdrawal_slip_filters($operation)
+    {
         $q = DB::connection('mysql_mes')->table('production_order')->orderBy('production_order', 'desc')->get();
 
         $warehouses = DB::connection('mysql_mes')->table('item_classification_warehouse')
@@ -552,12 +548,14 @@ class InventoryController extends Controller
         ];
     }
 
-    public function get_scrap_filters($operation){
-        $data=[];
+    public function get_scrap_filters($operation)
+    {
+        $data = [];
         return $data;
     }
 
-    public function get_inventory_filters($operation){
+    public function get_inventory_filters($operation)
+    {
         $item_specs = $this->get_material_dimenstion();
 
         $part_categories = DB::connection('mysql')->table('tabItem')
@@ -575,16 +573,18 @@ class InventoryController extends Controller
         return array_merge($item_specs, ['item_names' => $item_names, 'part_categories' => $part_categories]);
     }
 
-    public function get_transaction_filters($operation){
+    public function get_transaction_filters($operation)
+    {
         return $this->get_material_dimenstion();
     }
 
-    public function get_material_dimenstion(){
-        $q=null;
-        $materials = collect($q)->map(function($item, $key) {
+    public function get_material_dimenstion()
+    {
+        $q = null;
+        $materials = collect($q)->map(function ($item, $key) {
             return ['material' => strtoupper($item->material)];
         });
-   
+
         return [
             'material' => collect($materials)->unique('material')->pluck('material'),
             'length' => collect($q)->unique('length')->pluck('length'),
@@ -593,39 +593,40 @@ class InventoryController extends Controller
         ];
     }
 
-    public function add_scrap(Request $request){
-        try{
-            if($request->qty <= 0){
+    public function add_scrap(Request $request)
+    {
+        try {
+            if ($request->qty <= 0) {
                 return response()->json(['success' => 1, 'message' => 'Qty cannot be less than or equal to 0.']);
             }
-    
+
             $uom_details_kg = DB::connection('mysql_mes')->table('uom')->where('uom_name', 'like', '%kilogram%')->first();
-            if(!$uom_details_kg){
+            if (!$uom_details_kg) {
                 return response()->json(['success' => 1, 'message' => 'UoM "Kilogram" not found.']);
             }
-    
+
             $uom_details_cubic = DB::connection('mysql_mes')->table('uom')->where('uom_name', 'like', '%kilogram%')->first();
-            if(!$uom_details_cubic){
+            if (!$uom_details_cubic) {
                 return response()->json(['success' => 1, 'message' => 'UoM "Cubic MM" not found.']);
             }
-    
+
             // get uom conversion id
             $uom_conversion = DB::connection('mysql_mes')->table('uom_conversion')->whereIn('uom_id', [$uom_details_kg->uom_id, $uom_details_cubic->uom_id])->first();
-            
-            if(!$uom_conversion){
+
+            if (!$uom_conversion) {
                 return response()->json(['success' => 1, 'message' => 'UoM conversion not found.']);
             }
-    
+
             $existing_scrap = DB::connection('mysql_mes')->table('scrap')
                 ->where('material', $request->material)
                 ->where('thickness', $request->thickness)
                 ->first();
-            
+
             // insert to usable
-            if($request->scrap_type == 'Usable'){
-                if($existing_scrap){
+            if ($request->scrap_type == 'Usable') {
+                if ($existing_scrap) {
                     $scrap_id = $existing_scrap->scrap_id;
-                }else{
+                } else {
                     $values = [
                         'uom_conversion_id' => $uom_conversion->uom_conversion_id,
                         'uom_id' => $uom_details_kg->uom_id,
@@ -634,24 +635,24 @@ class InventoryController extends Controller
                         'scrap_qty' => 0,
                         'created_by' => Auth::user()->employee_name,
                     ];
-        
+
                     $scrap_id = DB::connection('mysql_mes')->table('scrap')->insertGetId($values);
                 }
 
                 $usable_scrap = DB::connection('mysql_mes')->table('usable_scrap')
-                    ->where('length', (float)$request->length)
-                    ->where('width', (float)$request->width)
+                    ->where('length', (float) $request->length)
+                    ->where('width', (float) $request->width)
                     ->first();
-    
-                if($usable_scrap){
+
+                if ($usable_scrap) {
                     $values = [
                         'usable_scrap_qty' => $usable_scrap->usable_scrap_qty + $request->qty,
                         'last_modified_by' => Auth::user()->employee_name,
                     ];
-                    
+
                     DB::connection('mysql_mes')->table('usable_scrap')
                         ->where('usable_scrap_id', $usable_scrap->usable_scrap_id)->update($values);
-                }else{
+                } else {
                     $values = [
                         'uom_conversion_id' => $uom_conversion->uom_conversion_id,
                         'scrap_id' => $scrap_id,
@@ -660,21 +661,21 @@ class InventoryController extends Controller
                         'usable_scrap_qty' => $request->qty,
                         'created_by' => Auth::user()->employee_name,
                     ];
-                    
+
                     DB::connection('mysql_mes')->table('usable_scrap')->insert($values);
                 }
             }
 
-            if($request->scrap_type == 'Unusable'){
-                if($existing_scrap){
+            if ($request->scrap_type == 'Unusable') {
+                if ($existing_scrap) {
                     $values = [
                         'scrap_qty' => $existing_scrap->scrap_qty + $request->qty,
                         'last_modified_by' => Auth::user()->employee_name,
                     ];
-                    
+
                     DB::connection('mysql_mes')->table('scrap')
                         ->where('scrap_id', $existing_scrap->scrap_id)->update($values);
-                }else{
+                } else {
                     $values = [
                         'uom_conversion_id' => $uom_conversion->uom_conversion_id,
                         'uom_id' => $uom_details_kg->uom_id,
@@ -683,25 +684,27 @@ class InventoryController extends Controller
                         'scrap_qty' => $request->qty,
                         'created_by' => Auth::user()->employee_name,
                     ];
-                    
+
                     DB::connection('mysql_mes')->table('scrap')->insert($values);
                 }
             }
-    
+
             return response()->json(['success' => 1, 'message' => 'Scrap added to inventory.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
 
-    public function get_scrap_to_process(Request $request, $workstation){
+    public function get_scrap_to_process(Request $request, $workstation)
+    {
         $q = DB::connection('mysql_mes')->table('scrap')
             ->where('scrap_qty', '>', 0)->get();
 
         return view('tables.tbl_select_scrap_to_process', compact('q'));
     }
 
-    public function get_process(Request $request, $workstation){
+    public function get_process(Request $request, $workstation)
+    {
         $q = DB::connection('mysql_mes')->table('process_assignment')
             ->join('workstation', 'workstation.workstation_id', 'process_assignment.workstation_id')
             ->join('process', 'process_assignment.process_id', 'process.process_id')
@@ -710,59 +713,47 @@ class InventoryController extends Controller
 
         return view('tables.tbl_select_process_for_scrap', compact('q'));
     }
-   
 
-    public function save_material_transfer(Request $request){
+    public function save_material_transfer(Request $request)
+    {
+        $now = Carbon::now();
+        $data = $request->all();
+        $item_code = $data['new_item_code'];
+        $ssource = $data['new_s_warehouse'];
+        $tsource = $data['new_t_warehouse'];
+        $qty = $data['qty'];
+        $latest_ste = DB::connection('mysql')->table('tabStock Entry')->max('name');
+        $latest_ste_exploded = explode("-", $latest_ste);
+        $new_id = $latest_ste_exploded[1] + 1;
+        $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
+        $new_id = 'STEM-' . $new_id;
 
-    $now = Carbon::now();
-    $data = $request->all();
-    // return $data;
-    $item_code = $data['new_item_code'];
-    $ssource = $data['new_s_warehouse'];
-    $tsource = $data['new_t_warehouse'];
-    $qty = $data['qty'];
+        $id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
+        if ($id_checker) {
+            return response()->json(['success' => 0, 'message' => 'Stock Entry <b>' . $new_id . '</b> already exists. Please try again.']);
+        }
 
-
-    $latest_ste = DB::connection('mysql')->table('tabStock Entry')->max('name');
-    $latest_ste_exploded = explode("-", $latest_ste);
-    $new_id = $latest_ste_exploded[1] + 1;
-    $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-    $new_id = 'STEM-'.$new_id;
-
-    $id_checker = DB::connection('mysql')->table('tabStock Entry')->where('name', $new_id)->exists();
-    if($id_checker){
-        return response()->json(['success' => 0, 'message' => 'Stock Entry <b>'.$new_id.'</b> already exists. Please try again.']);
-    }
-
-    try{
-    $stock_entry_detail = [];
-     // return $data;
-            if ($request->new_item_code) { 
-               foreach($item_code as $i => $row){
-                    if($row == 'none'){
-                            return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
-
-                
-                    }elseif($ssource[$i] == 'none'){
-                            return response()->json(['success' => 0, 'message' => 'Please Select Source Warehouse']);
-
-                    }elseif($tsource[$i] == 'none'){
-                            return response()->json(['success' => 0, 'message' => 'Please Select Target Warehouse']);
-
-                    }else{
+        try {
+            $stock_entry_detail = [];
+            if ($request->new_item_code) {
+                foreach ($item_code as $i => $row) {
+                    if ($row == 'none') {
+                        return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
+                    } elseif ($ssource[$i] == 'none') {
+                        return response()->json(['success' => 0, 'message' => 'Please Select Source Warehouse']);
+                    } elseif ($tsource[$i] == 'none') {
+                        return response()->json(['success' => 0, 'message' => 'Please Select Target Warehouse']);
+                    } else {
                         if ($ssource[$i] == $tsource[$i]) {
-                            return response()->json(['success' => 0, 'message' => 'Source Warehouse must not be the same as Target Warehouse for '.$row]);
-                        }else{
-
+                            return response()->json(['success' => 0, 'message' => 'Source Warehouse must not be the same as Target Warehouse for ' . $row]);
+                        } else {
                             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $row)->first();
                             $conversion = DB::connection('mysql')->table('tabUOM Conversion Detail')->where('parent', $row)->first();
-                            $bin_qry = DB::connection('mysql')->table('tabBin')
-                                ->where('warehouse',  $tsource[$i])
+                            $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $tsource[$i])
                                 ->where('item_code', $row)->first();
-                                // dd($$bin_qry->valuation_rate);
-                
+
                             $stock_entry_detail[] = [
-                                'name' =>  uniqid(),
+                                'name' => uniqid(),
                                 'creation' => $now->toDateTimeString(),
                                 'modified' => $now->toDateTimeString(),
                                 'modified_by' => Auth::user()->email,
@@ -783,10 +774,10 @@ class InventoryController extends Controller
                                 'image' => null,
                                 'additional_cost' => 0,
                                 'stock_uom' => $item_details->stock_uom,
-                                'basic_amount' => (empty($bin_qry->valuation_rate)?0:$bin_qry->valuation_rate) * $qty[$i],
+                                'basic_amount' => (empty($bin_qry->valuation_rate) ? 0 : $bin_qry->valuation_rate) * $qty[$i],
                                 'sample_quantity' => 0,
                                 'uom' => $item_details->stock_uom,
-                                'basic_rate' => (empty($bin_qry->valuation_rate)?0:$bin_qry->valuation_rate),
+                                'basic_rate' => (empty($bin_qry->valuation_rate) ? 0 : $bin_qry->valuation_rate),
                                 'description' => $item_details->description,
                                 'barcode' => null,
                                 'conversion_factor' => $conversion->conversion_factor,
@@ -796,30 +787,24 @@ class InventoryController extends Controller
                                 'bom_no' => 0,
                                 'allow_zero_valuation_rate' => 0,
                                 'material_request_item' => null,
-                                'amount' => (empty($bin_qry->valuation_rate)?0:$bin_qry->valuation_rate) * $qty[$i],
+                                'amount' => (empty($bin_qry->valuation_rate) ? 0 : $bin_qry->valuation_rate) * $qty[$i],
                                 'batch_no' => null,
-                                'valuation_rate' => (empty($bin_qry->valuation_rate)?0:$bin_qry->valuation_rate),
+                                'valuation_rate' => (empty($bin_qry->valuation_rate) ? 0 : $bin_qry->valuation_rate),
                                 'material_request' => null,
                                 't_warehouse_personnel' => null,
                                 's_warehouse_personnel' => null,
                                 'target_warehouse_location' => null,
                                 'source_warehouse_location' => null,
-                                // 'date_modified' => ,
                                 'status' => "For Checking",
-                                // 'session_user' => ,
-                                // 'remarks' => ,
-                                // 'validate_item_code' => ,
-                                // 'issued_qty' => ,
-                                // 'item_note' => ,
                             ];
-
                         }
-
-                    } 
+                    }
                 }
+
                 DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
+
                 $so_list = DB::connection('mysql')->table('tabSales Order')->where('name', $request->sales_order)->first();
-                 $stock_entry_data = [
+                $stock_entry_data = [
                     'name' => $new_id,
                     'creation' => $now->toDateTimeString(),
                     'modified' => $now->toDateTimeString(),
@@ -838,7 +823,6 @@ class InventoryController extends Controller
                     '_liked_by' => null,
                     'purchase_receipt_no' => null,
                     'posting_time' => $now->format('H:i:s'),
-                    // 'customer_name' => null,
                     'to_warehouse' => $request->t_warehouse,
                     'title' => 'Material Transfer',
                     '_comments' => null,
@@ -856,17 +840,15 @@ class InventoryController extends Controller
                     'sales_invoice_no' => null,
                     'company' => 'FUMACO Inc.',
                     'target_warehouse_address' => null,
-                    // 'customer_address' => null,
                     'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                     'supplier_name' => null,
                     'remarks' => null,
                     '_user_tags' => null,
                     'total_additional_costs' => 0,
-                    // 'customer' => null,
                     'bom_no' => null,
                     'amended_from' => null,
-                    'total_amount' =>collect($stock_entry_detail)->sum('basic_amount'),
-                    'total_incoming_value' =>  collect($stock_entry_detail)->sum('basic_amount'),
+                    'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
+                    'total_incoming_value' => collect($stock_entry_detail)->sum('basic_amount'),
                     'project' => $request->project,
                     '_assign' => null,
                     'select_print_heading' => null,
@@ -898,17 +880,16 @@ class InventoryController extends Controller
                 ];
 
                 DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
-                // $this->update_bin($new_id);
-                // $this->create_stock_ledger_entry($new_id);
-                // $this->create_gl_entry($new_id);
-                return response()->json(['message' => 'Material Transfer no '.$new_id.' has been created.']);
-            }
 
-            } catch (Exception $e) {
+                return response()->json(['message' => 'Material Transfer no ' . $new_id . ' has been created.']);
+            }
+        } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-     public function create_stock_ledger_entry($stock_entry){
+
+    public function create_stock_ledger_entry($stock_entry)
+    {
         $now = Carbon::now();
 
         $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
@@ -920,7 +901,7 @@ class InventoryController extends Controller
         foreach ($stock_entry_detail as $row) {
             $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
                 ->where('item_code', $row->item_code)->first();
-                
+
             $s_data[] = [
                 'name' => 'mes' . uniqid(),
                 'creation' => $now->toDateTimeString(),
@@ -958,10 +939,10 @@ class InventoryController extends Controller
                 'stock_value_difference' => ($row->qty * $row->valuation_rate) * -1,
                 'posting_date' => $now->format('Y-m-d'),
             ];
-            
+
             $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
                 ->where('item_code', $row->item_code)->first();
-            
+
             $t_data[] = [
                 'name' => 'mes' . uniqid(),
                 'creation' => $now->toDateTimeString(),
@@ -1006,7 +987,8 @@ class InventoryController extends Controller
         DB::connection('mysql')->table('tabStock Ledger Entry')->insert($stock_ledger_entry);
     }
 
-    public function update_bin($stock_entry){
+    public function update_bin($stock_entry)
+    {
         $now = Carbon::now();
 
         $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
@@ -1015,20 +997,15 @@ class InventoryController extends Controller
         $latest_id_exploded = explode("/", $latest_id);
         $new_id = $latest_id_exploded[1] + 1;
 
-        $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
-
         $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
-        
-        $s_data_insert = [];
-        $d_data = [];
-        foreach($stock_entry_detail as $row){
-            if($row->s_warehouse){
+
+        foreach ($stock_entry_detail as $row) {
+            if ($row->s_warehouse) {
                 $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->s_warehouse)
                     ->where('item_code', $row->item_code)->first();
-                
+
                 $new_id = $new_id + 1;
                 $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-                $id = 'BINM/'.$new_id;
 
                 if (!$bin_qry) {
                     $bin = [
@@ -1057,14 +1034,14 @@ class InventoryController extends Controller
                         'ordered_qty' => 0,
                         'reserved_qty_for_sub_contract' => 0,
                         'indented_qty' => 0,
-                        'warehouse' => $row->s_warehouse,//$s_warehouse,
+                        'warehouse' => $row->s_warehouse, //$s_warehouse,
                         'stock_value' => $row->valuation_rate * $row->transfer_qty,
                         '_user_tags' => null,
                         'valuation_rate' => $row->valuation_rate,
                     ];
 
                     DB::connection('mysql')->table('tabBin')->insert($bin);
-                }else{
+                } else {
                     $bin = [
                         'modified' => $now->toDateTimeString(),
                         'modified_by' => Auth::user()->email,
@@ -1072,19 +1049,18 @@ class InventoryController extends Controller
                         'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
                         'valuation_rate' => $bin_qry->valuation_rate,
                     ];
-    
+
                     DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
                 }
-                
+
             }
 
-            if($row->t_warehouse){
+            if ($row->t_warehouse) {
                 $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
                     ->where('item_code', $row->item_code)->first();
-                
+
                 $new_id = $new_id + 1;
                 $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-                $id = 'BINM/'.$new_id;
 
                 if (!$bin_qry) {
                     $bin = [
@@ -1120,7 +1096,7 @@ class InventoryController extends Controller
                     ];
 
                     DB::connection('mysql')->table('tabBin')->insert($bin);
-                }else{
+                } else {
                     $bin = [
                         'modified' => $now->toDateTimeString(),
                         'modified_by' => Auth::user()->email,
@@ -1128,18 +1104,19 @@ class InventoryController extends Controller
                         'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
                         'valuation_rate' => $bin_qry->valuation_rate,
                     ];
-    
+
                     DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
                 }
             }
         }
     }
-    
-    public function create_gl_entry($stock_entry){
+
+    public function create_gl_entry($stock_entry)
+    {
         $now = Carbon::now();
         $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
         $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
-        
+
         $latest_name = DB::connection('mysql')->table('tabGL Entry')->max('name');
         $latest_name_exploded = explode("L", $latest_name);
         $new_id = $latest_name_exploded[1] + 1;
@@ -1153,7 +1130,7 @@ class InventoryController extends Controller
             $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
 
             $credit_data[] = [
-                'name' => 'MGL'.$new_id,
+                'name' => 'MGL' . $new_id,
                 'creation' => $now->toDateTimeString(),
                 'modified' => $now->toDateTimeString(),
                 'modified_by' => Auth::user()->email,
@@ -1205,7 +1182,7 @@ class InventoryController extends Controller
             $new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
 
             $debit_data[] = [
-                'name' => 'MGL'.$new_id,
+                'name' => 'MGL' . $new_id,
                 'creation' => $now->toDateTimeString(),
                 'modified' => $now->toDateTimeString(),
                 'modified_by' => Auth::user()->email,
@@ -1258,25 +1235,26 @@ class InventoryController extends Controller
 
         DB::connection('mysql')->table('tabGL Entry')->insert($gl_entry);
     }
-   
-    public function list_material_transfer(Request $request){
-        $query2=$request->from;
-        $query3= $request->end;
+
+    public function list_material_transfer(Request $request)
+    {
+        $query2 = $request->from;
+        $query3 = $request->end;
 
         $date_col = $request->filter ? 'ste.posting_date' : 'ste.creation';
 
         $trans_list = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as iste', 'iste.parent', 'ste.name')
-            ->when($query2 != "", function ($query1) use($query2, $query3, $date_col){
-                return $query1->whereBetween(DB::raw('DATE_FORMAT('.$date_col.', "%Y-%m-%d")'),[$query2,$query3]);
+            ->when($query2 != "", function ($query1) use ($query2, $query3, $date_col) {
+                return $query1->whereBetween(DB::raw('DATE_FORMAT(' . $date_col . ', "%Y-%m-%d")'), [$query2, $query3]);
             })
             ->where('ste.title', 'Material Transfer')
-            ->where('ste.so_customer_name', 'LIKE', '%'.$request->customer.'%')
-            ->where('ste.project',   'LIKE', '%'.$request->project.'%')
-            ->where('ste.sales_order_no', 'LIKE', '%'.$request->so.'%')
-            ->Where('ste.item_status', 'LIKE', '%'.$request->status.'%')
-            ->Where('ste.name', 'LIKE', '%'.$request->ste.'%')
-            ->Where('iste.item_code', 'LIKE', '%'.$request->item_code.'%')
+            ->where('ste.so_customer_name', 'LIKE', '%' . $request->customer . '%')
+            ->where('ste.project', 'LIKE', '%' . $request->project . '%')
+            ->where('ste.sales_order_no', 'LIKE', '%' . $request->so . '%')
+            ->Where('ste.item_status', 'LIKE', '%' . $request->status . '%')
+            ->Where('ste.name', 'LIKE', '%' . $request->ste . '%')
+            ->Where('iste.item_code', 'LIKE', '%' . $request->item_code . '%')
             ->select('ste.item_status', 'ste.docstatus', 'ste.creation', 'ste.name', 'ste.order_type', 'ste.sales_order_no', 'ste.so_customer_name', 'ste.project')
             ->groupBy('ste.item_status', 'ste.docstatus', 'ste.creation', 'ste.name', 'ste.order_type', 'ste.sales_order_no', 'ste.so_customer_name', 'ste.project')
             ->orderBy('ste.modified', 'desc')->paginate(10);
@@ -1286,17 +1264,16 @@ class InventoryController extends Controller
         return view('inventory.tbl_material_transfer', compact('trans_list', 'count'));
     }
 
-    public function get_material_tranfer($id){
-        $transfer_list=  DB::connection('mysql')->table('tabStock Entry')->where('name', $id)->first();
-        $transfer_item=  DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $id)->orderBy('idx', 'asc')->get();
+    public function get_material_tranfer($id)
+    {
+        $transfer_list = DB::connection('mysql')->table('tabStock Entry')->where('name', $id)->first();
+        $transfer_item = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $id)->orderBy('idx', 'asc')->get();
 
-
-        
         return view('inventory.tbl_material_transfer_view', compact('transfer_list', 'transfer_item'));
-
     }
 
-    public function inventory_index_1(){
+    public function inventory_index_1()
+    {
         $item_list = DB::connection('mysql')->table('tabItem as item')
             ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
             ->where('w.disabled', 0)
@@ -1309,66 +1286,66 @@ class InventoryController extends Controller
 
         $warehouse_list = DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)->where('is_group', 0)
             ->where('company', 'FUMACO Inc.')->where('department', 'Fabrication')->pluck('name');
-        $customer=  DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->select('customer_name')->groupBy('customer_name')->get();
+        $customer = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
+            ->where('company', 'FUMACO Inc.')->select('customer_name')->groupBy('customer_name')->get();
 
         $so_list = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+            ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
         $mreq_list = DB::connection('mysql')->table('tabMaterial Request')->where('docstatus', 1)
-                ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
-        $project=  DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
-                ->where('company', 'FUMACO Inc.')->select('project')->groupBy('project')->get();
+            ->where('company', 'FUMACO Inc.')->orderBy('modified', 'desc')->get();
+        $project = DB::connection('mysql')->table('tabSales Order')->where('docstatus', 1)->where('per_delivered', '<', 100)
+            ->where('company', 'FUMACO Inc.')->select('project')->groupBy('project')->get();
 
-        return view('inventory.index_1', compact('item_list','customer','warehouse_list', 'project','so_list', 'mreq_list'));
+        return view('inventory.index_1', compact('item_list', 'customer', 'warehouse_list', 'project', 'so_list', 'mreq_list'));
     }
-    public function cancel_material_transfer(Request $request){
+
+    public function cancel_material_transfer(Request $request)
+    {
         try {
             $now = Carbon::now();
-
             DB::connection('mysql')->table('tabStock Entry')->where('name', $request->transfer_id)
-                ->where('docstatus', 1)
-                ->update(['docstatus' => 2, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                ->where('docstatus', 1)->update(['docstatus' => 2, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+
             DB::connection('mysql')->table('tabStock Ledger Entry')->where('voucher_detail_no', $request->transfer_id)
                 ->where('docstatus', 1)->delete();
+
             DB::connection('mysql')->table('tabGL Entry')->where('voucher_no', $request->transfer_id)
                 ->where('docstatus', 1)->delete();
-            
-
 
             return response()->json(['success' => 1, 'message' => 'Material Request for Transfer <b>' . $request->transfer_id . '</b> has been cancelled.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function confirmed_material_transfer(Request $request){
+
+    public function confirmed_material_transfer(Request $request)
+    {
         try {
             $now = Carbon::now();
 
             DB::connection('mysql')->table('tabStock Entry')->where('name', $request->transfer_id_confirm)
-                ->where('docstatus', 0)
-                ->update(['docstatus' => 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                ->where('docstatus', 0)->update(['docstatus' => 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+
             DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $request->transfer_id_confirm)
-                ->where('docstatus', 0)
-                ->update(['docstatus' => 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+                ->where('docstatus', 0)->update(['docstatus' => 1, 'modified' => $now->toDateTimeString(), 'modified_by' => Auth::user()->email]);
+
             $this->update_bin($request->transfer_id_confirm);
             $this->create_stock_ledger_entry($request->transfer_id_confirm);
             $this->create_gl_entry($request->transfer_id_confirm);
-
 
             return response()->json(['success' => 1, 'message' => 'Material Request for Transfer <b>' . $request->transfer_id . '</b> has been submitted.']);
         } catch (Exception $e) {
             return response()->json(["error" => $e->getMessage()]);
         }
     }
-    public function delete_material_transfer(Request $request){
+
+    public function delete_material_transfer(Request $request)
+    {
         try {
-            $now = Carbon::now();
-
             DB::connection('mysql')->table('tabStock Entry')->where('name', $request->transfer_id_delete)
-                ->where('docstatus', 0)->where('item_status', 'For Checking')
-                ->delete();
-            DB::connection('mysql')->table('tabStock Entry Detail')->where('docstatus', 0)->where('parent', $request->transfer_id_delete) ->delete();
+                ->where('docstatus', 0)->where('item_status', 'For Checking')->delete();
 
+            DB::connection('mysql')->table('tabStock Entry Detail')->where('docstatus', 0)->where('parent', $request->transfer_id_delete)->delete();
 
             return response()->json(['success' => 1, 'message' => 'Material Request for Transfer <b>' . $request->transfer_id . '</b> has been deleted.']);
         } catch (Exception $e) {
@@ -1376,29 +1353,23 @@ class InventoryController extends Controller
         }
     }
 
-    public function get_pending_inventory_transactions(){
+    public function get_pending_inventory_transactions()
+    {
         $start = Carbon::now()->startOfDay()->toDateTimeString();
         $end = Carbon::now()->endOfDay()->toDateTimeString();
 
         $material_transfer_q = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('purpose', 'Material Transfer')
-            ->whereBetween('ste.creation', [$start, $end])
-            // ->where('mes_operation', 'Fabrication')
-            ->select('ste.name', 'sted.item_code', 'ste.docstatus')
-            ->get();
+            ->where('purpose', 'Material Transfer')->whereBetween('ste.creation', [$start, $end])
+            ->select('ste.name', 'sted.item_code', 'ste.docstatus')->get();
 
         $count_material_transfer = collect($material_transfer_q)->unique('name')->count();
         $count_material_transfer_items = collect($material_transfer_q)->count();
 
         $material_request_q = DB::connection('mysql')->table('tabMaterial Request as mr')
             ->join('tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
-            ->where('mr.material_request_type', 'Purchase')
-            ->whereBetween('mr.creation', [$start, $end])
-            ->where('mr.docstatus', 1)
-            // ->where('mes_operation', 'Fabrication')
-            ->select('mr.name', 'mri.item_code')
-            ->get();
+            ->where('mr.material_request_type', 'Purchase')->whereBetween('mr.creation', [$start, $end])
+            ->where('mr.docstatus', 1)->select('mr.name', 'mri.item_code')->get();
 
         $count_material_request = collect($material_request_q)->unique('name')->count();
         $count_material_request_items = collect($material_request_q)->count();
@@ -1408,11 +1379,8 @@ class InventoryController extends Controller
 
         $pending_withdrawal_q = DB::connection('mysql')->table('tabStock Entry as ste')
             ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-            ->where('purpose', 'Material Transfer for Manufacture')
-            ->where('ste.item_status', 'For Checking')
-            ->where('ste.docstatus', 0)
-            ->whereBetween('ste.creation', [$start, $end])
-            // ->where('mes_operation', 'Fabrication')
+            ->where('purpose', 'Material Transfer for Manufacture')->where('ste.item_status', 'For Checking')
+            ->where('ste.docstatus', 0)->whereBetween('ste.creation', [$start, $end])
             ->select('ste.name', 'sted.item_code', 'ste.docstatus', 'sted.status')
             ->get();
 
@@ -1431,7 +1399,8 @@ class InventoryController extends Controller
         ];
     }
 
-    public function get_inspection_logs(){
+    public function get_inspection_logs()
+    {
         $start = Carbon::now()->startOfDay()->toDateTimeString();
         $end = Carbon::now()->endOfDay()->toDateTimeString();
 
@@ -1454,7 +1423,7 @@ class InventoryController extends Controller
             ->get();
 
         $inspection_logs = [];
-        foreach($logs as $row){
+        foreach ($logs as $row) {
             $qa_staff_name = DB::connection('mysql_essex')->table('users')->where('user_id', $row->qa_staff_id)->first()->employee_name;
             $inspection_logs[] = [
                 'production_order' => $row->production_order,
@@ -1475,34 +1444,35 @@ class InventoryController extends Controller
         return view('tables.tbl_inspection_logs', compact('inspection_logs'));
     }
 
-    public function get_scrap_per_material($material_type){
+    public function get_scrap_per_material($material_type)
+    {
         $usable_scrap_in_cubic_mm = $this->get_total_usable_scrap_per_material_type($material_type);
         $unusable_scrap_in_kg = $this->get_total_unusable_scrap_per_material_type($material_type);
 
         $uom_cubic_mm = DB::connection('mysql_mes')->table('uom')->where('uom_name', 'like', '%cubic m%')->first();
-        if(!$uom_cubic_mm){
+        if (!$uom_cubic_mm) {
             return [
-                'usable_scrap_in_cubic_mm' => number_format((float)$usable_scrap_in_cubic_mm, 2, '.', ''),
-                'usable_scrap_in_kg' => number_format((float)0, 2, '.', ''),
-                'unusable_scrap' => number_format((float)$unusable_scrap_in_kg, 2, '.', ''),
+                'usable_scrap_in_cubic_mm' => number_format((float) $usable_scrap_in_cubic_mm, 2, '.', ''),
+                'usable_scrap_in_kg' => number_format((float) 0, 2, '.', ''),
+                'unusable_scrap' => number_format((float) $unusable_scrap_in_kg, 2, '.', ''),
             ];
         }
 
         $uom_cubic_kg = DB::connection('mysql_mes')->table('uom')->where('uom_name', 'like', '%kilogram%')->first();
-        if(!$uom_cubic_kg){
+        if (!$uom_cubic_kg) {
             return [
-                'usable_scrap_in_cubic_mm' => number_format((float)$usable_scrap_in_cubic_mm, 2, '.', ''),
-                'usable_scrap_in_kg' => number_format((float)0, 2, '.', ''),
-                'unusable_scrap' => number_format((float)$unusable_scrap_in_kg, 2, '.', ''),
+                'usable_scrap_in_cubic_mm' => number_format((float) $usable_scrap_in_cubic_mm, 2, '.', ''),
+                'usable_scrap_in_kg' => number_format((float) 0, 2, '.', ''),
+                'unusable_scrap' => number_format((float) $unusable_scrap_in_kg, 2, '.', ''),
             ];
         }
 
         $allowed_materials = ['CRS', 'ALUMINUM', 'DIFFUSER'];
-        if(!in_array(strtoupper($material_type), $allowed_materials)){
+        if (!in_array(strtoupper($material_type), $allowed_materials)) {
             return [
-                'usable_scrap_in_cubic_mm' => number_format((float)$usable_scrap_in_cubic_mm, 2, '.', ''),
-                'usable_scrap_in_kg' => number_format((float)0, 2, '.', ''),
-                'unusable_scrap' => number_format((float)$unusable_scrap_in_kg, 2, '.', ''),
+                'usable_scrap_in_cubic_mm' => number_format((float) $usable_scrap_in_cubic_mm, 2, '.', ''),
+                'usable_scrap_in_kg' => number_format((float) 0, 2, '.', ''),
+                'unusable_scrap' => number_format((float) $unusable_scrap_in_kg, 2, '.', ''),
             ];
         }
 
@@ -1511,12 +1481,12 @@ class InventoryController extends Controller
             ->where('material', $material_type)
             ->select(DB::raw('COUNT(uom_id) as count'), 'uom_conversion_id')
             ->groupBy('uom_conversion_id')->first();
-        
+
         if (!$conversion_id) {
             return [
-                'usable_scrap_in_cubic_mm' => number_format((float)$usable_scrap_in_cubic_mm, 2, '.', ''),
-                'usable_scrap_in_kg' => number_format((float)0, 2, '.', ''),
-                'unusable_scrap' => number_format((float)$unusable_scrap_in_kg, 2, '.', ''),
+                'usable_scrap_in_cubic_mm' => number_format((float) $usable_scrap_in_cubic_mm, 2, '.', ''),
+                'usable_scrap_in_kg' => number_format((float) 0, 2, '.', ''),
+                'unusable_scrap' => number_format((float) $unusable_scrap_in_kg, 2, '.', ''),
             ];
         }
 
@@ -1527,345 +1497,324 @@ class InventoryController extends Controller
             ->sum('conversion_factor');
 
         $usable_scrap_in_kg = $usable_scrap_in_cubic_mm * $uom_2_conversion_factor;
-        
+
         return [
-            'usable_scrap_in_cubic_mm' => number_format((float)$usable_scrap_in_cubic_mm, 2, '.', ''),
-            'usable_scrap_in_kg' => number_format((float)$usable_scrap_in_kg, 2, '.', ''),
-            'unusable_scrap' => number_format((float)$unusable_scrap_in_kg, 2, '.', ''),
+            'usable_scrap_in_cubic_mm' => number_format((float) $usable_scrap_in_cubic_mm, 2, '.', ''),
+            'usable_scrap_in_kg' => number_format((float) $usable_scrap_in_kg, 2, '.', ''),
+            'unusable_scrap' => number_format((float) $unusable_scrap_in_kg, 2, '.', ''),
         ];
     }
 
-    public function get_total_usable_scrap_per_material_type($material_type){
+    public function get_total_usable_scrap_per_material_type($material_type)
+    {
         return DB::connection('mysql_mes')->table('usable_scrap')
             ->join('scrap', 'scrap.scrap_id', 'usable_scrap.scrap_id')
             ->where('material', strtolower($material_type))
             ->where('usable_scrap_qty', '>', 0)->sum('usable_scrap_qty');
     }
 
-    public function get_total_unusable_scrap_per_material_type($material_type){
+    public function get_total_unusable_scrap_per_material_type($material_type)
+    {
         return DB::connection('mysql_mes')->table('scrap')
             ->where('material', strtolower($material_type))
             ->where('scrap_qty', '>', 0)->sum('scrap_qty');
     }
 
-    public function tbl_filter_out_of_stock(Request $request){
-            $item_list = DB::connection('mysql')->table('tabItem as item')
+    public function tbl_filter_out_of_stock(Request $request)
+    {
+        $item_list = DB::connection('mysql')->table('tabItem as item')
             ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            ->where('w.disabled', 0)
-            ->where('w.is_group', 0)
-            ->where('w.company', 'FUMACO Inc.')
-            // ->where('stock_uom', 'Piece(s)')
-            ->where('has_variants',"!=", 1)
+            ->where('w.disabled', 0)->where('w.is_group', 0)
+            ->where('w.company', 'FUMACO Inc.')->where('has_variants', "!=", 1)
             ->where('w.department', 'Fabrication')
             ->whereIn('item.item_group', ['Raw Material'])
             ->where('item.item_classification', $request->material)
             ->select('item.name', 'item.item_name')
             ->orderBy('item.modified', 'desc')->get();
-            $data=[];
-            foreach ($item_list as $row) {
-                $q = DB::connection('mysql_mes')->table('item_specification')
+        $data = [];
+        foreach ($item_list as $row) {
+            $q = DB::connection('mysql_mes')->table('item_specification')
                 ->where('item_code', $row->name)
-                ->when($request->length, function($q) use ($request){
+                ->when($request->length, function ($q) use ($request) {
                     $q->where('item_specification.length', $request->length);
                 })
-                ->when($request->width, function($q) use ($request){
+                ->when($request->width, function ($q) use ($request) {
                     $q->where('item_specification.width', $request->width);
                 })
-                ->when($request->thickness, function($q) use ($request){
+                ->when($request->thickness, function ($q) use ($request) {
                     $q->where('item_specification.thickness', $request->thickness);
                 })
-                ->when($request->q, function($q) use ($request){
-                    $q->where(function($r) use ($request){
+                ->when($request->q, function ($q) use ($request) {
+                    $q->where(function ($r) use ($request) {
                         $r->where('item_specification.material', 'LIKE', '%' . $request->q . '%')
                             ->orWhere('item_specification.length', 'LIKE', '%' . $request->q . '%')
                             ->orWhere('item_specification.width', 'LIKE', '%' . $request->q . '%')
                             ->orWhere('item_specification.thickness', 'LIKE', '%' . $request->q . '%');
                     });
                 })->get();
-                foreach($q as $rows){
-                    $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
-                    if (empty($actual)) {
-                       $data[]=[
-        
+            foreach ($q as $rows) {
+                $actual = DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like', '%Fabrication - FI%')->select('actual_qty')->first();
+                if (empty($actual)) {
+                    $data[] = [
                         'item_code' => $rows->item_code,
                         'description' => $row->item_name
                     ];
-                    }
                 }
-    
             }
-
-            return view('inventory.tbl_outofstock_rawmaterial', compact('data'));
-        }
-        public function raw_material_monitoring_data_diff(){
-            $item_list = DB::connection('mysql')->table('tabItem as item')
-            // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            // ->where('w.disabled', 0)
-            // ->where('w.is_group', 0)
-            // ->where('w.company', 'FUMACO Inc.')
-            // ->where('item.description', 'LIKE', '%Acrylic Diffuser%')
-            // ->where('stock_uom', 'Piece(s)')
-            // ->where('has_variants',"!=", 1)
-            // ->where('w.department', 'Fabrication')
-            ->whereIn('item.item_group', ['Raw Material'])
-            ->whereIn('item.item_classification', ['DI - Diffuser'])
-            ->select('item.name', 'item.item_name')
-            ->orderBy('item.modified', 'desc')->get();
-            $data=[];
-            foreach ($item_list as $row) {
-                $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
-                $prod = DB::connection('mysql_mes')->table('production_order as pro')
-                ->where('pro.status', 'Not Started')
-                ->distinct()
-                ->pluck('production_order');
-                
-                $planned= DB::connection('mysql')->table('tabWork Order Item as pri')
-                    ->where('pri.source_warehouse', "Fabrication  - FI")
-                    ->whereIn('pri.parent', $prod)
-                    ->where('pri.item_code',$row->name)
-                    ->sum('required_qty');
-                $background_planned='#ff8300  ';
-                $background_minimum='#00838F';
-                if ((empty($actual->actual_qty)? 0 : $actual->actual_qty) == 0) {
-                    $status="changecolor";
-                    $minimum= 0;             
-                    $background_actual='#558B2F';
-                    $actual_bar=empty($actual->actual_qty)? 0 : $actual->actual_qty;
-    
-                }elseif ((empty($actual->actual_qty)? 0 : $actual->actual_qty) <= (empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level)) {
-                    $status="changecolor";
-                    $minimum= 0;             
-                    $background_actual='red';
-                    $actual_bar=empty($actual->actual_qty)? 0 : $actual->actual_qty;
-    
-                    
-                }else{
-                    $status="nochange";
-                    $background_actual='#558B2F';
-                    $actual_bar=(empty($actual->actual_qty)? 0 : $actual->actual_qty)-(empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level); 
-                    $minimum= empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level;
-                }
-               
-                $planneds=empty($actual->actual_qty)? 0: $actual->actual_qty;
-                $sheets = 0;
-                if (!empty($actual) && $actual->actual_qty > 0) {
-                   $data[]=[
-                    'item_code' => $row->name,
-                    'decsription' => $row->item_name,
-                    'actual_bar' => round($actual_bar,2),
-                    'status' => $status, 
-                    'actual_qty' => round(empty($actual->actual_qty)? 0 : $actual->actual_qty,2),
-                    'minimum' => round($minimum,2),
-                    'sheets'=> round($sheets,2),
-                    'c_actual' => $background_actual,
-                    'c_planned'=> $background_planned,
-                    'c_minimum'=>$background_minimum,
-                    'minimum_label' => round(empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level,2),
-                    'planned' => round(empty($planned)? 0: $planned,2)
-                ];
-                }
-    
-            }
-            $chart_data=[
-               'chart_data' => $data ];           
-    
-            return $chart_data;
-        }
-        public function raw_material_monitoring_data_crs(){
-            $item_list = DB::connection('mysql')->table('tabItem as item')
-            // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            // ->where('w.disabled', 0)
-            // ->where('w.is_group', 0)
-            // ->where('w.company', 'FUMACO Inc.')
-            // ->where('has_variants',"!=", 1)
-            // ->where('w.department', 'Fabrication')
-            ->whereIn('item.item_group', ['Raw Material'])
-            ->whereIn('item.item_classification', ['CS - Crs Steel Coil'])
-            ->select('item.name', 'item.item_name')
-            ->orderBy('item.modified', 'desc')->get();
-            $data=[];
-            foreach ($item_list as $row) {
-                $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
-                $prod = DB::connection('mysql_mes')->table('production_order as pro')
-                ->where('pro.status', 'Not Started')
-                ->distinct()
-                ->pluck('production_order');
-                
-                $planned= DB::connection('mysql')->table('tabWork Order Item as pri')
-                    ->where('pri.source_warehouse', "Fabrication  - FI")
-                    ->whereIn('pri.parent', $prod)
-                    ->where('pri.item_code',$row->name)
-                    ->sum('required_qty');
-                $background_planned='#ff8300  ';
-                $background_minimum='#00838F';
-                if ((empty($actual->actual_qty)? 0 : $actual->actual_qty) == 0) {
-                    $status="changecolor";
-                    $minimum= 0;             
-                    $background_actual='#558B2F';
-                    $actual_bar=empty($actual->actual_qty)? 0 : $actual->actual_qty;
-    
-                }elseif ((empty($actual->actual_qty)? 0 : $actual->actual_qty) <= (empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level)) {
-                    $status="changecolor";
-                    $minimum= 0;             
-                    $background_actual='red';
-                    $actual_bar=empty($actual->actual_qty)? 0 : $actual->actual_qty;
-    
-                    
-                }else{
-                    $status="nochange";
-                    $background_actual='#558B2F';
-                    $actual_bar=(empty($actual->actual_qty)? 0 : $actual->actual_qty)-(empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level); 
-                    $minimum= empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level;
-                }
-               
-                $planneds=empty($actual->actual_qty)? 0: $actual->actual_qty;
-                $sheets = $this->get_no_of_sheets($row->name, $planneds);
-    
-                if (!empty($actual) && $actual->actual_qty > 0) {
-                   $data[]=[
-                    'item_code' => $row->name,
-                    'decsription' => $row->item_name,
-                    'actual_bar' => round($actual_bar,2),
-                    'status' => $status, 
-                    'actual_qty' => round(empty($actual->actual_qty)? 0 : $actual->actual_qty,2),
-                    'minimum' => round($minimum,2),
-                    'sheets'=> round($sheets,2),
-                    'c_actual' => $background_actual,
-                    'c_planned'=> $background_planned,
-                    'c_minimum'=>$background_minimum,
-                    'minimum_label' => round(empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level,2),
-                    'planned' => round(empty($planned)? 0: $planned,2)
-                ];
-                }
-                
-            }
-            $chart_data=[
-               'chart_data' => $data ];           
-    
-            return $chart_data;
-        }
-        public function raw_material_monitoring_data_alum(){
-            $item_list = DB::connection('mysql')->table('tabItem as item')
-            // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-            // ->where('w.disabled', 0)
-            // ->where('w.is_group', 0)
-            // ->where('w.company', 'FUMACO Inc.')
-            // ->where('has_variants',"!=", 1)
-            // ->where('w.department', 'Fabrication')
-            ->whereIn('item.item_group', ['Raw Material'])
-            ->whereIn('item.item_classification', ['AS - Aluminum Sheets'])
-            ->select('item.name', 'item.item_name')
-            ->orderBy('item.modified', 'desc')->get();
-            $data=[];
-            foreach ($item_list as $row) {
-                $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-                $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
-                $prod = DB::connection('mysql_mes')->table('production_order as pro')
-                ->where('pro.status', 'Not Started')
-                ->distinct()
-                ->pluck('production_order');
-                
-                $planned= DB::connection('mysql')->table('tabWork Order Item as pri')
-                    ->where('pri.source_warehouse', "Fabrication  - FI")
-                    ->whereIn('pri.parent', $prod)
-                    ->where('pri.item_code',$row->name)
-                    ->sum('required_qty');
-                $background_planned='#ff8300  ';
-                $background_minimum='#00838F';
-                if ((empty($actual->actual_qty)? 0 : $actual->actual_qty) == 0) {
-                    $status="changecolor";
-                    $minimum= 0;             
-                    $background_actual='#558B2F';
-                    $actual_bar=empty($actual->actual_qty)? 0 : $actual->actual_qty;
-    
-                }elseif ((empty($actual->actual_qty)? 0 : $actual->actual_qty) <= (empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level)) {
-                    $status="changecolor";
-                    $minimum= 0;             
-                    $background_actual='red';
-                    $actual_bar=empty($actual->actual_qty)? 0 : $actual->actual_qty;
-    
-                    
-                }else{
-                    $status="nochange";
-                    $background_actual='#558B2F';
-                    $actual_bar=(empty($actual->actual_qty)? 0 : $actual->actual_qty)-(empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level); 
-                    $minimum= empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level;
-                }
-               
-                // $minimum=0;
-                $planneds=empty($actual->actual_qty)? 0: $actual->actual_qty;
-                $sheets = 0;
-                if (!empty($actual) && $actual->actual_qty > 0) {
-                   $data[]=[
-                    'item_code' => $row->name,
-                    'decsription' => $row->item_name,
-                    'actual_bar' => round($actual_bar,2),
-                    'status' => $status, 
-                    'actual_qty' => round(empty($actual->actual_qty)? 0 : $actual->actual_qty,2),
-                    'minimum' => round($minimum,2),
-                    'sheets'=> round($sheets,2),
-                    'c_actual' => $background_actual,
-                    'c_planned'=> $background_planned,
-                    'c_minimum'=>$background_minimum,
-                    'minimum_label' => round(empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level,2),
-                    'planned' => round(empty($planned)? 0: $planned,2)
-                ];
-                }
-    
-            }
-            $chart_data=[
-               'chart_data' => $data ];           
-    
-            return $chart_data;
-        }
-
-        public function get_no_of_sheets($item_code, $qty){
-            $conversion = DB::connection('mysql')->table('tabUOM Conversion Detail')->where('parent', "CS00023")->where('uom', 'Sheet(s)')->first();
-            if ($conversion) {
-                return ($qty / $conversion->conversion_factor);
-            }
-        }
-        public function alum_out_of_stock(Request $request){
-        $item_list = DB::connection('mysql')->table('tabItem as item')
-        // ->join('tabWarehouse as w', 'item.default_warehouse', 'w.name')
-        // ->where('w.disabled', 0)
-        // ->where('w.is_group', 0)
-        // ->where('w.company', 'FUMACO Inc.')
-        // ->where('stock_uom', 'Piece(s)')
-        ->where('has_variants',"!=", 1)
-        // ->where('w.department', 'Fabrication')
-        ->whereIn('item.item_group', ['Raw Material'])
-        ->where('item.item_classification', $request->id)
-        ->select('item.name', 'item.item_name', 'item.item_classification')
-        ->orderBy('item.modified', 'desc')->get();
-        $data=[];
-        foreach ($item_list as $row) {
-        
-        $actual= DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)->where('warehouse', 'like',  '%Fabrication - FI%')->select('actual_qty')->first();
-        $min_level= DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty','warehouse_reorder_level')->first();
-            if (empty($actual)) {
-               $data[]=[
-
-                'item_code' => $row->name,
-                'description' => $row->item_name,
-                'item_class' => $row->item_classification,
-                'default_warehouse' => null,
-                'minimum' => empty($min_level->warehouse_reorder_level)? 0:$min_level->warehouse_reorder_level
-
-            ];
-            }
-
         }
 
         return view('inventory.tbl_outofstock_rawmaterial', compact('data'));
     }
 
+    public function raw_material_monitoring_data_diff()
+    {
+        $item_list = DB::connection('mysql')->table('tabItem as item')
+            ->whereIn('item.item_group', ['Raw Material'])
+            ->whereIn('item.item_classification', ['DI - Diffuser'])
+            ->select('item.name', 'item.item_name')
+            ->orderBy('item.modified', 'desc')->get();
 
-   
+        $data = [];
+        foreach ($item_list as $row) {
+            $min_level = DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)
+                ->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty', 'warehouse_reorder_level')->first();
 
-    public function insert_scrap_job_ticket(Request $request){
+            $actual = DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)
+                ->where('warehouse', 'like', '%Fabrication - FI%')->select('actual_qty')->first();
+
+            $prod = DB::connection('mysql_mes')->table('production_order as pro')
+                ->where('pro.status', 'Not Started')->distinct()->pluck('production_order');
+
+            $planned = DB::connection('mysql')->table('tabWork Order Item as pri')
+                ->where('pri.source_warehouse', "Fabrication  - FI")
+                ->whereIn('pri.parent', $prod)->where('pri.item_code', $row->name)
+                ->sum('required_qty');
+
+            $background_planned = '#ff8300';
+            $background_minimum = '#00838F';
+            if ((empty($actual->actual_qty) ? 0 : $actual->actual_qty) == 0) {
+                $status = "changecolor";
+                $minimum = 0;
+                $background_actual = '#558B2F';
+                $actual_bar = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            } elseif ((empty($actual->actual_qty) ? 0 : $actual->actual_qty) <= (empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level)) {
+                $status = "changecolor";
+                $minimum = 0;
+                $background_actual = 'red';
+                $actual_bar = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            } else {
+                $status = "nochange";
+                $background_actual = '#558B2F';
+                $actual_bar = (empty($actual->actual_qty) ? 0 : $actual->actual_qty) - (empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level);
+                $minimum = empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level;
+            }
+
+            $planneds = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            $sheets = 0;
+            if (!empty($actual) && $actual->actual_qty > 0) {
+                $data[] = [
+                    'item_code' => $row->name,
+                    'decsription' => $row->item_name,
+                    'actual_bar' => round($actual_bar, 2),
+                    'status' => $status,
+                    'actual_qty' => round(empty($actual->actual_qty) ? 0 : $actual->actual_qty, 2),
+                    'minimum' => round($minimum, 2),
+                    'sheets' => round($sheets, 2),
+                    'c_actual' => $background_actual,
+                    'c_planned' => $background_planned,
+                    'c_minimum' => $background_minimum,
+                    'minimum_label' => round(empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level, 2),
+                    'planned' => round(empty($planned) ? 0 : $planned, 2)
+                ];
+            }
+        }
+
+        $chart_data = [
+            'chart_data' => $data
+        ];
+
+        return $chart_data;
+    }
+
+    public function raw_material_monitoring_data_crs()
+    {
+        $item_list = DB::connection('mysql')->table('tabItem as item')
+            ->whereIn('item.item_group', ['Raw Material'])
+            ->whereIn('item.item_classification', ['CS - Crs Steel Coil'])
+            ->select('item.name', 'item.item_name')
+            ->orderBy('item.modified', 'desc')->get();
+
+        $data = [];
+        foreach ($item_list as $row) {
+            $min_level = DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)->where('material_request_type', 'Transfer')
+                ->select('warehouse_reorder_qty', 'warehouse_reorder_level')->first();
+
+            $actual = DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)
+                ->where('warehouse', 'like', '%Fabrication - FI%')->select('actual_qty')->first();
+
+            $prod = DB::connection('mysql_mes')->table('production_order as pro')
+                ->where('pro.status', 'Not Started')->distinct()->pluck('production_order');
+
+            $planned = DB::connection('mysql')->table('tabWork Order Item as pri')
+                ->where('pri.source_warehouse', "Fabrication  - FI")
+                ->whereIn('pri.parent', $prod)->where('pri.item_code', $row->name)
+                ->sum('required_qty');
+
+            $background_planned = '#ff8300';
+            $background_minimum = '#00838F';
+            if ((empty($actual->actual_qty) ? 0 : $actual->actual_qty) == 0) {
+                $status = "changecolor";
+                $minimum = 0;
+                $background_actual = '#558B2F';
+                $actual_bar = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            } elseif ((empty($actual->actual_qty) ? 0 : $actual->actual_qty) <= (empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level)) {
+                $status = "changecolor";
+                $minimum = 0;
+                $background_actual = 'red';
+                $actual_bar = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            } else {
+                $status = "nochange";
+                $background_actual = '#558B2F';
+                $actual_bar = (empty($actual->actual_qty) ? 0 : $actual->actual_qty) - (empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level);
+                $minimum = empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level;
+            }
+
+            $planneds = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            $sheets = $this->get_no_of_sheets($row->name, $planneds);
+
+            if (!empty($actual) && $actual->actual_qty > 0) {
+                $data[] = [
+                    'item_code' => $row->name,
+                    'decsription' => $row->item_name,
+                    'actual_bar' => round($actual_bar, 2),
+                    'status' => $status,
+                    'actual_qty' => round(empty($actual->actual_qty) ? 0 : $actual->actual_qty, 2),
+                    'minimum' => round($minimum, 2),
+                    'sheets' => round($sheets, 2),
+                    'c_actual' => $background_actual,
+                    'c_planned' => $background_planned,
+                    'c_minimum' => $background_minimum,
+                    'minimum_label' => round(empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level, 2),
+                    'planned' => round(empty($planned) ? 0 : $planned, 2)
+                ];
+            }
+        }
+
+        $chart_data = [
+            'chart_data' => $data
+        ];
+
+        return $chart_data;
+    }
+
+    public function raw_material_monitoring_data_alum()
+    {
+        $item_list = DB::connection('mysql')->table('tabItem as item')
+            ->whereIn('item.item_group', ['Raw Material'])->whereIn('item.item_classification', ['AS - Aluminum Sheets'])
+            ->select('item.name', 'item.item_name')->orderBy('item.modified', 'desc')->get();
+
+        $data = [];
+        foreach ($item_list as $row) {
+            $min_level = DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)
+                ->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty', 'warehouse_reorder_level')->first();
+
+            $actual = DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)
+                ->where('warehouse', 'like', '%Fabrication - FI%')->select('actual_qty')->first();
+
+            $prod = DB::connection('mysql_mes')->table('production_order as pro')
+                ->where('pro.status', 'Not Started')->distinct()->pluck('production_order');
+
+            $planned = DB::connection('mysql')->table('tabWork Order Item as pri')
+                ->where('pri.source_warehouse', "Fabrication  - FI")
+                ->whereIn('pri.parent', $prod)->where('pri.item_code', $row->name)
+                ->sum('required_qty');
+
+            $background_planned = '#ff8300';
+            $background_minimum = '#00838F';
+            if ((empty($actual->actual_qty) ? 0 : $actual->actual_qty) == 0) {
+                $status = "changecolor";
+                $minimum = 0;
+                $background_actual = '#558B2F';
+                $actual_bar = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            } elseif ((empty($actual->actual_qty) ? 0 : $actual->actual_qty) <= (empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level)) {
+                $status = "changecolor";
+                $minimum = 0;
+                $background_actual = 'red';
+                $actual_bar = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            } else {
+                $status = "nochange";
+                $background_actual = '#558B2F';
+                $actual_bar = (empty($actual->actual_qty) ? 0 : $actual->actual_qty) - (empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level);
+                $minimum = empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level;
+            }
+
+            $planneds = empty($actual->actual_qty) ? 0 : $actual->actual_qty;
+            $sheets = 0;
+            if (!empty($actual) && $actual->actual_qty > 0) {
+                $data[] = [
+                    'item_code' => $row->name,
+                    'decsription' => $row->item_name,
+                    'actual_bar' => round($actual_bar, 2),
+                    'status' => $status,
+                    'actual_qty' => round(empty($actual->actual_qty) ? 0 : $actual->actual_qty, 2),
+                    'minimum' => round($minimum, 2),
+                    'sheets' => round($sheets, 2),
+                    'c_actual' => $background_actual,
+                    'c_planned' => $background_planned,
+                    'c_minimum' => $background_minimum,
+                    'minimum_label' => round(empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level, 2),
+                    'planned' => round(empty($planned) ? 0 : $planned, 2)
+                ];
+            }
+        }
+
+        $chart_data = [
+            'chart_data' => $data
+        ];
+
+        return $chart_data;
+    }
+
+    public function get_no_of_sheets($item_code, $qty)
+    {
+        $conversion = DB::connection('mysql')->table('tabUOM Conversion Detail')->where('parent', "CS00023")->where('uom', 'Sheet(s)')->first();
+        if ($conversion) {
+            return ($qty / $conversion->conversion_factor);
+        }
+    }
+
+    public function alum_out_of_stock(Request $request)
+    {
+        $item_list = DB::connection('mysql')->table('tabItem as item')
+            ->where('has_variants', "!=", 1)->whereIn('item.item_group', ['Raw Material'])
+            ->where('item.item_classification', $request->id)
+            ->select('item.name', 'item.item_name', 'item.item_classification')
+            ->orderBy('item.modified', 'desc')->get();
+
+        $data = [];
+        foreach ($item_list as $row) {
+            $actual = DB::connection('mysql')->table('tabBin')->where('item_code', $row->name)
+                ->where('warehouse', 'like', '%Fabrication - FI%')->select('actual_qty')->first();
+
+            $min_level = DB::connection('mysql')->table('tabItem Reorder')->where('parent', $row->name)
+                ->where('material_request_type', 'Transfer')->select('warehouse_reorder_qty', 'warehouse_reorder_level')->first();
+
+            if (empty($actual)) {
+                $data[] = [
+                    'item_code' => $row->name,
+                    'description' => $row->item_name,
+                    'item_class' => $row->item_classification,
+                    'default_warehouse' => null,
+                    'minimum' => empty($min_level->warehouse_reorder_level) ? 0 : $min_level->warehouse_reorder_level
+                ];
+            }
+        }
+
+        return view('inventory.tbl_outofstock_rawmaterial', compact('data'));
+    }
+
+    public function insert_scrap_job_ticket(Request $request)
+    {
         try {
             $production_order = 'SC-' . $request->scrap_id;
             $operator = DB::connection('mysql_essex')->table('users')->where('user_id', $request->operator_id)->first();
@@ -1878,7 +1827,7 @@ class InventoryController extends Controller
                 ->where('operator_id', '!=', $request->operator_id)
                 ->where('machine_code', $request->machine_code)
                 ->where('status', 'In Progress')->exists();
-        
+
             if ($in_progress_operator_machine) {
                 return response()->json(['success' => 0, 'message' => "Machine is in use by another operator."]);
             }
@@ -1920,20 +1869,21 @@ class InventoryController extends Controller
                 ->where('time_logs.operator_id', $request->operator_id)
                 ->where('time_logs.status', 'In Progress')->exists();
 
-            if(!$prod_in_progress){
+            if (!$prod_in_progress) {
                 DB::connection('mysql_mes')->table('job_ticket')->insert($values);
             }
 
             $values = array_merge($values, ['machine_code' => $request->machine_code, 'operator_id' => $request->operator_id]);
 
             return response()->json(['success' => 1, 'message' => 'Task created.', 'details' => $values]);
-            
+
         } catch (Exception $e) {
             return response()->json(["success" => 0, "message" => $e->getMessage()]);
         }
     }
 
-    public function submit_uom_conversion(Request $request){
+    public function submit_uom_conversion(Request $request)
+    {
         if ($request->uom[0] == $request->uom[1]) {
             return response()->json(['success' => 0, 'message' => 'UoM cannot be the same.']);
         }
@@ -1981,7 +1931,7 @@ class InventoryController extends Controller
                     'uom_id' => $request->uom[$i],
                     'conversion_factor' => $request->conversion_factor[$i],
                 ];
-                
+
                 DB::connection('mysql_mes')->table('uom_conversion')->where('id', $id)->update($values);
             }
 
@@ -1989,7 +1939,8 @@ class InventoryController extends Controller
         }
     }
 
-    public function get_uom_conversion_list(Request $request){
+    public function get_uom_conversion_list(Request $request)
+    {
         $uom_conversion = DB::connection('mysql_mes')->table('uom_conversion')
             ->distinct()->pluck('uom_conversion_id');
 
@@ -2013,7 +1964,7 @@ class InventoryController extends Controller
         // Slice the collection to get the items to display in current page
         $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
         // Create our paginator and pass it to the view
-        $paginatedItems = new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
+        $paginatedItems = new LengthAwarePaginator($currentPageItems, count($itemCollection), $perPage);
         // set url path for generted links
         $paginatedItems->setPath($request->url());
         $list = $paginatedItems;
@@ -2021,29 +1972,32 @@ class InventoryController extends Controller
         return view('tables.tbl_uom_conversion', compact('list'));
     }
 
-    public function delete_uom_conversion(Request $request){
-        if($request->uom_conversion_id){
+    public function delete_uom_conversion(Request $request)
+    {
+        if ($request->uom_conversion_id) {
             DB::connection('mysql_mes')->table('uom_conversion')
                 ->where('uom_conversion_id', $request->uom_conversion_id)->delete();
 
             return response()->json(['success' => 1, 'message' => 'UoM Conversion deleted.']);
         }
     }
-    public function get_inventory_transaction_history_painting(Request $request){  
+
+    public function get_inventory_transaction_history_painting(Request $request)
+    {
         $data = DB::connection('mysql_mes')->table('inventory_transaction as it')
             ->join('operation', 'operation.operation_id', 'it.operation_id')
-           ->where('operation_name', "like", "%Painting%")
-            ->when($request->entry_type, function($q) use ($request){
+            ->where('operation_name', "like", "%Painting%")
+            ->when($request->entry_type, function ($q) use ($request) {
                 $q->where('it.entry_type', $request->entry_type);
             })
-            ->when($request->q, function($q) use ($request){
-                $q->where(function($r) use ($request){
-                        $r->orWhere('it.item_code', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.last_modified_by', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.adjusted_qty', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.previous_qty', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.entry_type', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('it.transaction_no', 'LIKE', '%'.$request->q.'%');
+            ->when($request->q, function ($q) use ($request) {
+                $q->where(function ($r) use ($request) {
+                    $r->orWhere('it.item_code', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.last_modified_by', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.adjusted_qty', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.previous_qty', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.entry_type', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('it.transaction_no', 'LIKE', '%' . $request->q . '%');
                 });
             })
             ->orderBy('it.transaction_no', 'desc')->paginate(5);
@@ -2051,135 +2005,129 @@ class InventoryController extends Controller
         return view('inventory.tbl_inventory_transactions_painting', compact('data'));
     }
 
-    public function tbl_material_request_list(Request $request, $operation){
-        
-        $data=[];
-        if($operation =="Painting"){
-            $purchase_lists= DB::connection('mysql')->table('tabMaterial Request as mt')
-            ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
-            ->where('mt.mes_operation', $operation)
-            ->when($request->q, function ($query) use ($request) {
-                return $query->where(function($q) use ($request) {
-                $q->where('mt.customer_name', 'LIKE', '%'.$request->q.'%')
-                ->orwhere('mt.project',   'LIKE', '%'.$request->q.'%')
-                ->orwhere('mt.sales_order', 'LIKE', '%'.$request->q.'%')
-                ->orWhere('mt.status', 'LIKE', '%'.$request->q.'%')
-                ->orWhere('imt.item_code', 'LIKE', '%'.$request->q.'%');
-                });
-            })
-            ->when($request->daterange, function ($query) use ($request) {
-                $str = explode(' - ',$request->daterange);
-               
-                    $query->whereBetween(DB::raw('DATE_FORMAT(mt.schedule_date, "%Y-%m-%d")'), [$str[0],$str[1]]);
-               
-                return $query;
-            })
-            ->when($request->customer, function ($query) use ($request) {
-                    $query->where('mt.customer_name', 'LIKE', '%'.$request->customer.'%');
+    public function tbl_material_request_list(Request $request, $operation)
+    {
+        $data = [];
+        if ($operation == "Painting") {
+            $purchase_lists = DB::connection('mysql')->table('tabMaterial Request as mt')
+                ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
+                ->where('mt.mes_operation', $operation)
+                ->when($request->q, function ($query) use ($request) {
+                    return $query->where(function ($q) use ($request) {
+                        $q->where('mt.customer_name', 'LIKE', '%' . $request->q . '%')
+                            ->orwhere('mt.project', 'LIKE', '%' . $request->q . '%')
+                            ->orwhere('mt.sales_order', 'LIKE', '%' . $request->q . '%')
+                            ->orWhere('mt.status', 'LIKE', '%' . $request->q . '%')
+                            ->orWhere('imt.item_code', 'LIKE', '%' . $request->q . '%');
+                    });
+                })
+                ->when($request->daterange, function ($query) use ($request) {
+                    $str = explode(' - ', $request->daterange);
 
-                return $query;
-            })
-            ->when($request->project, function ($query) use ($request) {
-                    $query->where('mt.project', 'LIKE', '%'.$request->project.'%');
+                    $query->whereBetween(DB::raw('DATE_FORMAT(mt.schedule_date, "%Y-%m-%d")'), [$str[0], $str[1]]);
 
-                return $query;
-            })
-            ->when($request->sales_order, function ($query) use ($request) {
-                    $query->where('mt.sales_order', 'LIKE', '%'.$request->sales_order.'%');
+                    return $query;
+                })
+                ->when($request->customer, function ($query) use ($request) {
+                    $query->where('mt.customer_name', 'LIKE', '%' . $request->customer . '%');
 
-                return $query;
-            })
-            ->when($request->status, function ($query) use ($request) {
-                    $query->where('mt.status', 'LIKE', '%'.$request->status.'%');
+                    return $query;
+                })
+                ->when($request->project, function ($query) use ($request) {
+                    $query->where('mt.project', 'LIKE', '%' . $request->project . '%');
 
-                return $query;
-            })
-            ->when($request->item_code, function ($query) use ($request) {
-                    $query->where('imt.item_code', 'LIKE', '%'.$request->item_code.'%');
+                    return $query;
+                })
+                ->when($request->sales_order, function ($query) use ($request) {
+                    $query->where('mt.sales_order', 'LIKE', '%' . $request->sales_order . '%');
 
-                return $query;
-            })
-            ->where('mt.docstatus','!=',0 )->orderBy('mt.modified', 'desc')
-            // ->distinct('mt.name')
-            ->select('mt.*')
-            ->get();
+                    return $query;
+                })
+                ->when($request->status, function ($query) use ($request) {
+                    $query->where('mt.status', 'LIKE', '%' . $request->status . '%');
 
-           
-        }else{
-            $purchase_lists= DB::connection('mysql')->table('tabMaterial Request as mt')
-            ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
-            ->where('mt.mes_operation','!=', 'Painting')
-            ->when($request->q, function ($query) use ($request) {
-                return $query->where(function($q) use ($request) {
-                $q->where('mt.customer_name', 'LIKE', '%'.$request->q.'%')
-                ->orwhere('mt.project',   'LIKE', '%'.$request->q.'%')
-                ->orwhere('mt.sales_order', 'LIKE', '%'.$request->q.'%')
-                ->orWhere('mt.status', 'LIKE', '%'.$request->q.'%')
-                ->orWhere('imt.item_code', 'LIKE', '%'.$request->q.'%');
-                });
-            })
-            ->when($request->daterange, function ($query) use ($request) {
-                $str = explode(' - ',$request->daterange);
-               
-                    $query->whereBetween(DB::raw('DATE_FORMAT(mt.schedule_date, "%Y-%m-%d")'), [$str[0],$str[1]]);
-               
-                return $query;
-            })
-            ->when($request->customer, function ($query) use ($request) {
-                    $query->where('mt.customer_name', 'LIKE', '%'.$request->customer.'%');
+                    return $query;
+                })
+                ->when($request->item_code, function ($query) use ($request) {
+                    $query->where('imt.item_code', 'LIKE', '%' . $request->item_code . '%');
 
-                return $query;
-            })
-            ->when($request->project, function ($query) use ($request) {
-                    $query->where('mt.project', 'LIKE', '%'.$request->project.'%');
+                    return $query;
+                })
+                ->where('mt.docstatus', '!=', 0)->orderBy('mt.modified', 'desc')
+                ->select('mt.*')->get();
+        } else {
+            $purchase_lists = DB::connection('mysql')->table('tabMaterial Request as mt')
+                ->join('tabMaterial Request Item as imt', 'imt.parent', 'mt.name')
+                ->where('mt.mes_operation', '!=', 'Painting')
+                ->when($request->q, function ($query) use ($request) {
+                    return $query->where(function ($q) use ($request) {
+                        $q->where('mt.customer_name', 'LIKE', '%' . $request->q . '%')
+                            ->orwhere('mt.project', 'LIKE', '%' . $request->q . '%')
+                            ->orwhere('mt.sales_order', 'LIKE', '%' . $request->q . '%')
+                            ->orWhere('mt.status', 'LIKE', '%' . $request->q . '%')
+                            ->orWhere('imt.item_code', 'LIKE', '%' . $request->q . '%');
+                    });
+                })
+                ->when($request->daterange, function ($query) use ($request) {
+                    $str = explode(' - ', $request->daterange);
 
-                return $query;
-            })
-            ->when($request->sales_order, function ($query) use ($request) {
-                    $query->where('mt.sales_order', 'LIKE', '%'.$request->sales_order.'%');
+                    $query->whereBetween(DB::raw('DATE_FORMAT(mt.schedule_date, "%Y-%m-%d")'), [$str[0], $str[1]]);
 
-                return $query;
-            })
-            ->when($request->status, function ($query) use ($request) {
-                    $query->where('mt.status', 'LIKE', '%'.$request->status.'%');
+                    return $query;
+                })
+                ->when($request->customer, function ($query) use ($request) {
+                    $query->where('mt.customer_name', 'LIKE', '%' . $request->customer . '%');
 
-                return $query;
-            })
-            ->when($request->item_code, function ($query) use ($request) {
-                    $query->where('imt.item_code', 'LIKE', '%'.$request->item_code.'%');
+                    return $query;
+                })
+                ->when($request->project, function ($query) use ($request) {
+                    $query->where('mt.project', 'LIKE', '%' . $request->project . '%');
 
-                return $query;
-            })
-            ->where('mt.docstatus','!=',0 )->orderBy('mt.modified', 'desc')
-            // ->distinct('mt.name')
-            ->select('mt.*')
-            ->get();
+                    return $query;
+                })
+                ->when($request->sales_order, function ($query) use ($request) {
+                    $query->where('mt.sales_order', 'LIKE', '%' . $request->sales_order . '%');
+
+                    return $query;
+                })
+                ->when($request->status, function ($query) use ($request) {
+                    $query->where('mt.status', 'LIKE', '%' . $request->status . '%');
+
+                    return $query;
+                })
+                ->when($request->item_code, function ($query) use ($request) {
+                    $query->where('imt.item_code', 'LIKE', '%' . $request->item_code . '%');
+
+                    return $query;
+                })
+                ->where('mt.docstatus', '!=', 0)->orderBy('mt.modified', 'desc')
+                ->select('mt.*')->get();
         }
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
-     
         // Create a new Laravel collection from the array data
         $itemCollection = collect($purchase_lists);
-     
         // Define ho w many items we want to be visible in each page
         $perPage = 10;
-     
         // Slice the collection to get the items to display in current page
         $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-     
         // Create our paginator and pass it to the view
-        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-     
+        $paginatedItems = new LengthAwarePaginator($currentPageItems, count($itemCollection), $perPage);
         // set url path for generted links
         $paginatedItems->setPath($request->url());
         $purchase_list = $paginatedItems;
 
-        $count=  collect($purchase_lists)->count();
+        $count = collect($purchase_lists)->count();
+
         return view('inventory.material_request.tbl_material_request_purchase_painting', compact('purchase_list', 'count'));
-            
     }
-    
-    public function generate_material_request(Request $request){
+
+    public function generate_material_request(Request $request)
+    {
+        if (Gate::denies('create-material-request')) {
+            return response()->json(['success' => 0, 'message' => 'User not allowed.']);
+        }
+        
         DB::connection('mysql')->beginTransaction();
         try {
             $now = Carbon::now();
@@ -2196,11 +2144,11 @@ class InventoryController extends Controller
             $latest_mr_exploded = explode("-", $latest_mr);
             $new_id = $latest_mr_exploded[1] + 1;
             $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-            $new_id = 'PREQ-'.$new_id;
+            $new_id = 'PREQ-' . $new_id;
 
             $id_checker = DB::connection('mysql')->table('tabMaterial Request')->where('name', $new_id)->exists();
-            if($id_checker){
-                return response()->json(['success' => 0, 'message' => 'Material Request <b>'.$new_id.'</b> already exists. Please try again.']);
+            if ($id_checker) {
+                return response()->json(['success' => 0, 'message' => 'Material Request <b>' . $new_id . '</b> already exists. Please try again.']);
             }
 
             $mr = [
@@ -2227,11 +2175,11 @@ class InventoryController extends Controller
             $mr_item = [];
             foreach ($request->item_code as $i => $item) {
                 $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item)->first();
-              
+
                 $actual_qty = $this->get_actual_qty($item, $request->warehouse[$i]);
 
                 $mr_item[] = [
-                    'name' => 'mes'.uniqid(),
+                    'name' => 'mes' . uniqid(),
                     'creation' => $now->toDateTimeString(),
                     'modified' => $now->toDateTimeString(),
                     'modified_by' => Auth::user()->email,
@@ -2258,20 +2206,20 @@ class InventoryController extends Controller
                 ];
             }
 
-            if(count($mr_item) > 0){
+            if (count($mr_item) > 0) {
                 DB::connection('mysql')->table('tabMaterial Request')->insert($mr);
-                DB::connection('mysql')->table('tabMaterial Request Item')->insert($mr_item);   
+                DB::connection('mysql')->table('tabMaterial Request Item')->insert($mr_item);
 
-                DB::connection('mysql_mes')->transaction(function() use ($request){
+                DB::connection('mysql_mes')->transaction(function () use ($request) {
                     $production_orders = array_unique($request->production_order);
                     DB::connection('mysql_mes')->table('production_order')
                         ->whereIn('production_order', $production_orders)->update(['material_requested' => 1]);
                 });
-                $so_details= ($reference_pref == 'SO') ? $request->reference_no[0] : null;
-                $this->send_material_request_email($mr_item,$new_id, $so_details,  $order_details->customer,$request->purchase_request, $order_details->project);
+                $so_details = ($reference_pref == 'SO') ? $request->reference_no[0] : null;
+                $this->send_material_request_email($mr_item, $new_id, $so_details, $order_details->customer, $request->purchase_request, $order_details->project);
 
                 DB::connection('mysql')->commit();
-            
+
                 return response()->json(['success' => 1, 'message' => 'Material Request has been created.', 'id' => $new_id]);
             }
 
@@ -2281,50 +2229,59 @@ class InventoryController extends Controller
             return response()->json(['success' => 0, 'message' => $e->getMessage()]);
         }
     }
-    public function send_material_request_email($items, $id, $so, $customer, $purchase_request, $project){
+
+    public function send_material_request_email($items, $id, $so, $customer, $purchase_request, $project)
+    {
         $data = array(
-            'mreq'           => $id,
-            'sales_order_no'=> $so,
-            'items'         => $items,
-            'customer'		=> $customer,
-            'project'		=> $project,
+            'mreq' => $id,
+            'sales_order_no' => $so,
+            'items' => $items,
+            'customer' => $customer,
+            'project' => $project,
             'purchase_request' => $purchase_request,
             'created_by' => Auth::user()->email
         );
-        if($purchase_request == "Imported"){
-            $recipient= DB::connection('mysql_mes')
-            ->table('email_trans_recipient')
-            ->where('email_trans', "Material Request-Imported")
-            ->where('email', 'like','%@fumaco.local%')
-            ->select('email')
-            ->get();
-        }else{
-            $recipient= DB::connection('mysql_mes')
-            ->table('email_trans_recipient')
-            ->where('email_trans', "Material Request-Local")
-            ->where('email', 'like','%@fumaco.local%')
-            ->select('email')
-            ->get();
+        if ($purchase_request == "Imported") {
+            $recipient = DB::connection('mysql_mes')
+                ->table('email_trans_recipient')
+                ->where('email_trans', "Material Request-Imported")
+                ->where('email', 'like', '%@fumaco.local%')
+                ->select('email')
+                ->get();
+        } else {
+            $recipient = DB::connection('mysql_mes')
+                ->table('email_trans_recipient')
+                ->where('email_trans', "Material Request-Local")
+                ->where('email', 'like', '%@fumaco.local%')
+                ->select('email')
+                ->get();
         }
-        
-        if(count($recipient) > 0){
-                foreach ($recipient as $row) {
-                    Mail::to($row->email)->send(new SendMail_material_request($data));
-                }	
+
+        if (count($recipient) > 0) {
+            foreach ($recipient as $row) {
+                Mail::to($row->email)->send(new SendMail_material_request($data));
+            }
         }
     }
 
-    public function getAllowedWarehouseFastIssuance() {
+    public function getAllowedWarehouseFastIssuance()
+    {
         $list = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->paginate(15);
 
         return view('tables.tbl_fast_issuance_warehouse', compact('list'));
     }
 
-    public function saveAllowedWarehouseFastIssuance(Request $request) {
-        $existing = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where([
-            'warehouse' => $request->warehouse])->exists();
+    public function saveAllowedWarehouseFastIssuance(Request $request)
+    {
+        if (Gate::denies('manage-fast-issuance-permission')) {
+            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+        }
 
-        if($existing) {
+        $existing = DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where([
+            'warehouse' => $request->warehouse
+        ])->exists();
+
+        if ($existing) {
             return response()->json(['status' => 0, 'message' => $request->warehouse . ' already exists in allowed warehouses for fast issuance.']);
         }
 
@@ -2336,13 +2293,23 @@ class InventoryController extends Controller
         return response()->json(['status' => 1, 'message' => $request->warehouse . ' has been added to allowed warehouses for fast issuance.']);
     }
 
-    public function deleteAllowedWarehouseFastIssuance(Request $request) {
+    public function deleteAllowedWarehouseFastIssuance(Request $request)
+    {
+        if (Gate::denies('manage-fast-issuance-permission')) {
+            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+        }
+
         DB::connection('mysql_mes')->table('fast_issuance_warehouse')->where('fast_issuance_warehouse_id', $request->id)->delete();
 
         return response()->json(['status' => 1, 'message' => 'Warehouse has been deleted to allowed warehouses for fast issuance.']);
     }
 
-    public function getAllowedUserFastIssuance() {
+    public function getAllowedUserFastIssuance()
+    {
+        if (Gate::denies('manage-fast-issuance-permission')) {
+            return redirect('/');
+        }
+
         $list = DB::connection('mysql_mes')->table('fast_issuance_user')->paginate(15);
 
         $employee_ids = collect($list->items())->pluck('user_access_id');
@@ -2351,11 +2318,17 @@ class InventoryController extends Controller
         return view('tables.tbl_fast_issuance_user', compact('list', 'employee_names'));
     }
 
-    public function saveAllowedUserFastIssuance(Request $request) {
-        $existing = DB::connection('mysql_mes')->table('fast_issuance_user')->where([
-            'user_access_id' => $request->user_access_id])->first();
+    public function saveAllowedUserFastIssuance(Request $request)
+    {
+        if (Gate::denies('manage-fast-issuance-permission')) {
+            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+        }
 
-        if($existing) {
+        $existing = DB::connection('mysql_mes')->table('fast_issuance_user')->where([
+            'user_access_id' => $request->user_access_id
+        ])->first();
+
+        if ($existing) {
             return response()->json(['status' => 0, 'message' => $existing->employee_name . ' already exists in allowed users for fast issuance.']);
         }
 
@@ -2367,17 +2340,23 @@ class InventoryController extends Controller
         return response()->json(['status' => 1, 'message' => $request->warehouse . ' has been added to allowed warehouses for fast issuance.']);
     }
 
-    public function deleteAllowedUserFastIssuance(Request $request) {
+    public function deleteAllowedUserFastIssuance(Request $request)
+    {
+        if (Gate::denies('manage-fast-issuance-permission')) {
+            return response()->json(['status' => 0, 'message' => 'User not allowed.']);
+        }
+        
         DB::connection('mysql_mes')->table('fast_issuance_user')->where('fast_issuance_user_id', $request->id)->delete();
 
         return response()->json(['status' => 1, 'message' => 'User has been deleted to allowed users for fast issuance.']);
     }
 
-    public function getProductionOrderMaterialStatus(Request $request) {
+    public function getProductionOrderMaterialStatus(Request $request)
+    {
         $mes_production_orders = DB::connection('mysql_mes')->table('production_order')->whereRaw('feedback_qty < qty_to_manufacture')
             ->where('status', '!=', 'Cancelled')->select('production_order', 'feedback_qty', 'qty_to_manufacture', 'status')->pluck('production_order');
 
-        if($request->get_total) {
+        if ($request->get_total) {
             $total = DB::connection('mysql')->table('tabWork Order as wo')->join('tabWork Order Item as woi', 'wo.name', 'woi.parent')
                 ->whereIn('wo.name', $mes_production_orders)->where('wo.docstatus', 1)
                 ->whereNotIn('status', ['Cancelled', 'Stopped', 'Completed'])
@@ -2390,15 +2369,15 @@ class InventoryController extends Controller
             ->whereIn('wo.name', $mes_production_orders)->where('wo.docstatus', 1)
             ->whereNotIn('status', ['Cancelled', 'Stopped', 'Completed'])
             ->when($request->q, function ($query) use ($request) {
-                return $query->where(function($q) use ($request) {
-                    $q->where('wo.name', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('wo.sales_order', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('wo.project', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('wo.material_request', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('wo.sales_order_no', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('wo.customer', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('woi.item_code', 'LIKE', '%'.$request->q.'%')
-                        ->orWhere('woi.description', 'LIKE', '%'.$request->q.'%');
+                return $query->where(function ($q) use ($request) {
+                    $q->where('wo.name', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('wo.sales_order', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('wo.project', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('wo.material_request', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('wo.sales_order_no', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('wo.customer', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('woi.item_code', 'LIKE', '%' . $request->q . '%')
+                        ->orWhere('woi.description', 'LIKE', '%' . $request->q . '%');
                 });
             })
             ->select('wo.name', 'wo.sales_order', 'wo.project', 'wo.material_request', 'wo.sales_order_no', 'wo.customer', 'woi.item_code', 'woi.description', 'woi.required_qty', 'woi.transferred_qty', 'woi.stock_uom')
