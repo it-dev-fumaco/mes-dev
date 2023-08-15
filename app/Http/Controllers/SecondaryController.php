@@ -6319,6 +6319,9 @@ class SecondaryController extends Controller
     public function get_users_group(Request $request)
     {
         $list = DB::connection('mysql_mes')->table('user_group')
+            ->where(function($q) use ($request) {
+                $q->where('user_role', 'LIKE', '%'.$request->search_string.'%');
+            })
             ->orderBy('user_group_id', 'desc')->paginate(8);
 
         return view('tables.tbl_user_group', compact('list'));
