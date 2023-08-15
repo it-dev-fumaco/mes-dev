@@ -87,9 +87,6 @@
                     <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search Recipient" id="search_email_setup">
                   </div>
                   <div class="p-2">
-                    <button type="button" class="btn btn-primary m-0" id="email_trans_btn" style="font-size: 9pt;">
-                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                    </button>
                   </div>
                 </div>
               </div>
@@ -110,6 +107,9 @@
                   <div class="mr-auto p-2">
                     <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Role Permissions</div>
                   </div>
+                  <div class="p-2">
+                    <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
+                  </div>
                 </div>
               </div>
               <div class="card-body p-0">
@@ -127,9 +127,6 @@
                       <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
                         <option value="">Select Module first</option>
                       </select>
-                      <div class="ml-auto">
-                        <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
-                      </div>
                     </div>
                   </div>
                 </div>
