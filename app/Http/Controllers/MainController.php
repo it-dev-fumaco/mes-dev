@@ -10638,8 +10638,13 @@ class MainController extends Controller
 				// save permissions
 				DB::connection('mysql_mes')->table('role_permissions')->insert($permissions);			
 	
-				DB::connection('mysql_mes')->commit();
+			}else{
+				DB::connection('mysql_mes')->table('role_permissions')
+					->where('user_group_id', $user_group)
+					->delete();
 			}
+
+			DB::connection('mysql_mes')->commit();
 			return response()->json(['status' => 1, 'message' => 'Role Permission has been saved.']);
 		} catch (\Throwable $th) {
 			DB::connection('mysql_mes')->rollback();
