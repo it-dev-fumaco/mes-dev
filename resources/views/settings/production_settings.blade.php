@@ -688,7 +688,7 @@
   .ctrl-btn{
     color: #f96332;
     border: 1px solid #f96332;
-    padding: 10px;
+    padding: 8px;
     background-color: #fff;
     font-size: 10pt;
     cursor: pointer;
