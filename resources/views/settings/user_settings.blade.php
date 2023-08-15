@@ -8,205 +8,137 @@
 @section('content')
 @include('modals.add_email_trans')
 <div class="panel-header"></div>
-<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
-	{{-- <div class="col-2 p-2">
-		<div class="card" id="workstation_navbar">
-      <div class="card-header p-2" style="background-color: #0277BD;">
-				<h5 class="text-white text-center text-uppercase m-0 font-weight-bold" style="font-size: 13pt;">Settings</h5>
-			</div>
-      <div class="card-body" style="min-height: 850px;">
-				<div class="row bg-white text-center">
-					<div class="col-md-12">
-						<ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">
-							<li class="nav-item">
-								<a class="nav-link active" href="#users_setup" data-toggle="tab">Users Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
-							</li>
-            </ul>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div> --}}
-  <div class="col-12 p-2" style="min-height: 1000px;">
-    <div class="tab-content text-center">      
-      <div class="tab-pane active" id="users_setup">
-        <div class="card">
-          <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">User Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_user_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-          <div class="card-body p-0">
-            <div class="row p-0 m-0 bg-white" style="min-height: 1000px;">
-              <div class="col-md-12">
-                <div class="nav-tabs-navigation mt-2">
-                  <div class="nav-tabs-wrapper">
-                    <ul class="nav nav-tabs" data-tabs="tabs">
-                      <li class="nav-item">
-                        <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#role-permissions" data-toggle="tab">Role Permissions</a>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="tab-content text-center">
-                  <div class="tab-pane active" id="user_list">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User List</b></th>
-                              <td class="text-right">
-                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-user-btn" data-id="1" style="margin: 5px;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
-                              </td>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div id="div-user-table"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="tab-pane" id="user_group_list">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User Group</b></th>
-                              <td class="text-right">
-                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-user-group" style="margin: 5px;">
-                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                </button>
-                              </td>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div class="tbl_user_group" id="tbl_user_group"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="tab-pane" id="email_alert_setup">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Email Alert Recipient</b></th>
-                              <td class="text-right">
-                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="email_trans_btn" style="margin: 5px;">
-                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                </button>
-                              </td>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div class="tbl_email_trans" id="tbl_email_trans"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="tab-pane" id="role-permissions">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding: 10px 0 10px 20px; font-size: 12pt;"><b>Role Permissions</b></th>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div class="row m-0 p-0">
-                              <div class="col-12 mb-2 mt-2">
-                                <div class="d-flex flex-row align-items-center">
-                                  <div class="font-weight-bold mr-3">Select Module</div>
-                                  <select id="role-permission-module" class="form-control col-2 rounded-0">
-                                    <option value="">Select Module</option>
-                                    <option value="Production">Production</option>
-                                    <option value="Quality Assurance">Quality Assurance</option>
-                                    <option value="Maintenance">Maintenance</option>
-                                  </select>
-                                  <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
-                                  <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
-                                    <option value="">Select Module first</option>
-                                  </select>
-                                  <div class="ml-auto">
-                                    <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div id="role-permissions-div"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+<div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
+  <div class="col-12 p-0 bg-white" style="min-height: 1000px;">
+    <ul class="nav mr-2 ml-2 mt-3 mb-3" data-tabs="tabs">
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#role-permissions" data-toggle="tab">Role Permissions</a>
+      </li>
+    </ul>
+    <div class="tab-content text-center p-0 m-0">
+      <div class="tab-pane active" id="user_list">
+        <div class="card" style="min-height: 720px;">
+          <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+              <div class="mr-auto p-2">
+                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User List</div>
               </div>
-            </div>      
+              <div class="p-2 col-4">
+                <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User" id="search_user_setup">
+              </div>
+              <div class="p-2">
+                <button type="button" class="btn btn-primary m-0" id="add-user-btn" data-id="1" style="font-size: 9pt;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div id="div-user-table" class="m-3"></div>
           </div>
         </div>
       </div>
-     
-      {{-- <div class="tab-pane" id="email_alert_setup">
-        <div class="card">
-          <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Email Alert Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_email_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-          <div class="card-body p-0">
-            <div class="row p-0 m-0" style="min-height: 700px;">
-              <div class="col-md-12">
-                <button type="button" class="btn btn-primary pull-right" id="email_trans_btn" style="margin: 5px;">
-                  <i class="now-ui-icons ui-1_simple-add"></i> Add Email Alert Recipient
-                </button>
-                <div class="tbl_email_trans" id="tbl_email_trans"></div>
+      <div class="tab-pane" id="user_group_list">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card" style="min-height: 720px;">
+              <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User Group</div>
+                  </div>
+                  <div class="p-2 col-4">
+                    <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User Group" id="search_user_group_setup">
+                  </div>
+                  <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="add-user-group" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>      
+              <div class="card-body p-0">
+                <div class="tbl_user_group m-3" id="tbl_user_group"></div>
+              </div>
+            </div>
           </div>
         </div>
-      </div> --}}
+      </div>
+
+      <div class="tab-pane" id="email_alert_setup">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card" style="min-height: 720px;">
+              <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Email Alert Recipient</div>
+                  </div>
+                  <div class="p-2 col-4">
+                    <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search Recipient" id="search_email_setup">
+                  </div>
+                  <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="email_trans_btn" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+  
+              <div class="card-body p-0">
+                <div class="tbl_email_trans m-3" id="tbl_email_trans"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="role-permissions">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card" style="min-height: 720px;">
+              <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Role Permissions</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="row m-0 p-0">
+                  <div class="col-12 mb-2 mt-2">
+                    <div class="d-flex flex-row align-items-center">
+                      <div class="font-weight-bold mr-3">Select Module</div>
+                      <select id="role-permission-module" class="form-control col-2 rounded-0">
+                        <option value="">Select Module</option>
+                        <option value="Production">Production</option>
+                        <option value="Quality Assurance">Quality Assurance</option>
+                        <option value="Maintenance">Maintenance</option>
+                      </select>
+                      <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
+                      <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
+                        <option value="">Select Module first</option>
+                      </select>
+                      <div class="ml-auto">
+                        <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="role-permissions-div"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1108,6 +1040,11 @@ $('.sel12').select2({
           });
     }
  }
+
+ $(document).on('keyup', '#search_user_group_setup', function(){
+    var query = $(this).val();
+    get_user_group(1, query);
+  });
 
  function get_user_group(page, query){
       $.ajax({
