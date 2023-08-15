@@ -58,37 +58,33 @@
         <div class="tab-pane active" id="workstation_setup">
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="row p-2 m-0">
-                <div class="col-7 p-0 m-0">
-                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Workstation Setup</h5>
+              <div class="d-flex align-items-center pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Workstation Setup</div>
                 </div>
-                <div class="col-5 p-0 m-0">
-                  <div class="row">
-                    <div class="col-7 p-0">
-                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search_workstation_setup">
-                      <input type="hidden" id="current-workstation-operation" value="1">
-                    </div>
-                    <div class="col-5 p-0">
-                      <button type="button" class="btn btn-primary m-0" id="add-workstation-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Workstation</button>
-                    </div>
-                  </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Workstation" id="search_workstation_setup">
+                  <input type="hidden" id="current-workstation-operation" value="1">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" id="add-workstation-button" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
                 </div>
               </div>
             </div>
             <div class="card-body p-0">
               <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
                 <div class="col-md-12">
-                  <div class="container-fluid p-2">
-                    <div class="form-group workstation-tabs d-flex justify-content-start">
-                      <button class="workstation-btn active d-none"></button>
-                      @foreach ($operation_list as $operation)
-                        <button class="workstation-btn btn btns {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</button>
-                      @endforeach
-                    </div>
-                    <!-- Tab panes -->
-                    <div class="tab-content pt-2">
-                      <div id="tbl_workstation_list" class="container-fluid p-0"></div>
-                    </div>
+                  <div class="form-group workstation-tabs p-0 mb-0 d-flex justify-content-start">
+                    <button class="workstation-btn active d-none"></button>
+                    @foreach ($operation_list as $operation)
+                      <button class="workstation-btn btn btns p-2 mr-2 {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</button>
+                    @endforeach
+                  </div>
+                  <!-- Tab panes -->
+                  <div class="tab-content">
+                    <div id="tbl_workstation_list" class="container-fluid p-0"></div>
                   </div>
                 </div>
               </div>
@@ -98,19 +94,17 @@
         <div class="tab-pane" id="cancel_po_setup">
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="row p-2 m-0">
-                <div class="col-7 p-0 m-0">
-                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Reason/s for Cancellation Setup</h5>
+              <div class="d-flex align-items-center pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reason/s for Cancellation Setup</div>
                 </div>
-                <div class="col-5 p-0 m-0">
-                  <div class="row">
-                    <div class="col-7 p-0">
-                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search_reason_cancelled_po">
-                    </div>
-                    <div class="col-5 p-0">
-                      <button type="button" class="btn btn-primary m-0" id="add-cancelled-reason-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason</button>
-                    </div>
-                  </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Reason" id="search_reason_cancelled_po">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" id="add-cancelled-reason-button" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
                 </div>
               </div>
             </div>
@@ -126,19 +120,17 @@
         <div class="tab-pane" id="late_delivery_setup">
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="row p-2 m-0">
-                <div class="col-7 p-0 m-0">
-                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Reschedule Delivery Reason Setup</h5>
+              <div class="d-flex align-items-center pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reschedule Delivery Reason Setup</div>
                 </div>
-                <div class="col-5 p-0 m-0">
-                  <div class="row">
-                    <div class="col-7 p-0">
-                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search_late_delivery_setup">
-                    </div>
-                    <div class="col-5 p-0">
-                      <button type="button" class="btn btn-primary m-0" id="add-late-deli-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Reason </button>
-                    </div>
-                  </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Reason" id="search_late_delivery_setup">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" id="add-late-deli-button" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
                 </div>
               </div>
             </div>
@@ -154,19 +146,17 @@
         <div class="tab-pane" id="shift">
           <div class="card">
             <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="row p-2 m-0">
-                <div class="col-7 p-0 m-0">
-                  <h5 class="text-white font-weight-bold text-left p-1 m-0">Shift Setup</h5>
+              <div class="d-flex align-items-center pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Shift Setup</div>
                 </div>
-                <div class="col-5 p-0 m-0">
-                  <div class="row">
-                    <div class="col-7 p-0">
-                      <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search" id="search-shift-setup">
-                    </div>
-                    <div class="col-5 p-0">
-                      <button type="button" class="btn btn-primary m-0" id="add-shift-button" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add Shift</button>
-                    </div>
-                  </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Shift" id="search-shift-setup">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" id="add-shift-button" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
                 </div>
               </div>
             </div>
