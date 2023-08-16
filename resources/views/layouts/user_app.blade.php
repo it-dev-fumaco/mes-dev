@@ -42,6 +42,57 @@
       <div class="sidebar-wrapper" id="sidebar-wrapper"></div>
     </div>
     <div class="main-panel d-none" id="main-panel"></div>
+    @php
+        $settings_actions = [
+          'manage-workstations',
+          'manage-machines',
+          'manage-rescheduled-delivery-reason',
+          'manage-production-order-cancellation',
+          'manage-shifts',
+          'manage-item-classification-source',
+          'manage-fast-issuance-permission',
+          'manage-wip-warehouse',
+          'manage-users',
+          'manage-user-groups',
+          'manage-email-notifications',
+          'manage-role-permissions',
+          'reports'
+        ];
+        $production_planning_actions = [
+          'view-incoming-orders',
+          'create-production-order',
+          'cancel-production-order',
+          'close-production-order',
+          'override-production-order',
+          'reopen-production-order',
+          'create-production-order-feedback',
+          'cancel-production-order-feedback',
+          'reschedule-delivery-date-order',
+        ];
+        $material_planning_actions = [
+          'create-withdrawal-slip',
+          'print-withdrawal-slip',
+          'change-production-order-items',
+          'fast-issue-items',
+          'return-items-to-warehouse',
+          'add-production-order-items',
+          'create-material-request',
+        ];
+        $scheduling_actions = [
+          'assign-shift-schedule',
+          'reschedule-delivery-date-production-order',
+          'assign-production-order-schedule',
+          'assign-production-order-to-machines',
+        ];
+        $execution_actions = [
+          'assign-bom-process',
+          'print-job-ticket',
+          'edit-operator-timelog',
+          'reset-operator-timelog',
+          'override-operator-timelog',
+          'update-wip-production-order-process',
+        ];
+    @endphp
     <!-- Sidebar -->
     @isset($permissions)
     <nav id="sidebar" class="shadow border" style="background-color: #f4f6f6 ;">
@@ -80,132 +131,160 @@
             <span class="d-inline-block"> Production Order(s)</span>
           </a>
         </li>
-        <li class="m-0 align-middle">
-          <a href="/view_delivery_list/{{ Carbon\Carbon::now()->format('Y-m-d') }}" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block"> Delivery Schedules</span>
-          </a>
-        </li>
+        @canany($scheduling_actions)
+          <li class="m-0 align-middle">
+            <a href="/view_delivery_list/{{ Carbon\Carbon::now()->format('Y-m-d') }}" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block"> Delivery Schedules</span>
+            </a>
+          </li>
+        @endcanany
       </ul>
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0 align-middle border" style="background-color: #7dcea0 ;">
-          <a href="/order_list" class="d-block m-0 p-1 text-white" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block"> New Incoming Order(s)</span>
-          </a>
-        </li>
-        <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
-          <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Fabrication</span>
-          </a>
-        </li>
-        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
-          <a href="/assembly/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Assembly</span>
-          </a>
-        </li>
-      </ul>
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
-          <a href="/production_schedule/1" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Fabrication Scheduling</span>
-          </a>
-        </li>
-        <li class="m-0 {{ !$allowed_on_painting ? 'd-none' : '' }}">
-          <a href="/production_schedule/2" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Painting Scheduling</span>
-          </a>
-        </li>
-        <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
-          <a href="/production_schedule/3" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Assembly Scheduling</span>
-          </a>
-        </li>
-      </ul>
+      @canany($production_planning_actions)
+        <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
+        <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+          @canany(['view-incoming-orders', 'create-production-order'])
+            <li class="m-0 align-middle border" style="background-color: #7dcea0 ;">
+              <a href="/order_list" class="d-block m-0 p-1 text-white" style="text-decoration: none;">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block"> New Incoming Order(s)</span>
+              </a>
+            </li>
+          @endcanany
+          @canany(['create-production-order', 'cancel-production-order', 'close-production-order', 'override-production-order', 'reopen-production-order'])
+            @if ($allowed_on_fabrication)
+              <li class="m-0">
+                <a href="/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+                  <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                  <span class="d-inline-block">Fabrication</span>
+                </a>
+              </li>
+            @endif
+            
+            @if ($allowed_on_assembly)
+              <li class="m-0">
+                <a href="/assembly/wizard" class="d-block m-0 p-1" style="text-decoration: none;">
+                  <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_planning.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                  <span class="d-inline-block">Assembly</span>
+                </a>
+              </li> 
+            @endif
+          @endcanany
+        </ul>
+      @endcanany
+      @canany($scheduling_actions)
+        <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Scheduling</h6>
+        <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+          <li class="m-0 {{ !$allowed_on_fabrication ? 'd-none' : '' }}">
+            <a href="/production_schedule/1" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Fabrication Scheduling</span>
+            </a>
+          </li>
+          <li class="m-0 {{ !$allowed_on_painting ? 'd-none' : '' }}">
+            <a href="/production_schedule/2" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Painting Scheduling</span>
+            </a>
+          </li>
+          <li class="m-0 {{ !$allowed_on_assembly ? 'd-none' : '' }}">
+            <a href="/production_schedule/3" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/production_order_schedule.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Assembly Scheduling</span>
+            </a>
+          </li>
+        </ul>
+      @endcanany
       @endif
       @if ($is_qa_user)
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Quality Assurance</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0">
-          <a href="/qa_dashboard" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">QA Dashboard</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/qa_inspection_logs" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Inspection Logs</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/weekly_rejection_report" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Rejection Logs</span>
-          </a>
-        </li>
-      </ul>
+        <h6 class="text-left font-weight-bold mt-3 border-bottom">Quality Assurance</h6>
+        <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+          <li class="m-0">
+            <a href="/qa_dashboard" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">QA Dashboard</span>
+            </a>
+          </li>
+          <li class="m-0">
+            <a href="/qa_inspection_logs" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Inspection Logs</span>
+            </a>
+          </li>
+          <li class="m-0">
+            <a href="/weekly_rejection_report" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Rejection Logs</span>
+            </a>
+          </li>
+        </ul>
       @endif
       @if ($is_maintenance_user)
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Maintenance</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0">
-          <a href="/maintenance_request" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Maintenance Request(s)</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/maintenance_machine_list" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Machine List</span>
-          </a>
-        </li>
-      </ul>
+        <h6 class="text-left font-weight-bold mt-3 border-bottom">Maintenance</h6>
+        <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+          <li class="m-0">
+            <a href="/maintenance_request" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Maintenance Request(s)</span>
+            </a>
+          </li>
+          <li class="m-0">
+            <a href="/maintenance_machine_list" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Machine List</span>
+            </a>
+          </li>
+        </ul>
       @endif
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Reports / Analytics</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0">
-          <a href="/report_index" class="d-block m-0 p-1" style="text-decoration: none;">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Reports</span>
-          </a>
-        </li>
-      </ul>
-      <h6 class="text-left font-weight-bold mt-3 border-bottom">Settings</h6>
-      <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-        <li class="m-0">
-          <a href="/production_settings" class="d-block m-0 p-1 text-decoration-none">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Production Settings</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/inventory_settings" class="d-block m-0 p-1 text-decoration-none">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">Inventory Settings</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/qa_settings" class="d-block m-0 p-1 text-decoration-none">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">QA Settings</span>
-          </a>
-        </li>
-        <li class="m-0">
-          <a href="/user_settings" class="d-block m-0 p-1 text-decoration-none">
-            <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-            <span class="d-inline-block">User Settings</span>
-          </a>
-        </li>
-      </ul>
+      @canany(['report'])
+        <h6 class="text-left font-weight-bold mt-3 border-bottom">Reports / Analytics</h6>
+        <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+          <li class="m-0">
+            <a href="/report_index" class="d-block m-0 p-1" style="text-decoration: none;">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/reports.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">Reports</span>
+            </a>
+          </li>
+        </ul>
+      @endcanany
+      @canany($settings_actions)
+        <h6 class="text-left font-weight-bold mt-3 border-bottom">Settings</h6>
+        <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
+          @canany(['manage-machines', 'manage-rescheduled-delivery-reason', 'manage-production-order-cancellation', 'manage-shifts'])
+            <li class="m-0">
+              <a href="/production_settings" class="d-block m-0 p-1 text-decoration-none">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block">Production Settings</span>
+              </a>
+            </li>
+          @endcanany
+          
+          @canany(['manage-item-classification-source', 'manage-wip-warehouse', 'manage-fast-issuance-permission'])
+            <li class="m-0">
+              <a href="/inventory_settings" class="d-block m-0 p-1 text-decoration-none">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block">Inventory Settings</span>
+              </a>
+            </li>
+          @endcanany
+
+          <li class="m-0">
+            <a href="/qa_settings" class="d-block m-0 p-1 text-decoration-none">
+              <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+              <span class="d-inline-block">QA Settings</span>
+            </a>
+          </li>
+
+          @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications', 'manage-role-permissions'])
+            <li class="m-0">
+              <a href="/user_settings" class="d-block m-0 p-1 text-decoration-none">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block">User Settings</span>
+              </a>
+            </li>
+          @endcanany
+        </ul>
+      @endcanany
     </div>
   </nav>
   <style>

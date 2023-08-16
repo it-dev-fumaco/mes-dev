@@ -10,7 +10,9 @@
     <col style="width: 20%"><!-- Operator -->
   @endif
   <col style="width: 13%"><!-- Machine -->
-  <col style="width: 13%"><!-- Action -->
+  @canany(['override-operator-timelog'])
+    <col style="width: 13%"><!-- Action -->
+  @endcanany
   <thead class="text-white bg-secondary" style="font-size: 6.5pt;">
     <th class="text-center p-1"><b>Workstation</b></th>
     <th class="text-center p-1"><b>Prod. Order</b></th>
@@ -23,7 +25,9 @@
     <th class="text-center p-1"><b>Operator</b></th>
     @endif
     <th class="text-center p-1"><b>Machine</b></th>
-    <th class="text-center p-1"><b>Action</b></th>
+    @canany(['override-operator-timelog'])
+      <th class="text-center p-1"><b>Action</b></th>
+    @endcanany
   </thead>
   <tbody style="font-size: 8pt;">
     @forelse($result as $row)
@@ -57,9 +61,11 @@
         </td>
       @endif
       <td class="text-center p-0">{{ $row['machine'] }}</td>
-      <td>
-        <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" data-logid="{{ $row['timelogs_id'] }}" style="padding: 10px;">Mark as Done</button>
-      </td>
+      @canany(['override-operator-timelog'])
+        <td>
+          <button class="btn btn-primary mark-done-btn" data-workstationid="{{ $row['workstation_id'] }}" data-jtid="{{ $row['jtname'] }}" data-workstation="{{ $row['workstation_plot'] }}" data-qtyaccepted="{{ $row['qty_accepted'] }}" data-logid="{{ $row['timelogs_id'] }}" style="padding: 10px;">Mark as Done</button>
+        </td>
+      @endcanany
     </tr>
     @empty
     <tr>

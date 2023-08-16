@@ -7,168 +7,211 @@
 
 @section('content')
 @include('modals.add_workstation_modal')
-{{-- @include('modals.add_machine_modal') --}}
-{{-- @include('modals.add_process_modal') --}}
-{{-- @include('modals.process_profile') --}}
-{{-- @include('modals.edit_process_list_modal') --}}
-{{-- @include('modals.delete_process_setup_list_modal') --}}
 @include('modals.add_shift_modal')
 @include('modals.edit_shift_list_modal')
 @include('modals.delete_shift_list_modal')
-{{-- @include('modals.add_operation_modal') --}}
-{{-- @include('modals.edit_operation_modal') --}}
 @include('modals.edit_workstation_modal')
 @include('modals.delete_workstation_modal')
-{{-- @include('modals.edit_machineList_modal') --}}
-{{-- @include('modals.delete_machineList_modal') --}}
-{{-- @include('modals.process_assignment_modal') --}}
-{{-- @include('modals.delete_assigned_machine_to_process_modal') --}}
 <div class="panel-header"></div>
 <div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
 	<div class="col-12 p-2" style="min-height: 1000px;">
 		<div class="tab-content text-center">
-      @php
-          $production_settings = [
-            [
-              'name' => 'Workstation Setup',
-              'id' => '#workstation_setup'
-            ],
-            [
-              'name' => 'Reschedule Delivery Reason Setup',
-              'id' => '#late_delivery_setup'
-            ],
-            [
-              'name' => 'Reason for Cancellation Setup',
-              'id' => '#cancel_po_setup'
-            ],
-            [
-              'name' => 'Shift Setup',
-              'id' => '#shift'
-            ]
-          ];
-      @endphp
       <div class="container-fluid text-left bg-white p-1">
         <button class="ctrl-btn d-none"></button>
-        @foreach ($production_settings as $settings)
-          <button class="ctrl-btn {{ $loop->first ? 'active' : null }}" data-target="{{ $settings['id'] }}">
-            {{ $settings['name'] }}
+        @canany(['manage-machines', 'manage-workstations'])
+          <button class="ctrl-btn active" data-target="#workstation_setup">
+            Workstation Setup
           </button>
-        @endforeach
+        @endcanany
+        @canany(['manage-rescheduled-delivery-reason'])
+          @php
+              $active = 'active';
+          @endphp
+          @canany(['manage-machines', 'manage-workstations'])
+            @php
+              $active = null;
+            @endphp
+          @endcanany
+          <button class="ctrl-btn {{ $active }}" data-target="#late_delivery_setup">
+            Reschedule Delivery Reason Setup
+          </button>
+        @endcanany
+        @canany(['manage-production-order-cancellation'])
+          @php
+            $active = 'active';
+          @endphp
+          @canany(['manage-machines', 'manage-workstations', 'manage-rescheduled-delivery-reason'])
+            @php
+              $active = null;
+            @endphp
+          @endcanany
+          <button class="ctrl-btn {{ $active }}" data-target="#cancel_po_setup">
+            Reason for Cancellation Setup
+          </button>
+        @endcanany
+        @canany(['manage-shifts'])
+          @php
+              $active = 'active';
+          @endphp
+          @canany(['manage-machines', 'manage-workstations', 'manage-rescheduled-delivery-reason','manage-production-order-cancellation'])
+            @php
+              $active = null;
+            @endphp
+          @endcanany
+          <button class="ctrl-btn {{ $active }}" data-target="#shift">
+            Shift Setup
+          </button>
+        @endcanany
       </div>
-        <div class="tab-pane active" id="workstation_setup">
-          <div class="card">
-            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="d-flex align-items-center pl-2 pr-2">
-                <div class="mr-auto p-2">
-                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Workstation Setup</div>
-                </div>
-                <div class="p-2 col-4">
-                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Workstation" id="search_workstation_setup">
-                  <input type="hidden" id="current-workstation-operation" value="1">
-                </div>
-                <div class="p-2">
-                  <button type="button" class="btn btn-primary m-0" id="add-workstation-button" style="font-size: 9pt;">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Add
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                <div class="col-md-12">
-                  <div class="form-group workstation-tabs p-0 mb-0 d-flex justify-content-start">
-                    <button class="workstation-btn active d-none"></button>
-                    @foreach ($operation_list as $operation)
-                      <button class="workstation-btn btn btns p-2 mr-2 {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</button>
-                    @endforeach
+        @canany(['manage-machines'])
+          <div class="tab-pane active" id="workstation_setup">
+            <div class="card">
+              <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Workstation Setup</div>
                   </div>
-                  <!-- Tab panes -->
-                  <div class="tab-content">
-                    <div id="tbl_workstation_list" class="container-fluid p-0"></div>
+                  <div class="p-2 col-4">
+                    <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Workstation" id="search_workstation_setup">
+                    <input type="hidden" id="current-workstation-operation" value="1">
+                  </div>
+                  <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="add-workstation-button" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div class="tab-pane" id="cancel_po_setup">
-          <div class="card">
-            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="d-flex align-items-center pl-2 pr-2">
-                <div class="mr-auto p-2">
-                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reason/s for Cancellation Setup</div>
-                </div>
-                <div class="p-2 col-4">
-                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Reason" id="search_reason_cancelled_po">
-                </div>
-                <div class="p-2">
-                  <button type="button" class="btn btn-primary m-0" id="add-cancelled-reason-button" style="font-size: 9pt;">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Add
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                <div class="col-md-12">
-                  <div class="tbl_reason_for_cancellation_po pt-3" id="tbl_reason_for_cancellation_po"></div>
+              <div class="card-body p-0">
+                <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                  <div class="col-md-12">
+                    <div class="form-group workstation-tabs p-0 mb-0 d-flex justify-content-start">
+                      <button class="workstation-btn active d-none"></button>
+                      @foreach ($operation_list as $operation)
+                        <button class="workstation-btn btn btns p-2 mr-2 {{ $loop->first ? 'active' : null }}" data-operation="{{ $operation->operation_id }}">{{ $operation->operation_name }}</button>
+                      @endforeach
+                    </div>
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                      <div id="tbl_workstation_list" class="container-fluid p-0"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="tab-pane" id="late_delivery_setup">
-          <div class="card">
-            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="d-flex align-items-center pl-2 pr-2">
-                <div class="mr-auto p-2">
-                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reschedule Delivery Reason Setup</div>
-                </div>
-                <div class="p-2 col-4">
-                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Reason" id="search_late_delivery_setup">
-                </div>
-                <div class="p-2">
-                  <button type="button" class="btn btn-primary m-0" id="add-late-deli-button" style="font-size: 9pt;">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Add
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                <div class="col-md-12">
-                  <div id="tbl_late_delivery_list" class="pt-3"></div>    
-                </div>
-              </div>        
-            </div>
-          </div>
-        </div>
-        <div class="tab-pane" id="shift">
-          <div class="card">
-            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-              <div class="d-flex align-items-center pl-2 pr-2">
-                <div class="mr-auto p-2">
-                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Shift Setup</div>
-                </div>
-                <div class="p-2 col-4">
-                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Shift" id="search-shift-setup">
-                </div>
-                <div class="p-2">
-                  <button type="button" class="btn btn-primary m-0" id="add-shift-button" style="font-size: 9pt;">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Add
-                  </button>
+        @endcanany
+
+        @canany(['manage-rescheduled-delivery-reason'])
+          @php
+              $active = 'active';
+          @endphp
+          @canany(['manage-machines'])
+            @php
+              $active = null;
+            @endphp
+          @endcanany
+          <div class="tab-pane {{ $active }}" id="late_delivery_setup">
+            <div class="card">
+              <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reschedule Delivery Reason Setup</div>
+                  </div>
+                  <div class="p-2 col-4">
+                    <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Reason" id="search_late_delivery_setup">
+                  </div>
+                  <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="add-late-deli-button" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
-                <div class="col-md-12">
-                  <div class="tbl_shift pt-3" id="tbl_shift"></div>
-                </div>
+              <div class="card-body p-0">
+                <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                  <div class="col-md-12">
+                    <div id="tbl_late_delivery_list" class="pt-3"></div>    
+                  </div>
+                </div>        
               </div>
             </div>
           </div>
-        </div>
+        @endcanany
+
+        @canany(['manage-production-order-cancellation'])
+          @php
+            $active = 'active';
+          @endphp
+          @canany(['manage-machines','manage-rescheduled-delivery-reason'])
+            @php
+              $active = null;
+            @endphp
+          @endcanany
+          <div class="tab-pane {{ $active }}" id="cancel_po_setup">
+            <div class="card">
+              <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reason/s for Cancellation Setup</div>
+                  </div>
+                  <div class="p-2 col-4">
+                    <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Reason" id="search_reason_cancelled_po">
+                  </div>
+                  <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="add-cancelled-reason-button" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                  <div class="col-md-12">
+                    <div class="tbl_reason_for_cancellation_po pt-3" id="tbl_reason_for_cancellation_po"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @endcanany
+
+        @canany(['manage-shifts'])
+          @php
+              $active = 'active';
+          @endphp
+          @canany(['manage-machines','manage-rescheduled-delivery-reason','manage-production-order-cancellation'])
+            @php
+              $active = null;
+            @endphp
+          @endcanany
+          <div class="tab-pane {{ $active }}" id="shift">
+            <div class="card">
+              <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+                <div class="d-flex align-items-center pl-2 pr-2">
+                  <div class="mr-auto p-2">
+                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Shift Setup</div>
+                  </div>
+                  <div class="p-2 col-4">
+                    <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Shift" id="search-shift-setup">
+                  </div>
+                  <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="add-shift-button" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                  <div class="col-md-12">
+                    <div class="tbl_shift pt-3" id="tbl_shift"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @endcanany
 		</div>
 	</div>
 </div>
@@ -761,68 +804,6 @@
         }
       });
     });
-
-    // $('#edit-process-setup-list-frm').submit(function(e){
-    //   e.preventDefault();
-    //   var url = $(this).attr("action");
-    //   $.ajax({
-    //     url: url,
-    //     type:"POST",
-    //     data: $(this).serialize(),
-    //     success:function(data){
-    //       if (data.success < 1) {
-    //         showNotification("danger", data.message, "now-ui-icons travel_info");
-    //       }else{
-    //         showNotification("success", data.message, "now-ui-icons ui-1_check");
-    //         $('#edit-process-setup-list-modal').modal('hide');
-    //         // tbl_process_setup_list();
-    //         // getAssignedTasks();
-    //       }
-    //     }
-    //   });
-    // });
-
-    // $('#delete-process-setup-list-modal-frm').submit(function(e){
-    //   e.preventDefault();
-    //   var url = $(this).attr("action");
-    //   $.ajax({
-    //     url: url,
-    //     type:"POST",
-    //     data: $(this).serialize(),
-    //     success:function(data){
-    //       if (data.success < 1) {
-    //         showNotification("danger", data.message, "now-ui-icons travel_info");
-    //       }else{
-    //         showNotification("success", data.message, "now-ui-icons ui-1_check");
-    //         $('#delete-process-setup-list-modal').modal('hide');
-    //         // tbl_process_setup_list();
-    //         // getAssignedTasks();
-    //       }
-    //     }
-    //   });
-    // });
-
-    // $('#add-process-frm').submit(function(e){
-    //   e.preventDefault();
-    //   var url = $(this).attr("action");
-    //   $.ajax({
-    //     url: url,
-    //     type:"POST",
-    //     data: $(this).serialize(),
-    //     success:function(data){
-    //       if (data.success < 1) {
-    //         showNotification("danger", data.message, "now-ui-icons travel_info");
-    //       }else{
-    //         showNotification("success", data.message, "now-ui-icons ui-1_check");
-    //         $('#add-process-modal').modal('hide');
-    //         tbl_process_setup_list();
-    //         // getAssignedTasks();
-    //       }
-    //     }
-    //   });
-    // });
-    // Production Process Setup form submits
-
     // Operation Setup form submits
     $('#add-operation-frm').submit(function(e){
       e.preventDefault();

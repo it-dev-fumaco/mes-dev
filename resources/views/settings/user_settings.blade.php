@@ -11,133 +11,199 @@
 <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
   <div class="col-12 p-0 bg-white" style="min-height: 1000px;">
     <ul class="nav mr-2 ml-2 mt-3 mb-3" data-tabs="tabs">
-      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
-        <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
-      </li>
-      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
-        <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
-      </li>
-      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
-        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Notification Setup</a>
-      </li>
-      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
-        <a class="nav-link" href="#role-permissions" data-toggle="tab">Role Permissions</a>
-      </li>
+      @canany(['manage-users'])
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
+        </li>
+      @endcanany
+      @canany(['manage-user-groups'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link {{ $active }}" href="#user_group_list" data-toggle="tab">User Group</a>
+        </li>
+      @endcanany
+      @canany(['manage-email-notifications'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link {{ $active }}" href="#email_alert_setup" data-toggle="tab">Email Notification Setup</a>
+        </li>
+      @endcanany
+      @canany(['manage-role-permissions'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link {{ $active }}" href="#role-permissions" data-toggle="tab">Role Permissions</a>
+        </li>
+      @endcanany
     </ul>
     <div class="tab-content text-center p-0 m-0">
-      <div class="tab-pane active" id="user_list">
-        <div class="card" style="min-height: 720px;">
-          <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
-            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
-              <div class="mr-auto p-2">
-                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User List</div>
-              </div>
-              <div class="p-2 col-4">
-                <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User" id="search_user_setup">
-              </div>
-              <div class="p-2">
-                <button type="button" class="btn btn-primary m-0" id="add-user-btn" data-id="1" style="font-size: 9pt;">
-                  <i class="now-ui-icons ui-1_simple-add"></i> Add
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="card-body p-0">
-            <div id="div-user-table" class="m-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="tab-pane" id="user_group_list">
-        <div class="row p-0 m-0">
-          <div class="col-md-12 p-0">
-            <div class="card" style="min-height: 720px;">
-              <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
-                <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
-                  <div class="mr-auto p-2">
-                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User Group</div>
-                  </div>
-                  <div class="p-2 col-4">
-                    <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User Group" id="search_user_group_setup">
-                  </div>
-                  <div class="p-2">
-                    <button type="button" class="btn btn-primary m-0" id="add-user-group" style="font-size: 9pt;">
-                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                    </button>
-                  </div>
+      @canany(['manage-users'])
+        <div class="tab-pane active" id="user_list">
+          <div class="card" style="min-height: 720px;">
+            <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+              <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User List</div>
+                </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User" id="search_user_setup">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" id="add-user-btn" data-id="1" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
                 </div>
               </div>
-              <div class="card-body p-0 m-0">
-                <div class="tbl_user_group m-3" id="tbl_user_group"></div>
-              </div>
+            </div>
+            <div class="card-body p-0">
+              <div id="div-user-table" class="m-3"></div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="tab-pane" id="email_alert_setup">
-        <div class="row p-0 m-0">
-          <div class="col-md-12 p-0">
-            <div class="card" style="min-height: 720px;">
-              <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
-                <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
-                  <div class="mr-auto p-2">
-                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Email Alert Recipient</div>
-                  </div>
-                  <div class="p-2 col-4">
-                    <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search Recipient" id="search_email_setup">
-                  </div>
-                  <div class="p-2">
-                    <button type="button" class="btn btn-primary m-0" id="email_trans_btn" style="font-size: 9pt;">
-                      <i class="now-ui-icons ui-1_simple-add"></i> Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="tbl_email_trans m-3" id="tbl_email_trans"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tab-pane" id="role-permissions">
-        <div class="row p-0 m-0">
-          <div class="col-md-12 p-0">
-            <div class="card" style="min-height: 720px;">
-              <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
-                <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
-                  <div class="mr-auto p-2">
-                    <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Role Permissions</div>
-                  </div>
-                  <div class="p-2">
-                    <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="row m-0 p-0">
-                  <div class="col-12 mb-2 mt-2">
-                    <div class="d-flex flex-row align-items-center">
-                      <div class="font-weight-bold mr-3">Select Module</div>
-                      <select id="role-permission-module" class="form-control col-2 rounded-0">
-                        <option value="">Select Module</option>
-                        <option value="Production">Production</option>
-                        <option value="Quality Assurance">Quality Assurance</option>
-                        <option value="Maintenance">Maintenance</option>
-                      </select>
-                      <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
-                      <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
-                        <option value="">Select Module first</option>
-                      </select>
+      @endcanany
+      
+      @canany(['manage-user-groups'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <div class="tab-pane {{ $active }}" id="user_group_list">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
+              <div class="card" style="min-height: 720px;">
+                <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                  <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                    <div class="mr-auto p-2">
+                      <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User Group</div>
+                    </div>
+                    <div class="p-2 col-4">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User Group" id="search_user_group_setup">
+                    </div>
+                    <div class="p-2">
+                      <button type="button" class="btn btn-primary m-0" id="add-user-group" style="font-size: 9pt;">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add
+                      </button>
                     </div>
                   </div>
                 </div>
-                <div id="role-permissions-div"></div>
+                <div class="card-body p-0 m-0">
+                  <div class="tbl_user_group m-3" id="tbl_user_group"></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      @endcanany
+
+      @canany(['manage-email-notifications'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <div class="tab-pane {{ $active }}" id="email_alert_setup">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
+              <div class="card" style="min-height: 720px;">
+                <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                  <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                    <div class="mr-auto p-2">
+                      <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Email Alert Recipient</div>
+                    </div>
+                    <div class="p-2 col-4">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search Recipient" id="search_email_setup">
+                    </div>
+                    <div class="p-2">
+                      <button type="button" class="btn btn-primary m-0" id="email_trans_btn" style="font-size: 9pt;">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="tbl_email_trans m-3" id="tbl_email_trans"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      @endcanany
+
+      @canany(['manage-role-permissions'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <div class="tab-pane {{ $active }}" id="role-permissions">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
+              <div class="card" style="min-height: 720px;">
+                <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                  <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                    <div class="mr-auto p-2">
+                      <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Role Permissions</div>
+                    </div>
+                    <div class="p-2">
+                      <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="row m-0 p-0">
+                    <div class="col-12 mb-2 mt-2">
+                      <div class="d-flex flex-row align-items-center">
+                        <div class="font-weight-bold mr-3">Select Module</div>
+                        <select id="role-permission-module" class="form-control col-2 rounded-0">
+                          <option value="">Select Module</option>
+                          <option value="Production">Production</option>
+                          <option value="Quality Assurance">Quality Assurance</option>
+                          <option value="Maintenance">Maintenance</option>
+                        </select>
+                        <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
+                        <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
+                          <option value="">Select Module first</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="role-permissions-div"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      @endcanany
     </div>
   </div>
 </div>

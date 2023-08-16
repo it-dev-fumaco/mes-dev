@@ -5678,9 +5678,8 @@ class MainController extends Controller
     }
 
     public function get_users(Request $request){
-		if (Gate::denies('manage-users')) {
-           	$users = [];
-        } else {
+		$users = [];
+		if (!Gate::denies('manage-users')) {
 			$users = DB::connection('mysql_mes')->table('user')
 				->join('operation as op','op.operation_id','user.operation_id')
 				->join('user_group as ug', 'ug.user_group_id','user.user_group_id')

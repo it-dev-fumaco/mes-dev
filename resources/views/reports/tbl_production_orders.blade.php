@@ -98,31 +98,47 @@
               </button>
               <div class="dropdown-menu">
                 @if(!in_array($r['status'], ['Cancelled', 'Feedbacked', 'Closed']))
-                  <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
-                  <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reschedule Delivery Date</a>
+                  @canany(['update-wip-production-order-process'])
+                    <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
+                  @endcanany
+                  @canany(['reschedule-delivery-date-order', 'reschedule-delivery-date-production-order'])
+                    <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reschedule Delivery Date</a>
+                  @endcanany
                 @endif
                 @if($r['status'] == 'Feedbacked')
-                <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
+                  <a class="dropdown-item" href="#"><i class="now-ui-icons ui-1_check"></i> {{$r['ste_manufacture']}}</a>
                 @else
-                @if ($r['produced_qty'] > $r['feedback_qty'])
-                <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedback</a>
+                  @canany(['create-production-order-feedback', 'cancel-production-order-feedback'])
+                    @if ($r['produced_qty'] > $r['feedback_qty'])
+                        <a class="dropdown-item create-feedback-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-completed-qty="{{ ($r['produced_qty']) - ($r['feedback_qty']) }}" data-target-warehouse="{{ $r['target_warehouse'] }}" data-operation="{{ $r['operation_id'] }}">Create Feedback</a>
+                    @endif
+                  @endcanany
                 @endif
-                @endif
-                @if(in_array($r['status'], ['Partially Feedbacked', 'Feedbacked']))
-                  <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['production_order'] }}" href="#">Print Transfer Slip</a>
-                @endif
+                @canany(['print-withdrawal-slip'])
+                  @if(in_array($r['status'], ['Partially Feedbacked', 'Feedbacked']))
+                    <a class="dropdown-item print-transfer-slip-btn" data-production-order="{{ $r['production_order'] }}" href="#">Print Transfer Slip</a>
+                  @endif
+                @endcanany
                 <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $r['production_order'] }}" data-item-code="{{ $r['item_code'] }}" data-qty="{{ number_format($r['qty']) }}" data-uom="{{ $r['stock_uom'] }}">View Materials</a>
                 @if(!in_array($r['status'], ['Cancelled', 'Feedbacked']))
-                  <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
+                  @canany(['cancel-production-order'])
+                    <a class="dropdown-item cancel-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Cancel Production</a>
+                  @endcanany
                   @if ($r['status'] == 'Closed')
-                    <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Re-open Production</a>
+                    @canany(['reopen-production-order'])
+                      <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Re-open Production</a>
+                    @endcanany
                   @else
-                    <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Close Production</a>
+                    @canany(['close-production-order'])
+                      <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $r['production_order'] }}">Close Production</a>
+                    @endcanany
                   @endif
                 @endif
-                @if(!in_array($r['status'], ['Cancelled', 'Feedbacked', 'Completed', 'Closed', 'Partially Feedbacked']))
-                <a class="dropdown-item override-production-btn" href="#" data-production-order="{{ $r['production_order'] }}">Override Production</a>
-                @endif
+                @canany(['override-production-order'])
+                  @if(!in_array($r['status'], ['Cancelled', 'Feedbacked', 'Completed', 'Closed', 'Partially Feedbacked']))
+                    <a class="dropdown-item override-production-btn" href="#" data-production-order="{{ $r['production_order'] }}">Override Production</a>
+                  @endif
+                @endcanany
               </div>
             </div>
           </td>
