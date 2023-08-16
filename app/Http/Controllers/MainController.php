@@ -10549,6 +10549,7 @@ class MainController extends Controller
 
 	public function viewRolePermissionsForm($user_group) {
 		$settings_actions = [
+			'manage-workstations' => 'Add, Edit and Delete Workstations',
 			'manage-machines' => 'Add, Edit and Delete Machines',
 			'manage-rescheduled-delivery-reason' => 'Add or Remove Rescheduled Delivery Reason',
 			'manage-production-order-cancellation' => 'Add or Remove Reason for Production Order Cancellation',
