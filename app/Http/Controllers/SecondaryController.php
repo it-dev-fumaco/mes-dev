@@ -6329,7 +6329,7 @@ class SecondaryController extends Controller
 
     public function save_user_group(Request $request)
     {
-        if (Gate::denies('manage-users')) {
+        if (Gate::denies('manage-user-groups')) {
             return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
@@ -6365,7 +6365,7 @@ class SecondaryController extends Controller
 
     public function update_user_group(Request $request)
     {
-        if (Gate::denies('manage-users')) {
+        if (Gate::denies('manage-user-groups')) {
             return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
@@ -6398,7 +6398,7 @@ class SecondaryController extends Controller
 
     public function delete_user_group(Request $request)
     {
-        if (Gate::denies('manage-users')) {
+        if (Gate::denies('manage-user-groups')) {
             return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 
@@ -7600,6 +7600,10 @@ class SecondaryController extends Controller
     }
     public function save_add_email_trans(Request $request)
     {
+        if (Gate::denies('manage-email-notifications')) {
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+        }
+
         $now = Carbon::now();
 
         $arr = $request->emailtrans;
@@ -7653,6 +7657,10 @@ class SecondaryController extends Controller
     }
     public function delete_email_recipient(Request $request)
     {
+        if (Gate::denies('manage-email-notifications')) {
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+        }
+
         DB::connection('mysql_mes')->table('email_trans_recipient')->where('email_trans_recipient_id', $request->email_id)->delete();
 
         return response()->json(['success' => 1, 'message' => 'Email Transaction Recipient successfully deleted.']);

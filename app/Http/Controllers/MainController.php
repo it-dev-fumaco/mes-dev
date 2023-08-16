@@ -5679,23 +5679,23 @@ class MainController extends Controller
 
     public function get_users(Request $request){
 		if (Gate::denies('manage-users')) {
-            return redirect('/');
-        }
+           	$users = [];
+        } else {
+			$users = DB::connection('mysql_mes')->table('user')
+				->join('operation as op','op.operation_id','user.operation_id')
+				->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
+				->where(function($q) use ($request) {
+					$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
+				})
+				->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
+				->orderBy('user.employee_name', 'asc')->get();
 
-		$users = DB::connection('mysql_mes')->table('user')
-			->join('operation as op','op.operation_id','user.operation_id')
-			->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
-			->where(function($q) use ($request) {
-				$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
-			})
-			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
-            ->orderBy('user.employee_name', 'asc')->get();
-
-		$users = collect($users)->groupBy('employee_name');
+			$users = collect($users)->groupBy('employee_name');
+		}
 
     	return view('tables.tbl_users', compact('users'));
     }
@@ -10556,7 +10556,10 @@ class MainController extends Controller
 			'manage-item-classification-source' => 'Add and configure Source Warehouse based on Item Classification',
 			'manage-fast-issuance-permission' => 'Add new user that has fast issuance permission',
 			'manage-wip-warehouse' => 'Assign physical warehouse as Work-in-Progress per operation',
-			'manage-users' => 'Add, Edit and Delete Users & User Groups',
+			'manage-users' => 'Add, Edit and Delete Users',
+			'manage-user-groups' => 'Add, Edit and Delete User Groups',
+			'manage-email-notifications' => 'Add and Delete Email Notifications',
+			'manage-role-permissions' => 'Assign Roles and Permissions',
 			'reports' => 'Production Reports',
 		];
 		$production_planning_actions = [
@@ -10604,6 +10607,10 @@ class MainController extends Controller
 		return view('role_permissions', compact('actions', 'user_group', 'existing_permissions'));
 	}
 	public function saveRolePermissions($user_group, Request $request) {
+		if (Gate::denies('manage-role-permissions')) {
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
+        }
+
 		DB::connection('mysql_mes')->beginTransaction();
 		try {
 			$current_timestamp = Carbon::now()->toDateTimeString();

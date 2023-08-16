@@ -18,7 +18,7 @@
         <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
       </li>
       <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
-        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
+        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Notification Setup</a>
       </li>
       <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
         <a class="nav-link" href="#role-permissions" data-toggle="tab">Role Permissions</a>
@@ -48,8 +48,8 @@
         </div>
       </div>
       <div class="tab-pane" id="user_group_list">
-        <div class="row">
-          <div class="col-md-12">
+        <div class="row p-0 m-0">
+          <div class="col-md-12 p-0">
             <div class="card" style="min-height: 720px;">
               <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
                 <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
@@ -66,7 +66,7 @@
                   </div>
                 </div>
               </div>
-              <div class="card-body p-0">
+              <div class="card-body p-0 m-0">
                 <div class="tbl_user_group m-3" id="tbl_user_group"></div>
               </div>
             </div>
@@ -75,8 +75,8 @@
       </div>
 
       <div class="tab-pane" id="email_alert_setup">
-        <div class="row">
-          <div class="col-md-12">
+        <div class="row p-0 m-0">
+          <div class="col-md-12 p-0">
             <div class="card" style="min-height: 720px;">
               <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
                 <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
@@ -87,10 +87,12 @@
                     <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search Recipient" id="search_email_setup">
                   </div>
                   <div class="p-2">
+                    <button type="button" class="btn btn-primary m-0" id="email_trans_btn" style="font-size: 9pt;">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Add
+                    </button>
                   </div>
                 </div>
               </div>
-  
               <div class="card-body p-0">
                 <div class="tbl_email_trans m-3" id="tbl_email_trans"></div>
               </div>
@@ -99,8 +101,8 @@
         </div>
       </div>
       <div class="tab-pane" id="role-permissions">
-        <div class="row">
-          <div class="col-md-12">
+        <div class="row p-0 m-0">
+          <div class="col-md-12 p-0">
             <div class="card" style="min-height: 720px;">
               <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
                 <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
