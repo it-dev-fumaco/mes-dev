@@ -236,7 +236,7 @@
           </li>
         </ul>
       @endif
-      @canany(['report'])
+      @canany(['reports'])
         <h6 class="text-left font-weight-bold mt-3 border-bottom">Reports / Analytics</h6>
         <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
           <li class="m-0">
