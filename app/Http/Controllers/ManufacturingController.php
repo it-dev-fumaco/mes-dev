@@ -215,6 +215,10 @@ class ManufacturingController extends Controller
                 $item_group = ($item_detail) ? $item_detail->item_group : '';
                 $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
 
+                if(in_array($child_bom, collect($bom)->pluck('parent')->toArray())){ // This is to break an infinite loop
+                    continue;
+                }
+
                 $materials[] = [
                     'item_code' => $item->item_code,
                     'description' => $item_description,

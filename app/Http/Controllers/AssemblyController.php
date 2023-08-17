@@ -477,6 +477,10 @@ class AssemblyController extends Controller
                 $bom_operation = DB::connection('mysql')->table('tabBOM Operation')->where('parent', $child_bom)->first();
                 $operation_name = ($bom_operation) ? $bom_operation->operation : null;
 
+                if(in_array($child_bom, collect($bom)->pluck('parent')->toArray())){
+                    continue;
+                }
+
                 $materials[] = [
                     'item_code' => $item->item_code,
                     'description' => $item_description,

@@ -7678,11 +7678,6 @@ class MainController extends Controller
 
 		$machines = DB::connection('mysql_mes')->table('machine')
 			->where('operation_id', $operation_id)
-			// ->where(function($q){
-			// 	$q->where('machine_name', 'LIKE', '%conveyor%')
-			// 		->orWhere('machine_name', 'LIKE', '%lane%')
-			// 		->orWhere('machine_name', 'LIKE', '%special%');
-			// })
 			->orderBy('order_no', 'asc')->get();
 
         $conveyor_schedule_list = [];
@@ -8681,7 +8676,8 @@ class MainController extends Controller
 	public function completedSoWithPendingProduction() {
 		$query = DB::connection('mysql')->table('tabWork Order as wo')
 			->join('tabSales Order as so', 'so.name', 'wo.sales_order_no')->where('wo.docstatus', 1)->where('so.docstatus', 1)
-			->where('so.per_delivered', 100)->where('wo.status', '!=', 'Completed')
+			->where('so.per_delivered', 100)->whereNotIn('wo.status', ['Completed', 'Stopped'])
+			->whereRaw('wo.produced_qty < wo.qty')->where('wo.name', 'like', '%prom%')
 			->select('so.name', 'so.customer', 'wo.name as production_order', 'so.status as so_status', 'wo.production_item', 'wo.qty', 'wo.status as wo_status', 'wo.creation')
 			->orderBy('wo.creation', 'desc')->paginate(100);
 
@@ -8695,7 +8691,7 @@ class MainController extends Controller
 	public function completedMreqWithPendingProduction() {
 		$query = DB::connection('mysql')->table('tabWork Order as wo')
 			->join('tabMaterial Request as mreq', 'mreq.name', 'wo.material_request')->where('wo.docstatus', 1)->where('mreq.docstatus', 1)
-			->where('mreq.per_ordered', 100)->where('wo.status', '!=', 'Completed')
+			->where('mreq.per_ordered', 100)->whereNotIn('wo.status', ['Completed', 'Stopped'])
 			->select('mreq.name', 'mreq.customer', 'wo.name as production_order', 'mreq.status as mreq_status', 'wo.production_item', 'wo.qty', 'wo.status as wo_status', 'wo.creation')
 			->orderBy('wo.creation', 'desc')->paginate(100);
 
