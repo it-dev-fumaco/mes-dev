@@ -194,6 +194,7 @@
                         <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
                           <option value="">Select Module first</option>
                         </select>
+                        <a href="#" class="ml-4 text-info font-weight-bold" id="view-role-users">View Users</a>
                       </div>
                     </div>
                   </div>
@@ -205,6 +206,26 @@
         </div>
       @endcanany
     </div>
+  </div>
+</div>
+
+<div class="modal fade" id="view-role-users-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+         <h5 class="modal-title">User Role</h5>
+         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+       </button>
+      </div>
+      <div class="modal-body">
+         <div class="row p-0 m-0">
+            <div class="col-md-12 p-2 m-0">
+              <div id="view-role-users-div"></div>
+            </div>
+         </div>
+      </div>
+   </div>
   </div>
 </div>
 
@@ -387,15 +408,6 @@
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       {{-- <select class="form-control sel11" name="add_user_role" id="add_user_role" required>
-                          <option value="">Select User Role</option>
-                          <option value="Production Supervisor">Production Supervisor</option>
-                          <option value="Production Manager">Production Manager</option>
-                          <option value="QA Manager">QA Manager</option>
-                          <option value="QA Inspector">QA Inspector</option>
-                          <option value="Maintenance Manager">Maintenance Manager</option>
-                          <option value="Maintenance Staff">Maintenance Staff</option>
-                       </select> --}}
                        <input type="text" class="form-control" name="add_user_role" required>
                     </div>
                  </div>
@@ -520,9 +532,6 @@
      </form>
   </div>
 </div>
-
-
-  
   
 <style type="text/css">
   .scrolling table {
@@ -751,6 +760,30 @@
 
 <script>
   $(document).ready(function(){
+    $(document).on('click', '#view-role-users', function(e) {
+      e.preventDefault();
+
+      const mod = $('#role-permission-module').val();
+      const role = $('#user-role-select').val();
+
+      if (!mod || !role) {
+        return showNotification("info", 'Please select User Role first', "now-ui-icons travel_info");
+      }
+
+      const roleTxt = $('#user-role-select option:selected').text();
+      $('#view-role-users-modal .modal-title').text(roleTxt);
+
+      $.ajax({
+        url:"/view_role_users",
+        type:"GET",
+        data: {module: mod, role},
+        success:function(data){
+          $('#view-role-users-div').html(data);
+          $('#view-role-users-modal').modal('show');
+        }
+      });  
+    });
+
     $('#update-permissions-btn').attr('disabled', true);
     $(document).on('change', '#role-permission-module', function (e) {
       e.preventDefault();

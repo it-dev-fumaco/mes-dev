@@ -10655,4 +10655,18 @@ class MainController extends Controller
 			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
 		}
 	}
+
+	public function viewRoleUsers(Request $request) {
+		$users = [];
+		if ($request->role) {
+			$users = DB::connection('mysql_mes')->table('user as u')
+				->join('user_group as ug', 'ug.user_group_id', 'u.user_group_id')
+				->join('operation as o', 'o.operation_id', 'u.operation_id')
+				->where('ug.module', $request->module)->where('ug.user_group_id', $request->role)
+				->select('u.employee_name', DB::raw('GROUP_CONCAT(o.operation_name SEPARATOR ", ") as operations'), 'ug.module')
+				->groupBy('u.employee_name', 'ug.module')->orderBy('o.operation_name', 'u.employee_name')->get();
+		}
+		
+		return view('view_role_users', compact('users'));
+	}
 }
