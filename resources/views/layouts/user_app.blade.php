@@ -140,10 +140,16 @@
           </li>
         @endcanany
       </ul>
-      @canany($production_planning_actions)
+      @canany(['view-incoming-orders',
+      'create-production-order',
+      'cancel-production-order',
+      'close-production-order'])
         <h6 class="text-left font-weight-bold mt-3 border-bottom">Production Planning</h6>
         <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-          @canany(['view-incoming-orders', 'create-production-order'])
+          @canany(['view-incoming-orders',
+          'create-production-order',
+          'cancel-production-order',
+          'close-production-order'])
             <li class="m-0 align-middle border" style="background-color: #7dcea0 ;">
               <a href="/order_list" class="d-block m-0 p-1 text-white" style="text-decoration: none;">
                 <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
