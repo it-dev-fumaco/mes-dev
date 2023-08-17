@@ -1360,8 +1360,8 @@ class SecondaryController extends Controller
                 ->leftJoin('machine as m', function ($q) {
                     $q->on('pa.machine_id', 'm.machine_id');
                 })->where('pa.workstation_id', $id)
-                ->select('pa.process_assignment_id as assignment_id', 'p.process_id', 'p.process_name', 'p.color_legend', 'm.machine_id', 'm.machine_code', 'm.machine_name', 'm.image', 'm.status', 'm.type', 'm.model', 'p.last_modified_by', 'p.last_modified_at')->orderBy('p.process_id')
-                ->get()->groupBy('process_name');
+                ->select('pa.process_assignment_id as assignment_id', 'p.process_id', 'p.process_name', 'p.color_legend', 'm.machine_id', 'm.machine_code', 'm.machine_name', 'm.image', 'm.status', 'm.type', 'm.model', 'p.last_modified_by', 'p.last_modified_at')
+                ->orderBy('p.last_modified_at', 'desc')->get()->groupBy('process_name');
 
             return view('tables.tbl_process_workstation_list', compact('assigned_processes', 'machines', 'id'));
         }

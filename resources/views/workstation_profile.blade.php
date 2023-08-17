@@ -14,79 +14,78 @@
       <div class="card-body">
         <div class="container-fluid">
           <div class="row">
-            <div class="col-12">
-              <div class="row">
+            <div class="col-12 p-0 m-0">
+              <div class="d-flex flex-row m-0 p-0 align-items-center">
+                <div class="col-4 p-0">
+                  <div class="d-flex align-items-center m-0 p-0">
+                    <a href="/production_settings" class="pull-left col-2">
+                      <img src="{{ asset('storage/back.png') }}" class="w-100"/>
+                    </a>
+                    <div class="d-block col-10">
+                      <span style="font-size: 20pt;" class="d-block font-weight-bold">{{ $list->workstation_name }}</span>
+                      <span style="font-size: 12pt; text-transform: uppercase" class="d-block font-weight-bold text-uppercase">{{ $list->operation }}</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="col-4">
-                  <div class="row">
-                    <div class="col-2 p-3">
-                      <a href="/production_settings" class="pull-left">
-                        <img src="{{ asset('storage/back.png') }}" class="w-100"/>
-                      </a>
-                    </div>
-                    <div class="col-10">
-                      <span style="font-size: 20pt;"><b>{{ $list->workstation_name }}</b></span><br>
-                      <span style="font-size: 12pt; text-transform: uppercase"><b>{{ $list->operation }}</b></span>
-                    </div>
-                  </div>
+                  <h5 class="text-center m-0"><b>Assigned Workstation Process List</b></h5>
                 </div>
-                <div class="col-6 d-flex justify-content-start align-items-center">
-                  <h5 class="text-center"><b>Production Workstation Process</b></h5>
-                </div>
-                <div class="col-2">
-                  <button class="btn btn-primary w-100" data-toggle="modal" data-target="#add-process-modal"><i
-                      class="now-ui-icons ui-1_simple-add"></i> Add Process</button>
-
-                  <div class="modal fade" id="add-process-modal" tabindex="-1" role="dialog"
-                    aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title" id="exampleModalLabel">Add Process</h5>
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                          </button>
-                        </div>
-                        <form action="/process_assignment/{{ $id }}/add" class="add-process-form" method="post">
-                          @csrf
-                          <div class="modal-body">
-                            <p><b>Process</b></p>
-                            <select name="process" class="form-control process-list" style="width: 100% !important;"></select>
-                            <br>
-                            <br>
-                            <table id="add-process-machine-tbl" class="table table-striped w-100">
-                              <col style="width: 80%">
-                              <col style="width: 20%">
-                              <tr>
-                                <th>Machine</th>
-                                <th>
-                                  <button class="btn btn-sm btn-primary w-100 add-row" data-tbl="#add-process-machine-tbl" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
-                                </th>
-                              </tr>
-                              <tr>
-                                <td colspan=2>
-                                  <select name="process_machines[]" class="form-control machine-list" style="width: 100% !important;"
-                                    required></select>
-                                </td>
-                              </tr>
-                            </table>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary" id="add-process-btn">Save changes</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
+                <div class="col-4 text-right">
+                  <button class="btn btn-primary text-right" data-toggle="modal" data-target="#add-process-modal">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add Process
+                  </button>
                 </div>
               </div>
-              <div id="tbl_process_workstation_list"></div>
+              <div id="tbl_process_workstation_list" class="mt-3"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<div class="modal fade" id="add-process-modal" tabindex="-1" role="dialog"
+aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLabel">Add Process</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <form action="/process_assignment/{{ $id }}/add" class="add-process-form" method="post">
+      @csrf
+      <div class="modal-body">
+        <p><b>Process</b></p>
+        <select name="process" class="form-control process-list" style="width: 100% !important;"></select>
+        <br>
+        <br>
+        <table id="add-process-machine-tbl" class="table table-striped w-100">
+          <col style="width: 80%">
+          <col style="width: 20%">
+          <tr>
+            <th>Machine</th>
+            <th>
+              <button class="btn btn-sm btn-primary w-100 add-row" data-tbl="#add-process-machine-tbl" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
+            </th>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <select name="process_machines[]" class="form-control machine-list" style="width: 100% !important;"
+                required></select>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" id="add-process-btn">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 </div>
 
 <div id="active-tab"></div>
