@@ -19,6 +19,10 @@
 	$disabled = in_array($details->status, ['Cancelled', 'Closed']) ? 'disabled' : null;
 	$disabled = $details->feedback_qty >= $details->qty_to_manufacture ? 'disabled' : null;
 
+	if(Gate::denies('create-withdrawal-slip')){
+		$disabled = 'disabled';
+	}
+
 	$no_bom = ($details->bom_no == null) ? 'disabled1' : '';
 @endphp
 <span id="has-no-bom" class="d-none">{{ $details->bom_no }}</span>
@@ -119,15 +123,7 @@
 		</td>
 	</tr>
 	<tr style="font-size: 10pt;">
-		@php
-			$colspan = 9;
-		@endphp
-		@canany(['create-withdrawal-slip','create-material-request'])
-			@php
-				$colspan = 7;
-			@endphp
-		@endcanany
-		<td colspan="{{ $colspan }}">
+		<td colspan="7">
 			<div class="d-flex flex-row">
 				@if ($details->parent_item_code != $details->item_code)
 					<div class="p-2 align-self-center text-center" style="width: 15%;font-size: 12pt;">
@@ -141,23 +137,21 @@
 				</div>
 			</div>
 		</td>
-		@canany(['create-withdrawal-slip','create-material-request'])
-			<td class="text-center" colspan="2">
-				@if ($checker == 0)
+		<td class="text-center" colspan="2">
+			@if ($checker == 0)
+				<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
+			@else
+				@if($issued_qty > 0)
+					<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Submit Withdrawal Slip</button>
+				@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 1)
+					<button class="btn btn-success m-1 p-3">Withdrawal Slip Submitted</button>
+				@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 0)
 					<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
 				@else
-					@if($issued_qty > 0)
-						<button class="btn btn-primary m-1 submit-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Submit Withdrawal Slip</button>
-					@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 1)
-						<button class="btn btn-success m-1 p-3">Withdrawal Slip Submitted</button>
-					@elseif($ste_transferred_qty > 0 && $all_items_has_transferred_qty == 1 && $checker == 0)
-						<button class="btn btn-primary m-1 sync-production-order-items-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Sync Items</button>
-					@else
-						<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Create Withdrawal Slip</button>
-					@endif
+					<button class="btn btn-primary m-1 generate-ste-btn p-3" data-production-order="{{ $details->production_order }}" {{ $disabled }}>Create Withdrawal Slip</button>
 				@endif
-			</td>
-		@endcanany
+			@endif
+		</td>
 	</tr>
 </table>
 
@@ -249,7 +243,7 @@
 				<col style="width: 16%;">	<!-- Source Warehouse -->
 				<col style="width: 10%;">	<!-- Transferred Qty -->
 				<col style="width: 8%;">	<!-- Status -->
-				@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+				@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 					<col style="width: 15%;">	<!-- Action -->
 				@endcanany
 				<tr class="text-center">
@@ -260,7 +254,7 @@
 					<th>Source Warehouse</th>
 					<th>Transferred Qty</th>
 					<th>Status</th>
-					@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+					@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 						<th>Action</th>
 					@endcanany
 				</tr>
@@ -363,7 +357,7 @@
 							</table>
 						</div>
 					</td>
-					@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+					@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 						<td class="border-top-0 text-center">
 							@php
 								$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
@@ -377,8 +371,7 @@
 									<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 								</button>
 							@endcanany
-							
-							@canany(['create-withdrawal-slip', 'create-material-request'])
+							@canany(['create-withdrawal-slip'])
 								<button type="button" class="btn btn-sm p-1 split-source-warehouse"
 									data-production-order="{{ $details->production_order }}"
 									data-item-id="{{ $component['name'] }}"
@@ -396,7 +389,7 @@
 									<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 								</button>
 							@endcanany
-							@canany(['create-withdrawal-slip','create-material-request'])
+							@canany(['create-withdrawal-slip'])
 								<button type="button" class="btn btn-danger btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
 									<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
 								</button>
@@ -444,30 +437,40 @@
 							</table>
 						</div>
 					</td>
-					<td class="border-top-0 text-center">
-						<div class="d-none">
-							<span class="production-order-item-id">{{ $component['name'] }}</span>
-							<span class="item-code">{{ $component['item_code'] }}</span>
-							<span class="item-description">{!! $component['description'] !!}</span>
-							<span class="item-name">{{ $component['item_name'] }}</span>
-							<span class="required-qty">{{ $component['required_qty'] * 1 }}</span>
-							<span class="requested-qty">{{ $component['required_qty'] * 1 }}</span>
-							<span class="stock-uom">{{ $component['stock_uom'] }}</span>
-							<span class="source-warehouse">{{ $component['source_warehouse'] }}</span>
-						</div>
-						<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} style="min-width: 45px;"> 
-							<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
-						</button>
-						<button type="button" class="btn btn-sm p-1"style="min-width: 45px; background-color: #22D3CC" disabled> 
-							<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
-						</button>
-						<button type="button" class="btn btn-secondary btn-sm p-1" disabled {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
-						</button>
-						<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
-							<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
-						</button>
-					</td>
+					@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
+						<td class="border-top-0 text-center">
+							<div class="d-none">
+								<span class="production-order-item-id">{{ $component['name'] }}</span>
+								<span class="item-code">{{ $component['item_code'] }}</span>
+								<span class="item-description">{!! $component['description'] !!}</span>
+								<span class="item-name">{{ $component['item_name'] }}</span>
+								<span class="required-qty">{{ $component['required_qty'] * 1 }}</span>
+								<span class="requested-qty">{{ $component['required_qty'] * 1 }}</span>
+								<span class="stock-uom">{{ $component['stock_uom'] }}</span>
+								<span class="source-warehouse">{{ $component['source_warehouse'] }}</span>
+							</div>
+							@canany(['change-production-order-items'])
+								<button type="button" class="btn btn-info btn-sm p-1 change-required-item-btn" data-production-order="{{ $details->production_order }}" data-item-classification="{{ $component['item_classification'] }}" data-production-order-item-id="{{ $component['name'] }}" {{ $disabled }} style="min-width: 45px;"> 
+									<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
+								</button>
+							@endcanany
+							@canany(['create-withdrawal-slip'])
+								<button type="button" class="btn btn-sm p-1"style="min-width: 45px; background-color: #22D3CC" disabled> 
+									<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
+								</button>
+							@endcanany
+							@canany(['return-items-to-warehouse'])
+								<button type="button" class="btn btn-secondary btn-sm p-1" disabled {{ $disabled }} style="min-width: 45px;">
+									<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
+								</button>
+							@endcanany
+							@canany(['create-withdrawal-slip'])
+								<button type="button" class="btn btn-danger  btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
+									<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
+								</button>
+							@endcanany
+						</td>
+					@endcanany
 				</tr>
 				@endforelse
 				@endforeach
@@ -499,7 +502,7 @@
 				<col style="width: 14%;"><!-- Source Warehouse -->
 				<col style="width: 9%;"><!-- Transferred Qty -->
 				<col style="width: 8%;"><!-- Status -->
-				@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+				@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 					<col style="width: 15%;"><!-- Action -->
 				@endcanany
 				<tr class="text-center">
@@ -511,7 +514,7 @@
 					<th>Source Warehouse</th>
 					<th>Transferred Qty</th>
 					<th>Status</th>
-					@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+					@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 						<th>Action</th>
 					@endcanany
 				</tr>
@@ -629,7 +632,7 @@
 							</table>
 						</div>
 					</td>
-					@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+					@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 						<td class="border-top-0 text-center">
 							@php
 								$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
@@ -640,7 +643,7 @@
 										<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 								</button>
 							@endcanany
-							@canany(['create-withdrawal-slip','create-material-request'])
+							@canany(['create-withdrawal-slip'])
 								<button type="button" class="btn btn-sm p-1 split-source-warehouse"
 									data-production-order="{{ $details->production_order }}"
 									data-item-id="{{ $part['name'] }}"
@@ -658,7 +661,7 @@
 									<i class="now-ui-icons loader_refresh d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Return</span>
 								</button>
 							@endcanany
-							@canany(['create-withdrawal-slip','create-material-request'])
+							@canany(['create-withdrawal-slip'])
 								<button type="button" class="btn btn-danger btn-sm p-1 delete-required-item-btn" data-production-order="{{ $details->production_order }}" {{ $change_cancel_btn }} {{ $no_bom }} {{ $disabled }} style="min-width: 45px;">
 									<i class="now-ui-icons ui-1_simple-remove d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Cancel</span>
 								</button>
@@ -706,7 +709,7 @@
 							</table>
 						</div>
 					</td>
-					@canany(['change-production-order-items','create-withdrawal-slip','create-material-request','return-items-to-warehouse'])
+					@canany(['change-production-order-items','create-withdrawal-slip','return-items-to-warehouse'])
 						<td class="border-top-0 text-center">
 							<span class="d-none production-order-item-id">{{ $part['name'] }}</span>
 							<span class="d-none item-code">{{ $part['item_code'] }}</span>
@@ -721,7 +724,7 @@
 									<i class="now-ui-icons ui-2_settings-90 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Change</span>
 								</button>
 							@endcanany
-							@canany(['create-withdrawal-slip','create-material-request'])
+							@canany(['create-withdrawal-slip'])
 								<button type="button" class="btn btn-sm p-1" style="min-width: 45px; background-color: #22D3CC" disabled style="width: 45px;"> 
 									<i class="now-ui-icons business_chart-pie-36 d-block" style="font-size: 9pt;"></i><span style="font-size: 6pt;">Split</span>
 								</button>
