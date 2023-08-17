@@ -898,7 +898,7 @@ trait GeneralTrait
             ->select('wo.name as operation_id', 'w.*', 'wo.*', 'w.name as work_order')->get();
 
         $latest_jc = DB::connection('mysql')->table('tabJob Card')->where('name', 'like', '%MPO-JOB-%')->max('name');
-        $new_id = preg_replace("/[^0-9]/", "", $latest_jc);
+        $new_id = $latest_jc ? preg_replace("/[^0-9]/", "", $latest_jc) : 1;
         
         $now = Carbon::now();
         $job_cards = [];

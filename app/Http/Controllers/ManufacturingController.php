@@ -1692,7 +1692,6 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabWork Order')->insert($data);
                 $required_items = $this->save_production_req_items($new_id, $request->bom, $request->qty, $request->operation);
                 $this->save_production_operations($new_id, $request->bom, ($request->planned_date) ? $request->planned_date : null, 'erp');
-
                 $this->insert_job_card($new_id);
 
                 if ($required_items['error'] == 1) {
@@ -1700,15 +1699,14 @@ class ManufacturingController extends Controller
                 }
 
                 DB::connection('mysql')->commit();
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 DB::connection('mysql')->rollback();
                 return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
             }
 
             DB::connection('mysql_mes')->commit();
-
             return response()->json(["success" => 1, 'message' => $new_id]);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::connection('mysql_mes')->rollback();
             return response()->json(["success" => 0, 'message' => 'There was a problem creating production order.']);
         }
