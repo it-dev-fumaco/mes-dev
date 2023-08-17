@@ -387,7 +387,7 @@
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       <select class="form-control sel11" name="add_user_role" id="add_user_role" required>
+                       {{-- <select class="form-control sel11" name="add_user_role" id="add_user_role" required>
                           <option value="">Select User Role</option>
                           <option value="Production Supervisor">Production Supervisor</option>
                           <option value="Production Manager">Production Manager</option>
@@ -395,7 +395,8 @@
                           <option value="QA Inspector">QA Inspector</option>
                           <option value="Maintenance Manager">Maintenance Manager</option>
                           <option value="Maintenance Staff">Maintenance Staff</option>
-                       </select>
+                       </select> --}}
+                       <input type="text" class="form-control" name="add_user_role" required>
                     </div>
                  </div>
               </div>
