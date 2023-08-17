@@ -91,7 +91,9 @@
                     <button type="button" class="btn p-2 btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Action</button>
                     <div class="dropdown-menu">
                         <a class="dropdown-item view-order-details-btn" href="#" data-id="{{ $r->name }}">View Order</a>
-                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#reschedule-{{ strtolower($r->name) }}-Modal">Reschedule Delivery Date</a>
+                        @canany(['reschedule-delivery-date-order', 'reschedule-delivery-date-production-order'])
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#reschedule-{{ strtolower($r->name) }}-Modal">Reschedule Delivery Date</a>
+                        @endcanany
                     </div>
                 </div>
             </td>
@@ -105,47 +107,49 @@
 </table>
 <div class="m-2 order-list-pagination">{{ $list->appends(Request::except('page'))->links() }}</div>
 
-@foreach ($order_list as $i => $s)
-    @php
-        $delivery_date = $s->reschedule_delivery == 1 ? $s->reschedule_delivery_date : $s->delivery_date;
-    @endphp
-<!-- Modal -->
-<div class="modal fade" id="reschedule-{{ strtolower($s->name) }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header text-white" style="background-color: #0277BD;">
-                <h5 class="modal-title" id="exampleModalLabel">Reschedule Delivery Date - <b>{{ $s->name }}</b></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="/reschedule_delivery/{{ $s->name }}" method="post">
-                @csrf
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <p>Delivery Date: {{ Carbon\Carbon::parse($delivery_date)->format('M d, Y') }}</p>
-                        <input type="text" name="previous_date" class="d-none" value="{{ $delivery_date }}">
-                        <label for="rescheduled_date">New Delivery Date</label>
-                        <input type="date" name="rescheduled_date" class="form-control rounded" min="{{ Carbon\Carbon::now()->format('Y-m-d') }}" required>
-                        <br>
-                        <select name="reason" class="form-control rounded" required>
-                            <option value="" selected>Select Reason</option>
-                            @foreach ($reschedule_reason as $reason)
-                            <option value="{{ $reason->id }}">{{ $reason->reason }}</option>
-                            @endforeach
-                        </select>
-                        <br>
-                        <textarea name="remarks" class="form-control rounded border p-2" placeholder="Remarks..." rows="8"></textarea>
+@canany(['reschedule-delivery-date-order', 'reschedule-delivery-date-production-order'])
+    @foreach ($order_list as $i => $s)
+        @php
+            $delivery_date = $s->reschedule_delivery == 1 ? $s->reschedule_delivery_date : $s->delivery_date;
+        @endphp
+    <!-- Modal -->
+    <div class="modal fade" id="reschedule-{{ strtolower($s->name) }}-Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color: #0277BD;">
+                    <h5 class="modal-title" id="exampleModalLabel">Reschedule Delivery Date - <b>{{ $s->name }}</b></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="/reschedule_delivery/{{ $s->name }}" method="post">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <p>Delivery Date: {{ Carbon\Carbon::parse($delivery_date)->format('M d, Y') }}</p>
+                            <input type="text" name="previous_date" class="d-none" value="{{ $delivery_date }}">
+                            <label for="rescheduled_date">New Delivery Date</label>
+                            <input type="date" name="rescheduled_date" class="form-control rounded" min="{{ Carbon\Carbon::now()->format('Y-m-d') }}" required>
+                            <br>
+                            <select name="reason" class="form-control rounded" required>
+                                <option value="" selected>Select Reason</option>
+                                @foreach ($reschedule_reason as $reason)
+                                <option value="{{ $reason->id }}">{{ $reason->reason }}</option>
+                                @endforeach
+                            </select>
+                            <br>
+                            <textarea name="remarks" class="form-control rounded border p-2" placeholder="Remarks..." rows="8"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer pt-2 pb-2">
-                    <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
-            </form>
+                    <div class="modal-footer pt-2 pb-2">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-@endforeach 
+    @endforeach 
+@endcanany
 
 <style>
     .is-new-order {
