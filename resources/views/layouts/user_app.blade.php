@@ -274,12 +274,14 @@
             </li>
           @endcanany
 
+          @if ($is_qa_user)
           <li class="m-0">
             <a href="/qa_settings" class="d-block m-0 p-1 text-decoration-none">
               <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
               <span class="d-inline-block">QA Settings</span>
             </a>
           </li>
+          @endif
 
           @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications', 'manage-role-permissions'])
             <li class="m-0">
