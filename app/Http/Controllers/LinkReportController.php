@@ -2042,4 +2042,18 @@ class LinkReportController extends Controller
 
         return view('reports.inaccurate_operator_feedback', compact('operations', 'permissions'));
     }
+
+    public function items_in_their_own_bom(){
+        $report = DB::table('tabBOM as bom')
+            ->join('tabBOM Item as item', 'bom.name', 'item.parent')
+            ->whereRaw('bom.item = item.item_code')
+            ->select('bom.name', 'bom.item', 'item.description')
+            ->paginate(20);
+
+        $permissions = $this->get_user_permitted_operation();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        return view('reports.system_audit_items_in_their_own_bom', compact('operations', 'permissions', 'report'));
+    }
 }

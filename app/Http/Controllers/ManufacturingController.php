@@ -1446,11 +1446,7 @@ class ManufacturingController extends Controller
 
             $now = Carbon::now();
 
-            if (!$request->qty) {
-                return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
-            }
-
-            if ($request->qty <= 0) {
+            if (!$request->qty || $request->qty <= 0) {
                 return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
             }
 
@@ -1604,8 +1600,14 @@ class ManufacturingController extends Controller
 
             $params = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $request->item_code)
                 ->where('attribute', 'LIKE', '%cutting size%')->first();
+            
+            $bom_sub_parent = ($bom)? $default_bom->item : null;
 
-            $bom_sub_parent = ($bom) ? $default_bom->item : null;
+            $order_no = 1;
+            if($request->planned_date){
+                $order_no = DB::table('tabWork Order')->whereDate('planned_start_date', Carbon::parse($request->planned_date)->startOfDay())->count();
+                $order_no = $order_no ? $order_no + 1 : 1;
+            }
 
             $data_mes = [
                 'production_order' => $new_id,
@@ -1617,7 +1619,7 @@ class ManufacturingController extends Controller
                 'item_classification' => $item_classification,
                 'qty_to_manufacture' => $request->qty,
                 'classification' => $classification,
-                'order_no' => 0,
+                'order_no' => $order_no,
                 'cutting_size' => ($params) ? $params->attribute_value : null,
                 'is_scheduled' => ($request->planned_date) ? 1 : 0,
                 'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,
@@ -4004,6 +4006,12 @@ class ManufacturingController extends Controller
             $params = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $request->item_code)
                 ->where('attribute', 'LIKE', '%cutting size%')->first();
 
+            $order_no = 1;
+            if($request->planned_date){
+                $order_no = DB::table('tabWork Order')->whereDate('planned_start_date', Carbon::parse($request->planned_date)->startOfDay())->count();
+                $order_no = $order_no ? $order_no + 1 : 1;
+            }
+
             $data_mes = [
                 'production_order' => $new_id,
                 'parent_item_code' => strtoupper($parent_item_code),
@@ -4014,7 +4022,7 @@ class ManufacturingController extends Controller
                 'item_classification' => $request->item_classification,
                 'qty_to_manufacture' => $request->qty,
                 'classification' => $request->classification,
-                'order_no' => 0,
+                'order_no' => $order_no,
                 'cutting_size' => ($params) ? $params->attribute_value : null,
                 'is_scheduled' => ($request->planned_date) ? 1 : 0,
                 'planned_start_date' => ($request->planned_date) ? $request->planned_date : null,

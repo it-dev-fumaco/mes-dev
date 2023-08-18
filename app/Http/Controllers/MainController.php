@@ -2294,28 +2294,47 @@ class MainController extends Controller
 						$val_order_no=[
 							'order_no' => $position 
 						];
+
 						DB::table('tabWork Order')->where('name', $name)->update($val_order_no);
 						DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_order_no);
 
-						if(DB::connection('mysql_mes')->table('job_ticket as jt')
+						$ongoing_spotwelding = DB::connection('mysql_mes')->table('job_ticket as jt')
 							->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
 							->where('jt.production_order', $name)
 							->where('spotpart.status', "In Progress")
-							->exists()){
-						}else{
-							if(DB::connection('mysql_mes')->table('job_ticket as jt')
+							->exists();
+
+						$ongoing_timelog = DB::connection('mysql_mes')->table('job_ticket as jt')
 							->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
 							->where('jt.production_order', $name)
 							->where('tl.status', "In Progress")
-							->exists()){
-							}else{
-								DB::table('tabWork Order')->where('name', $prod)->update($val_erp);
-								DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_mes);
-								DB::table('tabWork Order')->where('name', $name)->update($val_order_no);
-								DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_order_no);
-							}
+							->exists();
+
+						if(!$ongoing_spotwelding && !$ongoing_timelog){
+							DB::table('tabWork Order')->where('name', $prod)->update($val_erp);
+							DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_mes);
+							DB::table('tabWork Order')->where('name', $name)->update($val_order_no);
+							DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_order_no);
 						}
-						
+
+						// if(DB::connection('mysql_mes')->table('job_ticket as jt')
+						// 	->join('spotwelding_qty as spotpart', 'spotpart.job_ticket_id','jt.job_ticket_id')
+						// 	->where('jt.production_order', $name)
+						// 	->where('spotpart.status', "In Progress")
+						// 	->exists()){
+						// }else{
+						// 	if(DB::connection('mysql_mes')->table('job_ticket as jt')
+						// 	->join('time_logs as tl', 'jt.job_ticket_id','tl.job_ticket_id')
+						// 	->where('jt.production_order', $name)
+						// 	->where('tl.status', "In Progress")
+						// 	->exists()){
+						// 	}else{
+						// 		DB::table('tabWork Order')->where('name', $prod)->update($val_erp);
+						// 		DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_mes);
+						// 		DB::table('tabWork Order')->where('name', $name)->update($val_order_no);
+						// 		DB::connection('mysql_mes')->table('production_order')->where('production_order', $name)->update($val_order_no);
+						// 	}
+						// }
 					}
 				}
 			}
@@ -4109,6 +4128,24 @@ class MainController extends Controller
 			->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
 			->where('process_assignment.workstation_id', $workstation)
 			->where('process_assignment.process_id', $process_id)->select('machine.*', 'process_assignment.process_id')->get();
+  }
+
+	public function get_workstation_process_machine(Request $request, $workstation, $process_id){
+		$machines = DB::connection('mysql_mes')->table('process_assignment')
+			->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
+			->where('process_assignment.workstation_id', $workstation)
+			->where('process_assignment.process_id', $process_id)->select('machine.*', 'process_assignment.process_id')->get();
+
+		$is_assembly = DB::connection('mysql_mes')->table('production_order as po')
+			->join('operation as o', 'o.operation_id', 'po.operation_id')
+			->where('o.operation_name', 'Wiring and Assembly')->where('po.production_order', $request->production_order)->exists();
+
+		$assigned_machine = null;
+		if($is_assembly){
+			$assigned_machine = DB::connection('mysql_mes')->table('assembly_conveyor_assignment')->where('production_order', $request->production_order)->pluck('machine_code')->first();
+		}
+		
+		return view('tbl_workstation_process_machines', compact('machines', 'assigned_machine'));
 	}
 
 	public function get_production_workstation_process($production_order, $workstation, $required_qty){
