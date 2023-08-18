@@ -16,7 +16,7 @@
 					<div class="row">
 						<div class="col-md-4 offset-md-8 pull-right" style="margin-bottom: -40px; z-index: 1;">
 							<div class="form-group">
-								<input type="text" class="form-control" placeholder="Search" id="inv-search-box">
+								<input type="text" class="form-control rounded" placeholder="Search" id="inv-search-box">
 							</div>
 						</div>
 						<div class="col-md-12">
@@ -29,9 +29,9 @@
                     <li class="nav-item" data-operation="Painting">
 											<a class="nav-link" href="#painting-tab" data-operation="Painting" data-toggle="tab">Painting</a>
 										</li>
-										<li class="nav-item" data-operation="Assembly">
+										{{-- <li class="nav-item" data-operation="Assembly">
 											<a class="nav-link" href="#assembly-tab" data-operation="Assembly" data-toggle="tab">Assembly</a>
-										</li>
+										</li> --}}
 									</ul>
 								</div>
 							</div>

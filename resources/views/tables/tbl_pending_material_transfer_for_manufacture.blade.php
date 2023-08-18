@@ -1,5 +1,5 @@
 @php
-	$disabled = in_array($production_order_details->status, ['Cancelled', 'Closed']) ? 'disabled' : null;
+	$disabled = isset($production_order_details) && in_array($production_order_details->status, ['Cancelled', 'Closed']) ? 'disabled' : null;
 @endphp
 
 @if(isset($message))

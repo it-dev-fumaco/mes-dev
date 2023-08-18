@@ -8,6 +8,7 @@
       </thead>
       <tbody style="font-size:13px;">
         @forelse($list as $row)
+        @if (isset($employee_names[$row->user_access_id]))
           <tr>
             <td class="p-2 text-center">{{ $row->fast_issuance_user_id }}</td>
             <td class="p-2 text-center">{{ $employee_names[$row->user_access_id] }}</td>
@@ -19,6 +20,7 @@
                 </button>
             </td>
           </tr>
+          @endif
         @empty
         <tr>
            <td colspan="5" class="text-center text-uppercase text-muted">No Record(s) Found.</td>

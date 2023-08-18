@@ -912,12 +912,9 @@
                t_wh = '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
             }
 
-            var disable_sel = (prod_order) ? 'disabled' : null;
+            var disable_sel = null;
 
             var production_balance_qty = $(this).find('.production-balance-qty').eq(0).text();
-            if(production_balance_qty < 1){
-               disable_sel = 'disabled';
-            }
 
             // var disabled = parseInt($(this).find('.available-qty').eq(0).text()) <= 0 ? 'disabled' : null;
 
@@ -937,11 +934,17 @@
                '</button>' +
                '<div class="dropdown-menu create-batch-btn"><a class="dropdown-item" href="#">Create Batch</a></div></div>';
 
-            if(prod_order){
+            if(prod_order && production_balance_qty < 1){
+               disable_sel = 'disabled';
                create_btn = '<button type="button" class="btn btn-success" disabled>' +
                   '<i class="now-ui-icons ui-1_check"></i> ' + prod_order +
                '</button>';
             }
+
+            var disabled_planned_start_date = '';
+            @if (Gate::denies('assign-production-order-schedule'))
+               disabled_planned_start_date = 'disabled';
+            @endif
 
             row += '<tr>' +
                '<td class="text-center">' + n + '</td>' +
@@ -962,7 +965,7 @@
                   '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"' + disable_sel + '></div>' +
                '</td>' +
                '<td class="text-center">' +
-                  '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
+                  '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '" ' + disabled_planned_start_date + '><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
                '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + t_wh + '</select></div></td>' +
                '<td class="text-center">' +
                   '<div class="btn-group">' + create_btn + '</div>' +

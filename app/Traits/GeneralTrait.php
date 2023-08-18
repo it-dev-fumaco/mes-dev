@@ -897,15 +897,15 @@ trait GeneralTrait
             ->where('w.name', $production_order)->whereNotIn('wo.name', $existing_jcs)
             ->select('wo.name as operation_id', 'w.*', 'wo.*', 'w.name as work_order')->get();
 
-        $latest_jc = DB::connection('mysql')->table('tabJob Card')->where('name', 'like', '%MPO-JOB%')->max('name');
-        $new_id = preg_replace("/[^0-9]/", "", $latest_jc);
+        $latest_jc = DB::connection('mysql')->table('tabJob Card')->where('name', 'like', '%MPO-JOB-%')->max('name');
+        $new_id = $latest_jc ? preg_replace("/[^0-9]/", "", $latest_jc) : 1;
         
         $now = Carbon::now();
         $job_cards = [];
         foreach($work_order_operations as $row) {
             $new_id = $new_id + 1;
             $new_jc_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-            $jc_name = 'MPO-JOB' . $new_jc_id;
+            $jc_name = 'MPO-JOB-' . $new_jc_id;
             $job_cards[] = [
                 'name' => $jc_name,
                 'creation' => $now->toDateTimeString(),

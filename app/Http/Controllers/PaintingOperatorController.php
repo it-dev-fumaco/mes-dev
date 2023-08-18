@@ -3,27 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Input;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
-use Validator;
 use DB;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Storage;
-use Image;
 use App\Traits\GeneralTrait;
 use Exception;
 
 class PaintingOperatorController extends Controller
-{	
+{
 	use GeneralTrait;
-	// R E V I S E D - 06/18/2020
-	// REVISION 2 - 08/15/2022
 
 	// /operator/Painting/Loading
-	public function index(){
+	public function index()
+	{
 		$painting_process = DB::connection('mysql_mes')->table('process_assignment')
 			->join('workstation', 'process_assignment.workstation_id', 'workstation.workstation_id')
 			->join('process', 'process.process_id', 'process_assignment.process_id')->where('workstation.workstation_name', 'Painting')
@@ -33,80 +25,76 @@ class PaintingOperatorController extends Controller
 
 		$machine_status = $this->get_machine_status();
 		$now = Carbon::now();
-		$time=$now->format('h:i:s');
+		$time = $now->format('h:i:s');
 		$breaktime = [];
-		$shift= DB::connection('mysql_mes')->table('shift_schedule')
+		$shift = DB::connection('mysql_mes')->table('shift_schedule')
 			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
-			->whereDate('shift_schedule.date', $now)
-			->where('shift.operation_id', 2)
-			->where('shift.shift_type', 'Special Shift')
-			->select('shift.shift_id')->first();
-			if(empty($shift)){
-				$reg_shift= DB::connection('mysql_mes')
-					->table('shift')
-					->where('shift.operation_id',  2)
-					->where('shift_type', 'Regular Shift')
-					->first();
-					if($reg_shift){
-						$breaktime_tbl= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $reg_shift->shift_id)->get();
-						if(!empty($breaktime_tbl)){
-							foreach($breaktime_tbl as $r){
-								$breaktime[]=[
-									"break_type" => $r->category,
-									"time_in" => $r->time_from,
-									'time_out' =>$r->time_to,
-									'div_id'=> str_replace(' ', '', $r->category),
-									"time_in_show" => date("h:i a", strtotime($r->time_from)),
-									'time_out_show' =>date("h:i a", strtotime($r->time_to))
-								];
-							}
-						}
-					}	
-			}else{
-				$breaktime_tbl= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $shift->shift_id)->get();
-				if(!empty($breaktime_tbl)){
-					foreach($breaktime_tbl as $r){
-						$breaktime[]=[
+			->whereDate('shift_schedule.date', $now)->where('shift.operation_id', 2)
+			->where('shift.shift_type', 'Special Shift')->select('shift.shift_id')->first();
+		if (empty($shift)) {
+			$reg_shift = DB::connection('mysql_mes')->table('shift')
+				->where('shift.operation_id', 2)->where('shift_type', 'Regular Shift')->first();
+			if ($reg_shift) {
+				$breaktime_tbl = db::connection('mysql_mes')->table('breaktime')->where('shift_id', $reg_shift->shift_id)->get();
+				if (!empty($breaktime_tbl)) {
+					foreach ($breaktime_tbl as $r) {
+						$breaktime[] = [
 							"break_type" => $r->category,
 							"time_in" => $r->time_from,
-							'time_out' =>$r->time_to,
-							'div_id'=> str_replace(' ', '', $r->category),
+							'time_out' => $r->time_to,
+							'div_id' => str_replace(' ', '', $r->category),
 							"time_in_show" => date("h:i a", strtotime($r->time_from)),
-							'time_out_show' =>date("h:i a", strtotime($r->time_to))
+							'time_out_show' => date("h:i a", strtotime($r->time_to))
 						];
 					}
 				}
 			}
-		$o_shift_shift= DB::connection('mysql_mes')->table('shift_schedule')
-			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
-			->whereDate('shift_schedule.date', $now)
-			->where('shift.operation_id', 2)
-			->where('shift.shift_type', 'Overtime Shift')
-			->select('shift.shift_id')->first();
-			if($o_shift_shift){
-				$breaktime_tbll= db::connection('mysql_mes')->table('breaktime')->where('shift_id', $o_shift_shift->shift_id)->get();
-				if($breaktime_tbll){
-					foreach($breaktime_tbll as $r){
-						$breaktime[]=[
-							"break_type" => $r->category,
-							"time_in" => $r->time_from,
-							'time_out' =>$r->time_to,
-							'div_id'=> str_replace(' ', '', $r->category),
-							"time_in_show" => date("h:i a", strtotime($r->time_from)),
-							'time_out_show' =>date("h:i a", strtotime($r->time_to))
-						];
-					}
+		} else {
+			$breaktime_tbl = db::connection('mysql_mes')->table('breaktime')->where('shift_id', $shift->shift_id)->get();
+			if (!empty($breaktime_tbl)) {
+				foreach ($breaktime_tbl as $r) {
+					$breaktime[] = [
+						"break_type" => $r->category,
+						"time_in" => $r->time_from,
+						'time_out' => $r->time_to,
+						'div_id' => str_replace(' ', '', $r->category),
+						"time_in_show" => date("h:i a", strtotime($r->time_from)),
+						'time_out_show' => date("h:i a", strtotime($r->time_to))
+					];
 				}
 			}
+		}
+
+		$o_shift_shift = DB::connection('mysql_mes')->table('shift_schedule')
+			->join('shift', 'shift.shift_id', 'shift_schedule.shift_id')
+			->whereDate('shift_schedule.date', $now)->where('shift.operation_id', 2)
+			->where('shift.shift_type', 'Overtime Shift')->select('shift.shift_id')->first();
+		if ($o_shift_shift) {
+			$breaktime_tbll = db::connection('mysql_mes')->table('breaktime')->where('shift_id', $o_shift_shift->shift_id)->get();
+			if ($breaktime_tbll) {
+				foreach ($breaktime_tbll as $r) {
+					$breaktime[] = [
+						"break_type" => $r->category,
+						"time_in" => $r->time_from,
+						'time_out' => $r->time_to,
+						'div_id' => str_replace(' ', '', $r->category),
+						"time_in_show" => date("h:i a", strtotime($r->time_from)),
+						'time_out_show' => date("h:i a", strtotime($r->time_to))
+					];
+				}
+			}
+		}
+
 		$breaktime_data = collect($breaktime);
-        return view('painting_operator.index', compact('process_details', 'machine_status', 'painting_process', 'breaktime_data'));
+
+		return view('painting_operator.index', compact('process_details', 'machine_status', 'painting_process', 'breaktime_data'));
 	}
 
-	public function loading_login(Request $request, $process){
+	public function loading_login(Request $request, $process)
+	{
 		$machine_code = 'M00200';
-
-		if(Auth::user()){
-			return redirect('/operator/Painting/'.$process);
+		if (Auth::user()) {
+			return redirect('/operator/Painting/' . $process);
 		}
 
 		$machine_details = DB::connection('mysql_mes')->table('machine')->where('machine_code', $machine_code)->first();
@@ -123,7 +111,8 @@ class PaintingOperatorController extends Controller
 		return view('painting_operator.loading_login', compact('process', 'machine_status', 'process_details', 'painting_process'));
 	}
 
-	public function get_production_order_details($production_order, $process_id){
+	public function get_production_order_details($production_order, $process_id)
+	{
 		$now = Carbon::now();
 		$task_qry = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('production_order as po', 'po.production_order', 'jt.production_order')
@@ -135,11 +124,11 @@ class PaintingOperatorController extends Controller
 			return response()->json(['success' => 0, 'message' => 'Task not found.']);
 		}
 
-		if($task_qry->process_name == 'Loading' && $task_qry->qty_to_manufacture == $task_qry->completed_qty){
+		if ($task_qry->process_name == 'Loading' && $task_qry->qty_to_manufacture == $task_qry->completed_qty) {
 			return response()->json(['success' => 0, 'message' => 'Loading task already completed.']);
 		}
 
-		if(!$task_qry->planned_start_date || $task_qry->planned_start_date > $now->format('Y-m-d H:i:s')){
+		if (!$task_qry->planned_start_date || $task_qry->planned_start_date > $now->format('Y-m-d H:i:s')) {
 			return response()->json(['success' => 0, 'message' => 'Task not scheduled for today.']);
 		}
 
@@ -147,7 +136,7 @@ class PaintingOperatorController extends Controller
 			->join('process', 'process.process_id', 'job_ticket.process_id')
 			->where('process_name', 'Unloading')->where('job_ticket.production_order', $production_order)
 			->first();
-		if($unloading_jt && $unloading_jt->status == 'Completed'){
+		if ($unloading_jt && $unloading_jt->status == 'Completed') {
 			return response()->json(['success' => 0, 'message' => 'Task is already completed.']);
 		}
 
@@ -166,11 +155,12 @@ class PaintingOperatorController extends Controller
 		return response()->json(['success' => 1, 'message' => "Production Order found.", 'details' => $production_orders, 'qty' => $qty]);
 	}
 
-	public function login_operator(Request $request){
+	public function login_operator(Request $request)
+	{
 		$user = DB::connection('mysql_essex')->table('users')->where('user_id', $request->operator_id)->first();
 
-        if (!$user) {
-            return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
+		if (!$user) {
+			return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 		}
 
 		$painting_machine = DB::connection('mysql_mes')->table('workstation_machine')->where('workstation', 'Painting')->first();
@@ -179,26 +169,27 @@ class PaintingOperatorController extends Controller
 		}
 
 		$process = $request->process_name ? $request->process_name : 'Loading';
-		
+
 		$url = '/operator/Painting/' . $process;
 
 		// attempt to do the login
-        if ($user) {
-            if(Auth::loginUsingId($user->id)){
-                return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'url' => $url]);
-            } 
-        } else {        
-            // validation not successful, send back to form 
-            return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
-        }
+		if ($user) {
+			if (Auth::loginUsingId($user->id)) {
+				return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'url' => $url]);
+			}
+		} else {
+			// validation not successful, send back to form 
+			return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
+		}
 	}
 
-	public function painting_index($process_name){
+	public function painting_index($process_name)
+	{
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
-		if(!Auth::user()){
-			return redirect('/operator/Painting/'.$process_name.'/login');
+		if (!Auth::user()) {
+			return redirect('/operator/Painting/' . $process_name . '/login');
 		}
 
 		$machine_code = 'M00200';
@@ -215,7 +206,8 @@ class PaintingOperatorController extends Controller
 	}
 
 	// /operator/Painting/{process_name}/{machine_code} - revised
-	public function operator_task(Request $request, $process_name, $machine_code){
+	public function operator_task(Request $request, $process_name, $machine_code)
+	{
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
@@ -233,7 +225,7 @@ class PaintingOperatorController extends Controller
 		$scheduled_painting_production_orders = DB::connection('mysql_mes')->table('job_ticket')
 			->where('workstation', 'Painting')->whereBetween('job_ticket.planned_start_date', [$start, $end])
 			->distinct()->pluck('production_order');
-		
+
 		$painting_processes = DB::connection('mysql_mes')->table('job_ticket')
 			->join('process', 'job_ticket.process_id', 'process.process_id')
 			->join('production_order as po', 'po.production_order', 'job_ticket.production_order')
@@ -241,11 +233,11 @@ class PaintingOperatorController extends Controller
 			->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)
 			->where('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
 			->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'In Progress')->where('tl.status', '!=', 'Completed')
-			->when($process_name == 'Unloading', function ($q) use ($loading_process, $start, $scheduled_painting_production_orders){
+			->when($process_name == 'Unloading', function ($q) use ($loading_process, $start, $scheduled_painting_production_orders) {
 				return $q->orWhere('job_ticket.workstation', 'Painting')->whereIn('job_ticket.production_order', $scheduled_painting_production_orders)->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start)
-				->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
+					->orWhere('job_ticket.workstation', 'Painting')->where('job_ticket.process_id', $loading_process->process_id)->whereNotIn('po.status', ['Cancelled', 'Closed'])->where('job_ticket.status', 'Completed')->whereDate('job_ticket.last_modified_at', '>=', $start);
 			})
-			->select('job_ticket.production_order', 'job_ticket.planned_start_date', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id','tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
+			->select('job_ticket.production_order', 'job_ticket.planned_start_date', 'job_ticket.job_ticket_id', 'job_ticket.status', 'job_ticket.completed_qty', 'job_ticket.process_id', 'job_ticket.sequence', 'job_ticket.completed_qty', 'job_ticket.good as jt_good', 'job_ticket.reject', 'po.item_code', 'po.description', 'tl.time_log_id', 'tl.good as good', 'po.qty_to_manufacture', 'tl.reject')
 			->orderByRaw("FIELD(job_ticket.status , 'In Progress', 'Completed') ASC")->orderBy('tl.created_at', 'desc')
 			->get();
 
@@ -258,7 +250,7 @@ class PaintingOperatorController extends Controller
 			->groupBy('job_ticket.production_order', 'process.process_name', 'time_logs.time_log_id', 'time_logs.status', 'time_logs.reference_time_log')->get();
 
 		$unloaded_per_time_log_id = collect($unloaded_qry)->groupBy('time_log_id');
-		foreach($unloaded_qry as $tl){
+		foreach ($unloaded_qry as $tl) {
 			$qty_array[$tl->production_order][$tl->status][$tl->process_name][$tl->time_log_id] = [
 				'time_log_id' => $tl->time_log_id,
 				'reference_time_log' => $tl->reference_time_log,
@@ -279,19 +271,20 @@ class PaintingOperatorController extends Controller
 	}
 
 	// /reject_painting
-	public function reject_task(Request $request){
+	public function reject_task(Request $request)
+	{
 		DB::connection('mysql')->beginTransaction();
 		DB::connection('mysql_mes')->beginTransaction();
 		try {
-			if(empty($request->reject_list)){
+			if (empty($request->reject_list)) {
 				return response()->json(['success' => 0, 'message' => 'Alert: Please select reject type']);
 			}
 			$now = Carbon::now();
-			$data= $request->all();
-			$reject_reason= $data['reject_list'];
+			$data = $request->all();
+			$reject_reason = $data['reject_list'];
 			$time_log = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
 
-			if(!$time_log){
+			if (!$time_log) {
 				return response()->json(['success' => 0, 'message' => 'Alert: Operation not found.']);
 			}
 
@@ -304,16 +297,16 @@ class PaintingOperatorController extends Controller
 				'good' => $good_qty_after_transaction
 			];
 
-			if($good_qty_after_transaction <= 0){
+			if ($good_qty_after_transaction <= 0) {
 				$update['status'] = 'Completed';
 			}
 
-			if($request->process_name == 'Loading'){
+			if ($request->process_name == 'Loading') {
 				$update['reject'] = $request->rejected_qty + $time_log->reject;
 			}
 
 			$reference_type = 'Time Logs';
-			$reference_id =  $request->id;
+			$reference_id = $request->id;
 
 			$insert = [
 				'reference_type' => $reference_type,
@@ -328,7 +321,7 @@ class PaintingOperatorController extends Controller
 
 			$qa_id = DB::connection('mysql_mes')->table('quality_inspection')->insertGetId($insert);
 
-			foreach($reject_reason as $i => $row){
+			foreach ($reject_reason as $i => $row) {
 				$reason[] = [
 					'job_ticket_id' => $job_ticket_id,
 					'qa_id' => $qa_id,
@@ -339,24 +332,24 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql_mes')->table('reject_reason')->insert($reason);
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->update($update);
-			if($request->process_name == 'Unloading'){
+			if ($request->process_name == 'Unloading') {
 				$unloading_tl = DB::connection('mysql_mes')->table('time_logs')->where('reference_time_log', $request->id)->first();
 				$update['reject'] = $request->rejected_qty + $time_log->reject;
 
-				if($unloading_tl){
+				if ($unloading_tl) {
 					DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $unloading_tl->time_log_id)->update($update);
 
 					$update_job_ticket = $this->update_job_ticket($unloading_tl->job_ticket_id);
 
-					if(!$update_job_ticket){
+					if (!$update_job_ticket) {
 						DB::connection('mysql')->rollback();
 						DB::connection('mysql_mes')->rollback();
 
 						return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 					}
-				}else{
+				} else {
 					$seconds = $now->diffInSeconds(Carbon::parse($time_log->from_time));
-					$duration= $seconds / 3600;
+					$duration = $seconds / 3600;
 					$update['duration'] = $duration;
 
 					$unloading_jt = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -381,7 +374,7 @@ class PaintingOperatorController extends Controller
 
 					$update_job_ticket = $this->update_job_ticket($unloading_jt->job_ticket_id);
 
-					if(!$update_job_ticket){
+					if (!$update_job_ticket) {
 						DB::connection('mysql')->rollback();
 						DB::connection('mysql_mes')->rollback();
 
@@ -392,7 +385,7 @@ class PaintingOperatorController extends Controller
 
 			$update_job_ticket = $this->update_job_ticket($job_ticket_id);
 
-			if(!$update_job_ticket){
+			if (!$update_job_ticket) {
 				DB::connection('mysql')->rollback();
 				DB::connection('mysql_mes')->rollback();
 
@@ -400,22 +393,23 @@ class PaintingOperatorController extends Controller
 			}
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
-            return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
-        } catch (Exception $e) {
+			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
+		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
-            return response()->json(["error" => $e->getMessage()]);
-        }
+			return response()->json(["error" => $e->getMessage()]);
+		}
 	}
 
 	// /get_task/{production_order}/{process_id}/{operator_id}
-	public function get_task($production_order, $process_id, $operator_id){
+	public function get_task($production_order, $process_id, $operator_id)
+	{
 		$process_details = DB::connection('mysql_mes')->table('process')->where('process_id', $process_id)->first();
-		$jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->where('process_id',$process_id)->select('job_ticket_id')->first();
+		$jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $production_order)->where('process_id', $process_id)->select('job_ticket_id')->first();
 		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->first();
 
 		$machine_status = $this->get_machine_status();
-		
+
 		$status = 'In Progress';
 		$in_progress_task = DB::connection('mysql_mes')->table('job_ticket')
 			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
@@ -454,7 +448,7 @@ class PaintingOperatorController extends Controller
 			'good' => ($completed_task) ? $completed_task->good : 0,
 		];
 
-		if($process_details->process_name == 'Unloading'){
+		if ($process_details->process_name == 'Unloading') {
 			$loading_process_detail = DB::connection('mysql_mes')->table('process')->where('process_name', 'Loading')->first();
 			$qty_loaded = DB::connection('mysql_mes')->table('job_ticket')
 				->where('workstation', 'Painting')->where('production_order', $production_order)
@@ -478,16 +472,17 @@ class PaintingOperatorController extends Controller
 		return view('painting_operator.tbl_task', compact('production_order_details', 'process_details', 'task_details', 'machine_status', 'qty_arr', 'batch_list'));
 	}
 
-	public function start_task(Request $request){
+	public function start_task(Request $request)
+	{
 		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
-        try {
+		try {
 			$now = Carbon::now();
-			if($request->qty <= 0){
+			if ($request->qty <= 0) {
 				return response()->json(['success' => 0, 'message' => 'Qty cannot be less than or equal to 0.']);
 			}
 
-			if(!Auth::user()){
+			if (!Auth::user()) {
 				return response()->json(['success' => 0, 'message' => 'You are logged out. Please refresh the page.']);
 			}
 
@@ -497,24 +492,24 @@ class PaintingOperatorController extends Controller
 			}
 
 			$machine = DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_code)->first();
-			if(!$machine){
-				return response()->json(['success' => 0, 'message' => 'Machine '.$request->machine_code.' not found.']);
+			if (!$machine) {
+				return response()->json(['success' => 0, 'message' => 'Machine ' . $request->machine_code . ' not found.']);
 			}
 			$machine_name = $machine->machine_name;
 
 			$production_order = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
-			if(!$production_order){
-				return response()->json(['success' => 0, 'message' => 'Production Order '.$request->production_order.' not found.']);
+			if (!$production_order) {
+				return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
 			}
 
-			if(in_array($production_order->status, ['Cancelled', 'Closed'])){
+			if (in_array($production_order->status, ['Cancelled', 'Closed'])) {
 				$err = $production_order->status == 'Cancelled' ? 'Cancelled' : 'Closed';
-				return response()->json(['success' => 0, 'message' => 'Production Order <b>'.$request->production_order.'</b> was <b>'.$err.'</b>.']);
+				return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $request->production_order . '</b> was <b>' . $err . '</b>.']);
 			}
 
 			$loaded_qty = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $request->job_ticket_id)->sum('good');
 
-			if(($request->qty + $loaded_qty) > $production_order->qty_to_manufacture){
+			if (($request->qty + $loaded_qty) > $production_order->qty_to_manufacture) {
 				return response()->json(['success' => 0, 'message' => 'Requested qty cannot exceed the qty to manufacture.']);
 			}
 
@@ -540,7 +535,7 @@ class PaintingOperatorController extends Controller
 
 			$update_job_ticket = $this->update_job_ticket($request->job_ticket_id);
 
-			if(!$update_job_ticket){
+			if (!$update_job_ticket) {
 				DB::connection('mysql')->rollback();
 				DB::connection('mysql_mes')->rollback();
 
@@ -550,44 +545,45 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
 			return response()->json(['success' => 1, 'message' => 'Task updated.']);
-        } catch (Exception $e) {
-            DB::connection('mysql')->rollback();
+		} catch (Exception $e) {
+			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
 			return response()->json(['success' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
-        }
+		}
 	}
 
-	public function end_task(Request $request){
+	public function end_task(Request $request)
+	{
 		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
-        try {
+		try {
 			$now = Carbon::now();
 			$current_task = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
-			if(!$current_task){
+			if (!$current_task) {
 				return response()->json(['success' => 0, 'message' => 'Task not found.']);
 			}
 
-			if(!Auth::user()){
+			if (!Auth::user()) {
 				return response()->json(['success' => 0, 'message' => 'You are logged out. Please refresh the page.']);
 			}
 
 			$operator = DB::connection('mysql_essex')->table('users')->where('user_id', Auth::user()->user_id)->first();
-			if(!$operator){
+			if (!$operator) {
 				return response()->json(['success' => 0, 'message' => 'User not found']);
 			}
 
 			$machine_code = 'M00200';
 			$machine = DB::connection('mysql_mes')->table('machine')->where('machine_code', $machine_code)->first();
-			if(!$machine){
-				return response()->json(['success' => 0, 'message' => 'Machine '.$machine_code.' not found.']);
+			if (!$machine) {
+				return response()->json(['success' => 0, 'message' => 'Machine ' . $machine_code . ' not found.']);
 			}
 			$machine_name = $machine->machine_name;
 
 			$seconds = $now->diffInSeconds(Carbon::parse($current_task->from_time));
-			$duration= $seconds / 3600;
+			$duration = $seconds / 3600;
 
 			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
-			if(!$production_order_details){
+			if (!$production_order_details) {
 				return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
 			}
 
@@ -597,12 +593,12 @@ class PaintingOperatorController extends Controller
 				->where('process_name', 'Unloading')->where('job_ticket.production_order', $request->production_order)
 				->first();
 
-			if(!$unloading_jt){
-				return response()->json(['success' => 0, 'message' => 'Unloading task not found for Production Order '.$request->production_order.'.']);
+			if (!$unloading_jt) {
+				return response()->json(['success' => 0, 'message' => 'Unloading task not found for Production Order ' . $request->production_order . '.']);
 			}
 
 			$seconds = $now->diffInSeconds(Carbon::parse($current_task->from_time));
-			$duration= $seconds / 3600;
+			$duration = $seconds / 3600;
 
 			$values = [
 				'job_ticket_id' => $unloading_jt->job_ticket_id,
@@ -634,7 +630,7 @@ class PaintingOperatorController extends Controller
 			$update_jt1 = $this->update_job_ticket($current_task->job_ticket_id);
 			$update_jt2 = $this->update_job_ticket($unloading_jt->job_ticket_id);
 
-			if(!$update_jt1 || !$update_jt2){
+			if (!$update_jt1 || !$update_jt2) {
 				DB::connection('mysql')->rollback();
 				DB::connection('mysql_mes')->rollback();
 
@@ -648,7 +644,7 @@ class PaintingOperatorController extends Controller
 			// get production order qty_to_manufacture
 			$qty_to_manufacture = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->sum('qty_to_manufacture');
 
-			if($qty_to_manufacture == $painting_completed_qty){
+			if ($qty_to_manufacture == $painting_completed_qty) {
 				// update spotwelding status and completed qty
 				$values = [
 					'completed_qty' => $painting_completed_qty,
@@ -664,7 +660,7 @@ class PaintingOperatorController extends Controller
 
 				$update_job_ticket = $this->update_job_ticket($unloading_jt->job_ticket_id);
 
-				if(!$update_job_ticket){
+				if (!$update_job_ticket) {
 					DB::connection('mysql')->rollback();
 					DB::connection('mysql_mes')->rollback();
 
@@ -675,14 +671,15 @@ class PaintingOperatorController extends Controller
 			DB::connection('mysql_mes')->commit();
 			DB::connection('mysql')->commit();
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
-        } catch (Exception $e) {
+		} catch (Exception $e) {
 			DB::connection('mysql_mes')->rollback();
 			DB::connection('mysql')->rollback();
-            return response()->json(["error" => $e->getMessage()]);
-        }
+			return response()->json(["error" => $e->getMessage()]);
+		}
 	}
 
-	public function get_machine_status(){
+	public function get_machine_status()
+	{
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
@@ -698,49 +695,51 @@ class PaintingOperatorController extends Controller
 		return 'Start Up';
 	}
 
-	public function updateProdOrderOps($prod_order, $workstation){
-        try {
-            $prod_qty = DB::connection('mysql_mes')->table('production_order')
-                ->where('production_order', $prod_order)->sum('qty_to_manufacture');
-            
-            // get total completed
-            $tsd = DB::connection('mysql_mes')->table('job_ticket')
-            	->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-                ->where('workstation', $workstation)->where('production_order', $prod_order)
-                ->where('time_logs.status', 'Completed')
-                ->get();
+	public function updateProdOrderOps($prod_order, $workstation)
+	{
+		try {
+			$prod_qty = DB::connection('mysql_mes')->table('production_order')
+				->where('production_order', $prod_order)->sum('qty_to_manufacture');
 
-            $completed = collect($tsd)->sum('good');
-            $actual_start = collect($tsd)->min('from_time');
-            $actual_end = collect($tsd)->max('to_time');
+			// get total completed
+			$tsd = DB::connection('mysql_mes')->table('job_ticket')
+				->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
+				->where('workstation', $workstation)->where('production_order', $prod_order)
+				->where('time_logs.status', 'Completed')
+				->get();
 
-            $status = ($prod_qty == $completed) ? "Completed" : "Pending";
+			$completed = collect($tsd)->sum('good');
+			$actual_start = collect($tsd)->min('from_time');
+			$actual_end = collect($tsd)->max('to_time');
 
-            $actual_start = Carbon::parse($actual_start);
-            $actual_end = Carbon::parse($actual_end);
-            $operation_time = $actual_end->diffInSeconds($actual_start);
-            $operation_time = $operation_time / 60;
+			$status = ($prod_qty == $completed) ? "Completed" : "Pending";
 
-            $data = [
-                'status' => $status,
-                'completed_qty' => $completed,
-                'actual_start_time' => $actual_start,
-                'actual_end_time' => $actual_end,
-                'actual_operation_time' => $operation_time,
-            ];
+			$actual_start = Carbon::parse($actual_start);
+			$actual_end = Carbon::parse($actual_end);
+			$operation_time = $actual_end->diffInSeconds($actual_start);
+			$operation_time = $operation_time / 60;
 
-            DB::connection('mysql')->table('tabWork Order Operation')
+			$data = [
+				'status' => $status,
+				'completed_qty' => $completed,
+				'actual_start_time' => $actual_start,
+				'actual_end_time' => $actual_end,
+				'actual_operation_time' => $operation_time,
+			];
+
+			DB::connection('mysql')->table('tabWork Order Operation')
 				->where('parent', $prod_order)->where('workstation', $workstation)->update($data);
 
-        } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage()]);
-        }
+		} catch (Exception $e) {
+			return response()->json(["error" => $e->getMessage()]);
+		}
 	}
 
-	public function update_produced_qty($production_order){
+	public function update_produced_qty($production_order)
+	{
 		$produced_qty = DB::connection('mysql_mes')->table('job_ticket')
 			->where('production_order', $production_order)->min('completed_qty');
-			
+
 		if ($produced_qty > 0) {
 			DB::connection('mysql_mes')->table('production_order')->where('production_order', $production_order)->update(['produced_qty' => $produced_qty]);
 		}
@@ -756,98 +755,103 @@ class PaintingOperatorController extends Controller
 		$this->update_inventory($item_code, $produced_qty, 0);
 	}
 
-	public function update_inventory($item_code, $qty, $is_withdrawn){
-        $existing_inv = DB::connection('mysql_mes')->table('fabrication_inventory')
-            ->where('item_code', $item_code)->first();
-		if($qty > 0){
+	public function update_inventory($item_code, $qty, $is_withdrawn)
+	{
+		$existing_inv = DB::connection('mysql_mes')->table('fabrication_inventory')
+			->where('item_code', $item_code)->first();
+		if ($qty > 0) {
 			if ($existing_inv) {
 				$current_balance_qty = DB::connection('mysql_mes')->table('fabrication_inventory')
 					->where('item_code', $item_code)->sum('balance_qty');
-	
+
 				if ($is_withdrawn) {
 					// deduct
 					$balance_qty = $current_balance_qty - $qty;
 					$balance_qty = ($balance_qty <= 0) ? 0 : $balance_qty;
-				}else{
+				} else {
 					// add
 					$balance_qty = $current_balance_qty + $qty;
 				}
-	
+
 				$data = [
 					'balance_qty' => $balance_qty,
 					'last_modified_by' => Auth::user()->employee_name
 				];
-	
+
 				DB::connection('mysql_mes')->table('fabrication_inventory')
-						->where('item_code', $item_code)->update($data);
-			}else{
+					->where('item_code', $item_code)->update($data);
+			} else {
 				$insert = [
 					'item_code' => $item_code,
 					'balance_qty' => $qty,
 					'created_by' => Auth::user()->employee_name
 				];
-	
+
 				DB::connection('mysql_mes')->table('fabrication_inventory')->insert($insert);
 			}
 		}
 	}
-	
-	public function update_completed_qty_per_workstation($job_ticket_id){
-    	$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
-    		->join('production_order', 'job_ticket.production_order', 'production_order.production_order')
-    		->where('job_ticket_id', $job_ticket_id)
-    		->select('job_ticket.status', 'production_order.qty_to_manufacture')->first();
 
-    	$logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_id)->exists();
-    	// get total good qty from timelogs
-    	$total_good = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_id)->where('status', 'Completed')->sum('good');
+	public function update_completed_qty_per_workstation($job_ticket_id)
+	{
+		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
+			->join('production_order', 'job_ticket.production_order', 'production_order.production_order')
+			->where('job_ticket_id', $job_ticket_id)
+			->select('job_ticket.status', 'production_order.qty_to_manufacture')->first();
 
-    	if ($logs && $total_good >= 0) {
-    		DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-    			->update(['status' => 'In Progress']);
-		}else{
+		$logs = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_id)->exists();
+		// get total good qty from timelogs
+		$total_good = DB::connection('mysql_mes')->table('time_logs')->where('job_ticket_id', $job_ticket_id)->where('status', 'Completed')->sum('good');
+
+		if ($logs && $total_good >= 0) {
 			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-    			->update(['status' => 'Pending']);
+				->update(['status' => 'In Progress']);
+		} else {
+			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
+				->update(['status' => 'Pending']);
 		}
-		
-    	if ($job_ticket_details->qty_to_manufacture == $total_good) {
-    		DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-    			->update(['status' => 'Completed', 'completed_qty' => $total_good]);
-    	}else{
-    		DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
-    			->update(['completed_qty' => $total_good]);
-    	}
+
+		if ($job_ticket_details->qty_to_manufacture == $total_good) {
+			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
+				->update(['status' => 'Completed', 'completed_qty' => $total_good]);
+		} else {
+			DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $job_ticket_id)
+				->update(['completed_qty' => $total_good]);
+		}
 	}
 
-	public function insert_machine_logs(Request $request){
-    	$now = Carbon::now();
-    	$operator = DB::connection('mysql_essex')->table('users')->where('user_id', $request->operator_id)->first();
+	public function insert_machine_logs(Request $request)
+	{
+		$now = Carbon::now();
+		$operator = DB::connection('mysql_essex')->table('users')->where('user_id', $request->operator_id)->first();
 
-    	if ($operator) {
-    		$data = [
-	    		'operation_date' => $now->toDateTimeString(),
-	    		'operator_id' => $request->operator_id,
-	    		'category' => $request->category,
-	    		'created_by' => $operator->employee_name,
-	    		'created_at' => $now->toDateTimeString()
-	    	];
+		if ($operator) {
+			$data = [
+				'operation_date' => $now->toDateTimeString(),
+				'operator_id' => $request->operator_id,
+				'category' => $request->category,
+				'created_by' => $operator->employee_name,
+				'created_at' => $now->toDateTimeString()
+			];
 
-	    	DB::connection('mysql_mes')->table('painting_operation_logs')->insert($data);
+			DB::connection('mysql_mes')->table('painting_operation_logs')->insert($data);
 
-	    	return response()->json(['success' => 1, 'message' => 'Log created.']);
-    	}else{
-    		return response()->json(['success' => 1, 'message' => 'Operator not found.']);
-    	}
-    }
-	
-	public function logout($process_name){
-        Auth::guard('web')->logout();
-        $route = '/operator/Painting/' . $process_name;
-        return redirect($route);
+			return response()->json(['success' => 1, 'message' => 'Log created.']);
+		} else {
+			return response()->json(['success' => 1, 'message' => 'Operator not found.']);
+		}
+	}
+
+	public function logout($process_name)
+	{
+		Auth::guard('web')->logout();
+		$route = '/operator/Painting/' . $process_name;
+		return redirect($route);
 	}
 
 	// /get_scheduled_for_painting
-	public function get_scheduled_for_painting(Request $request){
+	public function get_scheduled_for_painting(Request $request)
+	{
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
 
@@ -874,7 +878,7 @@ class PaintingOperatorController extends Controller
 			$completed_qty = collect($process)->min('completed_qty');
 
 			$sequence = collect($process)->min('sequence');
-			
+
 			$scheduled_arr[] = [
 				'production_order' => $row->production_order,
 				'reference_no' => $reference_no,
@@ -894,10 +898,11 @@ class PaintingOperatorController extends Controller
 		return view('painting_operator.tbl_scheduled_task', compact('scheduled_arr'));
 	}
 
-	public function backlogs(){
+	public function backlogs()
+	{
 		$start = Carbon::now()->startOfDay()->toDateTimeString();
 		$end = Carbon::now()->endOfDay()->toDateTimeString();
-		
+
 		$previously_scheduled_production_orders = DB::connection('mysql_mes')->table('job_ticket as jt')
 			->join('production_order as po', 'po.production_order', 'jt.production_order')
 			->join('process', 'process.process_id', 'jt.process_id')
@@ -911,21 +916,22 @@ class PaintingOperatorController extends Controller
 		return view('painting_operator.tbl_backlogs', compact('previously_scheduled_production_orders', 'backlogs'));
 	}
 
-	public function restart_task(Request $request){
+	public function restart_task(Request $request)
+	{
 		DB::connection('mysql_mes')->beginTransaction();
 		DB::connection('mysql')->beginTransaction();
-        try {
+		try {
 			$qry = DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->first();
-			if(!$qry){
+			if (!$qry) {
 				return response()->json(['success' => 0, 'message' => 'Task not found.']);
 			}
 
 			DB::connection('mysql_mes')->table('time_logs')->where('time_log_id', $request->id)->delete();
-			
-			if($qry){
+
+			if ($qry) {
 				$update_job_ticket = $this->update_job_ticket($qry->job_ticket_id);
 
-				if(!$update_job_ticket){
+				if (!$update_job_ticket) {
 					DB::connection('mysql')->rollback();
 					DB::connection('mysql_mes')->rollback();
 
@@ -935,45 +941,46 @@ class PaintingOperatorController extends Controller
 
 			DB::connection('mysql')->commit();
 			DB::connection('mysql_mes')->commit();
-	
+
 			return response()->json(['success' => 1, 'message' => 'Task has been updated.']);
 		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
 
-            return response()->json(["error" => $e->getMessage()]);
-        }
-    }
+			return response()->json(["error" => $e->getMessage()]);
+		}
+	}
 
-    public function create_stock_entry(Request $request, $production_order){
-    	$production_order_details = DB::connection('mysql')->table('tabWork Order')
-    		->where('name', $production_order)->first();
+	public function create_stock_entry(Request $request, $production_order)
+	{
+		$production_order_details = DB::connection('mysql')->table('tabWork Order')
+			->where('name', $production_order)->first();
 
-    	$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
-    		->where('production_order', $production_order)->first();
+		$mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
+			->where('production_order', $production_order)->first();
 
-    	$now = Carbon::now();
+		$now = Carbon::now();
 
-    	$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
-        $latest_pro_exploded = explode("-", $latest_pro);
-        $new_id = $latest_pro_exploded[1] + 1;
-        $new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
-        $new_id = 'STEM-'.$new_id;
+		$latest_pro = DB::connection('mysql')->table('tabStock Entry')->max('name');
+		$latest_pro_exploded = explode("-", $latest_pro);
+		$new_id = $latest_pro_exploded[1] + 1;
+		$new_id = str_pad($new_id, 5, '0', STR_PAD_LEFT);
+		$new_id = 'STEM-' . $new_id;
 
-    	$production_order_items = DB::connection('mysql')->table('tabWork Order Item')
-    		->where('parent', $production_order)->get();
+		$production_order_items = DB::connection('mysql')->table('tabWork Order Item')
+			->where('parent', $production_order)->get();
 
-    	$stock_entry_detail = [];
-    	foreach ($production_order_items as $index => $row) {
-    		$bom_material = DB::connection('mysql')->table('tabBOM Item')
-    			->where('parent', $production_order_details->bom_no)
-    			->where('item_code', $row->item_code)->first();
+		$stock_entry_detail = [];
+		foreach ($production_order_items as $index => $row) {
+			$bom_material = DB::connection('mysql')->table('tabBOM Item')
+				->where('parent', $production_order_details->bom_no)
+				->where('item_code', $row->item_code)->first();
 
-    		$qty = $row->required_qty / $request->fg_completed_qty;
+			$qty = $row->required_qty / $request->fg_completed_qty;
 
-    		$stock_entry_detail[] = [
-	    		'name' =>  uniqid(),
-		    	'creation' => $now->toDateTimeString(),
+			$stock_entry_detail[] = [
+				'name' => uniqid(),
+				'creation' => $now->toDateTimeString(),
 				'modified' => $now->toDateTimeString(),
 				'modified_by' => Auth::user()->email,
 				'owner' => Auth::user()->email,
@@ -1014,14 +1021,14 @@ class PaintingOperatorController extends Controller
 				's_warehouse_personnel' => null,
 				'target_warehouse_location' => null,
 				'source_warehouse_location' => null,
-	    	];
+			];
 		}
-		
+
 		$rm_amount = collect($stock_entry_detail)->sum('basic_amount');
 		$rate = $rm_amount / $request->fg_completed_qty;
 
-    	$stock_entry_detail[] = [
-			'name' =>  uniqid(),
+		$stock_entry_detail[] = [
+			'name' => uniqid(),
 			'creation' => $now->toDateTimeString(),
 			'modified' => $now->toDateTimeString(),
 			'modified_by' => Auth::user()->email,
@@ -1065,65 +1072,65 @@ class PaintingOperatorController extends Controller
 			'source_warehouse_location' => null,
 		];
 
-    	DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
+		DB::connection('mysql')->table('tabStock Entry Detail')->insert($stock_entry_detail);
 
-    	$stock_entry_data = [
-    		'name' => $new_id,
-    	 	'creation' => $now->toDateTimeString(),
-    	 	'modified' => $now->toDateTimeString(),
-    	 	'modified_by' => Auth::user()->email,
-    	 	'owner' => Auth::user()->email,
-    	 	'docstatus' => 1,
-    	 	'parent' => null,
-    	 	'parentfield' => null,
-    	 	'parenttype' => null,
-    	 	'idx' => 0,
-    	 	'use_multi_level_bom' => 1,
-    	 	'delivery_note_no' => null,
-    	 	'naming_series' => 'STE-',
-    	 	'fg_completed_qty' => $request->fg_completed_qty,
-    	 	'letter_head' => null,
-    	 	'_liked_by' => null,
-    	 	'purchase_receipt_no' => null,
-    	 	'posting_time' => $now->format('H:i:s'),
-    	 	'customer_name' => null,
-    	 	'to_warehouse' => $production_order_details->fg_warehouse,
-    	 	'title' => 'Manufacture',
-    	 	'_comments' => null,
-    	 	'from_warehouse' => $production_order_details->wip_warehouse,
-    	 	'set_posting_time' => 0,
-    	 	'purchase_order' => null,
-    	 	'from_bom' => 1,
-    	 	'supplier_address' => null,
-    	 	'supplier' => null,
-    	 	'source_address_display' => null,
-    	 	'address_display' => null,
-    	 	'source_warehouse_address' => null,
-    	 	'value_difference' => 0,
-    	 	'credit_note' => null,
-    	 	'sales_invoice_no' => null,
-    	 	'company' => 'FUMACO Inc.',
-    	 	'target_warehouse_address' => null,
-    	 	'customer_address' => null,
-    	 	'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
-    	 	'supplier_name' => null,
-    	 	'remarks' => null,
-    	 	'_user_tags' => null,
-    	 	'total_additional_costs' => 0,
-    	 	'customer' => null,
-    	 	'bom_no' => $production_order_details->bom_no,
-    	 	'amended_from' => null,
-    	 	'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
-    	 	'total_incoming_value' => collect($stock_entry_detail)->sum('basic_amount'),
-    	 	'project' => $production_order_details->project,
-    	 	'_assign' => null,
-    	 	'select_print_heading' => null,
-    	 	'posting_date' => $now->format('Y-m-d'),
-    	 	'target_address_display' => null,
-    	 	'production_order' => $production_order,
-    	 	'purpose' => 'Manufacture',
-    	 	'shipping_address_contact_person' => null,
-    	 	'customer_1' => null,
+		$stock_entry_data = [
+			'name' => $new_id,
+			'creation' => $now->toDateTimeString(),
+			'modified' => $now->toDateTimeString(),
+			'modified_by' => Auth::user()->email,
+			'owner' => Auth::user()->email,
+			'docstatus' => 1,
+			'parent' => null,
+			'parentfield' => null,
+			'parenttype' => null,
+			'idx' => 0,
+			'use_multi_level_bom' => 1,
+			'delivery_note_no' => null,
+			'naming_series' => 'STE-',
+			'fg_completed_qty' => $request->fg_completed_qty,
+			'letter_head' => null,
+			'_liked_by' => null,
+			'purchase_receipt_no' => null,
+			'posting_time' => $now->format('H:i:s'),
+			'customer_name' => null,
+			'to_warehouse' => $production_order_details->fg_warehouse,
+			'title' => 'Manufacture',
+			'_comments' => null,
+			'from_warehouse' => $production_order_details->wip_warehouse,
+			'set_posting_time' => 0,
+			'purchase_order' => null,
+			'from_bom' => 1,
+			'supplier_address' => null,
+			'supplier' => null,
+			'source_address_display' => null,
+			'address_display' => null,
+			'source_warehouse_address' => null,
+			'value_difference' => 0,
+			'credit_note' => null,
+			'sales_invoice_no' => null,
+			'company' => 'FUMACO Inc.',
+			'target_warehouse_address' => null,
+			'customer_address' => null,
+			'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
+			'supplier_name' => null,
+			'remarks' => null,
+			'_user_tags' => null,
+			'total_additional_costs' => 0,
+			'customer' => null,
+			'bom_no' => $production_order_details->bom_no,
+			'amended_from' => null,
+			'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
+			'total_incoming_value' => collect($stock_entry_detail)->sum('basic_amount'),
+			'project' => $production_order_details->project,
+			'_assign' => null,
+			'select_print_heading' => null,
+			'posting_date' => $now->format('Y-m-d'),
+			'target_address_display' => null,
+			'production_order' => $production_order,
+			'purpose' => 'Manufacture',
+			'shipping_address_contact_person' => null,
+			'customer_1' => null,
 			'material_request' => $production_order_details->material_request,
 			'reference_no' => null,
 			'delivery_date' => null,
@@ -1142,15 +1149,15 @@ class PaintingOperatorController extends Controller
 			'receive_as' => null,
 			'so_customer_name' => $mes_production_order_details->customer,
 			'order_type' => $mes_production_order_details->classification,
-    	];
+		];
 
 		DB::connection('mysql')->table('tabStock Entry')->insert($stock_entry_data);
-		
+
 		$produced_qty = $production_order_details->produced_qty + $request->fg_completed_qty;
-		
+
 		$production_data = [
 			'modified' => $now->toDateTimeString(),
-    	 	'modified_by' => Auth::user()->email,
+			'modified_by' => Auth::user()->email,
 			'produced_qty' => $produced_qty,
 			'status' => ($produced_qty == $production_order_details->qty) ? 'Completed' : $production_order_details->status
 		];
@@ -1159,7 +1166,7 @@ class PaintingOperatorController extends Controller
 
 		$production_data_mes = [
 			'last_modified_at' => $now->toDateTimeString(),
-    	 	'last_modified_by' => Auth::user()->email,
+			'last_modified_by' => Auth::user()->email,
 			'feedback_qty' => $production_order_details->produced_qty + $request->fg_completed_qty,
 		];
 
@@ -1169,35 +1176,36 @@ class PaintingOperatorController extends Controller
 		$this->create_stock_ledger_entry($new_id);
 		$this->create_gl_entry($new_id);
 
-    	return response()->json(['message' => 'Stock Entry has been created.']);
-    }
+		return response()->json(['message' => 'Stock Entry has been created.']);
+	}
 
-    public function create_stock_ledger_entry($stock_entry){
-    	$now = Carbon::now();
-    	$latest_pro = DB::connection('mysql')->table('tabStock Ledger Entry')->max('name');
-        $latest_pro_exploded = explode("/", $latest_pro);
-        $new_id = $latest_pro_exploded[1] + 1;
+	public function create_stock_ledger_entry($stock_entry)
+	{
+		$now = Carbon::now();
+		$latest_pro = DB::connection('mysql')->table('tabStock Ledger Entry')->max('name');
+		$latest_pro_exploded = explode("/", $latest_pro);
+		$new_id = $latest_pro_exploded[1] + 1;
 
-        $stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')
-        	->where('name', $stock_entry)->first();
+		$stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')
+			->where('name', $stock_entry)->first();
 
-        $stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')
-        	->where('parent', $stock_entry)->get();
+		$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')
+			->where('parent', $stock_entry)->get();
 
-        $stock_ledger_entry = [];
-        foreach ($stock_entry_detail as $row) {
-        	$warehouse = ($row->s_warehouse) ? $row->s_warehouse : $row->t_warehouse;
+		$stock_ledger_entry = [];
+		foreach ($stock_entry_detail as $row) {
+			$warehouse = ($row->s_warehouse) ? $row->s_warehouse : $row->t_warehouse;
 
-        	$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $warehouse)
+			$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $warehouse)
 				->where('item_code', $row->item_code)->first();
-			
-        	$new_id = $new_id + 1;
-        	$new_id = str_pad($new_id, 8, '0', STR_PAD_LEFT);
-        	$id = 'SLEM/'.$new_id;
 
-        	$stock_ledger_entry[] = [
-	    		'name' => $id,
-			    'creation' => $now->toDateTimeString(),
+			$new_id = $new_id + 1;
+			$new_id = str_pad($new_id, 8, '0', STR_PAD_LEFT);
+			$id = 'SLEM/' . $new_id;
+
+			$stock_ledger_entry[] = [
+				'name' => $id,
+				'creation' => $now->toDateTimeString(),
 				'modified' => $now->toDateTimeString(),
 				'modified_by' => Auth::user()->email,
 				'owner' => Auth::user()->email,
@@ -1230,29 +1238,30 @@ class PaintingOperatorController extends Controller
 				'qty_after_transaction' => $bin_qry->actual_qty,
 				'_user_tags' => null,
 				'batch_no' => $row->batch_no,
-				'stock_value_difference' => ($row->s_warehouse) ? ($row->qty * $row->valuation_rate) * -1  : $row->qty * $row->valuation_rate,
+				'stock_value_difference' => ($row->s_warehouse) ? ($row->qty * $row->valuation_rate) * -1 : $row->qty * $row->valuation_rate,
 				'posting_date' => $now->format('Y-m-d'),
-	    	];
-        }
+			];
+		}
 
-        DB::connection('mysql')->table('tabStock Ledger Entry')->insert($stock_ledger_entry);
-    }
+		DB::connection('mysql')->table('tabStock Ledger Entry')->insert($stock_ledger_entry);
+	}
 
-    public function update_bin($stock_entry){
+	public function update_bin($stock_entry)
+	{
 		$now = Carbon::now();
 
 		$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
-		foreach($stock_entry_detail as $row){
+		foreach ($stock_entry_detail as $row) {
 			$warehouse = ($row->s_warehouse) ? $row->s_warehouse : $row->t_warehouse;
 			$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $warehouse)
 				->where('item_code', $row->item_code)->first();
 
-			if(!$bin_qry){
+			if (!$bin_qry) {
 				$latest_name = DB::connection('mysql')->table('tabBin')->max('name');
 				$latest_name_exploded = explode("/", $latest_name);
 				$new_id = $latest_name_exploded[1] + 1;
 				$new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-				$new_id = 'BINM/'.$new_id;
+				$new_id = 'BINM/' . $new_id;
 
 				$bin = [
 					'name' => $new_id,
@@ -1287,7 +1296,7 @@ class PaintingOperatorController extends Controller
 				];
 
 				DB::connection('mysql')->table('tabBin')->insert($bin);
-			}else{
+			} else {
 				$bin = [
 					// 'name' => $new_id,
 					// 'creation' => $now->toDateTimeString(),
@@ -1324,8 +1333,9 @@ class PaintingOperatorController extends Controller
 			}
 		}
 	}
-	
-	public function create_gl_entry($stock_entry){
+
+	public function create_gl_entry($stock_entry)
+	{
 		$now = Carbon::now();
 		$stock_entry_qry = DB::connection('mysql')->table('tabStock Entry')->where('name', $stock_entry)->first();
 		$stock_entry_detail = DB::connection('mysql')->table('tabStock Entry Detail')->where('parent', $stock_entry)->get();
@@ -1335,13 +1345,13 @@ class PaintingOperatorController extends Controller
 			$latest_name_exploded = explode("L", $latest_name);
 			$new_id = $latest_name_exploded[1] + 1;
 			$new_id = str_pad($new_id, 7, '0', STR_PAD_LEFT);
-			$new_id = 'MGL'.$new_id;
+			$new_id = 'MGL' . $new_id;
 
-			if($row->s_warehouse){
+			if ($row->s_warehouse) {
 				$credit = $row->basic_amount;
 				$debit = 0;
 				$account = $row->s_warehouse;
-			}else{
+			} else {
 				$credit = 0;
 				$debit = $row->basic_amount;
 				$account = $row->t_warehouse;
@@ -1397,62 +1407,52 @@ class PaintingOperatorController extends Controller
 			];
 
 			DB::connection('mysql')->table('tabGL Entry')->insert($gl_entry);
-		}		
+		}
 	}
-	public function get_powder_modal_details(){
-        $now = Carbon::now();
-        $get_date_today = $now->format('Y-m-d');
-        // $previous_date= date('Y-m-d',strtotime("-1 days"));
 
-        $operating_hrs= DB::connection('mysql_mes')
-            ->table('painting_operation_logs')
-            ->whereDate('operation_date', $get_date_today)
-            ->get();
-        $previous= DB::connection('mysql_mes')
-            ->table('water_discharged_monitoring')
-            ->orderBy('created_by', 'desc')
-            ->first();
+	public function get_powder_modal_details()
+	{
+		$now = Carbon::now();
+		$get_date_today = $now->format('Y-m-d');
 
-        $min=collect($operating_hrs)->min('operation_date');
-        $max=collect($operating_hrs)->max('operation_date');
-        // dd($min);
-        $start = Carbon::parse($min);
-        $end = Carbon::parse($max);
-        $totalDuration = $end->diffInHours($start);
-        $op_hrs= $totalDuration;
-		// $previous_wd = ($previous->previous == null)? 0: $previous->previous;
-		$shift=DB::connection('mysql_mes')
-		->table('shift')
-		->join('operation as op','op.operation_id','shift.operation_id')
-		->where('op.operation_name','Painting')
-		->select('shift.*')
-		->get();
-		// dd($shift);
+		$operating_hrs = DB::connection('mysql_mes')->table('painting_operation_logs')
+			->whereDate('operation_date', $get_date_today)->get();
 
-        $date_today=  $now->format('l,  F d Y');
+		$previous = DB::connection('mysql_mes')->table('water_discharged_monitoring')
+			->orderBy('created_by', 'desc')->first();
+
+		$min = collect($operating_hrs)->min('operation_date');
+		$max = collect($operating_hrs)->max('operation_date');
+		$start = Carbon::parse($min);
+		$end = Carbon::parse($max);
+		$totalDuration = $end->diffInHours($start);
+		$op_hrs = $totalDuration;
+
+		$shift = DB::connection('mysql_mes')->table('shift')
+			->join('operation as op', 'op.operation_id', 'shift.operation_id')
+			->where('op.operation_name', 'Painting')->select('shift.*')->get();
+
+		$date_today = $now->format('l,  F d Y');
 		$item_list = DB::table('tabItem as item')
-		->whereIn('item.item_group', ['Raw Material'])
-		->where('item.item_classification','like', '%'."PA - Paints".'%')
-		->where('item.item_name','like', '%'.'powder'.'%')
-        ->select('item.name', 'item.item_name')
-		->orderBy('item.modified', 'desc')->get();
-		// dd($item_list);
-        return view('painting_operator.tbl_powder_record_tab', compact('shift','item_list', 'date_today', 'op_hrs'));
-                        
-	}
-	public function get_pwder_coat_desc($item){
-        
-		$item_list = DB::table('tabItem as item')
-		->whereIn('item.item_group', ['Raw Material'])
-		->where('item.name', $item)
-        ->select('item.name', 'item.item_name')
-		->first();
+			->whereIn('item.item_group', ['Raw Material'])
+			->where('item.item_classification', 'like', '%' . "PA - Paints" . '%')
+			->where('item.item_name', 'like', '%' . 'powder' . '%')
+			->select('item.name', 'item.item_name')
+			->orderBy('item.modified', 'desc')->get();
 
-		return response()->json(['item' => $item_list->name,'item_desc' => $item_list->item_name]);
-
-                        
+		return view('painting_operator.tbl_powder_record_tab', compact('shift', 'item_list', 'date_today', 'op_hrs'));
 	}
-	public function submit_powder_record_monitoring(Request $request){
+
+	public function get_pwder_coat_desc($item)
+	{
+		$item_list = DB::table('tabItem as item')->whereIn('item.item_group', ['Raw Material'])
+			->where('item.name', $item)->select('item.name', 'item.item_name')->first();
+
+		return response()->json(['item' => $item_list->name, 'item_desc' => $item_list->item_name]);
+	}
+	
+	public function submit_powder_record_monitoring(Request $request)
+	{
 		DB::connection('mysql_mes')->beginTransaction();
 		try {
 			$now = Carbon::now();
@@ -1461,47 +1461,50 @@ class PaintingOperatorController extends Controller
 			$current = $data['current'];
 			$consum = $data['consum'];
 			$bal = $data['bal'];
-			
-			$email= DB::connection('mysql_essex')->table('users')
-                ->where('users.user_id', $request->inspected_by)
+
+			$email = DB::connection('mysql_essex')->table('users')
+				->where('users.user_id', $request->inspected_by)
 				->select('users.email', 'users.employee_name')
 				->first();
 
 			if (!$email) {
-				return response()->json(['success'=> 0, 'message' => 'Employee ID not found.']);
+				return response()->json(['success' => 0, 'message' => 'Employee ID not found.']);
 			}
-				
-			$arr = $request->item_code;
-			$ar = array_unique( array_diff_assoc( $arr, array_unique( $arr ) ) );
-			if(!empty($ar)){
-				foreach($ar as $i => $r){
-					$row= $i +1;
 
-					return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE '.$r.' at ROW '.$row ]);	
+			$arr = $request->item_code;
+			$ar = array_unique(array_diff_assoc($arr, array_unique($arr)));
+			if (!empty($ar)) {
+				foreach ($ar as $i => $r) {
+					$row = $i + 1;
+
+					return response()->json(['success' => 0, 'message' => 'Please check DUPLICATE ' . $r . ' at ROW ' . $row]);
 				}
-			}else{
-				if ($request->item_code) { 
-				   foreach($item_code as $i => $row){
-						if (DB::connection('mysql_mes')
-							->table('powder_coating')
-							->whereDate('date', $now->format('Y-m-d'))
-							->where('item_code',$row)
-							->exists()){
-								return response()->json(['success' => 0, 'message' => 'Powder Coat  Variant '.$row.' for today already exist.']);
-						}elseif($row == 'none'){
-								return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
-						}elseif($consum[$i] == 'none'){
-								return response()->json(['success' => 0, 'message' => 'Please Indicate consumed qty']);
-						}else{
+			} else {
+				if ($request->item_code) {
+					foreach ($item_code as $i => $row) {
+						if (
+							DB::connection('mysql_mes')
+								->table('powder_coating')
+								->whereDate('date', $now->format('Y-m-d'))
+								->where('item_code',
+									$row)
+								->exists()
+						) {
+							return response()->json(['success' => 0, 'message' => 'Powder Coat  Variant ' . $row . ' for today already exist.']);
+						} elseif ($row == 'none') {
+							return response()->json(['success' => 0, 'message' => 'Please Select Item Code']);
+						} elseif ($consum[$i] == 'none') {
+							return response()->json(['success' => 0, 'message' => 'Please Indicate consumed qty']);
+						} else {
 							$data = [
 								'operating_hrs' => $request->operating_hrs,
-								'current_qty' =>$current[$i],
+								'current_qty' => $current[$i],
 								'consumed_qty' => $consum[$i],
 								'balance_qty' => $bal[$i],
 								'item_code' => $row,
 								'operator_id' => $request->inspected_by,
 								'operator' => $email->employee_name,
-								'date' =>  $now->toDateTimeString(),
+								'date' => $now->toDateTimeString(),
 								'last_modified_by' => $email->email ? $email->email : $email->employee_name,
 								'created_by' => $email->email ? $email->email : $email->employee_name,
 								'created_at' => $now->toDateTimeString()
@@ -1509,19 +1512,19 @@ class PaintingOperatorController extends Controller
 
 							DB::connection('mysql_mes')->table('powder_coating')->insert($data);
 							DB::connection('mysql_mes')->table('fabrication_inventory')->where('item_code', $row)
-								->update(['balance_qty' => $bal[$i], 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $email->employee_name]);						
-						} 
+								->update(['balance_qty' => $bal[$i], 'last_modified_at' => $now->toDateTimeString(), 'last_modified_by' => $email->employee_name]);
+						}
 					}
 				}
 
 				DB::connection('mysql_mes')->commit();
-		
-				return response()->json(['success'=>1, 'message' => 'Record Successfuly inserted.']);
+
+				return response()->json(['success' => 1, 'message' => 'Record Successfuly inserted.']);
 			}
 		} catch (Exception $th) {
 			DB::connection('mysql_mes')->rollback();
 
-			return response()->json(['success'=> 0, 'message' => 'Something went wrong. Please contact your system administrator.']);
+			return response()->json(['success' => 0, 'message' => 'Something went wrong. Please contact your system administrator.']);
 		}
 	}
 }

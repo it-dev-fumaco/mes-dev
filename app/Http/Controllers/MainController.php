@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
@@ -11,17 +13,13 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Validator;
 use DB;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Image;
 use App\Mail\SendMail_feedbacking;
 use App\Mail\SendMail_New_DeliveryDate_Alert;
 use App\Traits\GeneralTrait;
-use Session;
 use App\LdapClasses\adLDAP;
 use Exception;
-
-use Illuminate\Support\Facades\Route;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\MachineBreakdownImport;
@@ -388,12 +386,15 @@ class MainController extends Controller
 	// /get_jt_details/{jtno}
 	public function getTimesheetDetails($jtno){
 		$tab=[];
-		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $jtno)
+		$details = DB::connection('mysql_mes')->table('production_order')->where('production_order.production_order', $jtno)
 			->leftJoin('delivery_date', function($join){
 				$join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
 				$join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
 			}) // get delivery date from delivery_date table
-			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')->first();
+			->leftJoin('assembly_conveyor_assignment as acs', function ($q){
+				return $q->on('production_order.production_order', 'acs.production_order');
+			})
+			->select('production_order.*', 'delivery_date.rescheduled_delivery_date', 'acs.assembly_conveyor_assignment_id as assignment_id', 'acs.machine_code')->first();
 
 		if (!$details) {
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
@@ -2241,6 +2242,10 @@ class MainController extends Controller
 	}
 
 	public function reorderProdOrder(Request $request, $id){
+		if (Gate::denies('assign-production-order-schedule')) {
+            return response()->json(["error" => 1]);
+        }
+
 		DB::connection('mysql')->beginTransaction();
 		DB::connection('mysql_mes')->beginTransaction();
     	try {
@@ -2344,6 +2349,10 @@ class MainController extends Controller
 	}
 
     public function update_production_task_schedules(Request $request){
+		if (Gate::denies('assign-production-order-schedule')) {
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.', 'reload_tbl' => $request->reload_tbl]);
+        }
+		
 		DB::connection('mysql_mes')->beginTransaction();
 		try {
 			if(!Auth::user()) {
@@ -2394,6 +2403,10 @@ class MainController extends Controller
 	}
 
 	public function save_shift_schedule(Request $request){
+		if (Gate::denies('assign-production-order-schedule')) {
+			return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+        }
+
 		DB::connection('mysql')->beginTransaction();
 		DB::connection('mysql_mes')->beginTransaction();
 		try {
@@ -2470,25 +2483,27 @@ class MainController extends Controller
 	}
 
 	public function update_production_order_schedule(Request $request){
-		$now = Carbon::now();
-		$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
-		if (!$production_order_details) {
-			return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
-		}
-
-		$query = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
-
-		$planned_start_date = collect($query)->min('planned_start_date');
-		$planned_end_date = collect($query)->max('planned_start_date');
-
-		$values = [
-			'last_modified_by' => Auth::user()->employee_name,
-			'last_modified_at' => $now->toDateTimeString(),
-			'planned_start_date' => $planned_start_date,
-			'planned_end_date' => $planned_end_date,
-		];
-
-		DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($values);
+		if (Gate::allows('assign-production-order-schedule')) {
+			$now = Carbon::now();
+			$production_order_details = DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->first();
+			if (!$production_order_details) {
+				return response()->json(['success' => 0, 'message' => 'Production Order ' . $request->production_order . ' not found.']);
+			}
+	
+			$query = DB::connection('mysql_mes')->table('job_ticket')->where('production_order', $request->production_order)->get();
+	
+			$planned_start_date = collect($query)->min('planned_start_date');
+			$planned_end_date = collect($query)->max('planned_start_date');
+	
+			$values = [
+				'last_modified_by' => Auth::user()->employee_name,
+				'last_modified_at' => $now->toDateTimeString(),
+				'planned_start_date' => $planned_start_date,
+				'planned_end_date' => $planned_end_date,
+			];
+	
+			DB::connection('mysql_mes')->table('production_order')->where('production_order', $request->production_order)->update($values);
+        }
 	}
 
 	// /production_schedule/{id}
@@ -3785,10 +3800,15 @@ class MainController extends Controller
     }
 
     public function get_process_list($workstation){
-    	return DB::connection('mysql_mes')->table('process_assignment')->join('process', 'process.id', 'process_assignment.process_id')->where('process_assignment.workstation_id', $workstation)->select('process.id', 'process.process')->distinct()->get();
+    	return DB::connection('mysql_mes')->table('process_assignment')->join('process', 'process.id', 'process_assignment.process_id')
+			->where('process_assignment.workstation_id', $workstation)->select('process.id', 'process.process')->distinct()->get();
     }
 
     public function update_process(Request $request){
+		if (Gate::denies('assign-bom-process')) {
+            return response()->json(["error" => 'Unauthorized.']);
+        }
+
     	try {
     		if ($request->id) {
     			$jt_details = DB::connection('mysql_mes')->table('job_ticket')->where('job_ticket_id', $request->id)
@@ -3809,11 +3829,13 @@ class MainController extends Controller
 
     // SecondaryController
     public function update_machine_path(Request $request){
+		if (Gate::denies('manage-machines')) {
+            return redirect()->back()->with(['message' => 'Unauthorized.']);
+        }
 
         $image_path = $request->user_image;
         if($request->hasFile('empImage')){
             $file = $request->file('empImage');
-
             //get filename with extension
             $filenamewithextension = $file->getClientOriginalName();
             //get filename without extension
@@ -3837,7 +3859,7 @@ class MainController extends Controller
                 ->where('machine_code', $request->test5)
                 ->update(['image' => $image_path ]);
 
-        return redirect()->back()->with(['message' => 'Employee has been successfully updated!']);
+        return redirect()->back()->with(['message' => 'Machine has been successfully updated!']);
     }
 
     public function get_production_order_task($production_order, $workstation, Request $request){
@@ -4100,6 +4122,13 @@ class MainController extends Controller
 			return response()->json(["success" => 0, "message" => $e->getMessage()]);
 		}
 	}
+
+	public function get_workstation_process_machine($workstation, $process_id){
+		return DB::connection('mysql_mes')->table('process_assignment')
+			->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
+			->where('process_assignment.workstation_id', $workstation)
+			->where('process_assignment.process_id', $process_id)->select('machine.*', 'process_assignment.process_id')->get();
+  }
 
 	public function get_workstation_process_machine(Request $request, $workstation, $process_id){
 		$machines = DB::connection('mysql_mes')->table('process_assignment')
@@ -4391,14 +4420,6 @@ class MainController extends Controller
 				->where('jt.job_ticket_id', $job_ticket_id)
 				->select('jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'jt.production_order', 'jt.process_id', 'scrap.*', 'uom.uom_name')
 				->orderBy('jt.last_modified_at', 'desc')->get();
-
-			// $task_list_qry = DB::connection('mysql_mes')->table('job_ticket AS jt')
-			// 	->where('jt.production_order', $production_order)
-			// 	->where('jt.workstation', $workstation)
-			// 	->where('jt.job_ticket_id', $job_ticket_id)
-			// 	->select('jt.job_ticket_id', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'jt.production_order', 'jt.process_id')
-			// 	->orderBy('jt.last_modified_at', 'desc')->get();
-
 		}else{
 			$task_list_qry = DB::connection('mysql_mes')->table('scrap')
 				->join('uom', 'scrap.uom_id', 'uom.uom_id')
@@ -4411,16 +4432,6 @@ class MainController extends Controller
 				->select('time_logs.time_log_id', 'jt.job_ticket_id', 'time_logs.operator_id', 'time_logs.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'jt.production_order', 'time_logs.status', 'time_logs.from_time', 'time_logs.to_time', DB::raw('(SELECT SUM(good) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'time_logs.operator_name', 'jt.process_id', 'time_logs.good', 'scrap.*', 'uom.uom_name')
 				->orderByRaw("FIELD(time_logs.status, 'In Progress', 'Pending', 'Completed') ASC")
 				->orderBy('time_logs.last_modified_at', 'desc')->get();
-
-			// $task_list_qry = DB::connection('mysql_mes')->table('job_ticket AS jt')
-			// 	->join('time_logs', 'time_logs.job_ticket_id', 'jt.job_ticket_id')
-			// 	->where('jt.production_order', $production_order)
-			// 	->where('jt.workstation', $workstation)
-			// 	->where('jt.job_ticket_id', $job_ticket_id)
-			// 	->where('time_logs.operator_id', Auth::user()->user_id)
-			// 	->select('time_logs.time_log_id', 'jt.job_ticket_id', 'time_logs.operator_id', 'time_logs.machine_code', DB::raw('(SELECT process_name FROM process WHERE process_id = jt.process_id) AS process_name'), 'jt.production_order', 'time_logs.status', 'time_logs.from_time', 'time_logs.to_time', DB::raw('(SELECT SUM(good) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_good'),  DB::raw('(SELECT SUM(reject) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS total_reject'), 'time_logs.operator_name', 'jt.process_id', 'time_logs.good')
-			// 	->orderByRaw("FIELD(time_logs.status, 'In Progress', 'Pending', 'Completed') ASC")
-			// 	->orderBy('time_logs.last_modified_at', 'desc')->get();
 		}
 
 		$task_list = [];
@@ -4509,10 +4520,7 @@ class MainController extends Controller
 	}
 
 	public function get_target_warehouse($operation_id){
-        // return DB::connection('mysql_mes')->table('item_classification_warehouse')
-		// 	->where('operation_id', $operation_id)->distinct()->pluck('target_warehouse');
-			
-			return DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)
+		return DB::connection('mysql')->table('tabWarehouse')->where('disabled', 0)
             ->where('department', 'Fabrication')->where('is_group', 0)
             ->where('company', 'FUMACO Inc.')->pluck('name');
     }
@@ -4636,9 +4644,7 @@ class MainController extends Controller
 	public function random_inspect_task($job_ticket_id){
 		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
 			->join('time_logs', 'job_ticket.job_ticket_id', 'time_logs.job_ticket_id')
-			->where('time_log_id', $job_ticket_id)
-			// ->where('qa_inspection_status', 'Psending')
-			->where('time_logs.status', '!=', 'Pending')
+			->where('time_log_id', $job_ticket_id)->where('time_logs.status', '!=', 'Pending')
 			->select(DB::raw('(SELECT process_name FROM process WHERE process_id = job_ticket.process_id) AS process_name'), 'time_logs.*', 'job_ticket.production_order')
 			->first();
 		
@@ -5369,6 +5375,10 @@ class MainController extends Controller
 	}
 
 	public function update_task_schedule(Request $request, $job_ticket_id){
+		if (Gate::denies('assign-production-order-schedule')) {
+            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+        }
+
 		$now = Carbon::now();
 		$values = [
 			'planned_start_date' => $request->planned_start_date,
@@ -5705,25 +5715,32 @@ class MainController extends Controller
     }
 
     public function get_users(Request $request){
-		$users = DB::connection('mysql_mes')->table('user')
-			->join('operation as op','op.operation_id','user.operation_id')
-			->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
-			->where(function($q) use ($request) {
-				$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
-				->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
-			})
-			->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
-            ->orderBy('user.employee_name', 'asc')->get();
+		$users = [];
+		if (!Gate::denies('manage-users')) {
+			$users = DB::connection('mysql_mes')->table('user')
+				->join('operation as op','op.operation_id','user.operation_id')
+				->join('user_group as ug', 'ug.user_group_id','user.user_group_id')
+				->where(function($q) use ($request) {
+					$q->where('op.operation_name', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('user.user_access_id', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('user.employee_name', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('ug.user_role', 'LIKE', '%'.$request->search_string.'%')
+					->orWhere('ug.module', 'LIKE', '%'.$request->search_string.'%');
+				})
+				->select('user.*','op.operation_name', "ug.module", 'ug.user_role')
+				->orderBy('user.employee_name', 'asc')->get();
 
-		$users = collect($users)->groupBy('employee_name');
+			$users = collect($users)->groupBy('employee_name');
+		}
 
     	return view('tables.tbl_users', compact('users'));
     }
 
     public function save_user(Request $request){
+		if (Gate::denies('manage-users')) {
+            return response()->json(['message' => 'Unauthorized.']);
+        }
+
         $now = Carbon::now();
         $data = [
             'user_access_id' => $request->user_access_id,
@@ -5740,6 +5757,10 @@ class MainController extends Controller
     }
 
     public function update_user(Request $request){
+		if (Gate::denies('manage-users')) {
+            return response()->json(['message' => 'Unauthorized.']);
+        }
+
     	$now = Carbon::now();
 
     	$data = [
@@ -5757,6 +5778,10 @@ class MainController extends Controller
     }
 
     public function delete_user(Request $request){
+		if (Gate::denies('manage-users')) {
+            return response()->json(['message' => 'Unauthorized.']);
+        }
+
 		DB::connection('mysql_mes')->beginTransaction();
 		try{
 			DB::connection('mysql_mes')->table('user')->where('user_access_id', $request->user_id)->delete();
@@ -5769,6 +5794,10 @@ class MainController extends Controller
     }
 
 	public function remove_user_access($id){
+		if (Gate::denies('manage-users')) {
+            return response()->json(['message' => 'Unauthorized.']);
+        }
+		
 		DB::connection('mysql_mes')->beginTransaction();
 		try{
 			DB::connection('mysql_mes')->table('user')->where('user_id', $id)->delete();
@@ -7686,11 +7715,6 @@ class MainController extends Controller
 
 		$machines = DB::connection('mysql_mes')->table('machine')
 			->where('operation_id', $operation_id)
-			->where(function($q){
-				$q->where('machine_name', 'LIKE', '%conveyor%')
-					->orWhere('machine_name', 'LIKE', '%lane%')
-					->orWhere('machine_name', 'LIKE', '%special%');
-			})
 			->orderBy('order_no', 'asc')->get();
 
         $conveyor_schedule_list = [];
@@ -8689,7 +8713,8 @@ class MainController extends Controller
 	public function completedSoWithPendingProduction() {
 		$query = DB::connection('mysql')->table('tabWork Order as wo')
 			->join('tabSales Order as so', 'so.name', 'wo.sales_order_no')->where('wo.docstatus', 1)->where('so.docstatus', 1)
-			->where('so.per_delivered', 100)->where('wo.status', '!=', 'Completed')
+			->where('so.per_delivered', 100)->whereNotIn('wo.status', ['Completed', 'Stopped'])
+			->whereRaw('wo.produced_qty < wo.qty')->where('wo.name', 'like', '%prom%')
 			->select('so.name', 'so.customer', 'wo.name as production_order', 'so.status as so_status', 'wo.production_item', 'wo.qty', 'wo.status as wo_status', 'wo.creation')
 			->orderBy('wo.creation', 'desc')->paginate(100);
 
@@ -8703,7 +8728,7 @@ class MainController extends Controller
 	public function completedMreqWithPendingProduction() {
 		$query = DB::connection('mysql')->table('tabWork Order as wo')
 			->join('tabMaterial Request as mreq', 'mreq.name', 'wo.material_request')->where('wo.docstatus', 1)->where('mreq.docstatus', 1)
-			->where('mreq.per_ordered', 100)->where('wo.status', '!=', 'Completed')
+			->where('mreq.per_ordered', 100)->whereNotIn('wo.status', ['Completed', 'Stopped'])
 			->select('mreq.name', 'mreq.customer', 'wo.name as production_order', 'mreq.status as mreq_status', 'wo.production_item', 'wo.qty', 'wo.status as wo_status', 'wo.creation')
 			->orderBy('wo.creation', 'desc')->paginate(100);
 
@@ -9961,9 +9986,11 @@ class MainController extends Controller
 				]);
 			}
 
+			$previous_delivery_date = $request->previous_date ? $request->previous_date : $delivery_date_details->delivery_date;
+
 			DB::connection('mysql_mes')->table('delivery_date_reschedule_logs')->insert([
 				'delivery_date_id' => $delivery_date_details->delivery_date_id,
-				'previous_delivery_date' => $request->previous_date,
+				'previous_delivery_date' => $previous_delivery_date,
 				'reschedule_reason_id' => $request->reason,
 				'rescheduled_by' => Auth::user()->employee_name,
 				'remarks' => $request->remarks,
@@ -9976,7 +10003,7 @@ class MainController extends Controller
 			DB::connection('mysql_mes')->table('activity_logs')->insert([
 				'action' => 'Reschedule Delivery Date',
 				'reference' => $id,
-				'message' => 'Delivery date has been changed from '.Carbon::parse($request->previous_date)->format('M. d, Y').' to '.Carbon::parse($request->rescheduled_date)->format('M. d, Y'). ' by '.Auth::user()->employee_name,
+				'message' => 'Delivery date has been changed from '.Carbon::parse($previous_delivery_date)->format('M. d, Y').' to '.Carbon::parse($request->rescheduled_date)->format('M. d, Y'). ' by '.Auth::user()->employee_name,
 				'created_at' => Carbon::now()->toDateTimeString(),
 				'created_by' => Auth::user()->email,
 				'last_modified_at' => Carbon::now()->toDateTimeString(),
@@ -9984,7 +10011,7 @@ class MainController extends Controller
 			]);
 
 			$email_data = array( 
-				'orig_delivery_date'	=> Carbon::parse($request->previous_date)->format('Y-m-d'),
+				'orig_delivery_date'	=> Carbon::parse($previous_delivery_date)->format('Y-m-d'),
 				'resched_date'			=> Carbon::parse($request->rescheduled_date)->format('Y-m-d'),
 				'items_arr'				=> $so_items,
 				'reference'				=> $id,
@@ -9994,9 +10021,11 @@ class MainController extends Controller
 			); 
 
 			if($so_details->owner != "Administrator"){
-				Mail::to($so_details->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
-				Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
-				Mail::to("jave.kulong@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				try {
+					Mail::to($so_details->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to("jave.kulong@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				} catch (\Throwable $th) {}
 			}
 
 			DB::connection('mysql')->commit();
@@ -10007,7 +10036,6 @@ class MainController extends Controller
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
 
-			// throw $th; // view error (formatted)
 			return redirect()->back()->with('error', 'Something went wrong. Please try again later');
 		}
 	}
@@ -10550,5 +10578,133 @@ class MainController extends Controller
 		}
 
 		return view('reports.delivery_schedule_list', compact('permissions', 'projects', 'reference_arr', 'customers', 'date'));
+	}
+
+	public function viewRolePermissionsForm($user_group) {
+		$settings_actions = [
+			'manage-workstations' => 'Add, Edit and Delete Workstations',
+			'manage-machines' => 'Add, Edit and Delete Machines',
+			'manage-rescheduled-delivery-reason' => 'Add or Remove Rescheduled Delivery Reason',
+			'manage-production-order-cancellation' => 'Add or Remove Reason for Production Order Cancellation',
+			'manage-shifts' => 'Add, Edit and Delete Shifts / Production Working Hours Schedule',
+			'manage-item-classification-source' => 'Add and configure Source Warehouse based on Item Classification',
+			'manage-fast-issuance-permission' => 'Add new user that has fast issuance permission',
+			'manage-wip-warehouse' => 'Assign physical warehouse as Work-in-Progress per operation',
+			'manage-users' => 'Add, Edit and Delete Users',
+			'manage-user-groups' => 'Add, Edit and Delete User Groups',
+			'manage-email-notifications' => 'Add and Delete Email Notifications',
+			'manage-role-permissions' => 'Assign Roles and Permissions',
+			'reports' => 'Production Reports',
+		];
+		$production_planning_actions = [
+			'view-incoming-orders' => 'View Incoming Orders',
+			'create-production-order' => 'Create Production Order',
+			'cancel-production-order' => 'Cancel Production Order',
+			'close-production-order' => 'Close Production Order',
+			'override-production-order' => 'Override Production Order',
+			'reopen-production-order' => 'Re-open Production Order',
+			'create-production-order-feedback' => 'Create Production Order Feedback',
+			'cancel-production-order-feedback' => 'Cancel Production Order Feedback',
+			'reschedule-delivery-date-order' => 'Reschedule Delivery Date per Order',
+		];
+		$material_planning_actions = [
+			'create-withdrawal-slip' => 'Create Withdrawal Slip Request',
+			'print-withdrawal-slip' => 'Print Withdrawal Slips',
+			'change-production-order-items' => 'Change Production Order Items (Components/Raw Materials)',
+			'fast-issue-items' => 'Initiate Fast Issue Items',
+			'return-items-to-warehouse' => 'Return Items to Warehouse',
+			'add-production-order-items' => 'Add new item / alternative item in Production Order Required Materials',
+			'create-material-request' => 'Create Material Requests (Raw Materials Request)',
+		];
+		$scheduling_actions = [
+			'assign-shift-schedule' => 'Assign Shift working / OT Schedule per Operation (optional)',
+			'reschedule-delivery-date-production-order' => 'Reschedule Delivery Date per Production Order',
+			'assign-production-order-schedule' => 'Assign Production Order Schedule / Planned Start Date',
+			'assign-production-order-to-machines' => 'Assign Production Order to Conveyor / Machines',
+		];
+		$execution_actions = [
+			'assign-bom-process' => 'Assign BOM Process / Workstations ',
+			'print-job-ticket' => 'Print Job Ticket',
+			'edit-operator-timelog' => 'Edit Operator Timelog',
+			'reset-operator-timelog' => 'Reset Operator Timelog',
+			'override-operator-timelog' => 'Override Operator Timelogs',
+			'update-wip-production-order-process' => 'Update Production Order Process (during the production order process)',
+		];
+		$actions = [
+			'Production Planning' => $production_planning_actions,
+			'Materials Planning' => $material_planning_actions,
+			'Scheduling' => $scheduling_actions,
+			'Production Control' => $execution_actions,
+			'Settings' => $settings_actions,
+		];
+		$existing_permissions = DB::connection('mysql_mes')->table('role_permissions')->where('user_group_id', $user_group)->pluck('permission')->toArray();
+		return view('role_permissions', compact('actions', 'user_group', 'existing_permissions'));
+	}
+	public function saveRolePermissions($user_group, Request $request) {
+		if (Gate::denies('manage-role-permissions')) {
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
+        }
+
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			$current_timestamp = Carbon::now()->toDateTimeString();
+			$user = Auth::user()->email;
+			$requested_permissions = $request->permission;
+			if ($requested_permissions) {
+				$requested_permissions = Arr::where($requested_permissions, function ($value, $key) {
+					return $value == 1;
+				});
+	
+				// delete permission not included in the $requested_permissions
+				DB::connection('mysql_mes')->table('role_permissions')
+					->where('user_group_id', $user_group)
+					->whereNotIn('permission', array_keys($requested_permissions))
+					->delete();
+	
+				// existing permissions
+				$existing_permissions = DB::connection('mysql_mes')->table('role_permissions')
+					->where('user_group_id', $user_group)->pluck('permission')->toArray();
+		
+				$permissions = [];
+				foreach($requested_permissions as $permission => $value) {
+					if (!in_array($permission, $existing_permissions)) {
+						$permissions[] = [
+							'user_group_id' => $user_group,
+							'permission' => $permission,
+							'modified_by' => $user,
+							'last_modified_at' => $current_timestamp
+						];
+					}
+				}
+				// save permissions
+				DB::connection('mysql_mes')->table('role_permissions')->insert($permissions);			
+	
+			}else{
+				DB::connection('mysql_mes')->table('role_permissions')
+					->where('user_group_id', $user_group)
+					->delete();
+			}
+
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['status' => 1, 'message' => 'Role Permission has been saved.']);
+		} catch (\Throwable $th) {
+			DB::connection('mysql_mes')->rollback();
+			
+			return response()->json(['status' => 0, 'message' => 'An error occured. Please contact your system administrator.']);
+		}
+	}
+
+	public function viewRoleUsers(Request $request) {
+		$users = [];
+		if ($request->role) {
+			$users = DB::connection('mysql_mes')->table('user as u')
+				->join('user_group as ug', 'ug.user_group_id', 'u.user_group_id')
+				->join('operation as o', 'o.operation_id', 'u.operation_id')
+				->where('ug.module', $request->module)->where('ug.user_group_id', $request->role)
+				->select('u.employee_name', DB::raw('GROUP_CONCAT(o.operation_name SEPARATOR ", ") as operations'), 'ug.module')
+				->groupBy('u.employee_name', 'ug.module')->orderBy('o.operation_name', 'u.employee_name')->get();
+		}
+		
+		return view('view_role_users', compact('users'));
 	}
 }

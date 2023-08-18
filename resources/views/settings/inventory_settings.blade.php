@@ -7,243 +7,259 @@
 
 @section('content')
 <div class="panel-header"></div>
-<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-	<div class="col-2 p-2">
-		<div class="card" id="workstation_navbar">
-			<div class="card-header p-2" style="background-color: #0277BD;">
-				<h5 class="text-white text-center text-uppercase m-0 font-weight-bold" style="font-size: 13pt;">Settings</h5>
-			</div>
-			<div class="card-body" style="min-height: 850px;">
-				<div class="row bg-white" class="text-center">
-					<div class="col-md-12 text-center">
-						<ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">
-							<li class="nav-item">
-								<a class="nav-link active" href="#item_warehouse_setup" data-toggle="tab">Item Warehouse Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#uom-conversion-tab" data-toggle="tab">UoM Conversion</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#fast-issuance-setup" data-toggle="tab">Fast Issuance Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#wip-setup-tab" data-toggle="tab">Work in Progress Warehouse Setup</a>
-							</li>
-						</ul>
+<div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
+	<div class="col-12 p-0 bg-white">
+		<ul class="nav workstation_navbar mr-2 ml-2 mt-3 mb-3" id="myTab" role="tablist" style="font-size: 10pt;">
+			@canany(['manage-item-classification-source'])
+				<li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+					<a class="nav-link active" href="#item_warehouse_setup" data-toggle="tab">Item Warehouse Setup</a>
+				</li>
+			@endcanany
+			
+			@canany(['manage-wip-warehouse'])
+				@php
+					$active = 'active';
+				@endphp
+				@canany(['manage-item-classification-source'])
+					@php
+						$active = null;
+					@endphp
+          		@endcanany
+				<li class="nav-item mr-2 {{ $active }}" style="border: 1px solid #f96332 !important;">
+					<a class="nav-link" href="#wip-setup-tab" data-toggle="tab">Work in Progress Warehouse Setup</a>
+				</li>
+			@endcanany
+
+			@canany(['manage-fast-issuance-permission'])
+				@php
+					$active = 'active';
+				@endphp
+				@canany(['manage-item-classification-source', 'manage-wip-warehouse'])
+					@php
+						$active = null;
+					@endphp
+          		@endcanany
+				<li class="nav-item mr-2 {{ $active }}" style="border: 1px solid #f96332 !important;">
+					<a class="nav-link" href="#fast-issuance-setup" data-toggle="tab">Fast Issuance Setup</a>
+				</li>
+			@endcanany
+			
+			@php
+				$active = 'active';
+			@endphp
+			@canany(['manage-item-classification-source', 'manage-wip-warehouse', 'manage-fast-issuance-permission'])
+				@php
+					$active = null;
+				@endphp
+			@endcanany
+			<li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+				<a class="nav-link {{ $active }}" href="#uom-conversion-tab" data-toggle="tab">UoM Conversion</a>
+			</li>
+		</ul>
+		<div class="tab-content text-center p-0 m-0">
+			@canany(['manage-item-classification-source'])
+				<div class="tab-pane active" id="item_warehouse_setup">
+					<div class="card">
+						<div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+							<div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+								<div class="mr-auto p-2">
+									<div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Item Warehouse Setup</div>
+								</div>
+								<div class="p-2 col-4">
+									<input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search" id="search_item_warehouse_setup">
+								</div>
+								<div class="p-2">
+									<button type="button" class="btn btn-primary m-0" id="add-item-warehouse-button" style="font-size: 9pt;">
+										<i class="now-ui-icons ui-1_simple-add"></i> Add
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="card-body p-0">
+							<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
+								<div class="col-md-12">
+									<div class="nav-tabs-navigation mt-2">
+										<div class="nav-tabs-wrapper">
+											<ul class="nav nav-tabs1 mb-2" data-tabs="tabs" style="font-size: 11px;">
+												<li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
+													<a class="nav-link active add_icw_operation pt-2 pb-2 pl-3 pr-3" href="#icw_fabrication" data-toggle="tab" data-operation="Fabrication" data-values="fab">Fabrication</a>
+												</li>
+												<li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
+													<a class="nav-link add_icw_operation pt-2 pb-2 pl-3 pr-3" href="#icw_painting" data-toggle="tab" data-operation="Painting" data-values="pain">Painting</a>
+												</li>
+												<li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
+													<a class="nav-link add_icw_operation pt-2 pb-2 pl-3 pr-3" href="#icw_assembly" data-toggle="tab" data-operation="Assembly" data-values="assem">Assembly</a>
+												</li>
+											</ul>
+										</div>
+									</div>
+									<div class="tab-content text-center">
+										<div class="tab-pane active" id="icw_fabrication">
+											<div class="row p-0 m-0 w-100">
+												<div class="col-md-12 p-0 m-0">
+													<div id="tbl_item_warehouse_list_fabrication"></div>
+												</div>
+											</div>
+										</div>
+										<div class="tab-pane" id="icw_painting">
+											<div class="row p-0 m-0 w-100">
+												<div class="col-md-12 p-0 m-0">
+													<div id="tbl_item_warehouse_list_painting"></div>
+												</div>
+											</div>
+										</div>
+										<div class="tab-pane" id="icw_assembly">
+											<div class="row p-0 m-0 w-100">
+												<div class="col-md-12 p-0 m-0">
+													<div id="tbl_item_warehouse_list_assembly"></div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			@endcanany
+
+			@canany(['manage-wip-warehouse'])
+				@php
+					$active = 'active';
+				@endphp
+				@canany(['manage-item-classification-source'])
+					@php
+						$active = null;
+					@endphp
+          		@endcanany
+				<div class="tab-pane {{ $active }}" id="wip-setup-tab">
+					<div class="card">
+						<div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+							<div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+								<div class="mr-auto p-2">
+									<div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Work-in-Progress Warehouse Setup</div>
+								</div>
+								<div class="p-2 col-4">
+									<input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search" id="search-wip-setup">
+								</div>
+								<div class="p-2">
+									<button type="button" class="btn btn-primary m-0" id="add-wip-button" style="font-size: 9pt;">
+										<i class="now-ui-icons ui-1_simple-add"></i> Add
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="card-body p-0">
+							<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
+								<div class="col-md-12">
+									<div id="tbl_wip_list" class="mt-3"></div>
+								</div>
+							</div>        
+						</div>
+					</div>
+				</div>
+			@endcanany
+
+			@canany(['manage-fast-issuance-permission'])
+				@php
+					$active = 'active';
+				@endphp
+				@canany(['manage-item-classification-source', 'manage-wip-warehouse'])
+					@php
+						$active = null;
+					@endphp
+          		@endcanany
+				<div class="tab-pane {{ $active }}" id="fast-issuance-setup">
+					<div class="card">
+						<div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+							<div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+								<div class="mr-auto p-2">
+									<div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Fast Issuance Setup</div>
+								</div>
+								<div class="p-2 col-4">
+									<input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search" id="search-fast-issuance-setup">
+								</div>
+							</div>
+						</div>
+						<div class="card-body p-0">
+							<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
+								<div class="col-md-12">
+									<div class="nav-tabs-navigation mt-2 mb-2">
+										<div class="nav-tabs-wrapper">
+											<ul class="nav" data-tabs="tabs2" style="font-size: 11px;">
+												<li class="nav-item rounded mr-2" style="border: 1px solid #f96332 !important;">
+													<a class="nav-link add_icw_operation active" href="#fast_issuance_warehouse" data-toggle="tab" data-operation="fiw" data-values="fiw">Allowed Warehouses for Fast Issuance</a>
+												</li>
+												<li class="nav-item rounded mr-2" style="border: 1px solid #f96332 !important;">
+													<a class="nav-link add_icw_operation" href="#fast_issuance_user" data-toggle="tab" data-operation="fiu" data-values="fiu">Allowed Users for Fast Issuance</a>
+												</li>
+											</ul>
+										</div>
+									</div>
+									<div class="tab-content text-center">
+										<div class="tab-pane" id="fast_issuance_user">
+											<div class="row p-0 m-0 w-100">
+												<div class="col-md-12 p-0 m-0">
+													<button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-user" style="margin: -40px 5px 5px 5px;">
+														<i class="now-ui-icons ui-1_simple-add"></i> Add User
+													</button>
+													<div id="tbl-fast-issuance-user"></div>
+												</div>
+											</div>
+										</div>
+										<div class="tab-pane active" id="fast_issuance_warehouse">
+											<div class="row p-0 m-0 w-100">
+												<div class="col-md-12 p-0 m-0">
+													<button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-warehouse" style="margin: -40px 5px 5px 5px;">
+														<i class="now-ui-icons ui-1_simple-add"></i> Add Warehouse
+													</button>
+													<div id="tbl-fast-issuance-warehouse"></div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			@endcanany
+
+			@php
+				$active = 'active';
+			@endphp
+			@canany(['manage-item-classification-source', 'manage-wip-warehouse', 'manage-fast-issuance-permission'])
+				@php
+					$active = null;
+				@endphp
+			@endcanany
+			<div class="tab-pane {{ $active }}" id="uom-conversion-tab">
+				<div class="card">
+					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
+						<div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+							<div class="mr-auto p-2">
+								<div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">UOM Conversion</div>
+							</div>
+							<div class="p-2">
+								<button type="button" class="btn btn-primary m-0" id="add-uom-conversion-btn" style="font-size: 9pt;">
+									<i class="now-ui-icons ui-1_simple-add"></i> Add
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="card-body p-0">
+						<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
+							<div class="col-md-12">
+								<div id="uom-conversion-tbl" class="mt-3"></div>
+							</div>
+						</div>        
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
    <div class="col-10 p-2" style="min-height: 1000px;">
-		<div class="tab-content text-center">    
-			<div class="tab-pane active" id="item_warehouse_setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Item Warehouse Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_item_warehouse_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
-							<div class="col-md-12">
-								<div class="nav-tabs-navigation mt-2">
-									<div class="nav-tabs-wrapper">
-										<ul class="nav nav-tabs" data-tabs="tabs">
-											<li class="nav-item">
-												<a class="nav-link active add_icw_operation" href="#icw_fabrication" data-toggle="tab" data-operation="Fabrication" data-values="fab">Fabrication</a>
-											</li>
-											<li class="nav-item">
-												<a class="nav-link add_icw_operation" href="#icw_painting" data-toggle="tab" data-operation="Painting" data-values="pain">Painting</a>
-											</li>
-											<li class="nav-item">
-												<a class="nav-link add_icw_operation" href="#icw_assembly" data-toggle="tab" data-operation="Assembly" data-values="assem">Assembly</a>
-											</li>
-										</ul>
-									</div>
-								</div>
-								<button type="button" class="btn btn-primary pull-right" id="add-item-warehouse-button" style="margin: 5px;margin-top: -40px;">
-									<i class="now-ui-icons ui-1_simple-add"></i> Add Item Warehouse
-								</button>
-								<div class="tab-content text-center">
-									<div class="tab-pane active" id="icw_fabrication">
-										<div class="row p-0 m-0 w-100">
-											<div class="col-md-12 p-0 m-0">
-												<table class="text-white" style="width: 100%; background-color:#34495e;">
-													<col style="width: 70%;">
-													<col style="width: 30%;">
-													<tr>
-														<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Fabrication</b></th>
-													</tr>
-												</table>
-												<div id="tbl_item_warehouse_list_fabrication"></div>
-											</div>
-										</div>
-									</div>
-									<div class="tab-pane" id="icw_painting">
-										<div class="row p-0 m-0 w-100">
-											<div class="col-md-12 p-0 m-0">
-												<table class="text-white" style="width: 100%;background-color:#34495e;">
-													<col style="width: 70%;">
-													<col style="width: 30%;">
-													<tr>
-														<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Painting</b></th>
-													</tr>
-												</table>
-												<div id="tbl_item_warehouse_list_painting"></div>
-											</div>
-										</div>
-									</div>
-									<div class="tab-pane" id="icw_assembly">
-										<div class="row p-0 m-0 w-100">
-											<div class="col-md-12 p-0 m-0">
-												<table class="text-white" style="width: 100%;background-color:#34495e;">
-													<col style="width: 70%;">
-													<col style="width: 30%;">
-													<tr>
-														<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Assembly</b></th>
-													</tr>
-												</table>
-												<div id="tbl_item_warehouse_list_assembly"></div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="uom-conversion-tab">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">UOM Conversion</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_item_warehouse_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary pull-right" id="add-uom-conversion-btn">
-									<i class="now-ui-icons ui-1_simple-add"></i> Add UoM Conversion
-								</button>
-								<div id="uom-conversion-tbl"></div>
-							</div>
-						</div>        
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="fast-issuance-setup">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Fast Issuance Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search-fast-issuance-setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
-							<div class="col-md-12">
-								<div class="nav-tabs-navigation mt-2">
-									<div class="nav-tabs-wrapper">
-										<ul class="nav nav-tabs" data-tabs="tabs2">
-											<li class="nav-item">
-												<a class="nav-link add_icw_operation active" href="#fast_issuance_warehouse" data-toggle="tab" data-operation="fiw" data-values="fiw">Allowed Warehouses for Fast Issuance</a>
-											</li>
-											<li class="nav-item">
-												<a class="nav-link add_icw_operation" href="#fast_issuance_user" data-toggle="tab" data-operation="fiu" data-values="fiu">Allowed Users for Fast Issuance</a>
-											</li>
-										</ul>
-									</div>
-								</div>
-								<div class="tab-content text-center">
-									<div class="tab-pane" id="fast_issuance_user">
-										<div class="row p-0 m-0 w-100">
-											<div class="col-md-12 p-0 m-0">
-												<table class="text-white" style="width: 100%;background-color:#34495e;">
-													<col style="width: 70%;">
-													<col style="width: 30%;">
-													<tr>
-														<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Allowed Users for Fast Issuance</b></th>
-													</tr>
-												</table>
-												<button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-user" style="margin: 5px;">
-													<i class="now-ui-icons ui-1_simple-add"></i> Add User
-												</button>
-												<div id="tbl-fast-issuance-user"></div>
-											</div>
-										</div>
-									</div>
-									<div class="tab-pane active" id="fast_issuance_warehouse">
-										<div class="row p-0 m-0 w-100">
-											<div class="col-md-12 p-0 m-0">
-												<table class="text-white" style="width: 100%;background-color:#34495e;">
-													<col style="width: 70%;">
-													<col style="width: 30%;">
-													<tr>
-														<th class="text-left" style="padding-left: 20px;padding-top: 10px;padding-bottom:10px; font-size: 12pt;"><b>Allowed Warehouses for Fast Issuance</b></th>
-													</tr>
-												</table>
-												<button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add-allowed-fast-issuance-warehouse" style="margin: 5px;">
-													<i class="now-ui-icons ui-1_simple-add"></i> Add Warehouse
-												</button>
-												<div id="tbl-fast-issuance-warehouse"></div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="wip-setup-tab">
-				<div class="card">
-					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Work in Progress Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search-wip-setup">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body p-0">
-						<div class="row p-0 m-0 bg-white" style="min-height: 500px;">
-							<div class="col-md-12">
-								<button type="button" class="btn btn-primary pull-right" id="add-wip-button" style="margin: 5px;">
-									<i class="now-ui-icons ui-1_simple-add"></i> Add WIP
-								</button>
-								<div id="tbl_wip_list"></div>
-							</div>
-						</div>        
-					</div>
-				</div>
-			</div>
-		</div>
+		
 	</div>
 </div>
 

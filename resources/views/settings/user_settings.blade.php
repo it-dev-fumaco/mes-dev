@@ -8,165 +8,224 @@
 @section('content')
 @include('modals.add_email_trans')
 <div class="panel-header"></div>
-<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
-	{{-- <div class="col-2 p-2">
-		<div class="card" id="workstation_navbar">
-      <div class="card-header p-2" style="background-color: #0277BD;">
-				<h5 class="text-white text-center text-uppercase m-0 font-weight-bold" style="font-size: 13pt;">Settings</h5>
-			</div>
-      <div class="card-body" style="min-height: 850px;">
-				<div class="row bg-white text-center">
-					<div class="col-md-12">
-						<ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">
-							<li class="nav-item">
-								<a class="nav-link active" href="#users_setup" data-toggle="tab">Users Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
-							</li>
-            </ul>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div> --}}
-  <div class="col-12 p-2" style="min-height: 1000px;">
-    <div class="tab-content text-center">      
-      <div class="tab-pane active" id="users_setup">
-        <div class="card">
-          <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">User Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_user_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-          <div class="card-body p-0">
-            <div class="row p-0 m-0 bg-white" style="min-height: 1000px;">
-              <div class="col-md-12">
-                <div class="nav-tabs-navigation mt-2">
-                  <div class="nav-tabs-wrapper">
-                    <ul class="nav nav-tabs" data-tabs="tabs">
-                      <li class="nav-item">
-                        <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#user_group_list" data-toggle="tab">User Group</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#email_alert_setup" data-toggle="tab">Email Alert Setup</a>
-                      </li>
-                    </ul>
+<div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
+  <div class="col-12 p-0 bg-white" style="min-height: 1000px;">
+    <ul class="nav mr-2 ml-2 mt-3 mb-3" data-tabs="tabs">
+      @canany(['manage-users'])
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link active" href="#user_list" data-toggle="tab">User List</a>
+        </li>
+      @endcanany
+      @canany(['manage-user-groups'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link {{ $active }}" href="#user_group_list" data-toggle="tab">User Group</a>
+        </li>
+      @endcanany
+      @canany(['manage-email-notifications'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link {{ $active }}" href="#email_alert_setup" data-toggle="tab">Email Notification Setup</a>
+        </li>
+      @endcanany
+      @canany(['manage-role-permissions'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+          <a class="nav-link {{ $active }}" href="#role-permissions" data-toggle="tab">Role Permissions</a>
+        </li>
+      @endcanany
+    </ul>
+    <div class="tab-content text-center p-0 m-0">
+      @canany(['manage-users'])
+        <div class="tab-pane active" id="user_list">
+          <div class="card" style="min-height: 720px;">
+            <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+              <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User List</div>
+                </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User" id="search_user_setup">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" id="add-user-btn" data-id="1" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div id="div-user-table" class="m-3"></div>
+            </div>
+          </div>
+        </div>
+      @endcanany
+      
+      @canany(['manage-user-groups'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <div class="tab-pane {{ $active }}" id="user_group_list">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
+              <div class="card" style="min-height: 720px;">
+                <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                  <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                    <div class="mr-auto p-2">
+                      <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">User Group</div>
+                    </div>
+                    <div class="p-2 col-4">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search User Group" id="search_user_group_setup">
+                    </div>
+                    <div class="p-2">
+                      <button type="button" class="btn btn-primary m-0" id="add-user-group" style="font-size: 9pt;">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div class="tab-content text-center">
-                  <div class="tab-pane active" id="user_list">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User List</b></th>
-                              <td class="text-right">
-                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-user-btn" data-id="1" style="margin: 5px;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
-                              </td>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div id="div-user-table"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="tab-pane" id="user_group_list">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>User Group</b></th>
-                              <td class="text-right">
-                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="add-user-group" style="margin: 5px;">
-                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                </button>
-                              </td>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div class="tbl_user_group" id="tbl_user_group"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div class="card-body p-0 m-0">
+                  <div class="tbl_user_group m-3" id="tbl_user_group"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      @endcanany
 
-                  <div class="tab-pane" id="email_alert_setup">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="card" style="min-height: 720px;">
-                          <table class="text-white" style="width: 100%;background-color:#34495e;">
-                            <col style="width: 70%;">
-                            <col style="width: 30%;">
-                            <tr>
-                              <th class="text-left" style="padding-left: 20px; font-size: 12pt;"><b>Email Alert Recipient</b></th>
-                              <td class="text-right">
-                                <button type="button" class="btn pb-2 pr-3 pl-3 pt-2 btn-primary" id="email_trans_btn" style="margin: 5px;">
-                                  <i class="now-ui-icons ui-1_simple-add"></i> Add
-                                </button>
-                              </td>
-                            </tr>
-                          </table>
-                          <div class="card-body p-0">
-                            <div class="tbl_email_trans" id="tbl_email_trans"></div>
-                          </div>
-                        </div>
-                      </div>
+      @canany(['manage-email-notifications'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <div class="tab-pane {{ $active }}" id="email_alert_setup">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
+              <div class="card" style="min-height: 720px;">
+                <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                  <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                    <div class="mr-auto p-2">
+                      <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Email Alert Recipient</div>
+                    </div>
+                    <div class="p-2 col-4">
+                      <input type="text" class="form-control rounded bg-white p-2 w-100 m-0" placeholder="Search Recipient" id="search_email_setup">
+                    </div>
+                    <div class="p-2">
+                      <button type="button" class="btn btn-primary m-0" id="email_trans_btn" style="font-size: 9pt;">
+                        <i class="now-ui-icons ui-1_simple-add"></i> Add
+                      </button>
                     </div>
                   </div>
                 </div>
+                <div class="card-body p-0">
+                  <div class="tbl_email_trans m-3" id="tbl_email_trans"></div>
+                </div>
               </div>
-            </div>      
+            </div>
           </div>
         </div>
-      </div>
-     
-      {{-- <div class="tab-pane" id="email_alert_setup">
-        <div class="card">
-          <div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Email Alert Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white" placeholder="Search" id="search_email_setup">
-								</div>
-							</div>
-						</div>
-					</div>
-          <div class="card-body p-0">
-            <div class="row p-0 m-0" style="min-height: 700px;">
-              <div class="col-md-12">
-                <button type="button" class="btn btn-primary pull-right" id="email_trans_btn" style="margin: 5px;">
-                  <i class="now-ui-icons ui-1_simple-add"></i> Add Email Alert Recipient
-                </button>
-                <div class="tbl_email_trans" id="tbl_email_trans"></div>
+      @endcanany
+
+      @canany(['manage-role-permissions'])
+        @php
+          $active = 'active';
+        @endphp
+        @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications'])
+          @php
+            $active = null;
+          @endphp
+        @endcanany
+        <div class="tab-pane {{ $active }}" id="role-permissions">
+          <div class="row p-0 m-0">
+            <div class="col-md-12 p-0">
+              <div class="card" style="min-height: 720px;">
+                <div class="card-header p-0 m-0 rounded-0" style="background-color: #0277BD;">
+                  <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+                    <div class="mr-auto p-2">
+                      <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Role Permissions</div>
+                    </div>
+                    <div class="p-2">
+                      <button class="btn btn-primary m-0" type="button" id="update-permissions-btn">Update Permissions</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="row m-0 p-0">
+                    <div class="col-12 mb-2 mt-2">
+                      <div class="d-flex flex-row align-items-center">
+                        <div class="font-weight-bold mr-3">Select Module</div>
+                        <select id="role-permission-module" class="form-control col-2 rounded-0">
+                          <option value="">Select Module</option>
+                          <option value="Production">Production</option>
+                          <option value="Quality Assurance">Quality Assurance</option>
+                          <option value="Maintenance">Maintenance</option>
+                        </select>
+                        <div class="font-weight-bold mr-3 ml-4">Select User Role</div>
+                        <select name="user_role" id="user-role-select" class="form-control col-3 rounded-0">
+                          <option value="">Select Module first</option>
+                        </select>
+                        <a href="#" class="ml-4 text-info font-weight-bold" id="view-role-users">View Users</a>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="role-permissions-div"></div>
+                </div>
               </div>
-            </div>      
+            </div>
           </div>
         </div>
-      </div> --}}
+      @endcanany
     </div>
+  </div>
+</div>
+
+<div class="modal fade" id="view-role-users-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0277BD;">
+         <h5 class="modal-title">User Role</h5>
+         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+       </button>
+      </div>
+      <div class="modal-body">
+         <div class="row p-0 m-0">
+            <div class="col-md-12 p-2 m-0">
+              <div id="view-role-users-div"></div>
+            </div>
+         </div>
+      </div>
+   </div>
   </div>
 </div>
 
@@ -349,15 +408,7 @@
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       <select class="form-control sel11" name="add_user_role" id="add_user_role" required>
-                          <option value="">Select User Role</option>
-                          <option value="Production Supervisor">Production Supervisor</option>
-                          <option value="Production Manager">Production Manager</option>
-                          <option value="QA Manager">QA Manager</option>
-                          <option value="QA Inspector">QA Inspector</option>
-                          <option value="Maintenance Manager">Maintenance Manager</option>
-                          <option value="Maintenance Staff">Maintenance Staff</option>
-                       </select>
+                       <input type="text" class="form-control" name="add_user_role" required>
                     </div>
                  </div>
               </div>
@@ -481,262 +532,222 @@
      </form>
   </div>
 </div>
-
-
-  
   
 <style type="text/css">
   .scrolling table {
-    table-layout: fixed;
-    width: 100%;
-}
-.scrolling .td, .th {
-  padding: 10px;
-  width: auto;
-}
-.parent-td{
-  padding: 10px;
-  width: 4px;
-  float: left;
-}
-.scrolling .th {
-  position: relative;
-  left: 0;
-  width: auto;
-}
-.outer {
-  position: relative
-}
-.inner {
-  overflow-x: auto;
-
-}
-.nav-item .active{
-  background-color: #f96332;
-  font-weight: bold;
-  color:#ffffff;
-}
-
-
-
-  .user-image {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.imgPreview {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.upload-btn{
-   padding: 6px 12px;
-}
-
-.fileUpload {
-   position: relative;
-   overflow: hidden;
-   font-size: 9pt;
-}
-
-.fileUpload input.upload {
-   position: absolute;
-   top: 0;
-   right: 0;
-   margin: 0;
-   padding: 0;
-   cursor: pointer;
-   opacity: 0;
-   filter: alpha(opacity=0);
-}
-.imgPreview1 {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 5px;
-}
-
-.upload-btn1{
-   padding: 6px 12px;
-}
-
-.fileUpload1 {
-   position: relative;
-   overflow: hidden;
-   font-size: 9pt;
-}
-
-.fileUpload1 input.upload1 {
-   position: absolute;
-   top: 0;
-   right: 0;
-   margin: 0;
-   padding: 0;
-   cursor: pointer;
-   opacity: 0;
-   filter: alpha(opacity=0);
-}
-
-.boldwrap {
-  font-weight: bold;
-}
-  
-#add-user-modal .form-control, #edit-user-modal .form-control {
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px;
-}
-#edit-user-modal .form-control:hover, #edit-user-modal .form-control:focus, #edit-user-modal .form-control:active {
-  box-shadow: none;
-}
-#edit-user-modal .form-control:focus {
-  border: 1px solid #34495e;
-}
-
-#add-user-modal .form-control:hover, #add-user-modal .form-control:focus, #add-user-modal .form-control:active {
-  box-shadow: none;
-}
-#add-user-modal .form-control:focus {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container {
-  width: 100% !important;
-}
-
-.select2.select2-container .select2-selection {
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  height: 34px;
-  margin-bottom: 15px;
-  outline: none;
-  transition: all 0.15s ease-in-out;
-}
-
-.select2.select2-container .select2-selection .select2-selection__rendered {
-  color: #333;
-  line-height: 32px;
-  padding-right: 33px;
-}
-
-.select2.select2-container .select2-selection .select2-selection__arrow {
-  background: #f8f8f8;
-  border-left: 1px solid #ccc;
-  -webkit-border-radius: 0 3px 3px 0;
-  -moz-border-radius: 0 3px 3px 0;
-  border-radius: 0 3px 3px 0;
-  height: 32px;
-  width: 33px;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
-  background: #f8f8f8;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
-  -webkit-border-radius: 0 3px 0 0;
-  -moz-border-radius: 0 3px 0 0;
-  border-radius: 0 3px 0 0;
-}
-
-.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container.select2-container--focus .select2-selection {
-  border: 1px solid #34495e;
-}
-
-.select2.select2-container .select2-selection--multiple {
-  height: auto;
-  min-height: 34px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
-  margin-top: 0;
-  height: 32px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
-  display: block;
-  padding: 0 4px;
-  line-height: 29px;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice {
-  background-color: #f8f8f8;
-  border: 1px solid #ccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  margin: 4px 4px 0 0;
-  padding: 0 6px 0 22px;
-  height: 24px;
-  line-height: 24px;
-  font-size: 12px;
-  position: relative;
-}
-
-.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 22px;
-  width: 22px;
-  margin: 0;
-  text-align: center;
-  color: #e74c3c;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.select2-container .select2-dropdown {
-  background: transparent;
-  border: none;
-  margin-top: -5px;
-}
-
-.select2-container .select2-dropdown .select2-search {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-search input {
-  outline: none;
-  border: 1px solid #34495e;
-  border-bottom: none;
-  padding: 4px 6px;
-}
-
-.select2-container .select2-dropdown .select2-results {
-  padding: 0;
-}
-
-.select2-container .select2-dropdown .select2-results ul {
-  background: #fff;
-  border: 1px solid #34495e;
-}
-
-.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
-  background-color: #3498db;
-}
-
-.select-input{
-    height: 33px;
-    font-size: 12px;
-}
-
-
-  #add-email-trans-modal .form-control{
-    border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: none;
-  margin-bottom: 15px; 
-}
-
+		table-layout: fixed;
+		width: 100%;
+	}
+	.scrolling .td, .th {
+		padding: 10px;
+		width: auto;
+	}
+	.parent-td{
+		padding: 10px;
+		width: 4px;
+		float: left;
+	}
+	.scrolling .th {
+		position: relative;
+		left: 0;
+		width: auto;
+	}
+	.outer {
+		position: relative
+	}
+	.inner {
+		overflow-x: auto;
+	}
+	.nav-item .active{
+		background-color: #f96332;
+		font-weight: bold;
+		color:#ffffff;
+	}
+	.user-image {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.imgPreview {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.upload-btn{
+		padding: 6px 12px;
+	}
+	.fileUpload {
+		position: relative;
+		overflow: hidden;
+		font-size: 9pt;
+	}
+	.fileUpload input.upload {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+		filter: alpha(opacity=0);
+	}
+	.imgPreview1 {
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 5px;
+	}
+	.upload-btn1{
+		padding: 6px 12px;
+	}
+	.fileUpload1 {
+		position: relative;
+		overflow: hidden;
+		font-size: 9pt;
+	}
+	.fileUpload1 input.upload1 {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		opacity: 0;
+		filter: alpha(opacity=0);
+	}
+	.boldwrap {
+		font-weight: bold;
+	}
+	#add-user-modal .form-control, #edit-user-modal .form-control {
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		box-shadow: none;
+		margin-bottom: 15px;
+	}
+	#edit-user-modal .form-control:hover, #edit-user-modal .form-control:focus, #edit-user-modal .form-control:active {
+		box-shadow: none;
+	}
+	#edit-user-modal .form-control:focus {
+		border: 1px solid #34495e;
+	}
+	#add-user-modal .form-control:hover, #add-user-modal .form-control:focus, #add-user-modal .form-control:active {
+		box-shadow: none;
+	}
+	#add-user-modal .form-control:focus {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container {
+		width: 100% !important;
+	}
+	.select2.select2-container .select2-selection {
+		border: 1px solid #ccc;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		height: 34px;
+		margin-bottom: 15px;
+		outline: none;
+		transition: all 0.15s ease-in-out;
+	}
+	.select2.select2-container .select2-selection .select2-selection__rendered {
+		color: #333;
+		line-height: 32px;
+		padding-right: 33px;
+	}
+	.select2.select2-container .select2-selection .select2-selection__arrow {
+		background: #f8f8f8;
+		border-left: 1px solid #ccc;
+		-webkit-border-radius: 0 3px 3px 0;
+		-moz-border-radius: 0 3px 3px 0;
+		border-radius: 0 3px 3px 0;
+		height: 32px;
+		width: 33px;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--single {
+		background: #f8f8f8;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--single .select2-selection__arrow {
+		-webkit-border-radius: 0 3px 0 0;
+		-moz-border-radius: 0 3px 0 0;
+		border-radius: 0 3px 0 0;
+	}
+	.select2.select2-container.select2-container--open .select2-selection.select2-selection--multiple {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container.select2-container--focus .select2-selection {
+		border: 1px solid #34495e;
+	}
+	.select2.select2-container .select2-selection--multiple {
+		height: auto;
+		min-height: 34px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-search--inline .select2-search__field {
+		margin-top: 0;
+		height: 32px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__rendered {
+		display: block;
+		padding: 0 4px;
+		line-height: 29px;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__choice {
+		background-color: #f8f8f8;
+		border: 1px solid #ccc;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		margin: 4px 4px 0 0;
+		padding: 0 6px 0 22px;
+		height: 24px;
+		line-height: 24px;
+		font-size: 12px;
+		position: relative;
+	}
+	.select2.select2-container .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 22px;
+		width: 22px;
+		margin: 0;
+		text-align: center;
+		color: #e74c3c;
+		font-weight: bold;
+		font-size: 16px;
+	}
+	.select2-container .select2-dropdown {
+		background: transparent;
+		border: none;
+		margin-top: -5px;
+	}
+	.select2-container .select2-dropdown .select2-search {
+		padding: 0;
+	}
+	.select2-container .select2-dropdown .select2-search input {
+		outline: none;
+		border: 1px solid #34495e;
+		border-bottom: none;
+		padding: 4px 6px;
+	}
+	.select2-container .select2-dropdown .select2-results {
+		padding: 0;
+	}
+	.select2-container .select2-dropdown .select2-results ul {
+		background: #fff;
+		border: 1px solid #34495e;
+	}
+	.select2-container .select2-dropdown .select2-results ul .select2-results__option--highlighted[aria-selected] {
+		background-color: #3498db;
+	}
+	.select-input{
+		height: 33px;
+		font-size: 12px;
+	}
+	#add-email-trans-modal .form-control{
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		box-shadow: none;
+		margin-bottom: 15px; 
+	}
 </style>
 
 @endsection
@@ -749,6 +760,92 @@
 
 <script>
   $(document).ready(function(){
+    $(document).on('click', '#view-role-users', function(e) {
+      e.preventDefault();
+
+      const mod = $('#role-permission-module').val();
+      const role = $('#user-role-select').val();
+
+      if (!mod || !role) {
+        return showNotification("info", 'Please select User Role first', "now-ui-icons travel_info");
+      }
+
+      const roleTxt = $('#user-role-select option:selected').text();
+      $('#view-role-users-modal .modal-title').text(roleTxt);
+
+      $.ajax({
+        url:"/view_role_users",
+        type:"GET",
+        data: {module: mod, role},
+        success:function(data){
+          $('#view-role-users-div').html(data);
+          $('#view-role-users-modal').modal('show');
+        }
+      });  
+    });
+
+    $('#update-permissions-btn').attr('disabled', true);
+    $(document).on('change', '#role-permission-module', function (e) {
+      e.preventDefault();
+      $.ajax({
+        url:"/get_user_role_by_module/" + $(this).val(),
+        type:"GET",
+        success:function(data){
+          $("#user-role-select").html(data);
+          $('#role-permissions-div').empty();
+          $('#update-permissions-btn').attr('disabled', true);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
+        }
+      });
+    });
+    $(document).on('change', '#user-role-select', function (e) {
+      e.preventDefault();
+      $('#update-permissions-btn').removeAttr('disabled');
+      view_role_permissions_form($(this).val());
+    });
+    function view_role_permissions_form(query){
+      $.ajax({
+        url:"/view_role_permissions_form/" + query,
+        type:"GET",
+        success:function(data){
+          $('#role-permissions-div').html(data);
+        }
+      });  
+    }
+    $('#update-permissions-btn').click(function (e) {
+      e.preventDefault();
+      $('#role-permission-form').submit();
+    });
+    $(document).on('submit', '#role-permission-form', function(e) {
+      e.preventDefault();
+      $.ajax({
+        url: $(this).attr('action'),
+        type: "POST",
+        data: $(this).serialize(),
+        success:function(data){
+          if (data.status) {
+            showNotification("success", data.message, "now-ui-icons ui-1_check");
+          } else {
+            showNotification("warning", data.message, "now-ui-icons travel_info");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR, textStatus, errorThrown);
+          showNotification("danger", 'Server Error. Please contact your system administrator.', "now-ui-icons travel_info");
+        }
+      }); 
+    });
+    $(document).on('click', '.check-all-permission', function (e){
+      e.preventDefault();
+      $("." + $(this).data('type')).prop('checked', true);
+    });
+    $(document).on('click', '.uncheck-all-permission', function (e){
+      e.preventDefault();
+      $("." + $(this).data('type')).prop('checked', false);
+    });
+    
     function showNotification(color, message, icon){
       $.notify({
         icon: icon,
@@ -915,8 +1012,8 @@ $('.sel12').select2({
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
+          $('.modal').modal('hide');
           get_users();
-          $('#edit-user-modal').modal('hide');
           showNotification("success", data.message, "now-ui-icons ui-1_check");
         }
       }); 
@@ -1042,6 +1139,11 @@ $('.sel12').select2({
           });
     }
  }
+
+ $(document).on('keyup', '#search_user_group_setup', function(){
+    var query = $(this).val();
+    get_user_group(1, query);
+  });
 
  function get_user_group(page, query){
       $.ajax({

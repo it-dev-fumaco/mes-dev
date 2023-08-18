@@ -32,9 +32,11 @@
           <button type="button" class="btn btn-success mr-1 mt-1 mb-0" id="ready-for-feedback-btn">
             Ready for Feedback <span class="badge badge-danger m-0" id="ready-for-feedback-badge" style="font-size: 9pt;">0</span>
           </button>
-          <button type="button" class="btn btn-primary mr-1 mt-1 mb-0" id="btn-prod-sched">
-            <i class="now-ui-icons ui-1_calendar-60 mr-1"></i> Production Calendar
-          </button>
+          @canany(['assign-production-order-schedule', 'reschedule-delivery-date-production-order', 'reschedule-delivery-date-order'])
+            <button type="button" class="btn btn-primary mr-1 mt-1 mb-0" id="btn-prod-sched">
+              <i class="now-ui-icons ui-1_calendar-60 mr-1"></i> Production Calendar
+            </button>
+          @endcanany
           <button type="button" class="btn text-center btn-prod-notif mr-1 mt-1 mb-0">
             <div class="containerbadge d-block" id="badge" style="padding-right:80px;margin-top:-10px;">
               <a class="entypo-bell"></a>

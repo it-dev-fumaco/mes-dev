@@ -67,6 +67,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/count_reject_for_confirmation', 'QualityInspectionController@count_reject_for_confirmation');
 	Route::get('/view_rejection_report', 'QualityInspectionController@viewRejectionReport');
 	Route::get('/view_delivery_list/{date}', 'MainController@viewDeliveryList');
+	Route::get('/view_role_users', 'MainController@viewRoleUsers');
 });
 
 Route::get('/get_reject_confirmation_checklist/{production_order}/{workstation_name}/{process_id}/{qa_id}', 'QualityInspectionController@get_reject_confirmation_checklist');
@@ -165,6 +166,10 @@ Route::group(['middleware' => 'auth'], function(){
 	route::post('/save_process_workstation','SecondaryController@save_process_workstation');
 	route::get('/get_tbl_workstation_process','SecondaryController@get_tbl_workstation_process');
 	route::get('/get_tbl_workstation_machine','SecondaryController@get_tbl_workstation_machine');
+	route::get('/machine_select_data','SecondaryController@machine_select_data');
+	route::get('/process_select_data','SecondaryController@process_select_data');
+	route::post('/process_assignment/{id}/add','SecondaryController@add_assigned_process');
+	route::get('/process_assignment/{id}/remove/{process_id}','SecondaryController@remove_assigned_process');
 	route::post('/delete_process_workstation','SecondaryController@delete_process_workstation');
 	route::post('/save_machine_process','SecondaryController@save_machine_process');
 	route::post('/delete_machine_process','SecondaryController@delete_machine_process');
@@ -177,7 +182,7 @@ Route::group(['middleware' => 'auth'], function(){
 	route::get('/get_AssignProcessinMachine_jquery/{id}/{workstation}','SecondaryController@get_AssignProcessinMachine_jquery');
 	route::post('/process_assignment','SecondaryController@process_assignment');
 	route::get('/get_tbl_assigned_machine_process/{id}','SecondaryController@tbl_assigned_machine_process');
-	route::get('/get_tbl_process_setup_list','SecondaryController@tbl_process_setup_list');
+	// route::get('/get_tbl_process_setup_list','SecondaryController@tbl_process_setup_list');
 	route::get('/get_tbl_machine_setup_list','SecondaryController@tbl_machine_setup_list');
 	route::post('/update_process_setup_list','SecondaryController@Update_process_setup_list');
 	route::post('/delete_process_setup_list','SecondaryController@Delete_process_setup_list');
@@ -271,7 +276,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/submit/stock_entries_adjustment', 'SecondaryController@submit_stock_entries_adjustment');
 	Route::get('/get_tbl_stock_adjustment_entry', 'SecondaryController@get_tbl_stock_adjustment_entry');
 	Route::get('/get_fabrication_inventory_history_list', 'SecondaryController@get_fabrication_inventory_history_list');
-	route::get('/get_tbl_workstation_list','SecondaryController@get_tbl_workstation_list');
+	route::get('/get_tbl_workstation_list/{id}','SecondaryController@get_tbl_workstation_list');
 	Route::get('/get_tbl_setting_machine_list', 'SecondaryController@get_tbl_setting_machine_list');
 	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
 	Route::get('/selected_print_job_tickets/{scheduled_date}', 'SecondaryController@selected_printJobTickets');
@@ -682,23 +687,37 @@ Route::get('/get_operators', 'MainController@get_operators');
 Route::get('/get_operator_timelogs', 'MainController@get_operator_timelogs');
 Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{process}/{parts}/{item_code}', 'SecondaryController@tbl_operator_item_produced_report');
 //Daily Report
-Route::group(['middleware' => 'auth'], function(){
-	Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
-	Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
-	// Route::get('/link_qa_report', 'LinkReportController@qa_report');
-	Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
-	Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
-	Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
-	Route::get('/report_index', 'LinkReportController@index');
-	Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
-	Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
-	Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
-	Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
-	Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
-	Route::get('/duplicate_withdrawal_slips', 'LinkReportController@duplicate_withdrawal_slips');
-	Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
-	Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
-	Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+	Route::group(['middleware' => 'auth'], function(){
+		Route::get('/link_assembly_report', 'LinkReportController@assembly_report_page');
+		Route::get('/link_painting_report', 'LinkReportController@painting_report_page');
+		// Route::get('/link_qa_report', 'LinkReportController@qa_report');
+		Route::get('/link_daily_output_report', 'LinkReportController@daily_output_report');
+		Route::get('/link_daily_output_chart', 'LinkReportController@daily_output_chart');
+		Route::get('/get_filter_per_parts_category', 'LinkReportController@get_filter_per_parts_category');
+		Route::get('/report_index', 'LinkReportController@index');
+		Route::get('/link_painting_report/{id}', 'LinkReportController@painting_report_page');
+		Route::get('/link_fabrication_report/{id}', 'LinkReportController@fabrication_daily_report_page');
+		Route::get('/link_assembly_report/{id}', 'LinkReportController@assembly_report_page');
+		Route::get('/link_qa_report/{id}', 'LinkReportController@qa_report');
+		Route::get('/inaccurate_operator_feedback', 'LinkReportController@inaccurate_operator_feedback');
+		Route::get('/duplicate_withdrawal_slips', 'LinkReportController@duplicate_withdrawal_slips');
+		Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
+		Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
+		Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+
+		Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
+		Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
+		Route::get('/rejection_report', 'LinkReportController@rejection_report');
+		Route::get('/rejection_report_chart', 'LinkReportController@rejection_report_chart');
+		Route::get('/link_parts_category_daily_output', 'LinkReportController@parts_output_report');
+		Route::get('/link_painting_parts_category_daily_output', 'LinkReportController@painting_parts_output_report');
+		Route::get('/powder_coating_usage_report', 'LinkReportController@powder_coating_usage_report');
+		Route::get('/powder_coat_usage_history', 'LinkReportController@powder_coat_usage_history');
+		Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
+		Route::get('/items_in_their_own_bom', 'LinkReportController@items_in_their_own_bom');
+
+		Route::get('/view_role_permissions_form/{user_group}', 'MainController@viewRolePermissionsForm');
+		Route::post('/save_role_permissions/{user_group}', 'MainController@saveRolePermissions');
 
 	Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 	Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');

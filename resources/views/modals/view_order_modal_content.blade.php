@@ -109,9 +109,11 @@
                                             <th class="p-2" style="width: 5%;">Ordered</th>
                                             {{-- <th class="p-2" style="width: 5%;">Inventory Qty</th> --}}
                                             <th class="p-2" style="width: 7%;">Ship by</th>
-                                            @if($has_bom)
-                                                <th class="p-2" style="width: 10%;">BOM No.</th>
-                                            @endif
+                                            @canany(['assign-bom-process'])
+                                                @if($has_bom)
+                                                    <th class="p-2" style="width: 10%;">BOM No.</th>
+                                                @endif
+                                            @endcanany
                                             <th class="p-2" style="width: 10%;">Prod. Order</th>
                                             @if($items_production_orders)
                                                 <th class="p-2" style="width: 5%;">Status</th>
@@ -160,25 +162,27 @@
                                                 <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
                                                     {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
                                                 </td>
-                                                @if($has_bom)                                                    
-                                                    <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
-                                                        @if(count($bom) > 0)
-                                                        <div class="input-group m-0">
-                                                            <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
-                                                                @foreach($bom as $b)
-                                                                <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
-                                                                @endforeach
-                                                            </select>
-                                                            <div class="input-group-append">
-                                                                <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                @canany(['assign-bom-process'])
+                                                    @if($has_bom)                                                    
+                                                        <td class="text-center p-2" rowspan="{{ count($production_order_item) > 0 ? count($production_order_item) : '' }}">
+                                                            @if(count($bom) > 0)
+                                                            <div class="input-group m-0">
+                                                                <select class="custom-select p-2" name="bom[{{ $v->item_code }}]">
+                                                                    @foreach($bom as $b)
+                                                                    <option value="{{ $b->name }}"><b>{{ $b->name }}</b></option>
+                                                                    @endforeach
+                                                                </select>
+                                                                <div class="input-group-append">
+                                                                    <button class="btn btn-secondary view-bom pb-2 pt-2 pr-3 pl-3" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        @else
-                                                        <input type="hidden" name="bom[{{ $v->item_code }}]">
-                                                        <span>-- No BOM --</span>
-                                                        @endif
-                                                    </td>
-                                                @endif
+                                                            @else
+                                                            <input type="hidden" name="bom[{{ $v->item_code }}]">
+                                                            <span>-- No BOM --</span>
+                                                            @endif
+                                                        </td>
+                                                    @endif
+                                                @endcanany
                                                 @if($items_production_orders)
                                                     @forelse ($production_order_item as $po)
                                                         <td class="text-center p-2">

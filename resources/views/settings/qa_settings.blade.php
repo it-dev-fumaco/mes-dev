@@ -7,58 +7,45 @@
 
 @section('content')
 <div class="panel-header"></div>
-<div class="row p-0" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
-	<div class="col-2 p-2">
-		<div class="card" id="workstation_navbar">
-      <div class="card-header p-2" style="background-color: #0277BD;">
-				<h5 class="text-white text-center text-uppercase m-0 font-weight-bold" style="font-size: 13pt;">Settings</h5>
-			</div>
-      <div class="card-body" style="min-height: 850px;">
-				<div class="row bg-white text-center">
-					<div class="col-md-12">
-						<ul class="nav flex-column workstation_navbar" id="myTab" role="tablist" style="font-size: 10pt;">
-							<li class="nav-item">
-								<a class="nav-link active" href="#qa_setup" data-toggle="tab">QA Inspection Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#operator_reject_setup" data-toggle="tab">Operator Reject Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#qa_lot_size" data-toggle="tab">Sampling Plan Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#qa_reject_category" data-toggle="tab">Reject Category Setup</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#material_type_setup" data-toggle="tab">Material Type Setup</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-  <div class="col-10 p-2" style="min-height: 1000px;">
+<div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 1000px;">
+	<div class="col-12 p-0 bg-white">
+    <ul class="nav mr-2 ml-2 mt-3 mb-3" id="myTab" role="tablist">
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link active" href="#qa_setup" data-toggle="tab">QA Inspection Setup</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#operator_reject_setup" data-toggle="tab">Operator Reject Setup</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#qa_lot_size" data-toggle="tab">Sampling Plan Setup</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#qa_reject_category" data-toggle="tab">Reject Category Setup</a>
+      </li>
+      <li class="nav-item mr-2" style="border: 1px solid #f96332 !important;">
+        <a class="nav-link" href="#material_type_setup" data-toggle="tab">Material Type Setup</a>
+      </li>
+    </ul>
     <div class="tab-content text-center">
       <div class="tab-pane active" id="qa_setup">
         <div class="card">
 					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Quality Inspection Setup</h5>
-							</div>
-						</div>
+            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+              <div class="mr-auto pt-3 pb-3 pl-2 pr-2">
+                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Quality Inspection Setup</div>
+              </div>
+            </div>
 					</div>
           <div class="card-body p-0">
             <div class="row p-0 m-0 bg-white" style="min-height: 1000px;">
               <div class="col-md-12">
-                <div class="nav-tabs-navigation mt-2">
+                <div class="nav-tabs-navigation mt-2 mb-2">
                   <div class="nav-tabs-wrapper" id="qa_tab">
-                    <ul class="nav nav-tabs" data-tabs="tabs">
-                      <li class="nav-item">
+                    <ul class="nav" data-tabs="tabs" style="font-size: 11px;">
+                      <li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
                         <a class="nav-link active" data-qatab="checklist" href="#inspection_checklist" data-toggle="tab">Inspection Checklist</a>
                       </li>
-                      <li class="nav-item">
+                      <li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
                         <a class="nav-link" data-qatab="reject" href="#qa_reject_list" data-toggle="tab">QA Inspection List</a>
                       </li>
                     </ul>
@@ -131,11 +118,11 @@
       <div class="tab-pane" id="qa_lot_size">
         <div class="card">
 					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Sampling Plan Setup</h5>
-							</div>
-						</div>
+            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+              <div class="mr-auto pt-3 pb-3 pl-2 pr-2">
+                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Sampling Plan Setup</div>
+              </div>
+            </div>
 					</div>
           <div class="card-body p-0">
             <div class="row p-0 m-0 bg-white" style="min-height: 500px;">
@@ -203,28 +190,28 @@
       <div class="tab-pane" id="operator_reject_setup">
         <div class="card">
 					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Operator Reject Setup</h5>
-							</div>
-						</div>
+            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+              <div class="mr-auto pt-3 pb-3 pl-2 pr-2">
+                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Operator Reject Setup</div>
+              </div>
+            </div>
 					</div>
           <div class="card-body p-0">
             <div class="row p-0 m-0 bg-white" style="min-height: 700px;">
               <div class="col-md-12">
-                <div class="nav-tabs-navigation mt-2">
+                <div class="nav-tabs-navigation mt-2 mb-2">
                   <div class="nav-tabs-wrapper" id="operator_tab">
-                    <ul class="nav nav-tabs" data-tabs="tabs">
-                      <li class="nav-item">
+                    <ul class="nav" data-tabs="tabs" style="font-size: 11px;">
+                      <li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
                         <a class="nav-link active" data-qatab="op_fabrication" href="#op_fabrication" data-toggle="tab">Fabrication</a>
                       </li>
-                      <li class="nav-item">
+                      <li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
                         <a class="nav-link" data-qatab="op_painting" href="#op_painting" data-toggle="tab">Painting</a>
                       </li>
-                      <li class="nav-item">
+                      <li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
                         <a class="nav-link" data-qatab="op_assembly" href="#op_assembly" data-toggle="tab">Wiring and Assembly</a>
                       </li>
-                      <li class="nav-item">
+                      <li class="nav-item mr-2 rounded" style="border: 1px solid #f96332 !important;">
                         <a class="nav-link" data-qatab="op_reject" href="#operator_reject_list" data-toggle="tab">Operator Reject list</a>
                       </li>
                     </ul>
@@ -365,21 +352,23 @@
       <div class="tab-pane" id="material_type_setup">
         <div class="card">
 					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Material Type Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white search-str" placeholder="Search..." name="material_type_setup" data-workstation="material_type_setup">
-								</div>
-							</div>
-						</div>
+            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+              <div class="mr-auto p-2">
+                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Material Type Setup</div>
+              </div>
+              <div class="p-2 col-4">
+                <input type="text" class="form-control rounded bg-white p-2 w-100 m-0 search-str" placeholder="Search..." name="material_type_setup" data-workstation="material_type_setup">
+              </div>
+              <div class="p-2">
+                <button type="button" class="btn btn-primary m-0" id="add-material-type-button" style="font-size: 9pt;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                </button>
+              </div>
+            </div>
 					</div>
           <div class="card-body p-0">
             <div class="row p-0 m-0 bg-white" style="min-height: 500px;">
 							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-material-type-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Add Material Type </button>
 								<div id="tbl_material_type"></div>    
 							</div>
             </div>        
@@ -389,22 +378,24 @@
       <div class="tab-pane" id="qa_reject_category">
         <div class="card" style="background-color: #0277BD;" >
 					<div class="card-header p-0 m-0" style="background-color: #0277BD;">
-						<div class="row p-2 m-0">
-							<div class="col-md-8 p-0 m-0">
-								<h5 class="text-white font-weight-bold text-left p-1 m-0">Reject Category Setup</h5>
-							</div>
-							<div class="col-md-4 p-0 m-0">
-								<div class="form-group m-0">
-									<input type="text" class="form-control rounded bg-white search-str" placeholder="Search..." name="qa_reject_category" data-workstation="qa_reject_category">
-								</div>
-							</div>
-						</div>
+            <div class="d-flex align-items-center pt-0 pb-0 pl-2 pr-2">
+              <div class="mr-auto p-2">
+                <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Reject Category Setup</div>
+              </div>
+              <div class="p-2 col-4">
+                <input type="text" class="form-control rounded bg-white p-2 w-100 m-0 search-str" placeholder="Search..." name="qa_reject_category" data-workstation="qa_reject_category">
+              </div>
+              <div class="p-2">
+                <button type="button" class="btn btn-primary m-0" id="add-reject-ctg-button" style="float: right;">
+                  <i class="now-ui-icons ui-1_simple-add"></i> Add
+                </button>
+              </div>
+            </div>
 					</div>
           <div class="card-body p-0">
             <div class="row p-0 m-0 bg-white" style="min-height: 500px;">
 							<div class="col-md-12">
-								<button type="button" class="btn btn-primary" id="add-reject-ctg-button" style="float: right;"><i class="now-ui-icons ui-1_simple-add"></i> Reject Category </button>
-								<div class="tbl-reject-ctg" id="tbl-reject-ctg"></div>
+								<div class="tbl-reject-ctg mt-3" id="tbl-reject-ctg"></div>
 							</div>
             </div>        
           </div>

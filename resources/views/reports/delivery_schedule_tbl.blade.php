@@ -133,12 +133,18 @@
                                     <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 8pt;">Action </button>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item create-ste-btn" href="#" data-production-order="{{ $item['production_order'] }}" data-item-code="{{ $item['item_code'] }}">View Materials</a>
-                                        <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $item['production_order'] }}">Reschedule Delivery Date</a>
+                                        @canany(['reschedule-delivery-date-order','reschedule-delivery-date-production-order'])
+                                            <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $item['production_order'] }}">Reschedule Delivery Date</a>
+                                        @endcanany
                                         @if (!in_array($item['status'], ['Cancelled', 'Feedbacked']))
                                             @if ($item['status'] == 'Closed')
-                                                <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $item['production_order'] }}">Re-open Production</a>
+                                                @canany(['reopen-production-order'])
+                                                    <a class="dropdown-item re-open-production-btn" href="#"data-production-order="{{ $item['production_order'] }}">Re-open Production</a>
+                                                @endcanany
                                             @else
-                                                <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $item['production_order'] }}">Close Production</a>
+                                                @canany(['close-production-order'])
+                                                    <a class="dropdown-item close-production-btn" href="#"data-production-order="{{ $item['production_order'] }}">Close Production</a>
+                                                @endcanany
                                             @endif
                                         @endif
                                     </div>

@@ -36,9 +36,11 @@
                   <button type="button" class="btn btn-secondary" id="reload-list">
                     <i class="now-ui-icons loader_refresh"></i> Refresh List
                   </button>
-                  <button type="button" class="btn btn-primary" id="manual-production-create-btn">
-                    <i class="now-ui-icons ui-1_simple-add"></i> Production Order
-                  </button>
+                  @canany(['view-incoming-orders', 'create-production-order', 'cancel-production-order', 'close-production-order', 'reopen-production-order'])
+                    <button type="button" class="btn btn-primary" id="manual-production-create-btn">
+                      <i class="now-ui-icons ui-1_simple-add"></i> Production Order
+                    </button>
+                  @endcanany
                 </div>
               </div>
               <div class="tab-content" style="margin-top: -5px;">
@@ -163,135 +165,6 @@
   </div>
 </div>
 
-<style>
-  .ui-autocomplete {
-    position: absolute;
-    z-index: 2150000000 !important;
-    cursor: default;
-    border: 2px solid #ccc;
-    padding: 5px 0;
-    border-radius: 2px;
-  }
-
-  .custom-nav-link{
-    padding: 5px;
-    /* width: 20%; */
-  }
-
-  .custom-nav-link a{
-    text-decoration: none;
-  }
-  
-  .ui-tab-container.ui-tab-default .nav-tabs {
-    border: 0;
-  }
-  
-  .tab-heading {
-    width: 100%;
-    padding: .5em;
-  }
-  .tab-heading h4 {
-    margin: 0;
-    padding: 0;
-  }
-  .tab-heading--blue {
-    background-color: #2196E3;
-    color: #FFF;
-  }
-  .tab-heading--orange {
-    background-color: #EA9034;
-    color: #FFF;
-  }
-  .tab-heading--reddish {
-    background-color: #E86B46;
-    color: #FFF;
-  }
-  .tab-heading--teal {
-    background-color: #22D3CC;
-    color: #FFF;
-  }
-  .tab-heading--green {
-    background-color: #8BC753;
-    color: #FFF;
-  }
-  .tab-heading--gray {
-    background-color: #808495;
-    color: #FFF;
-  }
-  .tab-heading--ltgray {
-    background-color: #F3F3F3;
-    color: #242424;
-  }
-  
-  .ui-tab-container .nav-tabs > li.active > a,
-  .ui-tab-container .nav-tabs > li > a {
-    background: transparent;
-    border: 0;
-    border-width: 0;
-    outline: 0;
-  }
-  .ui-tab-container .nav-tabs > li.active > a:hover, .ui-tab-container .nav-tabs > li.active > a:focus,
-  .ui-tab-container .nav-tabs > li > a:hover,
-  .ui-tab-container .nav-tabs > li > a:focus {
-    background-color: transparent;
-    border: 0;
-    border-width: 0;
-    outline: 0;
-  }
-      
-  li.tab .tab-number {
-    color: #FFF;
-    font-weight: 800;
-    font-size: 1.15em;
-    display: block;
-    text-align: center;
-    margin-bottom: .25em;
-  }
-  li.tab .tab-title {
-    color: #FFF;
-    font-size: .7em;
-    display: block;
-    text-align: center;
-    text-transform: uppercase;
-  }
-  li.tab.in-progress-tab {
-    background-color: #EA9034;
-  }
-  li.tab.task-queue-tab {
-    background-color: #2196E3;
-  }
-  li.tab.bug-queue-tab {
-    background-color: #E86B46;
-    color: #FFF;
-  }
-  li.tab.awaiting-feedback-tab {
-    background-color: #22D3CC;
-    color: #FFF;
-  }
-  li.tab.completed-tab {
-    background-color: #8BC753;
-    color: #FFF;
-  }
-  li.tab.next-deploy-tab {
-    background-color: #808495;
-    color: #FFF;
-  }
-  li.tab.search-tab {
-    background-color: #F3F3F3;
-  }
-  li.tab.search-tab .tab-number {
-    color: #242424;
-  }
-  li.tab.search-tab .tab-title {
-    color: #242424;
-  }
-  
-  .ticket-status-widget .tab-content {
-    background: #FFF;
-    padding: 0;
-  }
-  
-</style>
 {{--  end  --}}
 
 <div id="loader-wrapper" hidden>
@@ -461,7 +334,133 @@
     vertical-align: baseline;
     position: relative;
   }
+  .ui-autocomplete {
+    position: absolute;
+    z-index: 2150000000 !important;
+    cursor: default;
+    border: 2px solid #ccc;
+    padding: 5px 0;
+    border-radius: 2px;
+  }
 
+  .custom-nav-link{
+    padding: 5px;
+    /* width: 20%; */
+  }
+
+  .custom-nav-link a{
+    text-decoration: none;
+  }
+  
+  .ui-tab-container.ui-tab-default .nav-tabs {
+    border: 0;
+  }
+  
+  .tab-heading {
+    width: 100%;
+    padding: .5em;
+  }
+  .tab-heading h4 {
+    margin: 0;
+    padding: 0;
+  }
+  .tab-heading--blue {
+    background-color: #2196E3;
+    color: #FFF;
+  }
+  .tab-heading--orange {
+    background-color: #EA9034;
+    color: #FFF;
+  }
+  .tab-heading--reddish {
+    background-color: #E86B46;
+    color: #FFF;
+  }
+  .tab-heading--teal {
+    background-color: #22D3CC;
+    color: #FFF;
+  }
+  .tab-heading--green {
+    background-color: #8BC753;
+    color: #FFF;
+  }
+  .tab-heading--gray {
+    background-color: #808495;
+    color: #FFF;
+  }
+  .tab-heading--ltgray {
+    background-color: #F3F3F3;
+    color: #242424;
+  }
+  
+  .ui-tab-container .nav-tabs > li.active > a,
+  .ui-tab-container .nav-tabs > li > a {
+    background: transparent;
+    border: 0;
+    border-width: 0;
+    outline: 0;
+  }
+  .ui-tab-container .nav-tabs > li.active > a:hover, .ui-tab-container .nav-tabs > li.active > a:focus,
+  .ui-tab-container .nav-tabs > li > a:hover,
+  .ui-tab-container .nav-tabs > li > a:focus {
+    background-color: transparent;
+    border: 0;
+    border-width: 0;
+    outline: 0;
+  }
+      
+  li.tab .tab-number {
+    color: #FFF;
+    font-weight: 800;
+    font-size: 1.15em;
+    display: block;
+    text-align: center;
+    margin-bottom: .25em;
+  }
+  li.tab .tab-title {
+    color: #FFF;
+    font-size: .7em;
+    display: block;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  li.tab.in-progress-tab {
+    background-color: #EA9034;
+  }
+  li.tab.task-queue-tab {
+    background-color: #2196E3;
+  }
+  li.tab.bug-queue-tab {
+    background-color: #E86B46;
+    color: #FFF;
+  }
+  li.tab.awaiting-feedback-tab {
+    background-color: #22D3CC;
+    color: #FFF;
+  }
+  li.tab.completed-tab {
+    background-color: #8BC753;
+    color: #FFF;
+  }
+  li.tab.next-deploy-tab {
+    background-color: #808495;
+    color: #FFF;
+  }
+  li.tab.search-tab {
+    background-color: #F3F3F3;
+  }
+  li.tab.search-tab .tab-number {
+    color: #242424;
+  }
+  li.tab.search-tab .tab-title {
+    color: #242424;
+  }
+  
+  .ticket-status-widget .tab-content {
+    background: #FFF;
+    padding: 0;
+  }
+  
 </style>
 
 <!-- Modal Manual Create Production Prder -->
@@ -688,7 +687,6 @@
   </div>
 </div>
 
-
 <!-- Modal Create STE Production Order -->
 <div class="modal fade" id="create-ste-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -724,6 +722,7 @@
     </form>
   </div>
 </div>
+
 <div class="modal fade" id="feedbacked-log-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document" style="min-width:40%;">
 
@@ -747,6 +746,7 @@
       </div>
   </div>
 </div>
+
 <div class="modal fade" id="reset-workstation-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document" style="min-width:40%;">
       <div class="modal-content">
@@ -764,6 +764,7 @@
       </div>
   </div>
 </div>
+
 <div class="modal fade" id="prod-list-confirm-reset-workstation-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <form action="/reset_workstation_data" method="POST" id="prod-list-reset-works-frm">

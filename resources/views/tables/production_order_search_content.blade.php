@@ -179,9 +179,11 @@
 												<col style="width: 10%;"><!-- END -->
 												<col style="width: 10%;"><!-- DURATION -->
 												<col style="width: 8%;"><!-- OPERATOR -->
-												@if ($item_details['feedback_qty'] <= 0)
-												<col style="width: 6%;"><!-- ACTION -->
-												@endif
+												@canany(['override-operator-timelog'])
+													@if ($item_details['feedback_qty'] <= 0)
+														<col style="width: 6%;"><!-- ACTION -->
+													@endif
+												@endcanany
 												<thead style="font-size: 10pt;">
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>WORKSTATION</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROCESS</b></td>
@@ -192,9 +194,11 @@
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>END</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DURATION</b></td>
 													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>OPERATOR</b></td>
-													@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
-													<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>ACTION</b></td>
-													@endif
+													@canany(['override-operator-timelog'])
+														@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
+															<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>ACTION</b></td>
+														@endif
+													@endcanany
 												</thead>
 												<tbody style="font-size: 9pt;">
 													@foreach ($operation_list as $workstation => $processes)
@@ -211,12 +215,14 @@
 														$is_painting = false;
 													@endphp
 													<tr>
+														<!-- WORKSTATION -->
 														<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ ($rowspan) }}">
 															<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $jt }}" data-prodno="{{ $production_order_no }}">{{ $workstation }} {!! $icon !!}</span>
 														</td>
 														@php
 															$wip_painting = collect($processes)->where('workstation', 'Painting')->where('jt_status', 'In Progress')->count();
 														@endphp
+														<!-- PROCESS -->
 														@foreach ($processes as $process)
 														<td class="text-center" style="border: 1px solid #ABB2B9;" rowspan="{{ $process['count'] }}">
 															<span class="{{ $spotclass }} font-weight-bold" data-jobticket="{{ $process['job_ticket'] }}" data-prodno="{{ $process['production_order'] }}">
@@ -236,26 +242,52 @@
 															$to_time = ($a['to_time']) ? Carbon\Carbon::parse($a['to_time'])->format('M-d-Y h:i A') : '-';
 															$inprogress_class = ($a['status'] == 'In Progress') ? 'active-process' : '';
 															$qc_status = null;
+
+															$machine_status = null;
+															if($a['status'] == 'In Progress' && $details->operation_id == 3 && $details->machine_code){
+																$machine_status = $details->machine_code == $machine ? $inprogress_class : 'incorrect-machine';
+															}
 															
 															if($process['process'] != "Housing and Frame Welding"){
 																$qc_status = ($a['qa_inspection_status'] == 'QC Passed') ? "qc_passed" : "qc_failed";
 																$qc_status = ($a['qa_inspection_status'] == 'Pending') ? '' : $qc_status;
 															}
 														@endphp
-														<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ number_format($a['good']) }}</b></td>
-														<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;"><b>{{ $loop->last ? number_format($a['rework']) : 0 }}</b></td>
-														<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">{{ $machine }}</td>
-														<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $from_time }}</td>
-														<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>{{ $to_time }}</td>
+														<!-- GOOD -->
+														<td class="text-center {{ $inprogress_class }} {{ $qc_status }}" style="font-size: 15pt; border: 1px solid #ABB2B9;">
+															<b>{{ number_format($a['good']) }}</b>
+														</td>
+														<!-- REWORK -->
+														<td class="text-center {{ $inprogress_class }}" style="font-size: 15pt; border: 1px solid #ABB2B9;">
+															<b>{{ $loop->last ? number_format($a['rework']) : 0 }}</b>
+														</td>
+														<!-- MACHINE -->
+														<td class="text-center {{ $machine_status }}" style="border: 1px solid #ABB2B9;">
+															{{ $machine }}
+														</td>
+														<!-- START -->
+														<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Unloading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>
+															{{ $from_time }}
+														</td>
+														<!-- END -->
+														<td class="text-center {{ $inprogress_class }} {{ $process['process'] == 'Loading' ? 'd-none' : null }}" style="border: 1px solid #ABB2B9;" colspan={{ $process['workstation'] == 'Painting' ? 2 : 1 }}>
+															{{ $to_time }}
+														</td>
 		
 														@if ($workstation == 'Painting' && !$is_painting)
-														<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;" rowspan="{{ ($rowspan) }}">{{ $painting_duration }}</td>
+														<!-- DURATION -->
+														<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;" rowspan="{{ ($rowspan) }}">
+															{{ $painting_duration }}
+														</td>
 														@php
 															$is_painting = true;
 														@endphp
 														@else
-														<td class="text-center {{ $inprogress_class }} {{ $workstation == 'Painting' ? 'd-none' : '' }}" style="border: 1px solid #ABB2B9;">{{ isset($a['total_duration']) ? $a['total_duration'] : '-' }}</td>
+														<td class="text-center {{ $inprogress_class }} {{ $workstation == 'Painting' ? 'd-none' : '' }}" style="border: 1px solid #ABB2B9;">
+															{{ isset($a['total_duration']) ? $a['total_duration'] : '-' }}
+														</td>
 														@endif
+														<!-- OPERATOR -->
 														<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
 															<span class="hvrlink-plan">{{ $operator_name }}</span>
 															@if($process['workstation'] != "Spotwelding")
@@ -271,28 +303,39 @@
 															</div>
 															@endif
 														</td>
-														@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
-														<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
-															@if ($process['workstation'] != 'Spotwelding')
-															<span class="d-none">{{ $process['production_order'] }}</span>
-															<span class="d-none">{{ $process['workstation'] }}</span>
-															<span class="d-none">{{ $process['process'] }}</span>
-															<span class="d-none">{{ $from_time }}</span>
-															<span class="d-none">{{ $to_time }}</span>
-															<span class="d-none">{{ $operator_name }}</span>
-															<span class="d-none">{{ $a['good'] }}</span>
-															@if (in_array($details->status, ['Cancelled', 'Closed']))
-																<img src="{{ asset('/img/edit-new-icon.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
-																<img src="{{ asset('/img/reset.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
-															@else
-																<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $process['job_ticket'] }}" data-timelog="{{ $a['timelog_id'] }}">
-																<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $process['job_ticket'] }}" data-timelog="{{ $a['timelog_id'] }}">
+														<!-- ACTION -->
+														@canany(['override-operator-timelog', 'reset-operator-timelog', 'edit-operator-timelog'])
+															@if ($item_details['feedback_qty'] < $item_details['qty_to_manufacture'])
+																<td class="text-center {{ $inprogress_class }}" style="border: 1px solid #ABB2B9;">
+																	@if ($process['workstation'] != 'Spotwelding')
+																	<span class="d-none">{{ $process['production_order'] }}</span>
+																	<span class="d-none">{{ $process['workstation'] }}</span>
+																	<span class="d-none">{{ $process['process'] }}</span>
+																	<span class="d-none">{{ $from_time }}</span>
+																	<span class="d-none">{{ $to_time }}</span>
+																	<span class="d-none">{{ $operator_name }}</span>
+																	<span class="d-none">{{ $a['good'] }}</span>
+																	@if (in_array($details->status, ['Cancelled', 'Closed']))
+																		@canany(['override-operator-timelog', 'edit-operator-timelog'])
+																			<img src="{{ asset('/img/edit-new-icon.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
+																		@endcanany
+																		@canany(['override-operator-timelog', 'reset-operator-timelog'])
+																			<img src="{{ asset('/img/reset.png') }}" class="d-inline-block m-1" width="20" style="cursor: not-allowed;">
+																		@endcanany
+																	@else
+																		@canany(['override-operator-timelog', 'edit-operator-timelog'])	
+																			<img src="{{ asset('/img/edit-new-icon.png') }}" class="edit-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $process['job_ticket'] }}" data-timelog="{{ $a['timelog_id'] }}">
+																		@endcanany
+																		@canany(['override-operator-timelog', 'reset-operator-timelog'])
+																			<img src="{{ asset('/img/reset.png') }}" class="reset-time-log-btn d-inline-block m-1" width="20" style="cursor: pointer;" data-jobticket="{{ $process['job_ticket'] }}" data-timelog="{{ $a['timelog_id'] }}">
+																		@endcanany
+																	@endif
+																	@else
+																	<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
+																	@endif
+																</td>
 															@endif
-															@else
-															<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
-															@endif
-														</td>
-														@endif
+														@endcanany
 													</tr>
 													@endforeach
 													@else
@@ -310,11 +353,13 @@
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
 														@endif
 														<td class="text-center" style="border: 1px solid #ABB2B9;">-</td>
-														@if ($item_details['feedback_qty'] <= 0)
-														<td class="text-center" style="border: 1px solid #ABB2B9;">
-															<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
-														</td>
-														@endif
+														@canany(['override-operator-timelog'])
+															@if ($item_details['feedback_qty'] <= 0)
+																<td class="text-center" style="border: 1px solid #ABB2B9;">
+																	<img src="{{ asset('/img/edit-new-icon.png') }}" width="20" style="cursor: not-allowed;">
+																</td>
+															@endif
+														@endcanany
 													</tr>
 													@endif
 													@endforeach
@@ -603,5 +648,20 @@
 	}
 	.hover-box:hover {
 		display: block;
+	}
+
+	.incorrect-machine {
+      -webkit-animation: errorAnimation 2.5s linear infinite !important;
+      -moz-animation: errorAnimation 2.5s linear infinite !important;
+      -o-animation: errorAnimation 2.5s linear infinite !important;
+      animation: errorAnimation 2.5s linear infinite !important;
+    }
+
+	@-webkit-keyframes errorAnimation{
+		0%    { background-color: #ffffff; color: #000}
+		25%   { background-color: #e50000; color: #fff}
+		50%   { background-color: #ffffff; color: #000}
+		75%   { background-color: #e50000; color: #fff}
+		100%  { background-color: #ffffff; color: #000}
 	}
 </style>
