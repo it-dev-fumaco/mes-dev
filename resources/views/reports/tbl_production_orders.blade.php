@@ -101,7 +101,7 @@
                   @canany(['update-wip-production-order-process'])
                     <a class="dropdown-item view-bom-details-btn" href="#" data-bom="{{ $r['bom'] }}" data-production-order="{{ $r['production_order'] }}">Update Process</a>
                   @endcanany
-                  @canany(['reschedule-delivery-date-order', 'reschedule-delivery-date-production-order'])
+                  @canany(['reschedule-delivery-date-production-order'])
                     <a class="dropdown-item resched-deli-btn" href="#" data-production-order="{{ $r['production_order'] }}">Reschedule Delivery Date</a>
                   @endcanany
                 @endif

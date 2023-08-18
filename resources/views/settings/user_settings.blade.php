@@ -1012,8 +1012,8 @@ $('.sel12').select2({
         type:"POST",
         data: $(this).serialize(),
         success:function(data){
+          $('.modal').modal('hide');
           get_users();
-          $('#edit-user-modal').modal('hide');
           showNotification("success", data.message, "now-ui-icons ui-1_check");
         }
       }); 

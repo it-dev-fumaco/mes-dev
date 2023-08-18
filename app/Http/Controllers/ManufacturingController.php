@@ -6247,7 +6247,7 @@ class ManufacturingController extends Controller
     // /submit_withdrawal_slip
     public function submit_withdrawal_slip(Request $request)
     {
-        if (Gate::denies('create-withdrawal-slip')) {
+        if (Gate::denies('fast-issue-items')) {
             return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
         }
 

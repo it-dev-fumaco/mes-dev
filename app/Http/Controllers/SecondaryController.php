@@ -3720,7 +3720,7 @@ class SecondaryController extends Controller
 
     public function add_shift_schedule(Request $request)
     {
-        if (Gate::denies('manage-shifts')) {
+        if (!Gate::any(['manage-shifts', 'assign-shift-schedule'])) {
             return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
         }
 

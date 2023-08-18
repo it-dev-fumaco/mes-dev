@@ -9984,9 +9984,11 @@ class MainController extends Controller
 			); 
 
 			if($so_details->owner != "Administrator"){
-				Mail::to($so_details->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
-				Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
-				Mail::to("jave.kulong@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				try {
+					Mail::to($so_details->owner)->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to("albert.gregorio@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+					Mail::to("jave.kulong@fumaco.local")->send(new SendMail_New_DeliveryDate_Alert($email_data)); //data_to_be_inserted_in_mail_template
+				} catch (\Throwable $th) {}
 			}
 
 			DB::connection('mysql')->commit();
@@ -9997,7 +9999,6 @@ class MainController extends Controller
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
 
-			// throw $th; // view error (formatted)
 			return redirect()->back()->with('error', 'Something went wrong. Please try again later');
 		}
 	}
