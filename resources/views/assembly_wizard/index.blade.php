@@ -941,6 +941,11 @@
                '</button>';
             }
 
+            var disabled_planned_start_date = '';
+            @if (Gate::denies('assign-production-order-schedule'))
+               disabled_planned_start_date = 'disabled';
+            @endif
+
             row += '<tr>' +
                '<td class="text-center">' + n + '</td>' +
                '<td class="text-center">' +
@@ -960,7 +965,7 @@
                   '<div class="form-group" style="margin: 0;"><input type="text" value="' + $(this).find('.available-qty').eq(0).text() + '" class="form-control form-control-lg qty" style="text-align: center; font-size: 11pt;"' + disable_sel + '></div>' +
                '</td>' +
                '<td class="text-center">' +
-                  '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '"><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
+                  '<div class="input-group" style="margin: 0;"><input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center; font-size: 11pt;" value="' + $(this).find('.planned-start-date').text() + '" ' + disabled_planned_start_date + '><div class="input-group-append"><button class="btn btn-info view-sched-task" type="button"><i class="now-ui-icons ui-1_zoom-bold"></i></button></div></div></td>' +
                '<td class="text-center"><div class="form-group" style="margin: 0;"><select class="form-control form-control-lg target">' + t_wh + '</select></div></td>' +
                '<td class="text-center">' +
                   '<div class="btn-group">' + create_btn + '</div>' +
