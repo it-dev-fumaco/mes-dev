@@ -80,7 +80,8 @@
             $('#edit_machine_type').val(type);
             $('#edit_machine_model').val(model);
             $('#edit_machine_status').val(status);
-            
+            $('#edit-machine-frm select[name="operation"]').val($(this).data('operation')).change();
+
             $('#edit-machine-modal').modal('show');
         });
 

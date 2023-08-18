@@ -66,7 +66,15 @@
                         <input type="text" class="form-control form-control-lg" name="model" id="edit_machine_model">
                      </div>
                     
-                     
+                     <div class="form-group">
+                        <label>Operation:</label>
+                        <select name="operation" class="form-control rounded" required>
+                           <option value="">Select an Operation</option>
+                           @foreach ($operations as $id => $operation)
+                               <option value="{{ $id }}">{{ $operation }}</option>
+                           @endforeach
+                        </select>
+                     </div>
                   </div>
                </div>
             </div>

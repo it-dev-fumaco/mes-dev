@@ -39,7 +39,7 @@
         <span class="badge badge-{{ $badge }}" style="font-size: 8pt;">{{ $row->status }}</span>
       </td>
       <td class="p-2 text-center">
-        <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default btn-edit-machine hover-icon' data-toggle="modal" data-machineid="{{ $row->machine_id }}" data-machinecode="{{ $row->machine_code }}" data-machinename="{{ $row->machine_name }}" data-status="{{ $row->status }}" data-referencekey="{{ $row->reference_key }}" data-type="{{ $row->type}}" data-model="{{$row->model}}" data-image="{{ $row->image }}"><i class='now-ui-icons design-2_ruler-pencil'></i></button>
+        <button type='button' class='btn pb-2 pt-2 pr-3 pl-3 btn-default btn-edit-machine hover-icon' data-toggle="modal" data-machineid="{{ $row->machine_id }}" data-machinecode="{{ $row->machine_code }}" data-machinename="{{ $row->machine_name }}" data-status="{{ $row->status }}" data-referencekey="{{ $row->reference_key }}" data-type="{{ $row->type}}" data-model="{{$row->model}}" data-image="{{ $row->image }}" data-operation="{{ $row->operation_id }}"><i class='now-ui-icons design-2_ruler-pencil'></i></button>
         <a href="/goto_machine_profile/{{ $row->machine_id }}" class="hover-icon btn pb-2 pt-2 pr-3 pl-3 btn-default" data-toggle="modal">
           <i class='now-ui-icons ui-1_zoom-bold'></i>
         </a>

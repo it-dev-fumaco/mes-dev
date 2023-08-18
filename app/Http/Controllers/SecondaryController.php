@@ -1183,6 +1183,7 @@ class SecondaryController extends Controller
                 $machine->created_by = Auth::user()->employee_name;
                 $machine->last_modified_by = Auth::user()->employee_name;
                 $machine->process = $request->process;
+                $machine->operation_id = $request->operation;
                 $machine->save();
 
                 DB::commit();
@@ -1223,6 +1224,7 @@ class SecondaryController extends Controller
                 $machine->created_by = Auth::user()->employee_name;
                 $machine->last_modified_by = Auth::user()->employee_name;
                 $machine->process = $request->process;
+                $machine->operation_id = $request->operation;
                 $machine->save();
 
                 DB::commit();
@@ -4880,7 +4882,9 @@ class SecondaryController extends Controller
             })
             ->orderBy('machine_id', 'desc')->paginate(15);
 
-        return view('tables.tbl_settings_machine_list', compact('machine_list'));
+        $operations = DB::connection('mysql_mes')->table('operation')->pluck('operation_name', 'operation_id');
+
+        return view('tables.tbl_settings_machine_list', compact('machine_list', 'operations'));
     }
 
     public function stock_adjustment_entries_page()
