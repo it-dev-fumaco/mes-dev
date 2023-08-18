@@ -550,7 +550,8 @@ class SecondaryController extends Controller
     public function maintenanceMachineList()
     {
         $permissions = $this->get_user_permitted_operation();
-        return view('maintenance_machine_list', compact('permissions'));
+        $operations = DB::connection('mysql_mes')->table('operation')->pluck('operation_name', 'operation_id');
+        return view('maintenance_machine_list', compact('permissions', 'operations'));
     }
 
     public function machineBreakdownSave(Request $request)
@@ -1065,66 +1066,74 @@ class SecondaryController extends Controller
     // /save_machine
     public function insert_machine(Request $request)
     {
-        if (Gate::denies('manage-machines')) {
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if (Gate::denies('manage-machines')) {
+                if ($request->ajax()) {
+                    return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+                } else {
+                    return redirect()->back()->with('error', 'Unauthorized.');
+                }
+            }
+            
+            if (!DB::connection('mysql_mes')->table('machine')->where('machine_code', $request->machine_code)->exists()){
+                if ($request->hasFile('machineImage')) {
+                    $file = $request->file('machineImage');
+                    //get filename with extension
+                    $filenamewithextension = $file->getClientOriginalName();
+                    //get filename without extension
+                    $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
+                    //get file extension
+                    $extension = $file->getClientOriginalExtension();
+                    //filename to store
+                    $filenametostore = $request->machine_code . '.' . $extension;
+                    // Storage::put('public/employees/'. $filenametostore, fopen($file, 'r+'));
+                    Storage::put('public/machine/' . $filenametostore, fopen($file, 'r+'));
+                    //Resize image here
+                    $thumbnailpath = public_path('storage/machine/' . $filenametostore);
+                    $img = Image::make($thumbnailpath)->resize(500, 350, function ($constraint) {
+                        $constraint->aspectRatio();
+                    });
+                    $img->save($thumbnailpath);
+    
+                    $image_path = '/storage/machine/' . $filenametostore;
+                } else {
+                    $image_path = null;
+                }
+    
+                $machine = new Machine;
+                $machine->reference_key = $request->machine_id;
+                $machine->machine_code = $request->machine_code;
+                $machine->machine_name = $request->machine_name;
+                $machine->status = $request->status;
+                $machine->type = $request->type;
+                $machine->model = $request->model;
+                $machine->image = $image_path;
+                $machine->operation_id = $request->operation;
+                $machine->created_by = Auth::user()->employee_name;
+                $machine->created_at = null;
+                $machine->last_modified_by = Auth::user()->employee_name;
+                $machine->last_modified_at = null;
+                $machine->save();
+
+                DB::connection('mysql_mes')->commit();
+            }
+    
             if ($request->ajax()) {
-                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+                return response()->json(['success' => 1, 'message' => 'Machine Successfully Added']);
             } else {
-                return redirect()->back()->with('error', 'Unauthorized.');
+                return redirect()->back()->with('success', 'Machine Successfully Added');
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::connection('mysql_mes')->rollBack();
+            if ($request->ajax()) {
+                return response()->json(['success' => 0, 'message' => 'An error occured. Please try again']);
+            } else {
+                return redirect()->back()->with('error', 'An error occured. Please try again');
             }
         }
         
-        if (
-            DB::connection('mysql_mes')
-                ->table('machine')
-                ->where('machine_code', $request->machine_code)
-                ->exists()
-        ) {
-
-        } else {
-            if ($request->hasFile('machineImage')) {
-                $file = $request->file('machineImage');
-                //get filename with extension
-                $filenamewithextension = $file->getClientOriginalName();
-                //get filename without extension
-                $filename = pathinfo($filenamewithextension, PATHINFO_FILENAME);
-                //get file extension
-                $extension = $file->getClientOriginalExtension();
-                //filename to store
-                $filenametostore = $request->machine_code . '.' . $extension;
-                // Storage::put('public/employees/'. $filenametostore, fopen($file, 'r+'));
-                Storage::put('public/machine/' . $filenametostore, fopen($file, 'r+'));
-                //Resize image here
-                $thumbnailpath = public_path('storage/machine/' . $filenametostore);
-                $img = Image::make($thumbnailpath)->resize(500, 350, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $img->save($thumbnailpath);
-
-                $image_path = '/storage/machine/' . $filenametostore;
-            } else {
-                $image_path = null;
-            }
-
-            $machine = new Machine;
-            $machine->reference_key = $request->machine_id;
-            $machine->machine_code = $request->machine_code;
-            $machine->machine_name = $request->machine_name;
-            $machine->status = $request->status;
-            $machine->type = $request->type;
-            $machine->model = $request->model;
-            $machine->image = $image_path;
-            $machine->created_by = Auth::user()->employee_name;
-            $machine->created_at = null;
-            $machine->last_modified_by = Auth::user()->employee_name;
-            $machine->last_modified_at = null;
-            $machine->save();
-        }
-
-        if ($request->ajax()) {
-            return response()->json(['success' => 1, 'message' => 'Machine Successfully Added']);
-        } else {
-            return redirect()->back()->with('success', 'Machine Successfully Added');
-        }
     }
 
     public function update_machine(Request $request)
@@ -1433,39 +1442,48 @@ class SecondaryController extends Controller
 
     public function insert_machineToworkstation(Request $request)
     {
-        $machine_nametbl = DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->machine_id)->select('machine_name', 'machine_code')->first();
-        $now = Carbon::now();
-        $values1 = [
-            'name' => uniqid(),
-            'creation' => $now->toDateTimeString(),
-            'modified' => $now->toDateTimeString(),
-            'modified_by' => Auth::user()->email,
-            'owner' => Auth::user()->email,
-            'docstatus' => 0,
-            'parent' => $request->workstation_name,
-            'parentfield' => 'workstation_machine',
-            'parenttype' => 'Workstation',
-            'idx' => $this->getNextIdxMachineWorkstation($request->workstation_name),
-            'machine_name' => $machine_nametbl->machine_name,
-            'machine_code' => $machine_nametbl->machine_code,
-        ];
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            $machine_nametbl = DB::connection('mysql_mes')->table('machine')->where('machine_id', $request->machine_id)->select('machine_name', 'machine_code')->first();
+            $now = Carbon::now();
+            // $values1 = [
+            //     'name' => uniqid(),
+            //     'creation' => $now->toDateTimeString(),
+            //     'modified' => $now->toDateTimeString(),
+            //     'modified_by' => Auth::user()->email,
+            //     'owner' => Auth::user()->email,
+            //     'docstatus' => 0,
+            //     'parent' => $request->workstation_name,
+            //     'parentfield' => 'workstation_machine',
+            //     'parenttype' => 'Workstation',
+            //     'idx' => $this->getNextIdxMachineWorkstation($request->workstation_name),
+            //     'machine_name' => $machine_nametbl->machine_name,
+            //     'machine_code' => $machine_nametbl->machine_code,
+            // ];
 
-        $values2 = [
-            'workstation' => $request->workstation_name,
-            'workstation_id' => $request->workstation_id,
-            'machine_id' => $request->machine_id,
-            'idx' => $this->getNextIdxMachineWorkstation($request->workstation_name),
-            'machine_name' => $machine_nametbl->machine_name,
-            'machine_code' => $machine_nametbl->machine_code,
-            'created_at' => $now->toDateTimeString(),
-            'created_by' => Auth::user()->email,
-            'last_modified_by' => Auth::user()->email
-        ];
+            $values2 = [
+                'workstation' => $request->workstation_name,
+                'workstation_id' => $request->workstation_id,
+                'machine_id' => $request->machine_id,
+                'idx' => $this->getNextIdxMachineWorkstation($request->workstation_name),
+                'machine_name' => $machine_nametbl->machine_name,
+                'machine_code' => $machine_nametbl->machine_code,
+                'created_at' => $now->toDateTimeString(),
+                'created_by' => Auth::user()->email,
+                'last_modified_by' => Auth::user()->email
+            ];
 
-        // DB::connection('mysql')->table('tabWorkstation Machine')->insert($values1);
-        DB::connection('mysql_mes')->table('workstation_machine')->insert($values2);
+            // DB::connection('mysql')->table('tabWorkstation Machine')->insert($values1);
+            DB::connection('mysql_mes')->table('workstation_machine')->insert($values2);
 
-        return redirect()->back();
+            DB::connection('mysql_mes')->commit();
+            return redirect()->back();
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::connection('mysql_mes')->rollBack();
+            return redirect()->back()->with('error', 'An error occured. Please try again');
+        }
+        
     }
 
     public function delete_machineToworkstation(Request $request)
