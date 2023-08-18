@@ -225,21 +225,25 @@
           </li>
         </ul>
       @endif
-      @if ($is_maintenance_user)
+      @if (Gate::any(['manage-machines']) || $is_maintenance_user)
         <h6 class="text-left font-weight-bold mt-3 border-bottom">Maintenance</h6>
         <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
-          <li class="m-0">
-            <a href="/maintenance_request" class="d-block m-0 p-1" style="text-decoration: none;">
-              <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-              <span class="d-inline-block">Maintenance Request(s)</span>
-            </a>
-          </li>
-          <li class="m-0">
-            <a href="/maintenance_machine_list" class="d-block m-0 p-1" style="text-decoration: none;">
-              <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-              <span class="d-inline-block">Machine List</span>
-            </a>
-          </li>
+          @if ($is_maintenance_user)
+            <li class="m-0">
+              <a href="/maintenance_request" class="d-block m-0 p-1" style="text-decoration: none;">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/maintenance_requests.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block">Maintenance Request(s)</span>
+              </a>
+            </li>
+          @endif
+          @if (Gate::any(['manage-machines']) || $is_maintenance_user)
+            <li class="m-0">
+              <a href="/maintenance_machine_list" class="d-block m-0 p-1" style="text-decoration: none;">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/machines.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block">Machine List</span>
+              </a>
+            </li>
+          @endif
         </ul>
       @endif
       @canany(['reports'])

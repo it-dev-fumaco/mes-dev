@@ -1326,9 +1326,9 @@ class SecondaryController extends Controller
     public function machine_select_data(Request $request)
     {
         $machines = DB::connection('mysql_mes')->table('machine')
-            ->when($request->search, function ($q) use ($request) {
-                return $q->where('machine_name', 'like', '%' . $request->search . '%')
-                    ->orWhere('machine_code', 'like', '%' . $request->search . '%');
+            ->when($request->q, function ($q) use ($request) {
+                return $q->where('machine_name', 'like', '%' . $request->q . '%')
+                    ->orWhere('machine_code', 'like', '%' . $request->q . '%');
             })->select('machine_id as id', DB::raw('CONCAT(machine_code, " - ", machine_name) as text'))->get();
 
         return response()->json($machines);
@@ -1337,8 +1337,8 @@ class SecondaryController extends Controller
     public function process_select_data(Request $request)
     {
         $process = DB::connection('mysql_mes')->table('process')
-            ->when($request->search, function ($q) use ($request) {
-                return $q->where('process_name', 'like', '%' . $request->search . '%');
+            ->when($request->q, function ($q) use ($request) {
+                return $q->where('process_name', 'like', '%' . $request->q . '%');
             })->select('process_id as id', 'process_name as text')->get();
 
         return response()->json($process);

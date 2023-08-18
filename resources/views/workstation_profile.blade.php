@@ -59,7 +59,9 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
       @csrf
       <div class="modal-body">
         <p><b>Process</b></p>
-        <select name="process" class="form-control process-list" style="width: 100% !important;"></select>
+        <div id="add-process-container">
+          <select name="process" class="form-control process-list" style="width: 100% !important;"></select>
+        </div>
         <br>
         <br>
         <table id="add-process-machine-tbl" class="table table-striped w-100">
@@ -68,7 +70,9 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
           <tr>
             <th>Machine</th>
             <th>
-              <button class="btn btn-sm btn-primary w-100 add-row" data-tbl="#add-process-machine-tbl" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
+              <div id="add-process-machine-container">
+                <button class="btn btn-sm btn-primary w-100 add-row" data-tbl="#add-process-machine-tbl" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
+              </div>
             </th>
           </tr>
           <tr>
@@ -197,7 +201,7 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
 <script>
   $(document).ready(function(){
     const workstation_id = '{{ $id }}';
-    load_machine_select()
+    load_machine_select($('#add-process-machine-container'))
     get_tbl_workstation_process();
     setInterval(updateClock, 1000);
 
@@ -258,6 +262,7 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
 
     $('.process-list').select2({
       placeholder: 'Select a process',
+      dropdownParent: $('#add-process-container'),
       ajax: {
           url: '/process_select_data',
           method: 'GET',
@@ -323,9 +328,12 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
     }
 
     function clone_row(table, select) {
+      var uniq = 'row-' + uniqId();
       var row = '<tr class="clone">' +
         '<td>' +
-          '<select name="process_machines[]" class="form-control machine-list" style="width: 100% !important;" required></select>' +
+            '<div id="row-' + uniq + '">' +
+              '<select name="process_machines[]" class="form-control machine-list" style="width: 100% !important;" required></select>' +
+            '</div>' +
         '</td>' +
         '<td class="text-center">' +
           '<button class="btn btn-sm btn-danger remove-row">&times;</button>' +
@@ -333,12 +341,21 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
       '</tr>';
 
       $(table).append(row);
-      load_machine_select();
+      load_machine_select($('#row-' + uniq));
     }
 
-    function load_machine_select(){
+    const uniqId = (() => {
+      let i = 0;
+      return () => {
+          return i++;
+      }
+    })();
+
+    function load_machine_select(parent){
+      console.log(parent)
       $('.machine-list').select2({
         placeholder: 'Select a machine',
+        dropdownParent: parent,
         ajax: {
           url: '/machine_select_data',
           method: 'GET',
