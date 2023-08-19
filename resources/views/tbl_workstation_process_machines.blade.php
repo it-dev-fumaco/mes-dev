@@ -13,12 +13,9 @@
         }
 
         $disabled = null;
-        if($assigned_machine){
-            $disabled = $assigned_machine != $machine->machine_code ? 1 : 0;
-        }
     @endphp
     @if ($disabled)
-    <div class="col-md-4 assigned-to-different-machine" data-assigned-machine="{{ $assigned_machine }}">
+    <div class="col-md-4 assigned-to-different-machine">
         <div class="card" style="background-color: #1b4f7288;">
             <div class="card-body" style="padding-top: 0; padding-bottom: 0;">
                 <div class="row" style="border: 0px solid; ">
