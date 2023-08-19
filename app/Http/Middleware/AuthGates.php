@@ -18,9 +18,10 @@ class AuthGates
     public function handle($request, Closure $next)
     {
         $user = \Auth::user();
-        $department = DB::connection('mysql_essex')->table('departments')->where('department_id', $user->department_id)->pluck('department')->first();
-		$is_admin = $department && $department == 'Information Technology' ? 1 : 0;
         if (!app()->runningInConsole() && $user) {
+            $department = DB::connection('mysql_essex')->table('departments')->where('department_id', $user->department_id)->pluck('department')->first();
+            $is_admin = $department && $department == 'Information Technology' ? 1 : 0;
+
             $role_permissions = DB::connection('mysql_mes')->table('role_permissions')
                 ->select('user_group_id', 'permission')->get();
 
