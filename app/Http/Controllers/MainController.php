@@ -4123,12 +4123,14 @@ class MainController extends Controller
 		}
 	}
 
-	public function get_workstation_process_machine($workstation, $process_id){
-		return DB::connection('mysql_mes')->table('process_assignment')
+	public function get_workstation_process_machine(Request $request, $workstation, $process_id){
+		$machines = DB::connection('mysql_mes')->table('process_assignment')
 			->join('machine', 'machine.machine_id', 'process_assignment.machine_id')
 			->where('process_assignment.workstation_id', $workstation)
 			->where('process_assignment.process_id', $process_id)->select('machine.*', 'process_assignment.process_id')->get();
-  	}
+		
+		return view('tbl_workstation_process_machines', compact('machines'));
+	}
 
 	public function get_production_workstation_process($production_order, $workstation, $required_qty){
 		$processes = DB::connection('mysql_mes')->table('job_ticket AS jt')
