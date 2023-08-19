@@ -257,7 +257,7 @@
           </li>
         </ul>
       @endcanany
-      @canany($settings_actions)
+      @if (Gate::any(['manage-machines', 'manage-rescheduled-delivery-reason', 'manage-production-order-cancellation', 'manage-shifts', 'manage-item-classification-source', 'manage-wip-warehouse', 'manage-fast-issuance-permission', 'manage-users', 'manage-user-groups', 'manage-email-notifications', 'manage-role-permissions']) || $is_qa_user)
         <h6 class="text-left font-weight-bold mt-3 border-bottom">Settings</h6>
         <ul style="list-style-type: none; margin: 0; padding: 0; font-size: 9pt;">
           @canany(['manage-machines', 'manage-rescheduled-delivery-reason', 'manage-production-order-cancellation', 'manage-shifts'])
@@ -279,12 +279,12 @@
           @endcanany
 
           @if ($is_qa_user)
-          <li class="m-0">
-            <a href="/qa_settings" class="d-block m-0 p-1 text-decoration-none">
-              <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
-              <span class="d-inline-block">QA Settings</span>
-            </a>
-          </li>
+            <li class="m-0">
+              <a href="/qa_settings" class="d-block m-0 p-1 text-decoration-none">
+                <img class="d-inline-block" src="{{ asset('storage/Main Icon/settings.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+                <span class="d-inline-block">QA Settings</span>
+              </a>
+            </li>
           @endif
 
           @canany(['manage-users', 'manage-user-groups', 'manage-email-notifications', 'manage-role-permissions'])
@@ -296,7 +296,7 @@
             </li>
           @endcanany
         </ul>
-      @endcanany
+      @endif
     </div>
   </nav>
   <style>
