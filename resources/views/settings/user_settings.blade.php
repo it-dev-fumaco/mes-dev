@@ -448,14 +448,7 @@
                     </div>
                     <div class="form-group">
                        <label>User Role:</label>
-                       <select class="form-control sel12" name="edit_user_role_regis" id="edit_user_role_regis">
-                          <option value="Production Supervisor">Production Supervisor</option>
-                          <option value="Production Manager">Production Manager</option>
-                          <option value="QA Manager">QA Manager</option>
-                          <option value="QA Inspector">QA Inspector</option>
-                          <option value="Maintenance Manager">Maintenance Manager</option>
-                          <option value="Maintenance Staff">Maintenance Staff</option>
-                       </select>
+                       <input type="text" class="form-control rounded" name="edit_user_role_regis" id="edit_user_role_regis" required>
                     </div>
                  </div>
               </div>
