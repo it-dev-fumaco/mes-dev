@@ -8116,6 +8116,12 @@ class MainController extends Controller
             ->select('workstation_name','order_no','workstation_id')
 			->orderBy('order_no','desc')->get();
 		if ($request->ajax()) {
+			if($request->machines){
+				$request_data = $request->all();
+				$production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date, $request_data);
+				return view('tables.tbl_production_schedule_monitoring_machines', compact('schedule_date', 'production_machine_board', 'workstation_list', 'operation_details', 'permissions'));
+			}
+
 			$start = Carbon::parse($schedule_date)->startOfDay();
 			$end = Carbon::parse($schedule_date)->endOfDay();
 			
@@ -8218,17 +8224,20 @@ class MainController extends Controller
 			return view('tables.tbl_production_schedule_monitoring', compact('production_orders', 'backlogs', 'planned_start_dates'));
 		}
 
-		$production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);
+		// $production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);
 
-        return view('production_schedule_monitoring', compact('schedule_date', 'production_machine_board', 'workstation_list', 'operation_details', 'permissions'));
+        return view('production_schedule_monitoring', compact('schedule_date', 'workstation_list', 'operation_details', 'permissions'));
 	}
 
-	public function production_assembly_machine_board($operation_id, $scheduled_date){
+	public function production_assembly_machine_board($operation_id, $scheduled_date, $request_data = []){
 		$assigned_production = DB::connection('mysql_mes')->table('assembly_conveyor_assignment')->get();
 
         $unassigned_production = DB::connection('mysql_mes')->table('production_order')
             ->where('operation_id', $operation_id)->whereNotIn('status', ['Cancelled', 'Closed', 'Feedbacked', 'Completed'])
             ->whereNotIn('production_order', array_column($assigned_production->toArray(), 'production_order'))
+			->when(isset($request_data['production_order']) && $request_data['production_order'], function ($q) use ($request_data){
+				return $q->where('production_order', 'like', '%'.$request_data['production_order'].'%');
+			})
 			->whereDate('planned_start_date', '<=', $scheduled_date)->get();
 
         $machines = DB::connection('mysql_mes')->table('machine')
@@ -8245,6 +8254,9 @@ class MainController extends Controller
                 ->whereNotIn('po.status', ['Cancelled', 'Feedbacked', 'Completed', 'Closed'])
                 ->whereDate('scheduled_date', $scheduled_date)
 				->where('machine_code', $machine->machine_code)
+				->when(isset($request_data['production_order']) && $request_data['production_order'], function ($q) use ($request_data){
+					return $q->where('po.production_order', 'like', '%'.$request_data['production_order'].'%');
+				})
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification', 'po.customer')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
@@ -8253,6 +8265,9 @@ class MainController extends Controller
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
                 ->whereIn('po.status', ['In Progress', 'Not Started', 'Partially Feedbacked', 'Ready for Feedback'])
                 ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
+				->when(isset($request_data['production_order']) && $request_data['production_order'], function ($q) use ($request_data){
+					return $q->where('po.production_order', 'like', '%'.$request_data['production_order'].'%');
+				})
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification', 'po.customer')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
@@ -8262,6 +8277,9 @@ class MainController extends Controller
                 ->whereIn('po.status', ['Completed', 'Feedbacked'])
                 ->whereBetween('po.actual_end_date', [$start, $end])
                 ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
+				->when(isset($request_data['production_order']) && $request_data['production_order'], function ($q) use ($request_data){
+					return $q->where('po.production_order', 'like', '%'.$request_data['production_order'].'%');
+				})
                 ->select('aca.*', 'po.sales_order', 'po.material_request', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.stock_uom', 'po.status', 'po.description', 'po.classification', 'po.customer')
                 ->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc')
                 ->union($q)->union($q1)->get();
