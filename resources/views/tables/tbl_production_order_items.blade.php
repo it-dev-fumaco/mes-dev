@@ -20,7 +20,7 @@
 	$disabled = $details->feedback_qty >= $details->qty_to_manufacture ? 'disabled' : null;
 
 	$disabled_withdrawal_slip = null;
-	if(Gate::denies('create-withdrawal-slip')){
+	if(!Gate::any('create-withdrawal-slip')){
 		$disabled_withdrawal_slip = 'disabled';
 	}
 
