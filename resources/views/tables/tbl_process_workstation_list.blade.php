@@ -1,10 +1,10 @@
 <div class="col-12">
   <table class="table table-bordered">
     <col style="width: 5%;">
-    <col style="width: 40%;">
+    <col style="width: 37%;">
     <col style="width: 19%;">
     <col style="width: 19%;">
-    <col style="width: 17%;">
+    <col style="width: 20%;">
     <thead class="bg-secondary text-white text-uppercase" style="font-size: 10px;">
       <th class="p-2 text-center">ID</th>
       <th class="p-2 text-center">Process Name</th>
@@ -22,14 +22,39 @@
         <tr>
           <td class="text-center">{{ $process_id }}</td>
           <td class="text-center">{{ $process }}</td>
-          <td class="text-center">
-            {{ $last_modified_by }}
-       </td>
+          <td class="text-center">{{ $last_modified_by }}</td>
           <td class="text-center">{{ Carbon\Carbon::parse($last_modified_at)->format('F d, Y h:i A') }}</td>
-          <td class="text-center">
-            <button class="btn btn-info btn-sm" type="button" data-toggle="collapse" data-target="#collapse{{ $process_id }}" aria-expanded="false" aria-controls="collapse{{ $process_id }}">
-              View Assigned Machines
-            </button>
+          <td>
+            <div class="row p-1">
+              <div class="col-9 p-0 d-flex justify-content-end align-items-end">
+                <button class="btn btn-info btn-sm" type="button" data-toggle="collapse" data-target="#collapse{{ $process_id }}" aria-expanded="false" aria-controls="collapse{{ $process_id }}">
+                  View Assigned Machines
+                </button>
+              </div>
+              <div class="col-2 p-0 pl-1">
+                <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#remove-process-{{ $process_id }}">&times;</button>
+
+                <div class="modal fade" id="remove-process-{{ $process_id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Remove {{ $process }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        Are you sure you want to remove <b>{{ $process }}</b>?
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary remove-assigned-process" data-id="{{ $process_id }}">Confirm</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </td>
         </tr>
         <tr>

@@ -47,49 +47,49 @@
 
 <div class="modal fade" id="add-process-modal" tabindex="-1" role="dialog"
 aria-labelledby="exampleModalLabel" aria-hidden="true">
-<div class="modal-dialog" role="document">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h5 class="modal-title" id="exampleModalLabel">Add Process</h5>
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-    <form action="/process_assignment/{{ $id }}/add" class="add-process-form" method="post">
-      @csrf
-      <div class="modal-body">
-        <p><b>Process</b></p>
-        <div id="add-process-container">
-          <select name="process" class="form-control process-list" style="width: 100% !important;"></select>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Process</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/process_assignment/{{ $id }}/add" class="add-process-form" method="post">
+        @csrf
+        <div class="modal-body">
+          <p><b>Process</b></p>
+          <div id="add-process-container">
+            <select name="process" class="form-control process-list" style="width: 100% !important;"></select>
+          </div>
+          <br>
+          <br>
+          <table id="add-process-machine-tbl" class="table table-striped w-100">
+            <col style="width: 80%">
+            <col style="width: 20%">
+            <tr>
+              <th>Machine</th>
+              <th>
+                <div id="add-process-machine-container">
+                  <button class="btn btn-sm btn-primary w-100 add-row" data-tbl="#add-process-machine-tbl" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <select name="process_machines[]" class="form-control machine-list" style="width: 100% !important;"
+                  required></select>
+              </td>
+            </tr>
+          </table>
         </div>
-        <br>
-        <br>
-        <table id="add-process-machine-tbl" class="table table-striped w-100">
-          <col style="width: 80%">
-          <col style="width: 20%">
-          <tr>
-            <th>Machine</th>
-            <th>
-              <div id="add-process-machine-container">
-                <button class="btn btn-sm btn-primary w-100 add-row" data-tbl="#add-process-machine-tbl" style="font-size: 9pt;"><i class="now-ui-icons ui-1_simple-add"></i> Add</button>
-              </div>
-            </th>
-          </tr>
-          <tr>
-            <td colspan=2>
-              <select name="process_machines[]" class="form-control machine-list" style="width: 100% !important;"
-                required></select>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary" id="add-process-btn">Save changes</button>
-      </div>
-    </form>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" id="add-process-btn">Save changes</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 </div>
 
 <div id="active-tab"></div>
