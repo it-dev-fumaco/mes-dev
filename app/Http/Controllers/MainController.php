@@ -8115,6 +8115,9 @@ class MainController extends Controller
             ->where('operation_id', $operation)
             ->select('workstation_name','order_no','workstation_id')
 			->orderBy('order_no','desc')->get();
+
+		$machines = DB::connection('mysql_mes')->table('machine')->where('operation_id', $operation_details->operation_id)->orderBy('order_no', 'asc')->get();
+		
 		if ($request->ajax()) {
 			if($request->machines){
 				$request_data = $request->all();
@@ -8226,7 +8229,27 @@ class MainController extends Controller
 
 		// $production_machine_board = $this->production_assembly_machine_board($operation, $schedule_date);
 
-        return view('production_schedule_monitoring', compact('schedule_date', 'workstation_list', 'operation_details', 'permissions'));
+        return view('production_schedule_monitoring', compact('schedule_date', 'workstation_list', 'operation_details', 'permissions', 'machines'));
+	}
+
+	public function save_machine_order(Request $request){
+		DB::connection('mysql_mes')->beginTransaction();
+		try {
+			$machines = $request->machine_list;
+			foreach($machines as $order => $machine){
+				DB::connection('mysql_mes')->table('machine')->where('machine_id', $machine)->update([
+					'order_no' => $order,
+					'last_modified_at' => Carbon::now()->toDateTimeString(),
+					'last_modified_by' => Auth::user()->email
+				]);
+			}
+			
+			DB::connection('mysql_mes')->commit();
+			return response()->json(['success' => 1, 'message' => 'Machine Order Updated.']);
+		} catch (\Throwable $th) {
+			DB::connection('mysql_mes')->rollBack();
+			return response()->json(['success' => 0, 'message' => 'An error occured. Please try again']);
+		}
 	}
 
 	public function production_assembly_machine_board($operation_id, $scheduled_date, $request_data = []){
