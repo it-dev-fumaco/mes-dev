@@ -209,10 +209,6 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
       $('#add-workstation-machine-modal').modal('show');
     });
 
-    $(document).on('click', '#add-process-button', function(){
-      $('#add-process-workstation-modal').modal('show');
-    });
-
     $(document).on('submit', '.add-process-form', function (e){
       e.preventDefault();
       if(check_form_validity($(this))){

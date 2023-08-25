@@ -4254,6 +4254,10 @@ class MainController extends Controller
 
 	// /get_current_operator_task_details/{operator_id}
 	public function get_current_operator_task_details(Request $request, $operator_id){
+		if(!Auth::check()){
+			return response()->json(['success' => 0, 'message' => 'Session Expired. Please reload the page and login to continue.']);
+		}
+
 		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $request->job_ticket_id)->first();
 
@@ -7695,7 +7699,11 @@ class MainController extends Controller
 		$schedule_date = Carbon::now()->format('Y-m-d');
 
 		$operation_id = DB::connection('mysql_mes')->table('workstation')
-			->where('workstation_name', $workstation)->first()->operation_id;
+			->where('workstation_name', $workstation)->pluck('operation_id')->first();
+
+		if(!$operation_id){
+			return redirect()->back()->with('error', 'Workstation not found!');
+		}
 
 		$machines = DB::connection('mysql_mes')->table('machine')
 			->where('operation_id', $operation_id)
