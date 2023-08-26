@@ -61,6 +61,11 @@
             $unplanned_qty = (float)$item['qty'] - collect($item['production_order'])->sum();
             $disabled = null;
          }
+
+         $disable_planned_start_date = null;
+         if(Gate::denies('assign-production-order-schedule')){
+            $disable_planned_start_date = 'disabled';
+         }
       @endphp
       <tr id="row-{{ $item['item_code'] }}" class="{{$div_color}}">
          <td class="text-center">
@@ -95,7 +100,7 @@
          </td>
          <td class="text-center">
             <div class="form-group" style="margin: 0;">
-               <input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center;" placeholder="Planned Start Date" value="{{ $item['planned_start_date'] }}" {{ $disabled }}>
+               <input type="text" class="form-control form-control-lg date-picker planned-date" style="text-align: center;" placeholder="Planned Start Date" value="{{ $item['planned_start_date'] }}" {{ $disabled }} {{ $disable_planned_start_date }}>
             </div>
          </td>
          <td class="text-center">

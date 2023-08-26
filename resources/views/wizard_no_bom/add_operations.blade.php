@@ -10,6 +10,12 @@
             <th class="text-center"><b>Workstation / Process</b></th>
         </tr>
     </thead>
+    @php
+        $disabled = null;
+        if(Gate::denies('assign-bom-process')){
+            $disabled = 'disabled';
+        }
+    @endphp
     <tbody style="font-size: 9pt;">
         @foreach ($production_orders as $production_order)
         <tr>
@@ -27,10 +33,10 @@
                 <span class="item-description">{!! $production_order->description  !!}</span>
             </td>
             <td class="text-center">
-                <button type="button" class="btn btn-primary view-production-process pprocess" data-production-order="{{ $production_order->name }}" id="nobom{{ $production_order->name }}">
+                <button type="button" class="btn btn-primary view-production-process pprocess" data-production-order="{{ $production_order->name }}" id="nobom{{ $production_order->name }}" {{ $disabled }}>
                     <i class="now-ui-icons ui-1_simple-add"></i> Update Process
                 </button>
-                <button type="button" rel="tooltip" class="btn btn-danger delete-row">
+                <button type="button" rel="tooltip" class="btn btn-danger delete-row" {{ $disabled }}>
                     <i class="now-ui-icons ui-1_simple-remove"></i>
                 </button>
             </td>

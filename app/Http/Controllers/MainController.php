@@ -8243,7 +8243,7 @@ class MainController extends Controller
 					'last_modified_by' => Auth::user()->email
 				]);
 			}
-			
+
 			DB::connection('mysql_mes')->commit();
 			return response()->json(['success' => 1, 'message' => 'Machine Order Updated.']);
 		} catch (\Throwable $th) {
@@ -10642,6 +10642,7 @@ class MainController extends Controller
 		];
 		$material_planning_actions = [
 			'create-withdrawal-slip' => 'Create Withdrawal Slip Request',
+			'create-withdrawal-slip-for-production-orders-wo-bom' => 'Create Withdrawal Slip Request for Production Orders without BOM',
 			'print-withdrawal-slip' => 'Print Withdrawal Slips',
 			'change-production-order-items' => 'Change Production Order Items (Components/Raw Materials)',
 			'fast-issue-items' => 'Initiate Fast Issue Items',
