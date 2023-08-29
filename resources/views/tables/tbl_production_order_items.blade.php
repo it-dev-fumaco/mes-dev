@@ -17,7 +17,7 @@
 	}
 
 	$disabled = in_array($details->status, ['Cancelled', 'Closed']) ? 'disabled' : null;
-	$disabled = $details->feedback_qty >= $details->qty_to_manufacture ? 'disabled' : null;
+	$disabled = $details->feedback_qty >= $details->qty_to_manufacture ? 'disabled' : $disabled;
 
 	$disabled_withdrawal_slip = null;
 	$withdrawal_slip_permission = $details->bom_no ? 'create-withdrawal-slip' : 'create-withdrawal-slip-for-production-orders-wo-bom';

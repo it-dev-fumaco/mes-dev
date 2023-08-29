@@ -4281,6 +4281,14 @@ class ManufacturingController extends Controller
             $production_order_items = DB::connection('mysql')->table('tabWork Order Item')
                 ->where('parent', $production_order)->orderBy('idx', 'asc')->get();
 
+            if(!$mes_production_order_details){
+                return response()->json(['success' => 0, 'message' => 'Production Order <b>'.$production_order.'</b> not found.']);
+            }
+
+            if(in_array($mes_production_order_details->status, ['Closed', 'Cancelled'])){
+                return response()->json(['success' => 0, 'message' => 'Production Order <b>'.$production_order.'</b> is <b>'.$mes_production_order_details->status.'</b>.']);
+            }
+
             $remaining_qty = 0;
             foreach ($production_order_items as $index => $row) {
                 if ($request->s_warehouses) {
