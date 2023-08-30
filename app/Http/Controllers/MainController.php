@@ -7481,6 +7481,7 @@ class MainController extends Controller
 
 	public function delete_pending_material_transfer_for_manufacture($production_order, Request $request){
 		DB::connection('mysql')->beginTransaction();
+		DB::connection('mysql_mes')->beginTransaction();
 		try {
 			if(!Auth::user()) {
 				return response()->json(['error' => 1, 'message' => 'Session Expired. Please login to continue.']);
@@ -7595,12 +7596,22 @@ class MainController extends Controller
 					}
 				}
 			}
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Cancel Item Request',
+                'message' => 'Request for '.number_format($production_order_item->required_qty).' '.$production_order_item->stock_uom.' of Item <b>'.$request->item_code.'</b> from '.$production_order_item->source_warehouse.' has been Canceled by ' . Auth::user()->employee_name . ' at ' . Carbon::now()->toDateTimeString(),
+                'reference' => $production_order,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
 			
 			DB::connection('mysql')->commit();
+			DB::connection('mysql_mes')->commit();
 
 			return response()->json(['error' => 0, 'message'=> 'Stock entry request has been cancelled.']);
 		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
+			DB::connection('mysql_mes')->rollback();
 
 			return response()->json(['error' => 1, 'message' => 'There was a problem creating transaction.']);
 		}
@@ -9084,6 +9095,14 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
 			}
 
+			DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Operator Logs Override',
+                'message' => 'Operator logs for '.$job_ticket_details->workstation.' workstation of <b>'.$job_ticket_details->production_order.'</b> has been overridden by ' . Auth::user()->employee_name . ' at ' . Carbon::now()->toDateTimeString(),
+                'reference' => $job_ticket_details->production_order,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
+
 			DB::connection('mysql_mes')->commit();
 			DB::connection('mysql')->commit();
 
@@ -9324,6 +9343,14 @@ class MainController extends Controller
 			if ($jt_exceeding_production) {
 				return response()->json(['status' => 0, 'message' => 'Good qty for <b>' . $jt_exceeding_production->workstation . '['. $jt_exceeding_production->process_name.']</b> cannot be greater than <b>' . $production_order_details->qty_to_manufacture . '</b>']);
 			}
+
+			DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Operator Logs Override',
+                'message' => 'Operator logs for All workstations of <b>'.$data['production_order'].'</b> has been overridden by ' . Auth::user()->employee_name . ' at ' . Carbon::now()->toDateTimeString(),
+                'reference' => $data['production_order'],
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
 			
 			DB::connection('mysql_mes')->commit();
 			DB::connection('mysql')->commit();

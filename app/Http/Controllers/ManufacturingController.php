@@ -2714,6 +2714,7 @@ class ManufacturingController extends Controller
     public function create_material_transfer_for_return(Request $request)
     {
         DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
         try {
             if (Gate::denies('return-items-to-warehouse')) {
                 return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
@@ -2945,11 +2946,21 @@ class ManufacturingController extends Controller
                 }
             }
 
+            DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Return Item',
+                'message' => 'Request to return '.number_format($request->qty_to_return).' '.$stock_entry_details->stock_uom.' of Item <b>'.$request->item_code.'</b> from '.$request->source_warehouse.' to '.$request->target_warehouse.' has been created by ' . Auth::user()->employee_name . ' at ' . Carbon::now()->toDateTimeString(),
+                'reference' => $request->production_order,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
+
             DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
 
             return response()->json(['status' => 1, 'message' => 'Stock Entry has been created.']);
         } catch (Exception $e) {
             DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
             return response()->json(['status' => 0, 'message' => 'There was a problem creating stock entries.']);
         }
     }
@@ -6268,6 +6279,7 @@ class ManufacturingController extends Controller
         }
 
         DB::beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
         try {
             $steDetails = DB::connection('mysql')->table('tabStock Entry as se')->join('tabStock Entry Detail as sed', 'se.name', 'sed.parent')->where('sed.name', $request->child_tbl_id)
                 ->select('se.name as parent_se', 'se.*', 'sed.*', 'sed.status as per_item_status', 'se.docstatus as se_status')->first();
@@ -6354,10 +6366,20 @@ class ManufacturingController extends Controller
 
             $this->update_production_order_items($steDetails->work_order);
 
+            DB::connection('mysql_mes')->table('activity_logs')->insert([
+                'action' => 'Fast Issuance of Item',
+                'message' => 'Item <b>'.$steDetails->item_code.'</b> for <b>'. $steDetails->work_order .'</b> has been Fast Issued by ' . Auth::user()->employee_name . ' at ' . Carbon::now()->toDateTimeString(),
+                'reference' => $steDetails->work_order,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::user()->email
+            ]);
+
             DB::commit();
+            DB::connection('mysql_mes')->commit();
             return response()->json(['status' => 1, 'message' => 'Item <b>' . $steDetails->item_code . '</b> has been issued.']);
         } catch (Exception $e) {
             DB::rollback();
+            DB::connection('mysql_mes')->rollback();
 
             return response()->json(['status' => 0, 'message' => 'Error creating transaction. Please contact your system administrator.']);
         }
