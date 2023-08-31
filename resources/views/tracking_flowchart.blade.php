@@ -1,3 +1,136 @@
+<table style="width: 100%; border-color: #D5D8DC;">
+  <col style="width: 18%;">
+  <col style="width: 24%;">
+  <col style="width: 23%;">
+  <col style="width: 20%;">
+  <tr style="font-size: 9pt;">
+    <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>REFERENCE NO.</b></td>
+    <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>CUSTOMER</b></td>
+    <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>PROJECT</b></td>
+    <td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>DELIVERY DATE</b></td>
+  </tr>
+  <tr style="font-size: 10pt;">
+    <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="ref-no">{{ ($production->sales_order == '')? $production->material_request: $production->sales_order }}</span></td>
+    <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="cust">{{$production->customer}}</span></td>
+    <td class="text-center" style="border: 1px solid #ABB2B9;"><span class="proj"> {{$production->project}}</span></td>
+    <td class="text-center" style="border: 1px solid #ABB2B9;">
+      <span class="del-date">{{($production->rescheduled_delivery_date == null)? $production->delivery_date: $production->rescheduled_delivery_date}}</span>
+    </td>
+  </tr>
+  <tr style="font-size: 10pt;display:none;">
+    <td style="border: 1px solid #ABB2B9; font-size: 9pt;" class="text-center"><b>ITEM DETAIL(S):</b></td>
+    <td style="border: 1px solid #ABB2B9;" colspan="4"><span class="item-code font-weight-bold">{!! $bom->item_code !!} </span>- <span class="desc">{!! $bom->description !!}</span></td>
+  </tr>
+</table>
+<div class="container-fluid border border-danger">
+  <div class="row">
+    <div class="col-12 hh-grayBox pt45 pb20">
+      <div class="row justify-content-between">
+        @foreach ($progress_timeline as $operation => $data)
+          <div class="order-tracking {{ Illuminate\Support\Str::slug($data['status']) }}">
+            <span class="is-complete"></span>
+            <p>{{ $operation }}</p>
+            <span style='font-size: 9pt'>In Progress: {{ $data['current_workstation'] }}</span>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  </div>
+  <style>
+    .hh-grayBox {
+      background-color: #F8F8F8;
+      margin-bottom: 20px;
+      padding: 35px;
+      margin-top: 20px;
+    }
+    .pt45{padding-top:45px;}
+    .order-tracking{
+      text-align: center;
+      width: 33.33%;
+      position: relative;
+      display: block;
+    }
+    
+    .order-tracking .is-complete{
+      display: block;
+      position: relative;
+      border-radius: 50%;
+      height: 30px;
+      width: 30px;
+      border: 0px solid #AFAFAF;
+      background-color: #C4C4C4;
+      margin: 0 auto;
+      transition: background 0.25s linear;
+      -webkit-transition: background 0.25s linear;
+      z-index: 2;
+    }
+    .order-tracking .is-complete:after {
+      display: block;
+      position: absolute;
+      content: '';
+      height: 14px;
+      width: 7px;
+      top: -2px;
+      bottom: 0;
+      left: 5px;
+      margin: auto 0;
+      border: 0px solid #AFAFAF;
+      border-width: 0px 2px 2px 0;
+      transform: rotate(45deg);
+      opacity: 0;
+    }
+    .order-tracking.in-progress .is-complete{
+      border-color: #EB984E;
+      border-width: 0px;
+      background-color: #EB984E;
+    }
+    .order-tracking.in-progress .is-complete:after {
+      border-color: #fff;
+      border-width: 0px 3px 3px 0;
+      width: 7px;
+      left: 11px;
+      opacity: 0;
+    }
+
+    .order-tracking.completed .is-complete{
+      border-color: #27aa80;
+      border-width: 0px;
+      background-color: #27aa80;
+    }
+    .order-tracking.completed .is-complete:after {
+      border-color: #fff;
+      border-width: 0px 3px 3px 0;
+      width: 7px;
+      left: 11px;
+      opacity: 1;
+    }
+    .order-tracking span,
+    .order-tracking p {
+      color: #A4A4A4;
+      font-size: 16px;
+      margin-top: 8px;
+      margin-bottom: 0;
+      line-height: 20px;
+    }
+    .order-tracking p span{font-size: 14px;}
+    .order-tracking.completed p, .order-tracking.completed span{color: #000;}
+    .order-tracking::before {
+      content: '';
+      display: block;
+      height: 3px;
+      width: calc(100% - 40px);
+      background-color: #C4C4C4;
+      top: 13px;
+      position: absolute;
+      left: calc(-50% + 20px);
+      z-index: 0;
+    }
+    .order-tracking:first-child:before{display: none;}
+    .order-tracking.completed:before{background-color: #27aa80;}
+    .order-tracking.in-progress:before{background-color: #EB984E;}
+
+  </style>
+</div>
 @if($change_code['match'] == "false")
 <div class="alert alert-warning text-center" role="alert">
   <span class="d-none"></span>
@@ -10,7 +143,7 @@
 </div>
 @endif
 
-@if (!$production)
+{{-- @if (!$production)
 <div class="alert alert-warning text-center" role="alert">
   <div class="container">
      <div class="alert-icon" style="color:black;">
@@ -581,8 +714,6 @@
                     <li class="timeline-milestone {{$stat_pain}}" >
                       <div class="timeline-action" >
                         <h2 class="title">Painting</h2>
-                        {{--<span style="display:block; font-size:1vw;font-weight:bold;">{{ $timeline['fab_produced']}} /  {{ $timeline['fab_required']}}</span>--}}
-                        {{-- <p style="font-size:0.9vw;"><i>{{ $pain_status_label }}</i></p> --}}
                         <p style="font-size:0.7vw;"><span class="badge badge-{{$timeline['pain_badge']}}">{{ $pain_status_label }}</span></p>
                         <span style="display:{{ $display_pain_end }};font-size:0.6vw;"><b>Total Duration:</b>  {{ $timeline['pain_duration']}}</span>
                         <div class="content text-left" style="padding-top:10px;">
@@ -597,7 +728,6 @@
                       <div class="timeline-action" >
                         <h2 class="title">Assembly</h2>
                         <span style="display:block; font-size:1vw;font-weight:bold;"> {{$produced}} /  {{$required}}</span>
-                        {{-- <p style="font-size:0.8vw;"><i>{{ $assem_status_label }}</i></p> --}}
                         <p style="font-size:0.7vw;"><span class="badge badge-{{$timeline['assem_badge']}}">{{ $assem_status_label }}</span></p>
 
                         <span style="display:{{ $display_assem_end}};font-size:0.6vw;"><b>Total Duration:</b>  {{ $timeline['assem_duration']}}</span>
@@ -631,8 +761,7 @@
     </div>
   </div>
 </div>
-
-@endif
+@endif --}}
 <style type="text/css">
   #container {
     height: 700px;

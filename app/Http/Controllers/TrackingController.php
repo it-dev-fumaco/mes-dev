@@ -203,6 +203,8 @@ class TrackingController extends Controller
         $guide_id = $request->guideid;
         $itemcode = $request->itemcode;
         $delivery_date_tbl = DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $request->erp_reference_id)->first();
+
+        // return $request->all();
         $change_code = ["match" => ""];
         if ($delivery_date_tbl) {
             if ($delivery_date_tbl->parent_item_code == $request->itemcode) {
@@ -252,13 +254,14 @@ class TrackingController extends Controller
             ->first();
 
         $parent_productions = DB::connection('mysql_mes')->table('production_order AS po')
-            ->whereNotIn('po.status', ['Cancelled'])
+            ->whereNotIn('po.status', ['Cancelled', 'Closed'])
             ->where(function ($q) use ($guide_id) {
                 $q->Where('po.sales_order', $guide_id)
                     ->orWhere('po.material_request', $guide_id);
             })
             ->where('item_code', $itemcode)
             ->first();
+
         $materials = [];
         if (!empty($parent_productions)) {
             $data1 = [];
@@ -415,6 +418,7 @@ class TrackingController extends Controller
             ->unionAll($spotlogss)
             ->get();
 
+        $bom_items = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
 
         $status = db::connection('mysql_mes')->table('production_order')
             ->where('parent_item_code', $itemcode)
@@ -423,124 +427,67 @@ class TrackingController extends Controller
                     ->orWhere('material_request', $guide_id);
             })->select('status', 'operation_id', 'production_order')->get();
         $plucked = collect($status)->pluck('production_order');
-        $job_ticket_per_workstation = db::connection('mysql_mes')->table('job_ticket')->join('production_order as pro', 'pro.production_order', 'job_ticket.production_order')->where('pro.status', '!=', "Cancelled")->whereIn('job_ticket.production_order', $plucked)->select('pro.operation_id', 'job_ticket.*')->get();
-        $fabrication = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->count();
-        $fabrication_completed = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Completed")->count();
-        $painting = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->count();
-        $painting_completed = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Completed")->count();
-        $assembly = collect($job_ticket_per_workstation)->where('operation_id', '3')->count();
-        $assembly_completed = collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Completed")->count();
+        $job_ticket_per_workstation = db::connection('mysql_mes')->table('job_ticket')->join('production_order as pro', 'pro.production_order', 'job_ticket.production_order')->where('pro.status', '!=', "Cancelled")->whereIn('job_ticket.production_order', $plucked)
+            ->select('pro.operation_id', 'job_ticket.*', DB::raw('(CASE 
+                WHEN pro.operation_id = "1" AND job_ticket.workstation = "Painting" THEN "Painting" 
+                WHEN pro.operation_id = "3" THEN "Assembly" 
+                ELSE "Fabrication" 
+                END) AS operation'))
+            ->orderByRaw("FIELD(operation, 'Fabrication', 'Painting', 'Assembly') ASC")
+            ->get()->groupBy('operation');
+        // $fabrication = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->count();
+        // $fabrication_completed = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Completed")->count();
+        // $painting = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->count();
+        // $painting_completed = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Completed")->count();
+        // $assembly = collect($job_ticket_per_workstation)->where('operation_id', '3')->count();
+        // $assembly_completed = collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Completed")->count();
 
-        $min_fab = collect($timelogss)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->min('from_time');
-        $max_fab = collect($timelogss)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->max('to_time');
+        // $fabrication = $fabrication_completed = $painting = $painting_completed = $assembly = $assembly_completed = 0;
+        // $min_fab = $max_fab = $min_pain = $max_pain = $min_assem = $max_assem = null;
+        
+        // $fab_timeline_stat = $assem_timeline_stat = $pain_timeline_stat = "In Progress";
+        // $fab_duration = $assem_duration = $pain_duration = "- On Going";
+        // $fab_badge = $assem_badge = $pain_badge = "warning";
 
-        $min_pain = collect($timelogss)->where('operation_id', '1')->where('workstation', 'Painting')->min('from_time');
-        $max_pain = collect($timelogss)->where('operation_id', '1')->where('workstation', 'Painting')->max('to_time');
+        // $operations = collect($job_ticket_per_workstation)->keys();
 
-        $min_assem = collect($timelogss)->where('operation_id', '3')->min('from_time');
-        $max_assem = collect($timelogss)->where('operation_id', '3')->max('to_time');
+        $progress_timeline = [];
+        foreach($job_ticket_per_workstation as $operation => $data){
+            $data = collect($data);
+            // return $data;
+            $count = $data->count();
+            $completed = $data->where('status', "Completed")->count();
+            $pending = $data->where('status', "Pending")->count();
 
-        if ((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Pending")->count()) == $fabrication) {
-            $fab_timeline_stat = "not_started";
-            $fab_duration = "-";
-            $fab_badge = "secondary";
-        } elseif ($fabrication == $fabrication_completed) {
-            $fab_timeline_stat = "Completed";
-            $from = Carbon::parse($min_fab);
-            $to = Carbon::parse($max_fab);
+            if($count == $completed){
+                $status = 'Completed';
+            }else if($count == $pending){
+                $status = 'Pending';
+            }else{
+                $status = 'In Progress';
+            }
 
-            $duration = $from->diffInSeconds($to);
-            $fab_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-            $fab_badge = "success";
+            $start_date = $data->min('actual_start_date');
+            $end_date = $data->min('actual_end_date');
 
-        } else {
-            $fab_timeline_stat = "In Progress";
-            $fab_duration = "- On Going";
-            $fab_badge = "warning";
+            $current_workstation = $data->whereIn('status', ["Pending", 'In Progress'])->pluck('workstation')->first();
 
-        }
-        if ((collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Pending")->count()) == $assembly) {
-            $assem_timeline_stat = "not_started";
-            $assem_duration = " - ";
-            $assem_badge = "secondary";
-
-        } elseif ($assembly == $assembly_completed) {
-            $assem_timeline_stat = "Completed";
-            $from = Carbon::parse($min_assem);
-            $to = Carbon::parse($max_assem);
-
-            $duration = $from->diffInSeconds($to);
-            $assem_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-            $assem_badge = "success";
-
-        } else {
-            $assem_timeline_stat = "In Progress";
-            $assem_duration = " - On Going";
-            $assem_badge = "warning";
-        }
-
-        if ((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Pending")->count()) == $painting) {
-            $pain_timeline_stat = "not_started";
-            $pain_duration = " - ";
-            $pain_badge = "secondary";
-
-        } elseif ($painting == $painting_completed) {
-            $pain_timeline_stat = "Completed";
-            $from = Carbon::parse($min_pain);
-            $to = Carbon::parse($max_pain);
-
-            $duration = $from->diffInSeconds($to);
-            $pain_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-            $pain_badge = "success";
-
-        } else {
-            $pain_timeline_stat = "In Progress";
-            $pain_duration = " - On Going ";
-            $pain_badge = "warning";
-
-        }
-        if ($assem_timeline_stat == "Completed" && $fab_timeline_stat == "Completed" && $pain_timeline_stat = "Completed") {
-            $from_carbon = Carbon::parse($min_fab);
-            $to_carbon = Carbon::parse($max_assem);
-
-            $duration = $from_carbon->diffInSeconds($to_carbon);
-            $formated_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-        } else {
-            $formated_duration = " - ";
-
-        }
-        $total_qty_fab = 0;
-        $timeline = [
-            'fab_min' => ($min_fab == null) ? '-' : Carbon::parse($min_fab)->format('M d, Y h:i A'),
-            'fab_max' => ($max_fab == null) ? '-' : Carbon::parse($max_fab)->format('M d, Y h:i A'),
-            'pain_min' => ($min_pain == null) ? '-' : Carbon::parse($min_pain)->format('M d, Y h:i A'),
-            'pain_max' => ($max_pain == null) ? '-' : Carbon::parse($max_pain)->format('M d, Y h:i A'),
-            'assem_min' => ($min_assem == null) ? '-' : Carbon::parse($min_assem)->format('M d, Y h:i A'),
-            'assem_max' => ($max_assem == null) ? '-' : Carbon::parse($max_assem)->format('M d, Y h:i A'),
-            'fab_stat' => $fab_timeline_stat,
-            'assem_stat' => $assem_timeline_stat,
-            'pain_stat' => $pain_timeline_stat,
-            'duration' => $formated_duration,
-            'fab_duration' => $fab_duration,
-            'pain_duration' => $pain_duration,
-            'assem_duration' => $assem_duration,
-            'fab_required' => $production ? $production->qty_to_manufacture : '0',
-            'fab_produced' => $production ? $production->produced_qty : '0',
-            'uom' => $production ? $production->stock_uom : '0',
-            'fab_badge' => $fab_badge,
-            'assem_badge' => $assem_badge,
-            'pain_badge' => $pain_badge
-        ];
-
-        if ($bom != null) {
-            $boms = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
-            $item_codes = $itemcode;
-        } else {
-            $boms = [];
-            $item_codes = "";
+            $progress_timeline[$operation] = [
+                'count' => $count,
+                'completed' => $completed,
+                'pending' => $pending,
+                'status' => $status,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'current_workstation' => $current_workstation
+            ];
         }
 
-        return view('tracking_flowchart', compact('boms', 'item_codes', 'guide_id', 'production', 'bom', 'materials', 'timeline', 'change_code'));
+        // return $job_ticket_per_workstation;
+
+        // return $progress_timeline;
+        // return view('tracking_flowchart', compact('progress_timeline', 'boms', 'item_codes', 'guide_id', 'production', 'bom', 'materials', 'timeline', 'change_code'));
+        return view('tracking_flowchart', compact('progress_timeline', 'job_ticket_per_workstation', 'guide_id', 'production', 'bom', 'materials', 'change_code', 'bom_items'));
     }
 
     public function get_bom($bom, $guide_id, $item_code, $parent_item_code)
