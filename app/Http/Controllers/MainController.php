@@ -32,11 +32,156 @@ class MainController extends Controller
 		return redirect('/login');
 	}
 
-	public function loginUserFrm(){
-		if (Auth::user()) {
-			return redirect('/main_dashboard');
+	public function getOngoingOrders(Request $request) {
+		$erp_db = ENV('DB_DATABASE_ERP');
+		$mes_db = ENV('DB_DATABASE_MES');
+
+		$requested_reference = $request->reference;
+		$requested_customer = $request->customer;
+		$requested_project = $request->project;
+
+		$search_order = false;
+		if ($requested_reference || $requested_customer || $requested_project) {
+			$search_order = true;
 		}
 
+		// get reference orders in production order
+		$references_query = DB::connection('mysql_mes')->table('production_order')
+			->whereNotIn('status', ['Cancelled', 'Closed'])
+			->when($requested_reference, function ($query) use ($requested_reference) {
+				return $query->where(function($q) use ($requested_reference) {
+					$q->where('sales_order', 'LIKE', '%'.$requested_reference.'%')
+						->orWhere('material_request', 'LIKE', '%'.$requested_reference.'%');
+				});
+			})
+			->when($requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->when($requested_project, function ($query) use ($requested_project) {
+				return $query->where('project', 'LIKE', '%'.$requested_project.'%');
+			})
+			->whereRaw('qty_to_manufacture > feedback_qty')
+			->selectRaw('IFNULL(sales_order, material_request) as reference')
+			->groupBy('sales_order', 'material_request')
+			->orderBy('created_at', 'desc')->paginate(25);
+
+		$references = collect($references_query->items())->pluck('reference');
+
+		$material_requests = DB::table($erp_db.'.tabMaterial Request as mr')
+			->join($mes_db.'.delivery_date as dd', 'dd.reference_no', 'mr.name')
+			->where('mr.docstatus', 1)->where('mr.status', '!=', 'Stopped')
+			->when(!$search_order, function ($query) use ($references) {
+				return $query->whereIn('mr.name', $references);
+			})
+			->when($search_order, function ($query) use ($requested_reference, $requested_customer, $requested_project) {
+				return $query->where(function($q) use ($requested_reference, $requested_customer, $requested_project) {
+					$q->where('mr.name', 'LIKE', '%'.$requested_reference.'%')
+					->orWhere('mr.customer', 'LIKE', '%'.$requested_customer.'%')
+					->orWhere('mr.project', 'LIKE', '%'.$requested_project.'%');
+				});
+			})
+			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
+				return $query->where(function($q) use ($requested_reference) {
+					$q->where('mr.name', 'LIKE', '%'.$requested_reference.'%');
+				});
+			})
+			->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('mr.customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->when($search_order && $requested_project, function ($query) use ($requested_project) {
+				return $query->where('mr.project', 'LIKE', '%'.$requested_project.'%');
+			})
+			->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified');
+
+		$order_list = DB::connection('mysql')->table('tabSales Order as so')
+			->where('so.docstatus', 1)->whereIn('so.sales_type', ['Regular Sales', 'Sales DR'])
+			->whereIn('so.name', $references)->where('so.status', '!=', 'Closed')
+			->when(!$search_order, function ($query) use ($references) {
+				return $query->whereIn('so.name', $references);
+			})
+			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
+				return $query->where(function($q) use ($requested_reference) {
+					$q->where('so.name', 'LIKE', '%'.$requested_reference.'%');
+				});
+			})
+			->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('so.customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->when($search_order && $requested_project, function ($query) use ($requested_project) {
+				return $query->where('so.project', 'LIKE', '%'.$requested_project.'%');
+			})
+			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
+			->unionAll($material_requests)->orderBy('delivery_date', 'asc');
+
+		if ($search_order) {
+			$references_query = $order_list->paginate(25);
+			$order_list = $order_list->paginate(25);
+			$references = collect($order_list->items())->pluck('name');
+		} else {
+			$order_list = $order_list->get();
+			$references = collect($order_list)->pluck('name');
+		}
+
+		$material_request_items = DB::connection('mysql')->table('tabMaterial Request Item')->whereIn('parent', $references)
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note');
+
+		$item_list = DB::connection('mysql')->table('tabSales Order Item')->whereIn('parent', $references)
+			->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note')
+			->unionAll($material_request_items)->orderBy('idx', 'asc')->get();
+
+		$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+		$default_boms = DB::connection('mysql')->table('tabBOM')
+			->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
+			->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
+			->orderBy('creation', 'desc')->get();
+
+		$default_boms = collect($default_boms)->groupBy('item')->toArray();
+
+		$item_list = collect($item_list)->groupBy('parent')->toArray();
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order')
+			->whereIn(DB::raw('IFNULL(sales_order, material_request)'), $references)
+			->whereNotIn('status', ['Cancelled', 'Closed'])
+			->selectRaw('production_order, item_code, IFNULL(sales_order, material_request) as reference, qty_to_manufacture, feedback_qty, status, produced_qty')
+			->get();
+
+		$items_production_orders = [];
+		foreach ($production_orders as $r) {
+			$p_status = $r->produced_qty > $r->feedback_qty ? 'Ready for Feedback' : $r->status;
+			$p_status = $r->qty_to_manufacture == $r->feedback_qty ? 'Feedbacked' : $p_status;
+			$items_production_orders[$r->reference][$r->item_code][] = [
+				'production_order' => $r->production_order,
+				'status' => $p_status,
+				'produced_qty' => $r->produced_qty
+			];
+		}
+
+		$prod_statuses = collect($production_orders)->groupBy('reference')->toArray();
+		$order_production_status = $this->get_order_production_status($prod_statuses);
+		
+		return view('ongoing_orders', compact('order_list', 'references_query', 'order_production_status', 'items_production_orders'));
+	}
+
+	private function get_order_production_status($collection) {
+		$order_production_status = [];
+		foreach ($collection as $i => $r) {
+			$total_qty =  collect($r)->sum('qty_to_manufacture');
+			$total_feedback_qty =  collect($r)->sum('feedback_qty');
+			$percentage = ($total_feedback_qty/$total_qty) * 100;
+			$has_in_progress = array_filter($r, function ($var) {
+				return ($var->produced_qty > 0);
+			});
+			$has_in_progress = collect($r)->where('status', 'In Progress')->count();
+			$has_in_progress += collect($has_in_progress)->count();
+			$order_production_status[$i]['percentage'] = number_format($percentage);
+			$order_production_status[$i]['has_in_progress'] = $has_in_progress;
+		}
+
+		return $order_production_status;
+	}
+
+	public function loginUserFrm(Request $request){
 		return view('login');
 	}
 
@@ -9965,19 +10110,7 @@ class MainController extends Controller
 		}
 
 		$prod_statuses = collect($production_orders)->groupBy('reference')->toArray();
-		$order_production_status = [];
-		foreach ($prod_statuses as $i => $r) {
-			$total_qty =  collect($r)->sum('qty_to_manufacture');
-			$total_feedback_qty =  collect($r)->sum('feedback_qty');
-			$percentage = ($total_feedback_qty/$total_qty) * 100;
-			$has_in_progress = array_filter($r, function ($var) {
-				return ($var->produced_qty > 0);
-			});
-			$has_in_progress = collect($r)->where('status', 'In Progress')->count();
-			$has_in_progress += collect($has_in_progress)->count();
-			$order_production_status[$i]['percentage'] = number_format($percentage);
-			$order_production_status[$i]['has_in_progress'] = $has_in_progress;
-		}
+		$order_production_status = $this->get_order_production_status($prod_statuses);
 
 		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
 			->where('created_by', Auth::user()->email)->whereIn('reference', $references)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
