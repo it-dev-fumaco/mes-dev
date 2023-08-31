@@ -8,23 +8,26 @@
    <div class="header">
       <form id="login-frm" action="/login_user" method="post" autocomplete="off">
          @csrf
-         <div class="d-flex flex-row align-items-center">
-            <h2 class="title col-7 m-0">Manufacturing Execution System v.12</h2>
+         <div class="d-flex flex-row">
+            <div class="col-7">
+               <h2 class="title m-0">Manufacturing Execution System v.12</h2>
+            </div>
             @if (!Auth::user())
-            <div class="form-group m-0 col-2 p-2">
-               <input type="text" class="form-control rounded bg-white" name="user_id" placeholder="Enter Email" required>
-            </div> 
-            <div class="form-group m-0 col-2 p-2">
-               <input type="password" class="form-control rounded bg-white" name="password" placeholder="Enter your Windows Password" required>
-            </div>
-            <div class="col-1 p-2">
-               <button type="submit" class="btn btn-primary btn-block  m-0 btn-xs">LOGIN</button>
-            </div>
+               <div class="form-group m-0 col-2 p-2">
+                  <input type="text" class="form-control rounded bg-white" name="user_id" placeholder="Enter Email" required>
+               </div> 
+               <div class="form-group m-0 col-2 p-2">
+                  <input type="password" class="form-control rounded bg-white" name="password" placeholder="Enter your Windows Password" required>
+               </div>
+               <div class="col-1 p-2">
+                  <button type="submit" class="btn btn-primary btn-block  m-0 btn-xs">LOGIN</button>
+               </div>
             @else
-           
-            <div class="col-5 p-2 text-right">
-               <button type="button" class="btn btn-secondary m-0 btn-xs">LOGOUT</button>
-            </div>
+               <div class="col-5 text-right p-2">
+                  <span class="text-white mr-3" style="font-size: 12pt;">Welcome, {{ Auth::user()->employee_name }}</span>
+                  <button type="button" class="btn btn-primary m-0 btn-xs">MAIN DASHBOARD</button>
+                  <button type="button" class="btn btn-secondary m-0 btn-xs">LOGOUT</button>
+               </div>
             @endif
          </div>
       </form>
