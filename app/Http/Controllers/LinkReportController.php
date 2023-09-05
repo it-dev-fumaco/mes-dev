@@ -148,6 +148,89 @@ class LinkReportController extends Controller
         return view('reports.export_job_ticket', compact('export_arr', 'production_orders', 'statuses', 'operations_filter', 'permissions'));
     }
 
+    public function production_monitoring(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+        $permissions = $this->get_user_permitted_operation();
+        $operations = DB::connection('mysql_mes')->table('operation')->pluck('operation_name', 'operation_id');
+
+        $export = $request->export;
+        if($request->ajax() || $export){
+            $erp_db = ENV('DB_DATABASE_ERP');
+            $mes_db = ENV('DB_DATABASE_MES');
+
+            $module = $request->module;
+
+            $start_date = Carbon::now()->subMonth(1);
+            $end_date = Carbon::now();
+
+            if($request->daterange){
+                $exploded = explode(' - ', $request->daterange);
+                $start_date = Carbon::parse($exploded[0]);
+                $end_date = Carbon::parse($exploded[1]);
+            }
+    
+            $production_orders = DB::table($erp_db.'.tabWork Order as erp')
+                ->join($mes_db.'.production_order as mes', 'mes.production_order', 'erp.name')
+                ->whereNotIn('mes.status', ['Closed', 'Cancelled'])
+                ->when($request->operation, function ($q) use ($request){
+                    $q->where('mes.operation_id', $request->operation);
+                })
+                ->when($module, function ($q) use ($module){
+                    $q->whereNotNull('mes.'.$module);
+                })
+                ->whereBetween('mes.created_at', [$start_date, $end_date])
+                ->select(DB::raw('IFNULL(erp.sales_order, erp.material_request) as reference_id'), 'mes.status as mes_status', 'erp.status as erp_status', 'erp.*', 'mes.*')
+                ->orderBy('erp.creation', 'desc');
+                
+            if($export){
+                $production_orders = $production_orders->get();
+                $production_order_ids = $production_orders->pluck('production_order');
+                $reference_ids = $production_orders->pluck('reference_id');
+            }else{
+                $production_orders = $production_orders->paginate(20);
+                $production_order_ids = collect($production_orders->items())->pluck('production_order');
+                $reference_ids = collect($production_orders->items())->pluck('reference_id');
+            }
+
+            $feedback_logs = DB::connection('mysql_mes')->table('feedbacked_logs')
+                ->whereIn('production_order', $production_order_ids)
+                ->selectRaw('production_order, item_code, item_name, feedbacked_qty, MAX(created_at) as created_at')
+                ->groupBy('production_order', 'item_code', 'item_name', 'feedbacked_qty')
+                ->get()->groupBy('production_order');
+    
+            $so_collection = [];
+            if(!$module || $module == 'sales_order'){
+                $so_collection = DB::table('tabSales Order as p')
+                    ->join('tabSales Order Item as c', 'c.parent', 'p.name')
+                    ->where('p.docstatus', 1)->where('p.company', 'FUMACO Inc.')->whereIn('p.name', $reference_ids)
+                    ->select('p.name as reference_id', 'p.creation', 'p.owner', 'p.delivery_date as parent_delivery_date', 'p.reschedule_delivery as parent_reschedule_delivery', 'p.reschedule_delivery_date as parent_rescheduled_delivery_date', 'p.date_approved', 'p.workflow_state', 'p.creation', 'p.customer', 'p.sales_person', 'p.company', 'p.docstatus', 'p.status', 'c.item_code', 'c.item_name', 'c.description', 'p.delivery_date', 'c.reschedule_delivery', 'c.rescheduled_delivery_date', 'c.qty', 'c.uom');
+
+                if($request->module == 'sales_order'){
+                    $references = $so_collection->get()->groupBy(['reference_id', 'item_code']);
+                }
+            }
+
+            if(!$module || $module == 'material_request'){
+                $references = DB::table('tabMaterial Request as p')
+                    ->join('tabMaterial Request Item as c', 'c.parent', 'p.name')
+                    ->where('p.docstatus', 1)
+                    ->where('p.company', 'FUMACO Inc.')
+                    ->whereIn('p.name', $reference_ids)
+                    ->select('p.name as reference_id', 'p.creation', 'p.owner', 'p.delivery_date as parent_delivery_date', DB::raw('NULL as parent_reschedule_delivery'), DB::raw('NULL as parent_rescheduled_delivery_date'), DB::raw('NULL as date_approved'), 'p.workflow_state', 'p.creation', 'p.customer', 'p.sales_person', 'p.company', 'p.docstatus', 'p.status', 'c.item_code', 'c.item_name', 'c.description', 'p.delivery_date', 'c.reschedule_delivery', 'c.rescheduled_delivery_date', 'c.qty', 'c.uom')
+                    ->when(!$request->module, function ($q) use ($so_collection){
+                        return $q->union($so_collection);
+                    })
+                    ->get()->groupBy(['reference_id', 'item_code']);
+            }
+
+            return view('reports.production_monitoring_tbl', compact('production_orders', 'references', 'feedback_logs', 'export'));
+        }
+
+        return view('reports.production_monitoring', compact('permissions', 'operations'));
+    }
+
     // /weekly_rejection_report/{operation_id}
     public function weekly_rejection_report(Request $request)
     {

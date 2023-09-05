@@ -25,7 +25,7 @@
             @else
                <div class="col-5 text-right p-2">
                   <span class="text-white mr-3" style="font-size: 12pt;">Welcome, {{ Auth::user()->employee_name }}</span>
-                  <button type="button" class="btn btn-primary m-0 btn-xs">MAIN DASHBOARD</button>
+                  <a href="/main_dashboard" class="btn btn-primary m-0 btn-xs">MAIN DASHBOARD</a>
                   <button type="button" class="btn btn-secondary m-0 btn-xs">LOGOUT</button>
                </div>
             @endif
