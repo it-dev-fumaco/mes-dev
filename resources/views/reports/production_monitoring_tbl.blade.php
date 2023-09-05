@@ -44,7 +44,7 @@ if ($export){
         <td>{{ $po->production_order }}</td>
         <td>{{ $customer }}</td>
         <td>{!! '<b>'.$po->item_code.'</b> - '.$po->description !!}</td>
-        <td>{{ $po->qty_to_manufacture }}</td>
+        <td>{{ $po->qty_to_manufacture.' '.$po->stock_uom }}</td>
         <td>{{ $delivery_date }}</td>
         <td>{{ $rescheduled_delivery_date }}</td>
         <td>{{ $feedback_date }}</td>
