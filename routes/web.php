@@ -550,8 +550,8 @@ Route::get('/drag_n_drop/{production_order}', 'MainController@drag_n_drop');
 Route::get('/get_feedback_logs/{prod}', 'SecondaryController@get_feedbacked_log'); // N
 
 Route::get('/get_order_list', 'MainController@getOrderList');
+Route::get('view_order_detail/{id}', 'MainController@viewOrderDetails');
 Route::group(['middleware' => 'auth'], function(){
-	Route::get('view_order_detail/{id}', 'MainController@viewOrderDetails');
 	Route::get('/order_list', 'MainController@viewOrderList');
 	Route::post('/submit_withdrawal_slip', 'ManufacturingController@submit_withdrawal_slip');
 	Route::post('/reschedule_delivery/{id}', 'MainController@reschedule_delivery');

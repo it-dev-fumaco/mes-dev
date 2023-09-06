@@ -80,7 +80,7 @@
                 @endif
             </td>
             <td class="p-2">
-                <button type="button" class="btn p-2 btn-info">Track Order</button>
+                <button type="button" class="btn p-2 btn-info view-order-details-btn" data-id="{{ $r->name }}">Track Order</button>
             </td>
         </tr>
         @empty

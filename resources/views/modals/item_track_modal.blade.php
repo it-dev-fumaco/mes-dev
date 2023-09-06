@@ -11,10 +11,10 @@
                <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Not Started</span>
                <span class="dot" style="background-color:#EB984E; margin-left: 12px;"></span>
                <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">In Progress</span>
+               <span class="dot" style="background-color:rgb(84, 153, 199); margin-left: 12px;"></span>
+               <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Ready for Feedback</span>
                <span class="dot" style="background-color:#58d68d; margin-left: 12px;"></span>
-               <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Completed</span>
-               <span class="dot" style="background-color:#ec7063; margin-left: 12px;"></span>
-               <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Late</span>
+               <span style="font-size: 12pt; padding-right: 13px;padding-left: 3px;">Feedbacked</span>
                <button type="button" style="display: inline-block;margin-top: 10px;" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                </button>

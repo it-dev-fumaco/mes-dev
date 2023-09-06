@@ -9854,7 +9854,8 @@ class MainController extends Controller
 		return view('view_order_list', compact('permissions', 'order_types'));
 	}
 
-	public function viewOrderDetails($id) {
+	public function viewOrderDetails($id, Request $request) {
+		$dashboard_request = $request->dashboard;
 		$ref_type = explode("-", $id)[0];
 
 		if ($ref_type == 'MREQ') {
@@ -9907,24 +9908,39 @@ class MainController extends Controller
 			}
 		}
 
-		$current_inventory = DB::connection('mysql')->table('tabBin')->whereIn('item_code', collect($item_list)->pluck('item_code'))->whereIn('warehouse', collect($item_list)->pluck('warehouse'))->get();
-		$current_inventory_arr = [];
-		foreach($current_inventory as $ci){
-			$current_inventory_arr[$ci->item_code][$ci->warehouse] = $ci->actual_qty;
+		if (!$dashboard_request) {
+			$current_inventory = DB::connection('mysql')->table('tabBin')->whereIn('item_code', collect($item_list)->pluck('item_code'))->whereIn('warehouse', collect($item_list)->pluck('warehouse'))->get();
+			$current_inventory_arr = [];
+			foreach($current_inventory as $ci){
+				$current_inventory_arr[$ci->item_code][$ci->warehouse] = $ci->actual_qty;
+			}
+
+			$default_boms = DB::connection('mysql')->table('tabBOM')
+				->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
+				->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
+				->orderBy('creation', 'desc')->get();
+
+			$default_boms = collect($default_boms)->groupBy('item')->toArray();
+
+			$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
+				->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
+			$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
+
+			$files = DB::connection('mysql')->table('tabFile')->where('attached_to_doctype', $ref_type == 'SO' ? 'Sales Order' : 'Material Request')
+				->where('attached_to_name', $id)->get();
 		}
 
 		$actual_delivery_date_per_item = collect($actual_delivery_date_per_item)->groupBy('item_code')->toArray();
 
 		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
 
-		$default_boms = DB::connection('mysql')->table('tabBOM')
-			->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
-			->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
-			->orderBy('creation', 'desc')->get();
-
-		$default_boms = collect($default_boms)->groupBy('item')->toArray();
-
 		$item_list = collect($item_list)->groupBy('parent')->toArray();
+
+		$item_production_order_qty = DB::connection('mysql_mes')->table('production_order')
+			->where(DB::raw('IFNULL(sales_order, material_request)'), $id)->where('status', '!=', 'Cancelled')
+			->whereIn('item_code', $item_codes)
+			->selectRaw('SUM(qty_to_manufacture) as qty_to_manufacture, SUM(produced_qty) as produced_qty, SUM(feedback_qty) as feedback_qty, item_code')
+			->groupBy(['item_code'])->get()->groupBy('item_code')->toArray();
 
 		$production_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
@@ -9946,16 +9962,142 @@ class MainController extends Controller
 			];
 		}
 
-		$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
-			->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
-		$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
-		$seen_order_logs = collect($seen_order_logs)->pluck('reference')->toArray();
+		$operation_status = [];
+		if ($dashboard_request) {
+			$production_orders = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+				->where(DB::raw('IFNULL(sales_order, material_request)'), $id)->where('po.status', '!=', 'Cancelled')
+				->select('po.production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'po.status as po_status', 'jt.status as jt_status', 'produced_qty', 'jt.workstation', 'po.operation_id', 'po.parent_item_code')
+				->orderBy('po.created_at', 'desc')->get()->groupBy('parent_item_code');
+
+			foreach($production_orders as $item_code => $workstations) {
+				$not_painting_workstations = collect($workstations)->filter(function ($value) {
+					return $value->workstation != 'Painting';
+				});
+		
+				$has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
+				if ($has_fabrication && collect($has_fabrication)->count()) {
+					$fabrication_details = collect($has_fabrication)->groupBy('production_order')->map(function ($group) {
+						return [
+							'produced_qty' => $group->min('produced_qty'),
+							'feedback_qty' => $group->max('feedback_qty'),
+						];
+					});
+				   
+					$produced_qty = collect($fabrication_details)->min('produced_qty');
+					$feedback_qty = collect($fabrication_details)->min('feedback_qty');
+		
+					$fabrication_status = 'not_started';
+					if (collect($has_fabrication)->where('jt_status', 'In Progress')->count() > 0) {
+						$fabrication_status = 'active';
+					}
+		
+					$completed_jt = collect($has_fabrication)->where('jt_status', 'Completed')->count();
+					if ($completed_jt > 0 && $completed_jt < collect($has_fabrication)->count()) {
+						$fabrication_status = 'active';
+					}
+		
+					if (collect($has_fabrication)->count() > 0 && $fabrication_status != 'active') {
+						if ($produced_qty > $feedback_qty) {
+							$fabrication_status = 'for_feedback';
+						}
+		
+						if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+							$fabrication_status = 'completed';
+						}
+					}
+		
+					$operation_status[$item_code]['fabrication']['status'] = $fabrication_status;
+				}
+		
+				$has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
+				if ($has_assembly && collect($has_assembly)->count()) {
+					$assembly_details = collect($has_assembly)->groupBy('production_order')->map(function ($group) {
+						return [
+							'produced_qty' => $group->min('produced_qty'),
+							'feedback_qty' => $group->max('feedback_qty'),
+						];
+					});
+				   
+					$produced_qty = collect($assembly_details)->min('produced_qty');
+					$feedback_qty = collect($assembly_details)->min('feedback_qty');
+		
+					$assembly_status = 'not_started';
+					if (collect($has_assembly)->where('jt_status', 'In Progress')->count() > 0) {
+						$assembly_status = 'active';
+					}
+		
+					$completed_jt = collect($has_assembly)->where('jt_status', 'Completed')->count();
+					if ($completed_jt > 0 && $completed_jt < collect($has_assembly)->count()) {
+						$assembly_status = 'active';
+					}
+		
+					if (collect($has_assembly)->count() > 0 && $assembly_status != 'active') {
+						if ($produced_qty > $feedback_qty) {
+							$assembly_status = 'for_feedback';
+						}
+		
+						if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+							$assembly_status = 'completed';
+						}
+					}
+		
+					$operation_status[$item_code]['assembly']['status'] = $assembly_status;
+				}
+		
+				// workstations excluding painting
+				$has_painting = collect($workstations)->filter(function ($value) {
+					return $value->workstation == 'Painting';
+				});
+		
+				if ($has_painting && collect($has_painting)->count()) {
+					$painting_details = collect($has_painting)->groupBy('production_order')->map(function ($group) {
+						return [
+							'produced_qty' => $group->min('produced_qty'),
+							'feedback_qty' => $group->max('feedback_qty'),
+						];
+					});
+				   
+					$produced_qty = collect($painting_details)->min('produced_qty');
+					$feedback_qty = collect($painting_details)->min('feedback_qty');
+		
+					$painting_status = 'not_started';
+					if (collect($has_painting)->where('jt_status', 'In Progress')->count() > 0) {
+						$painting_status = 'active';
+					}
+		
+					$painting_status = 'not_started';
+					if (collect($has_painting)->where('jt_status', 'In Progress')->count() > 0) {
+						$painting_status = 'active';
+					}
+		
+					$completed_jt = collect($has_painting)->where('jt_status', 'Completed')->count();
+					if ($completed_jt > 0 && $completed_jt < collect($has_painting)->count()) {
+						$painting_status = 'active';
+					}
+		
+					if (collect($has_painting)->count() > 0 && $painting_status != 'active') {
+						if ($produced_qty > $feedback_qty) {
+							$painting_status = 'for_feedback';
+						}
+		
+						if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+							$painting_status = 'completed';
+						}
+					}
+		
+					$operation_status[$item_code]['painting']['status'] = $painting_status;
+				}
+			}
+		}
 
 		$comments = DB::connection('mysql')->table('tabComment')->where('reference_name', $id)
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
 
-		$files = DB::connection('mysql')->table('tabFile')->where('attached_to_doctype', $ref_type == 'SO' ? 'Sales Order' : 'Material Request')->where('attached_to_name', $id)->get();
+		if ($dashboard_request) {
+			return view('modals.view_order_details', compact('details', 'ref_type', 'item_list', 'item_images', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'operation_status', 'item_production_order_qty'));
+		}
 
 		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files', 'current_inventory_arr'));
 	}

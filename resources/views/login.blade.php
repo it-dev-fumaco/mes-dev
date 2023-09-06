@@ -168,11 +168,40 @@
 		transform: translateX(0);  /* Firefox 16+, IE 10+, Opera */
 	}
 </style>
+
+<!-- Modal -->
+<div class="modal fade" id="view-order-details-modal" tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document" style="min-width: 95%;">
+       <div id="view-order-modal-content"></div>
+   </div>
+</div>
+
+@include('modals.item_track_modal')
 @endsection
 
 @section('script')
 <script>
    $(document).ready(function(){
+      $(document).on('click', '.view-order-details-btn', function(e) {
+         e.preventDefault();
+         $('#view-order-details-modal').modal('show');
+         $('#view-order-modal-content').empty();
+         var id = $(this).data('id');
+         $.ajax({
+               url: "/view_order_detail/" + id,
+               type:"GET",
+               data: { dashboard: true},
+               success:function(data){
+                  $('#view-order-modal-content').html(data);
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                  if(jqXHR.status == 401) {
+                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }
+               },
+         });
+      });
+      
       $.ajaxSetup({
          headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
