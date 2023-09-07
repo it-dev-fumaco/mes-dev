@@ -13,7 +13,7 @@
       $status = 'Ready for Feedback';
     }
 
-    if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+    if ($produced_qty <= $feedback_qty && $feedback_qty > 0 && $qty_to_manufacture <= $feedback_qty) {
       $status = 'Feedbacked';
     }
 
@@ -22,6 +22,7 @@
       $badge = 'warning';
       break;
     case 'Feedbacked':
+    case 'Partially Feedbacked':
       $badge = 'success';
       break;
     case 'Completed':
@@ -84,7 +85,7 @@
         $status = 'Ready for Feedback';
       }
 
-      if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+      if ($produced_qty <= $feedback_qty && $feedback_qty > 0 && $qty_to_manufacture <= $feedback_qty) {
         $status = 'Feedbacked';
       }
 
@@ -93,6 +94,7 @@
         $badge = 'warning';
         break;
       case 'Feedbacked':
+      case 'Partially Feedbacked':
         $badge = 'success';
         break;
       case 'Completed':

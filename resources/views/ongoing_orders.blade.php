@@ -37,9 +37,18 @@
             </td>
             <td class="p-2">
                 @if ($delivery_date)
-                <span class="badge badge-{{ Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() ? 'danger' : 'info' }}" style="font-size: 11px;">
+                @php
+                    $delivery_date_status = 'info';
+                    if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay()) {
+                        $delivery_date_status = 'danger';
+                    }
+                @endphp
+                <span class="d-block font-weight-bold">
                     {{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}
                 </span>
+                @if ($delivery_date_status == 'danger')
+                <span class="badge badge-{{ $delivery_date_status }}" style="font-size: 11px;">Delayed</span>
+                @endif
                 @else
                 -
                 @endif
@@ -48,7 +57,11 @@
                 @if ($r->status == 'Partially Ordered')
                 Partially Delivered
                 @else
-                {{ $r->status }}
+                @php
+                    $delivery_status = str_replace(" and Bill", "", $r->status);
+                    $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
+                @endphp
+                {{ $delivery_status }}
                 @endif
             </td>
             <td class="p-2">

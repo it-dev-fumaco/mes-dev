@@ -66,6 +66,7 @@
   <ul class="tree ulclass text-center">
     <li class="liclass text-center">
       @include('includes.tracking_view_tree_box', ['item' => $item_details])
+      @if (count($parts) > 0) 
       <ul class="ulclass mt-3">
         @foreach ($parts as $part)
         <li class="liclass">
@@ -109,6 +110,7 @@
         </li>
         @endforeach
       </ul>
+      @endif
     </li>
   </ul>
 </div>

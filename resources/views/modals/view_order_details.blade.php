@@ -33,11 +33,31 @@
         </div>
         <div class="modal-body pb-2">
             <table class="w-100 border-0" style="font-size: 9pt;">
+                @php
+                    $delivery_date = $details->reschedule_delivery == 1 ? $details->reschedule_delivery_date : $details->delivery_date;
+                @endphp
                 <tr>
                     <td class="align-middle text-right p-1">Customer:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
                     <td class="align-middle text-right p-1" style="width: 12%;">Delivery Date:</td>
-                    <td class="align-middle p-1 font-weight-bold" style="width: 20%;">{{ \Carbon\Carbon::parse($details->delivery_date)->format('M. d, Y') }}</td>
+                    <td class="align-middle p-1 font-weight-bold" style="width: 20%;">
+                        @if ($delivery_date)
+                        @php
+                            $delivery_date_status = 'info';
+                            if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay()) {
+                                $delivery_date_status = 'danger';
+                            }
+                        @endphp
+                        <span class="font-weight-bold">
+                            {{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}
+                        </span>
+                        @if ($delivery_date_status == 'danger')
+                        <span class="badge badge-{{ $delivery_date_status }}" style="font-size: 11px;">Delayed</span>
+                        @endif
+                        @else
+                        -
+                        @endif
+                    </td>
                     <td class="align-top p-1" rowspan="4" style="width: 20%;">
                         <b>SHIP TO:</b> {!! $details->shipping_address !!}
                     </td>
@@ -59,7 +79,17 @@
                     <td class="align-middle text-right p-1">Order Type:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ in_array($details->order_type, ['Sales DR', 'Regular Sales']) ? 'Customer Order' : $details->order_type }}</td>
                     <td class="align-middle text-right p-1">Status:</td>
-                    <td class="align-middle p-1 font-weight-bold">{{ $details->status }}</td>
+                    <td class="align-middle p-1 font-weight-bold">
+                        @if ($details->status == 'Partially Ordered')
+                        Partially Delivered
+                        @else
+                        @php
+                            $delivery_status = str_replace(" and Bill", "", $details->status);
+                            $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
+                        @endphp
+                        {{ $delivery_status }}
+                        @endif
+                    </td>
                 </tr>
             </table>
             <div class="row mt-2">
@@ -89,9 +119,10 @@
                                     <table class="table table-bordered">
                                         <thead class="text-white bg-secondary text-center font-weight-bold text-uppercase" style="font-size: 6pt;">
                                             <th class="p-2" style="width: 3%;">No.</th>
-                                            <th class="p-2" style="width: 30%;">Item Description</th>
-                                            <th class="p-2" style="width: 5%;">Ordered</th>
+                                            <th class="p-2" style="width: 25%;">Item Description</th>
                                             <th class="p-2" style="width: 7%;">Ship by</th>
+                                            <th class="p-2" style="width: 5%;">Ordered</th>
+                                            <th class="p-2" style="width: 5%;">Delivered</th>
                                             <th class="p-2" style="width: 30%;">Production Status</th>
                                             <th class="p-1" style="width: 5%;">Action</th>
                                         </thead>
@@ -123,42 +154,41 @@
                                                     </div>
                                                 </td>
                                                 <td class="text-center p-2">
+                                                    {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
+                                                </td>
+                                                <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
                                                 <td class="text-center p-2">
-                                                    {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
+                                                    <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->delivered_qty) }}</span>
+                                                    <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
                                                 <td class="text-justify p-2">
+                                                  
                                                     @if (count($production_order_item) > 0)
-                                                    <ul class="breadcrumb-c">
-                                                        @if (isset($production_order_item['fabrication']))
-                                                        <li class="{{ $production_order_item['fabrication']['status'] }}">
-                                                            <a href="#">Fabrication</a>
-                                                        </li>
-                                                        @endif
-                                                        @if (isset($production_order_item['painting']))
-                                                        <li class="{{ $production_order_item['painting']['status'] }}">
-                                                            <a href="#">Painting</a>
-                                                        </li>
-                                                        @endif
-                                                        @if (isset($production_order_item['assembly']))
-                                                        <li class="{{ $production_order_item['assembly']['status'] }}">
-                                                            <a href="#">Wiring & Assembly</a>
-                                                        </li>
-                                                        @endif
-                                                    </ul>
-                                                    <div class="d-flex flex-row mt-2">
-                                                        <div class="col-4 text-center">
-                                                            <span class="d-block font-weight-bold" style="font-size: 14px;">{{ number_format($qty_to_manufacture) }}</span>
-                                                            <small class="d-block text-muted text-uppercase">Qty to Manufacture</small>
+                                                    <div class="d-flex flex-row">
+                                                        <div class="col-9">
+                                                            <ul class="breadcrumb-c">
+                                                                @if (isset($production_order_item['fabrication']))
+                                                                <li class="{{ $production_order_item['fabrication']['status'] }}">
+                                                                    <a href="#">Fabrication</a>
+                                                                </li>
+                                                                @endif
+                                                                @if (isset($production_order_item['painting']))
+                                                                <li class="{{ $production_order_item['painting']['status'] }}">
+                                                                    <a href="#">Painting</a>
+                                                                </li>
+                                                                @endif
+                                                                @if (isset($production_order_item['assembly']))
+                                                                <li class="{{ $production_order_item['assembly']['status'] }}">
+                                                                    <a href="#">Wiring & Assembly</a>
+                                                                </li>
+                                                                @endif
+                                                            </ul>
                                                         </div>
-                                                        <div class="col-4 text-center">
-                                                            <span class="d-block font-weight-bold" style="font-size: 14px;">{{ number_format($produced_qty) }}</span>
-                                                            <small class="d-block text-muted text-uppercase">Produced Qty</small>
-                                                        </div>
-                                                        <div class="col-4 text-center">
-                                                            <span class="d-block font-weight-bold" style="font-size: 14px;">{{ number_format($feedback_qty) }}</span>
+                                                        <div class="col-3 text-center">
+                                                            <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($feedback_qty) }}</span>
                                                             <small class="d-block text-muted text-uppercase">Feedbacked Qty</small>
                                                         </div>
                                                     </div>

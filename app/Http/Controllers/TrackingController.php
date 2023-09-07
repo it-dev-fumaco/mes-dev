@@ -465,10 +465,6 @@ class TrackingController extends Controller
                 ->orderBy('modified', 'desc')->first();
         }
 
-        if (!$item_bom) {
-            return response()->json(['success' => 0, 'message' => 'BOM not found.']);
-        }
-
         if ($item_bom != null) {
             $parts = $this->get_bom($item_bom->name, $reference_order_no, $item_details['item_code'], $item_details['item_code']);
         } else {
