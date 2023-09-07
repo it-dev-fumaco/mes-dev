@@ -111,7 +111,7 @@ class MainController extends Controller
 				return $query->where('so.project', 'LIKE', '%'.$requested_project.'%');
 			})
 			->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified')
-			->unionAll($material_requests)->orderBy('delivery_date', 'asc');
+			->unionAll($material_requests)->orderBy('date_approved', 'desc');
 
 		if ($search_order) {
 			$references_query = $order_list->paginate(25);
