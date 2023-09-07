@@ -62,7 +62,7 @@
   </ul>
 </div>
 
-<div class="d-flex flex-row justify-content-center">
+<div class="d-flex flex-row justify-content-center overflow-auto">
   <ul class="tree ulclass text-center">
     <li class="liclass text-center">
       @include('includes.tracking_view_tree_box', ['item' => $item_details])
