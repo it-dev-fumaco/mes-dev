@@ -230,11 +230,13 @@ class TrackingController extends Controller
         $production_orders = DB::connection('mysql_mes')->table('production_order as po')
             ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
             ->where(DB::raw('IFNULL(sales_order, material_request)'), $reference_order_no)->where('po.status', '!=', 'Cancelled')
+            ->where('parent_item_code', $item_details['item_code'])
             ->select('po.production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'po.status as po_status', 'jt.status as jt_status', 'produced_qty', 'jt.workstation', 'po.operation_id', 'jt.idx', 'po.description', 'po.actual_start_date', 'po.actual_end_date')
             ->orderBy('po.created_at', 'desc')->orderBy('jt.idx', 'asc')->get();
 
         $production_per_item_query = DB::connection('mysql_mes')->table('production_order')
             ->where(DB::raw('IFNULL(sales_order, material_request)'), $reference_order_no)->where('status', '!=', 'Cancelled')
+            ->where('parent_item_code', $item_details['item_code'])
             ->select('production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'description', 'actual_start_date', 'actual_end_date', 'planned_start_date', 'bom_no')
             ->orderByRaw("FIELD(status, 'Feedbacked', 'Completed', 'Ready for Feedback', 'Partially Feedbacked', 'In Progress', 'Not Started', 'Closed') ASC")->get();
 
