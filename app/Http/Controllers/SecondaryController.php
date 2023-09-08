@@ -1702,8 +1702,6 @@ class SecondaryController extends Controller
                 return redirect()->back();
             }
     
-            return $request->all();
-    
             $workstation_name = DB::connection('mysql_mes')->table('workstation')->where('id', $request->workstation_id)->select('workstation_name')->first();
             $process = DB::connection('mysql_mes')->table('process')->where('id', $request->process_id)->select('process')->first();
             $now = Carbon::now();
@@ -1739,7 +1737,6 @@ class SecondaryController extends Controller
             // return response()->json(['success' => 1, 'message' => 'Workstation successfully Added.']);
             return redirect()->back()->with('success', 'Updated!');
         } catch (\Throwable $th) {
-            // throw $th;
             DB::connection('mysql')->rollBack();
             DB::connection('mysql_mes')->rollBack();
             return redirect()->back()->with('error', 'An error occured. Please try again.');

@@ -865,7 +865,7 @@
                   $('#add-workstation-modal').modal('hide');
                   $('#add-worktation-frm').trigger("reset");
                   // location.reload(true);
-                  workstation_list();
+                  workstation_list($('#current-workstation-operation').val(), 1);
             }
           }
         });
@@ -889,7 +889,7 @@
               showNotification("success", data.message, "now-ui-icons ui-1_check");
               $('#edit-workstation-modal').modal('hide');
               $('#edit-workstation-frm').trigger("reset");
-              workstation_list();
+              workstation_list($('#current-workstation-operation').val(), 1);
             }
           },
           error: function(jqXHR, textStatus, errorThrown) {
@@ -913,7 +913,7 @@
           }else{
             showNotification("success", data.message, "now-ui-icons ui-1_check");
             $('#delete-workstation-modal').modal('hide');
-            workstation_list();
+            workstation_list($('#current-workstation-operation').val(), 1);
           }
         }
       });
@@ -1289,7 +1289,7 @@ $(document).ready(function(){
   // tbl_process_setup_list();
   tbl_shift_list();
   // tbl_operation_list();
-  workstation_list($('#current-workstation-operation').val());
+  workstation_list($('#current-workstation-operation').val(), 1);
   // setting_machine_list();
   // get_machine_assign();
   
@@ -2066,7 +2066,7 @@ $('.sel9').select2({
     $(document).on('click', '#workstation_list_pagination a', function(event){
          event.preventDefault();
          var page = $(this).attr('href').split('page=')[1];
-         workstation_list(page);
+         workstation_list($('#current-workstation-operation').val(), page);
     });
 </script>
 <!-- Machine_list -->
