@@ -123,8 +123,8 @@
                                             <th class="p-2" style="width: 7%;">Ship by</th>
                                             <th class="p-2" style="width: 5%;">Ordered</th>
                                             <th class="p-2" style="width: 5%;">Delivered</th>
-                                            <th class="p-2" style="width: 30%;">Production Status</th>
-                                            <th class="p-1" style="width: 5%;">Action</th>
+                                            <th class="p-2" style="width: 32%;">Production Status</th>
+                                            <th class="p-1" style="width: 3%;">Action</th>
                                         </thead>
                                         <tbody style="font-size: 8pt;">
                                             @forelse ($items as $n => $v)
@@ -164,11 +164,10 @@
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->delivered_qty) }}</span>
                                                     <small class="d-block">{{ $v->stock_uom }}</small>
                                                 </td>
-                                                <td class="text-justify p-2">
-                                                  
+                                                <td class="text-justify p-1">
                                                     @if (count($production_order_item) > 0)
                                                     <div class="d-flex flex-row">
-                                                        <div class="col-9">
+                                                        <div class="col-10 p-1">
                                                             <ul class="breadcrumb-c">
                                                                 @if (isset($production_order_item['fabrication']))
                                                                 <li class="{{ $production_order_item['fabrication']['status'] }}">
@@ -187,7 +186,7 @@
                                                                 @endif
                                                             </ul>
                                                         </div>
-                                                        <div class="col-3 text-center">
+                                                        <div class="col-2 text-center pl-0 pr-0 pb-1 pt-1">
                                                             <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($feedback_qty) }}</span>
                                                             <small class="d-block text-muted text-uppercase">Feedbacked Qty</small>
                                                         </div>
@@ -213,7 +212,7 @@
                                     @if ($notes)
                                     <div class="d-flex flex-row pl-3 pr-3 pt-2 pb-2 align-items-start" style="font-size: 12px;">
                                         <span class="font-weight-bold d-inline-block m-1">Notes:</span>
-                                        <span class="d-inline-block m-1">{!! $details->notes !!}</span>
+                                        <span class="d-inline-block m-1 text-justify">{!! $details->notes !!}</span>
                                     </div>
                                     @endif
                                 </div>

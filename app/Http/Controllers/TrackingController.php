@@ -324,10 +324,8 @@ class TrackingController extends Controller
     
                 if ($fabrication_actual_start_date && $fabrication_actual_end_date) {
                     $fabrication_duration = $this->seconds2human($fabrication_actual_start_date->diffInSeconds($fabrication_actual_end_date));
-                    $operation_status['fabrication'] = [
-                        'end' => Carbon::parse($fabrication_actual_end_date)->format('M. d, Y - h:i A'),
-                        'duration' => $fabrication_duration
-                    ];
+                    $operation_status['fabrication']['end'] = Carbon::parse($fabrication_actual_end_date)->format('M. d, Y - h:i A');
+                    $operation_status['fabrication']['duration'] = $fabrication_duration;
                 }
             }
 
@@ -380,10 +378,8 @@ class TrackingController extends Controller
     
                 if ($assembly_actual_start_date && $assembly_actual_end_date) {
                     $assembly_duration = $this->seconds2human($assembly_actual_start_date->diffInSeconds($assembly_actual_end_date));
-                    $operation_status['assembly'] = [
-                        'end' => Carbon::parse($assembly_actual_end_date)->format('M. d, Y - h:i A'),
-                        'duration' => $assembly_duration
-                    ];
+                    $operation_status['assembly']['end'] = Carbon::parse($assembly_actual_end_date)->format('M. d, Y - h:i A');
+                    $operation_status['assembly']['duration'] = $assembly_duration;
                 }
             }
 
@@ -445,10 +441,8 @@ class TrackingController extends Controller
     
                 if ($painting_actual_start_date && $painting_actual_end_date) {
                     $painting_duration = $this->seconds2human($painting_actual_start_date->diffInSeconds($painting_actual_end_date));
-                    $operation_status['painting'] = [
-                        'end' => Carbon::parse($painting_actual_end_date)->format('M. d, Y - h:i A'),
-                        'duration' => $painting_duration
-                    ];
+                    $operation_status['painting']['end'] = Carbon::parse($painting_actual_end_date)->format('M. d, Y - h:i A');
+                    $operation_status['painting']['duration'] = $painting_duration;
                 }
             }
 
