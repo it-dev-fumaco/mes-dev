@@ -11,7 +11,10 @@
       <div class="col-12 mx-auto bg-white">
          <form action="/export/job_ticket" method="get">
             <div class="row p-2">
-               <div class="col-3 offset-2 input-group">
+               <div class="col-1 offset-1 pt-2 pr-0 text-right">
+                  <span class="m-0" style="font-size: 12pt;">Date Range</span>
+               </div>
+               <div class="col-3 input-group">
                   <input type="text" class="form-control rounded border" name="daterange" placeholder="Select Date Range">
                </div>
                <div class="col-3 input-group">
@@ -25,7 +28,7 @@
                </div>
                <div class="col-3 input-group">
                   <select name="module" class="custom-select">
-                     <option selected disabled>Select a Module</option>
+                     <option selected disabled>Select a Reference Type</option>
                      <option value="">All</option>
                      <option value="sales_order">Sales Order (SO)</option>
                      <option value="material_request">Material Request (MREQ)</option>
