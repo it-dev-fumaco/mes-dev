@@ -43,8 +43,10 @@
                     <td class="align-middle p-1 font-weight-bold" style="width: 20%;">
                         @if ($delivery_date)
                         @php
+                            $delivery_status = str_replace(" and Bill", "", $details->status);
+                            $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
                             $delivery_date_status = 'info';
-                            if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay()) {
+                            if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() && $delivery_status != 'Completed') {
                                 $delivery_date_status = 'danger';
                             }
                         @endphp
@@ -83,10 +85,6 @@
                         @if ($details->status == 'Partially Ordered')
                         Partially Delivered
                         @else
-                        @php
-                            $delivery_status = str_replace(" and Bill", "", $details->status);
-                            $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
-                        @endphp
                         {{ $delivery_status }}
                         @endif
                     </td>
@@ -196,7 +194,11 @@
                                                     @endif
                                                 </td>
                                                 <td class="text-center p-1">
+                                                    @if (count($production_order_item) > 0)
                                                     <button class="btn btn-sm btn-info btn-icon btn_trackmodal" style="padding: 7px 8px;" data-itemcode="{{ $v->item_code }}" data-guideid="{{ $details->name }}" data-erpreferenceno="{{ $v->name }}" data-customer="{{ $details->customer }}"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    @else
+                                                    <button class="btn btn-sm btn-info btn-icon disabled" disabled style="padding: 7px 8px;"><i class="now-ui-icons ui-1_zoom-bold"></i></button>
+                                                    @endif
                                                 </td> 
                                             </tr>
                                             @empty

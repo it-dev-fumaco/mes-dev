@@ -38,8 +38,11 @@
             <td class="p-2">
                 @if ($delivery_date)
                 @php
+                    $delivery_status = str_replace(" and Bill", "", $r->status);
+                    $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
+
                     $delivery_date_status = 'info';
-                    if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay()) {
+                    if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() && $delivery_status != 'Completed') {
                         $delivery_date_status = 'danger';
                     }
                 @endphp
@@ -57,10 +60,6 @@
                 @if ($r->status == 'Partially Ordered')
                 Partially Delivered
                 @else
-                @php
-                    $delivery_status = str_replace(" and Bill", "", $r->status);
-                    $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
-                @endphp
                 {{ $delivery_status }}
                 @endif
             </td>

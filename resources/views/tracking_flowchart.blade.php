@@ -62,57 +62,60 @@
   </ul>
 </div>
 
-<div class="d-flex flex-row justify-content-center overflow-auto" style="min-height: 400px;">
-  <ul class="tree ulclass text-center">
-    <li class="liclass text-center">
-      @include('includes.tracking_view_tree_box', ['item' => $item_details])
-      @if (count($parts) > 0) 
-      <ul class="ulclass mt-3">
-        @foreach ($parts as $part)
-        <li class="liclass">
-          @include('includes.tracking_view_tree_box', ['item' => $part])
-          @if (count($part['child_nodes']) > 0) 
-          <ul class="ulclass mt-3">
-            @foreach ($part['child_nodes'] as $child_level_1)
-            <li class="liclass">
-              @include('includes.tracking_view_tree_box', ['item' => $child_level_1])
-              @if (count($child_level_1['child_nodes']) > 0) 
-              <ul class="ulclass mt-3">
-              @foreach ($child_level_1['child_nodes'] as $child_level_2)
+<div class="overflow-auto" style="min-height: 400px;">
+  <center>
+    <ul class="tree ulclass text-center">
+      <li class="liclass text-center">
+        @include('includes.tracking_view_tree_box', ['item' => $item_details])
+        @if (count($parts) > 0) 
+        <ul class="ulclass mt-3">
+          @foreach ($parts as $part)
+          <li class="liclass">
+            @include('includes.tracking_view_tree_box', ['item' => $part])
+            @if (count($part['child_nodes']) > 0) 
+            <ul class="ulclass mt-3">
+              @foreach ($part['child_nodes'] as $child_level_1)
               <li class="liclass">
-                @include('includes.tracking_view_tree_box', ['item' => $child_level_2])
-                @if (count($child_level_2['child_nodes']) > 0) 
+                @include('includes.tracking_view_tree_box', ['item' => $child_level_1])
+                @if (count($child_level_1['child_nodes']) > 0) 
                 <ul class="ulclass mt-3">
-                  @foreach ($child_level_2['child_nodes'] as $child_level_3)
-                  <li class="liclass">
-                    @include('includes.tracking_view_tree_box', ['item' => $child_level_3])
-                    @if (count($child_level_3['child_nodes']) > 0) 
-                    <ul class="ulclass mt-3">
-                      @foreach ($child_level_3['child_nodes'] as $child_level_4)
-                      <li class="liclass">
-                        @include('includes.tracking_view_tree_box', ['item' => $child_level_4])
-                      </li>
-                      @endforeach
-                    </ul>
-                    @endif
-                  </li>
-                  @endforeach
+                @foreach ($child_level_1['child_nodes'] as $child_level_2)
+                <li class="liclass">
+                  @include('includes.tracking_view_tree_box', ['item' => $child_level_2])
+                  @if (count($child_level_2['child_nodes']) > 0) 
+                  <ul class="ulclass mt-3">
+                    @foreach ($child_level_2['child_nodes'] as $child_level_3)
+                    <li class="liclass">
+                      @include('includes.tracking_view_tree_box', ['item' => $child_level_3])
+                      @if (count($child_level_3['child_nodes']) > 0) 
+                      <ul class="ulclass mt-3">
+                        @foreach ($child_level_3['child_nodes'] as $child_level_4)
+                        <li class="liclass">
+                          @include('includes.tracking_view_tree_box', ['item' => $child_level_4])
+                        </li>
+                        @endforeach
+                      </ul>
+                      @endif
+                    </li>
+                    @endforeach
+                  </ul>
+                  @endif
+                </li>
+                @endforeach
                 </ul>
                 @endif
               </li>
               @endforeach
-              </ul>
-              @endif
-            </li>
-            @endforeach
-          </ul>
-          @endif
-        </li>
-        @endforeach
-      </ul>
-      @endif
-    </li>
-  </ul>
+            </ul>
+            @endif
+          </li>
+          @endforeach
+        </ul>
+        @endif
+      </li>
+    </ul>
+  </center>
+  
 </div>
   
 <style type="text/css">

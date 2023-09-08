@@ -62,7 +62,7 @@ class MainController extends Controller
 			})
 			->whereRaw('qty_to_manufacture > feedback_qty')
 			->selectRaw('IFNULL(sales_order, material_request) as reference')
-			->groupBy('sales_order', 'material_request')
+			->groupBy(['sales_order', 'material_request'])
 			->orderBy('created_at', 'desc')->paginate(25);
 
 		$references = collect($references_query->items())->pluck('reference');
