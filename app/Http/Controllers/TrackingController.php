@@ -171,6 +171,30 @@ class TrackingController extends Controller
 		return view('ongoing_orders', compact('order_list', 'references_query', 'items_production_orders'));
 	}
 
+    public function onGoingQtyPerOperation() {
+		$production_orders = DB::connection('mysql_mes')->table('production_order as p')
+            ->join('job_ticket as j', 'p.production_order', 'j.production_order')
+            ->whereNotIn('p.status', ['Cancelled', 'Closed'])
+            ->where('j.status', 'In Progress')
+            ->whereRaw('p.qty_to_manufacture > p.feedback_qty')
+            ->selectRaw('item_code, qty_to_manufacture, produced_qty, feedback_qty, operation_id, workstation, (qty_to_manufacture - produced_qty) as remaining')
+            ->get();
+
+        $not_painting_workstations = collect($production_orders)->filter(function ($value) {
+            return $value->workstation != 'Painting';
+        });
+
+        $fabrication = collect($not_painting_workstations)->where('operation_id', 1)->sum('remaining');
+        $assembly = collect($not_painting_workstations)->where('operation_id', 3)->sum('remaining');
+        $painting = collect($production_orders)->where('workstation', 'Painting')->sum('remaining');
+
+        return response()->json([
+            'fabrication' => number_format($fabrication),
+            'painting' => number_format($painting),
+            'assembly' => number_format($assembly),
+        ]);
+    }
+
     public function item_status_tracking_page()
     {
         return view('item_status_tracking');

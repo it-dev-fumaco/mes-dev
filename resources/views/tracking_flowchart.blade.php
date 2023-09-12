@@ -1,6 +1,6 @@
 <div class="d-flex flex-row align-items-center p-2">
-  <img src="{{ $item_details['image'] }}" alt="{{ $item_details['item_code'] }}" class="m-1" style="width: 80px; height: 80px;">
-  <div class="m-1">
+  <img src="{{ $item_details['image'] }}" alt="{{ $item_details['item_code'] }}" class="p-1 col-1" style="width: 80px; height: 80px;">
+  <div class="p-1 col-8">
       <span class="font-weight-bold d-block">{{ $item_details['item_code'] }}</span> {!! strip_tags($item_details['description']) !!}
   </div>
   <div class="col-1 text-center">

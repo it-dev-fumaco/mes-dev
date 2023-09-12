@@ -734,4 +734,6 @@ Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{pr
 	Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
 	Route::get('/items_in_their_own_bom', 'LinkReportController@items_in_their_own_bom');
 	});
+
+	Route::get('/onGoingQtyPerOperation', 'TrackingController@onGoingQtyPerOperation');
 });

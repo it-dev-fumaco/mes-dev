@@ -37,7 +37,7 @@
    <div class="card">
       <div class="card-body pt-0">
          <div class="d-flex flex-row pt-2 align-items-center">
-            <div class="col-8 p-0 m-0">
+            <div class="col-7 p-0 m-0">
                <form id="filters-form">
                   <div class="row p-0 m-0">
                      <div class="col-12 p-1">
@@ -59,13 +59,23 @@
                   </div>
                </form>
             </div>
-            <div class="col-4">
-               <div class="d-flex flex-row-reverse p-0 m-0 align-items-center" style="color:#34495E;">
-                  <div class="col-5 border-left">
-                     <h3 id="current-time" class="title text-left m-2">--:--:-- --</h3>
+            <div class="col-5 p-0 m-0">
+               <p class="mb-1 mt-0 pb-1 pt-0 text-center text-secondary text-uppercase">Total No. of In-Progress Items per Operation</p>
+               <div class="d-flex flex-row mb-2">
+                  <div class="col border-info" style="border-left: 3px solid;">
+                     <h5 class="d-inline-block mt-1 mb-1 ml-0 mr-1" id="count-1">0</h5>
+                     <small class="text-muted text-uppercase">item(s)</small>
+                     <h6 class="m-0 text-dark">Fabrication</h6>
                   </div>
-                  <div class="col-6 text-center">
-                     <span class="d-block font-weight-bold" style="font-size: 18px;">{{ date('l, F d, Y') }}</span>
+                  <div class="col border-success" style="border-left: 3px solid">
+                     <h5 class="d-inline-block mt-1 mb-1 ml-0 mr-1" id="count-2">0</h5>
+                     <small class="text-muted text-uppercase">item(s)</small>
+                     <h6 class="m-0 text-dark">Painting</h6>
+                  </div>
+                  <div class="col border-warning" style="border-left: 3px solid;">
+                     <h5 class="d-inline-block mt-1 mb-1 ml-0 mr-1" id="count-3">0</h5>
+                     <small class="text-muted text-uppercase">item(s)</small>
+                     <h6 class="m-0 text-dark">Wiring & Assembly</h6>
                   </div>
                </div>
             </div>
@@ -277,26 +287,17 @@
          loadOrderList(page);
       });
 
-      setInterval(updateClock, 1000);
-      function updateClock(){
-         var currentTime = new Date();
-         var currentHours = currentTime.getHours();
-         var currentMinutes = currentTime.getMinutes();
-         var currentSeconds = currentTime.getSeconds();
-         // Pad the minutes and seconds with leading zeros, if required
-         currentMinutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
-         currentSeconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-         // Choose either "AM" or "PM" as appropriate
-         var timeOfDay = (currentHours < 12) ? "AM" : "PM";
-         // Convert the hours component to 12-hour format if needed
-         currentHours = (currentHours > 12) ? currentHours - 12 : currentHours;
-         // Convert an hours component of "0" to "12"
-         currentHours = (currentHours === 0) ? 12 : currentHours;
-         currentHours = (currentHours < 10 ? "0" : "") + currentHours;
-         // Compose the string for display
-         var currentTimeString = currentHours + ":" + currentMinutes + ":" + currentSeconds + " " + timeOfDay;
-
-         $("#current-time").html(currentTimeString);
+      loadData()
+      function loadData(){
+         $.ajax({
+            url: "/onGoingQtyPerOperation",
+            type:"GET",
+            success:function(data){
+               $('#count-1').text(data.fabrication)
+               $('#count-2').text(data.painting)
+               $('#count-3').text(data.assembly)
+            }
+         });
       }
    });
 </script>
