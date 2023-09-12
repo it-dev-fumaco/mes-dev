@@ -14,6 +14,163 @@ class TrackingController extends Controller
 {
     use GeneralTrait;
 
+    
+	public function getOngoingOrders(Request $request) {
+		$erp_db = ENV('DB_DATABASE_ERP');
+		$mes_db = ENV('DB_DATABASE_MES');
+
+		$requested_reference = $request->reference;
+		$requested_customer = $request->customer;
+		$requested_project = $request->project;
+
+		$search_order = false;
+		if ($requested_reference || $requested_customer || $requested_project) {
+			$search_order = true;
+		}
+
+		// get reference orders in production order
+		$references_query = DB::connection('mysql_mes')->table('production_order as p')
+			->leftJoin('delivery_date as d', function($join) {
+				$join->on('p.item_code', 'd.parent_item_code');
+				$join->on(DB::raw('IFNULL(p.sales_order, p.material_request)'),'d.reference_no');
+			})
+			->whereNotIn('status', ['Cancelled', 'Closed'])
+			->when($requested_reference, function ($query) use ($requested_reference) {
+				return $query->where(function($q) use ($requested_reference) {
+					$q->where('sales_order', 'LIKE', '%'.$requested_reference.'%')
+						->orWhere('material_request', 'LIKE', '%'.$requested_reference.'%');
+				});
+			})
+			->when($requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->when($requested_project, function ($query) use ($requested_project) {
+				return $query->where('project', 'LIKE', '%'.$requested_project.'%');
+			})
+			->whereRaw('qty_to_manufacture > feedback_qty')
+			->selectRaw('IFNULL(sales_order, material_request) as reference, item_code, erp_reference_id, SUM(qty_to_manufacture) as qty_to_manufacture, SUM(produced_qty) as produced_qty, SUM(feedback_qty) as feedback_qty, d.delivery_date, rescheduled_delivery_date')
+			->groupBy(['sales_order', 'material_request', 'item_code', 'erp_reference_id', 'd.delivery_date', 'rescheduled_delivery_date'])
+			->orderBy('p.created_at', 'desc')->paginate(25);
+
+		$references = collect($references_query->items())->pluck('erp_reference_id');
+
+		$material_requests = DB::connection('mysql')->table('tabMaterial Request as mr')
+			->join('tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
+			->where('mr.docstatus', 1)->where('mr.status', '!=', 'Stopped')
+			->when(!$search_order, function ($query) use ($references) {
+				return $query->whereIn('mri.name', $references);
+			})
+			->when($search_order, function ($query) use ($requested_reference, $requested_customer, $requested_project) {
+				return $query->where(function($q) use ($requested_reference, $requested_customer, $requested_project) {
+					$q->where('mr.name', 'LIKE', '%'.$requested_reference.'%')
+					->orWhere('mr.customer', 'LIKE', '%'.$requested_customer.'%')
+					->orWhere('mr.project', 'LIKE', '%'.$requested_project.'%');
+				});
+			})
+			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
+				return $query->where(function($q) use ($requested_reference) {
+					$q->where('mr.name', 'LIKE', '%'.$requested_reference.'%');
+				});
+			})
+			->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('mr.customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->when($search_order && $requested_project, function ($query) use ($requested_project) {
+				return $query->where('mr.project', 'LIKE', '%'.$requested_project.'%');
+			})
+			->select('mr.name', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.stock_uom', 'mri.idx', 'mri.schedule_date as delivery_date', 'mri.ordered_qty as delivered_qty', 'mri.reschedule_delivery', 'mri.rescheduled_delivery_date', 'mri.name as child');
+
+		$order_list = DB::connection('mysql')->table('tabSales Order as so')
+			->join('tabSales Order Item as soi', 'so.name', 'soi.parent')
+			->where('so.docstatus', 1)->whereIn('so.sales_type', ['Regular Sales', 'Sales DR'])
+			->where('so.status', '!=', 'Closed')
+			->when(!$search_order, function ($query) use ($references) {
+				return $query->whereIn('soi.name', $references);
+			})
+			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
+				return $query->where(function($q) use ($requested_reference) {
+					$q->where('so.name', 'LIKE', '%'.$requested_reference.'%');
+				});
+			})
+			->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('so.customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->when($search_order && $requested_project, function ($query) use ($requested_project) {
+				return $query->where('so.project', 'LIKE', '%'.$requested_project.'%');
+			})
+			->select('so.name', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.stock_uom', 'soi.idx', 'soi.delivery_date', 'soi.ordered_qty as delivered_qty', 'soi.reschedule_delivery', 'soi.rescheduled_delivery_date', 'soi.name as child')
+			->union($material_requests);
+            
+		if ($search_order) {
+			$references_query = $order_list->paginate(25);
+			$order_list = $order_list->paginate(25);
+			$references = collect($order_list->items())->pluck('name');
+            $item_codes = collect($order_list->items())->pluck('item_code')->unique();
+		} else {
+			$order_list = $order_list->get();
+			$references = collect($order_list)->pluck('name');
+            $item_codes = collect($order_list)->pluck('item_code')->unique();
+		}
+
+        $production_orders = DB::connection('mysql_mes')->table('production_order as p')
+            ->join('job_ticket as j', 'p.production_order', 'j.production_order')
+            ->join('process as w', 'w.process_id', 'j.process_id')
+            ->whereIn(DB::raw('IFNULL(p.sales_order, p.material_request)'), $references)
+            ->whereIn('p.parent_item_code', $item_codes)
+            ->whereNotIn('p.status', ['Cancelled', 'Closed'])
+            ->selectRaw('p.production_order, item_code, IFNULL(sales_order, material_request) as reference, qty_to_manufacture, feedback_qty, p.status as p_status, produced_qty, parent_item_code, j.workstation, j.status as j_status, w.process_name, p.feedback_qty')
+            ->get()->groupBy(['reference', 'parent_item_code']);
+
+		$items_production_orders = [];
+		foreach ($production_orders as $reference => $parent_item_codes) {
+            $row = [];
+            foreach ($parent_item_codes as $parent_item_code => $rows) {
+                $status = 'Not Started';
+                $feedbacked_qty = 0;
+                $item_prod = collect($rows)->where('item_code', $parent_item_code)->first();
+                if ($item_prod) {
+                    $feedbacked_qty = $item_prod->feedback_qty;
+                    if ($item_prod->qty_to_manufacture == $feedbacked_qty) {
+                        $status = 'Feedbacked';
+                    }
+                }
+                
+                // number of production process
+                $noOfProcess = collect($rows)->count();
+                $noCompletedProcess = collect($rows)->where('j_status', 'Completed')->count();
+                $noPendingProcess = collect($rows)->where('j_status', 'Pending')->count();
+
+                $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
+                
+                if ($status != 'Feedbacked') {
+                    if ($noPendingProcess < $noOfProcess) {
+                        $status = 'Idle';
+                    }
+    
+                    if ($noOfProcess == $noCompletedProcess) {
+                        $status = 'Ready for Feedback';
+                    }
+    
+                    if ($currentProcess) {
+                        $status = $currentProcess->process_name;
+                    }
+                }
+
+                $row[$parent_item_code] = [
+                    'no_of_process' => $noOfProcess,
+                    'no_of_completed_process' => $noCompletedProcess,
+                    'current_process' => $currentProcess,
+                    'status' => $status,
+                    'feedbacked_qty' => $feedbacked_qty
+                ];
+            }
+           
+            $items_production_orders[$reference] = $row;
+		}
+
+		return view('ongoing_orders', compact('order_list', 'references_query', 'items_production_orders'));
+	}
+
     public function item_status_tracking_page()
     {
         return view('item_status_tracking');

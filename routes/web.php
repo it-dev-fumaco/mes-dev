@@ -123,7 +123,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');	
 });
 
-Route::get('/ongoing_orders', 'MainController@getOngoingOrders');
+Route::get('/ongoing_orders', 'TrackingController@getOngoingOrders');
 
 //machine overview
 Route::get('/machine_overview', 'SecondaryController@machineOverview');
