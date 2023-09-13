@@ -20,11 +20,10 @@ class TrackingController extends Controller
 		$mes_db = ENV('DB_DATABASE_MES');
 
 		$requested_reference = $request->reference;
-		$requested_customer = $request->customer;
-		$requested_project = $request->project;
+		$requested_item_code = $request->item_code;
 
 		$search_order = false;
-		if ($requested_reference || $requested_customer || $requested_project) {
+		if ($requested_reference || $requested_item_code) {
 			$search_order = true;
 		}
 
@@ -41,16 +40,13 @@ class TrackingController extends Controller
 						->orWhere('material_request', 'LIKE', '%'.$requested_reference.'%');
 				});
 			})
-			->when($requested_customer, function ($query) use ($requested_customer) {
-				return $query->where('customer', 'LIKE', '%'.$requested_customer.'%');
-			})
-			->when($requested_project, function ($query) use ($requested_project) {
-				return $query->where('project', 'LIKE', '%'.$requested_project.'%');
+			->when($requested_item_code, function ($query) use ($requested_item_code) {
+				return $query->where('p.item_code', 'LIKE', '%'.$requested_item_code.'%');
 			})
 			->whereRaw('qty_to_manufacture > feedback_qty')
 			->selectRaw('IFNULL(sales_order, material_request) as reference, item_code, erp_reference_id, SUM(qty_to_manufacture) as qty_to_manufacture, SUM(produced_qty) as produced_qty, SUM(feedback_qty) as feedback_qty, d.delivery_date, rescheduled_delivery_date')
 			->groupBy(['sales_order', 'material_request', 'item_code', 'erp_reference_id', 'd.delivery_date', 'rescheduled_delivery_date'])
-			->orderBy('p.created_at', 'desc')->paginate(25);
+			->orderByRaw('IFNULL(rescheduled_delivery_date, p.delivery_date) DESC')->paginate(25);
 
 		$references = collect($references_query->items())->pluck('erp_reference_id');
 
@@ -60,23 +56,11 @@ class TrackingController extends Controller
 			->when(!$search_order, function ($query) use ($references) {
 				return $query->whereIn('mri.name', $references);
 			})
-			->when($search_order, function ($query) use ($requested_reference, $requested_customer, $requested_project) {
-				return $query->where(function($q) use ($requested_reference, $requested_customer, $requested_project) {
-					$q->where('mr.name', 'LIKE', '%'.$requested_reference.'%')
-					->orWhere('mr.customer', 'LIKE', '%'.$requested_customer.'%')
-					->orWhere('mr.project', 'LIKE', '%'.$requested_project.'%');
-				});
+			->when($search_order, function ($query) use ($requested_reference) {
+				return $query->where('mr.name', 'LIKE', '%'.$requested_reference.'%');
 			})
-			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
-				return $query->where(function($q) use ($requested_reference) {
-					$q->where('mr.name', 'LIKE', '%'.$requested_reference.'%');
-				});
-			})
-			->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
-				return $query->where('mr.customer', 'LIKE', '%'.$requested_customer.'%');
-			})
-			->when($search_order && $requested_project, function ($query) use ($requested_project) {
-				return $query->where('mr.project', 'LIKE', '%'.$requested_project.'%');
+			->when($search_order && $requested_item_code, function ($query) use ($requested_item_code) {
+				return $query->where('mri.item_code', 'LIKE', '%'.$requested_item_code.'%');
 			})
 			->select('mr.name', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.stock_uom', 'mri.idx', 'mri.schedule_date as delivery_date', 'mri.ordered_qty as delivered_qty', 'mri.reschedule_delivery', 'mri.rescheduled_delivery_date', 'mri.name as child');
 
@@ -88,15 +72,10 @@ class TrackingController extends Controller
 				return $query->whereIn('soi.name', $references);
 			})
 			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
-				return $query->where(function($q) use ($requested_reference) {
-					$q->where('so.name', 'LIKE', '%'.$requested_reference.'%');
-				});
+				return $query->where('so.name', 'LIKE', '%'.$requested_reference.'%');
 			})
-			->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
-				return $query->where('so.customer', 'LIKE', '%'.$requested_customer.'%');
-			})
-			->when($search_order && $requested_project, function ($query) use ($requested_project) {
-				return $query->where('so.project', 'LIKE', '%'.$requested_project.'%');
+			->when($search_order && $requested_item_code, function ($query) use ($requested_item_code) {
+				return $query->where('soi.item_code', 'LIKE', '%'.$requested_item_code.'%');
 			})
 			->select('so.name', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.stock_uom', 'soi.idx', 'soi.delivery_date', 'soi.ordered_qty as delivered_qty', 'soi.reschedule_delivery', 'soi.rescheduled_delivery_date', 'soi.name as child')
 			->union($material_requests);

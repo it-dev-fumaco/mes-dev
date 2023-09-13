@@ -8,32 +8,32 @@
    <div class="header">
       <form id="login-frm" action="/login_user" method="post" autocomplete="off">
          @csrf
-         <div class="d-flex flex-row">
+         <div class="d-flex flex-row align-items-center">
             <div class="col-7">
-               <h2 class="title m-0">Manufacturing Execution System v.12</h2>
+               <h4 class="title m-0">Manufacturing Execution System v.12</h4>
             </div>
             @if (!Auth::user())
-               <div class="form-group m-0 col-2 p-2">
-                  <input type="text" class="form-control rounded bg-white" name="user_id" placeholder="Enter Email" required>
-               </div> 
-               <div class="form-group m-0 col-2 p-2">
-                  <input type="password" class="form-control rounded bg-white" name="password" placeholder="Enter your Windows Password" required>
-               </div>
-               <div class="col-1 p-2">
-                  <button type="submit" class="btn btn-primary btn-block  m-0 btn-xs">LOGIN</button>
-               </div>
+            <div class="form-group m-0 col-2 p-1">
+               <input type="text" class="form-control rounded bg-white p-2" name="user_id" placeholder="Enter Email" required>
+            </div> 
+            <div class="form-group m-0 col-2 p-1">
+               <input type="password" class="form-control rounded bg-white p-2" name="password" placeholder="Enter your Windows Password" required>
+            </div>
+            <div class="col-1 p-1">
+               <button type="submit" class="btn btn-primary btn-block m-0 btn-xs">LOGIN</button>
+            </div>
             @else
-               <div class="col-5 text-right p-2">
-                  <span class="text-white mr-3" style="font-size: 12pt;">Welcome, {{ Auth::user()->employee_name }}</span>
-                  <a href="/main_dashboard" class="btn btn-primary m-0 btn-xs">MAIN DASHBOARD</a>
-                  <button type="button" class="btn btn-secondary m-0 btn-xs">LOGOUT</button>
-               </div>
+            <div class="col-5 text-right p-2">
+               <span class="text-white mr-3" style="font-size: 12pt;">Welcome, {{ Auth::user()->employee_name }}</span>
+               <a href="/main_dashboard" class="btn btn-primary m-0 btn-xs">MAIN DASHBOARD</a>
+               <button type="button" class="btn btn-secondary m-0 btn-xs">LOGOUT</button>
+            </div>
             @endif
          </div>
       </form>
    </div>
 </div>
-<div class="content pl-3 pr-3" style="margin-top: -185px;">
+<div class="content pl-3 pr-3" style="margin-top: -200px;">
    <div class="card">
       <div class="card-body pt-0">
          <div class="d-flex flex-row pt-2 align-items-center">
@@ -41,16 +41,13 @@
                <form id="filters-form">
                   <div class="row p-0 m-0">
                      <div class="col-12 p-1">
-                        <h5 class="card-title text-uppercase font-weight-bold m-0 p-0">Order Status Monitoring Dashboard</h5>
+                        <h5 class="card-title text-uppercase font-weight-bold m-0 p-0" style="font-size: 18px;">Order Status Monitoring Dashboard</h5>
                      </div>
                      <div class="col-3 p-2">
                         <input type="text" class="form-control rounded" name="reference" placeholder="Search by Sales Order / MREQ No.">
                      </div>
                      <div class="col-3 p-2">
-                        <input type="text" class="form-control rounded" name="customer" placeholder="Search by Customer Name">
-                     </div>
-                     <div class="col-3 p-2">
-                        <input type="text" class="form-control rounded" name="project" placeholder="Search by Project Name">
+                        <input type="text" class="form-control rounded" name="item_code" placeholder="Search by Item Code">
                      </div>
                      <div class="col-2 p-2">
                         <button class="btn btn-secondary btn-sm m-0" id="reset-form">Clear</button>
@@ -65,17 +62,17 @@
                   <div class="col border-info" style="border-left: 3px solid;">
                      <h5 class="d-inline-block mt-1 mb-1 ml-0 mr-1" id="count-1">0</h5>
                      <small class="text-muted text-uppercase">item(s)</small>
-                     <h6 class="m-0 text-dark">Fabrication</h6>
+                     <h6 class="m-0 text-dark" style="font-size: 13px;">Fabrication</h6>
                   </div>
                   <div class="col border-success" style="border-left: 3px solid">
                      <h5 class="d-inline-block mt-1 mb-1 ml-0 mr-1" id="count-2">0</h5>
                      <small class="text-muted text-uppercase">item(s)</small>
-                     <h6 class="m-0 text-dark">Painting</h6>
+                     <h6 class="m-0 text-dark" style="font-size: 13px;">Painting</h6>
                   </div>
                   <div class="col border-warning" style="border-left: 3px solid;">
                      <h5 class="d-inline-block mt-1 mb-1 ml-0 mr-1" id="count-3">0</h5>
                      <small class="text-muted text-uppercase">item(s)</small>
-                     <h6 class="m-0 text-dark">Wiring & Assembly</h6>
+                     <h6 class="m-0 text-dark" style="font-size: 13px;">Wiring & Assembly</h6>
                   </div>
                </div>
             </div>
