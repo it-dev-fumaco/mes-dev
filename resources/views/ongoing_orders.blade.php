@@ -77,8 +77,6 @@
                 <span class="badge badge-secondary" style="font-size: 11px;">No Production Order</span>
                 @else
                 <span class="d-inline-block font-weight-bolder rounded bg-warning" style="font-size: 11px; padding: 3px 5px;">{{ $production_status }}</span>
-                
-                {{-- <span class="badge badge-warning" style="font-size: 11px;">{{ $production_status }}</span> --}}
                 @endif
                 @if (!in_array($production_status, ['Not Started', 'Feedbacked', '--']))
                 <small class="d-block mt-2 font-weight-bolder">{{ $no_of_completed_process }} out of {{ $no_of_process }}</small>
