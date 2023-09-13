@@ -46,7 +46,7 @@
                             $delivery_status = str_replace(" and Bill", "", $details->status);
                             $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
                             $delivery_date_status = 'info';
-                            if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() && $delivery_status != 'Completed') {
+                            if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() && $delivery_status != 'Delivered') {
                                 $delivery_date_status = 'danger';
                             }
                         @endphp

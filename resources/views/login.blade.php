@@ -49,9 +49,9 @@
                      <div class="col-3 p-2">
                         <input type="text" class="form-control rounded" name="item_code" placeholder="Search by Item Code">
                      </div>
-                     <div class="col-2 p-2">
-                        <button class="btn btn-secondary btn-sm m-0" id="reset-form">Clear</button>
-                        <button class="btn btn-info btn-sm m-0" id="refresh-list"><i class="now-ui-icons loader_refresh"></i></button>
+                     <div class="col-6 p-2">
+                        <button class="btn btn-secondary btn-sm m-0" id="reset-form">Clear Filters</button>
+                        <button class="btn btn-info btn-sm m-0" id="refresh-list"><i class="now-ui-icons loader_refresh"></i> Refresh</button>
                      </div>
                   </div>
                </form>

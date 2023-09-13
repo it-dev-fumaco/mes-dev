@@ -27,7 +27,7 @@
                 <a href="#" class="view-order-details-btn" data-id="{{ $e->name }}">{{ $e->name }}</a>
             </td>
             <td class="p-2 text-justify">
-                <b>{{ $e->item_code }}</b> {!! \Illuminate\Support\Str::limit(strip_tags($e->description), 110) !!}
+                <b>{{ $e->item_code }}</b> {!! \Illuminate\Support\Str::limit(strip_tags($e->description), 100) !!}
             </td>
             <td class="p-1">
                 <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($e->qty) }}</span>
@@ -35,14 +35,24 @@
             </td>
             @if ($delivery_date)
             @php
+                $delivery_status = str_replace(" and Bill", "", $e->status);
+                $delivery_status = str_replace("To Bill", "Delivered", $delivery_status);
+                
                 $delivery_date_status = 'bg-info';
-                if (\Carbon\Carbon::now()->startOfDay() > \Carbon\Carbon::parse($delivery_date)->endOfDay() && $e->delivered_qty < $e->qty) {
+                if (Carbon\Carbon::now()->startOfDay() > Carbon\Carbon::parse($delivery_date)->endOfDay() && $delivery_status != 'Delivered') {
                     $delivery_date_status = 'bg-danger';
+                }
+
+                if ($delivery_status == 'Delivered') {
+                    $delivery_date_status = 'bg-success';
                 }
             @endphp
             <td class="p-1 {{ $delivery_date_status }} text-white">
                 @if ($delivery_date_status == 'bg-danger')
                 <span class="text-uppercase font-weight-bold" style="font-size: 11px;">Delayed</span>
+                @endif
+                @if ($delivery_date_status == 'bg-success')
+                <span class="text-uppercase font-weight-bold" style="font-size: 11px;">Delivered</span>
                 @endif
                 <small class="d-block font-weight-bold">{{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}</small>
             </td>
@@ -66,7 +76,9 @@
                 @elseif ($production_status == '--')
                 <span class="badge badge-secondary" style="font-size: 11px;">No Production Order</span>
                 @else
-                <span class="badge badge-warning" style="font-size: 11px;">{{ $production_status }}</span>
+                <span class="d-inline-block font-weight-bolder rounded bg-warning" style="font-size: 11px; padding: 3px 5px;">{{ $production_status }}</span>
+                
+                {{-- <span class="badge badge-warning" style="font-size: 11px;">{{ $production_status }}</span> --}}
                 @endif
                 @if (!in_array($production_status, ['Not Started', 'Feedbacked', '--']))
                 <small class="d-block mt-2 font-weight-bolder">{{ $no_of_completed_process }} out of {{ $no_of_process }}</small>
@@ -100,4 +112,4 @@
         @endforelse
     </tbody>
 </table>
-<div class="m-2 ongoing-list-pagination">{{ $references_query->appends(Request::except('page'))->links() }}</div>
+<div class="m-2 ongoing-list-pagination">{{ $order_list->appends(Request::except('page'))->links() }}</div>

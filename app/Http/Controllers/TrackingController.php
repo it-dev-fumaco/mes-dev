@@ -14,7 +14,6 @@ class TrackingController extends Controller
 {
     use GeneralTrait;
 
-    
 	public function getOngoingOrders(Request $request) {
 		$erp_db = ENV('DB_DATABASE_ERP');
 		$mes_db = ENV('DB_DATABASE_MES');
@@ -27,49 +26,34 @@ class TrackingController extends Controller
 			$search_order = true;
 		}
 
-		// get reference orders in production order
-		$references_query = DB::connection('mysql_mes')->table('production_order as p')
-			->leftJoin('delivery_date as d', function($join) {
-				$join->on('p.item_code', 'd.parent_item_code');
-				$join->on(DB::raw('IFNULL(p.sales_order, p.material_request)'),'d.reference_no');
+		$material_requests = DB::table($erp_db.'.tabMaterial Request as mr')
+			->join($erp_db.'.tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
+            ->when(!$search_order, function ($query) use ($mes_db) {
+				return $query->join($mes_db.'.production_order as p', function($join) {
+                    $join->on('p.item_code', 'mri.item_code');
+                    $join->on(DB::raw('IFNULL(p.sales_order, p.material_request)'), 'mr.name');
+                })
+                ->whereNotIn('p.status', ['Cancelled', 'Closed'])->whereRaw('p.qty_to_manufacture > p.feedback_qty');
 			})
-			->whereNotIn('status', ['Cancelled', 'Closed'])
-			->when($requested_reference, function ($query) use ($requested_reference) {
-				return $query->where(function($q) use ($requested_reference) {
-					$q->where('sales_order', 'LIKE', '%'.$requested_reference.'%')
-						->orWhere('material_request', 'LIKE', '%'.$requested_reference.'%');
-				});
-			})
-			->when($requested_item_code, function ($query) use ($requested_item_code) {
-				return $query->where('p.item_code', 'LIKE', '%'.$requested_item_code.'%');
-			})
-			->whereRaw('qty_to_manufacture > feedback_qty')
-			->selectRaw('IFNULL(sales_order, material_request) as reference, item_code, erp_reference_id, SUM(qty_to_manufacture) as qty_to_manufacture, SUM(produced_qty) as produced_qty, SUM(feedback_qty) as feedback_qty, d.delivery_date, rescheduled_delivery_date')
-			->groupBy(['sales_order', 'material_request', 'item_code', 'erp_reference_id', 'd.delivery_date', 'rescheduled_delivery_date'])
-			->orderByRaw('IFNULL(rescheduled_delivery_date, p.delivery_date) DESC')->paginate(25);
-
-		$references = collect($references_query->items())->pluck('erp_reference_id');
-
-		$material_requests = DB::connection('mysql')->table('tabMaterial Request as mr')
-			->join('tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
-			->where('mr.docstatus', 1)->where('mr.status', '!=', 'Stopped')
-			->when(!$search_order, function ($query) use ($references) {
-				return $query->whereIn('mri.name', $references);
-			})
+            ->where('mr.docstatus', 1)->where('mr.status', '!=', 'Stopped')
 			->when($search_order, function ($query) use ($requested_reference) {
 				return $query->where('mr.name', 'LIKE', '%'.$requested_reference.'%');
 			})
 			->when($search_order && $requested_item_code, function ($query) use ($requested_item_code) {
 				return $query->where('mri.item_code', 'LIKE', '%'.$requested_item_code.'%');
 			})
-			->select('mr.name', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.stock_uom', 'mri.idx', 'mri.schedule_date as delivery_date', 'mri.ordered_qty as delivered_qty', 'mri.reschedule_delivery', 'mri.rescheduled_delivery_date', 'mri.name as child');
+			->select('mr.name', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.stock_uom', 'mri.idx', 'mri.schedule_date as delivery_date', 'mri.ordered_qty as delivered_qty', 'mri.reschedule_delivery', 'mri.rescheduled_delivery_date', 'mri.name as child', 'mr.status');
 
-		$order_list = DB::connection('mysql')->table('tabSales Order as so')
-			->join('tabSales Order Item as soi', 'so.name', 'soi.parent')
+		$order_list = DB::table($erp_db.'.tabSales Order as so')
+			->join($erp_db.'.tabSales Order Item as soi', 'so.name', 'soi.parent')
 			->where('so.docstatus', 1)->whereIn('so.sales_type', ['Regular Sales', 'Sales DR'])
 			->where('so.status', '!=', 'Closed')
-			->when(!$search_order, function ($query) use ($references) {
-				return $query->whereIn('soi.name', $references);
+            ->when(!$search_order, function ($query) use ($mes_db) {
+				return $query->join($mes_db.'.production_order as p', function($join) {
+                    $join->on('p.item_code', 'soi.item_code');
+                    $join->on(DB::raw('IFNULL(p.sales_order, p.material_request)'), 'so.name');
+                })
+                ->whereNotIn('p.status', ['Cancelled', 'Closed'])->whereRaw('p.qty_to_manufacture > p.feedback_qty');
 			})
 			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
 				return $query->where('so.name', 'LIKE', '%'.$requested_reference.'%');
@@ -77,20 +61,13 @@ class TrackingController extends Controller
 			->when($search_order && $requested_item_code, function ($query) use ($requested_item_code) {
 				return $query->where('soi.item_code', 'LIKE', '%'.$requested_item_code.'%');
 			})
-			->select('so.name', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.stock_uom', 'soi.idx', 'soi.delivery_date', 'soi.ordered_qty as delivered_qty', 'soi.reschedule_delivery', 'soi.rescheduled_delivery_date', 'soi.name as child')
-			->union($material_requests);
+			->select('so.name', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.stock_uom', 'soi.idx', 'soi.delivery_date', 'soi.ordered_qty as delivered_qty', 'soi.reschedule_delivery', 'soi.rescheduled_delivery_date', 'soi.name as child', 'so.status')
+			->unionAll($material_requests)
+            ->orderByRaw('IFNULL(rescheduled_delivery_date, delivery_date) DESC')->paginate(25);
             
-		if ($search_order) {
-			$references_query = $order_list->paginate(25);
-			$order_list = $order_list->paginate(25);
-			$references = collect($order_list->items())->pluck('name');
-            $item_codes = collect($order_list->items())->pluck('item_code')->unique();
-		} else {
-			$order_list = $order_list->get();
-			$references = collect($order_list)->pluck('name');
-            $item_codes = collect($order_list)->pluck('item_code')->unique();
-		}
-
+        $references = collect($order_list->items())->pluck('name');
+        $item_codes = collect($order_list->items())->pluck('item_code')->unique();
+    
         $production_orders = DB::connection('mysql_mes')->table('production_order as p')
             ->join('job_ticket as j', 'p.production_order', 'j.production_order')
             ->join('process as w', 'w.process_id', 'j.process_id')
@@ -147,7 +124,7 @@ class TrackingController extends Controller
             $items_production_orders[$reference] = $row;
 		}
 
-		return view('ongoing_orders', compact('order_list', 'references_query', 'items_production_orders'));
+		return view('ongoing_orders', compact('order_list', 'items_production_orders'));
 	}
 
     public function onGoingQtyPerOperation() {
