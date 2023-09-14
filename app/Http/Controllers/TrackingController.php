@@ -108,7 +108,11 @@ class TrackingController extends Controller
                     }
     
                     if ($currentProcess) {
-                        $status = $currentProcess->process_name;
+                        if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
+                            $status = 'Painting';
+                        } else {
+                            $status = $currentProcess->process_name;
+                        }
                     }
                 }
 
