@@ -8,7 +8,7 @@
     $feedback_qty = collect($result)->sum('feedback_qty');
     $produced_qty = collect($result)->sum('produced_qty');
 
-    $status = $result[0]['status'];
+    $status = array_key_exists($item['item_code'], $per_item_idle_production_orders) ? 'Idle' : $result[0]['status'];
     if ($produced_qty > $feedback_qty && $status != 'In Progress') {
       $status = 'Ready for Feedback';
     }
@@ -80,7 +80,7 @@
       $feedback_qty = collect($result)->sum('feedback_qty');
       $produced_qty = collect($result)->sum('produced_qty');
 
-      $status = $result[0]['status'];
+      $status = array_key_exists($res['production_order'], $idle_production_orders) ? 'Idle' : $result[0]['status'];
       if ($produced_qty > $feedback_qty && $status != 'In Progress') {
         $status = 'Ready for Feedback';
       }

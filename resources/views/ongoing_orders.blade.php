@@ -1,14 +1,16 @@
 <table class="table table-bordered table-hover table-striped">
     <col style="width: 7%;">
-    <col style="width: 45%;">
+    <col style="width: 15%;">
+    <col style="width: 32%;">
     <col style="width: 7%;">
-    <col style="width: 10%;">
+    <col style="width: 8%;">
     <col style="width: 10%;">
     <col style="width: 7%;">
     <col style="width: 7%;">
     <col style="width: 7%;">
     <thead class="text-white text-center font-weight-bold text-uppercase bg-secondary" style="font-size: 9px;">
         <th class="p-2">Order No.</th>
+        <th class="p-2">Customer</th>
         <th class="p-2">Item Description</th>
         <th class="p-2">Ordered</th>
         <th class="p-2">Delivery Status</th>
@@ -26,8 +28,11 @@
             <td class="p-1 font-weight-bold">
                 <a href="#" class="view-order-details-btn" data-id="{{ $e->name }}">{{ $e->name }}</a>
             </td>
+            <td class="p-1 font-weight-bold">
+                {{ $e->customer }}
+            </td>
             <td class="p-2 text-justify">
-                <b>{{ $e->item_code }}</b> {!! \Illuminate\Support\Str::limit(strip_tags($e->description), 100) !!}
+                <b>{{ $e->item_code }}</b> {!! \Illuminate\Support\Str::limit(strip_tags($e->description), 70) !!}
             </td>
             <td class="p-1">
                 <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($e->qty) }}</span>

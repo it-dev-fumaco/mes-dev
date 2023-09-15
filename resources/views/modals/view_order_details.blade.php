@@ -15,6 +15,19 @@
         font-weight: bolder;
         border-bottom: 3px solid #f96332;
     }
+    .breadcrumb-c li.idle a {
+        background: #ABB2B9;
+    }
+    .breadcrumb-c li.idle a:after {
+        border-left: 30px solid #ABB2B9;
+    }
+    .breadcrumb-c li.for_feedback a {
+        background: brown;
+        background: rgb(84, 153, 199);
+    }
+    .breadcrumb-c li.for_feedback a:after {
+        border-left: 30px solid rgb(84, 153, 199);
+    }
 </style>
 <form action="/assembly/wizard" class="order-items-form">
     <div class="modal-content">

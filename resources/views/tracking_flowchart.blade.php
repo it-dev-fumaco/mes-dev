@@ -320,6 +320,14 @@
     border-left: 30px solid #ffc107;
 }
 
+.breadcrumb-custom li.idle a {
+    background: #ABB2B9;
+}
+
+.breadcrumb-custom li.idle a:after {
+    border-left: 30px solid #ABB2B9;
+}
+
 .breadcrumb-custom li:first-child a {
     padding-left: 1px;
 }
