@@ -47,7 +47,8 @@
         <div class="modal-body pb-2">
             <table class="w-100 border-0" style="font-size: 9pt;">
                 @php
-                    $delivery_date = $details->reschedule_delivery == 1 ? $details->reschedule_delivery_date : $details->delivery_date;
+                    // $delivery_date = $details->reschedule_delivery == 1 ? $details->reschedule_delivery_date : $details->delivery_date;
+                    $delivery_date = collect($items)->max('delivery_date');
                 @endphp
                 <tr>
                     <td class="align-middle text-right p-1">Customer:</td>
