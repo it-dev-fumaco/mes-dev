@@ -118,14 +118,12 @@ class TrackingController extends Controller
                         $status = 'Ready for Feedback';
                     }
 
-                    if ($status != 'Idle') {
-                        $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
-                        if ($currentProcess) {
-                            if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
-                                $status = 'Painting';
-                            } else {
-                                $status = $currentProcess->process_name;
-                            }
+                    $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
+                    if ($currentProcess) {
+                        if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
+                            $status = 'Painting';
+                        } else {
+                            $status = $currentProcess->process_name;
                         }
                     }
                 }
