@@ -82,6 +82,7 @@ class TrackingController extends Controller
             ->whereIn('p.parent_item_code', $item_codes)
             ->whereNotIn('p.status', ['Cancelled', 'Closed'])
             ->selectRaw('p.production_order, item_code, IFNULL(sales_order, material_request) as reference, qty_to_manufacture, feedback_qty, p.status as p_status, produced_qty, parent_item_code, j.workstation, j.status as j_status, w.process_name, p.feedback_qty, j.job_ticket_id')
+            ->orderByRaw("FIELD(j.status, 'In Progress', 'In Process', 'Pending', 'Completed')")
             ->get()->groupBy(['reference', 'parent_item_code']);
 
 		$items_production_orders = [];
