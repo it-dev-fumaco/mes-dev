@@ -267,6 +267,10 @@ class TrackingController extends Controller
 		
 				$has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
 				if ($has_fabrication && collect($has_fabrication)->count()) {
+                    // if($item_code == 'HO06194'){
+                    //     // return $has_fabrication;
+                    //     return $this->orderItemProductionStatus($has_fabrication);
+                    // }
                     $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
 				}
 		
@@ -283,6 +287,10 @@ class TrackingController extends Controller
 				if ($has_painting && collect($has_painting)->count()) {
 					$operation_status[$item_code]['painting'] = $this->orderItemProductionStatus($has_painting);
 				}
+
+                // if($item_code == 'HO06194'){
+                //     return $operation_status['HO06194'];
+                // }
 			}
 		}
 
@@ -314,14 +322,9 @@ class TrackingController extends Controller
             $status = 'active';
         }
 
-        $status = 'not_started';
-        if (collect($collection)->where('jt_status', 'In Progress')->count() > 0) {
-            $status = 'active';
-        }
-
         $completed_jt = collect($collection)->where('jt_status', 'Completed')->count();
-        if ($completed_jt > 0 && $completed_jt < collect($collection)->count()) {
-            $status = 'active';
+        if ($status != 'active' && $completed_jt > 0 && $completed_jt < collect($collection)->count()) {
+            $status = 'idle';
         }
 
         if (collect($collection)->count() > 0 && $status != 'active') {
@@ -331,13 +334,6 @@ class TrackingController extends Controller
 
             if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
                 $status = 'completed';
-            }
-        }
-
-        if ($status == 'active') {
-            $hasInProgressProcess = $this->hasInProgressProcess($collection);
-            if (!$hasInProgressProcess) {
-                $status = 'idle';
             }
         }
 
