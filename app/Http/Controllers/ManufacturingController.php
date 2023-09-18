@@ -1021,7 +1021,7 @@ class ManufacturingController extends Controller
     public function submit_bom_review(Request $request, $bom)
     {
         try {
-            if (Gate::denies('assign-bom-process')) {
+            if (Gate::denies('update-wip-production-order-process')) {
                 return response()->json(['status' => 0, 'message' => 'Unauthorized.']);
             }
 
