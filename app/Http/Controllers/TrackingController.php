@@ -287,8 +287,6 @@ class TrackingController extends Controller
 			}
 		}
 
-        // return $operation_status;
-
 		$comments = DB::connection('mysql')->table('tabComment')->where('reference_name', $id)
 			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
 			->orderBy('creation', 'desc')->get();
@@ -660,128 +658,12 @@ class TrackingController extends Controller
 
         $has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
         if ($has_fabrication && collect($has_fabrication)->count()) {
-            // $fabrication_details = collect($has_fabrication)->groupBy('production_order')->map(function ($group) {
-            //     return [
-            //         'produced_qty' => $group->min('produced_qty'),
-            //         'feedback_qty' => $group->max('feedback_qty'),
-            //     ];
-            // });
-           
-            // $produced_qty = collect($fabrication_details)->min('produced_qty');
-            // $feedback_qty = collect($fabrication_details)->min('feedback_qty');
-
-            // $fabrication_status = 'not_started';
-            // if (collect($has_fabrication)->where('jt_status', 'In Progress')->count() > 0) {
-            //     $fabrication_status = 'active';
-            // }
-
-            // $completed_jt = collect($has_fabrication)->where('jt_status', 'Completed')->count();
-            // if ($completed_jt > 0 && $completed_jt < collect($has_fabrication)->count()) {
-            //     $fabrication_status = 'active';
-            // }
-
-            // if (collect($has_fabrication)->count() > 0 && $fabrication_status != 'active') {
-            //     if ($produced_qty > $feedback_qty) {
-            //         $fabrication_status = 'for_feedback';
-            //     }
-
-            //     if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
-            //         $fabrication_status = 'completed';
-            //     }
-            // }
-
-            // if ($fabrication_status == 'active') {
-            //     $hasInProgressProcess = $this->hasInProgressProcess($has_fabrication);
-            //     if (!$hasInProgressProcess) {
-            //         $fabrication_status = 'idle';
-            //     }
-            // }
-
-            // if ($fabrication_status != 'not_started') {
-            //     $fabrication_actual_start_date = collect($has_fabrication)->min('actual_start_date');
-            //     $fabrication_actual_end_date = collect($has_fabrication)->max('actual_end_date');
-    
-            //     $fabrication_actual_start_date = $fabrication_actual_start_date ? Carbon::parse($fabrication_actual_start_date) : null;
-            //     $fabrication_actual_end_date = $fabrication_actual_end_date ? Carbon::parse($fabrication_actual_end_date) : null;
-            //     $fabrication_duration = null;
-
-            //     if ($fabrication_actual_start_date) {
-            //         $operation_status['fabrication']['start'] = Carbon::parse($fabrication_actual_start_date)->format('M. d, Y - h:i A');
-            //     }
-    
-            //     if ($fabrication_actual_start_date && $fabrication_actual_end_date) {
-            //         if ($fabrication_status != 'idle') {
-            //             $fabrication_duration = $this->seconds2human($fabrication_actual_start_date->diffInSeconds($fabrication_actual_end_date));
-            //             $operation_status['fabrication']['end'] = Carbon::parse($fabrication_actual_end_date)->format('M. d, Y - h:i A');
-            //             $operation_status['fabrication']['duration'] = $fabrication_duration;
-            //         }
-            //     }
-            // }
             $operation_status['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
-            // $operation_status['fabrication']['status'] = $fabrication_status;
         }
 
         $has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
         if ($has_assembly && collect($has_assembly)->count()) {
-            // $assembly_details = collect($has_assembly)->groupBy('production_order')->map(function ($group) {
-            //     return [
-            //         'produced_qty' => $group->min('produced_qty'),
-            //         'feedback_qty' => $group->max('feedback_qty'),
-            //     ];
-            // });
-           
-            // $produced_qty = collect($assembly_details)->min('produced_qty');
-            // $feedback_qty = collect($assembly_details)->min('feedback_qty');
-
-            // $assembly_status = 'not_started';
-            // if (collect($has_assembly)->where('jt_status', 'In Progress')->count() > 0) {
-            //     $assembly_status = 'active';
-            // }
-
-            // $completed_jt = collect($has_assembly)->where('jt_status', 'Completed')->count();
-            // if ($completed_jt > 0 && $completed_jt < collect($has_assembly)->count()) {
-            //     $assembly_status = 'active';
-            // }
-
-            // if (collect($has_assembly)->count() > 0 && $assembly_status != 'active') {
-            //     if ($produced_qty > $feedback_qty) {
-            //         $assembly_status = 'for_feedback';
-            //     }
-
-            //     if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
-            //         $assembly_status = 'completed';
-            //     }
-            // }
-
-            // if ($assembly_status == 'active') {
-            //     $hasInProgressProcess = $this->hasInProgressProcess($has_assembly);
-            //     if (!$hasInProgressProcess) {
-            //         $assembly_status = 'idle';
-            //     }
-            // }
-
-            // if ($assembly_status != 'not_started') {
-            //     $assembly_actual_start_date = collect($has_assembly)->min('actual_start_date');
-            //     $assembly_actual_end_date = collect($has_assembly)->max('actual_end_date');
-    
-            //     $assembly_actual_start_date = $assembly_actual_start_date ? Carbon::parse($assembly_actual_start_date) : null;
-            //     $assembly_actual_end_date = $assembly_actual_end_date ? Carbon::parse($assembly_actual_end_date) : null;
-            //     $assembly_duration = null;
-
-            //     if ($assembly_actual_start_date) {
-            //         $operation_status['assembly']['start'] = Carbon::parse($assembly_actual_start_date)->format('M. d, Y - h:i A');
-            //     }
-    
-            //     if ($assembly_actual_start_date && $assembly_actual_end_date) {
-            //         if ($assembly_status != 'idle') {
-            //             $assembly_duration = $this->seconds2human($assembly_actual_start_date->diffInSeconds($assembly_actual_end_date));
-            //             $operation_status['assembly']['end'] = Carbon::parse($assembly_actual_end_date)->format('M. d, Y - h:i A');
-            //             $operation_status['assembly']['duration'] = $assembly_duration;
-            //         }
-            //     }
-            // }
             $operation_status['assembly'] = $this->orderItemProductionStatus($has_assembly);
-            // $operation_status['assembly']['status'] = $assembly_status;
         }
 
         // workstations excluding painting
@@ -790,70 +672,6 @@ class TrackingController extends Controller
         });
 
         if ($has_painting && collect($has_painting)->count()) {
-            // $painting_details = collect($has_painting)->groupBy('production_order')->map(function ($group) {
-            //     return [
-            //         'produced_qty' => $group->min('produced_qty'),
-            //         'feedback_qty' => $group->max('feedback_qty'),
-            //     ];
-            // });
-           
-            // $produced_qty = collect($painting_details)->min('produced_qty');
-            // $feedback_qty = collect($painting_details)->min('feedback_qty');
-
-            // $painting_status = 'not_started';
-            // if (collect($has_painting)->where('jt_status', 'In Progress')->count() > 0) {
-            //     $painting_status = 'active';
-            // }
-
-            // $painting_status = 'not_started';
-            // if (collect($has_painting)->where('jt_status', 'In Progress')->count() > 0) {
-            //     $painting_status = 'active';
-            // }
-
-            // $completed_jt = collect($has_painting)->where('jt_status', 'Completed')->count();
-            // if ($completed_jt > 0 && $completed_jt < collect($has_painting)->count()) {
-            //     $painting_status = 'active';
-            // }
-
-            // if (collect($has_painting)->count() > 0 && $painting_status != 'active') {
-            //     if ($produced_qty > $feedback_qty) {
-            //         $painting_status = 'for_feedback';
-            //     }
-
-            //     if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
-            //         $painting_status = 'completed';
-            //     }
-            // }
-
-            // if ($painting_status == 'active') {
-            //     $hasInProgressProcess = $this->hasInProgressProcess($has_painting);
-            //     if (!$hasInProgressProcess) {
-            //         $painting_status = 'idle';
-            //     }
-            // }
-
-            // if ($painting_status != 'not_started') {
-            //     $painting_actual_start_date = collect($has_painting)->min('actual_start_date');
-            //     $painting_actual_end_date = collect($has_painting)->max('actual_end_date');
-    
-            //     $painting_actual_start_date = $painting_actual_start_date ? Carbon::parse($painting_actual_start_date) : null;
-            //     $painting_actual_end_date = $painting_actual_end_date ? Carbon::parse($painting_actual_end_date) : null;
-            //     $painting_duration = null;
-
-            //     if ($painting_actual_start_date) {
-            //         $operation_status['painting']['start'] = Carbon::parse($painting_actual_start_date)->format('M. d, Y - h:i A');
-            //     }
-    
-            //     if ($painting_actual_start_date && $painting_actual_end_date) {
-            //         if ($painting_status != 'idle') {
-            //             $painting_duration = $this->seconds2human($painting_actual_start_date->diffInSeconds($painting_actual_end_date));
-            //             $operation_status['painting']['end'] = Carbon::parse($painting_actual_end_date)->format('M. d, Y - h:i A');
-            //             $operation_status['painting']['duration'] = $painting_duration;
-            //         }
-            //     }
-            // }
-
-            // $operation_status['painting']['status'] = $painting_status;
             $operation_status['painting'] = $this->orderItemProductionStatus($has_painting);
         }
 
