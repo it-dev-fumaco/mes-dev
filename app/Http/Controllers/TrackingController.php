@@ -257,7 +257,7 @@ class TrackingController extends Controller
 			$production_orders = DB::connection('mysql_mes')->table('production_order as po')
 				->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
 				->where(DB::raw('IFNULL(sales_order, material_request)'), $id)->where('po.status', '!=', 'Cancelled')
-				->select('po.production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'po.status as po_status', 'jt.status as jt_status', 'produced_qty', 'jt.workstation', 'po.operation_id', 'po.parent_item_code', 'jt.good', 'po.actual_start_date', 'po.actual_end_date', 'po.planned_start_date')
+				->select('po.production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'po.status as po_status', 'jt.status as jt_status', 'produced_qty', 'jt.workstation', 'po.operation_id', 'po.parent_item_code', 'jt.good', 'po.actual_start_date', 'po.actual_end_date', 'po.planned_start_date', 'jt.job_ticket_id')
 				->orderBy('po.created_at', 'desc')->get()->groupBy('parent_item_code');
 
 			foreach($production_orders as $item_code => $workstations) {
