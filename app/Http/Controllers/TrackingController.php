@@ -14,6 +14,389 @@ class TrackingController extends Controller
 {
     use GeneralTrait;
 
+	public function getOngoingOrders(Request $request) {
+		$erp_db = ENV('DB_DATABASE_ERP');
+		$mes_db = ENV('DB_DATABASE_MES');
+
+		$requested_reference = $request->reference;
+        $requested_customer = $request->customer;
+		$requested_item_code = $request->item_code;
+
+		$search_order = false;
+		if ($requested_reference || $requested_item_code || $requested_customer) {
+			$search_order = true;
+		}
+
+		$material_requests = DB::table($erp_db.'.tabMaterial Request as mr')
+			->join($erp_db.'.tabMaterial Request Item as mri', 'mr.name', 'mri.parent')
+            ->when(!$search_order, function ($query) use ($mes_db) {
+				return $query->join($mes_db.'.production_order as p', function($join) {
+                    $join->on('p.item_code', 'mri.item_code');
+                    $join->on(DB::raw('IFNULL(p.sales_order, p.material_request)'), 'mr.name');
+                })
+                ->whereNotIn('p.status', ['Cancelled', 'Closed'])->whereRaw('p.qty_to_manufacture > p.feedback_qty');
+			})
+            ->where('mr.docstatus', 1)->where('mr.status', '!=', 'Stopped')
+			->when($search_order, function ($query) use ($requested_reference) {
+				return $query->where('mr.name', 'LIKE', '%'.$requested_reference.'%');
+			})
+			->when($search_order && $requested_item_code, function ($query) use ($requested_item_code) {
+				return $query->where('mri.item_code', 'LIKE', '%'.$requested_item_code.'%');
+			})
+            ->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('mr.customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->select('mr.customer', 'mr.name', 'mri.item_code', 'mri.description', 'mri.qty', 'mri.stock_uom', 'mri.idx', 'mri.schedule_date as delivery_date', 'mri.ordered_qty as delivered_qty', 'mri.reschedule_delivery', 'mri.rescheduled_delivery_date', 'mri.name as child', 'mr.status');
+
+		$order_list = DB::table($erp_db.'.tabSales Order as so')
+			->join($erp_db.'.tabSales Order Item as soi', 'so.name', 'soi.parent')
+			->where('so.docstatus', 1)->whereIn('so.sales_type', ['Regular Sales', 'Sales DR'])
+			->where('so.status', '!=', 'Closed')
+            ->when(!$search_order, function ($query) use ($mes_db) {
+				return $query->join($mes_db.'.production_order as p', function($join) {
+                    $join->on('p.item_code', 'soi.item_code');
+                    $join->on(DB::raw('IFNULL(p.sales_order, p.material_request)'), 'so.name');
+                })
+                ->whereNotIn('p.status', ['Cancelled', 'Closed'])->whereRaw('soi.qty > soi.delivered_qty');
+			})
+			->when($search_order && $requested_reference, function ($query) use ($requested_reference) {
+				return $query->where('so.name', 'LIKE', '%'.$requested_reference.'%');
+			})
+			->when($search_order && $requested_item_code, function ($query) use ($requested_item_code) {
+				return $query->where('soi.item_code', 'LIKE', '%'.$requested_item_code.'%');
+			})
+            ->when($search_order && $requested_customer, function ($query) use ($requested_customer) {
+				return $query->where('so.customer', 'LIKE', '%'.$requested_customer.'%');
+			})
+			->select('so.customer', 'so.name', 'soi.item_code', 'soi.description', 'soi.qty', 'soi.stock_uom', 'soi.idx', 'soi.delivery_date', 'soi.delivered_qty', 'soi.reschedule_delivery', 'soi.rescheduled_delivery_date', 'soi.name as child', 'so.status')
+			->unionAll($material_requests)
+            ->orderByRaw('IFNULL(rescheduled_delivery_date, delivery_date) DESC')->paginate(25);
+            
+        $references = collect($order_list->items())->pluck('name');
+        $item_codes = collect($order_list->items())->pluck('item_code')->unique();
+    
+        $production_orders = DB::connection('mysql_mes')->table('production_order as p')
+            ->join('job_ticket as j', 'p.production_order', 'j.production_order')
+            ->join('process as w', 'w.process_id', 'j.process_id')
+            ->whereIn(DB::raw('IFNULL(p.sales_order, p.material_request)'), $references)
+            ->whereIn('p.parent_item_code', $item_codes)
+            ->whereNotIn('p.status', ['Cancelled', 'Closed'])
+            ->selectRaw('p.production_order, item_code, IFNULL(sales_order, material_request) as reference, qty_to_manufacture, feedback_qty, p.status as p_status, produced_qty, parent_item_code, j.workstation, j.status as j_status, w.process_name, p.feedback_qty, j.job_ticket_id')
+            ->orderByRaw("FIELD(j.status, 'In Progress', 'In Process', 'Pending', 'Completed')")
+            ->get()->groupBy(['reference', 'parent_item_code']);
+
+		$items_production_orders = [];
+		foreach ($production_orders as $reference => $parent_item_codes) {
+            $row = [];
+            foreach ($parent_item_codes as $parent_item_code => $rows) {
+                $status = 'Not Started';
+                $feedbacked_qty = 0;
+                $item_prod = collect($rows)->where('item_code', $parent_item_code)->first();
+                if ($item_prod) {
+                    $feedbacked_qty = $item_prod->feedback_qty;
+                    if ($item_prod->qty_to_manufacture == $feedbacked_qty) {
+                        $status = 'Feedbacked';
+                    }
+                }
+                
+                // number of production process
+                $noOfProcess = collect($rows)->count();
+                $noCompletedProcess = collect($rows)->where('j_status', 'Completed')->count();
+                $noPendingProcess = collect($rows)->where('j_status', 'Pending')->count();
+
+                $currentProcess = [];
+                if ($status != 'Feedbacked') {
+                    if ($noPendingProcess < $noOfProcess) {
+                        $status = 'Idle';
+                    }
+
+                    $has_wip = $this->hasInProgressProcess($rows);
+                    if (!$has_wip) {
+                        $status ='Idle';
+                    }
+    
+                    if ($noOfProcess == $noCompletedProcess) {
+                        $status = 'Ready for Feedback';
+                    }
+
+                    $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
+                    if ($currentProcess) {
+                        if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
+                            $status = 'Painting';
+                        } else {
+                            $status = $currentProcess->process_name;
+                        }
+                    }
+                }
+
+                $row[$parent_item_code] = [
+                    'no_of_process' => $noOfProcess,
+                    'no_of_completed_process' => $noCompletedProcess,
+                    'current_process' => $currentProcess,
+                    'status' => $status,
+                    'feedbacked_qty' => $feedbacked_qty
+                ];
+            }
+           
+            $items_production_orders[$reference] = $row;
+		}
+
+		return view('ongoing_orders', compact('order_list', 'items_production_orders'));
+	}
+
+    public function viewOrderDetails($id, Request $request) {
+		$dashboard_request = $request->dashboard;
+		$ref_type = explode("-", $id)[0];
+
+		if ($ref_type == 'MREQ') {
+			$details = DB::connection('mysql')->table('tabMaterial Request as mr')->where('name', $id)
+				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified', 'mr.per_ordered as delivery_percentage')->first();
+
+            $expected_delivery_date = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)->select('rescheduled_delivery_date', 'schedule_date as delivery_date', 'reschedule_delivery')->get();
+            $delivery_date_array = [];
+            foreach ($expected_delivery_date as $row) {
+                $ddate = $row->reschedule_delivery ? $row->rescheduled_delivery_date : $row->delivery_date;
+                $delivery_date_array[] = $ddate;
+            }
+
+            $delivery_date = collect($delivery_date_array)->max();
+
+			$item_list = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note', 'warehouse', 'reschedule_delivery', 'rescheduled_delivery_date')
+				->orderBy('idx', 'asc')->get();
+
+			$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabStock Entry as ste')->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+				->join('tabMaterial Request Item as mri', 'mri.item_code', 'sted.item_code')
+				->where('mri.parent', $id)->where('ste.material_request', $id)->where('ste.docstatus', 1)->whereIn('sted.item_code', $item_codes)
+				->where('ste.stock_entry_type', 'Material Transfer')
+				->select('ste.name', 'sted.item_code', DB::raw('SUM(sted.qty) as delivered_qty'), 'ste.delivery_date as actual_delivery_date', 'ste.reference_no as dr_ref_no', 'mri.qty as ordered_qty', 'mri.stock_uom', 'sted.date_modified', 'ste.posting_date', 'ste.owner', 'sted.session_user')
+				->groupBy('ste.name', 'sted.item_code', 'ste.delivery_date', 'ste.reference_no', 'mri.qty', 'mri.stock_uom', 'sted.date_modified', 'ste.posting_date', 'ste.owner', 'sted.session_user')->get();
+
+			$picking_slip_arr = [];
+			foreach ($actual_delivery_date_per_item as $ps_row) {
+				$picking_slip_arr[$ps_row->name][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->posting_date)->format('M. d, Y');
+				$picking_slip_arr[$ps_row->name][$ps_row->item_code]['user'] = $ps_row->session_user;
+			}
+		} else {
+			$details = DB::connection('mysql')->table('tabSales Order as so')->where('name', $id)
+				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified', 'so.per_delivered as delivery_percentage')
+				->first();
+
+            $expected_delivery_date = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)->select('rescheduled_delivery_date', 'delivery_date', 'reschedule_delivery')->get();
+            $delivery_date_array = [];
+            foreach ($expected_delivery_date as $row) {
+                $ddate = $row->reschedule_delivery ? $row->rescheduled_delivery_date : $row->delivery_date;
+                $delivery_date_array[] = $ddate;
+            }
+
+            $delivery_date = collect($delivery_date_array)->max();
+
+			$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note', 'warehouse', 'reschedule_delivery', 'rescheduled_delivery_date')
+				->orderBy('idx', 'asc')->get();
+
+			$item_codes = collect($item_list)->pluck('item_code')->unique();
+
+			$actual_delivery_date_per_item = DB::connection('mysql')->table('tabDelivery Note as dr')
+				->join('tabDelivery Note Item as dri', 'dr.name', 'dri.parent')->join('tabSales Order Item as soi', 'soi.item_code', 'dri.item_code')
+				->where('dr.reference', $id)->where('soi.parent', $id)->where('dr.docstatus', 1)->whereIn('dri.item_code', $item_codes)
+				->select('dr.name', 'dri.item_code', DB::raw('SUM(dri.qty) as delivered_qty'), 'dr.delivery_date as actual_delivery_date', 'dr.dr_ref_no', 'soi.qty as ordered_qty', 'dri.stock_uom', 'dr.owner')
+				->groupBy('dr.name', 'dri.item_code', 'dr.delivery_date', 'dr.dr_ref_no', 'soi.qty', 'dri.stock_uom', 'dr.owner')->get();
+
+			$picking_slips = DB::connection('mysql')->table('tabPacking Slip as ps')->join('tabPacking Slip Item as psi', 'ps.name', 'psi.parent')
+				->whereIn('ps.delivery_note', collect($actual_delivery_date_per_item)->pluck('name'))
+				->whereIn('psi.item_code', $item_codes)->select('ps.delivery_note', 'psi.item_code', 'psi.date_modified', 'ps.modified', 'psi.session_user')->get();
+
+			$picking_slip_arr = [];
+			foreach ($picking_slips as $ps_row) {
+				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['date_picked'] = Carbon::parse($ps_row->date_modified ? $ps_row->date_modified : $ps_row->modified)->format('M. d, Y');
+				$picking_slip_arr[$ps_row->delivery_note][$ps_row->item_code]['user'] = $ps_row->session_user;
+			}
+		}
+
+		if (!$dashboard_request) {
+			$current_inventory = DB::connection('mysql')->table('tabBin')->whereIn('item_code', collect($item_list)->pluck('item_code'))->whereIn('warehouse', collect($item_list)->pluck('warehouse'))->get();
+			$current_inventory_arr = [];
+			foreach($current_inventory as $ci){
+				$current_inventory_arr[$ci->item_code][$ci->warehouse] = $ci->actual_qty;
+			}
+
+			$default_boms = DB::connection('mysql')->table('tabBOM')
+				->whereIn('item', $item_codes)->where('docstatus', 1)->where('is_active', 1)
+				->select('item', 'is_default', 'name')->orderBy('is_default', 'desc')
+				->orderBy('creation', 'desc')->get();
+
+			$default_boms = collect($default_boms)->groupBy('item')->toArray();
+
+			$seen_order_logs = DB::connection('mysql_mes')->table('activity_logs')
+				->where('reference', $id)->where('action', 'View Order')->orderBy('created_at', 'desc')->get();
+			$seen_logs_per_order = collect($seen_order_logs)->groupBy('reference')->toArray();
+
+			$files = DB::connection('mysql')->table('tabFile')->where('attached_to_doctype', $ref_type == 'SO' ? 'Sales Order' : 'Material Request')
+				->where('attached_to_name', $id)->get();
+		}
+
+		$actual_delivery_date_per_item = collect($actual_delivery_date_per_item)->groupBy('item_code')->toArray();
+
+		$item_images = DB::connection('mysql')->table('tabItem Images')->whereIn('parent', $item_codes)->pluck('image_path', 'parent')->toArray();
+
+		$item_list = collect($item_list)->groupBy('parent')->toArray();
+
+		$item_production_order_qty = DB::connection('mysql_mes')->table('production_order')
+			->where(DB::raw('IFNULL(sales_order, material_request)'), $id)->where('status', '!=', 'Cancelled')
+			->whereIn('item_code', $item_codes)
+			->selectRaw('SUM(qty_to_manufacture) as qty_to_manufacture, SUM(produced_qty) as produced_qty, SUM(feedback_qty) as feedback_qty, item_code')
+			->groupBy(['item_code'])->get()->groupBy('item_code')->toArray();
+
+		$production_orders = DB::connection('mysql_mes')->table('production_order')
+			->whereIn('item_code', $item_codes)->where(DB::raw('IFNULL(sales_order, material_request)'), $id)
+			->where('status', '!=', 'Cancelled')
+			->select('production_order', 'item_code', DB::raw('IFNULL(sales_order, material_request) as reference'), 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'created_at', 'created_by')
+			->orderBy('created_at', 'desc')->get();
+
+		$items_production_orders = [];
+		foreach ($production_orders as $r) {
+			$p_status = $r->produced_qty > $r->feedback_qty ? 'Ready for Feedback' : $r->status;
+			$p_status = $r->qty_to_manufacture == $r->feedback_qty ? 'Feedbacked' : $p_status;
+			$items_production_orders[$r->reference][$r->item_code][] = [
+				'production_order' => $r->production_order,
+				'status' => $p_status,
+				'produced_qty' => $r->produced_qty,
+				'qty_to_manufacture' => $r->qty_to_manufacture,
+				'created_at' => $r->created_at,
+				'created_by' => $r->created_by
+			];
+		}
+
+		$operation_status = [];
+		if ($dashboard_request) {
+			$production_orders = DB::connection('mysql_mes')->table('production_order as po')
+				->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+				->where(DB::raw('IFNULL(sales_order, material_request)'), $id)->where('po.status', '!=', 'Cancelled')
+				->select('po.production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'po.status as po_status', 'jt.status as jt_status', 'produced_qty', 'jt.workstation', 'po.operation_id', 'po.parent_item_code', 'jt.good', 'po.actual_start_date', 'po.actual_end_date', 'po.planned_start_date', 'jt.job_ticket_id')
+				->orderBy('po.created_at', 'desc')->get()->groupBy('parent_item_code');
+
+			foreach($production_orders as $item_code => $workstations) {
+				$not_painting_workstations = collect($workstations)->filter(function ($value) {
+					return $value->workstation != 'Painting';
+				});
+		
+				$has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
+				if ($has_fabrication && collect($has_fabrication)->count()) {
+                    $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
+				}
+		
+				$has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
+				if ($has_assembly && collect($has_assembly)->count()) {
+					$operation_status[$item_code]['assembly'] = $this->orderItemProductionStatus($has_assembly);
+				}
+		
+				// workstations excluding painting
+				$has_painting = collect($workstations)->filter(function ($value) {
+					return $value->workstation == 'Painting';
+				});
+		
+				if ($has_painting && collect($has_painting)->count()) {
+					$operation_status[$item_code]['painting'] = $this->orderItemProductionStatus($has_painting);
+				}
+			}
+		}
+
+		$comments = DB::connection('mysql')->table('tabComment')->where('reference_name', $id)
+			->where('comment_type', 'Comment')->select('creation', 'comment_by', 'content')
+			->orderBy('creation', 'desc')->get();
+
+		if ($dashboard_request) {
+			return view('modals.view_order_details', compact('details', 'ref_type', 'item_list', 'item_images', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'operation_status', 'item_production_order_qty', 'delivery_date'));
+		}
+
+		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files', 'current_inventory_arr'));
+	}
+
+    public function orderItemProductionStatus($collection) {
+        $operation_status = [];
+        $details = collect($collection)->groupBy('production_order')->map(function ($group) {
+            return [
+                'produced_qty' => $group->min('produced_qty'),
+                'feedback_qty' => $group->max('feedback_qty'),
+            ];
+        });
+       
+        $produced_qty = collect($details)->min('produced_qty');
+        $feedback_qty = collect($details)->min('feedback_qty');
+
+        $status = 'not_started';
+        if (collect($collection)->where('jt_status', 'In Progress')->count() > 0) {
+            $status = 'active';
+        }
+
+        $completed_jt = collect($collection)->where('jt_status', 'Completed')->count();
+        if ($status != 'active' && $completed_jt > 0 && $completed_jt < collect($collection)->count()) {
+            $status = 'idle';
+        }
+
+        if (collect($collection)->count() > 0 && $status != 'active') {
+            if ($produced_qty > $feedback_qty) {
+                $status = 'for_feedback';
+            }
+
+            if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+                $status = 'completed';
+            }
+        }
+
+        if ($status != 'not_started') {
+            $ctual_start_date = collect($collection)->min('actual_start_date');
+            $actual_end_date = collect($collection)->max('actual_end_date');
+
+            $ctual_start_date = $ctual_start_date ? Carbon::parse($ctual_start_date) : null;
+            $actual_end_date = $actual_end_date ? Carbon::parse($actual_end_date) : null;
+            $duration = null;
+
+            if ($ctual_start_date) {
+                $operation_status['start'] = Carbon::parse($ctual_start_date)->format('M. d, Y - h:i A');
+            }
+
+            if ($ctual_start_date && $actual_end_date) {
+                if ($status != 'idle') {
+                    $duration = $this->seconds2human($ctual_start_date->diffInSeconds($actual_end_date));
+                    $operation_status['end'] = Carbon::parse($actual_end_date)->format('M. d, Y - h:i A');
+                    $operation_status['duration'] = $duration;
+                }
+            }
+        }
+
+        $operation_status['status'] = $status;
+
+        return $operation_status;
+    }
+
+    public function onGoingQtyPerOperation() {
+		$production_orders = DB::connection('mysql_mes')->table('production_order as p')
+            ->join('job_ticket as j', 'p.production_order', 'j.production_order')
+            ->whereNotIn('p.status', ['Cancelled', 'Closed'])
+            ->where('j.status', 'In Progress')
+            ->whereRaw('p.qty_to_manufacture > p.feedback_qty')
+            ->selectRaw('item_code, qty_to_manufacture, produced_qty, feedback_qty, operation_id, workstation, (qty_to_manufacture - produced_qty) as remaining')
+            ->get();
+
+        $not_painting_workstations = collect($production_orders)->filter(function ($value) {
+            return $value->workstation != 'Painting';
+        });
+
+        $fabrication = collect($not_painting_workstations)->where('operation_id', 1)->sum('remaining');
+        $assembly = collect($not_painting_workstations)->where('operation_id', 3)->sum('remaining');
+        $painting = collect($production_orders)->where('workstation', 'Painting')->sum('remaining');
+
+        return response()->json([
+            'fabrication' => number_format($fabrication),
+            'painting' => number_format($painting),
+            'assembly' => number_format($assembly),
+        ]);
+    }
+
     public function item_status_tracking_page()
     {
         return view('item_status_tracking');
@@ -198,469 +581,218 @@ class TrackingController extends Controller
             return response()->json(["error" => $e->getMessage()]);
         }
     }
+
     public function get_bom_tracking(Request $request)
     {
-        $guide_id = $request->guideid;
-        $itemcode = $request->itemcode;
-        $delivery_date_tbl = DB::connection('mysql_mes')->table('delivery_date')->where('erp_reference_id', $request->erp_reference_id)->first();
-        $change_code = ["match" => ""];
-        if ($delivery_date_tbl) {
-            if ($delivery_date_tbl->parent_item_code == $request->itemcode) {
-                $change_code = [
-                    "match" => "true"
-                ];
-            } else {
-                $change_code = [
-                    "match" => "false",
-                    "original_item" => $delivery_date_tbl->parent_item_code,
-                    'new_item' => $itemcode
-                ];
+        $reference_order_no = $request->guideid;
+        $ref_type = explode("-", $reference_order_no)[0];
 
-                $itemcode = $delivery_date_tbl->parent_item_code;
+        $reference_erp_table = ($ref_type == 'SO') ? 'tabSales Order' : 'tabMaterial Request';
+        
+        $reference_details = DB::connection('mysql')->table($reference_erp_table . ' as parent')
+            ->join($reference_erp_table . ' Item as child', 'parent.name', 'child.parent')
+            ->join('tabItem as item', 'child.item_code', 'item.name')
+            ->where('parent.name', $reference_order_no)->where('child.name', $request->erp_reference_id)
+            ->first();
+
+        $item_image = DB::connection('mysql')->table('tabItem Images')->where('parent', $reference_details->item_code)->pluck('image_path')->first();
+
+        $img = 'http://athenaerp.fumaco.local/storage';
+        $img .= $item_image ? "/img/" . $item_image : "/icon/no_img.png";
+
+        $item_details = [
+            'item_code' => $reference_details->item_code,
+            'description' => $reference_details->description,
+            'image' => $img,
+            'qty' => $reference_details->qty,
+            'stock_uom' => $reference_details->stock_uom,
+            'delivered_qty' => $reference_details->delivered_qty ?? $reference_details->ordered_qty,
+            'parts_category' => $reference_details->parts_category,
+        ];
+
+        $production_orders = DB::connection('mysql_mes')->table('production_order as po')
+            ->join('job_ticket as jt', 'jt.production_order', 'po.production_order')
+            ->where(DB::raw('IFNULL(sales_order, material_request)'), $reference_order_no)->where('po.status', '!=', 'Cancelled')
+            ->where('parent_item_code', $item_details['item_code'])
+            ->select('po.production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'po.status as po_status', 'jt.status as jt_status', 'produced_qty', 'jt.workstation', 'po.operation_id', 'jt.idx', 'po.description', 'po.actual_start_date', 'po.actual_end_date', 'jt.job_ticket_id', 'jt.good')
+            ->orderBy('po.created_at', 'desc')->orderBy('jt.idx', 'asc')->get();
+
+        $production_per_item_query = DB::connection('mysql_mes')->table('production_order')
+            ->where(DB::raw('IFNULL(sales_order, material_request)'), $reference_order_no)->where('status', '!=', 'Cancelled')
+            ->where('parent_item_code', $item_details['item_code'])
+            ->select('production_order', 'item_code', 'qty_to_manufacture', 'feedback_qty', 'status', 'produced_qty', 'description', 'actual_start_date', 'actual_end_date', 'planned_start_date', 'bom_no')
+            ->orderByRaw("FIELD(status, 'Feedbacked', 'Completed', 'Ready for Feedback', 'Partially Feedbacked', 'In Progress', 'Not Started', 'Closed') ASC")->get();
+
+        $item_details['feedback_qty'] = collect($production_per_item_query)->where('item_code', $item_details['item_code'])->sum('feedback_qty');
+
+        $production_per_item_query = collect($production_per_item_query)->groupBy('item_code')->toArray();
+
+        $production_per_item = [];
+        foreach ($production_per_item_query as $item_code => $pos) {
+            $production_orders_array = [];
+            foreach ($pos as $po) {
+                $duration = null;
+                if ($po->actual_start_date && $po->actual_end_date) {
+                    $actual_start_date = Carbon::parse($po->actual_start_date);
+                    $actual_end_date = Carbon::parse($po->actual_end_date);
+                    $duration = $this->seconds2human($actual_start_date->diffInSeconds($actual_end_date));
+                }
+                $production_orders_array[] = [
+                    'production_order' => $po->production_order,
+                    'bom_no' => $po->bom_no ? $po->bom_no : 'No BOM',
+                    'item_code' => $po->item_code,
+                    'qty_to_manufacture' => $po->qty_to_manufacture,
+                    'produced_qty' => $po->produced_qty,
+                    'feedback_qty' => $po->feedback_qty,
+                    'status' => $po->status,
+                    'description' => $po->description,
+                    'actual_start_date' => $po->actual_start_date ? Carbon::parse($po->actual_start_date)->format('M. d, Y - h:i A') : null,
+                    'actual_end_date' => $po->actual_end_date ? Carbon::parse($po->actual_end_date)->format('M. d, Y - h:i A') : null,
+                    'planned_start_date' => $po->planned_start_date ? Carbon::parse($po->planned_start_date)->format('M. d, Y') : 'Unscheduled',
+                    'duration' => $duration,
+                ];
             }
+
+            $production_per_item[$item_code] = $production_orders_array;
         }
 
-        $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)
-            ->where('docstatus', '<', 2)->where('is_default', 1)
-            ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description')
+        $operation_status = [];
+        $not_painting_workstations = collect($production_orders)->filter(function ($value) {
+            return $value->workstation != 'Painting';
+        });
+
+        $has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
+        if ($has_fabrication && collect($has_fabrication)->count()) {
+            $operation_status['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
+        }
+
+        $has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
+        if ($has_assembly && collect($has_assembly)->count()) {
+            $operation_status['assembly'] = $this->orderItemProductionStatus($has_assembly);
+        }
+
+        // workstations excluding painting
+        $has_painting = collect($production_orders)->filter(function ($value) {
+            return $value->workstation == 'Painting';
+        });
+
+        if ($has_painting && collect($has_painting)->count()) {
+            $operation_status['painting'] = $this->orderItemProductionStatus($has_painting);
+        }
+
+        $production_order_workstations_query = collect($production_orders)->groupBy('production_order')->toArray();
+        $production_order_workstations = $idle_production_orders = [];
+        foreach ($production_order_workstations_query as $prod => $w) {
+            $workstation_array = $workstation_statuses = [];
+            $total_good = collect($w)->sum('good');
+            foreach ($w as $row) {
+                $workstation_status = $row->jt_status;
+                if ($total_good > 0 && $row->good < $row->qty_to_manufacture && $row->feedback_qty < $row->qty_to_manufacture) {
+                    $row_arr[] = $row;
+                    $has_wip = $this->hasInProgressProcess(collect($row_arr));
+                    $workstation_status = $has_wip ? 'In Progress' : 'Idle';
+                    $row_arr = [];
+                }
+
+                $workstation_statuses[] = $workstation_status;
+               
+                $workstation_array[$row->workstation][] = $workstation_status;
+            }
+
+            $workstation_statuses_collection = collect($workstation_statuses)->unique()->values()->toArray();
+            if (in_array('Idle', $workstation_statuses_collection) && !in_array('In Progress', $workstation_statuses_collection)) {
+                $idle_production_orders[$prod] = collect($workstation_statuses)->unique()->values();
+            }
+            
+            $production_order_workstations[$prod] = $workstation_array;
+        }
+        
+        $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $item_details['item_code'])
+            ->where('docstatus', '<', 2)->where('is_default', 1)->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description')
             ->orderBy('modified', 'desc')->first();
 
         if (!$item_bom) {
-            $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $itemcode)->where('docstatus', '<', 2)
+            $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $item_details['item_code'])->where('docstatus', '<', 2)
                 ->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description', 'docstatus')
                 ->orderBy('modified', 'desc')->first();
         }
 
-        if (!$item_bom) {
-            return response()->json(['success' => 0, 'message' => 'BOM not found.']);
+        if ($item_bom != null) {
+            $parts = $this->get_bom($item_bom->name, $reference_order_no, $item_details['item_code'], $item_details['item_code']);
+        } else {
+            $parts = [];
         }
 
-        $bom_get = $item_bom->name;
-        $bom = $item_bom;
+        $per_item_idle_production_orders = collect($production_per_item_query)->map(function ($production_orders) use ($idle_production_orders){
+            return collect($production_orders)->pluck('production_order')->filter(function ($value) use ($idle_production_orders){
+                if (array_key_exists($value, $idle_production_orders)) {
+                    return true;
+                }
+            });
+        })->filter(function ($value) {
+            return count($value) > 0;
+        })->toArray();
 
-        $production = DB::connection('mysql_mes')->table('production_order AS po')
-            ->leftJoin('delivery_date', function ($join) {
-                $join->on(DB::raw('IFNULL(po.sales_order, po.material_request)'), '=', 'delivery_date.reference_no');
-                $join->on('po.parent_item_code', '=', 'delivery_date.parent_item_code');
-            }) // get delivery date from delivery_date table
-            ->whereNotIn('po.status', ['Cancelled'])
-            ->where(function ($q) use ($guide_id) {
-                $q->Where('po.sales_order', $guide_id)
-                    ->orWhere('po.material_request', $guide_id);
-            })
-            ->select('po.sales_order', 'po.material_request', 'po.customer', 'delivery_date.delivery_date', 'po.project', 'po.parent_item_code', 'delivery_date.rescheduled_delivery_date', 'po.qty_to_manufacture', 'po.produced_qty', 'po.stock_uom')
-            ->first();
+        return view('tracking_flowchart', compact('operation_status', 'item_details', 'production_per_item', 'parts', 'production_order_workstations', 'idle_production_orders', 'per_item_idle_production_orders'));
+    }
 
-        $parent_productions = DB::connection('mysql_mes')->table('production_order AS po')
-            ->whereNotIn('po.status', ['Cancelled'])
-            ->where(function ($q) use ($guide_id) {
-                $q->Where('po.sales_order', $guide_id)
-                    ->orWhere('po.material_request', $guide_id);
-            })
-            ->where('item_code', $itemcode)
-            ->first();
-        $materials = [];
-        if (!empty($parent_productions)) {
-            $data1 = [];
-            $data2 = [];
-            $jt_details1 = DB::connection('mysql_mes')->table('job_ticket')
-                ->where('production_order', $parent_productions->production_order)
-                ->select('job_ticket_id', 'workstation')->get();
+    private function hasInProgressProcess($collection) {
+        if ($collection->count() > 0) {
+            $spotwelding_workstations = collect($collection)->filter(function ($value) {
+                return $value->workstation == 'Spotwelding';
+            });
 
-            if (count($jt_details1) == 0) {
-                $production_order_no = null;
-                $planned_start_date = null;
-                $end_date = null;
-                $start_date = null;
-                $duration = null;
-                $status = null;
-                $qty_to_manufacture = null;
-                $produced_qty = null;
-                $jobtickets_details = [];
-                $parts_category = null;
-                $done = null;
-            } else {
+            $has_wip = false;
+            if (collect($spotwelding_workstations)->count() > 0) {
+                $job_ticket_ids = $spotwelding_workstations->pluck('job_ticket_id');
+                $has_wip = DB::connection('mysql_mes')->table('spotwelding_qty')->whereIn('job_ticket_id', $job_ticket_ids)
+                    ->whereIn('status', ['In Process', 'In Progress'])->exists();
+            } 
 
-                $start_date = $parent_productions->actual_start_date;
-                $end_date = $parent_productions->actual_end_date;
-                $from_carbon = Carbon::parse($start_date);
-                $to_carbon = Carbon::parse($end_date);
-
-                $duration = $from_carbon->diffInSeconds($to_carbon);
-
-                $jobtickets_details = DB::connection('mysql_mes')->table('job_ticket as jt')
-                    ->join('process as p', 'p.process_id', 'jt.process_id')
-                    ->where('jt.production_order', $parent_productions->production_order)
-                    ->where('jt.status', 'In Progress')
-                    ->select('p.process_name', 'jt.workstation')
-                    ->groupBy('p.process_name', 'jt.workstation')
-                    // ->distinct('jt.workstation')
-                    ->get();
-
-                $stat = $parent_productions->status;
-                $done = $parent_productions->produced_qty;
-
-                $production_order_no = $parent_productions->production_order;
-                $planned_start_date = $parent_productions->planned_start_date;
-
-
-                $status = $stat;
-                $qty_to_manufacture = $parent_productions->qty_to_manufacture;
-                $produced_qty = $parent_productions->produced_qty;
-                $parts_category = $parent_productions->parts_category;
-
-
+            if (!$has_wip) {
+                $job_ticket_ids = $collection->pluck('job_ticket_id');
+                $has_wip = DB::connection('mysql_mes')->table('time_logs')->whereIn('job_ticket_id', $job_ticket_ids)
+                    ->whereIn('status', ['In Process', 'In Progress'])->exists();
             }
-
-
-
-        } else {
-            $production_order_no = null;
-            $planned_start_date = null;
-            $end_date = null;
-            $start_date = null;
-            $duration = null;
-            $status = null;
-            $qty_to_manufacture = null;
-            $produced_qty = null;
-            $jobtickets_details = [];
-            $parts_category = null;
-            $done = null;
+        
+            return $has_wip;
         }
-        $item_details = DB::connection('mysql')->table('tabItem')->where('name', $itemcode)->first();
-        $item_description = ($item_details) ? $item_details->description : '';
-        $available_stock = DB::connection('mysql_mes')->table('fabrication_inventory')->where('item_code', $itemcode)->sum('balance_qty');
-
-
-        if (!empty($parent_productions)) {
-            $prod_details = DB::connection('mysql')->table('tabWork Order')
-                ->where('name', $production_order_no)->first();
-
-            if ($prod_details->docstatus == 2 && $status != 'Cancelled') {
-                $status = 'Unknown Status';
-            } else if ($prod_details->docstatus == 1 && $status == 'Cancelled') {
-                $status = 'Unknown Status';
-            }
-
-            $materials = [
-                'item_code' => $parent_productions->item_code,
-                'description' => $item_description,
-                'item_name' => $item_details->item_name,
-                'qty' => $parent_productions->qty_to_manufacture,
-                'bom_no' => $parent_productions->bom_no,
-                'uom' => $parent_productions->stock_uom,
-                'parts_category' => $parts_category,
-                'production_order' => ($production_order_no == null) ? '' : $production_order_no,
-                'planned_start_date' => ($planned_start_date == null) ? '' : $planned_start_date,
-                'end_date' => ($end_date == null) ? '' : Carbon::parse($end_date)->format('F d, Y h:ia'),
-                'start_date' => ($start_date == null) ? '' : Carbon::parse($start_date)->format('F d, Y h:ia'),
-                'duration' => ($duration == null) ? '' : $this->seconds2human($duration),
-                'status' => ($status == null) ? '' : $status,
-                'qty_to_manufacture' => ($status == null) ? '' : $qty_to_manufacture,
-                'produced_qty' => $done,
-                // 'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
-                'current_load' => $jobtickets_details,
-                'available_stock' => $available_stock,
-                'operation_id' => $parent_productions->operation_id,
-                'feedback_qty' => $parent_productions->feedback_qty,
-                'process' => $this->getTimesheetProcess(($production_order_no == null) ? '' : $production_order_no)
-            ];
-        } else {
-            $materials = [
-                'item_code' => $itemcode,
-                'description' => $item_description,
-                'item_name' => $item_details->item_name,
-                'qty' => "",
-                'bom_no' => "",
-                'uom' => "",
-                'parts_category' => $parts_category,
-                'production_order' => ($production_order_no == null) ? '' : $production_order_no,
-                'planned_start_date' => ($planned_start_date == null) ? '' : $planned_start_date,
-                'end_date' => ($end_date == null) ? '' : Carbon::parse($end_date)->format('F d, Y h:ia'),
-                'start_date' => ($start_date == null) ? '' : Carbon::parse($start_date)->format('F d, Y h:ia'),
-                'duration' => ($duration == null) ? '' : $this->seconds2human($duration),
-                'status' => ($status == null) ? '' : $status,
-                'qty_to_manufacture' => ($status == null) ? '' : $qty_to_manufacture,
-                'produced_qty' => $done,
-                // 'bom_no'=> (empty($default_bom->name))? '':$default_bom->name,
-                'current_load' => $jobtickets_details,
-                'available_stock' => $available_stock,
-                'operation_id' => 1,
-                'feedback_qty' => 0,
-                'process' => [],
-            ];
-        }
-        $spotlogss = DB::connection('mysql_mes')->table('job_ticket as jt')
-            ->join('production_order as po', 'po.production_order', 'jt.production_order')
-            ->leftJoin('spotwelding_qty as spotpart', 'spotpart.job_ticket_id', 'jt.job_ticket_id')
-            ->join('process as p', 'p.process_id', 'jt.process_id')
-            ->where(function ($q) use ($guide_id) {
-                $q->Where('po.sales_order', $guide_id)
-                    ->orWhere('po.material_request', $guide_id);
-            })
-            ->where('po.parent_item_code', $itemcode)
-            ->orderBy('spotpart.last_modified_at', 'desc')
-            ->select(DB::raw('(SELECT MIN(from_time) FROM spotwelding_qty WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS from_time'), DB::raw('(SELECT MAX(to_time) FROM spotwelding_qty WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS to_time'), 'p.process_name', 'jt.production_order', 'jt.job_ticket_id', 'jt.workstation', 'po.operation_id');
-
-        $timelogss = DB::connection('mysql_mes')->table('job_ticket as jt')
-            ->join('production_order as po', 'po.production_order', 'jt.production_order')
-            ->leftJoin('time_logs as tl', 'jt.job_ticket_id', 'tl.job_ticket_id')
-            ->join('process as p', 'p.process_id', 'jt.process_id')
-            ->where(function ($q) use ($guide_id) {
-                $q->Where('po.sales_order', $guide_id)
-                    ->orWhere('po.material_request', $guide_id);
-            })
-            ->where('po.parent_item_code', $itemcode)
-            ->select(DB::raw('(SELECT MIN(from_time) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS from_time'), DB::raw('(SELECT MAX(to_time) FROM time_logs WHERE job_ticket_id = jt.job_ticket_id GROUP BY job_ticket_id) AS to_time'), 'p.process_name', 'jt.production_order', 'jt.job_ticket_id', 'jt.workstation', 'po.operation_id')
-            ->unionAll($spotlogss)
-            ->get();
-
-
-        $status = db::connection('mysql_mes')->table('production_order')
-            ->where('parent_item_code', $itemcode)
-            ->where(function ($q) use ($guide_id) {
-                $q->Where('sales_order', $guide_id)
-                    ->orWhere('material_request', $guide_id);
-            })->select('status', 'operation_id', 'production_order')->get();
-        $plucked = collect($status)->pluck('production_order');
-        $job_ticket_per_workstation = db::connection('mysql_mes')->table('job_ticket')->join('production_order as pro', 'pro.production_order', 'job_ticket.production_order')->where('pro.status', '!=', "Cancelled")->whereIn('job_ticket.production_order', $plucked)->select('pro.operation_id', 'job_ticket.*')->get();
-        $fabrication = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->count();
-        $fabrication_completed = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Completed")->count();
-        $painting = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->count();
-        $painting_completed = collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Completed")->count();
-        $assembly = collect($job_ticket_per_workstation)->where('operation_id', '3')->count();
-        $assembly_completed = collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Completed")->count();
-
-        $min_fab = collect($timelogss)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->min('from_time');
-        $max_fab = collect($timelogss)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->max('to_time');
-
-        $min_pain = collect($timelogss)->where('operation_id', '1')->where('workstation', 'Painting')->min('from_time');
-        $max_pain = collect($timelogss)->where('operation_id', '1')->where('workstation', 'Painting')->max('to_time');
-
-        $min_assem = collect($timelogss)->where('operation_id', '3')->min('from_time');
-        $max_assem = collect($timelogss)->where('operation_id', '3')->max('to_time');
-
-        if ((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', '!=', 'Painting')->where('status', "Pending")->count()) == $fabrication) {
-            $fab_timeline_stat = "not_started";
-            $fab_duration = "-";
-            $fab_badge = "secondary";
-        } elseif ($fabrication == $fabrication_completed) {
-            $fab_timeline_stat = "Completed";
-            $from = Carbon::parse($min_fab);
-            $to = Carbon::parse($max_fab);
-
-            $duration = $from->diffInSeconds($to);
-            $fab_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-            $fab_badge = "success";
-
-        } else {
-            $fab_timeline_stat = "In Progress";
-            $fab_duration = "- On Going";
-            $fab_badge = "warning";
-
-        }
-        if ((collect($job_ticket_per_workstation)->where('operation_id', '3')->where('status', "Pending")->count()) == $assembly) {
-            $assem_timeline_stat = "not_started";
-            $assem_duration = " - ";
-            $assem_badge = "secondary";
-
-        } elseif ($assembly == $assembly_completed) {
-            $assem_timeline_stat = "Completed";
-            $from = Carbon::parse($min_assem);
-            $to = Carbon::parse($max_assem);
-
-            $duration = $from->diffInSeconds($to);
-            $assem_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-            $assem_badge = "success";
-
-        } else {
-            $assem_timeline_stat = "In Progress";
-            $assem_duration = " - On Going";
-            $assem_badge = "warning";
-        }
-
-        if ((collect($job_ticket_per_workstation)->where('operation_id', '1')->where('workstation', 'Painting')->where('status', "Pending")->count()) == $painting) {
-            $pain_timeline_stat = "not_started";
-            $pain_duration = " - ";
-            $pain_badge = "secondary";
-
-        } elseif ($painting == $painting_completed) {
-            $pain_timeline_stat = "Completed";
-            $from = Carbon::parse($min_pain);
-            $to = Carbon::parse($max_pain);
-
-            $duration = $from->diffInSeconds($to);
-            $pain_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-            $pain_badge = "success";
-
-        } else {
-            $pain_timeline_stat = "In Progress";
-            $pain_duration = " - On Going ";
-            $pain_badge = "warning";
-
-        }
-        if ($assem_timeline_stat == "Completed" && $fab_timeline_stat == "Completed" && $pain_timeline_stat = "Completed") {
-            $from_carbon = Carbon::parse($min_fab);
-            $to_carbon = Carbon::parse($max_assem);
-
-            $duration = $from_carbon->diffInSeconds($to_carbon);
-            $formated_duration = ($duration == null) ? '' : $this->seconds2human($duration);
-        } else {
-            $formated_duration = " - ";
-
-        }
-        $total_qty_fab = 0;
-        $timeline = [
-            'fab_min' => ($min_fab == null) ? '-' : Carbon::parse($min_fab)->format('M d, Y h:i A'),
-            'fab_max' => ($max_fab == null) ? '-' : Carbon::parse($max_fab)->format('M d, Y h:i A'),
-            'pain_min' => ($min_pain == null) ? '-' : Carbon::parse($min_pain)->format('M d, Y h:i A'),
-            'pain_max' => ($max_pain == null) ? '-' : Carbon::parse($max_pain)->format('M d, Y h:i A'),
-            'assem_min' => ($min_assem == null) ? '-' : Carbon::parse($min_assem)->format('M d, Y h:i A'),
-            'assem_max' => ($max_assem == null) ? '-' : Carbon::parse($max_assem)->format('M d, Y h:i A'),
-            'fab_stat' => $fab_timeline_stat,
-            'assem_stat' => $assem_timeline_stat,
-            'pain_stat' => $pain_timeline_stat,
-            'duration' => $formated_duration,
-            'fab_duration' => $fab_duration,
-            'pain_duration' => $pain_duration,
-            'assem_duration' => $assem_duration,
-            'fab_required' => $production ? $production->qty_to_manufacture : '0',
-            'fab_produced' => $production ? $production->produced_qty : '0',
-            'uom' => $production ? $production->stock_uom : '0',
-            'fab_badge' => $fab_badge,
-            'assem_badge' => $assem_badge,
-            'pain_badge' => $pain_badge
-        ];
-
-        if ($bom != null) {
-            $boms = $this->get_bom($bom_get, $guide_id, $itemcode, $itemcode);
-            $item_codes = $itemcode;
-        } else {
-            $boms = [];
-            $item_codes = "";
-        }
-
-        return view('tracking_flowchart', compact('boms', 'item_codes', 'guide_id', 'production', 'bom', 'materials', 'timeline', 'change_code'));
     }
 
     public function get_bom($bom, $guide_id, $item_code, $parent_item_code)
     {
         try {
-            $bom1 = DB::connection('mysql')->table('tabBOM Item as bom')
+            $excluded_item_classifications = ['BP - Battery Pack', 'WW - Wall Washer Luminaire', 'WL - Wall Lights'];
+            $bom_item_query = DB::connection('mysql')->table('tabBOM Item as bom')
                 ->join('tabItem as item', 'item.name', 'bom.item_code')
                 ->whereNotIn('item.item_group', ['Raw Material', 'Factory Supplies'])
-                ->whereNotIn('item.item_classification', ['BP - Battery Pack', 'WW - Wall Washer Luminaire', 'WL - Wall Lights'])
+                ->whereNotIn('item.item_classification', $excluded_item_classifications)
                 ->where('bom.docstatus', '<', 2)->where('bom.parent', $bom)->select('bom.item_code', 'bom.bom_no', 'bom.qty', 'bom.uom', 'item.parts_category')
                 ->orderBy('bom.idx', 'asc')->get();
 
-            $bom_items = array_column($bom1->toArray(), 'item_code');
+            $bom_items = array_column($bom_item_query->toArray(), 'item_code');
             if (count($bom_items) > 0) {
                 $default_boms = DB::connection('mysql')->table('tabBOM')->where('docstatus', '<', 2)
                     ->where('is_default', 1)->whereIn('item', $bom_items)->pluck('name', 'item')->toArray();
 
-                $item_descriptions = DB::connection('mysql')->table('tabItem')->whereIn('name', $bom_items)->pluck('description', 'name')->toArray();
-
-                $production_orders = DB::connection('mysql_mes')->table('production_order AS po')
-                    ->whereNotIn('po.status', ['Cancelled'])
-                    ->where(function ($q) use ($guide_id) {
-                        $q->Where('po.sales_order', $guide_id)
-                            ->orWhere('po.material_request', $guide_id);
-                    })
-                    ->whereIn('item_code', $bom_items)->where('sub_parent_item_code', $item_code)->where('parent_item_code', $parent_item_code)
-                    ->select('production_order', 'actual_start_date', 'actual_end_date', 'status', 'produced_qty', 'planned_start_date', 'qty_to_manufacture', 'parts_category', 'item_code')
-                    ->get();
-
-                $bom_production_orders = array_column($production_orders->toArray(), 'production_order');
-                $production_orders = collect($production_orders)->groupBy('item_code')->toArray();
-
-                if (count($bom_production_orders) > 0) {
-                    $production_details_jt = DB::connection('mysql_mes')->table('job_ticket')
-                        ->whereIn('production_order', $bom_production_orders)
-                        ->selectRaw('COUNT(job_ticket_id) as count, production_order')
-                        ->groupBy('production_order')->pluck('count', 'production_order')
-                        ->toArray();
-
-                    $erp_prod_details = DB::connection('mysql')->table('tabWork Order')
-                        ->whereIn('name', $bom_production_orders)->pluck('docstatus', 'name')->toArray();
-                }
-
-                $bom_available_stock = DB::connection('mysql_mes')->table('fabrication_inventory')
-                    ->whereIn('item_code', $bom_items)->selectRaw('SUM(balance_qty) as available_stock, item_code')->groupBy('item_code')
-                    ->pluck('available_stock', 'item_code')->toArray();
+                $item_descriptions = DB::connection('mysql')->table('tabItem')->whereIn('name', $bom_items)
+                    ->pluck('description', 'name')->toArray();
             }
 
             $materials = [];
-            foreach ($bom1 as $item) {
+            foreach ($bom_item_query as $item) {
                 $bom_item_code = $item->item_code;
                 $default_bom = array_key_exists($bom_item_code, $default_boms) ? $default_boms[$bom_item_code] : null;
                 $item_description = array_key_exists($bom_item_code, $item_descriptions) ? $item_descriptions[$bom_item_code] : null;
                 $child_bom = ($default_bom) ? $default_bom : $item->bom_no;
 
-                $production = array_key_exists($bom_item_code, $production_orders) ? $production_orders[$bom_item_code][0] : [];
-
-                $production_order_no = null;
-                $planned_start_date = null;
-                $end_date = null;
-                $start_date = null;
-                $duration = null;
-                $status = null;
-                $qty_to_manufacture = null;
-                $produced_qty = null;
-                $jobtickets_details = [];
-                $parts_category = null;
-                $done = null;
-
-                if (!empty($production)) {
-                    $jt_details1 = array_key_exists($production->production_order, $production_details_jt) ? $production_details_jt[$production->production_order] : 0;
-                    if ($jt_details1 > 0) {
-                        $start_date = $production->actual_start_date;
-                        $end_date = $production->actual_end_date;
-                        $from_carbon = Carbon::parse($start_date);
-                        $to_carbon = Carbon::parse($end_date);
-                        $duration = $from_carbon->diffInSeconds($to_carbon);
-
-                        $jobtickets_details = DB::connection('mysql_mes')->table('job_ticket as jt')
-                            ->join('process as p', 'p.process_id', 'jt.process_id')->where('jt.production_order', $production->production_order)
-                            ->where('jt.status', 'In Progress')->select('p.process_name', 'jt.workstation')->groupBy('p.process_name', 'jt.workstation')->get();
-
-                        $status = $production->status;
-                        $done = $production->produced_qty;
-                        $production_order_no = $production->production_order;
-                        $planned_start_date = $production->planned_start_date;
-                        $qty_to_manufacture = $production->qty_to_manufacture;
-                        $produced_qty = $production->produced_qty;
-                        $parts_category = $production->parts_category;
-                    }
-
-                    $docstatus = array_key_exists($production->production_order, $erp_prod_details) ? $erp_prod_details[$production->production_order] : null;
-
-                    if ($docstatus == 2 && $status != 'Cancelled') {
-                        $status = 'Unknown Status';
-                    } else if ($docstatus == 1 && $status == 'Cancelled') {
-                        $status = 'Unknown Status';
-                    }
-                }
-
-                $available_stock = array_key_exists($bom_item_code, $bom_available_stock) ? $bom_available_stock[$bom_item_code] : 0;
-
                 $materials[] = [
                     'item_code' => $item->item_code,
                     'description' => $item_description,
                     'qty' => $item->qty,
-                    // 'bom_no' => $item->bom_no,
                     'uom' => $item->uom,
-                    'parts_category' => $parts_category,
-                    'production_order' => ($production_order_no == null) ? '' : $production_order_no,
-                    'planned_start_date' => ($planned_start_date == null) ? '' : $planned_start_date,
-                    'end_date' => ($end_date == null) ? '' : Carbon::parse($end_date)->format('F d, Y h:ia'),
-                    'start_date' => ($start_date == null) ? '' : Carbon::parse($start_date)->format('F d, Y h:ia'),
-                    'duration' => ($duration == null) ? '' : $this->seconds2human($duration),
-                    'status' => ($status == null) ? '' : $status,
-                    'qty_to_manufacture' => ($status == null) ? '' : $qty_to_manufacture,
-                    'produced_qty' => $done,
+                    'parts_category' => $item->parts_category,
                     'bom_no' => $default_bom,
-                    'available_stock' => $available_stock,
-                    'current_load' => $jobtickets_details,
                     'child_nodes' => $this->get_bom($child_bom, $guide_id, $item->item_code, $parent_item_code),
                 ];
             }
@@ -711,24 +843,22 @@ class TrackingController extends Controller
         $m = floor(($ss % 3600) / 60);
         $h = floor(($ss % 86400) / 3600);
         $d = floor(($ss % 2592000) / 86400);
-        $ss = $s > 1 ? "secs" : 'sec';
-        $mm = $m > 1 ? "mins" : 'min';
-        $dd = $d > 1 ? "days" : 'day';
-        $hh = $h > 1 ? "hrs" : 'hr';
+        $ss = "s";
+        $mm = "m";
+        $dd = "d";
+        $hh = "h";
 
         if ($d == 0 and $h == 0 and $m == 0 and $s == 0) {
-            $format = "$s $ss";
+            return "$s$ss";
         } elseif ($d == 0 and $h == 0 and $m == 0) {
-            $format = "$s $ss";
+            return "$s$ss";
         } elseif ($d == 0 and $h == 0) {
-            $format = "$m $mm,$s $ss";
+            return "$m$mm";
         } elseif ($d == 0) {
-            $format = "$h $hh, $m $mm,$s $ss";
+            return "$h$hh $m$mm";
         } else {
-            $format = "$d $dd,$h $hh, $m $mm,$s $ss";
+            return "$d$dd $h$hh $m$mm";
         }
-        return $format;
-
     }
 
     public function productionKanban()

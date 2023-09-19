@@ -1040,34 +1040,10 @@
         url: "/get_workstation_process_machine/" + workstation_id + "/" + process_id ,
         method: "GET",
         success: function(response) {
-          var col = '';
-          $.each(response, function(i, v){
-            if (v.status == 'Available') {
-              color = '#28B463';
-            }else if (v.status == 'On-going Maintenance'){
-              color = '#D68910';
-            }else{
-              color = '#C0392B';
-            }
-            
-            col += '<div class="col-md-4 selected-machine" data-machine-code="'+v.machine_code+'" data-process-id="' + v.process_id+'" data-status="' + v.status + '">' +
-              '<div class="card" style="background-color: #1B4F72;">' +
-              '<div class="card-body" style="padding-top: 0; padding-bottom: 0;">' +
-              '<div class="row" style="border: 0px solid; ">' +
-              '<div class="col-md-4" style="padding: 0;">' +
-              '<img src="'+ v.image +'" style="width: 100px; height: 100px;">' +
-              '</div>'+
-              '<div class="col-md-8">' +
-              '<h5 class="card-category text-white" style="padding: 0; margin: 0">' + v.machine_name + ' ['+v.machine_code+']</h5>' +
-              '<p class="text-white"">' +
-              '<span class="dot" style="background-color: '+ color + ';"></span> ' + v.status + ' </p></div>' +
-              '</div></div></div></div>';
-          });
-
-          $('#scan-production-order-step2-modal #machine-list-div').append(col);
+          $('#scan-production-order-step2-modal #machine-list-div').append(response);
         },
         error: function(response) {
-          console.log(response);
+          showNotification("danger", 'An error occured. Please try again.', "now-ui-icons ui-1_check");
         }
       });
     }

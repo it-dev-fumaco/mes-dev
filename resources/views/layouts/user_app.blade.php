@@ -363,7 +363,7 @@
   @endisset
   <!-- Page Content -->
   <div id="content">
-    @if (Auth::check())
+    @if (Auth::check() && $activePage != 'login')
     <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute custom-navbar1-width p-1">
       <div class="container-fluid m-0 p-0" id="next">
         <div class="collapse navbar-collapse" id="navigation">
@@ -379,9 +379,9 @@
               <span id="current-time" style="font-size: 18pt;">--:--:-- --</span>
             </li>
             <li class="nav-item active">
-              <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px; white-space: nowrap;">{{ $pageHeader }}</span>
+              <span class="d-block font-weight-bold" style="font-size: 12pt; margin-left: 20px; white-space: nowrap;">{{ isset($pageHeader) ? $pageHeader : 'MES' }}</span>
               @if (Auth::check())
-              <span class="d-block" style="font-size: 8pt; margin-left: 20px;"><i>{{ $pageSpan }}</i></span>
+              <span class="d-block" style="font-size: 8pt; margin-left: 20px;"><i>{{ isset($pageSpan) ? $pageSpan : 'MES' }}</i></span>
               @endif
             </li>
           </ul>

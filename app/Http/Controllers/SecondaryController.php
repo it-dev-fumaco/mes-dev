@@ -1695,42 +1695,52 @@ class SecondaryController extends Controller
 
     public function save_process_workstation(Request $request)
     {
-        if (Gate::denies('manage-workstations')) {
-            return redirect()->back();
+        DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if (Gate::denies('manage-workstations')) {
+                return redirect()->back();
+            }
+    
+            $workstation_name = DB::connection('mysql_mes')->table('workstation')->where('id', $request->workstation_id)->select('workstation_name')->first();
+            $process = DB::connection('mysql_mes')->table('process')->where('id', $request->process_id)->select('process')->first();
+            $now = Carbon::now();
+            $values1 = [
+                'process_id' => $request->process_id,
+                'idx' => $this->getNextIdxProcessWorkstation($request->workstation_id),
+                'workstation_id' => $request->workstation_id,
+                'last_modified_by' => Auth::user()->email,
+                'created_by' => Auth::user()->email,
+                'created_at' => $now->toDateTimeString()
+            ];
+    
+            $values2 = [
+                'name' => uniqid(),
+                'creation' => $now->toDateTimeString(),
+                'modified' => $now->toDateTimeString(),
+                'modified_by' => Auth::user()->email,
+                'owner' => Auth::user()->email,
+                'docstatus' => 0,
+                'parent' => $workstation_name->workstation_name,
+                'parentfield' => "workstation_process",
+                'parenttype' => "Workstation",
+                'process' => $process->process,
+                'idx' => $this->getNextIdxProcessWorkstation_erp($workstation_name->workstation_name),
+                'remarks' => $request->remarks
+            ];
+    
+            DB::connection('mysql_mes')->table('workstation_process')->insert($values1);
+            DB::connection('mysql')->table('tabWorkstation Process')->insert($values2);
+    
+            DB::connection('mysql')->commit();
+            DB::connection('mysql_mes')->commit();
+            // return response()->json(['success' => 1, 'message' => 'Workstation successfully Added.']);
+            return redirect()->back()->with('success', 'Updated!');
+        } catch (\Throwable $th) {
+            DB::connection('mysql')->rollBack();
+            DB::connection('mysql_mes')->rollBack();
+            return redirect()->back()->with('error', 'An error occured. Please try again.');
         }
-
-        $workstation_name = DB::connection('mysql_mes')->table('workstation')->where('id', $request->workstation_id)->select('workstation_name')->first();
-        $process = DB::connection('mysql_mes')->table('process')->where('id', $request->process_id)->select('process')->first();
-        $now = Carbon::now();
-        $values1 = [
-            'process_id' => $request->process_id,
-            'idx' => $this->getNextIdxProcessWorkstation($request->workstation_id),
-            'workstation_id' => $request->workstation_id,
-            'last_modified_by' => Auth::user()->email,
-            'created_by' => Auth::user()->email,
-            'created_at' => $now->toDateTimeString()
-        ];
-
-        $values2 = [
-            'name' => uniqid(),
-            'creation' => $now->toDateTimeString(),
-            'modified' => $now->toDateTimeString(),
-            'modified_by' => Auth::user()->email,
-            'owner' => Auth::user()->email,
-            'docstatus' => 0,
-            'parent' => $workstation_name->workstation_name,
-            'parentfield' => "workstation_process",
-            'parenttype' => "Workstation",
-            'process' => $process->process,
-            'idx' => $this->getNextIdxProcessWorkstation_erp($workstation_name->workstation_name),
-            'remarks' => $request->remarks
-        ];
-
-        DB::connection('mysql_mes')->table('workstation_process')->insert($values1);
-        DB::connection('mysql')->table('tabWorkstation Process')->insert($values2);
-
-        // return response()->json(['success' => 1, 'message' => 'Workstation successfully Added.']);
-        return redirect()->back();
     }
 
     public function get_tbl_workstation_process(Request $request)
@@ -8453,7 +8463,7 @@ class SecondaryController extends Controller
                 ->where('jt.workstation', 'Painting')
                 ->where('jt.planned_start_date', '!=', null)
                 // ->distinct( 'delivery_date.rescheduled_delivery_date','pro.customer', 'pro.sales_order', 'pro.material_request','pro.delivery_date as deli', 'pro.production_order','pro.status','pro.item_code','pro.qty_to_manufacture','pro.description','pro.stock_uom')
-                ->select('delivery_date.rescheduled_delivery_date', 'pro.customer', 'pro.sales_order', 'pro.material_request', 'pro.delivery_date as deli', 'pro.production_order', 'pro.status', 'pro.item_code', 'pro.qty_to_manufacture', 'pro.description', 'pro.stock_uom', 'pro.produced_qty')
+                ->select('delivery_date.rescheduled_delivery_date', 'pro.customer', 'pro.sales_order', 'pro.material_request', 'pro.delivery_date as deli', 'pro.production_order', 'pro.status', 'pro.item_code', 'pro.qty_to_manufacture', 'pro.description', 'pro.stock_uom', 'pro.produced_qty', 'pro.project')
                 ->get();
         } else {
             $prod_details = DB::connection('mysql_mes')->table('production_order')

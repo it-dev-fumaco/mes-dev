@@ -123,6 +123,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/operator_scheduled_task/{workstation}/{process_id}', 'MainController@operator_scheduled_task');	
 });
 
+Route::get('/ongoing_orders', 'TrackingController@getOngoingOrders');
+
 //machine overview
 Route::get('/machine_overview', 'SecondaryController@machineOverview');
 Route::get('/machine_task_list', 'SecondaryController@machineTaskList');
@@ -334,6 +336,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/qa_monitoring_summary/{schedule_date}', 'SecondaryController@qa_monitoring_summary');
 	Route::get('/production_schedule_monitoring/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring');
 	Route::get('/production_schedule_monitoring_filters/{operation}/{schedule_date}', 'MainController@production_schedule_monitoring_filters');
+	Route::post('/save_machine_order', 'MainController@save_machine_order');
 	Route::post('/calendar/update_planned_start_date', 'SecondaryController@update_planned_start_date');
     Route::post('/add_shift_schedule', 
         ['uses' => 'SecondaryController@add_shift_schedule', 'as' => 'fabrication.ajax_update']);
@@ -546,10 +549,10 @@ Route::post('/delete_email_recipient', 'SecondaryController@delete_email_recipie
 Route::get('/drag_n_drop/{production_order}', 'MainController@drag_n_drop');
 Route::get('/get_feedback_logs/{prod}', 'SecondaryController@get_feedbacked_log'); // N
 
+Route::get('/get_order_list', 'MainController@getOrderList');
+Route::get('view_order_detail/{id}', 'TrackingController@viewOrderDetails');
 Route::group(['middleware' => 'auth'], function(){
-	Route::get('view_order_detail/{id}', 'MainController@viewOrderDetails');
 	Route::get('/order_list', 'MainController@viewOrderList');
-	Route::get('/get_order_list', 'MainController@getOrderList');
 	Route::post('/submit_withdrawal_slip', 'ManufacturingController@submit_withdrawal_slip');
 	Route::post('/reschedule_delivery/{id}', 'MainController@reschedule_delivery');
 	Route::get('/get_available_warehouse_qty/{item_code}', 'ManufacturingController@get_available_warehouse_qty');
@@ -704,6 +707,7 @@ Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{pr
 		Route::get('/export/job_ticket', 'LinkReportController@export_job_ticket');
 		Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 		Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
+		Route::get('/export/production_monitoring', 'LinkReportController@production_monitoring');
 
 		Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 		Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
@@ -730,4 +734,6 @@ Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{pr
 	Route::get('/print_qa_rejection_report', 'LinkReportController@print_qa_rejection_report');
 	Route::get('/items_in_their_own_bom', 'LinkReportController@items_in_their_own_bom');
 	});
+
+	Route::get('/onGoingQtyPerOperation', 'TrackingController@onGoingQtyPerOperation');
 });

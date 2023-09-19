@@ -578,6 +578,9 @@ class SpotweldingController extends Controller
 
 	public function get_spotwelding_current_operator_task_details(Request $request, $operator_id)
 	{
+		if(!Auth::check()){
+			return response()->json(['success' => 0, 'message' => 'Session Expired. Please login to continue.']);
+		}
 		$job_ticket_details = DB::connection('mysql_mes')->table('job_ticket')
 			->where('job_ticket_id', $request->job_ticket_id)->first();
 

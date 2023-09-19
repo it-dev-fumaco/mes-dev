@@ -105,7 +105,7 @@
         @endphp
 
         @if($loop->first || $req_items[$arr_ind]['production_order'] != $item['production_order'])
-        @if($item['ste'])
+        @if($item['ste'] && Gate::any(['create-withdrawal-slip-for-production-orders-wo-bom', 'create-withdrawal-slip']))
         <button type="button" rel="tooltip" class="btn btn-success ste-btn">
           <i class="now-ui-icons ui-1_check"></i> {{ $item['ste'] }}
         </button>
