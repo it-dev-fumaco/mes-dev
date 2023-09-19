@@ -46,10 +46,6 @@
         </div>
         <div class="modal-body pb-2">
             <table class="w-100 border-0" style="font-size: 9pt;">
-                @php
-                    // $delivery_date = $details->reschedule_delivery == 1 ? $details->reschedule_delivery_date : $details->delivery_date;
-                    $delivery_date = collect($items)->max('delivery_date');
-                @endphp
                 <tr>
                     <td class="align-middle text-right p-1">Customer:</td>
                     <td class="align-middle p-1 font-weight-bold">{{ $details->customer }}</td>
@@ -166,7 +162,10 @@
                                                     </div>
                                                 </td>
                                                 <td class="text-center p-2">
-                                                    {{ $v->delivery_date ? \Carbon\Carbon::parse($v->delivery_date)->format('M. d, Y') : '-' }}
+                                                    @php
+                                                        $row_delivery_date = $v->reschedule_delivery == 1 ? $v->rescheduled_delivery_date : $v->delivery_date;
+                                                    @endphp
+                                                    {{ $row_delivery_date ? \Carbon\Carbon::parse($row_delivery_date)->format('M. d, Y') : '-' }}
                                                 </td>
                                                 <td class="text-center p-2">
                                                     <span class="d-block font-weight-bold" style="font-size: 12pt;">{{ number_format($v->qty) }}</span>

@@ -152,8 +152,17 @@ class TrackingController extends Controller
 			$details = DB::connection('mysql')->table('tabMaterial Request as mr')->where('name', $id)
 				->select('mr.name', 'mr.creation', 'mr.customer', 'mr.project', 'mr.delivery_date', 'mr.custom_purpose as order_type', 'mr.status', 'mr.modified as date_approved', DB::raw('CONCAT(mr.address_line, " ", mr.address_line2, " ", mr.city_town)  as shipping_address'), 'mr.owner', 'mr.notes00 as notes', 'mr.sales_person', 'mr.delivery_date as reschedule_delivery_date', DB::raw('IFNULL(mr.delivery_date, 0) as reschedule_delivery'), 'mr.company', 'mr.modified', 'mr.per_ordered as delivery_percentage')->first();
 
+            $expected_delivery_date = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)->select('rescheduled_delivery_date', 'schedule_date as delivery_date', 'reschedule_delivery')->get();
+            $delivery_date_array = [];
+            foreach ($expected_delivery_date as $row) {
+                $ddate = $row->reschedule_delivery ? $row->rescheduled_delivery_date : $row->delivery_date;
+                $delivery_date_array[] = $ddate;
+            }
+
+            $delivery_date = collect($delivery_date_array)->max();
+
 			$item_list = DB::connection('mysql')->table('tabMaterial Request Item')->where('parent', $id)
-				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note', 'warehouse')
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'schedule_date as delivery_date', 'name', 'ordered_qty as delivered_qty', 'item_code as item_note', 'warehouse', 'reschedule_delivery', 'rescheduled_delivery_date')
 				->orderBy('idx', 'asc')->get();
 
 			$item_codes = collect($item_list)->pluck('item_code')->unique();
@@ -174,9 +183,18 @@ class TrackingController extends Controller
 			$details = DB::connection('mysql')->table('tabSales Order as so')->where('name', $id)
 				->select('so.name', 'so.creation', 'so.customer', 'so.project', 'so.delivery_date', 'so.sales_type as order_type', 'so.status', 'so.date_approved', 'so.shipping_address', 'so.owner', 'so.notes', 'so.sales_person', 'so.reschedule_delivery_date', 'so.reschedule_delivery', 'so.company', 'so.modified', 'so.per_delivered as delivery_percentage')
 				->first();
-			
+
+            $expected_delivery_date = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)->select('rescheduled_delivery_date', 'delivery_date', 'reschedule_delivery')->get();
+            $delivery_date_array = [];
+            foreach ($expected_delivery_date as $row) {
+                $ddate = $row->reschedule_delivery ? $row->rescheduled_delivery_date : $row->delivery_date;
+                $delivery_date_array[] = $ddate;
+            }
+
+            $delivery_date = collect($delivery_date_array)->max();
+
 			$item_list = DB::connection('mysql')->table('tabSales Order Item')->where('parent', $id)
-				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note', 'warehouse')
+				->select('item_code', 'description', 'qty', 'stock_uom', 'idx', 'parent', 'delivery_date', 'name', 'delivered_qty', 'item_note', 'warehouse', 'reschedule_delivery', 'rescheduled_delivery_date')
 				->orderBy('idx', 'asc')->get();
 
 			$item_codes = collect($item_list)->pluck('item_code')->unique();
@@ -267,10 +285,6 @@ class TrackingController extends Controller
 		
 				$has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
 				if ($has_fabrication && collect($has_fabrication)->count()) {
-                    // if($item_code == 'HO06194'){
-                    //     // return $has_fabrication;
-                    //     return $this->orderItemProductionStatus($has_fabrication);
-                    // }
                     $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
 				}
 		
@@ -287,10 +301,6 @@ class TrackingController extends Controller
 				if ($has_painting && collect($has_painting)->count()) {
 					$operation_status[$item_code]['painting'] = $this->orderItemProductionStatus($has_painting);
 				}
-
-                // if($item_code == 'HO06194'){
-                //     return $operation_status['HO06194'];
-                // }
 			}
 		}
 
@@ -299,7 +309,7 @@ class TrackingController extends Controller
 			->orderBy('creation', 'desc')->get();
 
 		if ($dashboard_request) {
-			return view('modals.view_order_details', compact('details', 'ref_type', 'item_list', 'item_images', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'operation_status', 'item_production_order_qty'));
+			return view('modals.view_order_details', compact('details', 'ref_type', 'item_list', 'item_images', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'operation_status', 'item_production_order_qty', 'delivery_date'));
 		}
 
 		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files', 'current_inventory_arr'));
@@ -680,7 +690,7 @@ class TrackingController extends Controller
                 if ($total_good > 0 && $row->good < $row->qty_to_manufacture && $row->feedback_qty < $row->qty_to_manufacture) {
                     $row_arr[] = $row;
                     $has_wip = $this->hasInProgressProcess(collect($row_arr));
-                    $workstation_status = $has_wip ? $row->jt_status : 'Idle';
+                    $workstation_status = $has_wip ? 'In Progress' : 'Idle';
                     $row_arr = [];
                 }
 
@@ -689,7 +699,8 @@ class TrackingController extends Controller
                 $workstation_array[$row->workstation][] = $workstation_status;
             }
 
-            if (in_array('Idle', collect($workstation_statuses)->unique()->values()->toArray())) {
+            $workstation_statuses_collection = collect($workstation_statuses)->unique()->values()->toArray();
+            if (in_array('Idle', $workstation_statuses_collection) && !in_array('In Progress', $workstation_statuses_collection)) {
                 $idle_production_orders[$prod] = collect($workstation_statuses)->unique()->values();
             }
             
