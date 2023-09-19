@@ -280,7 +280,7 @@ class TrackingController extends Controller
 		
 				$has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
 				if ($has_fabrication && collect($has_fabrication)->count()) {
-                    $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
+                    $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication, 'fabrication');
 				}
 		
 				$has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
@@ -310,11 +310,15 @@ class TrackingController extends Controller
 		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files', 'current_inventory_arr'));
 	}
 
-    public function orderItemProductionStatus($collection) {
+    public function orderItemProductionStatus($collection, $operation = null) {
         $operation_status = [];
-        $details = collect($collection)->groupBy('production_order')->map(function ($group) {
+        $details = collect($collection)->groupBy('production_order')->map(function ($group) use ($operation) {
+
+            $produced_qty = $operation == 'fabrication' ? 'good' : 'produced_qty';
+        
+
             return [
-                'produced_qty' => $group->min('produced_qty'),
+                'produced_qty' => $group->min($produced_qty),
                 'feedback_qty' => $group->max('feedback_qty'),
             ];
         });
@@ -658,7 +662,7 @@ class TrackingController extends Controller
 
         $has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
         if ($has_fabrication && collect($has_fabrication)->count()) {
-            $operation_status['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
+            $operation_status['fabrication'] = $this->orderItemProductionStatus($has_fabrication, 'fabrication');
         }
 
         $has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
