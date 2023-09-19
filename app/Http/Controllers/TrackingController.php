@@ -90,13 +90,10 @@ class TrackingController extends Controller
             $row = [];
             foreach ($parent_item_codes as $parent_item_code => $rows) {
                 $status = 'Not Started';
-                $feedbacked_qty = 0;
-                $item_prod = collect($rows)->where('item_code', $parent_item_code)->first();
-                if ($item_prod) {
-                    $feedbacked_qty = $item_prod->feedback_qty;
-                    if ($item_prod->qty_to_manufacture == $feedbacked_qty) {
-                        $status = 'Feedbacked';
-                    }
+                $qty_to_manufacture = collect($rows)->where('item_code', $parent_item_code)->sum('qty_to_manufacture');
+                $feedbacked_qty = collect($rows)->where('item_code', $parent_item_code)->sum('feedbacked_qty');
+                if ($qty_to_manufacture <= $feedbacked_qty) {
+                    $status = 'Feedbacked';
                 }
                 
                 // number of production process
@@ -109,22 +106,20 @@ class TrackingController extends Controller
                     if ($noPendingProcess < $noOfProcess) {
                         $status = 'Idle';
                     }
-
-                    $has_wip = $this->hasInProgressProcess($rows);
-                    if (!$has_wip) {
-                        $status ='Idle';
-                    }
     
                     if ($noOfProcess == $noCompletedProcess) {
                         $status = 'Ready for Feedback';
                     }
 
-                    $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
-                    if ($currentProcess) {
-                        if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
-                            $status = 'Painting';
-                        } else {
-                            $status = $currentProcess->process_name;
+                    $has_wip = $this->hasInProgressProcess($rows);
+                    if ($has_wip) {
+                        $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
+                        if ($currentProcess) {
+                            if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
+                                $status = 'Painting';
+                            } else {
+                                $status = $currentProcess->process_name;
+                            }
                         }
                     }
                 }
