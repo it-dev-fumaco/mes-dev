@@ -90,11 +90,18 @@ class TrackingController extends Controller
             $row = [];
             foreach ($parent_item_codes as $parent_item_code => $rows) {
                 $status = 'Not Started';
-                $qty_to_manufacture = collect($rows)->where('item_code', $parent_item_code)->sum('qty_to_manufacture');
                 $prods = collect($rows)->where('item_code', $parent_item_code);
-                $feedbacked_qty = collect($prods)->groupBy('production_order')->map(function ($group) {
-                    return $group[0]->feedback_qty;
-                })->values()->sum();
+                $qty = collect($prods)->groupBy('production_order')->map(function ($group) {
+                    return [
+                        'qty_to_manufacture' => $group[0]->qty_to_manufacture,
+                        'feedbacked_qty' => $group[0]->feedback_qty,
+                        'produced_qty' => $group[0]->produced_qty,
+                    ];
+                });
+
+                $qty_to_manufacture = collect($qty)->sum('qty_to_manufacture');
+                $produced_qty = collect($qty)->sum('produced_qty');
+                $feedbacked_qty = collect($qty)->sum('feedbacked_qty');
 
                 if ($qty_to_manufacture <= $feedbacked_qty) {
                     $status = 'Feedbacked';
@@ -111,23 +118,23 @@ class TrackingController extends Controller
 
                 $currentProcess = [];
                 if (!in_array($status, ['Feedbacked', 'Partially Feedbacked'])) {
-                    if ($noPendingProcess < $noOfProcess) {
+                    if ($noPendingProcess < $noOfProcess && $noCompletedProcess > 0) {
                         $status = 'Idle';
                     }
-    
-                    if ($noOfProcess == $noCompletedProcess) {
+
+                    if ($produced_qty > $feedbacked_qty) {
                         $status = 'Ready for Feedback';
                     }
+                }
 
-                    $has_wip = $this->hasInProgressProcess($rows);
-                    if ($has_wip) {
-                        $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
-                        if ($currentProcess) {
-                            if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
-                                $status = 'Painting';
-                            } else {
-                                $status = $currentProcess->process_name;
-                            }
+                $has_wip = $this->hasInProgressProcess($rows);
+                if ($has_wip) {
+                    $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
+                    if ($currentProcess) {
+                        if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
+                            $status = 'Painting';
+                        } else {
+                            $status = $currentProcess->process_name;
                         }
                     }
                 }
