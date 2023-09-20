@@ -8,22 +8,17 @@
     $feedback_qty = collect($result)->sum('feedback_qty');
     $produced_qty = collect($result)->sum('produced_qty');
 
-    if (array_key_exists($item['item_code'], $per_item_idle_production_orders)) {
-      $status = 'Idle';
-    } else {
-      if (in_array('In Progress', collect($result)->pluck('status')->toArray())) {
-        $status = 'In Progress';
-      } else {
-        $status = $result[0]['status'];
-      }
-    }
-
-    if ($produced_qty > $feedback_qty && $status != 'In Progress') {
+    $status = $result[0]['status'];
+    if ($produced_qty < $feedback_qty) {
       $status = 'Ready for Feedback';
     }
 
     if ($produced_qty <= $feedback_qty && $feedback_qty > 0 && $qty_to_manufacture <= $feedback_qty) {
       $status = 'Feedbacked';
+    }
+
+    if (array_key_exists($item['item_code'], $per_item_idle_production_orders)) {
+      $status = 'Idle';
     }
 
     switch($status){
@@ -89,13 +84,17 @@
       $feedback_qty = $res['feedback_qty'];
       $produced_qty = $res['produced_qty'];
 
-      $status = array_key_exists($res['production_order'], $idle_production_orders) ? 'Idle' : $res['status'];
-      if ($produced_qty > $feedback_qty && $status != 'In Progress') {
+      $status = $res['status'];
+      if ($produced_qty < $feedback_qty) {
         $status = 'Ready for Feedback';
       }
 
       if ($produced_qty <= $feedback_qty && $feedback_qty > 0 && $qty_to_manufacture <= $feedback_qty) {
         $status = 'Feedbacked';
+      }
+
+      if (array_key_exists($res['production_order'], $idle_production_orders)) {
+        $status = 'Idle';
       }
 
       switch($status){

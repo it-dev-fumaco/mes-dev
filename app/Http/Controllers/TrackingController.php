@@ -90,13 +90,10 @@ class TrackingController extends Controller
             $row = [];
             foreach ($parent_item_codes as $parent_item_code => $rows) {
                 $status = 'Not Started';
-                $feedbacked_qty = 0;
-                $item_prod = collect($rows)->where('item_code', $parent_item_code)->first();
-                if ($item_prod) {
-                    $feedbacked_qty = $item_prod->feedback_qty;
-                    if ($item_prod->qty_to_manufacture == $feedbacked_qty) {
-                        $status = 'Feedbacked';
-                    }
+                $qty_to_manufacture = collect($rows)->where('item_code', $parent_item_code)->sum('qty_to_manufacture');
+                $feedbacked_qty = collect($rows)->where('item_code', $parent_item_code)->sum('feedbacked_qty');
+                if ($qty_to_manufacture <= $feedbacked_qty) {
+                    $status = 'Feedbacked';
                 }
                 
                 // number of production process
@@ -109,22 +106,20 @@ class TrackingController extends Controller
                     if ($noPendingProcess < $noOfProcess) {
                         $status = 'Idle';
                     }
-
-                    $has_wip = $this->hasInProgressProcess($rows);
-                    if (!$has_wip) {
-                        $status ='Idle';
-                    }
     
                     if ($noOfProcess == $noCompletedProcess) {
                         $status = 'Ready for Feedback';
                     }
 
-                    $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
-                    if ($currentProcess) {
-                        if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
-                            $status = 'Painting';
-                        } else {
-                            $status = $currentProcess->process_name;
+                    $has_wip = $this->hasInProgressProcess($rows);
+                    if ($has_wip) {
+                        $currentProcess = collect($rows)->where('j_status', 'In Progress')->first();
+                        if ($currentProcess) {
+                            if (in_array($currentProcess->process_name, ['Loading', 'Unloading'])) {
+                                $status = 'Painting';
+                            } else {
+                                $status = $currentProcess->process_name;
+                            }
                         }
                     }
                 }
@@ -285,7 +280,7 @@ class TrackingController extends Controller
 		
 				$has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
 				if ($has_fabrication && collect($has_fabrication)->count()) {
-                    $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
+                    $operation_status[$item_code]['fabrication'] = $this->orderItemProductionStatus($has_fabrication, 'fabrication');
 				}
 		
 				$has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
@@ -315,11 +310,14 @@ class TrackingController extends Controller
 		return view('modals.view_order_modal_content', compact('details', 'ref_type', 'items_production_orders', 'item_list', 'default_boms', 'item_images', 'seen_logs_per_order', 'comments', 'actual_delivery_date_per_item', 'picking_slip_arr', 'files', 'current_inventory_arr'));
 	}
 
-    public function orderItemProductionStatus($collection) {
+    public function orderItemProductionStatus($collection, $operation = null) {
         $operation_status = [];
-        $details = collect($collection)->groupBy('production_order')->map(function ($group) {
+        $details = collect($collection)->groupBy('production_order')->map(function ($group) use ($operation) {
+
+            $produced_qty = $operation == 'fabrication' ? 'good' : 'produced_qty';
+
             return [
-                'produced_qty' => $group->min('produced_qty'),
+                'produced_qty' => $group->min($produced_qty),
                 'feedback_qty' => $group->max('feedback_qty'),
             ];
         });
@@ -328,23 +326,23 @@ class TrackingController extends Controller
         $feedback_qty = collect($details)->min('feedback_qty');
 
         $status = 'not_started';
-        if (collect($collection)->where('jt_status', 'In Progress')->count() > 0) {
-            $status = 'active';
+
+        if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
+            $status = 'completed';
+        }
+
+        if ($produced_qty > $feedback_qty) {
+            $status = 'for_feedback';
         }
 
         $completed_jt = collect($collection)->where('jt_status', 'Completed')->count();
-        if ($status != 'active' && $completed_jt > 0 && $completed_jt < collect($collection)->count()) {
+        if ($completed_jt > 0 && $completed_jt < collect($collection)->count()) {
             $status = 'idle';
         }
 
-        if (collect($collection)->count() > 0 && $status != 'active') {
-            if ($produced_qty > $feedback_qty) {
-                $status = 'for_feedback';
-            }
-
-            if ($produced_qty <= $feedback_qty && $feedback_qty > 0) {
-                $status = 'completed';
-            }
+        $has_wip = $this->hasInProgressProcess($collection);
+        if ($has_wip) {
+            $status = 'active';
         }
 
         if ($status != 'not_started') {
@@ -360,7 +358,7 @@ class TrackingController extends Controller
             }
 
             if ($ctual_start_date && $actual_end_date) {
-                if ($status != 'idle') {
+                if (!in_array($status, ['idle', 'active'])) {
                     $duration = $this->seconds2human($ctual_start_date->diffInSeconds($actual_end_date));
                     $operation_status['end'] = Carbon::parse($actual_end_date)->format('M. d, Y - h:i A');
                     $operation_status['duration'] = $duration;
@@ -627,16 +625,26 @@ class TrackingController extends Controller
 
         $production_per_item_query = collect($production_per_item_query)->groupBy('item_code')->toArray();
 
+        $job_tickets_per_item = collect($production_orders)->groupBy('item_code');
+
         $production_per_item = [];
         foreach ($production_per_item_query as $item_code => $pos) {
             $production_orders_array = [];
             foreach ($pos as $po) {
+                $has_wip = $this->hasInProgressProcess(collect($job_tickets_per_item[$po->item_code]));
+
                 $duration = null;
                 if ($po->actual_start_date && $po->actual_end_date) {
                     $actual_start_date = Carbon::parse($po->actual_start_date);
                     $actual_end_date = Carbon::parse($po->actual_end_date);
                     $duration = $this->seconds2human($actual_start_date->diffInSeconds($actual_end_date));
                 }
+
+                $status = $po->status;
+                if($status == 'In Progress'){
+                    $status = $has_wip ? $status : 'Idle';
+                }
+                    
                 $production_orders_array[] = [
                     'production_order' => $po->production_order,
                     'bom_no' => $po->bom_no ? $po->bom_no : 'No BOM',
@@ -644,7 +652,7 @@ class TrackingController extends Controller
                     'qty_to_manufacture' => $po->qty_to_manufacture,
                     'produced_qty' => $po->produced_qty,
                     'feedback_qty' => $po->feedback_qty,
-                    'status' => $po->status,
+                    'status' => $status,
                     'description' => $po->description,
                     'actual_start_date' => $po->actual_start_date ? Carbon::parse($po->actual_start_date)->format('M. d, Y - h:i A') : null,
                     'actual_end_date' => $po->actual_end_date ? Carbon::parse($po->actual_end_date)->format('M. d, Y - h:i A') : null,
@@ -663,7 +671,7 @@ class TrackingController extends Controller
 
         $has_fabrication = collect($not_painting_workstations)->where('operation_id', 1);
         if ($has_fabrication && collect($has_fabrication)->count()) {
-            $operation_status['fabrication'] = $this->orderItemProductionStatus($has_fabrication);
+            $operation_status['fabrication'] = $this->orderItemProductionStatus($has_fabrication, 'fabrication');
         }
 
         $has_assembly = collect($not_painting_workstations)->where('operation_id', 3);
@@ -679,6 +687,8 @@ class TrackingController extends Controller
         if ($has_painting && collect($has_painting)->count()) {
             $operation_status['painting'] = $this->orderItemProductionStatus($has_painting);
         }
+
+        // return $operation_status;
 
         $production_order_workstations_query = collect($production_orders)->groupBy('production_order')->toArray();
         $production_order_workstations = $idle_production_orders = [];
@@ -706,7 +716,7 @@ class TrackingController extends Controller
             
             $production_order_workstations[$prod] = $workstation_array;
         }
-        
+
         $item_bom = DB::connection('mysql')->table('tabBOM')->where('item', $item_details['item_code'])
             ->where('docstatus', '<', 2)->where('is_default', 1)->select('name', 'is_default', 'rf_drawing_no', 'item as item_code', 'description')
             ->orderBy('modified', 'desc')->first();

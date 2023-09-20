@@ -65,7 +65,7 @@ if ($export){
 
 <style>
     th{
-        background-color: #FFFF00 !important;
+        background-color: #6C757D !important;
         border: 1px solid #DEE2E6 !important;
     }
 </style>
