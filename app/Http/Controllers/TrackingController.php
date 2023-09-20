@@ -91,9 +91,17 @@ class TrackingController extends Controller
             foreach ($parent_item_codes as $parent_item_code => $rows) {
                 $status = 'Not Started';
                 $qty_to_manufacture = collect($rows)->where('item_code', $parent_item_code)->sum('qty_to_manufacture');
-                $feedbacked_qty = collect($rows)->where('item_code', $parent_item_code)->sum('feedbacked_qty');
+                $prods = collect($rows)->where('item_code', $parent_item_code);
+                $feedbacked_qty = collect($prods)->groupBy('production_order')->map(function ($group) {
+                    return $group[0]->feedback_qty;
+                })->values()->sum();
+
                 if ($qty_to_manufacture <= $feedbacked_qty) {
                     $status = 'Feedbacked';
+                }
+
+                if ($feedbacked_qty > 0 && $feedbacked_qty < $qty_to_manufacture) {
+                    $status = 'Partially Feedbacked';
                 }
                 
                 // number of production process
@@ -102,7 +110,7 @@ class TrackingController extends Controller
                 $noPendingProcess = collect($rows)->where('j_status', 'Pending')->count();
 
                 $currentProcess = [];
-                if ($status != 'Feedbacked') {
+                if (!in_array($status, ['Feedbacked', 'Partially Feedbacked'])) {
                     if ($noPendingProcess < $noOfProcess) {
                         $status = 'Idle';
                     }
