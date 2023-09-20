@@ -625,16 +625,26 @@ class TrackingController extends Controller
 
         $production_per_item_query = collect($production_per_item_query)->groupBy('item_code')->toArray();
 
+        $job_tickets_per_item = collect($production_orders)->groupBy('item_code');
+
         $production_per_item = [];
         foreach ($production_per_item_query as $item_code => $pos) {
             $production_orders_array = [];
             foreach ($pos as $po) {
+                $has_wip = $this->hasInProgressProcess(collect($job_tickets_per_item[$po->item_code]));
+
                 $duration = null;
                 if ($po->actual_start_date && $po->actual_end_date) {
                     $actual_start_date = Carbon::parse($po->actual_start_date);
                     $actual_end_date = Carbon::parse($po->actual_end_date);
                     $duration = $this->seconds2human($actual_start_date->diffInSeconds($actual_end_date));
                 }
+
+                $status = $po->status;
+                if($status == 'In Progress'){
+                    $status = $has_wip ? $status : 'Idle';
+                }
+                    
                 $production_orders_array[] = [
                     'production_order' => $po->production_order,
                     'bom_no' => $po->bom_no ? $po->bom_no : 'No BOM',
@@ -642,7 +652,7 @@ class TrackingController extends Controller
                     'qty_to_manufacture' => $po->qty_to_manufacture,
                     'produced_qty' => $po->produced_qty,
                     'feedback_qty' => $po->feedback_qty,
-                    'status' => $po->status,
+                    'status' => $status,
                     'description' => $po->description,
                     'actual_start_date' => $po->actual_start_date ? Carbon::parse($po->actual_start_date)->format('M. d, Y - h:i A') : null,
                     'actual_end_date' => $po->actual_end_date ? Carbon::parse($po->actual_end_date)->format('M. d, Y - h:i A') : null,
