@@ -74,7 +74,7 @@
                 @endphp
                 @if ($production_status == 'Ready for Feedback')
                 <span class="badge badge-info" style="font-size: 11px;">{{ $production_status }}</span>
-                @elseif ($production_status == 'Feedbacked')
+                @elseif (in_array($production_status, ['Feedbacked', 'Partially Feedbacked']))
                 <span class="badge badge-success" style="font-size: 11px;">{{ $production_status }}</span>
                 @elseif ($production_status == 'Idle' || $production_status == 'Not Started')
                 <span class="badge badge-secondary" style="font-size: 11px;">{{ $production_status }}</span>
