@@ -4279,7 +4279,7 @@ class ManufacturingController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Session Expired. Please refresh the page and login to continue.']);
             }
 
-            if (Gate::denies('create-withdrawal-slip')) {
+            if (!Gate::any(['create-withdrawal-slip', 'create-withdrawal-slip-for-production-orders-wo-bom'])) {
                 return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
             }
 
