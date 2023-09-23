@@ -151,6 +151,33 @@ class TrackingController extends Controller
             $items_production_orders[$reference] = $row;
 		}
 
+		if ($requested_reference || $requested_item_code || $requested_customer) {
+            $activity_arr = $search_arr = [];
+
+            if($requested_reference){
+                $search_arr['requested_reference'] = $requested_reference;
+            }
+
+            if($requested_item_code){
+                $search_arr['requested_item_code'] = $requested_item_code;
+            }
+
+            if($requested_customer){
+                $search_arr['requested_customer'] = $requested_customer;
+            }
+
+            $search_arr['total'] = $order_list->total();
+
+            $activity_arr = [
+                'action' => 'View Production Order Monitoring Dashboard',
+                'message' => json_encode($search_arr),
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => Auth::check() ? Auth::user()->email : $request->ip()
+            ];
+
+            $this->save_log($activity_arr);
+		}
+
 		return view('ongoing_orders', compact('order_list', 'items_production_orders'));
 	}
 
@@ -312,6 +339,19 @@ class TrackingController extends Controller
 					$operation_status[$item_code]['painting'] = $this->orderItemProductionStatus($has_painting);
 				}
 			}
+
+            $user = Auth::check() ? Auth::user()->email : $request->ip();
+            $message = $id.' has been viewed by '.$user.' at '. Carbon::now()->format('m-d-Y H:i:s');
+
+            $activity_arr = [
+                'action' => 'View Production Order',
+                'reference' => $id,
+                'message' => $message,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'created_by' => $user
+            ];
+
+            $this->save_log($activity_arr);
 		}
 
 		$comments = DB::connection('mysql')->table('tabComment')->where('reference_name', $id)
@@ -757,6 +797,19 @@ class TrackingController extends Controller
         })->filter(function ($value) {
             return count($value) > 0;
         })->toArray();
+
+        $user = Auth::check() ? Auth::user()->email : $request->ip();
+        $message = $request->itemcode.' of '.$request->guideid.' has been viewed by '.$user.' at '. Carbon::now()->format('m-d-Y H:i:s');
+
+        $activity_arr = [
+            'action' => 'View Item Tracking',
+            'reference' => $request->erp_reference_id,
+            'message' => $message,
+            'created_at' => Carbon::now()->toDateTimeString(),
+            'created_by' => $user
+        ];
+
+        $this->save_log($activity_arr);
 
         return view('tracking_flowchart', compact('operation_status', 'item_details', 'production_per_item', 'parts', 'production_order_workstations', 'idle_production_orders', 'per_item_idle_production_orders'));
     }
