@@ -26,7 +26,7 @@
             <div class="col-5 text-right p-2">
                <span class="text-white mr-3" style="font-size: 12pt;">Welcome, {{ Auth::user()->employee_name }}</span>
                <a href="/main_dashboard" class="btn btn-primary m-0 btn-xs">MAIN DASHBOARD</a>
-               <button type="button" class="btn btn-secondary m-0 btn-xs">LOGOUT</button>
+               <a href="/logout_user" class="btn btn-secondary m-0 btn-xs">LOGOUT</a>
             </div>
             @endif
          </div>
@@ -207,6 +207,8 @@
                error: function(jqXHR, textStatus, errorThrown) {
                   if(jqXHR.status == 401) {
                      showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  }else{
+                     showNotification("danger", 'An error occured. Please try again', "now-ui-icons travel_info");
                   }
                },
          });

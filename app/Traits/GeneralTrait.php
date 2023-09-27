@@ -1084,4 +1084,17 @@ trait GeneralTrait
 
 		return $bom_parts_arr;
 	}
+
+    public function save_log($data){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            DB::connection('mysql_mes')->table('activity_logs')->insert($data);
+            DB::connection('mysql_mes')->commit();
+            return 1;
+        } catch (\Throwable $th) {
+            DB::connection('mysql_mes')->rollBack();
+            //throw $th;
+            return 0;
+        }
+    }
 }
