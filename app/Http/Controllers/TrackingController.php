@@ -317,7 +317,7 @@ class TrackingController extends Controller
             $message = $id.' has been viewed by '.$user.' at '. Carbon::now()->format('m-d-Y H:i:s');
 
             $activity_arr = [
-                'action' => 'View Production Order',
+                'action' => 'Order Status Monitoring - View Order Details',
                 'reference' => $id,
                 'message' => $message,
                 'created_at' => Carbon::now()->toDateTimeString(),
@@ -775,7 +775,7 @@ class TrackingController extends Controller
         $message = $request->itemcode.' of '.$request->guideid.' has been viewed by '.$user.' at '. Carbon::now()->format('m-d-Y H:i:s');
 
         $activity_arr = [
-            'action' => 'View Item Tracking',
+            'action' => 'Order Status Monitoring - View Item Tracking',
             'reference' => $request->erp_reference_id,
             'message' => $message,
             'created_at' => Carbon::now()->toDateTimeString(),
