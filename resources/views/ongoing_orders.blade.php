@@ -53,12 +53,20 @@
                 }
             @endphp
             <td class="p-1 {{ $delivery_date_status }} text-white">
-                @if ($delivery_date_status == 'bg-danger')
-                <span class="text-uppercase font-weight-bold" style="font-size: 11px;">Delayed</span>
-                @endif
-                @if ($delivery_date_status == 'bg-success')
-                <span class="text-uppercase font-weight-bold" style="font-size: 11px;">Delivered</span>
-                @endif
+                @php
+                    switch ($delivery_date_status) {
+                        case 'bg-danger':
+                            $delivery_status_text = 'Delayed';
+                            break;
+                        case 'bg-success':
+                            $delivery_status_text = 'Delivered';
+                            break;
+                        default:
+                            $delivery_status_text = 'On Time';
+                            break;
+                    }
+                @endphp
+                <span class="text-uppercase font-weight-bold" style="font-size: 11px;">{{ $delivery_status_text }}</span>
                 <small class="d-block font-weight-bold">{{ \Carbon\Carbon::parse($delivery_date)->format('M. d, Y') }}</small>
             </td>
             @else
