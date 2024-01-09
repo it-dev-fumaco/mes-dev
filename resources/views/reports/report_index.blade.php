@@ -9,12 +9,12 @@
 <div class="panel-header">
  </div>
  <div class="row p-3" style="margin-top: -190px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
-    <div class="col-md-8 offset-md-2">
+    <div class="col-md-9 mx-auto">
             <div class="card">
                 <div class="card-body" style="min-height:750px;">
                    <div class="row" style="margin-top: 15px;">
                       
-                      <div class="col-md-6"  style="margin-top:30px;">
+                      <div class="col-md-4"  style="margin-top:30px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">
@@ -31,10 +31,13 @@
                                 <tr>
                                     <td><a href="/link_fabrication_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/production_orders_report/1" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Orders  </span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>
-                      <div class="col-md-6"  style="margin-top:30px;">
+                      <div class="col-md-4"  style="margin-top:30px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">
@@ -52,12 +55,12 @@
                                     <td><a href="/link_painting_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Water Discharged Monitoring </span></a></td>
                                 </tr>
                                 <tr>
-                                    <td><a href="/link_painting_report/4" class="hover-class"><span style="padding-left:30px;line-height:25px;"> Powder Coat Consumption Report </span></a></td>
+                                    <td><a href="/production_orders_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Orders  </span></a></td>
                                 </tr>
                             </tbody>
                         </table>
                       </div>
-                      <div class="col-md-6"  style="margin-top:70px;">
+                      <div class="col-md-4"  style="margin-top:30px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">
@@ -71,10 +74,19 @@
                                 <tr>
                                     <td><a href="/link_assembly_report/2" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Operator Load Utilization  </span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/deliveries_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">Deliveries Report</span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/production_orders_report/3" class="hover-class"><span style="padding-left:30px;line-height:25px;">  Production Orders  </span></a></td>
+                                </tr>
+                                <tr>
+                                    <td><a href="/sales_orders_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">Sales Orders</span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>
-                      <div class="col-md-6" style="margin-top:70px;">
+                      <div class="col-md-4" style="margin-top:70px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">
@@ -97,7 +109,7 @@
                             </tbody>
                         </table>
                       </div>
-                      <div class="col-md-6"  style="margin-top:70px;">
+                      <div class="col-md-4"  style="margin-top:70px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">
@@ -111,7 +123,7 @@
                             </tbody>
                         </table>
                       </div>
-                      <div class="col-md-6"  style="margin-top:70px;">
+                      <div class="col-md-4"  style="margin-top:70px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">

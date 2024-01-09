@@ -2813,11 +2813,14 @@
         data:data,
         success:function(data){
           if(data.success < 1){
-          showNotification("info", data.message, "now-ui-icons travel_info");
-        }else{
+            showNotification("info", data.message, "now-ui-icons travel_info");
+          }else{
             $('#track-view-modal #tbl_flowchart').html(data);
             $('#track-view-modal').modal('show');
-            }
+          }
+        },
+        error: (xhr) => {
+          showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
         }
       });
     });
