@@ -2139,4 +2139,111 @@ class LinkReportController extends Controller
 
         return view('reports.system_audit_items_in_their_own_bom', compact('operations', 'permissions', 'report'));
     }
+
+    public function sales_orders_report(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        if($request->ajax()){
+            $daterange = explode(' - ', $request->daterange);
+            $from = $daterange[0];
+            $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
+
+            $docstatus = $request->status == 2 ? $request->status : 1;
+
+            $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
+            $to_date = $request->daterange ? Carbon::parse($to)->endOfDay()->toDateString() : Carbon::now()->endOfDay()->toDateString();
+    
+            $sales_orders = DB::connection('mysql')->table('tabSales Order')
+                ->where('docstatus', $docstatus)->where('company', 'FUMACO Inc.')
+                ->when($request->status == 1, function ($q){
+                    return $q->where('status', 'Completed');
+                })
+                ->whereDate('creation', '>=', $from_date)->whereDate('creation', '<=', $to_date)
+                ->orderBy('creation', 'desc')->paginate(10);
+
+            return view('reports.sales_order_report_tbl', compact('sales_orders'));
+        }
+        
+        return view('reports.sales_order_report', compact('permissions', 'operations'));
+    }
+
+    public function production_orders_report(Request $request, $operation){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        if($request->ajax()){
+            $daterange = explode(' - ', $request->daterange);
+            $from = $daterange[0];
+            $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
+
+            $status = $request->status;
+
+            $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
+            $to_date = $request->daterange ? Carbon::parse($to)->endOfDay()->toDateString() : Carbon::now()->endOfDay()->toDateString();
+    
+            $production_orders = DB::connection('mysql_mes')->table('production_order')
+                ->where('operation_id', $operation)
+                ->when($status, function ($q){
+                    return $q->where('status', 'Completed')->whereRaw('feedback_qty >= qty_to_manufacture');
+                })
+                ->whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date)
+                ->orderBy('created_at', 'desc')->paginate(10);
+
+            return view('reports.production_orders_report_tbl', compact('production_orders'));
+        }
+        
+        return view('reports.production_orders_report', compact('permissions', 'operations', 'operation'));
+    }
+
+    public function deliveries_report(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        if($request->ajax()){
+            $daterange = explode(' - ', $request->daterange);
+            $from = $daterange[0];
+            $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
+
+            $status = $request->status;
+
+            $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
+            $to_date = $request->daterange ? Carbon::parse($to)->endOfDay()->toDateString() : Carbon::now()->endOfDay()->toDateString();
+    
+            $sales_orders = DB::connection('mysql')->table('tabSales Order as so')
+                ->leftJoin('tabDelivery Note as dr', 'dr.sales_order', 'so.name')
+                ->whereDate('so.creation', '>=', $from_date)->whereDate('so.creation', '<=', $to_date)->where('so.docstatus', 1)->where('dr.docstatus', 1)->where('so.company', 'FUMACO Inc.')
+                ->when(!$status, function ($q){
+                    return $q->where('so.reschedule_delivery', 1);
+                })
+                ->when($status == 1, function ($q){
+                    return $q->whereRaw('DATE(dr.delivery_date) <= CASE so.reschedule_delivery WHEN 1 THEN DATE(so.reschedule_delivery_date) ELSE DATE(so.delivery_date) END')->where('so.per_delivered', 100);
+                })
+                ->when($status == 2, function ($q){
+                    return $q->whereRaw('DATE(dr.delivery_date) > CASE so.reschedule_delivery WHEN 1 THEN DATE(so.reschedule_delivery_date) ELSE DATE(so.delivery_date) END');
+                })
+                ->select('so.name as reference', 'dr.name as dr_reference', 'dr.delivery_date as actual_delivery_date', 'so.delivery_date as scheduled_delivery_date', 'so.reschedule_delivery', 'so.reschedule_delivery_date', 'so.customer', 'so.status', 'so.per_delivered', 'so.owner', 'so.creation')
+                ->orderByDesc('so.creation')->paginate(10);
+
+            return view('reports.deliveries_report_tbl', compact('sales_orders'));
+        }
+        
+        return view('reports.deliveries_report', compact('permissions', 'operations'));
+    }
 }

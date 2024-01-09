@@ -674,6 +674,10 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/createViewOrderLog', 'MainController@createViewOrderLog');
 	Route::get('/weekly_rejection_report', 'LinkReportController@weekly_rejection_report');
 	Route::get('/reject_reasons_report', 'LinkReportController@reject_reasons_report');
+	
+	Route::get('/deliveries_report', 'LinkReportController@deliveries_report');
+	Route::get('/sales_orders_report', 'LinkReportController@sales_orders_report');
+	Route::get('/production_orders_report/{operation}', 'LinkReportController@production_orders_report');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');
