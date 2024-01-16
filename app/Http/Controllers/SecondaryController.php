@@ -1976,7 +1976,7 @@ class SecondaryController extends Controller
     public function get_all_processes(Request $request){
         try {
             if (Gate::denies('manage-workstations')) {
-                return redirect()->back()->with('error', 'Unauthorized');
+                return response()->json(['success' => 0, 'message' => 'Unauthorized'])
             }
 
             $search_string = $request->search ?? null;
@@ -1988,7 +1988,7 @@ class SecondaryController extends Controller
 
             return view('tables.tbl_processes_list', compact('processes'));
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Unauthorized');
+            return response()->json(['success' => 0, 'message' => 'Unauthorized'])
         }
     }
 
