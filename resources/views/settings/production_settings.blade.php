@@ -62,6 +62,10 @@
             Shift Setup
           </button>
         @endcanany
+
+        <button class="ctrl-btn view-process-list" data-target="#process">
+          Process Setup
+        </button>
       </div>
         @canany(['manage-machines'])
           <div class="tab-pane active" id="workstation_setup">
@@ -212,6 +216,59 @@
             </div>
           </div>
         @endcanany
+
+        <div class="tab-pane" id="process">
+          <div class="card">
+            <div class="card-header p-0 m-0" style="background-color: #0277BD;">
+              <div class="d-flex align-items-center pl-2 pr-2">
+                <div class="mr-auto p-2">
+                  <div class="text-white font-weight-bold text-left m-0 text-uppercase" style="font-size: 16px;">Process Setup</div>
+                </div>
+                <div class="p-2 col-4">
+                  <input type="text" class="form-control rounded bg-white p-2 w-100" placeholder="Search Process" id="search-process-setup">
+                </div>
+                <div class="p-2">
+                  <button type="button" class="btn btn-primary m-0" data-toggle="modal" data-target="#add-process-modal" style="font-size: 9pt;">
+                    <i class="now-ui-icons ui-1_simple-add"></i> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="row p-0 m-0" style="background-color: #ffffff;height: auto; min-height: 500px;">
+                <div class="col-md-12">
+                  <div class="tbl_process pt-3" id="tbl_process"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="add-process-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <form action="/save_process" id="add-process-form" method="post">
+                <div class="modal-header" style="background-color: #0277BD; color: #fff;">
+                  <h5 class="modal-title" id="exampleModalLabel">Add Process</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    @csrf
+                    <input type="text" class="form-control" name="process_name" placeholder="Process Name" required>
+                    <br>
+                    <textarea name="remarks" rows="3" class="form-control" placeholder="Remarks..."></textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
 		</div>
 	</div>
 </div>
@@ -1317,6 +1374,101 @@ $(document).ready(function(){
       }
     });
   }
+
+  const tbl_process_list = (page = 1) => {
+    const search = $('#search-process-setup').val()
+    $.ajax({
+      url: '/process/list',
+      type:"get",
+      data: { page, search },
+      success: (response) => {
+        $('#tbl_process').html(response)
+      },
+      error: (error, xhr, e) => {
+        showNotification("danger", xhr, "fa fa-info")
+      }
+    });
+  }
+
+  $(document).on('keyup', '#search-process-setup', function (e){
+    e.preventDefault()
+    tbl_process_list()
+  });
+
+  $(document).on('click', '.view-process-list', function (e){
+    tbl_process_list()
+  })
+
+  $(document).on('click', '#process_list_pagination a', function(e){
+    e.preventDefault();
+    var page = $(this).attr('href').split('page=')[1];
+    tbl_process_list(page);
+  });
+
+  $(document).on('submit', '#add-process-form', function (e){
+    e.preventDefault()
+    const form = $(this)
+    $.ajax({
+      url: form.attr('action'),
+      type:"post",
+      data: form.serialize(),
+      success: (response) => {
+        if(!response){
+          showNotification("danger", response.message, "fa fa-info")
+          return false
+        }
+        showNotification("success", response.message, "fa fa-info")
+        tbl_process_list()
+        $('.modal').modal('hide')
+      },
+      error: (error, xhr, e) => {
+        showNotification("danger", xhr, "fa fa-info")
+      }
+    })
+  })
+
+  $(document).on('submit', '.edit-process-form', function (e){
+    e.preventDefault()
+    const form = $(this)
+    $.ajax({
+      url: form.attr('action'),
+      type:"post",
+      data: form.serialize(),
+      success: (response) => {
+        if(!response){
+          showNotification("danger", response.message, "fa fa-info")
+          return false
+        }
+        showNotification("success", response.message, "fa fa-info")
+        tbl_process_list()
+        $('.modal').modal('hide')
+      },
+      error: (error, xhr, e) => {
+        showNotification("danger", xhr, "fa fa-info")
+      }
+    })
+  })
+
+  $(document).on('click', '.delete-process', function (e){
+    e.preventDefault()
+    const id = $(this).data('id')
+    $.ajax({
+      url: '/process/delete/' + id,
+      type:"get",
+      success: (response) => {
+        if(!response){
+          showNotification("danger", response.message, "fa fa-info")
+          return false
+        }
+        showNotification("success", response.message, "fa fa-info")
+        tbl_process_list()
+        $('.modal').modal('hide')
+      },
+      error: (error, xhr, e) => {
+        showNotification("danger", xhr, "fa fa-info")
+      }
+    })
+  })
 
   $('#add-assign-machine-workstation-to-process-frm').submit(function(e){
     e.preventDefault();
