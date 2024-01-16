@@ -353,6 +353,12 @@ Route::get('/maintenance_schedules_per_operation/{operation_id}', 'MainControlle
 ///revise MainDashboard Patrick 
 Route::get('/get_production_order_list/{date}', 'SecondaryController@get_production_order_list');
 
+Route::prefix('process')->group(function () {
+	Route::get('/list', 'SecondaryController@get_all_processes');
+	Route::post('/edit/{id}', 'SecondaryController@edit_process');
+	Route::get('/delete/{id}', 'SecondaryController@delete_process');
+});
+
 Route::post('/add_shift', 'SecondaryController@add_shift');
 Route::post('/edit_shift', 'SecondaryController@edit_shift');
 Route::post('/delete_shift', 'SecondaryController@delete_shift');

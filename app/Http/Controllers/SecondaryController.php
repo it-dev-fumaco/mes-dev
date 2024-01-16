@@ -1973,32 +1973,108 @@ class SecondaryController extends Controller
         return view('settings_module', compact('item_group', 'permissions', 'warehouse_wip', 'module', 'item_classification', 'warehouse', 'list', 'operation', 'machine_process', 'process_list', 'workstation_list', 'employees', 'operations', 'operation_list', 'shift_list', 'reject_category', 'uom_list', 'material_types', 'mes_users'));
     }
 
+    public function get_all_processes(Request $request){
+        try {
+            if (Gate::denies('manage-workstations')) {
+                return redirect()->back()->with('error', 'Unauthorized');
+            }
+
+            $search_string = $request->search ?? null;
+            $processes = DB::connection('mysql_mes')->table('process')
+                ->when($search_string, function ($q) use ($search_string){
+                    return $q->where('process_name', 'like', "%$search_string%");
+                })
+                ->paginate(10);
+
+            return view('tables.tbl_processes_list', compact('processes'));
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Unauthorized');
+        }
+    }
+
     public function save_process(Request $request)
     {
-        if (Gate::denies('manage-workstations')) {
-            return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
-        }
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if (Gate::denies('manage-workstations')) {
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+            }
+    
+            $now = Carbon::now();
 
-        $now = Carbon::now();
-        if (
-            DB::connection('mysql_mes')->table('process')
-                ->where('process_name', '=', $request->process_name)
-                ->exists()
-        ) {
-            return response()->json(['success' => 0, 'message' => 'Process already exists']);
-        } else {
-            $values1 = [
+            $exists = DB::connection('mysql_mes')->table('process')
+                ->where('process_name', $request->process_name)
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['success' => 0, 'message' => 'Process already exists']);
+            }
+    
+            DB::connection('mysql_mes')->table('process')->insert([
                 'process_name' => $request->process_name,
-                'color_legend' => $request->color_legend,
+                'color_legend' => '#000',
                 'remarks' => $request->remarks,
                 'last_modified_by' => Auth::user()->email,
                 'created_by' => Auth::user()->email,
                 'created_at' => $now->toDateTimeString()
-            ];
+            ]);
 
-            DB::connection('mysql_mes')->table('process')->insert($values1);
-
+            DB::connection('mysql_mes')->commit();
             return response()->json(['success' => 1, 'message' => 'Process successfully Added.']);
+        } catch (\Throwable $th) {
+            // throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+        }
+    }
+
+    public function edit_process(Request $request, $id){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if (Gate::denies('manage-workstations')) {
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+            }
+    
+            $now = Carbon::now();
+
+            $exists = DB::connection('mysql_mes')->table('process')
+                ->where('process_name', $request->process_name)
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['success' => 0, 'message' => 'Process already exists']);
+            }
+    
+            DB::connection('mysql_mes')->table('process')->where('process_id', $id)->update([
+                'process_name' => $request->process_name,
+                'remarks' => $request->remarks,
+                'last_modified_by' => Auth::user()->email
+            ]);
+
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Process successfully Updated.']);
+        } catch (\Throwable $th) {
+            // throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
+        }
+    }
+
+    public function delete_process($id){
+        DB::connection('mysql_mes')->beginTransaction();
+        try {
+            if (Gate::denies('manage-workstations')) {
+                return response()->json(['success' => 0, 'message' => 'Unauthorized.']);
+            }
+    
+            DB::connection('mysql_mes')->table('process')->where('process_id', $id)->delete();
+
+            DB::connection('mysql_mes')->commit();
+            return response()->json(['success' => 1, 'message' => 'Process successfully Deleted.']);
+        } catch (\Throwable $th) {
+            // throw $th;
+            DB::connection('mysql_mes')->rollback();
+            return response()->json(['success' => 0, 'message' => 'An error occured. Please try again.']);
         }
     }
 
