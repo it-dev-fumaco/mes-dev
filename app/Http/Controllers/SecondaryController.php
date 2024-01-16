@@ -1976,7 +1976,7 @@ class SecondaryController extends Controller
     public function get_all_processes(Request $request){
         try {
             if (Gate::denies('manage-workstations')) {
-                return response()->json(['success' => 0, 'message' => 'Unauthorized'])
+                return response()->json(['success' => 0, 'message' => 'Unauthorized']);
             }
 
             $search_string = $request->search ?? null;
@@ -1988,7 +1988,7 @@ class SecondaryController extends Controller
 
             return view('tables.tbl_processes_list', compact('processes'));
         } catch (\Throwable $th) {
-            return response()->json(['success' => 0, 'message' => 'Unauthorized'])
+            return response()->json(['success' => 0, 'message' => 'Unauthorized']);
         }
     }
 
@@ -2039,7 +2039,7 @@ class SecondaryController extends Controller
 
             $exists = DB::connection('mysql_mes')->table('process')
                 ->where('process_name', $request->process_name)
-                ->exists();
+                ->where('process_id', $id)->exists();
 
             if ($exists) {
                 return response()->json(['success' => 0, 'message' => 'Process already exists']);
