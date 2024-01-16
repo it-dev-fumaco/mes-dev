@@ -2039,7 +2039,7 @@ class SecondaryController extends Controller
 
             $exists = DB::connection('mysql_mes')->table('process')
                 ->where('process_name', $request->process_name)
-                ->where('process_id', $id)->exists();
+                ->where('process_id', '!=', $id)->exists();
 
             if ($exists) {
                 return response()->json(['success' => 0, 'message' => 'Process already exists']);
