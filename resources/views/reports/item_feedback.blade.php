@@ -103,6 +103,14 @@
                                   @endforeach
                                 </select>
                               </div>
+                              <div class="col-3">
+                                <label>Creation</label>
+                                <input type="text" name="po_creation" class="form-control date-range prod-list-filter" placeholder="Select Date" value="" data-div="#production-orders-div"/>
+                              </div>
+                              <div class="col-3">
+                                <label>Delivery Date</label>
+                                <input type="text" name="po_delivery_date" class="form-control date-range prod-list-filter" placeholder="Select Date" value="" data-div="#production-orders-div" />
+                              </div>
                               <div id='feedback-date-filter' class="col-3 d-none">
                                 <label>Feedback Date</label>
                                 <input type="text" name="daterange" id="feedback-date" class="form-control date-range" placeholder="Select Date" value="" data-div="#production-orders-div" />
@@ -1464,7 +1472,6 @@ $(document).ready(function(){
   // production order list filters
   $('.date-range').daterangepicker({
     autoUpdateInput: false,
-    autoApply: true,
     locale: {
       cancelLabel: 'Clear'
     },
@@ -1504,12 +1511,16 @@ $(document).ready(function(){
   });
   // production order list filters
 
-  function get_production_order_list(status, div, get_total, page, query){
+  function get_production_order_list(status, div, get_total, page, search_string){
     $('#loader-wrapper').removeAttr('hidden');
 
+    console.log('test')
     var owner = '';
     var target_warehouse = '';
     var feedback_date = '';
+
+    const creation = $('input[name="po_creation"]').val();
+    const delivery_date = $('input[name="po_delivery_date"]').val();
 
     status = status ? status : 'All';
 
@@ -1527,11 +1538,12 @@ $(document).ready(function(){
       url: "/production_order_list/" + status + "?page=" + page,
       type:"GET",
       data: {
-        search_string: query,
-        get_total: get_total,
-        owner: owner,
-        target_warehouse: target_warehouse,
-        feedback_dates: feedback_date
+        search_string,
+        feedback_date,
+        get_total,
+        owner,
+        target_warehouse,
+        creation, delivery_date
       },
       success:function(data){
         $('#loader-wrapper').attr('hidden', true);
@@ -1539,6 +1551,7 @@ $(document).ready(function(){
       }
     });
   }
+
 
   $(document).on('click', '.custom-production-pagination a', function(event){
     event.preventDefault();
