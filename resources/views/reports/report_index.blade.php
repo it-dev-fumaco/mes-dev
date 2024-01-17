@@ -83,6 +83,9 @@
                                 <tr>
                                     <td><a href="/sales_orders_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">Sales Orders</span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/material_request_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">Material Requests</span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>

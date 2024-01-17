@@ -2188,6 +2188,42 @@ class LinkReportController extends Controller
         return view('reports.sales_order_report', compact('permissions', 'operations'));
     }
 
+    public function material_request_report(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        if($request->ajax()){
+            $daterange = explode(' - ', $request->daterange);
+            $from = $daterange[0];
+            $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
+
+            $docstatus = $request->status == 2 ? $request->status : 1;
+
+            $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
+            $to_date = $request->daterange ? Carbon::parse($to)->endOfDay()->toDateString() : Carbon::now()->endOfDay()->toDateString();
+    
+            $material_request = DB::connection('mysql')->table('tabMaterial Request')
+                ->where('docstatus', $docstatus)->where('company', 'FUMACO Inc.')
+                ->when($request->status == 1, function ($q){
+                    return $q->where('status', 'Completed');
+                })
+                ->when($request->customer, function ($q) use ($request){
+                    return $q->where('customer', $request->customer);
+                })
+                ->whereDate('creation', '>=', $from_date)->whereDate('creation', '<=', $to_date)
+                ->orderBy('creation', 'desc')->paginate(10);
+
+            return view('reports.material_request_report_tbl', compact('material_request'));
+        }
+        
+        return view('reports.material_request_report', compact('permissions', 'operations'));
+    }
+
     public function production_orders_report(Request $request, $operation){
         if (Gate::denies('reports')) {
             return redirect()->back();
