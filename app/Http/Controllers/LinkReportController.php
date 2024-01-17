@@ -2296,6 +2296,9 @@ class LinkReportController extends Controller
             $sales_orders = DB::connection('mysql')->table('tabSales Order as so')
                 ->leftJoin('tabDelivery Note as dr', 'dr.sales_order', 'so.name')
                 ->whereDate('so.creation', '>=', $from_date)->whereDate('so.creation', '<=', $to_date)->where('so.docstatus', 1)->where('dr.docstatus', 1)->where('so.company', 'FUMACO Inc.')
+                ->when($request->customer, function ($q) use ($request){
+                    return $q->where('so.customer', $request->customer);
+                })
                 ->when(!$status, function ($q){
                     return $q->where('so.reschedule_delivery', 1);
                 })

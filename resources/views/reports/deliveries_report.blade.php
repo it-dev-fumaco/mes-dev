@@ -16,10 +16,10 @@
     <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
         <div class="col-12 m-0 bg-white border">
             <div class="row mt-2 p-2">
-                <div class="col-2 offset-3 d-flex justify-content-end align-items-center">
+                <div class="col-3 d-flex justify-content-end align-items-center">
                     <label class="pt-1"><b>Select Date Range</b></label>
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <input type="text" class="form-control" id="daterange">
                 </div>
                 <div class="col-3">
@@ -31,6 +31,9 @@
                             <option value="{{ $key }}">{{ $status }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div class="col-3">
+                    <select name="customer" class="form-control" id="customer-selection"></select>
                 </div>
             </div>
             <div id="tbl" class="col-12 pt-2 mx-auto overflow-auto"></div>
@@ -94,11 +97,12 @@ $(document).ready(function(){
     const load = (page = 1) => {
         const daterange = $('#daterange').val()
         const status = $('select[name="status"]').val()
+        const customer = $('select[name="customer"]').val()
         $.ajax({
             url: '/deliveries_report',
             type:"GET",
             data: {
-                page, daterange, status
+                page, daterange, status, customer
             },
             success: (data) => {
                 $('#tbl').html(data)
@@ -113,6 +117,35 @@ $(document).ready(function(){
     }
 
     load()
+
+    $('#customer-selection').select2({
+        theme: 'bootstrap',
+        containerCssClass: 'form-control h-100',
+        placeholder: 'Select a Customer',
+        allowClear: true,
+        ajax: {
+            url: '/get_customers_filter',
+            method: 'GET',
+            dataType: 'json',
+            data: function (data) {
+                return {
+                    q: data.term 
+                };
+            },
+            processResults: function (response) {
+                return {
+                    results: response.customers
+                };
+            },
+            cache: true
+        }
+    });
+
+    $(document).on('select2:select', '#customer-selection', function(e){
+        load();
+    }).on('select2:clear', function (event) {
+        load();
+    })
 
     $(document).on('change', 'select[name="status"]', function (e){
         e.preventDefault()
