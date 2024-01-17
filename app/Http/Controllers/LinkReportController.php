@@ -2140,6 +2140,18 @@ class LinkReportController extends Controller
         return view('reports.system_audit_items_in_their_own_bom', compact('operations', 'permissions', 'report'));
     }
 
+    public function get_customers_filter(Request $request){
+        $search_string = $request->q ?? null;
+        $customers = DB::table('tabCustomer')
+            ->when($request->q, function ($q) use ($search_string){
+                return $q->where('name', 'like', "%$search_string%")->orWhere('customer_name', 'like', "%$search_string%");
+            })
+            ->selectRaw('name as id, customer_name as text')
+            ->orderBy('name', 'asc')->get();
+
+        return response()->json(compact('customers'));
+    }
+
     public function sales_orders_report(Request $request){
         if (Gate::denies('reports')) {
             return redirect()->back();
@@ -2163,6 +2175,9 @@ class LinkReportController extends Controller
                 ->where('docstatus', $docstatus)->where('company', 'FUMACO Inc.')
                 ->when($request->status == 1, function ($q){
                     return $q->where('status', 'Completed');
+                })
+                ->when($request->customer, function ($q) use ($request){
+                    return $q->where('customer', $request->customer);
                 })
                 ->whereDate('creation', '>=', $from_date)->whereDate('creation', '<=', $to_date)
                 ->orderBy('creation', 'desc')->paginate(10);
