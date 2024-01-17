@@ -2198,6 +2198,19 @@ class LinkReportController extends Controller
         $operations = DB::connection('mysql_mes')->table('operation')->get();
 
         if($request->ajax()){
+            if($request->get_status){
+                $search_string = $request->q ?? null;
+                $statuses = DB::connection('mysql_mes')->table('production_order')
+                    ->when($search_string, function ($q) use ($search_string){
+                        return $q->where('status', 'like', "%$search_string%");
+                    })
+                    ->selectRaw('status as id, status as text')
+                    ->groupBy('status')
+                    ->orderBy('status', 'asc')->get();
+
+                return response()->json(compact('statuses'));
+            }
+
             $daterange = explode(' - ', $request->daterange);
             $from = $daterange[0];
             $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
@@ -2209,8 +2222,11 @@ class LinkReportController extends Controller
     
             $production_orders = DB::connection('mysql_mes')->table('production_order')
                 ->where('operation_id', $operation)
-                ->when($status, function ($q){
-                    return $q->where('status', 'Completed')->whereRaw('feedback_qty >= qty_to_manufacture');
+                ->when($status, function ($q) use ($status){
+                    return $q->where('status', $status);
+                })
+                ->when($status == 'Completed', function ($q){
+                    return $q->whereRaw('feedback_qty >= qty_to_manufacture');
                 })
                 ->whereDate('created_at', '>=', $from_date)
                 ->whereDate('created_at', '<=', $to_date)

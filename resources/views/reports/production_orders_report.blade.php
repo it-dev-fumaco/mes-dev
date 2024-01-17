@@ -17,14 +17,7 @@
                     <input type="text" class="form-control" id="daterange">
                 </div>
                 <div class="col-3">
-                    @php
-                        $statuses = ['New', 'Completed'];
-                    @endphp
-                    <select name="status" class="form-control">
-                        @foreach ($statuses as $key => $status)
-                            <option value="{{ $key }}">{{ $status }}</option>
-                        @endforeach
-                    </select>
+                    <select name="status" class="form-control" id="status-selection"></select>
                 </div>
             </div>
             <div id="tbl" class="col-12 pt-2 mx-auto overflow-auto"></div>
@@ -112,11 +105,35 @@ $(document).ready(function(){
 
     load()
 
-    $(document).on('change', 'select[name="status"]', function (e){
-        e.preventDefault()
+    $('#status-selection').select2({
+        theme: 'bootstrap',
+        containerCssClass: 'form-control h-100',
+        dropdownCssClass: 'form-control',
+        placeholder: 'Select a Status',
+        allowClear: true,
+        ajax: {
+            url: '/production_orders_report/1',
+            method: 'GET',
+            dataType: 'json',
+            data: function (data) {
+                return {
+                    q: data.term,
+                    get_status: 1
+                };
+            },
+            processResults: function (response) {
+                return {
+                    results: response.statuses
+                };
+            },
+            cache: true
+        }
+    });
 
-        console.log($(this).val())
-        load()
+    $(document).on('select2:select', '#status-selection', function(e){
+        load();
+    }).on('select2:clear', function (event) {
+        load();
     })
 
     $('#daterange').on('apply.daterangepicker', function(ev, picker) {
