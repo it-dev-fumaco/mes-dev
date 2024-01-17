@@ -119,7 +119,6 @@ $(document).ready(function(){
     $('#customer-selection').select2({
         theme: 'bootstrap',
         containerCssClass: 'form-control h-100',
-        dropdownCssClass: 'form-control',
         placeholder: 'Select a Customer',
         allowClear: true,
         ajax: {

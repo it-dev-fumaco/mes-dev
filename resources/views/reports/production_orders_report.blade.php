@@ -108,7 +108,6 @@ $(document).ready(function(){
     $('#status-selection').select2({
         theme: 'bootstrap',
         containerCssClass: 'form-control h-100',
-        dropdownCssClass: 'form-control',
         placeholder: 'Select a Status',
         allowClear: true,
         ajax: {
