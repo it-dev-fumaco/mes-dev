@@ -3321,7 +3321,7 @@ class ManufacturingController extends Controller
 
                         // validate qty vs remaining required qty
                         $remaining_required_qty = $alternative_for->required_qty - ($alternative_for->transferred_qty - $alternative_for->returned_qty);
-                        if ($remaining_required_qty <= $qty) {
+                        if ($remaining_required_qty < $qty) {
                             return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code . '</b>.']);
                         }
 
