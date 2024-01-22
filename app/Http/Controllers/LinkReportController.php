@@ -2210,7 +2210,7 @@ class LinkReportController extends Controller
             $material_request = DB::connection('mysql')->table('tabMaterial Request')
                 ->where('docstatus', $docstatus)->where('company', 'FUMACO Inc.')
                 ->when($request->status == 1, function ($q){
-                    return $q->where('status', 'Completed');
+                    return $q->where('status', 'Ordered');
                 })
                 ->when($request->customer, function ($q) use ($request){
                     return $q->where('customer', $request->customer);
