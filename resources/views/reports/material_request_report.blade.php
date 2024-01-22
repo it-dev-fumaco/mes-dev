@@ -10,11 +10,21 @@
     <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
         <div class="col-12 m-0 bg-white border">
             <div class="row mt-2 p-2">
-                <div class="col-2 offset-3 d-flex justify-content-end align-items-center">
+                <div class="col-3 d-flex justify-content-end align-items-center">
                     <label class="pt-1"><b>Select Date Range</b></label>
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <input type="text" class="form-control" id="daterange">
+                </div>
+                <div class="col-3">
+                    @php
+                        $statuses = ['New', 'Completed', 'Canceled'];
+                    @endphp
+                    <select name="status" class="form-control tbl-filter">
+                        @foreach ($statuses as $key => $status)
+                            <option value="{{ $key }}">{{ $status }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-3">
                     <select name="customer" class="form-control" id="customer-selection"></select>
@@ -85,11 +95,12 @@ $(document).ready(function(){
     const load = (page = 1) => {
         const daterange = $('#daterange').val()
         const customer = $('select[name="customer"]').val()
+        const status = $('select[name="status"]').val()
         $.ajax({
             url: '/material_request_report',
             type:"GET",
             data: {
-                page, daterange, customer
+                page, daterange, customer, status
             },
             success: (data) => {
                 $('#tbl').html(data)
@@ -104,6 +115,11 @@ $(document).ready(function(){
     }
 
     load()
+
+    $(document).on('change', '.tbl-filter', function (e){
+        e.preventDefault()
+        load()
+    })
 
     $('#customer-selection').select2({
         theme: 'bootstrap',
