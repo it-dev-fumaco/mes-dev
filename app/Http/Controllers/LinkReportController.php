@@ -2268,7 +2268,11 @@ class LinkReportController extends Controller
                 ->whereDate('created_at', '<=', $to_date)
                 ->orderBy('created_at', 'desc')->paginate(10);
 
-            return view('reports.production_orders_report_tbl', compact('production_orders'));
+            $production_order_ids = collect($production_orders->items())->pluck('production_order');
+
+            $feedback_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->whereIn('production_order', $production_order_ids)->distinct()->orderByDesc('created_at')->get()->groupBy('production_order');
+
+            return view('reports.production_orders_report_tbl', compact('production_orders', 'feedback_logs'));
         }
         
         return view('reports.production_orders_report', compact('permissions', 'operations', 'operation'));
