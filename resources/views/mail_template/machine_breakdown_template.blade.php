@@ -4,4 +4,4 @@
 @if($data['type'] =='Breakdown') <p>WARNING: <b>PRODUCTION HAS BEEN INTERRUPTED</b> </p> @endif
 <br>
 
-<p>Please Log in to http://10.0.0.83:8000 to Check Request</p><br><b>Fumaco Inc / Machine Maintenance Request {{ $data['year'] }} </b><br></br><small>Auto Generated E-mail from MES - NO REPLY </small>
+<p>Please Log in to http://10.0.0.83 to Check Request</p><br><b>Fumaco Inc / Machine Maintenance Request {{ $data['year'] }} </b><br></br><small>Auto Generated E-mail from MES - NO REPLY </small>

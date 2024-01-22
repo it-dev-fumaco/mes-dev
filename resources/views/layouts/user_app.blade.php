@@ -83,6 +83,7 @@
           'reschedule-delivery-date-production-order',
           'assign-production-order-schedule',
           'assign-production-order-to-machines',
+          'reschedule-delivery-date-order'
         ];
         $execution_actions = [
           'assign-bom-process',

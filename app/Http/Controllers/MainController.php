@@ -2595,7 +2595,7 @@ class MainController extends Controller
                 $join->on( DB::raw('IFNULL(production_order.sales_order, production_order.material_request)'), '=', 'delivery_date.reference_no');
                 $join->on('production_order.parent_item_code','=','delivery_date.parent_item_code');
             })
-			->whereNotIn('production_order.status', ['Stopped', 'Cancelled', 'Closed'])->where('production_order.feedback_qty',0)
+			->whereNotIn('production_order.status', ['Stopped', 'Cancelled', 'Closed'])->whereRaw('production_order.feedback_qty < production_order.qty_to_manufacture')
 			->where('production_order.is_scheduled', 0)->where("production_order.operation_id", $operation_id)
 			->select('production_order.*', 'delivery_date.rescheduled_delivery_date')
 			->orderBy('production_order.sales_order', 'desc')->orderBy('production_order.material_request', 'desc')->get();
@@ -7779,6 +7779,7 @@ class MainController extends Controller
 			->join('production_order as po', 'aca.production_order', 'po.production_order')
 			->whereNotIn('po.status', ['Cancelled', 'Feedbacked', 'Completed', 'Closed'])
 			->whereDate('scheduled_date', $schedule_date)->where('machine_code', $conveyor)
+			->whereRaw('po.feedback_qty < po.qty_to_manufacture')
 			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'po.status', 'po.project', 'po.classification')
 			->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
@@ -7786,11 +7787,12 @@ class MainController extends Controller
 		$q1 = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
 			->join('production_order as po', 'aca.production_order', 'po.production_order')
 			->whereIn('po.status', ['In Progress', 'Not Started', 'Partially Feedbacked', 'Ready for Feedback'])
+			->whereRaw('po.feedback_qty < po.qty_to_manufacture')
 			->whereDate('scheduled_date', '<', $schedule_date)->where('machine_code', $conveyor)
 			->select('po.production_order', 'po.sales_order', 'po.material_request', 'po.qty_to_manufacture', 'po.item_code', 'po.description', 'po.stock_uom', 'aca.order_no', 'po.customer', 'po.produced_qty', 'aca.scheduled_date', 'po.status', 'po.project', 'po.classification')
 			->orderBy('aca.order_no', 'asc')->orderBy('aca.scheduled_date', 'asc');
 
-		// get scheduled production order before $scheduled_date
+		// get scheduled production order on $scheduled_date
 		$q = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
 			->join('production_order as po', 'aca.production_order', 'po.production_order')
 			->whereIn('po.status', ['Completed', 'Feedbacked'])
@@ -8318,6 +8320,7 @@ class MainController extends Controller
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
                 ->whereNotIn('po.status', ['Cancelled', 'Feedbacked', 'Completed', 'Closed'])
                 ->whereDate('scheduled_date', $scheduled_date)
+				->whereRaw('feedback_qty < qty_to_manufacture')
 				->where('machine_code', $machine->machine_code)
 				->when(isset($request_data['production_order']) && $request_data['production_order'], function ($q) use ($request_data){
 					return $q->where('po.production_order', 'like', '%'.$request_data['production_order'].'%');
@@ -8329,6 +8332,7 @@ class MainController extends Controller
             $q1 = DB::connection('mysql_mes')->table('assembly_conveyor_assignment as aca')
                 ->join('production_order as po', 'aca.production_order', 'po.production_order')
                 ->whereIn('po.status', ['In Progress', 'Not Started', 'Partially Feedbacked', 'Ready for Feedback'])
+				->whereRaw('feedback_qty < qty_to_manufacture')
                 ->whereDate('scheduled_date', '<', $scheduled_date)->where('machine_code', $machine->machine_code)
 				->when(isset($request_data['production_order']) && $request_data['production_order'], function ($q) use ($request_data){
 					return $q->where('po.production_order', 'like', '%'.$request_data['production_order'].'%');

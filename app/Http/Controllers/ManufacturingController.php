@@ -1054,7 +1054,7 @@ class ManufacturingController extends Controller
                 if ($request->production_order) {
                     // check for in progress or completed job ticket
                     $existing_not_pending_job_ticket = DB::connection('mysql_mes')->table('job_ticket')
-                        ->where('production_order', $request->production_order)->where('status', '!=', 'Pending')->first();
+                        ->where('production_order', $request->production_order)->whereNotIn('status', ['Pending', 'Completed'])->first();
                     if ($existing_not_pending_job_ticket) {
                         $bom_operation_id_index = array_search($existing_not_pending_job_ticket->bom_operation_id, $request->id);
                         if ($request->wprocess[$bom_operation_id_index] != $existing_not_pending_job_ticket->process_id) {
@@ -2411,7 +2411,7 @@ class ManufacturingController extends Controller
                 ->selectRaw('qty, s_warehouse, status, issued_qty, name, docstatus, parent, remarks')
                 ->get();
 
-            $transferred_qty = $item->transferred_qty > $item->returned_qty ? $item->transferred_qty - $item->returned_qty : 0;
+            $transferred_qty = $item->transferred_qty > $item->returned_qty ? $item->transferred_qty - $item->returned_qty : $item->transferred_qty;
 
             $returned_qty = $item->returned_qty;
 
@@ -2550,7 +2550,7 @@ class ManufacturingController extends Controller
                     'idx' => $item->idx,
                     'item_code' => $item->item_code,
                     'item_name' => $item_details->item_name,
-                    'description' => $item->description,
+                    'description' => $item_details->description,
                     'item_image' => $item_details->item_image_path,
                     'item_classification' => $item_details->item_classification,
                     'withdrawals' => $withdrawals,
