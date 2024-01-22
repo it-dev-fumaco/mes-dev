@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
-  'namePage' => 'Production Orders Report',
-  'activePage' => 'production_orders_report',
-  'pageHeader' => 'Production Orders',
+  'namePage' => 'Material Requeest Report',
+  'activePage' => 'material_request_report',
+  'pageHeader' => 'Material Requeest',
   'pageSpan' => Auth::user()->employee_name
 ])
 
@@ -17,7 +17,7 @@
                     <input type="text" class="form-control" id="daterange">
                 </div>
                 <div class="col-3">
-                    <select name="status" class="form-control" id="status-selection"></select>
+                    <select name="customer" class="form-control" id="customer-selection"></select>
                 </div>
             </div>
             <div id="tbl" class="col-12 pt-2 mx-auto overflow-auto"></div>
@@ -84,12 +84,12 @@ $(document).ready(function(){
 
     const load = (page = 1) => {
         const daterange = $('#daterange').val()
-        const status = $('select[name="status"]').val()
+        const customer = $('select[name="customer"]').val()
         $.ajax({
-            url: '/production_orders_report/{{ $operation }}',
+            url: '/material_request_report',
             type:"GET",
             data: {
-                page, daterange, status
+                page, daterange, customer
             },
             success: (data) => {
                 $('#tbl').html(data)
@@ -105,31 +105,30 @@ $(document).ready(function(){
 
     load()
 
-    $('#status-selection').select2({
+    $('#customer-selection').select2({
         theme: 'bootstrap',
         containerCssClass: 'form-control h-100',
-        placeholder: 'Select a Status',
+        placeholder: 'Select a Customer',
         allowClear: true,
         ajax: {
-            url: '/production_orders_report/1',
+            url: '/get_customers_filter',
             method: 'GET',
             dataType: 'json',
             data: function (data) {
                 return {
-                    q: data.term,
-                    get_status: 1
+                    q: data.term 
                 };
             },
             processResults: function (response) {
                 return {
-                    results: response.statuses
+                    results: response.customers
                 };
             },
             cache: true
         }
     });
 
-    $(document).on('select2:select', '#status-selection', function(e){
+    $(document).on('select2:select', '#customer-selection', function(e){
         load();
     }).on('select2:clear', function (event) {
         load();

@@ -683,6 +683,8 @@ Route::group(['middleware' => 'auth'], function(){
 	
 	Route::get('/deliveries_report', 'LinkReportController@deliveries_report');
 	Route::get('/sales_orders_report', 'LinkReportController@sales_orders_report');
+	Route::get('/material_request_report', 'LinkReportController@material_request_report');
+	Route::get('/get_customers_filter', 'LinkReportController@get_customers_filter');
 	Route::get('/production_orders_report/{operation}', 'LinkReportController@production_orders_report');
 });
 

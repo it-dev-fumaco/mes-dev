@@ -909,7 +909,7 @@
 
             if (prod_order) {
                // fg_wh = '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
-               t_wh = '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
+               t_wh += '<option selected>' + $(this).find('.fg-warehouse').eq(0).text() + '</option>';
             }
 
             var disable_sel = null;

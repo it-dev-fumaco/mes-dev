@@ -1761,6 +1761,19 @@ class MainController extends Controller
 			$status_array = str_replace('Awaiting Feedback', 'Ready for Feedback', $status_array);
 		}
 
+		$created_start = $created_end = $delivery_start = $delivery_end = null;
+		if($request->creation){
+			$exploded_creation = explode(' - ', $request->creation);
+			$created_start = Carbon::parse($exploded_creation[0])->startOfDay();
+			$created_end = Carbon::parse($exploded_creation[1])->endOfDay();
+		}
+
+		if($request->delivery_date){
+			$exploded_delivery_date = explode(' - ', $request->delivery_date);
+			$delivery_start = Carbon::parse($exploded_delivery_date[0])->startOfDay();
+			$delivery_end = Carbon::parse($exploded_delivery_date[1])->endOfDay();
+		}
+
 		$user_permitted_operations = DB::connection('mysql_mes')->table('user')
 			->join('operation', 'operation.operation_id', 'user.operation_id')
 			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
@@ -1798,6 +1811,12 @@ class MainController extends Controller
 				->whereIn('operation_id', $user_permitted_operation_id)
 				->when($request->owner, function ($q) use ($request){
 					$q->where('created_by', $request->owner);
+				})
+				->when($request->creation, function ($q) use ($created_start, $created_end){
+					return $q->whereBetween('created_at', [$created_start, $created_end]);
+				})
+				->when($request->delivery_date, function ($q) use ($delivery_start, $delivery_end){
+					return $q->whereBetween('delivery_date', [$delivery_start, $delivery_end]);
 				})
 				->when($request->target_warehouse, function ($q) use ($request){
 					$q->where('fg_warehouse', $request->target_warehouse);
@@ -1918,6 +1937,12 @@ class MainController extends Controller
 				->when($request->target_warehouse, function ($q) use ($request){
 					$q->where('fg_warehouse', $request->target_warehouse);
 				})
+				->when($request->creation, function ($q) use ($created_start, $created_end){
+					return $q->whereBetween('created_at', [$created_start, $created_end]);
+				})
+				->when($request->delivery_date, function ($q) use ($delivery_start, $delivery_end){
+					return $q->whereBetween('delivery_date', [$delivery_start, $delivery_end]);
+				})
 				->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 				->orderBy('created_at', 'desc');
 
@@ -1968,6 +1993,12 @@ class MainController extends Controller
 			})
 			->when($request->target_warehouse, function ($q) use ($request){
 				$q->where('fg_warehouse', $request->target_warehouse);
+			})
+			->when($request->creation, function ($q) use ($created_start, $created_end){
+				return $q->whereBetween('created_at', [$created_start, $created_end]);
+			})
+			->when($request->delivery_date, function ($q) use ($delivery_start, $delivery_end){
+				return $q->whereBetween('delivery_date', [$delivery_start, $delivery_end]);
 			})
 			->select('*', DB::raw('IFNULL(sales_order, material_request) as reference_no'))
 			->orderBy('created_at', 'desc')

@@ -131,7 +131,7 @@
 					</div>
 				@endif
 				<div class="p-2">
-					<span class="font-weight-bold">{{ $details->item_code }}</span> - {{ $details->description }}
+					<span class="font-weight-bold">{{ $details->item_code }}</span> - {{ strip_tags($parent_item_description) }}
 				</div>
 			</div>
 		</td>

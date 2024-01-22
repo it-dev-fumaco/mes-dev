@@ -2318,6 +2318,9 @@ class ManufacturingController extends Controller
             return response()->json(['success' => 0, 'message' => 'Production Order not found.']);
         }
 
+        $parent_item_description = DB::connection('mysql')->table('tabItem')->where('name', $details->parent_item_code)->pluck('description')->first();
+        $parent_item_description = $parent_item_description ? $parent_item_description : $details->description;
+
         $table = $details->sales_order ? 'tabSales Order' : 'tabMaterial Request';
         $delivered_column = $details->sales_order ? 'parent.per_delivered' : 'parent.per_ordered';
         $ordered_item = DB::connection('mysql')->table($table . ' as parent')
@@ -2374,6 +2377,11 @@ class ManufacturingController extends Controller
         $components = $parts = [];
         foreach ($production_order_items as $item) {
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $item->item_code)->first();
+
+            if (!$item_details) {
+                return response()->json(['success' => 0, 'message' => 'Item <b>'.$item->item_code.'</b> not found.']);
+            }
+
             // get item stock based on feedbacked qty for housing and other items with sub assemblies
             $has_production_order = DB::connection('mysql_mes')->table('production_order')
                 ->where('item_code', $item->item_code)->where('parent_item_code', $details->parent_item_code)
@@ -2583,7 +2591,7 @@ class ManufacturingController extends Controller
                 'ste_docstatus' => $ret->docstatus,
                 'idx' => $ret->idx,
                 'item_code' => $ret->item_code,
-                'description' => $ret->description,
+                'description' => $item_details->description,
                 'item_image' => $item_details->item_image_path,
                 'item_classification' => $item_classification,
                 'target_warehouse' => $ret->t_warehouse,
@@ -2708,7 +2716,7 @@ class ManufacturingController extends Controller
             $reject_reason = collect($reject_reason_qry)->groupBy('job_ticket_id');
         }
 
-        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason', 'ordered_item'));
+        return view('tables.tbl_production_order_items', compact('required_items', 'details', 'parent_item_description', 'components', 'parts', 'items_return', 'issued_qty', 'feedbacked_logs', 'start_date', 'end_date', 'duration', 'fast_issuance_warehouse', 'is_fast_issuance_user', 'ste_transferred_qty', 'activity_logs', 'checker', 'all_items_has_transferred_qty', 'qa_array', 'reject_reason', 'ordered_item'));
     }
 
     public function create_material_transfer_for_return(Request $request)
@@ -3321,7 +3329,7 @@ class ManufacturingController extends Controller
 
                         // validate qty vs remaining required qty
                         $remaining_required_qty = $alternative_for->required_qty - ($alternative_for->transferred_qty - $alternative_for->returned_qty);
-                        if ($remaining_required_qty <= $qty) {
+                        if ($remaining_required_qty < $qty) {
                             return response()->json(['status' => 0, 'message' => 'Qty cannot be greater than or equal to <b>' . $remaining_required_qty . '</b> for <b>' . $item_code . '</b>.']);
                         }
 

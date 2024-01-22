@@ -2140,6 +2140,18 @@ class LinkReportController extends Controller
         return view('reports.system_audit_items_in_their_own_bom', compact('operations', 'permissions', 'report'));
     }
 
+    public function get_customers_filter(Request $request){
+        $search_string = $request->q ?? null;
+        $customers = DB::table('tabCustomer')
+            ->when($request->q, function ($q) use ($search_string){
+                return $q->where('name', 'like', "%$search_string%")->orWhere('customer_name', 'like', "%$search_string%");
+            })
+            ->selectRaw('name as id, customer_name as text')
+            ->orderBy('name', 'asc')->get();
+
+        return response()->json(compact('customers'));
+    }
+
     public function sales_orders_report(Request $request){
         if (Gate::denies('reports')) {
             return redirect()->back();
@@ -2164,6 +2176,9 @@ class LinkReportController extends Controller
                 ->when($request->status == 1, function ($q){
                     return $q->where('status', 'Completed');
                 })
+                ->when($request->customer, function ($q) use ($request){
+                    return $q->where('customer', $request->customer);
+                })
                 ->whereDate('creation', '>=', $from_date)->whereDate('creation', '<=', $to_date)
                 ->orderBy('creation', 'desc')->paginate(10);
 
@@ -2173,7 +2188,7 @@ class LinkReportController extends Controller
         return view('reports.sales_order_report', compact('permissions', 'operations'));
     }
 
-    public function production_orders_report(Request $request, $operation){
+    public function material_request_report(Request $request){
         if (Gate::denies('reports')) {
             return redirect()->back();
         }
@@ -2187,6 +2202,55 @@ class LinkReportController extends Controller
             $from = $daterange[0];
             $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
 
+            $docstatus = $request->status == 2 ? $request->status : 1;
+
+            $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
+            $to_date = $request->daterange ? Carbon::parse($to)->endOfDay()->toDateString() : Carbon::now()->endOfDay()->toDateString();
+    
+            $material_request = DB::connection('mysql')->table('tabMaterial Request')
+                ->where('docstatus', $docstatus)->where('company', 'FUMACO Inc.')
+                ->when($request->status == 1, function ($q){
+                    return $q->where('status', 'Completed');
+                })
+                ->when($request->customer, function ($q) use ($request){
+                    return $q->where('customer', $request->customer);
+                })
+                ->whereDate('creation', '>=', $from_date)->whereDate('creation', '<=', $to_date)
+                ->orderBy('creation', 'desc')->paginate(10);
+
+            return view('reports.material_request_report_tbl', compact('material_request'));
+        }
+        
+        return view('reports.material_request_report', compact('permissions', 'operations'));
+    }
+
+    public function production_orders_report(Request $request, $operation){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        if($request->ajax()){
+            if($request->get_status){
+                $search_string = $request->q ?? null;
+                $statuses = DB::connection('mysql_mes')->table('production_order')
+                    ->when($search_string, function ($q) use ($search_string){
+                        return $q->where('status', 'like', "%$search_string%");
+                    })
+                    ->selectRaw('status as id, status as text')
+                    ->groupBy('status')
+                    ->orderBy('status', 'asc')->get();
+
+                return response()->json(compact('statuses'));
+            }
+
+            $daterange = explode(' - ', $request->daterange);
+            $from = $daterange[0];
+            $to = isset($daterange[1]) ? $daterange[1] : Carbon::now();
+
             $status = $request->status;
 
             $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
@@ -2194,8 +2258,11 @@ class LinkReportController extends Controller
     
             $production_orders = DB::connection('mysql_mes')->table('production_order')
                 ->where('operation_id', $operation)
-                ->when($status, function ($q){
-                    return $q->where('status', 'Completed')->whereRaw('feedback_qty >= qty_to_manufacture');
+                ->when($status, function ($q) use ($status){
+                    return $q->where('status', $status);
+                })
+                ->when($status == 'Completed', function ($q){
+                    return $q->whereRaw('feedback_qty >= qty_to_manufacture');
                 })
                 ->whereDate('created_at', '>=', $from_date)
                 ->whereDate('created_at', '<=', $to_date)
@@ -2229,6 +2296,9 @@ class LinkReportController extends Controller
             $sales_orders = DB::connection('mysql')->table('tabSales Order as so')
                 ->leftJoin('tabDelivery Note as dr', 'dr.sales_order', 'so.name')
                 ->whereDate('so.creation', '>=', $from_date)->whereDate('so.creation', '<=', $to_date)->where('so.docstatus', 1)->where('dr.docstatus', 1)->where('so.company', 'FUMACO Inc.')
+                ->when($request->customer, function ($q) use ($request){
+                    return $q->where('so.customer', $request->customer);
+                })
                 ->when(!$status, function ($q){
                     return $q->where('so.reschedule_delivery', 1);
                 })
