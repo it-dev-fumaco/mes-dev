@@ -2308,31 +2308,6 @@ class LinkReportController extends Controller
                     ->unionAll($ongoing_delayed)
                     ->orderBy('created_at', 'desc')->paginate(10);
             }
-            
-
-            // $production_orders = DB::connection('mysql_mes')->table('production_order')
-            //     ->where('operation_id', $operation)
-            //     ->when($status && !in_array($status, ['On-time', 'Delayed']), function ($q) use ($status){
-            //         return $q->where('status', $status);
-            //     })
-            //     ->when($status == 'Completed', function ($q){
-            //         return $q->whereRaw('feedback_qty >= qty_to_manufacture');
-            //     })
-            //     ->when($status == 'On-time', function ($q) use ($status){
-            //         return $q->whereRaw('feedback_qty >= qty_to_manufacture')->whereDate('delivery_date', '>=', Carbon::now()->endOfDay()->toDateString());
-            //     })
-            //     // ->when($status == 'Delayed', function ($q) use ($status){
-            //     //     return $q->whereRaw('feedback_qty >= qty_to_manufacture')->whereDate('delivery_date', '>=', Carbon::now()->endOfDay()->toDateString());
-            //     // })
-            //     ->whereRaw('feedback_qty >= qty_to_manufacture')->whereDate('delivery_date', '<', Carbon::now()->endOfDay()->toDateString())
-            //     // ->whereRaw('feedback_qty >= qty_to_manufacture')->whereDate('delivery_date', '>=', Carbon::now()->endOfDay()->toDateString())
-            //     ->whereDate('created_at', '>=', $from_date)
-            //     ->whereDate('created_at', '<=', $to_date)
-            //     ->orderBy('created_at', 'desc')->paginate(10);
-
-            // $production_order_ids = collect($production_orders->items())->pluck('production_order');
-
-            // $feedback_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->whereIn('production_order', $production_order_ids)->distinct()->orderByDesc('created_at')->get()->groupBy('production_order');
 
             return view('reports.production_orders_report_tbl', compact('production_orders'));
         }
