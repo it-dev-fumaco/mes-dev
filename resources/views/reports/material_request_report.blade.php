@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-3">
                     @php
-                        $statuses = ['New', 'Completed', 'Canceled'];
+                        $statuses = ['New', 'Completed', 'Canceled', 'Transferred'];
                     @endphp
                     <select name="status" class="form-control tbl-filter">
                         @foreach ($statuses as $key => $status)
