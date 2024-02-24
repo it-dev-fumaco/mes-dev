@@ -35,7 +35,13 @@
             @endif
             <a href="#" style="margin-left:20px;margin-top:50px;" data-jtno="{{ $r['production_order'] }}" class="prod-details-btn"><i class="now-ui-icons ui-1_zoom-bold"></i> {{ $r['production_order'] }}</a>
           </td>
-          <td class="text-left" style="padding: 3px;"><b>{{ $r['item_code'] }}</b><br>{!! $r['description'] !!}<span class="d-block mt-2 font-italic" style="font-size: 8pt;"><b>Created by:</b> {{ $r['owner'] }} - {{ $r['created_at'] }}</span></td>
+          <td class="text-left" style="padding: 3px;">
+            <b>{{ $r['item_code'] }}</b><br>
+            {!! $r['description'] !!}
+            <small class="d-block text-muted">{{ $r['bom'] }}</small>
+            
+            <span class="d-block mt-2 font-italic" style="font-size: 8pt;"><b>Created by:</b> {{ $r['owner'] }} - {{ $r['created_at'] }}</span>
+          </td>
           <td class="text-center" style="padding: 3px;">
             <span style="font-size: 12pt; display: block; font-weight: bold;">{{ number_format($r['qty']) }}</span>
             <span>{{ $r['stock_uom'] }}</span>

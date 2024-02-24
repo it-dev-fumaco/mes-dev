@@ -435,6 +435,7 @@ class MainController extends Controller
 			'description' => $description,
 			'status' => $task_status,
 			'owner' => $owner,
+			'bom' => $details->bom_no,
 			'feedback_qty' => $details->feedback_qty,
 			'production_order_status' => $this->production_status_with_stockentry($details->production_order, $details->status, $details->qty_to_manufacture,$details->feedback_qty, $details->produced_qty),
 			'created_at' => Carbon::parse($details->created_at)->format('m-d-Y h:i A')

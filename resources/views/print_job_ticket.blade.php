@@ -40,7 +40,9 @@
 		<tr>
 			<td>SCHEDULED DATE:</td>
 			<td style="font-size: 10pt;"><b>{{ date('M-d-Y', strtotime($pro['sched_date'])) }}</b></td>
-			<td style="text-align: center; font-size: 14pt;"><b>{{ $pro['production_order'] }}</b></td>
+			<td style="text-align: center; font-size: 14pt;">
+				<b>{{ $pro['production_order'] }}</b>
+			</td>
 		</tr>
 		<tr>
 			<td>MODEL:</td>
@@ -53,7 +55,10 @@
 		</tr>
 		<tr>
 			<td>ITEM CODE:</td>
-			<td><b>{{ $pro['item_code'] }}</b> - {!! $pro['description'] !!}</td>
+			<td>
+				<b>{{ $pro['item_code'] }}</b> - {!! $pro['description'] !!}
+				<small class="d-block" style="font-size: 9pt;">{{ $pro['bom'] }}</small>
+			</td>
 		</tr>
 		<tr>
 			<td>CUTTING SIZE:</td>

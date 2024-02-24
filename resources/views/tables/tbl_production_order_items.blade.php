@@ -91,8 +91,10 @@
 		<td style="background-color: #28b463;" class="text-white">Feedbacked</td>
 	</tr>
 	<tr class="text-center" style="font-size: 10pt;">
-		
-		<td><b>{{ $details->sales_order }}{{ $details->material_request }}</b></td>
+		<td>
+			<b>{{ $details->sales_order }}{{ $details->material_request }}</b>
+			<small class="text-muted d-block">{{ $details->bom_no }}</small>
+		</td>
 		<td>{{ $details->customer }}</td>
 		<td>{{ $details->project }}</td>
 		<td>{{ ($details->rescheduled_delivery_date == null)? $details->delivery_date: $details->rescheduled_delivery_date   }}</td>

@@ -4674,6 +4674,7 @@ class SecondaryController extends Controller
                 'sched_date' => $pro->planned_start_date,
                 'sales_type' => $pro->classification,
                 'workstation' => $table,
+                'bom' => $pro->bom_no
             ];
 
             DB::connection('mysql_mes')->table('production_order')->where('production_order', $pro->production_order)->update(['job_ticket_print' => '1']);
