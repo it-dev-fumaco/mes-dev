@@ -2215,6 +2215,9 @@ class LinkReportController extends Controller
                 ->when($request->status == 3, function ($q){
                     return $q->where('status', 'Transferred');
                 })
+                ->when($request->status == 4, function ($q){
+                    return $q->where('per_ordered', '>', 0)->where('per_ordered', '<', 100);
+                })
                 ->when($request->customer, function ($q) use ($request){
                     return $q->where('customer', $request->customer);
                 })

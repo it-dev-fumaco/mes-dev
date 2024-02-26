@@ -1,7 +1,7 @@
 @extends('layouts.user_app', [
-  'namePage' => 'Material Requeest Report',
+  'namePage' => 'Material Request Report',
   'activePage' => 'material_request_report',
-  'pageHeader' => 'Material Requeest',
+  'pageHeader' => 'Material Request',
   'pageSpan' => Auth::user()->employee_name
 ])
 
@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-3">
                     @php
-                        $statuses = ['New', 'Completed', 'Canceled', 'Transferred'];
+                        $statuses = ['New', 'Completed', 'Canceled', 'Transferred', 'Partially Ordered'];
                     @endphp
                     <select name="status" class="form-control tbl-filter">
                         @foreach ($statuses as $key => $status)
