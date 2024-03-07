@@ -11,6 +11,7 @@
       <th>status</th>
       <th>workstation</th>
       <th>process</th>
+      <th>good</th>
       <th>reject</th>
    </tr>
    @forelse($export_arr as $export)
@@ -28,6 +29,7 @@
          <td>{{ $export['status'] }}</td>
          <td>{{ $export['workstation'] }}</td>
          <td>{{ $export['process_name'] }}</td>
+         <td>{{ $export['good'] }}</td>
          <td>{{ $export['reject'] }}</td>
       </tr>
    @empty
