@@ -1614,7 +1614,7 @@ class ManufacturingController extends Controller
                 'parent_item_code' => strtoupper($request->parent_code),
                 'sub_parent_item_code' => strtoupper(($request->sub_parent_code) ? $request->sub_parent_code : $bom_sub_parent),
                 'item_code' => strtoupper($request->item_code),
-                'description' => $request->description,
+                'description' => $item_details->description,
                 'parts_category' => $item_details->parts_category,
                 'item_classification' => $item_classification,
                 'qty_to_manufacture' => $request->qty,

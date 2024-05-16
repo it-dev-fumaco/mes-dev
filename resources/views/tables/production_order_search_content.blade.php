@@ -116,7 +116,10 @@
 										<td class="text-center" style="background-color: #D5D8DC; border: 1px solid #ABB2B9;"><b>QTY</b></td>
 									</tr>
 									<tr style="font-size: 10pt;">
-										<td class="text-center" style="border: 1px solid #ABB2B9;">{{ $item_details['sales_order'] }} {{ $item_details['material_request'] }}</td>
+										<td class="text-center" style="border: 1px solid #ABB2B9;">
+											{{ $item_details['sales_order'] }} {{ $item_details['material_request'] }}
+											<small class="text-muted d-block">{{ $item_details['bom'] }}</small>
+										</td>
 										<td class="text-center" style="border: 1px solid #ABB2B9;">{{ $item_details['customer'] }}</td>
 										<td class="text-center" style="border: 1px solid #ABB2B9;">{{ $item_details['project'] }}</td>
 										<td class="text-center" style="border: 1px solid #ABB2B9;">{{ $item_details['delivery_date'] }}</td>
@@ -548,7 +551,13 @@
 														<b>{{ $rows['material_status'] }}</b>
 													</span>
 												</td>
-												<td style="border: 1px solid #ABB2B9;padding:5px;font-style:{{ ($rows['status'] == 'Not Started')? 'italic':'normal'}};">{{ ($rows['planned_start_date'] == "-")? '-' : ($rows['status'] == "Not Started")? $rows['planned_start_date']: $rows['actual_start_date'] }}</td>
+												<td style="border: 1px solid #ABB2B9;padding:5px;font-style:{{ ($rows['status'] == 'Not Started')? 'italic':'normal'}};">
+													@if ($rows['planned_start_date'] != "-")
+														{{ $rows['status'] == "Not Started" ? $rows['planned_start_date'] : $rows['actual_start_date'] }}
+													@else
+														-
+													@endif
+												</td>
 												<td style="border: 1px solid #ABB2B9;padding:5px;">{{ ($rows['status'] == "In Progress")? "-": $rows['actual_end_date'] }}</td>
 											</tr>
 											@empty

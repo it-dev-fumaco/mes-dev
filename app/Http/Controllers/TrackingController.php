@@ -88,6 +88,7 @@ class TrackingController extends Controller
 		$items_production_orders = [];
 		foreach ($production_orders as $reference => $parent_item_codes) {
             $row = [];
+
             foreach ($parent_item_codes as $parent_item_code => $rows) {
                 $status = 'Not Started';
                 $prods = collect($rows)->where('item_code', $parent_item_code);
@@ -103,7 +104,7 @@ class TrackingController extends Controller
                 $produced_qty = collect($qty)->sum('produced_qty');
                 $feedbacked_qty = collect($qty)->sum('feedbacked_qty');
 
-                if ($qty_to_manufacture <= $feedbacked_qty) {
+                if ($feedbacked_qty > 0 && $qty_to_manufacture <= $feedbacked_qty) {
                     $status = 'Feedbacked';
                 }
 

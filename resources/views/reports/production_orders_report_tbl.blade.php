@@ -69,19 +69,19 @@
                 {{ Carbon\Carbon::parse($po->delivery_date)->format('M. d, Y') }}
             </td>
             <td class="text-center p-1">
-                @if (isset($feedback_logs[$po->production_order]))
-                    @php
-                        $feedback_log = $feedback_logs[$po->production_order][0];
-                    @endphp
+                @if ($po->transaction_date)
                     <small>
-                        {{ Carbon\Carbon::parse($feedback_log->transaction_date.' '.$feedback_log->transaction_time)->format('M. d, Y - h:i A') }}
+                        {{ Carbon\Carbon::parse($po->transaction_date.' '.$po->transaction_time)->format('M. d, Y - h:i A') }}
                     </small>
                     <br>
-                    @if (Carbon\Carbon::parse($po->delivery_date)->lt(Carbon\Carbon::parse($feedback_log->transaction_date)))
+                    @if (Carbon\Carbon::parse($po->delivery_date)->lt(Carbon\Carbon::parse($po->transaction_date)))
                         <span class="badge badge-danger">Delayed</span>
                     @else
                         <span class="badge badge-success">On Time</span>
                     @endif
+                @elseif(Carbon\Carbon::parse($po->delivery_date)->lt(Carbon\Carbon::now()))
+                    - <br>
+                    <span class="badge badge-danger">Delayed</span>
                 @else
                     -
                 @endif

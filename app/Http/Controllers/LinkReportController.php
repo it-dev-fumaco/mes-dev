@@ -2212,6 +2212,12 @@ class LinkReportController extends Controller
                 ->when($request->status == 1, function ($q){
                     return $q->where('status', 'Ordered');
                 })
+                ->when($request->status == 3, function ($q){
+                    return $q->where('status', 'Transferred');
+                })
+                ->when($request->status == 4, function ($q){
+                    return $q->where('per_ordered', '>', 0)->where('per_ordered', '<', 100);
+                })
                 ->when($request->customer, function ($q) use ($request){
                     return $q->where('customer', $request->customer);
                 })
@@ -2244,6 +2250,17 @@ class LinkReportController extends Controller
                     ->groupBy('status')
                     ->orderBy('status', 'asc')->get();
 
+                $statuses = collect($statuses)->merge([
+                    [
+                        'id' => 'On-time',
+                        'text' => 'On-time'
+                    ],
+                    [
+                        'id' => 'Delayed',
+                        'text' => 'Delayed'
+                    ]
+                ]);
+
                 return response()->json(compact('statuses'));
             }
 
@@ -2255,24 +2272,50 @@ class LinkReportController extends Controller
 
             $from_date = $request->daterange ? Carbon::parse($from)->startOfDay()->toDateString() : Carbon::now()->startOfDay()->subDays(7)->toDateString();
             $to_date = $request->daterange ? Carbon::parse($to)->endOfDay()->toDateString() : Carbon::now()->endOfDay()->toDateString();
-    
-            $production_orders = DB::connection('mysql_mes')->table('production_order')
-                ->where('operation_id', $operation)
-                ->when($status, function ($q) use ($status){
-                    return $q->where('status', $status);
-                })
-                ->when($status == 'Completed', function ($q){
-                    return $q->whereRaw('feedback_qty >= qty_to_manufacture');
-                })
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->orderBy('created_at', 'desc')->paginate(10);
 
-            $production_order_ids = collect($production_orders->items())->pluck('production_order');
+            if($status != 'Delayed'){
+                $production_orders = DB::connection('mysql_mes')->table('production_order as po')
+                    ->leftJoin('feedbacked_logs as fl', function ($q){
+                        return $q->on('fl.production_order', 'po.production_order');
+                    })->where('po.operation_id', $operation)
+                    ->when($status && !in_array($status, ['On-time', 'Delayed']), function ($q) use ($status){
+                        return $q->where('po.status', $status);
+                    })
+                    ->when($status == 'Completed', function ($q){
+                        return $q->whereRaw('po.feedback_qty >= po.qty_to_manufacture');
+                    })
+                    ->when($status == 'On-time', function ($q){
+                        return $q->whereRaw('po.feedback_qty >= po.qty_to_manufacture')->whereRaw('fl.transaction_date <= po.delivery_date');
+                    })
+                    ->whereDate('po.created_at', '>=', $from_date)
+                    ->whereDate('po.created_at', '<=', $to_date)
+                    ->select('po.*', 'fl.transaction_date', 'fl.transaction_time')
+                    ->distinct()
+                    ->orderBy('po.created_at', 'desc')->paginate(10);
+            }else{
+                $ongoing_delayed = DB::connection('mysql_mes')->table('production_order as po1')
+                    ->leftJoin('feedbacked_logs as fl1', function ($q){
+                        return $q->on('fl1.production_order', 'po1.production_order');
+                    })->where('po1.operation_id', $operation)
+                    ->whereNotIn('po1.status', ['Completed', 'Feedbacked', 'Cancelled'])->whereDate('po1.delivery_date', '<', Carbon::now()->toDateString())
+                    ->whereDate('po1.created_at', '>=', $from_date)
+                    ->whereDate('po1.created_at', '<=', $to_date)
+                    ->select('po1.*', 'fl1.transaction_date', 'fl1.transaction_time');
 
-            $feedback_logs = DB::connection('mysql_mes')->table('feedbacked_logs')->whereIn('production_order', $production_order_ids)->distinct()->orderByDesc('created_at')->get()->groupBy('production_order');
+                $production_orders = DB::connection('mysql_mes')->table('production_order as po')
+                    ->leftJoin('feedbacked_logs as fl', function ($q){
+                        return $q->on('fl.production_order', 'po.production_order');
+                    })->where('po.operation_id', $operation)
+                    ->whereIn('po.status', ['Completed', 'Feedbacked'])->whereRaw('fl.transaction_date > po.delivery_date')
+                    ->whereDate('po.created_at', '>=', $from_date)
+                    ->whereDate('po.created_at', '<=', $to_date)
+                    ->select('po.*', 'fl.transaction_date', 'fl.transaction_time')
+                    ->distinct()
+                    ->unionAll($ongoing_delayed)
+                    ->orderBy('created_at', 'desc')->paginate(10);
+            }
 
-            return view('reports.production_orders_report_tbl', compact('production_orders', 'feedback_logs'));
+            return view('reports.production_orders_report_tbl', compact('production_orders'));
         }
         
         return view('reports.production_orders_report', compact('permissions', 'operations', 'operation'));
