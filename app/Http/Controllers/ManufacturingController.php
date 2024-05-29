@@ -3230,6 +3230,14 @@ class ManufacturingController extends Controller
                 ->where('sted.item_code', $production_order_item->item_code)->where('ste.purpose', 'Material Transfer for Manufacture')
                 ->sum('qty');
 
+            $returned_qty = DB::connection('mysql')->table('tabStock Entry as ste')
+                ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
+                ->where('ste.docstatus', 1)->where('ste.work_order', $production_order_item->production_order)
+                ->where('sted.item_code', $production_order_item->item_code)->where('ste.purpose', 'Material Transfer')->where('ste.transfer_as', 'For Return')
+                ->sum('qty');
+
+            $transferred_qty = $returned_qty ? $transferred_qty - $returned_qty : $transferred_qty;
+
             if ((float) $request->qty < (float) $transferred_qty) {
                 return response()->json(['status' => 0, 'message' => 'Quantity cannot be less than transferred qty (' . (float) $transferred_qty . ')']);
             }
