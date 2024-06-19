@@ -3046,6 +3046,7 @@ class ManufacturingController extends Controller
     public function update_ste_detail(Request $request)
     {
         DB::connection('mysql')->beginTransaction();
+        DB::connection('mysql_mes')->beginTransaction();
         try {
             if (!Auth::user()) {
                 return response()->json(['status' => 0, 'message' => 'Session Expired. Please login to continue.']);
@@ -3107,6 +3108,19 @@ class ManufacturingController extends Controller
                 return response()->json(['status' => 0, 'message' => 'Item <b>' . $request->item_code . '</b> not found.']);
             }
 
+            // check if the replacement item code exists in the production order
+            if(strtoupper($request->item_code) != strtoupper($request->old_item_code)){
+                $check_new_item_code = DB::connection('mysql')->table('tabWork Order as p')
+                    ->join('tabWork Order Item as c', 'p.name', 'c.parent')
+                    ->where('p.name', $request->production_order)
+                    ->where('c.item_code', $request->item_code)
+                    ->exists();
+
+                    if($check_new_item_code){
+                        return response()->json(['status' => 0, 'message' => 'Item <b>'.$request->item_code.'</b> already exists in this production order']);
+                    }
+            }
+            
             // get all pending stock entries based on item code production order
             $pending_stock_entries = DB::connection('mysql')->table('tabStock Entry as ste')
                 ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
@@ -3194,6 +3208,7 @@ class ManufacturingController extends Controller
             return response()->json(['status' => 1, 'message' => 'Stock entry item has been changed.']);
         } catch (Exception $e) {
             DB::connection('mysql')->rollback();
+            DB::connection('mysql_mes')->rollback();
             return response()->json(['status' => 0, 'message' => 'There was a problem updating stock entry.']);
         }
     }
