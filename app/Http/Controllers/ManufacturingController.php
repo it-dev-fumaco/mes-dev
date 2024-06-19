@@ -3110,11 +3110,10 @@ class ManufacturingController extends Controller
 
             // check if the replacement item code exists in the production order
             if(strtoupper($request->item_code) != strtoupper($request->old_item_code)){
-                $check_new_item_code = DB::connection('mysql')->table('tabStock Entry as ste')
-                    ->join('tabStock Entry Detail as sted', 'ste.name', 'sted.parent')
-                    ->where('ste.work_order', $request->production_order)
-                    ->where('sted.item_code', $request->item_code)
-                    ->where('ste.purpose', 'Material Transfer for Manufacture')
+                $check_new_item_code = DB::connection('mysql')->table('tabWork Order as p')
+                    ->join('tabWork Order Item as c', 'p.name', 'c.parent')
+                    ->where('p.name', $request->production_order)
+                    ->where('c.item_code', $request->item_code)
                     ->exists();
 
                     if($check_new_item_code){
