@@ -23,7 +23,7 @@
     @forelse ($report as $row)
         <tr>
             <td>
-                <img class="img-thumbnail" src="{{ 'http://mes.fumaco.local/'.$row->image }}" alt="" class="w-100 mx-auto">
+                <img class="img-thumbnail" src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
             </td>
             <td>{{ $row->machine_code }}</td>
             <td>{{ $row->machine_name }}</td>
