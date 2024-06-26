@@ -149,6 +149,20 @@
                             </tbody>
                         </table>
                       </div>
+                      <div class="col-md-4"  style="margin-top:70px;">
+                        <table style= "width:100%;">
+                            <thead  style="">
+                                <tr style="">
+                                    <th><span style="font-size:13.5pt;padding-left:30px;">Maintenance</span> </th>
+                                </tr>
+                            </thead>
+                            <tbody style=" padding-left:30px; text-align:left;">
+                                <tr>
+                                    <td><a href="/report/machine_uptime" class="hover-class"><span style="padding-left:30px;line-height:25px;">Machine Uptime</span></a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                      </div>
                       @if (in_array('Production Manager', $user_groups->toArray()))
                         <div class="col-md-12"  style="margin-top:70px;">
                             <table style= "width:100%;">

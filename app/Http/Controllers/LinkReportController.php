@@ -2363,4 +2363,39 @@ class LinkReportController extends Controller
         
         return view('reports.deliveries_report', compact('permissions', 'operations'));
     }
+
+    public function machine_uptime_report(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+        $operations = DB::connection('mysql_mes')->table('operation')->get();
+
+        if($request->ajax()){
+            $now = $request->date ? Carbon::parse($request->date) : Carbon::now();
+            $timelogs = DB::connection('live_mes')->table('time_logs as tl')
+                ->join('machine as m', 'm.machine_code', 'tl.machine_code')
+                ->where('tl.created_at', '>=', $now->startOfDay()->toDateTimeString())
+                ->when($request->operation, function ($q) use ($request){
+                    return $q->where('m.operation_id', $request->operation);
+                })
+                ->select('tl.machine_code', 'm.machine_name', 'm.type', 'm.model', 'm.image', 'm.operation_id', DB::raw('SUM(tl.duration) as total_duration'), DB::raw('SUM(tl.breaktime_in_mins) as total_breaktime'))
+                ->groupBy('machine_code', 'machine_name', 'type', 'model', 'image', 'operation_id');
+
+            $report = DB::connection('live_mes')->table('spotwelding_qty as tl')
+                ->join('machine as m', 'm.machine_code', 'tl.machine_code')
+                ->where('tl.created_at', '>=', $now->startOfDay()->toDateTimeString())
+                ->when($request->operation, function ($q) use ($request){
+                    return $q->where('m.operation_id', $request->operation);
+                })
+                ->select('tl.machine_code', 'm.machine_name', 'm.type', 'm.model', 'm.image', 'm.operation_id', DB::raw('SUM(tl.duration) as total_duration'), DB::raw('SUM(tl.breaktime_in_mins) as total_breaktime'))
+                ->groupBy('machine_code', 'machine_name', 'type', 'model', 'image', 'operation_id')
+                ->unionAll($timelogs)->orderByDesc('total_duration')->get();
+
+            return view('reports.machine_uptime_tbl', compact('report', 'operations'));
+        }
+        
+        return view('reports.machine_uptime', compact('permissions', 'operations'));
+    }
 }
