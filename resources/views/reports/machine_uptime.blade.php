@@ -100,7 +100,7 @@ $(document).ready(function(){
         endDate: moment().startOf('week').add(7, 'days'),
         showDropdowns: true,
         minYear: 2019,
-        maxYear: parseInt('{{ Carbon\Carbon::now()->format("Y") }}')
+        maxYear: parseInt('{{ Carbon\Carbon::now()->addYear()->format("Y") }}')
     });
 
     const load = (page = 1) => {
