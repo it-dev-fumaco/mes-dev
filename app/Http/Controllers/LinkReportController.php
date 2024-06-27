@@ -2398,4 +2398,50 @@ class LinkReportController extends Controller
         
         return view('reports.machine_uptime', compact('permissions', 'operations'));
     }
+
+    public function assembly_floating_stocks(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+
+        if($request->ajax()){
+            $now = $request->date ? Carbon::parse($request->date) : Carbon::now();
+            $assembly_warehouse = 'Assembly Warehouse - FI';
+            $assembly_stocks = DB::table('tabBin as p')
+                ->join('tabItem as c', 'c.name', 'p.item_code')
+                ->where('p.warehouse', $assembly_warehouse)
+                ->select('p.item_code', 'c.description', 'c.item_image_path', 'p.stock_uom', 'p.actual_qty')
+                ->get();
+
+            $item_codes = collect($assembly_stocks)->pluck('item_code');
+
+            $issued_from_assembly = DB::table('tabStock Entry as p')
+                ->join('tabStock Entry Detail as c', 'c.parent', 'p.name')
+                ->where('p.from_warehouse', $assembly_warehouse)->where('item_status', 'Issued')
+                ->whereIn('c.item_code', $item_codes)
+                ->select('c.item_code', 'c.uom', DB::raw('SUM(c.qty) as total_qty'))
+                ->groupBy('item_code', 'uom')
+                ->get()->groupBy('item_code');
+
+            $report = collect($assembly_stocks)->map(function ($q) use ($issued_from_assembly){
+                $issued = isset($issued_from_assembly[$q->item_code]) ? $issued_from_assembly[$q->item_code][0] : [];
+                if($issued){
+                    $floating_stocks = $q->actual_qty - $issued->total_qty;
+                    $floating_stocks = $floating_stocks > 0 ? $floating_stocks : 0;
+                    if($floating_stocks){
+                        $q->withdrawn = $issued->total_qty;
+                        $q->floating_stocks = $floating_stocks;
+                        return $q;
+                    }
+                }
+                return null;
+            })->sortByDesc('floating_stocks')->filter()->values()->all();
+
+            return view('reports.assembly_floating_stocks_tbl', compact('report'));
+        }
+        
+        return view('reports.assembly_floating_stocks', compact('permissions'));
+    }
 }
