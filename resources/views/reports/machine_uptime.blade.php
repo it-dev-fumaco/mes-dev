@@ -16,7 +16,7 @@
     <div class="row p-2" style="margin-top: -213px; margin-bottom: 0; margin-left: 0; margin-right: 0; min-height: 850px;">
         <div class="col-12 m-0 bg-white border">
             <div class="row mt-2 p-2">
-                <div class="col-3 offset-3 d-flex justify-content-end align-items-center">
+                <div class="col-3 offset-2 d-flex justify-content-end align-items-center">
                     <label class="pt-1"><b>Select Date</b></label>
                 </div>
                 <div class="col-3">
@@ -31,6 +31,14 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-1 text-center">
+                    <button class="btn btn-primary btn-sm m-0" id="export-btn" tabindex="0" aria-controls="export-table" type="button">
+                        Export&nbsp;
+                        <div class="d-none spinner-border spinner-border-sm text-primary" id="spinner" role="status" style="color: #fff !important; font-size: 10px !important">
+                           <span class="sr-only">Loading...</span>
+                        </div>
+                     </button>
+                </div>
             </div>
             <div id="tbl" class="col-12 pt-2 mx-auto overflow-auto">
                 <div class="container p-5 d-flex justify-content-center align-items-center">
@@ -39,6 +47,9 @@
             </div>
         </div>
     </div>
+
+
+<div id="for-export" class="d-none"></div> <!-- file to be exported -->
 @endsection
 @section('script')
 <script type="text/javascript" src="{{ asset('js/daterange/moment.min.js') }}"></script>
@@ -84,8 +95,9 @@ $(document).ready(function(){
         });
     }
     $('#date').daterangepicker({
-        singleDatePicker: true,
         placeholder: 'Select Date',
+        startDate: moment().startOf('week'),
+        endDate: moment().startOf('week').add(7, 'days'),
         showDropdowns: true,
         minYear: 1901
     });
@@ -93,7 +105,6 @@ $(document).ready(function(){
     const load = (page = 1) => {
         const date = $('#date').val()
         const operation = $('#operation').val();
-        console.log('test')
 
         $.ajax({
             url: '/report/machine_uptime',
@@ -120,7 +131,9 @@ $(document).ready(function(){
     })
 
     $('#date').on('apply.daterangepicker', function(ev, picker) {
-		$(this).val(picker.startDate.format('MM/DD/YYYY'));
+        let start_date = picker.startDate.format('MM/DD/YYYY')
+        let end_date = picker.endDate.format('MM/DD/YYYY')
+		$(this).val(`${start_date} - ${end_date}`)
 
 		load();
 	});
@@ -130,6 +143,23 @@ $(document).ready(function(){
 
 		load();
 	});
+
+    $(document).on('click', '#export-btn', (e) => {
+        e.preventDefault()
+        $('#spinner').removeClass('d-none');
+
+        const date = $('#date').val()
+        const operation = $('#operation').val();
+
+        let data = '?export=1'
+        data += '&date=' + date
+        data += '&operation=' + operation
+
+        window.location.href = '{{ url()->current() }}' + data
+        setTimeout(() => {
+            $('#spinner').addClass('d-none')
+        }, 3000);
+    })
 });
 </script>
 @endsection

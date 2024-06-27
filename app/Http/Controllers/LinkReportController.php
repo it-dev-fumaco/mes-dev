@@ -2372,20 +2372,29 @@ class LinkReportController extends Controller
         $permissions = $this->get_user_permitted_operation();
         $operations = DB::connection('mysql_mes')->table('operation')->get();
 
-        if($request->ajax()){
-            $now = $request->date ? Carbon::parse($request->date) : Carbon::now();
-            $timelogs = DB::connection('live_mes')->table('time_logs as tl')
+        $export = $request->export;
+        if($request->ajax() || $export){
+            $start_date = Carbon::now()->subDays(7)->toDateTimeString();
+            $end_date = Carbon::now()->toDateTimeString();
+
+            if($request->date){
+                $exploded_date = explode(' - ', $request->date);
+                $start_date = isset($exploded_date[0]) ? Carbon::parse($exploded_date[0])->startOfDay() : $start_date;
+                $end_date = isset($exploded_date[1]) ? Carbon::parse($exploded_date[1])->endOfDay() : $end_date;
+            }
+
+            $timelogs = DB::connection('mysql_mes')->table('time_logs as tl')
                 ->join('machine as m', 'm.machine_code', 'tl.machine_code')
-                ->where('tl.created_at', '>=', $now->startOfDay()->toDateTimeString())
+                ->whereBetween('tl.created_at', [$start_date, $end_date])
                 ->when($request->operation, function ($q) use ($request){
                     return $q->where('m.operation_id', $request->operation);
                 })
                 ->select('tl.machine_code', 'm.machine_name', 'm.type', 'm.model', 'm.image', 'm.operation_id', DB::raw('SUM(tl.duration) as total_duration'), DB::raw('SUM(tl.breaktime_in_mins) as total_breaktime'))
                 ->groupBy('machine_code', 'machine_name', 'type', 'model', 'image', 'operation_id');
 
-            $report = DB::connection('live_mes')->table('spotwelding_qty as tl')
+            $report = DB::connection('mysql_mes')->table('spotwelding_qty as tl')
                 ->join('machine as m', 'm.machine_code', 'tl.machine_code')
-                ->where('tl.created_at', '>=', $now->startOfDay()->toDateTimeString())
+                ->whereBetween('tl.created_at', [$start_date, $end_date])
                 ->when($request->operation, function ($q) use ($request){
                     return $q->where('m.operation_id', $request->operation);
                 })
@@ -2393,7 +2402,20 @@ class LinkReportController extends Controller
                 ->groupBy('machine_code', 'machine_name', 'type', 'model', 'image', 'operation_id')
                 ->unionAll($timelogs)->orderByDesc('total_duration')->get();
 
-            return view('reports.machine_uptime_tbl', compact('report', 'operations'));
+            $report = collect($report)->map(function ($q){
+                $decimalHours = $q->total_duration;
+
+                $hours = floor($decimalHours);
+                $minutesDecimal = $decimalHours - $hours;
+                
+                $minutes = round($minutesDecimal * 60);
+
+                $q->total_uptime = "$hours hours and $minutes minutes";
+
+                return $q;
+            });
+
+            return view('reports.machine_uptime_tbl', compact('report', 'operations', 'export'));
         }
         
         return view('reports.machine_uptime', compact('permissions', 'operations'));
