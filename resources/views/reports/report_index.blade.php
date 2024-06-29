@@ -86,6 +86,9 @@
                                 <tr>
                                     <td><a href="/material_request_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">Material Requests</span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/report/assembly_floating_stocks" class="hover-class"><span style="padding-left:30px;line-height:25px;">Floating Stocks</span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>

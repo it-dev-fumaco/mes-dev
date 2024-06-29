@@ -720,6 +720,8 @@ Route::get('/tbl_operator_item_produced_report/{date1}/{date2}/{workstation}/{pr
 		Route::get('/export/rejection_logs', 'LinkReportController@export_rejection_logs');
 		Route::get('/export/machine_list', 'LinkReportController@export_machine_list');
 		Route::get('/export/production_monitoring', 'LinkReportController@production_monitoring');
+		Route::get('/report/machine_uptime', 'LinkReportController@machine_uptime_report');
+		Route::get('/report/assembly_floating_stocks', 'LinkReportController@assembly_floating_stocks');
 
 		Route::get('/link_painting_daily_output_report', 'LinkReportController@painting_output_report');
 		Route::get('/link_painting_daily_output_chart', 'LinkReportController@painting_daily_output_chart');
