@@ -39,16 +39,16 @@
     @forelse ($report as $row)
         <tr>
             @if (!$export)
-                <td>
-                    <img class="img-thumbnail" src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
-                </td>
+            <td class="text-center p-1">
+                <img class="img-thumbnail" src="{{ asset($row->image) }}" alt="" class="w-100 mx-auto">
+            </td>
             @endif
-            <td>{{ $row->machine_code }}</td>
-            <td>{{ $row->machine_name }}</td>
-            <td>{{ isset($operation[$row->operation_id]) ? $operation[$row->operation_id][0]->operation_name : null }}</td>
-            <td>{{ $row->type }}</td>
-            <td>{{ $row->model }}</td>
-            <td>{{ $row->total_uptime }}</td>
+            <td class="text-center p-1">{{ $row->machine_code }}</td>
+            <td class="text-center p-1">{{ $row->machine_name }}</td>
+            <td class="text-center p-1">{{ isset($operation[$row->operation_id]) ? $operation[$row->operation_id][0]->operation_name : null }}</td>
+            <td class="text-center p-1">{{ $row->type }}</td>
+            <td class="text-center p-1">{{ $row->model }}</td>
+            <td class="text-center p-1">{{ $row->total_uptime }}</td>
         </tr>
     @empty
         <tr>

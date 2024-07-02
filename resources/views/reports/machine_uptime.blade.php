@@ -20,20 +20,19 @@
                     <label class="pt-1"><b>Select Date</b></label>
                 </div>
                 <div class="col-3">
-                    <input type="text" class="form-control" id="date">
+                    <input type="text" class="form-control rounded" id="date">
                 </div>
                 <div class="col-3">
-                    <select name="operation" id="operation" class="form-control">
-                        <option value="">- Select an Operation -</option>
-                        <option value="0">All</option>
+                    <select name="operation" id="operation" class="form-control rounded">
+                        <option value="">All Operations</option>
                         @foreach ($operations as $operation)
-                            <option value="{{ $operation->operation_id }}">{{ $operation->operation_name }}</option>
+                        <option value="{{ $operation->operation_id }}">{{ $operation->operation_name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-1 text-center">
                     <button class="btn btn-primary btn-sm m-0" id="export-btn" tabindex="0" aria-controls="export-table" type="button">
-                        Export&nbsp;
+                        Export
                         <div class="d-none spinner-border spinner-border-sm text-primary" id="spinner" role="status" style="color: #fff !important; font-size: 10px !important">
                            <span class="sr-only">Loading...</span>
                         </div>

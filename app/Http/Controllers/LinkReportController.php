@@ -1852,7 +1852,9 @@ class LinkReportController extends Controller
         $permissions = $this->get_user_permitted_operation();
         $erp_po = DB::connection('mysql')->table('tabWork Order')->where('status', 'Completed')->orderBy('creation', 'desc')->pluck('name');
 
-        $ste = DB::connection('mysql')->table('tabStock Entry')->whereIn('work_order', $erp_po)->whereIn('purpose', ['Material Transfer for Manufacture', 'Material Transfer'])->where('docstatus', 0)->select('creation', 'owner', 'work_order', 'name', 'purpose', 'docstatus')->orderBy('creation', 'desc')->paginate(20);
+        $erp_po = collect($erp_po)->implode('","');
+
+        $ste = DB::connection('mysql')->table('tabStock Entry')->whereRaw('work_order IN ("'.$erp_po.'")')->whereIn('purpose', ['Material Transfer for Manufacture', 'Material Transfer'])->where('docstatus', 0)->select('creation', 'owner', 'work_order', 'name', 'purpose', 'docstatus')->orderBy('creation', 'desc')->paginate(20);
 
         return view('reports.system_audit_feedbacked_po_w_pending_ste', compact('ste', 'permissions'));
     }
@@ -2405,12 +2407,11 @@ class LinkReportController extends Controller
             $report = collect($report)->map(function ($q){
                 $decimalHours = $q->total_duration;
 
-                $hours = floor($decimalHours);
-                $minutesDecimal = $decimalHours - $hours;
-                
-                $minutes = round($minutesDecimal * 60);
-
-                $q->total_uptime = "$hours hours and $minutes minutes";
+                if ($decimalHours <= 0) {
+                    $q->total_uptime = "-";
+                } else {
+                    $q->total_uptime = number_format($decimalHours, 2) . " hours";
+                }
 
                 return $q;
             });
