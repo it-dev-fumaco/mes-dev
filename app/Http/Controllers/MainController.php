@@ -5024,6 +5024,7 @@ class MainController extends Controller
 				'status' => $request->status_update,
 				'complaints' => $request->complaints,
 				'findings' => $request->findings,
+				'remarks' => $request->remarks,
 				'work_started' => Carbon::parse($request->date_started)->toDateTimeString(),
 				'last_modified_by' => Auth::user()->email,
 				'last_modified_at' => Carbon::now()->toDateTimeString()

@@ -86,6 +86,9 @@
                                 <tr>
                                     <td><a href="/material_request_report" class="hover-class"><span style="padding-left:30px;line-height:25px;">Material Requests</span></a></td>
                                 </tr>
+                                <tr>
+                                    <td><a href="/report/assembly_floating_stocks" class="hover-class"><span style="padding-left:30px;line-height:25px;">Floating Stocks</span></a></td>
+                                </tr>
                             </tbody>
                         </table>
                       </div>
@@ -145,6 +148,20 @@
                                 </tr>
                                 <tr>
                                     <td><a href="/export/production_monitoring" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Monitoring</span></a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                      </div>
+                      <div class="col-md-4"  style="margin-top:70px;">
+                        <table style= "width:100%;">
+                            <thead  style="">
+                                <tr style="">
+                                    <th><span style="font-size:13.5pt;padding-left:30px;">Maintenance</span> </th>
+                                </tr>
+                            </thead>
+                            <tbody style=" padding-left:30px; text-align:left;">
+                                <tr>
+                                    <td><a href="/report/machine_uptime" class="hover-class"><span style="padding-left:30px;line-height:25px;">Machine Uptime</span></a></td>
                                 </tr>
                             </tbody>
                         </table>
