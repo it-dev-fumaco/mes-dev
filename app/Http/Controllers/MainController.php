@@ -6143,9 +6143,9 @@ class MainController extends Controller
 				'modified_by' => Auth::user()->email,
 				'owner' => Auth::user()->email,
 				'docstatus' => $docstatus,
-				'parent' => null,
-				'parentfield' => null,
-				'parenttype' => null,
+				// 'parent' => null,
+				// 'parentfield' => null,
+				// 'parenttype' => null,
 				'idx' => 0,
 				'use_multi_level_bom' => 1,
 				'delivery_note_no' => null,
@@ -6630,6 +6630,7 @@ class MainController extends Controller
 					'batch_no' => $row->batch_no,
 					'stock_value_difference' => ($row->s_warehouse) ? ($row->qty * $row->valuation_rate) * -1  : $row->qty * $row->valuation_rate,
 					'posting_date' => $now->format('Y-m-d'),
+					'posting_datetime' => $now->format('Y-m-d H:i:s')
 				];
 			}
 

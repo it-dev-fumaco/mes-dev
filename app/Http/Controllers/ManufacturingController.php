@@ -4716,6 +4716,7 @@ class ManufacturingController extends Controller
                         'batch_no' => $row->batch_no,
                         'stock_value_difference' => $row->qty * $row->valuation_rate,
                         'posting_date' => $now->format('Y-m-d'),
+					    'posting_datetime' => $now->format('Y-m-d H:i:s')
                     ];
                 }
 
