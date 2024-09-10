@@ -1432,6 +1432,15 @@ class ManufacturingController extends Controller
         }
     }
 
+    private function get_customer_name($reference){
+        $reference_type = explode('-', $reference)[0];
+        $table = $reference_type == 'MREQ' ? 'tabMaterial Request' : 'tabSales Order';
+
+        $customer_name = DB::table($table)->where('name', $reference)->pluck('customer')->first();
+
+        return $customer_name;
+    }
+
     public function create_production_order(Request $request)
     {
         DB::connection('mysql_mes')->beginTransaction();
@@ -1489,15 +1498,19 @@ class ManufacturingController extends Controller
                 $delivery_date = $request->delivery_date;
                 $project = $request->project;
                 $classification = $request->classification;
+
+                $customer_reference = $sales_order ? $sales_order : $material_request;
             } else {
                 $reference_pref = preg_replace('/[0-9]+/', null, $request->reference_no);
                 $reference_pref = str_replace("-", "", $reference_pref);
+
+                $customer_reference = $request->reference_no;
                 if ($reference_pref == 'SO') {
                     $so_details = DB::connection('mysql')->table('tabSales Order')->where('name', $request->reference_no)->first();
 
                     $sales_order = $request->reference_no;
                     $material_request = null;
-                    $customer = ($so_details) ? $so_details->customer : null;
+                    // $customer = ($so_details) ? $so_details->customer : null;
                     $delivery_date = ($so_details) ? $so_details->delivery_date : null;
                     $project = ($so_details) ? $so_details->project : null;
                     $classification = 'Customer Order';
@@ -1505,12 +1518,14 @@ class ManufacturingController extends Controller
                     $mr_details = DB::connection('mysql')->table('tabMaterial Request')->where('name', $request->reference_no)->first();
                     $sales_order = null;
                     $material_request = $request->reference_no;
-                    $customer = ($mr_details) ? $mr_details->customer : null;
+                    // $customer = ($mr_details) ? $mr_details->customer : null;
                     $delivery_date = ($mr_details) ? $mr_details->delivery_date : null;
                     $project = ($mr_details) ? $mr_details->project : null;
                     $classification = ($mr_details) ? $mr_details->custom_purpose : null;
                 }
             }
+
+            $customer = $this->get_customer_name($customer_reference);
 
             $item_details = DB::connection('mysql')->table('tabItem')->where('name', $request->item_code)->first();
 
