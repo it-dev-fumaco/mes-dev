@@ -3317,15 +3317,13 @@ class ManufacturingController extends Controller
             $mes_production_order_details = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $request->production_order)->first();
 
-            $item_alts = collect($request->item_as)->map(function ($q) {
-                if ($q != 'new_item') {
-                    return $q;
-                }
+            $item_alts = collect($request->item_as)->filter(function ($q) {
+                return $q != 'new_item' && $q;
             });
 
-            $item_alts = $item_alts->filter(function ($q) {
-                return !is_null($q);
-            });
+            // $item_alts = $item_alts->filter(function ($q) {
+            //     return !is_null($q);
+            // });
 
             $main_item_uoms = [];
             $main_item_uom = [];
@@ -4486,7 +4484,7 @@ class ManufacturingController extends Controller
                             'purchase_receipt_no' => null,
                             'posting_time' => $now->format('H:i:s'),
                             'to_warehouse' => $mes_production_order_details->wip_warehouse,
-                            'title' => 'Material Transfer for Manufacture',
+                            // 'title' => 'Material Transfer for Manufacture',
                             '_comments' => null,
                             'from_warehouse' => null,
                             'set_posting_time' => 0,
@@ -4656,9 +4654,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'serial_no' => $row->serial_no,
                         'fiscal_year' => $now->format('Y'),
@@ -4702,9 +4697,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'serial_no' => $row->serial_no,
                         'fiscal_year' => $now->format('Y'),
@@ -4779,9 +4771,6 @@ class ManufacturingController extends Controller
                                 'modified_by' => Auth::user()->email,
                                 'owner' => Auth::user()->email,
                                 'docstatus' => 0,
-                                'parent' => null,
-                                'parentfield' => null,
-                                'parenttype' => null,
                                 'idx' => 0,
                                 'reserved_qty_for_production' => 0,
                                 '_liked_by' => null,
@@ -4840,9 +4829,6 @@ class ManufacturingController extends Controller
                                 'modified_by' => Auth::user()->email,
                                 'owner' => Auth::user()->email,
                                 'docstatus' => 0,
-                                'parent' => null,
-                                'parentfield' => null,
-                                'parenttype' => null,
                                 'idx' => 0,
                                 'reserved_qty_for_production' => 0,
                                 '_liked_by' => null,
@@ -4920,9 +4906,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'fiscal_year' => $now->format('Y'),
                         'voucher_no' => $row->parent,
@@ -4971,9 +4954,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'fiscal_year' => $now->format('Y'),
                         'voucher_no' => $row->parent,
@@ -5533,9 +5513,6 @@ class ManufacturingController extends Controller
                 'modified_by' => Auth::user()->email,
                 'owner' => Auth::user()->email,
                 'docstatus' => 1,
-                'parent' => null,
-                'parentfield' => null,
-                'parenttype' => null,
                 'idx' => 0,
                 'use_multi_level_bom' => 1,
                 'delivery_note_no' => null,
