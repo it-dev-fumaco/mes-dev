@@ -6156,7 +6156,7 @@ class MainController extends Controller
 				'purchase_receipt_no' => null,
 				'posting_time' => $now->format('H:i:s'),
 				'to_warehouse' => $production_order_details->fg_warehouse,
-				'title' => 'Manufacture',
+				// 'title' => 'Manufacture',
 				'_comments' => null,
 				'from_warehouse' => null,
 				'set_posting_time' => 0,
@@ -6343,14 +6343,14 @@ class MainController extends Controller
 				DB::connection('mysql')->rollback();
 				DB::connection('mysql_mes')->rollback();
 
-				return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry. Please try again.']);
+				return response()->json(['success' => 0, 'message' => 'There was a problem creating stock entry. Please try again.']);
 			}
 		
 			return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'stock_entry' => $new_id]);
 		} catch (Exception $e) {
 			DB::connection('mysql')->rollback();
 			DB::connection('mysql_mes')->rollback();
-			return response()->json(['success' => 0, 'message' => 'There was a problem create stock entry']);
+			return response()->json(['success' => 0, 'message' => 'There was a problem creating stock entry'. $e->getMessage()]);
 		}
     }
 
@@ -6600,9 +6600,9 @@ class MainController extends Controller
 					'modified_by' => Auth::user()->email,
 					'owner' => Auth::user()->email,
 					'docstatus' => 1,
-					'parent' => null,
-					'parentfield' => null,
-					'parenttype' => null,
+					// 'parent' => null,
+					// 'parentfield' => null,
+					// 'parenttype' => null,
 					'idx' => 0,
 					'serial_no' => $row->serial_no,
 					'fiscal_year' => $now->format('Y'),
@@ -6671,9 +6671,9 @@ class MainController extends Controller
 								'modified_by' => Auth::user()->email,
 								'owner' => Auth::user()->email,
 								'docstatus' => 0,
-								'parent' => null,
-								'parentfield' => null,
-								'parenttype' => null,
+								// 'parent' => null,
+								// 'parentfield' => null,
+								// 'parenttype' => null,
 								'idx' => 0,
 								'reserved_qty_for_production' => 0,
 								'_liked_by' => null,
@@ -6730,9 +6730,9 @@ class MainController extends Controller
 								'modified_by' => Auth::user()->email,
 								'owner' => Auth::user()->email,
 								'docstatus' => 0,
-								'parent' => null,
-								'parentfield' => null,
-								'parenttype' => null,
+								// 'parent' => null,
+								// 'parentfield' => null,
+								// 'parenttype' => null,
 								'idx' => 0,
 								'reserved_qty_for_production' => 0,
 								'_liked_by' => null,
@@ -6811,9 +6811,9 @@ class MainController extends Controller
 					'modified_by' => Auth::user()->email,
 					'owner' => Auth::user()->email,
 					'docstatus' => 1,
-					'parent' => null,
-					'parentfield' => null,
-					'parenttype' => null,
+					// 'parent' => null,
+					// 'parentfield' => null,
+					// 'parenttype' => null,
 					'idx' => 0,
 					'fiscal_year' => $now->format('Y'),
 					'voucher_no' => $row->parent,
