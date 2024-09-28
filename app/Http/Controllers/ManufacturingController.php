@@ -4612,8 +4612,9 @@ class ManufacturingController extends Controller
             DB::connection('mysql')->commit();
 
             return response()->json(['success' => 1, 'message' => 'Stock Entry has been created.', 'id' => $new_id]);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::connection('mysql')->rollback();
+            throw $e;
             return response()->json(['success' => 0, 'message' => 'There was a problem creating stock entries.']);
         }
     }
@@ -4671,6 +4672,7 @@ class ManufacturingController extends Controller
                         'batch_no' => $row->batch_no,
                         'stock_value_difference' => ($row->qty * $row->valuation_rate) * -1,
                         'posting_date' => $now->format('Y-m-d'),
+                        'posting_datetime' => $now->toDateTimeString()
                     ];
 
                     $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
@@ -4724,7 +4726,8 @@ class ManufacturingController extends Controller
 
             }
         } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage(), 'id' => $stock_entry]);
+            throw $e;
+            // return response()->json(["error" => $e->getMessage(), 'id' => $stock_entry]);
         }
     }
 
@@ -4990,7 +4993,8 @@ class ManufacturingController extends Controller
                 DB::connection('mysql')->table('tabGL Entry')->insert($gl_entry);
             }
         } catch (Exception $e) {
-            return response()->json(["error" => $e->getMessage(), 'id' => $stock_entry]);
+            throw $e;
+            // return response()->json(["error" => $e->getMessage(), 'id' => $stock_entry]);
         }
     }
 
@@ -6396,6 +6400,7 @@ class ManufacturingController extends Controller
             DB::rollback();
             DB::connection('mysql_mes')->rollback();
 
+            // return response()->json(['status' => 0, 'message' => $e->getMessage()]);
             return response()->json(['status' => 0, 'message' => 'Error creating transaction. Please contact your system administrator.']);
         }
     }
@@ -6665,8 +6670,8 @@ class ManufacturingController extends Controller
                 $this->create_stock_ledger_entry($id);
                 $this->create_gl_entry($id);
             }
-        } catch (Exception $e) {
-
+        } catch (\Throwable $e) {
+            throw $e;
         }
     }
 
