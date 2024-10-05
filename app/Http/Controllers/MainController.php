@@ -400,6 +400,15 @@ class MainController extends Controller
 			return response()->json(['message' => 'Production Order <b>'.$jtno.'</b> not found.', 'item_details' => [], 'details' => [], 'operations' => [], 'success' => 0]);
 		}
 
+		// Get customer name
+		if(!$details->customer){
+			$reference_table = $details->sales_order ? 'tabSales Order' : 'tabMaterial Request';
+			$reference_id = $details->sales_order ?? $details->material_request;
+			$customer_name = DB::table($reference_table)->where('name', $reference_id)->pluck('customer')->first();
+
+			$details->customer = $customer_name;
+		}
+
 		$description = $details->description;
 		if(false !== stripos($details->item_classification, 'SA - ')){
 			$description = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $details->item_code)->orderBy('idx', 'asc')->pluck('attribute_value')->implode(' ');
