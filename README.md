@@ -13,8 +13,8 @@ Instructions using GUI and Commands
             - username = web
             - password = 'fumaco'
         - ERP (for dev)
-            - host = 10.0.0.191
-            - database name = '_3f2ec5a818bccb73'
+            - host = 10.0.48.106
+            - database name = 'erp15dev'
             - username = erp
             - password = 'fumaco'
         - MES (for dev)
