@@ -2463,15 +2463,26 @@ class LinkReportController extends Controller
                 ->orderByDesc('good_qty')
                 ->get();
     
-            $operator_ids = collect($list)->pluck('operator_id');
+            $operator_ids = collect($list)->pluck('operator_id')->unique()->values();
             $imploded_operator_ids = collect($operator_ids)->implode("','");
             $helpers = DB::connection('mysql_mes')->table('helper as h')
                 ->join('time_logs as t', 't.time_log_id', 'h.time_log_id')
+                ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+                ->join('production_order as p', 'j.production_order', 'p.production_order')
                 ->whereRaw("h.operator_id IN ('$imploded_operator_ids')")
                 ->whereBetween('t.created_at', $date_range)
-                ->select(DB::raw('SUM(t.good) as good_qty'), DB::raw('SUM(t.reject) as reject_qty'), 'h.operator_id', 'h.operator_name')
-                ->groupBy('operator_id', 'operator_name')
-                ->get()->groupBy('operator_id');
+                ->selectRaw("
+                    SUM(t.good) as good_qty,
+                    SUM(t.reject) as reject_qty,
+                    CASE
+                        WHEN p.operation_id = 1 AND j.workstation = 'Painting' THEN 'Painting'
+                        WHEN p.operation_id = 1 THEN 'Fabrication'
+                        WHEN p.operation_id = 3 THEN 'Wiring and Assembly'
+                    END as operation_name,
+                    h.operator_id, h.operator_name
+                ")
+                ->groupBy('operator_id', 'operator_name', 'operation_name')
+                ->get()->groupBy(['operation_name', 'operator_id']);
 
             $spotwelding_qty = [];
             if(!$request->operation || $request->operation == 1){
@@ -2490,13 +2501,34 @@ class LinkReportController extends Controller
                         t.operator_id, t.operator_name
                     ")
                     ->groupBy('t.operator_id', 't.operator_name')->get()->groupBy('operator_id');
+
+                $spotwelding_operator_ids = collect($spotwelding_qty)->pluck('operator_id')->unique()->values();
+                $imploded_spotwelding_operator_ids = collect($spotwelding_operator_ids)->implode("','");
+                $spotwelding_helpers = DB::connection('mysql_mes')->table('helper as h')
+                    ->join('spotwelding_qty as t', 't.time_log_id', 'h.time_log_id')
+                    ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+                    ->join('production_order as p', 'j.production_order', 'p.production_order')
+                    ->whereRaw("h.operator_id IN ('$imploded_operator_ids')")
+                    ->whereBetween('t.created_at', $date_range)
+                    ->selectRaw("
+                        SUM(t.good) as good_qty,
+                        SUM(t.reject) as reject_qty,
+                        h.operator_id, h.operator_name
+                    ")
+                    ->groupBy('operator_id', 'operator_name')
+                    ->get()->groupBy('operator_id');
             }
 
-            $list = collect($list)->map(function ($q) use ($helpers, $spotwelding_qty){
+            $list = collect($list)->map(function ($q) use ($helpers, $spotwelding_qty, $spotwelding_helpers){
                 $id = $q->operator_id;
-                $q->helper_qty = isset($helpers[$id]) ? (float) $helpers[$id][0]->good_qty : 0;
+                $operation = $q->operation_name;
+                $q->helper_qty = isset($helpers[$operation][$id]) ? (float) $helpers[$operation][$id][0]->good_qty : 0;
                 if($q->operation_name == 'Fabrication' && isset($spotwelding_qty[$id])){
                     $q->good_qty += $spotwelding_qty[$id][0]->good_qty;
+
+                    if(isset($spotwelding_helpers[$id])){
+                        $q->helper_qty += $spotwelding_helpers[$id][0]->good_qty;
+                    }
                 }
 
                 $q->total_qty = $q->good_qty + $q->helper_qty;
