@@ -10154,12 +10154,81 @@ class MainController extends Controller
 		$q = DB::connection('mysql_mes')->table('time_logs as t')->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
 			->join('production_order as p', 'j.production_order', 'p.production_order')->where('t.status', 'Completed')
 			->whereNotNull('t.operator_id')->whereDate('t.from_time', '>=', $now->startOfDay())->whereDate('t.to_time', '<=', $now->endOfDay())
-			->selectRaw('t.operator_id, t.operator_name, t.good, j.workstation, p.operation_id, t.reject')
+			->selectRaw("
+				t.operator_id, t.operator_name, SUM(t.good) as good, SUM(t.reject) as reject,
+				CASE
+					WHEN p.operation_id = 1 AND j.workstation = 'Painting' THEN 'Painting'
+					WHEN p.operation_id = 1 THEN 'Fabrication'
+					WHEN p.operation_id = 3 THEN 'Wiring and Assembly'
+				END as operation_name
+			")
+			->groupBy('t.operator_id', 't.operator_name', 'j.workstation', 'p.operation_id')
 			->orderBy('t.from_time', 'desc')->get();
+
+		$spotwelding_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
+			->where('status', 'Completed')->whereNotNull('operator_id')
+			->whereDate('from_time', '>=', $now->startOfDay())->whereDate('to_time', '<=', $now->endOfDay())
+			->selectRaw("
+				SUM(good) as good_qty,
+				SUM(reject) as reject_qty,
+				operator_id, operator_name
+			")
+			->groupBy('operator_id', 'operator_name')->get()->groupBy('operator_id');
+
+		$operator_ids = collect($q)->pluck('operator_id')->unique()->values();
+		$imploded_operator_ids = collect($operator_ids)->implode("','");
+		$helpers = DB::connection('mysql_mes')->table('helper as h')
+			->join('time_logs as t', 't.time_log_id', 'h.time_log_id')
+			->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+			->join('production_order as p', 'j.production_order', 'p.production_order')
+			->whereRaw("h.operator_id IN ('$imploded_operator_ids')")
+			->whereDate('t.created_at', $now)
+			->selectRaw("
+				SUM(t.good) as good_qty,
+				SUM(t.reject) as reject_qty,
+				CASE
+					WHEN p.operation_id = 1 AND j.workstation = 'Painting' THEN 'Painting'
+					WHEN p.operation_id = 1 THEN 'Fabrication'
+					WHEN p.operation_id = 3 THEN 'Wiring and Assembly'
+				END as operation_name,
+				h.operator_id, h.operator_name
+			")
+			->groupBy('operator_id', 'operator_name', 'operation_name')
+			->get()->groupBy(['operation_name', 'operator_id']);
+
+		$spotwelding_helpers = DB::connection('mysql_mes')->table('helper as h')
+			->join('spotwelding_qty as t', 't.time_log_id', 'h.time_log_id')
+			->whereRaw("h.operator_id IN ('$imploded_operator_ids')")
+			->whereDate('t.created_at', $now)
+			->selectRaw("
+				SUM(t.good) as good_qty,
+				SUM(t.reject) as reject_qty,
+				h.operator_id, h.operator_name
+			")
+			->groupBy('operator_id', 'operator_name')
+			->get()->groupBy('operator_id');
 
 		$fabrication_op_output = $painting_op_output = $assembly_op_output = [];
 		foreach ($q as $e) {
-			if ($e->operation_id == 1 && $e->workstation != 'Painting') {
+			if ($e->operation_name == 'Fabrication') {
+				if(isset($helpers['Fabrication'][$e->operator_id])){
+					$helper = $helpers['Fabrication'][$e->operator_id][0];
+
+					$e->good += $helper->good_qty;
+					$e->reject += $helper->reject_qty;
+				}
+
+				if(isset($spotwelding_qty[$e->operator_id])){
+					$e->good += $spotwelding_qty[$e->operator_id][0]->good_qty;
+					$e->reject += $spotwelding_qty[$e->operator_id][0]->reject_qty;
+				}
+
+				if(isset($spotwelding_helpers[$e->operator_id])){
+					$spotwelding_helper = $spotwelding_helpers[$e->operator_id][0];
+					$e->good += $spotwelding_helper->good_qty;
+					$e->reject += $spotwelding_helper->reject_qty;
+				}
+
 				if (array_key_exists($e->operator_id, $fabrication_op_output)) {
 					$fabrication_op_output[$e->operator_id]['output'] += $e->good;
 					$fabrication_op_output[$e->operator_id]['reject'] += $e->reject;
@@ -10168,7 +10237,12 @@ class MainController extends Controller
 				}
 			}
 
-			if ($e->workstation == 'Painting') {
+			if ($e->operation_name == 'Painting') {
+				if(isset($helpers['Painting'][$e->operator_id])){
+					$helper = $helpers['Painting'][$e->operator_id][0];
+					$e->good += $helper->good_qty;
+					$e->reject += $helper->reject_qty;
+				}
 				if (array_key_exists($e->operator_id, $painting_op_output)) {
 					$painting_op_output[$e->operator_id]['output'] += $e->good;
 					$painting_op_output[$e->operator_id]['reject'] += $e->reject;
@@ -10178,7 +10252,13 @@ class MainController extends Controller
 				}
 			}
 
-			if ($e->operation_id == 3) {
+			if ($e->operation_name == 'Wiring and Assembly') {
+				if(isset($helpers['Wiring and Assembly'][$e->operator_id])){
+					$helper = $helpers['Wiring and Assembly'][$e->operator_id][0];
+					$e->good += $helper->good_qty;
+					$e->reject += $helper->reject_qty;
+				}
+
 				if (array_key_exists($e->operator_id, $assembly_op_output)) {
 					$assembly_op_output[$e->operator_id]['output'] += $e->good;
 					$assembly_op_output[$e->operator_id]['reject'] += $e->reject;
