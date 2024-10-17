@@ -126,6 +126,12 @@
             <span class="d-inline-block"> Dashboard</span>
           </a>
         </li>
+        <li class="m-0">
+          <a href="/main_dashboard" class="d-block m-0 p-1" style="text-decoration: none;">
+            <img class="d-inline-block" src="{{ asset('storage/Main Icon/home.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">
+            <span class="d-inline-block"> Production Dashboard</span>
+          </a>
+        </li>
         <li class="m-0 align-middle">
           <a href="/item_feedback" class="d-block m-0 p-1" style="text-decoration: none;">
             <img class="d-inline-block" src="{{ asset('storage/Main Icon/work-order-icon-6.png') }}" style="width: 15px; margin-left: auto; margin-right: auto;">

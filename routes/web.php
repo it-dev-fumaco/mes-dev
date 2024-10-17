@@ -231,7 +231,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/submit_bom_review/{bom}', 'ManufacturingController@submit_bom_review');
 	Route::post('/create_production_order', 'ManufacturingController@create_production_order');
 	Route::post('/create_material_request', 'ManufacturingController@create_material_request');
-	Route::post('/create_stock_entry', 'ManufacturingController@create_stock_entry');
+	// Route::post('/create_stock_entry', 'ManufacturingController@create_stock_entry');
 	Route::post('/cancel_production_order', 'ManufacturingController@cancel_production_order');
 	Route::post('/close_production_order', 'ManufacturingController@close_production_order');
 	Route::post('/reopen_production_order', 'ManufacturingController@reopen_production_order');
@@ -280,7 +280,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_fabrication_inventory_history_list', 'SecondaryController@get_fabrication_inventory_history_list');
 	route::get('/get_tbl_workstation_list/{id}','SecondaryController@get_tbl_workstation_list');
 	Route::get('/get_tbl_setting_machine_list', 'SecondaryController@get_tbl_setting_machine_list');
-	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
+	// Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
 	Route::get('/selected_print_job_tickets/{scheduled_date}', 'SecondaryController@selected_printJobTickets');
 	Route::get('/production_schedule_painting', 'SecondaryController@get_production_painting');
 	Route::post('/reorder_production_painting', 'SecondaryController@reorder_production_painting');
@@ -686,6 +686,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/material_request_report', 'LinkReportController@material_request_report');
 	Route::get('/get_customers_filter', 'LinkReportController@get_customers_filter');
 	Route::get('/production_orders_report/{operation}', 'LinkReportController@production_orders_report');
+	Route::get('/report/operator_efficiency', 'LinkReportController@operator_efficiency');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

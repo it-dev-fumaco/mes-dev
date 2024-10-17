@@ -804,10 +804,10 @@
       $(document).on('click', '#quality-inspection-frm .next-tab', function(e){
         e.preventDefault();
         var tab_id = $(this).data('tab-id');
-        var tab_qty_reject = parseInt($('#' + tab_id + '-qty-reject').val());
-        var tab_qty_checked = parseInt($('#' + tab_id + '-qty-checked').val());
-        var tab_qty = parseInt($('#' + tab_id + '-qty').val());
-        var tab_reject_level = parseInt($('#' + tab_id + ' .reject-level').text());
+        var tab_qty_reject = parseFloat($('#' + tab_id + '-qty-reject').val());
+        var tab_qty_checked = parseFloat($('#' + tab_id + '-qty-checked').val());
+        var tab_qty = parseFloat($('#' + tab_id + '-qty').val());
+        var tab_reject_level = parseFloat($('#' + tab_id + ' .reject-level').text());
 
         if(tab_qty_checked <= 0){
           showNotification("danger", 'Please enter quantity checked.', "now-ui-icons travel_info");

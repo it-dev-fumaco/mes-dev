@@ -2422,6 +2422,94 @@ class LinkReportController extends Controller
         return view('reports.machine_uptime', compact('permissions', 'operations'));
     }
 
+    public function operator_efficiency(Request $request){
+        $permissions = $this->get_user_permitted_operation();
+
+        $operators = DB::connection('mysql_mes')->table('time_logs')->orderBy('operator_name')->pluck('operator_name', 'operator_id')->filter();
+
+        if($request->ajax()){
+            $exploded_date = explode(' to ', $request->date);
+            $start_date = isset($exploded_date[0]) ? Carbon::parse($exploded_date[0]) : Carbon::now()->subDays(7);
+            $end_date = isset($exploded_date[1]) ? Carbon::parse($exploded_date[1]) : Carbon::now();
+
+            $date_range = [$start_date->toDateTimeString(), $end_date->toDateTimeString()];
+
+            $list = DB::connection('mysql_mes')->table('time_logs as t')
+                ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+                ->join('production_order as p', 'j.production_order', 'p.production_order')
+                ->where('t.status', 'Completed')
+                ->whereNotNull('t.operator_id')
+                ->whereBetween('t.created_at', $date_range)
+                ->when($request->operation && $request->operation != 2, function ($q) use ($request){
+                    return $q->where('p.operation_id', $request->operation);
+                })
+                ->when($request->operation && $request->operation == 2, function ($q) use ($request){
+                    return $q->whereIn('p.operation_id', [1, 2])->where('j.workstation', 'Painting');
+                })
+                ->when($request->operator, function ($q) use ($request){
+                    return $q->where('t.operator_id', $request->operator);
+                })
+                ->selectRaw("
+                    SUM(t.good) as good_qty,
+                    SUM(t.reject) as reject_qty,
+                    CASE
+                        WHEN p.operation_id = 1 AND j.workstation = 'Painting' THEN 'Painting'
+                        WHEN p.operation_id = 1 THEN 'Fabrication'
+                        WHEN p.operation_id = 3 THEN 'Wiring and Assembly'
+                    END as operation_name,
+                    t.operator_id, t.operator_name
+                ")
+                ->groupBy('t.operator_id', 't.operator_name', 'operation_name')
+                ->orderByDesc('good_qty')
+                ->get();
+    
+            $operator_ids = collect($list)->pluck('operator_id');
+            $imploded_operator_ids = collect($operator_ids)->implode("','");
+            $helpers = DB::connection('mysql_mes')->table('helper as h')
+                ->join('time_logs as t', 't.time_log_id', 'h.time_log_id')
+                ->whereRaw("h.operator_id IN ('$imploded_operator_ids')")
+                ->whereBetween('t.created_at', $date_range)
+                ->select(DB::raw('SUM(t.good) as good_qty'), DB::raw('SUM(t.reject) as reject_qty'), 'h.operator_id', 'h.operator_name')
+                ->groupBy('operator_id', 'operator_name')
+                ->get()->groupBy('operator_id');
+
+            $spotwelding_qty = [];
+            if(!$request->operation || $request->operation == 1){
+                $spotwelding_qty = DB::connection('mysql_mes')->table('spotwelding_qty as t')
+                    ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
+                    ->join('production_order as p', 'j.production_order', 'p.production_order')
+                    ->where('t.status', 'Completed')
+                    ->whereNotNull('t.operator_id')
+                    ->whereBetween('t.created_at', $date_range)
+                    ->when($request->operator, function ($q) use ($request){
+                        return $q->where('t.operator_id', $request->operator);
+                    })
+                    ->selectRaw("
+                        SUM(t.good) as good_qty,
+                        SUM(t.reject) as reject_qty,
+                        t.operator_id, t.operator_name
+                    ")
+                    ->groupBy('t.operator_id', 't.operator_name')->get()->groupBy('operator_id');
+            }
+
+            $list = collect($list)->map(function ($q) use ($helpers, $spotwelding_qty){
+                $id = $q->operator_id;
+                $q->helper_qty = isset($helpers[$id]) ? (float) $helpers[$id][0]->good_qty : 0;
+                if($q->operation_name == 'Fabrication' && isset($spotwelding_qty[$id])){
+                    $q->good_qty += $spotwelding_qty[$id][0]->good_qty;
+                }
+
+                $q->total_qty = $q->good_qty + $q->helper_qty;
+
+                return $q;
+            })->sortByDesc('total_qty');
+
+            return view('reports.operator_efficiency_tbl', compact('list'));
+        }
+        
+        return view('reports.operator_efficiency', compact('permissions', 'operators'));
+    }
+    
     public function assembly_floating_stocks(Request $request){
         if (Gate::denies('reports')) {
             return redirect()->back();

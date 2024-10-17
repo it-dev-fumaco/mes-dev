@@ -62,7 +62,9 @@
                                        </div>
                                     </td>
                                     <td class="align-middle">
-                                       <button type="submit" class="btn btn-primary" id="get-btn" style="margin-left: 10px;">Get</button>
+                                       <button type="submit" class="btn btn-primary" id="get-btn" style="margin-left: 10px;">
+                                          Get
+                                       </button>
                                     </td>
                                  </tr>
                               </table>
@@ -592,53 +594,32 @@
       $('#get-somr-frm').submit(function(e){
          e.preventDefault();
          var items_from = $('#items-from').val();
-         if (items_from == 'Sales Order') {
-            $.ajax({
-               url: "/get_sales_order_details/" + $('#reference-no').val(),
-               type:"GET",
-               success:function(data){
-                  if (data.message) {
-                     var alert = '<div class="alert alert-danger text-center" role="alert" style="font-size: 12pt;">'+ data.message + '</div>';
-                     $('#so-item-list-div').html(alert);
-                  }else{
-                     $('#so-item-list-div').html(data);
-                     $('.btn-div').removeAttr('hidden');
-                  }
-               },
-               error: function(jqXHR, textStatus, errorThrown) {
-                  if(jqXHR.status == 401) {
-                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-                  }
-                  
-                  console.log(jqXHR);
-                  console.log(textStatus);
-                  console.log(errorThrown);
-               },
-            });
-         }else{
-            $.ajax({
-               url: "/get_material_request_details/" + $('#reference-no').val(),
-               type:"GET",
-               success:function(data){
-                  if (data.message) {
-                     var alert = '<div class="alert alert-danger text-center" role="alert" style="font-size: 12pt;">'+ data.message + '</div>';
-                     $('#so-item-list-div').html(alert);
-                  }else{
-                     $('#so-item-list-div').html(data);
-                     $('.btn-div').removeAttr('hidden');
-                  }
-               },
-               error: function(jqXHR, textStatus, errorThrown) {
-                  if(jqXHR.status == 401) {
-                     showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
-                  }
-                  
-                  console.log(jqXHR);
-                  console.log(textStatus);
-                  console.log(errorThrown);
-               },
-            });
-         }
+         const id = $('#reference-no').val()
+         let url = items_from == 'Sales Order' ? '/get_sales_order_details/' : '/get_material_request_details/'
+         url += id
+
+         $.ajax({
+            url,
+            type:"GET",
+            success: (data) => {
+               if (data.message) {
+                  var alert = '<div class="alert alert-danger text-center" role="alert" style="font-size: 12pt;">'+ data.message + '</div>';
+                  $('#so-item-list-div').html(alert);
+               }else{
+                  $('#so-item-list-div').html(data);
+                  $('.btn-div').removeAttr('hidden');
+               }
+            },
+            error:  (jqXHR, textStatus, errorThrown) => {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+               }
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
+         });
       });
 
       $(document).on('click', '#submit-bom-review-btn', function(){

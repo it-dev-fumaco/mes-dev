@@ -14,7 +14,7 @@
                 <div class="card-body" style="min-height:750px;">
                    <div class="row" style="margin-top: 15px;">
                       
-                      <div class="col-md-4"  style="margin-top:30px;">
+                      <div class="col-4"  style="margin-top:30px;">
                         <table style= "width:100%;">
                             <thead  style="">
                                 <tr style="">
@@ -167,6 +167,20 @@
                         </table>
                       </div>
                       @if (in_array('Production Manager', $user_groups->toArray()))
+                        <div class="col-md-4" style="margin-top:70px;">
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th><span style="font-size:13.5pt;padding-left:30px;">Operations</span> </th>
+                                    </tr>
+                                </thead>
+                                <tbody style=" padding-left:30px; text-align:left;">
+                                    <tr>
+                                        <td><a href="/report/operator_efficiency" class="hover-class"><span style="padding-left:30px;line-height:25px;">Operator Efficiency</span></a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <div class="col-md-12"  style="margin-top:70px;">
                             <table style= "width:100%;">
                                 <thead  style="">

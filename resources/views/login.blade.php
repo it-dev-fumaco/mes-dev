@@ -240,7 +240,7 @@
             url: $(this).attr('action'),
             type:"POST",
             data: $(this).serialize(),
-            success:function(data){
+            success:(data) => {
                if (data.success < 1) {
                   showNotification("danger", data.message, "now-ui-icons travel_info");
                }else{
@@ -249,7 +249,18 @@
                      window.location.href = data.redirect_to;
                   // }, 1500);
                }
-            }
+            },
+            error: (jqXHR, textStatus, errorThrown) => {
+               if(jqXHR.status == 401) {
+                  showNotification("danger", 'Session Expired. Please refresh the page and login to continue.', "now-ui-icons travel_info");
+                  return false;
+               }
+               showNotification("danger", 'An error occured. Please try again.', "now-ui-icons travel_info");
+               
+               console.log(jqXHR);
+               console.log(textStatus);
+               console.log(errorThrown);
+            },
          });  
       });
 
