@@ -2486,28 +2486,24 @@ class LinkReportController extends Controller
 
             $spotwelding_qty = [];
             if(!$request->operation || $request->operation == 1){
-                $spotwelding_qty = DB::connection('mysql_mes')->table('spotwelding_qty as t')
-                    ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
-                    ->join('production_order as p', 'j.production_order', 'p.production_order')
-                    ->where('t.status', 'Completed')
-                    ->whereNotNull('t.operator_id')
-                    ->whereBetween('t.created_at', $date_range)
+                $spotwelding_qty = DB::connection('mysql_mes')->table('spotwelding_qty')
+                    ->where('status', 'Completed')
+                    ->whereNotNull('operator_id')
+                    ->whereBetween('created_at', $date_range)
                     ->when($request->operator, function ($q) use ($request){
-                        return $q->where('t.operator_id', $request->operator);
+                        return $q->where('operator_id', $request->operator);
                     })
                     ->selectRaw("
-                        SUM(t.good) as good_qty,
-                        SUM(t.reject) as reject_qty,
-                        t.operator_id, t.operator_name
+                        SUM(good) as good_qty,
+                        SUM(reject) as reject_qty,
+                        operator_id, operator_name
                     ")
-                    ->groupBy('t.operator_id', 't.operator_name')->get()->groupBy('operator_id');
+                    ->groupBy('operator_id', 'operator_name')->get()->groupBy('operator_id');
 
                 $spotwelding_operator_ids = collect($spotwelding_qty)->pluck('operator_id')->unique()->values();
                 $imploded_spotwelding_operator_ids = collect($spotwelding_operator_ids)->implode("','");
                 $spotwelding_helpers = DB::connection('mysql_mes')->table('helper as h')
                     ->join('spotwelding_qty as t', 't.time_log_id', 'h.time_log_id')
-                    ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
-                    ->join('production_order as p', 'j.production_order', 'p.production_order')
                     ->whereRaw("h.operator_id IN ('$imploded_operator_ids')")
                     ->whereBetween('t.created_at', $date_range)
                     ->selectRaw("
