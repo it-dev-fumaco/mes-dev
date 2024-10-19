@@ -10,6 +10,9 @@ use DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Traits\GeneralTrait;
 use Illuminate\Support\Facades\Gate;
+use Storage;
+
+use App\tabItem;
 
 class LinkReportController extends Controller
 {
@@ -2423,6 +2426,9 @@ class LinkReportController extends Controller
     }
 
     public function operator_efficiency(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
         $permissions = $this->get_user_permitted_operation();
 
         $operators = DB::connection('mysql_mes')->table('time_logs')->orderBy('operator_name')->pluck('operator_name', 'operator_id')->filter();
@@ -2432,7 +2438,7 @@ class LinkReportController extends Controller
             $start_date = isset($exploded_date[0]) ? Carbon::parse($exploded_date[0]) : Carbon::now()->subDays(7);
             $end_date = isset($exploded_date[1]) ? Carbon::parse($exploded_date[1]) : Carbon::now();
 
-            $date_range = [$start_date->toDateTimeString(), $end_date->toDateTimeString()];
+            $date_range = [$start_date->startOfDay()->toDateTimeString(), $end_date->endOfDay()->toDateTimeString()];
 
             $list = DB::connection('mysql_mes')->table('time_logs as t')
                 ->join('job_ticket as j', 'j.job_ticket_id', 't.job_ticket_id')
@@ -2536,6 +2542,99 @@ class LinkReportController extends Controller
         }
         
         return view('reports.operator_efficiency', compact('permissions', 'operators'));
+    }
+
+    public function item_manufacturing_duration(Request $request){
+        if (Gate::denies('reports')) {
+            return redirect()->back();
+        }
+
+        $permissions = $this->get_user_permitted_operation();
+        if($request->ajax()){
+            $exploded_date = explode(' to ', $request->date);
+            $start_date = isset($exploded_date[0]) ? Carbon::parse($exploded_date[0]) : Carbon::now()->subDays(7);
+            $end_date = isset($exploded_date[1]) ? Carbon::parse($exploded_date[1]) : Carbon::now();
+
+            $date_range = [$start_date->startOfDay()->toDateTimeString(), $end_date->endOfDay()->toDateTimeString()];
+
+            $spotwelding = DB::connection('mysql_mes')->table('production_order as p')
+                ->join('job_ticket as j', 'p.production_order', 'j.production_order')
+                ->join('spotwelding_qty as t', 't.job_ticket_id', 'j.job_ticket_id')
+                ->whereBetween('p.created_at', $date_range)
+                ->whereIn('p.status', ['Feedbacked', 'Completed'])->where('t.status', 'Completed')->where('j.status', 'Completed')
+                ->when($request->operation && $request->operation != 2, function ($q) use ($request){
+                    return $q->where('p.operation_id', $request->operation);
+                })
+                ->when($request->operation == 2, function ($q) {
+                    return $q->where('j.workstation', 'Painting')->where('p.operation_id', 1);
+                })
+                ->select('p.production_order', 'p.created_at as production_order_creation', 'j.job_ticket_id', 'p.status', 'p.parent_item_code', 'p.sub_parent_item_code', 'p.item_code', 'j.workstation', 'j.actual_start_date', 'j.actual_end_date', 'p.produced_qty', 'j.completed_qty', 'j.good', 'j.reject', 'j.last_modified_by', 'j.created_by', 't.time_log_id', 't.from_time', 't.to_time', 't.duration', 'p.operation_id')
+                ->orderByDesc('p.last_modified_at');
+
+            $time_logs = DB::connection('mysql_mes')->table('production_order as p')
+                ->join('job_ticket as j', 'p.production_order', 'j.production_order')
+                ->join('time_logs as t', 't.job_ticket_id', 'j.job_ticket_id')
+                ->whereBetween('p.created_at', $date_range)
+                ->whereIn('p.status', ['Feedbacked', 'Completed'])->where('t.status', 'Completed')->where('j.status', 'Completed')
+                ->when($request->operation && $request->operation != 2, function ($q) use ($request){
+                    return $q->where('p.operation_id', $request->operation);
+                })
+                ->when($request->operation == 2, function ($q) {
+                    return $q->where('j.workstation', 'Painting')->where('p.operation_id', 1);
+                })
+                ->select('p.production_order', 'p.created_at as production_order_creation', 'j.job_ticket_id', 'p.status', 'p.parent_item_code', 'p.sub_parent_item_code', 'p.item_code', 'j.workstation', 'j.actual_start_date', 'j.actual_end_date', 'p.produced_qty', 'j.completed_qty', 'j.good', 'j.reject', 'j.last_modified_by', 'j.created_by', 't.time_log_id', 't.from_time', 't.to_time', 't.duration', 'p.operation_id')
+                ->orderByDesc('p.last_modified_at')
+                ->unionAll($spotwelding)
+                ->get();
+
+            $item_codes = collect($time_logs)->pluck('item_code');
+            $imploded_item_codes = collect($item_codes)->implode("','");
+
+            $item_details = tabItem::with('defaultImage')->whereRaw("name IN ('$imploded_item_codes')")->select('name', 'description', 'stock_uom')->get();
+            $item_details = collect($item_details)->groupBy('name');
+
+            $grouped = collect($time_logs)->groupBy('production_order');
+
+            $list = [];
+            foreach($grouped as $production_order => $time_logs){
+                $total_duration = 0;
+
+                $production_order_details = $time_logs[0];
+                $item_code = $production_order_details->item_code;
+
+                $item = isset($item_details[$item_code]) ? $item_details[$item_code][0] : [];
+
+                $time_logs = collect($time_logs)->map(function ($time_log) use (&$total_duration) {
+                    $duration_per_item = $time_log->duration / $time_log->good;
+
+                    $total_duration += $duration_per_item;
+                    return $time_log;
+                });
+
+                $image = "http://athenaerp.fumaco.local/storage/";
+                $image .= isset($item->default_image->image_path) ? $item->default_image->image_path : '/icon/no_img.webp';
+            
+                $list[] = [
+                    'operation' => $production_order_details->operation_id,
+                    'production_order' => $production_order,
+                    'production_order_creation' => $production_order_details->production_order_creation,
+                    'total_duration' => $total_duration,
+                    'item_code' => $item_code,
+                    'description' => isset($item->description) ? $item->description : null,
+                    'stock_uom' => isset($item->stock_uom) ? $item->stock_uom : null,
+                    'image' => $image,
+                    'completed_qty' => $production_order_details->produced_qty,
+                    'actual_start_date' => collect($time_logs)->min('from_time'),
+                    'actual_end_date' => collect($time_logs)->min('to_time')
+                ];
+            }
+
+            $list = collect($list)->sortByDesc('production_order_creation');
+
+            return view('reports.item_manufacturing_duration_tbl', compact('list'));
+        }
+
+        return view('reports.item_manufacturing_duration', compact('permissions'));
     }
     
     public function assembly_floating_stocks(Request $request){

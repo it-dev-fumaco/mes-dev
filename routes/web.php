@@ -687,6 +687,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_customers_filter', 'LinkReportController@get_customers_filter');
 	Route::get('/production_orders_report/{operation}', 'LinkReportController@production_orders_report');
 	Route::get('/report/operator_efficiency', 'LinkReportController@operator_efficiency');
+	Route::get('/report/item_manufacturing_duration', 'LinkReportController@item_manufacturing_duration');
 });
 
 Route::get('/get_item_attributes', 'SecondaryController@get_item_attributes');

@@ -174,9 +174,12 @@
                                         <th><span style="font-size:13.5pt;padding-left:30px;">Operations</span> </th>
                                     </tr>
                                 </thead>
-                                <tbody style=" padding-left:30px; text-align:left;">
+                                <tbody style="padding-left:30px; text-align:left;">
                                     <tr>
                                         <td><a href="/report/operator_efficiency" class="hover-class"><span style="padding-left:30px;line-height:25px;">Operator Efficiency</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/report/item_manufacturing_duration" class="hover-class"><span style="padding-left:30px;line-height:25px;">Item Manufacturing Duration</span></a></td>
                                     </tr>
                                 </tbody>
                             </table>
