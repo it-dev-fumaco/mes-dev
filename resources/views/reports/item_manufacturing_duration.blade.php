@@ -31,9 +31,6 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-3">
-               <button id="reload">reload</button>
-           </div>
             <div id="tbl" class="col-12 my-2" style="max-height: 80vh; overflow-y: auto">
                 <div class="text-center p-3">
                     <div class="spinner-border" role="status">
@@ -121,11 +118,6 @@
             $(this).val('');
             load();
         });
-
-        $(document).on('click', '#reload', function (e){
-            e.preventDefault()
-            load()
-        })
 
         $(document).on('change', '.filter', function (e){
             e.preventDefault()
