@@ -186,11 +186,9 @@ class ManufacturingController extends Controller
 
             $item_details = DB::connection('mysql')->table('tabItem')->whereIn('name', collect($bom)->pluck('item_code'))->get();
 
-            $sub_assemblies = collect($item_details)->map(function ($q) {
-                if (false !== stripos($q->item_classification, 'SA - ')) {
-                    return $q->name;
-                }
-            })->filter()->values()->all();
+            $sub_assemblies = collect($item_details)->filter(function ($q) {
+                return stripos($q->item_classification, 'SA - ') !== false;
+            })->pluck('name')->all();
 
             $item_details = collect($item_details)->groupBy('name');
 
@@ -210,13 +208,17 @@ class ManufacturingController extends Controller
                 $default_bom = isset($default_bom_arr[$item->item_code]) ? $default_bom_arr[$item->item_code][0] : [];
 
                 $item_detail = isset($item_details[$item->item_code]) ? $item_details[$item->item_code][0] : [];
-                $item_description = ($item_detail) ? $item_detail->description : '';
-                $item_classification = ($item_detail) ? $item_detail->item_classification : '';
-                $item_group = ($item_detail) ? $item_detail->item_group : '';
+                $item_description = $item_classification = $item_group = null;
+                if($item_detail){
+                    $item_classification = $item_detail->item_classification;
+                    $item_description = $item_detail->description;
+                    $item_group = $item_detail->item_group;
+                }
+                
                 $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
 
                 // This is to break an infinite loop
-                if(in_array($child_bom, collect($bom)->pluck('parent')->toArray()) || in_array($item->item_code, collect($default_bom_arr)->keys()->toArray())){ 
+                if(in_array($child_bom, collect($bom)->pluck('parent')->toArray())){ 
                     continue;
                 }
 
@@ -231,6 +233,10 @@ class ManufacturingController extends Controller
                     'attributes' => isset($attributes_arr[$item->item_code]) ? $attributes_arr[$item->item_code] : [],
                     'child_nodes' => $this->get_bom($child_bom)
                 ];
+
+                if(in_array($item->item_code, collect($default_bom_arr)->keys()->toArray())){
+                    continue;
+                }
             }
 
             return $materials;
