@@ -167,12 +167,28 @@ class MainController extends Controller
 	public function loginUserId(Request $request){
 		try {
 			$email = strpos($request->user_id, '@fumaco.local') ? $request->user_id : $request->user_id.'@fumaco.local';
-			$essex_user = DB::connection('mysql_essex')->table('users')->where('email', $email)->first();
-			if(!$essex_user){
+			$email = str_replace('@fumaco.local', null, $email);
+			$email = str_replace('@fumaco.com', null, $email);
+
+			$password = $request->password;
+
+			$client = new \GuzzleHttp\Client();
+			$erp_api_base_url = env('ERP_API_BASE_URL');
+			$response = $client->post("$erp_api_base_url/api/method/login", [
+				'form_params' => [
+					'usr' => "$email@fumaco.com",
+					'pwd' => $password,
+				]
+			]);
+
+			if ($response->getStatusCode() !== 200) {
 				return response()->json(['success' => 0, 'message' => '<b>Invalid login credentials!</b>']);
 			}
 
-			$email = str_replace('@fumaco.local', null, $email);
+			$essex_user = DB::connection('mysql_essex')->table('users')->whereIn('email', ["$email@fumaco.local", "$email@fumaco.com"])->first();
+			if(!$essex_user){
+				return response()->json(['success' => 0, 'message' => '<b>Invalid login credentials!</b>']);
+			}
 
 			// check if user exist in user table in MES
 			$mes_user = DB::connection('mysql_mes')->table('user')
@@ -220,9 +236,9 @@ class MainController extends Controller
 					->withInput(Input::except('user_id', 'password'));
 			}else{
 
-				$adldap = new adLDAP();
-                $authUser = $adldap->user()->authenticate($email, $request->password);
-				if($authUser == true){
+				// $adldap = new adLDAP();
+                // $authUser = $adldap->user()->authenticate($email, $request->password);
+				// if($authUser == true){
 					if(Auth::loginUsingId($essex_user->id)){
 						DB::connection('mysql_mes')->table('user')->where('user_access_id', $essex_user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
 
@@ -231,11 +247,11 @@ class MainController extends Controller
 						// validation not successful, send back to form 
 						return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again 1.']);
 					}
-				}
+				// }
 
 				return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 			}
-		} catch (Exception $e) {
+		} catch (Throwanble $e) {
 			return response()->json(['success' => 0, 'message' => '<b>No connection to authentication server.</b>']);
 		}
 	}
