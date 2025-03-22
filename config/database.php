@@ -89,6 +89,38 @@ return [
             'engine' => null,
         ],
 
+        'live_erp' => [
+            'driver' => 'mysql',
+            'host' => env('DB_LIVE', ''),
+            'port' => env('DB_PORT_ERP', ''),
+            'database' => env('DB_LIVE_ERP_NAME', ''),
+            'username' => env('DB_USERNAME_ERP', ''),
+            'password' => env('DB_PASSWORD_ERP', ''),
+            'unix_socket' => '',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
+        'live_mes' => [
+            'driver' => 'mysql',
+            'host' => env('DB_LIVE', ''),
+            'port' => env('DB_PORT_MES', ''),
+            'database' => env('DB_DATABASE_MES', ''),
+            'username' => env('DB_USERNAME_MES', ''),
+            'password' => env('DB_PASSWORD_MES', ''),
+            'unix_socket' => '',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'host' => env('DB_HOST', '127.0.0.1'),

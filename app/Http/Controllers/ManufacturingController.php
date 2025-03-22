@@ -360,6 +360,8 @@ class ManufacturingController extends Controller
             $not_allowed_item_classification = ['RA - REFLECTOR ASSEMBLY', 'FA - FRAM1E ASSEMBLY'];
             $parts = [];
 
+            // return $request->bom;
+
             foreach ($request->bom as $idx => $bom) {
                 $item_reference_id = $request->item_reference_id[$idx];
                 $delivery_date = $request->delivery_date[$idx];

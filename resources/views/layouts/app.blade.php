@@ -21,6 +21,17 @@
 <body class="">
   <div class="wrapper">
     <div class="main-panel" id="main-panel">
+      <div class="bg-danger" style="display: block !important; position: fixed; top: 0; left: 0; z-index: 9999; padding: 10px">
+        @php
+          $db_source = env('DB_HOST');
+          $db_sources = [
+            '10.0.0.73' => 'ERPv13 - Live',
+            '10.0.0.76' => 'ERPv15 - Live',
+            '10.0.49.72' => 'Testing'
+          ];
+        @endphp
+        ERP DB Data: {{ $db_sources[$db_source] }} <br>
+      </div>
       <!-- Navbar -->
       <nav class="navbar navbar-expand-lg navbar-transparent  bg-primary  navbar-absolute">
         <div class="container-fluid">

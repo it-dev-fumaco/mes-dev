@@ -26,6 +26,11 @@ class RouteServiceProvider extends ServiceProvider
         //
 
         parent::boot();
+
+        // For Testing Only
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/test_routes.php'));
     }
 
     /**

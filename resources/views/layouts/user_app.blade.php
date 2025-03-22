@@ -37,6 +37,17 @@
 </style>
 @yield('style')
 <body class="">
+  <div class="bg-danger text-white" style="display: block !important; position: fixed; top: 0; left: 0; z-index: 9999; padding: 10px">
+    @php
+      $db_source = env('DB_HOST');
+      $db_sources = [
+        '10.0.0.73' => 'ERPv13 - Live',
+        '10.0.0.76' => 'ERPv15 - Live',
+        '10.0.0.111' => 'Testing'
+      ];
+    @endphp
+    ERP DB Data: {{ $db_sources[$db_source] }} <br>
+  </div>
   <div id="wrapper" class="wrapper">
     <div class="sidebar">
       <div class="sidebar-wrapper" id="sidebar-wrapper"></div>

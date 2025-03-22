@@ -167,6 +167,7 @@
                         </table>
                       </div>
                       @if (in_array('Production Manager', $user_groups->toArray()))
+<<<<<<< Updated upstream
                         <div class="col-md-12"  style="margin-top:70px;">
                             <table style= "width:100%;">
                                 <thead  style="">
@@ -216,10 +217,83 @@
                                     </tr>
                                     <tr>
                                         <td><a href="/items_in_their_own_bom" class="hover-class"><span style="padding-left:30px;line-height:25px;">Items that are included in their own BOM</span></a></td>
+=======
+                        <div class="col-md-4" style="margin-top:70px;">
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th><span style="font-size:13.5pt;padding-left:30px;">Operations</span> </th>
+                                    </tr>
+                                </thead>
+                                <tbody style="padding-left:30px; text-align:left;">
+                                    <tr>
+                                        <td><a href="/report/operator_efficiency" class="hover-class"><span style="padding-left:30px;line-height:25px;">Operator Efficiency</span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><a href="/report/item_manufacturing_duration" class="hover-class"><span style="padding-left:30px;line-height:25px;">Item Manufacturing Duration</span></a></td>
+>>>>>>> Stashed changes
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+<<<<<<< Updated upstream
+=======
+                        @if (!in_array('Production Manager', $user_groups->toArray()))
+                            <div class="col-md-12"  style="margin-top:70px;">
+                                <table style= "width:100%;">
+                                    <thead  style="">
+                                        <tr style="">
+                                            <th><span style="font-size:13.5pt;padding-left:30px;">System Audit Report</span> </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style=" padding-left:30px; text-align:left;">
+                                        <tr>
+                                            <td><a href="/audit_report/mismatched_po_status" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Status</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/checkWorkOrderItemQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Prod. Orders with Inaccurate Required, Transferred and Consumed Qty</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/audit_report/feedbacked_po_with_pending_ste" class="hover-class"><span style="padding-left:30px;line-height:25px;">Feedbacked Production Orders with Pending STE</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/completed_so_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Sales Order with Pending Production Order</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/completed_mreq_with_pending_production_order" class="hover-class"><span style="padding-left:30px;line-height:25px;">Completed Material Request with Pending Production Order</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/production_inaccurate_material_transferred" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Orders with Stock Withdrawals but has incorrect Material Transferred for Manufacturing</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/audit_report/transferred_required_qty_mismatch" class="hover-class"><span style="padding-left:30px;line-height:25px;">Mismatched Production Order Item Required Qty and Transferred Qty</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/audit_report/overridden_production_orders" class="hover-class"><span style="padding-left:30px;line-height:25px;">Overridden Production Orders</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/timelogOutputVsProducedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Timelogs Output vs Produced Qty for In Progress / Completed Production Orders</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/jobTicketCompletedQtyVsTimelogsCompletedQty" class="hover-class"><span style="padding-left:30px;line-height:25px;">Job Ticket Completed Qty vs Timelogs Completed Qty for In Progress / Not Started Job Tickets</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/audit_report/stocks_transferred_but_none_in_wip" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Order with Issued Stocks Discrepancy Report</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/inaccurate_operator_feedback" class="hover-class"><span style="padding-left:30px;line-height:25px;">Inaccurate Operator Feedback</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/duplicate_withdrawal_slips" class="hover-class"><span style="padding-left:30px;line-height:25px;">Production Orders with Duplicated Withdrawal Slips</span></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><a href="/items_in_their_own_bom" class="hover-class"><span style="padding-left:30px;line-height:25px;">Items that are included in their own BOM</span></a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+>>>>>>> Stashed changes
                       @endif
                    </div>
                 </div>

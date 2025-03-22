@@ -252,6 +252,7 @@ class MainController extends Controller
 				return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 			}
 		} catch (Throwanble $e) {
+			throw $e;
 			return response()->json(['success' => 0, 'message' => '<b>No connection to authentication server.</b>']);
 		}
 	}
