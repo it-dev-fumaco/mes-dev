@@ -1233,7 +1233,7 @@ class MainController extends Controller
 			->pluck('workstation_name')->toArray();
 
 		if(in_array('Painting', $user_permitted_operation_names->toArray())){
-			array_push($permitted_workstation, ['Painting']);
+			array_push($permitted_workstation, 'Painting');
 		}
 
 		$w_machines = DB::connection('mysql_mes')->table('workstation_machine')->whereIn('workstation', $permitted_workstation)->distinct()->pluck('machine_code');
@@ -1909,7 +1909,7 @@ class MainController extends Controller
 				->pluck('workstation_name')->toArray();
 
 			if(in_array('Painting', $user_permitted_operation_names->toArray())){
-				array_push($permitted_workstation, ['Painting']);
+				array_push($permitted_workstation, 'Painting');
 			}
 			
 			$jt_production_orders = DB::connection('mysql_mes')->table('job_ticket')
@@ -2155,6 +2155,9 @@ class MainController extends Controller
 
 	public function get_for_feedback_production(Request $request){
 		try {
+			// #region agent log
+			@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'ALL','location'=>'MainController.php:2156','message'=>'function entry','data'=>['function'=>'get_for_feedback_production'],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+			// #endregion
 			$user_permitted_operations = DB::connection('mysql_mes')->table('user')
 				->join('operation', 'operation.operation_id', 'user.operation_id')
 				->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
@@ -2165,31 +2168,51 @@ class MainController extends Controller
 			$user_permitted_operation_id = collect($user_permitted_operations)->pluck('operation_id');
 			$user_permitted_operation_names = collect($user_permitted_operations)->pluck('operation_name');
 			
+			// #region agent log
+			@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'D','location'=>'MainController.php:2166','message'=>'operation_names structure','data'=>['operation_names_array'=>$user_permitted_operation_names->toArray(),'has_painting'=>in_array('Painting',$user_permitted_operation_names->toArray())],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+			// #endregion
+			
 			$permitted_workstation = DB::connection('mysql_mes')->table('workstation')
 				->whereIn('operation_id', $user_permitted_operation_id)->distinct()
 				->pluck('workstation_name')->toArray();
 
+			// #region agent log
+			@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'A','location'=>'MainController.php:2170','message'=>'permitted_workstation before painting check','data'=>['workstation_count'=>count($permitted_workstation),'workstation_types'=>array_map('gettype',$permitted_workstation),'sample_workstations'=>array_slice($permitted_workstation,0,3)],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+			// #endregion
+
 			if(in_array('Painting', $user_permitted_operation_names->toArray())){
-				array_push($permitted_workstation, ['Painting']);
+				array_push($permitted_workstation, 'Painting');
+				
+				// #region agent log
+				@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'A','location'=>'MainController.php:2173','message'=>'after pushing painting array','data'=>['workstation_count'=>count($permitted_workstation),'last_item'=>$permitted_workstation[count($permitted_workstation)-1],'last_item_type'=>gettype($permitted_workstation[count($permitted_workstation)-1]),'is_array_last'=>is_array($permitted_workstation[count($permitted_workstation)-1])],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+				// #endregion
 			}
 			
-			$jt_production_orders = DB::connection('mysql_mes')->table('job_ticket')
-				->whereIn('workstation', $permitted_workstation)
-				->where('status', '=', 'Completed')->distinct()->pluck('production_order');
+			// #region agent log
+			@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'B','location'=>'MainController.php:2176','message'=>'permitted_workstation before whereIn query','data'=>['workstation_count'=>count($permitted_workstation),'has_nested_arrays'=>array_reduce($permitted_workstation,function($carry,$item){return $carry||is_array($item);},false),'all_types'=>array_map('gettype',$permitted_workstation)],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+			// #endregion
+			
+			// #region agent log
+			@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'B','location'=>'MainController.php:2195','message'=>'using join instead of whereIn to avoid placeholder limit','data'=>['permitted_workstation_count'=>count($permitted_workstation)],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+			// #endregion
 
 			$q = DB::connection('mysql_mes')->table('production_order AS po')
-				->whereIn('production_order', $jt_production_orders)
-				->whereNotIn('status', ['Cancelled'])
+				->join('job_ticket AS jt', 'jt.production_order', '=', 'po.production_order')
+				->whereIn('jt.workstation', $permitted_workstation)
+				->where('jt.status', '=', 'Completed')
+				->whereNotIn('po.status', ['Cancelled'])
 				->where(function($q) use ($request) {
-			       	$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('customer', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
+			       	$q->where('po.production_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.customer', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.sales_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.material_request', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.item_code', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
-				->where('produced_qty', '>', 0)
-				->whereRaw('produced_qty > feedback_qty')
+				->where('po.produced_qty', '>', 0)
+				->whereRaw('po.produced_qty > po.feedback_qty')
+				->distinct()
+				->select('po.*')
 				->paginate(10);
 
 			if($request->get_total){
@@ -2285,6 +2308,9 @@ class MainController extends Controller
 
   			return view('reports.tbl_feedback_ready_production_order', compact('production_order_list', 'q'));
 		} catch (Exception $e) {
+			// #region agent log
+			@file_put_contents('/Users/albertgregorio/Documents/GitHub/mes-dev/.cursor/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'C','location'=>'MainController.php:2307','message'=>'exception caught','data'=>['exception_message'=>$e->getMessage(),'exception_type'=>get_class($e)],'timestamp'=>round(microtime(true)*1000)])."\n", FILE_APPEND | LOCK_EX);
+			// #endregion
 			return response()->json(["error" => $e->getMessage()]);
 		}
 	}
