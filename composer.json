@@ -59,6 +59,9 @@
         "optimize-autoloader": true,
         "allow-plugins": {
             "kylekatarnls/update-helper": true
+        },
+        "audit": {
+            "ignore": ["PKSA-csyb-yc4p-mnbs"]
         }
     },
     "minimum-stability": "dev",
