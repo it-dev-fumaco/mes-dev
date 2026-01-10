@@ -1912,13 +1912,18 @@ class MainController extends Controller
 				array_push($permitted_workstation, ['Painting']);
 			}
 			
-			$jt_production_orders = DB::connection('mysql_mes')->table('job_ticket')
-				->whereIn('workstation', $permitted_workstation)
-				->whereIn('status', ['In Progress', 'Completed'])->distinct()->pluck('production_order');
+			$jt_production_orders = DB::connection('mysql_mes')->table('job_ticket as jt')
+				->join('production_order as po', 'po.production_order', 'jt.production_order')
+				->whereIn('jt.workstation', $permitted_workstation)
+				->whereRaw('po.produced_qty > po.feedback_qty')
+				->where('po.produced_qty', '>', 0)
+				->whereRaw('po.qty_to_manufacture > po.feedback_qty')
+				->whereIn('jt.status', ['In Progress', 'Completed'])
+				->distinct()->pluck('po.production_order');
 
 			$jt_production_orders = $jt_production_orders->toArray();
 
-			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($jt_production_orders));
+			$filtered_production_orders = collect($filtered_production_orders)->merge(collect($jt_production_orders))->toArray();
 
 			if(!in_array($status, ['All', 'Production Orders'])){
 				$statuses = array_merge($statuses, ['In Progress', 'Completed', 'Ready for Feedback', 'Partially Feedbacked']);
@@ -9671,6 +9676,25 @@ class MainController extends Controller
 	}
 
 	public function dashboardNumbers(Request $request) {
+		$user_permitted_operations = DB::connection('mysql_mes')->table('user')
+			->join('operation', 'operation.operation_id', 'user.operation_id')
+			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
+			->where('user_access_id', Auth::user()->user_id)
+			->where('module', 'Production')
+			->select('user.operation_id', 'operation_name')
+			->distinct()->get();
+
+		$user_permitted_operation_id = collect($user_permitted_operations)->pluck('operation_id');
+		$user_permitted_operation_names = collect($user_permitted_operations)->pluck('operation_name');
+
+		$permitted_workstation = DB::connection('mysql_mes')->table('workstation')
+				->whereIn('operation_id', $user_permitted_operation_id)->distinct()
+				->pluck('workstation_name')->toArray();
+
+		if(in_array('Painting', $user_permitted_operation_names->toArray())){
+			array_push($permitted_workstation, ['Painting']);
+		}
+
 		$now = Carbon::now();
 		$scheduled_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereBetween('planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])
@@ -9689,8 +9713,14 @@ class MainController extends Controller
 			->whereDate('qa_inspection_date', '>=', $now->startOfDay())
 			->whereDate('qa_inspection_date', '<=', $now->endOfDay())->count();
 
-		$for_feedback = DB::connection('mysql_mes')->table('production_order')->whereNotIn('status', ['Cancelled', 'Closed'])->where('produced_qty', '>', 0)
-			->whereRaw('produced_qty > feedback_qty')->whereRaw('qty_to_manufacture > feedback_qty')->count();
+		$for_feedback = DB::connection('mysql_mes')->table('job_ticket as jt')->join('production_order as po', 'po.production_order', 'jt.production_order')
+			->whereIn('jt.workstation', $permitted_workstation)
+			->whereNotIn('po.status', ['Cancelled', 'Closed'])
+			->whereRaw('po.produced_qty > po.feedback_qty')
+			->where('po.produced_qty', '>', 0)
+			->whereRaw('po.qty_to_manufacture > po.feedback_qty')
+			->whereIn('jt.status', ['In Progress', 'Completed'])
+			->distinct()->pluck('po.production_order')->count();
 
 		return [
 			'sales_orders' => number_format($sales_orders),
