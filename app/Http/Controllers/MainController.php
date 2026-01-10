@@ -236,18 +236,14 @@ class MainController extends Controller
 					->withInput(Input::except('user_id', 'password'));
 			}else{
 
-				// $adldap = new adLDAP();
-                // $authUser = $adldap->user()->authenticate($email, $request->password);
-				// if($authUser == true){
-					if(Auth::loginUsingId($essex_user->id)){
-						DB::connection('mysql_mes')->table('user')->where('user_access_id', $essex_user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
+				if(Auth::loginUsingId($essex_user->id)){
+					DB::connection('mysql_mes')->table('user')->where('user_access_id', $essex_user->user_id)->update(['last_login' => Carbon::now()->toDateTimeString()]);
 
-						return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
-					} else {        
-						// validation not successful, send back to form 
-						return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again 1.']);
-					}
-				// }
+					return response()->json(['success' => 1, 'message' => "<b>Welcome!</b> Please wait...", 'redirect_to' => $redirect_to]);
+				} else {        
+					// validation not successful, send back to form 
+					return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again 1.']);
+				}
 
 				return response()->json(['success' => 0, 'message' => '<b>Invalid credentials!</b> Please try again.']);
 			}
@@ -420,6 +416,15 @@ class MainController extends Controller
 		if(false !== stripos($details->item_classification, 'SA - ')){
 			$description = DB::connection('mysql')->table('tabItem Variant Attribute')->where('parent', $details->item_code)->orderBy('idx', 'asc')->pluck('attribute_value')->implode(' ');
 			$description = $description ? $description : $details->description;
+		}
+
+		// Get customer name
+		if(!$details->customer){
+			$reference_table = $details->sales_order ? 'tabSales Order' : 'tabMaterial Request';
+			$reference_id = $details->sales_order ?? $details->material_request;
+			$customer_name = DB::table($reference_table)->where('name', $reference_id)->pluck('customer')->first();
+
+			$details->customer = $customer_name;
 		}
 
 		$process = $this->getTimesheetProcess($details->production_order);
@@ -6164,9 +6169,6 @@ class MainController extends Controller
 				'modified_by' => Auth::user()->email,
 				'owner' => Auth::user()->email,
 				'docstatus' => $docstatus,
-				'parent' => null,
-				'parentfield' => null,
-				'parenttype' => null,
 				'idx' => 0,
 				'use_multi_level_bom' => 1,
 				'delivery_note_no' => null,
@@ -6177,7 +6179,6 @@ class MainController extends Controller
 				'purchase_receipt_no' => null,
 				'posting_time' => $now->format('H:i:s'),
 				'to_warehouse' => $production_order_details->fg_warehouse,
-				'title' => 'Manufacture',
 				'_comments' => null,
 				'from_warehouse' => null,
 				'set_posting_time' => 0,
@@ -6296,7 +6297,7 @@ class MainController extends Controller
 					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 
-				if ($expected_qty_after_transaction != $fg_qty) {
+				if (number_format((float)$expected_qty_after_transaction, 4) != number_format($fg_qty, 4)) {
 					return response()->json(['success' => 0, 'message' => 'There was a problem creating feedback. Please reload the page and try again.']);
 				}
 			}
@@ -6621,9 +6622,6 @@ class MainController extends Controller
 					'modified_by' => Auth::user()->email,
 					'owner' => Auth::user()->email,
 					'docstatus' => 1,
-					'parent' => null,
-					'parentfield' => null,
-					'parenttype' => null,
 					'idx' => 0,
 					'serial_no' => $row->serial_no,
 					'fiscal_year' => $now->format('Y'),
@@ -6640,7 +6638,6 @@ class MainController extends Controller
 					'company' => 'FUMACO Inc.',
 					'_assign' => null,
 					'item_code' => $row->item_code,
-					// 'stock_queue' => ,
 					'valuation_rate' => $bin_qry->valuation_rate,
 					'project' => $stock_entry_qry->project,
 					'voucher_no' => $row->parent,
@@ -6651,6 +6648,7 @@ class MainController extends Controller
 					'batch_no' => $row->batch_no,
 					'stock_value_difference' => ($row->s_warehouse) ? ($row->qty * $row->valuation_rate) * -1  : $row->qty * $row->valuation_rate,
 					'posting_date' => $now->format('Y-m-d'),
+					'posting_datetime' => $now->format('Y-m-d H:i:s')
 				];
 			}
 
@@ -6691,9 +6689,6 @@ class MainController extends Controller
 								'modified_by' => Auth::user()->email,
 								'owner' => Auth::user()->email,
 								'docstatus' => 0,
-								'parent' => null,
-								'parentfield' => null,
-								'parenttype' => null,
 								'idx' => 0,
 								'reserved_qty_for_production' => 0,
 								'_liked_by' => null,
@@ -6732,7 +6727,6 @@ class MainController extends Controller
 			
 							DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
 						}
-						
 					}
 					if($row->t_warehouse){
 						$bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
@@ -6750,9 +6744,6 @@ class MainController extends Controller
 								'modified_by' => Auth::user()->email,
 								'owner' => Auth::user()->email,
 								'docstatus' => 0,
-								'parent' => null,
-								'parentfield' => null,
-								'parenttype' => null,
 								'idx' => 0,
 								'reserved_qty_for_production' => 0,
 								'_liked_by' => null,
@@ -6831,9 +6822,6 @@ class MainController extends Controller
 					'modified_by' => Auth::user()->email,
 					'owner' => Auth::user()->email,
 					'docstatus' => 1,
-					'parent' => null,
-					'parentfield' => null,
-					'parenttype' => null,
 					'idx' => 0,
 					'fiscal_year' => $now->format('Y'),
 					'voucher_no' => $row->parent,
@@ -8775,7 +8763,7 @@ class MainController extends Controller
 				);
 				
 				$recipients = DB::connection('mysql_mes')->table('email_trans_recipient')
-					->where('email_trans', "Feedbacking")->where('email', 'like','%@fumaco.local%')
+					->where('email_trans', "Feedbacking")->where('email', 'like','%@fumaco.com%')
 					->distinct()->pluck('email');
 
 				if($production_order_details->parent_item_code == $production_order_details->sub_parent_item_code && $production_order_details->sub_parent_item_code == $production_order_details->item_code){
@@ -9676,25 +9664,6 @@ class MainController extends Controller
 	}
 
 	public function dashboardNumbers(Request $request) {
-		$user_permitted_operations = DB::connection('mysql_mes')->table('user')
-			->join('operation', 'operation.operation_id', 'user.operation_id')
-			->join('user_group', 'user_group.user_group_id', 'user.user_group_id')
-			->where('user_access_id', Auth::user()->user_id)
-			->where('module', 'Production')
-			->select('user.operation_id', 'operation_name')
-			->distinct()->get();
-
-		$user_permitted_operation_id = collect($user_permitted_operations)->pluck('operation_id');
-		$user_permitted_operation_names = collect($user_permitted_operations)->pluck('operation_name');
-
-		$permitted_workstation = DB::connection('mysql_mes')->table('workstation')
-				->whereIn('operation_id', $user_permitted_operation_id)->distinct()
-				->pluck('workstation_name')->toArray();
-
-		if(in_array('Painting', $user_permitted_operation_names->toArray())){
-			array_push($permitted_workstation, ['Painting']);
-		}
-
 		$now = Carbon::now();
 		$scheduled_orders = DB::connection('mysql_mes')->table('production_order')
 			->whereBetween('planned_start_date', [$now->startOfDay()->format('Y-m-d'), $now->endOfDay()->format('Y-m-d')])

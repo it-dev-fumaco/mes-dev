@@ -215,7 +215,8 @@ class ManufacturingController extends Controller
                 $item_group = ($item_detail) ? $item_detail->item_group : '';
                 $child_bom = ($default_bom) ? $default_bom->name : $item->bom_no;
 
-                if(in_array($child_bom, collect($bom)->pluck('parent')->toArray())){ // This is to break an infinite loop
+                // This is to break an infinite loop
+                if(in_array($child_bom, collect($bom)->pluck('parent')->toArray())){ 
                     continue;
                 }
 
@@ -230,6 +231,10 @@ class ManufacturingController extends Controller
                     'attributes' => isset($attributes_arr[$item->item_code]) ? $attributes_arr[$item->item_code] : [],
                     'child_nodes' => $this->get_bom($child_bom)
                 ];
+
+                if(in_array($item->item_code, collect($default_bom_arr)->keys()->toArray())){
+                    continue;
+                }
             }
 
             return $materials;
@@ -1505,7 +1510,7 @@ class ManufacturingController extends Controller
                     $mr_details = DB::connection('mysql')->table('tabMaterial Request')->where('name', $request->reference_no)->first();
                     $sales_order = null;
                     $material_request = $request->reference_no;
-                    $customer = ($mr_details) ? $mr_details->customer : null;
+                    $customer = ($mr_details) ? $mr_details->customer_name : null;
                     $delivery_date = ($mr_details) ? $mr_details->delivery_date : null;
                     $project = ($mr_details) ? $mr_details->project : null;
                     $classification = ($mr_details) ? $mr_details->custom_purpose : null;
@@ -2864,9 +2869,6 @@ class ManufacturingController extends Controller
                 'modified_by' => Auth::user()->email,
                 'owner' => Auth::user()->email,
                 'docstatus' => $docstatus,
-                'parent' => null,
-                'parentfield' => null,
-                'parenttype' => null,
                 'idx' => 0,
                 'use_multi_level_bom' => 0,
                 'delivery_note_no' => null,
@@ -2876,9 +2878,7 @@ class ManufacturingController extends Controller
                 '_liked_by' => null,
                 'purchase_receipt_no' => null,
                 'posting_time' => $now->format('H:i:s'),
-                // 'customer_name' => null,
                 'to_warehouse' => null,
-                'title' => 'Material Transfer',
                 '_comments' => null,
                 'from_warehouse' => null,
                 'set_posting_time' => 0,
@@ -2894,13 +2894,11 @@ class ManufacturingController extends Controller
                 'sales_invoice_no' => null,
                 'company' => 'FUMACO Inc.',
                 'target_warehouse_address' => null,
-                // 'customer_address' => null,
                 'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                 'supplier_name' => null,
                 'remarks' => null,
                 '_user_tags' => null,
                 'total_additional_costs' => 0,
-                // 'customer' => null,
                 'bom_no' => null,
                 'amended_from' => null,
                 'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -3513,9 +3511,6 @@ class ManufacturingController extends Controller
                     'modified_by' => Auth::user()->email,
                     'owner' => Auth::user()->email,
                     'docstatus' => 0,
-                    'parent' => null,
-                    'parentfield' => null,
-                    'parenttype' => null,
                     'idx' => 0,
                     'use_multi_level_bom' => 1,
                     'delivery_note_no' => null,
@@ -3525,9 +3520,7 @@ class ManufacturingController extends Controller
                     '_liked_by' => null,
                     'purchase_receipt_no' => null,
                     'posting_time' => $now->format('H:i:s'),
-                    // 'customer_name' => null,
                     'to_warehouse' => $mes_production_order_details->wip_warehouse,
-                    'title' => 'Material Transfer for Manufacture',
                     '_comments' => null,
                     'from_warehouse' => null,
                     'set_posting_time' => 0,
@@ -3543,13 +3536,11 @@ class ManufacturingController extends Controller
                     'sales_invoice_no' => null,
                     'company' => 'FUMACO Inc.',
                     'target_warehouse_address' => null,
-                    // 'customer_address' => null,
                     'total_outgoing_value' => collect($stock_entry_detail)->sum('basic_amount'),
                     'supplier_name' => null,
                     'remarks' => null,
                     '_user_tags' => null,
                     'total_additional_costs' => 0,
-                    // 'customer' => null,
                     'bom_no' => $mes_production_order_details->bom_no,
                     'amended_from' => null,
                     'total_amount' => collect($stock_entry_detail)->sum('basic_amount'),
@@ -4033,7 +4024,7 @@ class ManufacturingController extends Controller
                 'item_classification' => $request->item_classification,
                 'delivery_date' => $request->delivery_date,
                 'item_name' => $item_details->item_name,
-                'customer' => $request->customer,
+                'customer' => $reference_details->customer,
                 'sales_order_no' => $request->sales_order,
                 'sales_order' => $request->sales_order,
                 'material_request' => $request->material_request,
@@ -4075,7 +4066,7 @@ class ManufacturingController extends Controller
                 'delivery_date' => $request->delivery_date,
                 'status' => 'Not Started',
                 'stock_uom' => $request->stock_uom,
-                'customer' => $request->customer,
+                'customer' => $reference_details->customer,
                 'wip_warehouse' => $wip,
                 'fg_warehouse' => $request->target,
                 'last_modified_at' => $now->toDateTimeString(),
@@ -4458,9 +4449,6 @@ class ManufacturingController extends Controller
                             'modified_by' => Auth::user()->email,
                             'owner' => Auth::user()->email,
                             'docstatus' => $docstatus,
-                            'parent' => null,
-                            'parentfield' => null,
-                            'parenttype' => null,
                             'idx' => 0,
                             'use_multi_level_bom' => 1,
                             'delivery_note_no' => null,
@@ -4471,7 +4459,6 @@ class ManufacturingController extends Controller
                             'purchase_receipt_no' => null,
                             'posting_time' => $now->format('H:i:s'),
                             'to_warehouse' => $mes_production_order_details->wip_warehouse,
-                            'title' => 'Material Transfer for Manufacture',
                             '_comments' => null,
                             'from_warehouse' => null,
                             'set_posting_time' => 0,
@@ -4641,9 +4628,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'serial_no' => $row->serial_no,
                         'fiscal_year' => $now->format('Y'),
@@ -4670,6 +4654,7 @@ class ManufacturingController extends Controller
                         'batch_no' => $row->batch_no,
                         'stock_value_difference' => ($row->qty * $row->valuation_rate) * -1,
                         'posting_date' => $now->format('Y-m-d'),
+                        'posting_datetime' => $now->toDateTimeString()
                     ];
 
                     $bin_qry = DB::connection('mysql')->table('tabBin')->where('warehouse', $row->t_warehouse)
@@ -4687,9 +4672,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'serial_no' => $row->serial_no,
                         'fiscal_year' => $now->format('Y'),
@@ -4716,6 +4698,7 @@ class ManufacturingController extends Controller
                         'batch_no' => $row->batch_no,
                         'stock_value_difference' => $row->qty * $row->valuation_rate,
                         'posting_date' => $now->format('Y-m-d'),
+					    'posting_datetime' => $now->format('Y-m-d H:i:s')
                     ];
                 }
 
@@ -4763,9 +4746,6 @@ class ManufacturingController extends Controller
                                 'modified_by' => Auth::user()->email,
                                 'owner' => Auth::user()->email,
                                 'docstatus' => 0,
-                                'parent' => null,
-                                'parentfield' => null,
-                                'parenttype' => null,
                                 'idx' => 0,
                                 'reserved_qty_for_production' => 0,
                                 '_liked_by' => null,
@@ -4783,9 +4763,9 @@ class ManufacturingController extends Controller
                                 'reserved_qty_for_sub_contract' => 0,
                                 'indented_qty' => 0,
                                 'warehouse' => $row->s_warehouse,
-                                'stock_value' => $row->valuation_rate * $row->transfer_qty,
+                                'stock_value' => 1, #$bin_qry->valuation_rate * $row->transfer_qty,
                                 '_user_tags' => null,
-                                'valuation_rate' => $row->valuation_rate,
+                                'valuation_rate' => 1 #$bin_qry->valuation_rate,
                             ];
 
                             DB::connection('mysql')->table('tabBin')->insert($bin);
@@ -4799,8 +4779,8 @@ class ManufacturingController extends Controller
                                 'modified' => $now->toDateTimeString(),
                                 'modified_by' => Auth::user()->email,
                                 'actual_qty' => $bin_qry->actual_qty - $row->transfer_qty,
-                                'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
-                                'valuation_rate' => $bin_qry->valuation_rate,
+                                'stock_value' => 1, #$bin_qry->valuation_rate * $row->transfer_qty,
+                                'valuation_rate' => 1, #$bin_qry->valuation_rate,
                             ];
 
                             DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
@@ -4824,9 +4804,6 @@ class ManufacturingController extends Controller
                                 'modified_by' => Auth::user()->email,
                                 'owner' => Auth::user()->email,
                                 'docstatus' => 0,
-                                'parent' => null,
-                                'parentfield' => null,
-                                'parenttype' => null,
                                 'idx' => 0,
                                 'reserved_qty_for_production' => 0,
                                 '_liked_by' => null,
@@ -4844,9 +4821,9 @@ class ManufacturingController extends Controller
                                 'reserved_qty_for_sub_contract' => 0,
                                 'indented_qty' => 0,
                                 'warehouse' => $row->t_warehouse,
-                                'stock_value' => $row->valuation_rate * $row->transfer_qty,
+                                'stock_value' => 1, #$row->valuation_rate * $row->transfer_qty,
                                 '_user_tags' => null,
-                                'valuation_rate' => $row->valuation_rate,
+                                'valuation_rate' => 1, #$row->valuation_rate,
                             ];
 
                             DB::connection('mysql')->table('tabBin')->insert($bin);
@@ -4860,8 +4837,8 @@ class ManufacturingController extends Controller
                                 'modified' => $now->toDateTimeString(),
                                 'modified_by' => Auth::user()->email,
                                 'actual_qty' => $bin_qry->actual_qty + $row->transfer_qty,
-                                'stock_value' => $bin_qry->valuation_rate * $row->transfer_qty,
-                                'valuation_rate' => $bin_qry->valuation_rate,
+                                'stock_value' => 1, #$bin_qry->valuation_rate * $row->transfer_qty,
+                                'valuation_rate' => 1 #$bin_qry->valuation_rate,
                             ];
 
                             DB::connection('mysql')->table('tabBin')->where('name', $bin_qry->name)->update($bin);
@@ -4904,9 +4881,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'fiscal_year' => $now->format('Y'),
                         'voucher_no' => $row->parent,
@@ -4955,9 +4929,6 @@ class ManufacturingController extends Controller
                         'modified_by' => Auth::user()->email,
                         'owner' => Auth::user()->email,
                         'docstatus' => 1,
-                        'parent' => null,
-                        'parentfield' => null,
-                        'parenttype' => null,
                         'idx' => 0,
                         'fiscal_year' => $now->format('Y'),
                         'voucher_no' => $row->parent,
@@ -5628,7 +5599,7 @@ class ManufacturingController extends Controller
             $recipient = DB::connection('mysql_mes')
                 ->table('email_trans_recipient')
                 ->where('email_trans', "Feedbacking")
-                ->where('email', 'like', '%@fumaco.local%')
+                ->where('email', 'like', '%@fumaco.com%')
                 ->select('email')
                 ->get();
             if (count($recipient) > 0) {
@@ -6674,8 +6645,8 @@ class ManufacturingController extends Controller
                 $this->create_stock_ledger_entry($id);
                 $this->create_gl_entry($id);
             }
-        } catch (Exception $e) {
-
+        } catch (\Throwable $e) {
+            throw $e;
         }
     }
 
