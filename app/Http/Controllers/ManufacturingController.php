@@ -6001,7 +6001,6 @@ class ManufacturingController extends Controller
 
             $existing_id = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $new_id)->first();
-
             if ($existing_id) {
                 return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $new_id . '</b> already exist.']);
             }
