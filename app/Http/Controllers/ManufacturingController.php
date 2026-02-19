@@ -1476,11 +1476,9 @@ class ManufacturingController extends Controller
                 return response()->json(['success' => 0, 'message' => 'Duplicated BOM items found. Please update BOM in ERP.']);
             }
 
-            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
-            $latest_pro_exploded = explode("-", $latest_pro);
-            $erp_max_num = (int) ($latest_pro_exploded[1] ?? 0);
-            $mes_max_po = DB::connection('mysql_mes')->table('production_order')->where('production_order', 'like', 'PROM-%')->max('production_order');
-            $mes_max_num = $mes_max_po ? (int) (explode('-', $mes_max_po)[1] ?? 0) : 0;
+            // Use numeric max so PROM-100000 is correctly greater than PROM-99999 (string max would be wrong)
+            $erp_max_num = (int) (DB::connection('mysql')->table('tabWork Order')->where('name', 'like', 'PROM-%')->selectRaw('COALESCE(MAX(CAST(SUBSTRING(name, 6) AS UNSIGNED)), 0) as max_num')->value('max_num') ?? 0);
+            $mes_max_num = (int) (DB::connection('mysql_mes')->table('production_order')->where('production_order', 'like', 'PROM-%')->selectRaw('COALESCE(MAX(CAST(SUBSTRING(production_order, 6) AS UNSIGNED)), 0) as max_num')->value('max_num') ?? 0);
             $new_id_raw = max($erp_max_num, $mes_max_num) + 1;
             $new_id = str_pad($new_id_raw, 5, '0', STR_PAD_LEFT);
             $new_id = 'PROM-' . $new_id;
@@ -3987,11 +3985,9 @@ class ManufacturingController extends Controller
 
             $wip = $wip_wh['message'];
 
-            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
-            $latest_pro_exploded = explode("-", $latest_pro);
-            $erp_max_num = (int) ($latest_pro_exploded[1] ?? 0);
-            $mes_max_po = DB::connection('mysql_mes')->table('production_order')->where('production_order', 'like', 'PROM-%')->max('production_order');
-            $mes_max_num = $mes_max_po ? (int) (explode('-', $mes_max_po)[1] ?? 0) : 0;
+            // Use numeric max so PROM-100000 is correctly greater than PROM-99999 (string max would be wrong)
+            $erp_max_num = (int) (DB::connection('mysql')->table('tabWork Order')->where('name', 'like', 'PROM-%')->selectRaw('COALESCE(MAX(CAST(SUBSTRING(name, 6) AS UNSIGNED)), 0) as max_num')->value('max_num') ?? 0);
+            $mes_max_num = (int) (DB::connection('mysql_mes')->table('production_order')->where('production_order', 'like', 'PROM-%')->selectRaw('COALESCE(MAX(CAST(SUBSTRING(production_order, 6) AS UNSIGNED)), 0) as max_num')->value('max_num') ?? 0);
             $new_id_raw = max($erp_max_num, $mes_max_num) + 1;
             $new_id = str_pad($new_id_raw, 5, '0', STR_PAD_LEFT);
             $new_id = 'PROM-' . $new_id;
@@ -5996,18 +5992,16 @@ class ManufacturingController extends Controller
 
             $wip = $wip_wh['message'];
 
-            $latest_pro = DB::connection('mysql')->table('tabWork Order')->max('name');
-            $latest_pro_exploded = explode("-", $latest_pro);
-            $erp_max_num = (int) ($latest_pro_exploded[1] ?? 0);
-            $mes_max_po = DB::connection('mysql_mes')->table('production_order')->where('production_order', 'like', 'PROM-%')->max('production_order');
-            $mes_max_num = $mes_max_po ? (int) (explode('-', $mes_max_po)[1] ?? 0) : 0;
+            // Use numeric max so PROM-100000 is correctly greater than PROM-99999 (string max would be wrong)
+            $erp_max_num = (int) (DB::connection('mysql')->table('tabWork Order')->where('name', 'like', 'PROM-%')->selectRaw('COALESCE(MAX(CAST(SUBSTRING(name, 6) AS UNSIGNED)), 0) as max_num')->value('max_num') ?? 0);
+            $mes_max_num = (int) (DB::connection('mysql_mes')->table('production_order')->where('production_order', 'like', 'PROM-%')->selectRaw('COALESCE(MAX(CAST(SUBSTRING(production_order, 6) AS UNSIGNED)), 0) as max_num')->value('max_num') ?? 0);
             $new_id_raw = max($erp_max_num, $mes_max_num) + 1;
             $new_id = str_pad($new_id_raw, 5, '0', STR_PAD_LEFT);
             $new_id = 'PROM-' . $new_id;
 
             $existing_id = DB::connection('mysql_mes')->table('production_order')
                 ->where('production_order', $new_id)->first();
-                
+
             if ($existing_id) {
                 return response()->json(['success' => 0, 'message' => 'Production Order <b>' . $new_id . '</b> already exist.']);
             }
