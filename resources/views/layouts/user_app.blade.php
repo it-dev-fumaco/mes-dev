@@ -2693,7 +2693,6 @@
       var current = $(input).val();
       var new_input = current + $(this).data('val');
 
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
         $(input).val(new_input);
     });
 
