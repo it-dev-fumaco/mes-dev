@@ -39,9 +39,9 @@
                            <span class="numpad prod-search-numpad" data-val="9" data-inputid="jt-no-search">9</span>
                         </div>
                         <div class="row1">
-                           <span class="numpad" onclick="document.getElementById('jt-no-search').value=document.getElementById('jt-no-search').value.slice(0, -1);"><</span>
+                           <span class="numpad prod-search-numpad">-</span>
                            <span class="numpad prod-search-numpad" data-val="0" data-inputid="jt-no-search">0</span>
-                           <span class="numpad" onclick="document.getElementById('jt-no-search').value='';">Clear</span>
+                           <span class="numpad" onclick="document.getElementById('jt-no-search').value=document.getElementById('jt-no-search').value.slice(0, -1);"><</span>
                         </div>
                      </div>
                   </div>

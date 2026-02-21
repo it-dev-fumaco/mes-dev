@@ -51,9 +51,9 @@
                               <span class="numpad num">9</span>
                            </div>
                            <div class="row1">
-                              <span class="numpad" onclick="document.getElementById('production-order').value=document.getElementById('production-order').value.slice(0, -1);"><</span>
+                              <span class="numpad num">-</span>
                               <span class="numpad num">0</span>
-                              <span class="numpad" onclick="document.getElementById('production-order').value='';">Clear</span>
+                              <span class="numpad" onclick="document.getElementById('production-order').value=document.getElementById('production-order').value.slice(0, -1);"><</span>
                            </div>
                         </div>
                         <div class="row">

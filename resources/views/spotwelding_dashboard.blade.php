@@ -590,7 +590,6 @@
       var num = $(this).text();
       var current = $('#scan-jt-for-qc-modal input[type="text"]').val();
       var new_input = current + num;
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
          
       $('#scan-jt-for-qc-modal input[type="text"]').val(new_input);
     });

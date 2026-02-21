@@ -202,9 +202,9 @@
                              <span class="numpad num">9</span>
                           </div>
                           <div class="row1">
-                             <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
-                             <span class="numpad num">0</span>
-                             <span class="numpad" onclick="document.getElementById('production-order-qc').value='';">Clear</span>
+                            <span class="numpad num">-</span>
+                            <span class="numpad num">0</span>
+                            <span class="numpad" onclick="document.getElementById('production-order-qc').value=document.getElementById('production-order-qc').value.slice(0, -1);"><</span>
                           </div>
                        </div>
                        <div class="row">
@@ -662,7 +662,6 @@
         var num = $(this).text();
         var current = $('#scan-jt-for-qc-modal input[type="text"]').val();
         var new_input = current + num;
-        new_input = format(new_input.replace(/-/g, ""), [5], "-");
            
         $('#scan-jt-for-qc-modal input[type="text"]').val(new_input);
       });
@@ -884,7 +883,7 @@
       var num = $(this).text();
       var current = $('#scan-production-order-modal #enter-production-order input[type="text"]').val();
       var new_input = current + num;
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
+      // new_input = format(new_input.replace(/-/g, ""), [5], "");
          
       $('#scan-production-order-modal #enter-production-order input[type="text"]').val(new_input);
     });
@@ -895,7 +894,6 @@
       var num = $(this).text();
       var current = $('#scan-production-order-step3-modal #enter-operator-id input[type="text"]').val();
       var new_input = current + num;
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
          
       $('#scan-production-order-step3-modal #enter-operator-id input[type="text"]').val(new_input);
     });
@@ -1107,7 +1105,6 @@
       var num = $(this).text();
       var current = $('#jt-no-search').val();
       var new_input = current + num;
-      new_input = format(new_input.replace(/-/g, ""), [5], "-");
          
       $('#jt-no-search').val(new_input);
     });
