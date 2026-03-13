@@ -4956,6 +4956,7 @@ class MainController extends Controller
 					->orWhere('d.department', 'LIKE', '%assembly%')
 					->orWhere('d.department', 'LIKE', '%fabrication%')
 					->orWhere('d.department', 'LIKE', '%engineering%')
+                    ->orWhere('d.department', 'LIKE', '%Quality Assurance%')
 					->orWhere('d.department', 'LIKE', '%production%')
 					->orWhere('d.department', 'LIKE', '%Plant Services%');
 			})
