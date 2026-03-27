@@ -1238,7 +1238,7 @@ class MainController extends Controller
 			->pluck('workstation_name')->toArray();
 
 		if(in_array('Painting', $user_permitted_operation_names->toArray())){
-			array_push($permitted_workstation, ['Painting']);
+			array_push($permitted_workstation, 'Painting');
 		}
 
 		$w_machines = DB::connection('mysql_mes')->table('workstation_machine')->whereIn('workstation', $permitted_workstation)->distinct()->pluck('machine_code');
@@ -1914,7 +1914,7 @@ class MainController extends Controller
 				->pluck('workstation_name')->toArray();
 
 			if(in_array('Painting', $user_permitted_operation_names->toArray())){
-				array_push($permitted_workstation, ['Painting']);
+				array_push($permitted_workstation, 'Painting');
 			}
 			
 			$jt_production_orders = DB::connection('mysql_mes')->table('job_ticket as jt')
@@ -2180,26 +2180,26 @@ class MainController extends Controller
 				->pluck('workstation_name')->toArray();
 
 			if(in_array('Painting', $user_permitted_operation_names->toArray())){
-				array_push($permitted_workstation, ['Painting']);
+				array_push($permitted_workstation, 'Painting');
 			}
-			
-			$jt_production_orders = DB::connection('mysql_mes')->table('job_ticket')
-				->whereIn('workstation', $permitted_workstation)
-				->where('status', '=', 'Completed')->distinct()->pluck('production_order');
 
 			$q = DB::connection('mysql_mes')->table('production_order AS po')
-				->whereIn('production_order', $jt_production_orders)
-				->whereNotIn('status', ['Cancelled'])
+				->join('job_ticket AS jt', 'jt.production_order', '=', 'po.production_order')
+				->whereIn('jt.workstation', $permitted_workstation)
+				->whereIn('jt.status', ['In Progress', 'Completed'])
+				->whereNotIn('po.status', ['Cancelled'])
 				->where(function($q) use ($request) {
-			       	$q->where('production_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('customer', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('sales_order', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('material_request', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('item_code', 'LIKE', '%'.$request->search_string.'%')
-						->orWhere('bom_no', 'LIKE', '%'.$request->search_string.'%');
+			       	$q->where('po.production_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.customer', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.sales_order', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.material_request', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.item_code', 'LIKE', '%'.$request->search_string.'%')
+						->orWhere('po.bom_no', 'LIKE', '%'.$request->search_string.'%');
 				})
-				->where('produced_qty', '>', 0)
-				->whereRaw('produced_qty > feedback_qty')
+				->where('po.produced_qty', '>', 0)
+				->whereRaw('po.produced_qty > po.feedback_qty')
+				->distinct()
+				->select('po.*')
 				->paginate(10);
 
 			if($request->get_total){
