@@ -1717,24 +1717,32 @@
 
     $(document).on('click', '.sync-production-order-items-btn', function(e){
       e.preventDefault();
-      var production_order = $(this).data('production-order');
+      var btn = $(this);
+      var production_order = btn.data('production-order');
+
       $.ajax({
-        url:"/sync_production_order_items/" + production_order,
-        type:"POST",
-        success:function(data){
-          if(data.status == 2){
-            showNotification("info", data.message, "now-ui-icons travel_info");
-          }else if(data.status == 1){
-            get_production_order_items(production_order);
-            showNotification("success", data.message, "now-ui-icons ui-1_check");
-          }else{
-            showNotification("danger", data.message, "now-ui-icons travel_info");
-          }
+        url: "/sync_production_order_item",
+        type: "POST",
+        data: {
+          _token: $('meta[name="csrf-token"]').attr('content'),
+          production_order: production_order
         },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR);
-          console.log(textStatus);
-          console.log(errorThrown);
+        success: function(data) {
+            if(data.status) {
+              showNotification("success", data.message, "now-ui-icons ui-1_check");
+            } else {
+              showNotification("danger", "Sync failed. Please check the logs.", "now-ui-icons travel_info");
+              console.error("Sync Logic Error:", data.error_details);
+            }
+        },
+        error: function(xhr, status, error) {
+          showNotification("danger", "An unexpected error occurred during sync.", "now-ui-icons objects_support-17");
+          
+          console.group("Sync Debug Information");
+          console.error("Status:", status);
+          console.error("Error:", error);
+          console.error("Server Response:", xhr.responseText);
+          console.groupEnd();
         }
       });
     });
