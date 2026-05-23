@@ -361,7 +361,7 @@
 						<td class="border-top-0 text-center">
 							@php
 								$change_cancel_btn = ($a['status'] == 'Issued') ? 'disabled' : null;
-								if (!$details->bom_no && $component['item_code'] == $details->item_code && count($component['withdrawals']) == 1) {
+								if (!$details->bom_no && $component['item_code'] == $details->item_code && count($component['withdrawals']) == 1 && $a['issued_qty'] > 0) {
 									$change_cancel_btn = 'disabled';
 								}
 								$return_btn = ($a['status'] == 'Issued') ? '' : 'disabled';
