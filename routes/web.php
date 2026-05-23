@@ -265,7 +265,7 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::post('/end_spotwelding', 'SpotweldingController@end_task');
 	Route::post('/restart_spotwelding', 'SpotweldingController@restart_task');
 	Route::post('/continue_log_task/{timelog_id}', 'SpotweldingController@continue_log_task');
-	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
+	Route::post('/create_stock_entry/{production_order}', 'ProductionOrderFeedbackController');
 	Route::post('/split_source_warehouse', 'MainController@split_source_warehouse');
 	Route::get('/create_bundle_feedback/{production_order}/{fg_completed_qty}', 'ManufacturingController@create_production_feedback_for_item_bundle');
 	Route::get('/create_gl_entry/{stock_entry}', 'MainController@create_gl_entry');
@@ -280,7 +280,6 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/get_fabrication_inventory_history_list', 'SecondaryController@get_fabrication_inventory_history_list');
 	route::get('/get_tbl_workstation_list/{id}','SecondaryController@get_tbl_workstation_list');
 	Route::get('/get_tbl_setting_machine_list', 'SecondaryController@get_tbl_setting_machine_list');
-	Route::post('/create_stock_entry/{production_order}', 'MainController@create_stock_entry');
 	Route::get('/selected_print_job_tickets/{scheduled_date}', 'SecondaryController@selected_printJobTickets');
 	Route::get('/production_schedule_painting', 'SecondaryController@get_production_painting');
 	Route::post('/reorder_production_painting', 'SecondaryController@reorder_production_painting');
